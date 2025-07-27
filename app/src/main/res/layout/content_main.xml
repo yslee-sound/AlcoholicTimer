@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp">
+
+    <TextView
+        style="@style/TextTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="알중시계"
+        android:textSize="36sp"
+        android:textColor="@color/text_accent"
+        android:layout_marginBottom="48dp"/>
+
+    <Button
+        android:id="@+id/btnStartJourney"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_start"
+        android:layout_marginBottom="16dp"
+        style="@style/ButtonPrimary"/>
+
+    <Button
+        android:id="@+id/btnViewStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_status"
+        style="@style/ButtonSecondary"/>
+
+</LinearLayout>

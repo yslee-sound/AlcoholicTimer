@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 기본 컬러 -->
+    <color name="primary">#00897B</color>
+    <color name="primary_dark">#006E6D</color>
+    <color name="accent">#FF9800</color>
+    <color name="background">#F8F8F8</color>
+    <color name="text_primary">#333333</color>
+    <color name="text_accent">#006E6D</color>
+    <color name="button_primary">#00897B</color>
+    <color name="button_secondary">#444444</color>
+
+    <!-- 레벨 배지 컬러 -->
+    <color name="level_1">#D0F0C0</color>
+    <color name="level_2">#A3D9A5</color>
+    <color name="level_3">#7FC8A9</color>
+    <color name="level_4">#5CA08E</color>
+    <color name="level_5">#3A7068</color>
+    <color name="level_6">#2E5D56</color>
+    <color name="level_7">#C2B280</color>
+</resources>

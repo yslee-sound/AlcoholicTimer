@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">알중시계</string>
+    <string name="btn_start">금주 시작</string>
+    <string name="btn_status">활동 보기</string>
+</resources>

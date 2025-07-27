@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="#000000" /> <!-- 중지 버튼을 검은색으로 변경 -->
+    <size android:width="128dp" android:height="128dp" /> <!-- 크기를 2배로 증가 -->
+</shape>
