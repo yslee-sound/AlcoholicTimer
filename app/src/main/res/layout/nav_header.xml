@@ -1,33 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="176dp"
+    android:layout_height="wrap_content"
     android:background="@color/primary"
-    android:gravity="bottom"
     android:orientation="vertical"
     android:padding="16dp"
     android:theme="@style/ThemeOverlay.AppCompat.Dark">
 
+    <!-- 프로필 아이콘 -->
     <ImageView
+        android:id="@+id/ivProfileIcon"
         android:layout_width="80dp"
         android:layout_height="80dp"
-        android:contentDescription="앱 아이콘"
-        android:src="@mipmap/ic_launcher_round" />
+        android:layout_marginTop="24dp"
+        android:contentDescription="프로필 아이콘"
+        android:src="@drawable/ic_profile" />
 
+    <!-- 사용자 이름/별명 -->
     <TextView
+        android:id="@+id/tvUserNickname"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="금주 타이머"
+        android:text="알중이"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="@android:color/white"
         android:textSize="18sp"
         android:textStyle="bold" />
 
+    <!-- 레벨 및 금주 일수 -->
     <TextView
+        android:id="@+id/tvUserLevelDays"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="금주 생활 관리 앱"
-        android:textColor="@android:color/white" />
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="16dp"
+        android:text="Level 1 · 0일 금주 중"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
 </LinearLayout>

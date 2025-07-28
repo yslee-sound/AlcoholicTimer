@@ -1,10 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@+id/nav_start"
-        android:title="금주 시작"/>
-    <item
-        android:id="@+id/nav_status"
-        android:title="활동 보기"/>
-</menu>
+    <!-- 메뉴 섹션 -->
+    <group android:id="@+id/group_main_menu">
+        <item
+            android:id="@+id/nav_start"
+            android:icon="@drawable/ic_flag"
+            android:title="금주 시작" />
+        <item
+            android:id="@+id/nav_records"
+            android:icon="@drawable/ic_calendar"
+            android:title="활동 보기" />
+        <item
+            android:id="@+id/nav_challenge"
+            android:icon="@drawable/ic_trophy"
+            android:title="챌린지"
+            android:enabled="false" />
+        <item
+            android:id="@+id/nav_messages"
+            android:icon="@drawable/ic_message"
+            android:title="응원 메시지"
+            android:enabled="false" />
+        <item
+            android:id="@+id/nav_notifications"
+            android:icon="@drawable/ic_notification"
+            android:title="알림함"
+            android:enabled="false" />
+    </group>
 
+    <!-- 설정 섹션 -->
+    <group android:id="@+id/group_settings">
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_settings"
+            android:title="설정" />
+    </group>
+</menu>

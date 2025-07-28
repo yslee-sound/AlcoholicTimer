@@ -2,11 +2,16 @@ package com.example.alcoholictimer
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.ImageButton
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import com.example.alcoholictimer.utils.Constants
 import com.google.android.material.navigation.NavigationView
+import java.util.Date
 
 /**
  * 모든 액티비티의 베이스 클래스
@@ -32,8 +37,8 @@ abstract class BaseActivity : AppCompatActivity() {
 
         // 메뉴 버튼 클릭 시 드로어 열기
         btnMenu.setOnClickListener {
-            // 드로어를 열기 전에 금주 상태를 확인하여 메뉴 아이템 활성화/비활성화 설정
-            updateNavigationMenuState()
+            // 드로어를 열기 전에 최신 상태로 업데이트
+            updateNavigationDrawer()
             drawerLayout.open()
         }
 
@@ -48,13 +53,27 @@ abstract class BaseActivity : AppCompatActivity() {
                         }
                     }
                 }
-                R.id.nav_status -> {
+                R.id.nav_records -> {
+                    // 활동 보기 화면으로 이동
                     if (this !is StatusActivity) {
-                        startActivity(Intent(this, StatusActivity::class.java))
+                        val intent = Intent(this, StatusActivity::class.java)
+                        startActivity(intent)
                         if (this !is MainActivity) {
                             finish()
                         }
                     }
+                }
+                R.id.nav_challenge -> {
+                    Toast.makeText(this, "준비 중인 기능입니다", Toast.LENGTH_SHORT).show()
+                }
+                R.id.nav_messages -> {
+                    Toast.makeText(this, "준비 중인 기능입니다", Toast.LENGTH_SHORT).show()
+                }
+                R.id.nav_notifications -> {
+                    Toast.makeText(this, "준비 중인 기능입니다", Toast.LENGTH_SHORT).show()
+                }
+                R.id.nav_settings -> {
+                    Toast.makeText(this, "설정 기능은 준비 중입니다", Toast.LENGTH_SHORT).show()
                 }
             }
             drawerLayout.close()
@@ -63,6 +82,17 @@ abstract class BaseActivity : AppCompatActivity() {
 
         // 각 액티비티의 레이아웃을 contentFrame에 추가
         setupContentView()
+    }
+
+    /**
+     * 금주 상태에 따라 내비게이션 메뉴 상태와 헤더 정보를 업데이트합니다.
+     */
+    private fun updateNavigationDrawer() {
+        // 네비게이션 메뉴 상태 업데이트
+        updateNavigationMenuState()
+
+        // 네비게이션 헤더 정보 업데이트
+        updateNavigationHeader()
     }
 
     /**
@@ -78,8 +108,49 @@ abstract class BaseActivity : AppCompatActivity() {
         startMenuItem.isEnabled = !hasStarted
 
         // 금주가 시작되었을 때만 상태 메뉴 활성화
-        val statusMenuItem = navigationView.menu.findItem(R.id.nav_status)
+        val statusMenuItem = navigationView.menu.findItem(R.id.nav_records)
         statusMenuItem.isEnabled = hasStarted
+    }
+
+    /**
+     * 네비게이션 헤더의 사용자 정보를 업데이트합니다.
+     */
+    private fun updateNavigationHeader() {
+        val headerView = navigationView.getHeaderView(0)
+        if (headerView != null) {
+            val tvUserNickname = headerView.findViewById<TextView>(R.id.tvUserNickname)
+            val tvUserLevelDays = headerView.findViewById<TextView>(R.id.tvUserLevelDays)
+
+            // 사용자 이름은 기본값으로 "알중이" 사용
+            tvUserNickname.text = "알중이"
+
+            // 금주 상태에 따른 레벨 및 일수 정보 업데이트
+            val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+            if (sharedPref.contains("start_time")) {
+                val startTime = sharedPref.getLong("start_time", Date().time)
+                val timePassed = ((System.currentTimeMillis() - startTime) / Constants.TIME_UNIT_MILLIS).toInt()
+
+                // 레벨 계산 (시간 단위에 따라 적절한 마일스톤 사용)
+                val adjustedMilestones = when {
+                    Constants.SECOND_TEST_MODE -> listOf(0, 7, 14, 30, 60, 120, 240, 365)
+                    Constants.TEST_MODE -> listOf(0, 1, 2, 5, 10, 15, 20, 30)
+                    else -> listOf(0, 7, 14, 30, 60, 120, 240, 365)
+                }
+
+                var currentLevel = 1
+                for (i in adjustedMilestones.indices) {
+                    if (timePassed >= adjustedMilestones[i]) {
+                        currentLevel = i + 1
+                    } else {
+                        break
+                    }
+                }
+
+                tvUserLevelDays.text = "Level $currentLevel · ${timePassed}${Constants.TIME_UNIT_TEXT} 금주 중"
+            } else {
+                tvUserLevelDays.text = "금주를 시작해보세요!"
+            }
+        }
     }
 
     /**
