@@ -37,6 +37,8 @@ class StartActivity : BaseActivity() {
                 val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
                 with(sharedPref.edit()) {
                     putInt("target_days", targetTime)
+
+                    // 현재 시간을 시작 시간으로 저장 (조정하지 않음)
                     putLong("start_time", System.currentTimeMillis())
                     apply()
                 }

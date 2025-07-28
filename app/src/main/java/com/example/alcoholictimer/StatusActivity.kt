@@ -4,6 +4,8 @@ import android.app.Dialog
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.Window
@@ -13,6 +15,8 @@ import android.widget.TextView
 import android.widget.Toast
 import com.example.alcoholictimer.utils.Constants
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import java.util.Timer
+import java.util.TimerTask
 
 class StatusActivity : BaseActivity() {
     private val levelMilestones = listOf(0, 7, 14, 30, 60, 120, 240, 365)
@@ -37,9 +41,55 @@ class StatusActivity : BaseActivity() {
         "#FFE91E63"   // Pink
     )
 
+    // UI 업데이트를 위한 타이머 및 핸들러
+    private var timer: Timer? = null
+    private val handler = Handler(Looper.getMainLooper())
+
+    // UI 요소 참조 저장 변수
+    private lateinit var tvDaysCount: TextView
+    private lateinit var tvTimeUnit: TextView
+    private lateinit var tvLevel: TextView
+    private lateinit var tvLevelTitle: TextView
+    private lateinit var tvNextLevel: TextView
+    private lateinit var tvMessage: TextView
+    private lateinit var progressLevel: ProgressBar
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // BaseActivity에서 이미 햄버거 메뉴 및 네비게이션 기능 처리됨
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 화면이 보일 때 타이머 시작
+        startTimer()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // 화면이 보이지 않을 때 타이머 정지
+        stopTimer()
+    }
+
+    private fun startTimer() {
+        // 기존 타이머가 있다면 중지
+        stopTimer()
+
+        // 새 타이머 생성 및 시작
+        timer = Timer()
+        timer?.schedule(object : TimerTask() {
+            override fun run() {
+                // UI 업데이트는 메인 스레드에서 수행해야 함
+                handler.post {
+                    updateUI()
+                }
+            }
+        }, 0, 1000) // 1초마다 업데이트
+    }
+
+    private fun stopTimer() {
+        timer?.cancel()
+        timer = null
     }
 
     override fun setupContentView() {
@@ -47,13 +97,14 @@ class StatusActivity : BaseActivity() {
         val contentFrame = findViewById<ViewGroup>(R.id.contentFrame)
         val view = LayoutInflater.from(this).inflate(R.layout.content_status, contentFrame, true)
 
-        val tvDaysCount = view.findViewById<TextView>(R.id.tvDaysCount)
-        val tvTimeUnit = view.findViewById<TextView>(R.id.tvTimeUnit)
-        val tvLevel = view.findViewById<TextView>(R.id.tvLevel)
-        val tvLevelTitle = view.findViewById<TextView>(R.id.tvLevelTitle)
-        val tvNextLevel = view.findViewById<TextView>(R.id.tvNextLevel)
-        val tvMessage = view.findViewById<TextView>(R.id.tvMessage)
-        val progressLevel = view.findViewById<ProgressBar>(R.id.progressLevel)
+        // UI 요소 초기화
+        tvDaysCount = view.findViewById(R.id.tvDaysCount)
+        tvTimeUnit = view.findViewById(R.id.tvTimeUnit)
+        tvLevel = view.findViewById(R.id.tvLevel)
+        tvLevelTitle = view.findViewById(R.id.tvLevelTitle)
+        tvNextLevel = view.findViewById(R.id.tvNextLevel)
+        tvMessage = view.findViewById(R.id.tvMessage)
+        progressLevel = view.findViewById(R.id.progressLevel)
 
         // 시간 단위 텍스트 설정
         tvTimeUnit.text = Constants.TIME_UNIT_TEXT
@@ -65,6 +116,14 @@ class StatusActivity : BaseActivity() {
             showCustomStopDialog()
         }
 
+        // 최초 UI 업데이트
+        updateUI()
+    }
+
+    /**
+     * UI를 업데이트하는 메서드 - 타이머에 의해 주기적으로 호출됨
+     */
+    private fun updateUI() {
         // SharedPreferences에서 데이터 불러오기
         val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
         val startTime = sharedPref.getLong("start_time", System.currentTimeMillis())
@@ -72,6 +131,9 @@ class StatusActivity : BaseActivity() {
 
         // 경과 시간 계산 (테스트 모드에 따라 일 또는 분 단위로 계산)
         val timePassed = ((System.currentTimeMillis() - startTime) / Constants.TIME_UNIT_MILLIS).toInt()
+
+        // 프로그레스바를 위한 초 단위 경과 시간 계산
+        val secondsPassed = ((System.currentTimeMillis() - startTime) / Constants.PROGRESS_TIME_UNIT_MILLIS).toInt()
 
         // UI 업데이트
         tvDaysCount.text = timePassed.toString()
@@ -104,11 +166,26 @@ class StatusActivity : BaseActivity() {
             val timeLeft = nextLevelTime - timePassed
             tvNextLevel.text = "다음 레벨까지 ${timeLeft}${Constants.TIME_UNIT_TEXT}"
 
-            // 프로그레스바 업데이트
-            val currentLevelTime = adjustedMilestones[currentLevel]
-            val nextLevelThreshold = adjustedMilestones[currentLevel + 1]
-            val progress = ((timePassed - currentLevelTime).toFloat() / (nextLevelThreshold - currentLevelTime)) * 100
-            progressLevel.progress = progress.toInt()
+            // 프로그레스바 업데이트 - 초 단위로 계산
+            val currentLevelTimeInSeconds = if (Constants.PROGRESS_TEST_MODE) {
+                adjustedMilestones[currentLevel] * (Constants.TIME_UNIT_MILLIS / Constants.SECOND_IN_MILLIS).toInt()
+            } else {
+                adjustedMilestones[currentLevel]
+            }
+
+            val nextLevelThresholdInSeconds = if (Constants.PROGRESS_TEST_MODE) {
+                adjustedMilestones[currentLevel + 1] * (Constants.TIME_UNIT_MILLIS / Constants.SECOND_IN_MILLIS).toInt()
+            } else {
+                adjustedMilestones[currentLevel + 1]
+            }
+
+            val progressValue = if (Constants.PROGRESS_TEST_MODE) {
+                ((secondsPassed - currentLevelTimeInSeconds).toFloat() / (nextLevelThresholdInSeconds - currentLevelTimeInSeconds)) * 100
+            } else {
+                ((timePassed - adjustedMilestones[currentLevel]).toFloat() / (adjustedMilestones[currentLevel + 1] - adjustedMilestones[currentLevel])) * 100
+            }
+
+            progressLevel.progress = progressValue.toInt().coerceIn(0, 100)
         } else {
             tvNextLevel.text = "최고 레벨 달성!"
             progressLevel.progress = 100

@@ -74,13 +74,16 @@
                     android:text="다음 레벨까지 7일"
                     android:layout_marginBottom="8dp"/>
 
+                <!-- 프로그레스바 시각적 효과 개선 -->
                 <ProgressBar
                     android:id="@+id/progressLevel"
                     style="?android:attr/progressBarStyleHorizontal"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:progress="0"
-                    android:max="100"/>
+                    android:layout_height="12dp"
+                    android:progress="30"
+                    android:max="100"
+                    android:progressDrawable="@drawable/custom_progress_bar"/>
+
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
