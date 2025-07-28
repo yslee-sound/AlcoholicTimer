@@ -1,6 +1,5 @@
 package com.example.alcoholictimer
 
-import android.app.Dialog
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -8,18 +7,31 @@ import android.os.Handler
 import android.os.Looper
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.view.Window
-import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import com.example.alcoholictimer.utils.Constants
+import com.example.alcoholictimer.utils.SobrietyRecord
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.util.Timer
 import java.util.TimerTask
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class StatusActivity : BaseActivity() {
+    // 이전에 목표 달성 여부를 확인했는지 체크하는 플래그
+    private var goalAchievementChecked = false
+
+    // 일 단위 레벨 마일스톤 (실제 운영)
     private val levelMilestones = listOf(0, 7, 14, 30, 60, 120, 240, 365)
+
+    // 분 단위 레벨 마일스톤 (테스트 모드)
+    private val minuteTestMilestones = listOf(0, 1, 2, 5, 10, 15, 20, 30)
+
+    // 초 단위 레벨 마일스톤 (초 단위 테스트 모드)
+    private val secondTestMilestones = listOf(0, 7, 14, 30, 60, 90, 120, 180)
+
     private val levelTitles = listOf(
         "새싹 도전자",
         "첫걸음 성공",
@@ -63,6 +75,9 @@ class StatusActivity : BaseActivity() {
         super.onResume()
         // 화면이 보일 때 타이머 시작
         startTimer()
+
+        // 목표 달성 플래그 초기화
+        goalAchievementChecked = false
     }
 
     override fun onPause() {
@@ -129,7 +144,7 @@ class StatusActivity : BaseActivity() {
         val startTime = sharedPref.getLong("start_time", System.currentTimeMillis())
         val targetDays = sharedPref.getInt("target_days", 30)
 
-        // 경과 시간 계산 (테스트 모드에 따라 일 또는 분 단위로 계산)
+        // 경과 시간 계산 (테스트 모드에 따라 일, 분 또는 초 단위로 계산)
         val timePassed = ((System.currentTimeMillis() - startTime) / Constants.TIME_UNIT_MILLIS).toInt()
 
         // 프로그레스바를 위한 초 단위 경과 시간 계산
@@ -138,15 +153,15 @@ class StatusActivity : BaseActivity() {
         // UI 업데이트
         tvDaysCount.text = timePassed.toString()
 
-        // 레벨 계산 - 테스트 모드에 따라 레벨 마일스톤 적용
-        var currentLevel = 0
-        val adjustedMilestones = if (Constants.TEST_MODE) {
-            // 테스트용 분 단위 마일스톤 (빠르게 테스트 가능하도록)
-            listOf(0, 1, 2, 5, 10, 15, 20, 30)
-        } else {
-            levelMilestones
+        // 테스트 모드에 따라 적절한 마일스톤 선택
+        val adjustedMilestones = when {
+            Constants.SECOND_TEST_MODE -> secondTestMilestones
+            Constants.TEST_MODE -> minuteTestMilestones
+            else -> levelMilestones
         }
 
+        // 레벨 계산
+        var currentLevel = 0
         for (i in adjustedMilestones.indices) {
             if (timePassed >= adjustedMilestones[i]) {
                 currentLevel = i
@@ -194,9 +209,74 @@ class StatusActivity : BaseActivity() {
         // 목표 달성 여부 메시지
         if (timePassed >= targetDays) {
             tvMessage.text = "축하합니다! ${targetDays}${Constants.TIME_UNIT_TEXT} 목표를 달성했습니다!"
+
+            // 목표 달성 시 처리 (한 번만 실행되도록)
+            if (!goalAchievementChecked) {
+                goalAchievementChecked = true
+
+                // 기록 저장 및 완료 처리
+                val recordId = saveCompletedRecord(startTime, System.currentTimeMillis(), targetDays, currentLevel + 1)
+
+                // 토스트 메시지 표시
+                Toast.makeText(this, "목표 달성! 금주가 완료되었습니다.", Toast.LENGTH_SHORT).show()
+
+                // 요약 화면으로 이동
+                handler.postDelayed({
+                    val intent = Intent(this, RecordSummaryActivity::class.java)
+                    intent.putExtra("record_id", recordId)
+                    startActivity(intent)
+                    finish()
+                }, 1000) // 1초 후 이동
+            }
         } else {
             tvMessage.text = "목표까지 ${targetDays - timePassed}${Constants.TIME_UNIT_TEXT} 남았습니다. 힘내세요!"
         }
+    }
+
+    /**
+     * 완료된 금주 기록을 저장합니다
+     * @return 저장된 기록의 ID
+     */
+    private fun saveCompletedRecord(startTime: Long, endTime: Long, targetDays: Int, level: Int): Long {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val startDate = dateFormat.format(Date(startTime))
+        val endDate = dateFormat.format(Date(endTime))
+
+        // 기록 ID 생성
+        val recordId = System.currentTimeMillis()
+
+        // 기록 객체 생성
+        val record = SobrietyRecord(
+            id = recordId,
+            startDate = startDate,
+            endDate = endDate,
+            duration = targetDays,
+            achievedLevel = level,
+            levelTitle = levelTitles[level - 1],
+            isCompleted = true
+        )
+
+        // 기존 기록 불러오기
+        val sharedPref = getSharedPreferences("sobriety_records", MODE_PRIVATE)
+        val recordsJson = sharedPref.getString("records", "[]")
+        val records = SobrietyRecord.fromJsonArray(recordsJson ?: "[]").toMutableList()
+
+        // 새 기록 추가
+        records.add(record)
+
+        // 기록 저장
+        with(sharedPref.edit()) {
+            putString("records", SobrietyRecord.toJsonArray(records))
+            apply()
+        }
+
+        // 현재 진행중인 금주 데이터 초기화
+        with(getSharedPreferences("user_settings", MODE_PRIVATE).edit()) {
+            clear()
+            apply()
+        }
+
+        return recordId
     }
 
     /**
@@ -204,40 +284,105 @@ class StatusActivity : BaseActivity() {
      */
     private fun showCustomStopDialog() {
         // 커스텀 다이얼로그 생성
-        val dialog = Dialog(this)
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        dialog.setContentView(R.layout.dialog_stop_sobriety)
+        val dialog = android.app.Dialog(this)
+        dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
+        dialog.setContentView(com.example.alcoholictimer.R.layout.dialog_stop_sobriety)
 
         // 다이얼로그 배경을 투명하게 설정하고 외부 영역 클릭으로 닫히지 않게 설정
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialog.setCancelable(false)
 
         // 취소 버튼 클릭 리스너
-        val btnCancel = dialog.findViewById<Button>(R.id.btnCancel)
+        val btnCancel = dialog.findViewById<android.widget.Button>(R.id.btnCancel)
         btnCancel.setOnClickListener {
             dialog.dismiss()
         }
 
         // 확인 버튼 클릭 리스너
-        val btnConfirm = dialog.findViewById<Button>(R.id.btnConfirm)
+        val btnConfirm = dialog.findViewById<android.widget.Button>(R.id.btnConfirm)
         btnConfirm.setOnClickListener {
-            // SharedPreferences 데이터 초기화
+            // 금주 기록 저장 (중도 포기로 표시)
             val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+            val startTime = sharedPref.getLong("start_time", System.currentTimeMillis())
+            val targetDays = sharedPref.getInt("target_days", 30)
+            val timePassed = ((System.currentTimeMillis() - startTime) / Constants.TIME_UNIT_MILLIS).toInt()
+
+            // 현재 레벨 계산
+            var currentLevel = 0
+            val adjustedMilestones = when {
+                Constants.SECOND_TEST_MODE -> secondTestMilestones
+                Constants.TEST_MODE -> minuteTestMilestones
+                else -> levelMilestones
+            }
+
+            for (i in adjustedMilestones.indices) {
+                if (timePassed >= adjustedMilestones[i]) {
+                    currentLevel = i
+                } else {
+                    break
+                }
+            }
+
+            // 중단된 기록 저장 및 요약 화면으로 이동
+            val recordId = saveStoppedRecord(startTime, System.currentTimeMillis(), targetDays, timePassed, currentLevel + 1)
+
+            // SharedPreferences 데이터 초기화
             with(sharedPref.edit()) {
                 clear()  // 모든 데이터 삭제
                 apply()
             }
 
-            Toast.makeText(this, "금주가 초기화되었습니다.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "금주가 중단되었습니다.", Toast.LENGTH_SHORT).show()
 
-            // 메인 화면으로 이동
-            val intent = Intent(this, MainActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+            // 요약 화면으로 이동
+            val intent = Intent(this, RecordSummaryActivity::class.java)
+            intent.putExtra("record_id", recordId)
             startActivity(intent)
             finish()
         }
 
         // 다이얼로그 표시
         dialog.show()
+    }
+
+    /**
+     * 중단된 금주 기록을 저장합니다
+     * @return 저장된 기록의 ID
+     */
+    private fun saveStoppedRecord(startTime: Long, endTime: Long, targetDays: Int, achievedDays: Int, level: Int): Long {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val startDate = dateFormat.format(Date(startTime))
+        val endDate = dateFormat.format(Date(endTime))
+
+        // 기록 ID 생성
+        val recordId = System.currentTimeMillis()
+
+        // 기록 객체 생성
+        val record = SobrietyRecord(
+            id = recordId,
+            startDate = startDate,
+            endDate = endDate,
+            duration = targetDays,
+            achievedDays = achievedDays,
+            achievedLevel = level,
+            levelTitle = levelTitles[level - 1],
+            isCompleted = false
+        )
+
+        // 기존 기록 불러오기
+        val sharedPref = getSharedPreferences("sobriety_records", MODE_PRIVATE)
+        val recordsJson = sharedPref.getString("records", "[]")
+        val records = SobrietyRecord.fromJsonArray(recordsJson ?: "[]").toMutableList()
+
+        // 새 기록 추가
+        records.add(record)
+
+        // 기록 저장
+        with(sharedPref.edit()) {
+            putString("records", SobrietyRecord.toJsonArray(records))
+            apply()
+        }
+
+        return recordId
     }
 }
