@@ -11,6 +11,7 @@ import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import com.example.alcoholictimer.utils.Constants
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class StatusActivity : BaseActivity() {
@@ -47,11 +48,15 @@ class StatusActivity : BaseActivity() {
         val view = LayoutInflater.from(this).inflate(R.layout.content_status, contentFrame, true)
 
         val tvDaysCount = view.findViewById<TextView>(R.id.tvDaysCount)
+        val tvTimeUnit = view.findViewById<TextView>(R.id.tvTimeUnit)
         val tvLevel = view.findViewById<TextView>(R.id.tvLevel)
         val tvLevelTitle = view.findViewById<TextView>(R.id.tvLevelTitle)
         val tvNextLevel = view.findViewById<TextView>(R.id.tvNextLevel)
         val tvMessage = view.findViewById<TextView>(R.id.tvMessage)
         val progressLevel = view.findViewById<ProgressBar>(R.id.progressLevel)
+
+        // 시간 단위 텍스트 설정
+        tvTimeUnit.text = Constants.TIME_UNIT_TEXT
 
         // 중지 버튼 설정
         val btnStopSobriety = view.findViewById<FloatingActionButton>(R.id.btnStopSobriety)
@@ -65,16 +70,23 @@ class StatusActivity : BaseActivity() {
         val startTime = sharedPref.getLong("start_time", System.currentTimeMillis())
         val targetDays = sharedPref.getInt("target_days", 30)
 
-        // 경과일 계산 (밀리초를 일수로 변환)
-        val daysPassed = ((System.currentTimeMillis() - startTime) / (1000 * 60 * 60 * 24)).toInt()
+        // 경과 시간 계산 (테스트 모드에 따라 일 또는 분 단위로 계산)
+        val timePassed = ((System.currentTimeMillis() - startTime) / Constants.TIME_UNIT_MILLIS).toInt()
 
         // UI 업데이트
-        tvDaysCount.text = daysPassed.toString()
+        tvDaysCount.text = timePassed.toString()
 
-        // 레벨 계산
+        // 레벨 계산 - 테스트 모드에 따라 레벨 마일스톤 적용
         var currentLevel = 0
-        for (i in levelMilestones.indices) {
-            if (daysPassed >= levelMilestones[i]) {
+        val adjustedMilestones = if (Constants.TEST_MODE) {
+            // 테스트용 분 단위 마일스톤 (빠르게 테스트 가능하도록)
+            listOf(0, 1, 2, 5, 10, 15, 20, 30)
+        } else {
+            levelMilestones
+        }
+
+        for (i in adjustedMilestones.indices) {
+            if (timePassed >= adjustedMilestones[i]) {
                 currentLevel = i
             } else {
                 break
@@ -87,15 +99,15 @@ class StatusActivity : BaseActivity() {
         tvLevelTitle.setTextColor(Color.parseColor(levelColors[currentLevel]))
 
         // 다음 레벨 정보
-        if (currentLevel < levelMilestones.size - 1) {
-            val nextLevelDays = levelMilestones[currentLevel + 1]
-            val daysLeft = nextLevelDays - daysPassed
-            tvNextLevel.text = "다음 레벨까지 ${daysLeft}일"
+        if (currentLevel < adjustedMilestones.size - 1) {
+            val nextLevelTime = adjustedMilestones[currentLevel + 1]
+            val timeLeft = nextLevelTime - timePassed
+            tvNextLevel.text = "다음 레벨까지 ${timeLeft}${Constants.TIME_UNIT_TEXT}"
 
             // 프로그레스바 업데이트
-            val currentLevelDays = levelMilestones[currentLevel]
-            val nextLevelThreshold = levelMilestones[currentLevel + 1]
-            val progress = ((daysPassed - currentLevelDays).toFloat() / (nextLevelThreshold - currentLevelDays)) * 100
+            val currentLevelTime = adjustedMilestones[currentLevel]
+            val nextLevelThreshold = adjustedMilestones[currentLevel + 1]
+            val progress = ((timePassed - currentLevelTime).toFloat() / (nextLevelThreshold - currentLevelTime)) * 100
             progressLevel.progress = progress.toInt()
         } else {
             tvNextLevel.text = "최고 레벨 달성!"
@@ -103,10 +115,10 @@ class StatusActivity : BaseActivity() {
         }
 
         // 목표 달성 여부 메시지
-        if (daysPassed >= targetDays) {
-            tvMessage.text = "축하합니다! ${targetDays}일 목표를 달성했습니다!"
+        if (timePassed >= targetDays) {
+            tvMessage.text = "축하합니다! ${targetDays}${Constants.TIME_UNIT_TEXT} 목표를 달성했습니다!"
         } else {
-            tvMessage.text = "목표까지 ${targetDays - daysPassed}일 남았습니다. 힘내세요!"
+            tvMessage.text = "목표까지 ${targetDays - timePassed}${Constants.TIME_UNIT_TEXT} 남았습니다. 힘내세요!"
         }
     }
 
