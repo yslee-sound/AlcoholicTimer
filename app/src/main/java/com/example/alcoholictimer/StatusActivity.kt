@@ -141,8 +141,18 @@ class StatusActivity : BaseActivity() {
             return
         }
 
-        // 경과 시간 계산 (테스트 모드에 따라 일, 분 또는 초 단위로 계산)
+        // 테스트 모드에 따른 일/분/초 단위의 경과 시간 계산
         val timePassed = ((System.currentTimeMillis() - startTime) / Constants.TIME_UNIT_MILLIS).toInt()
+
+        // 초 단위 경과 시간 계산 (모든 모드에서 초 단위로 계산)
+        val secondsPassed = (System.currentTimeMillis() - startTime) / 1000L
+
+        // 테스트 모드에 따라 목표 시간을 초 단위로 변환
+        val targetSeconds = when {
+            Constants.isSecondTestMode -> targetDays.toLong() // 이미 초 단위
+            Constants.isMinuteTestMode -> targetDays.toLong() * 60 // 분을 초로 변환
+            else -> targetDays.toLong() * 24 * 60 * 60 // 일을 초로 변환
+        }
 
         // UI 업데이트 - 마지막 목표 숫자에 도달하면 숫자를 증가시키지 않고 색상 변경
         if (timePassed >= targetDays) {
@@ -171,8 +181,8 @@ class StatusActivity : BaseActivity() {
 
                 // 테스트 모드에 따라 적절한 마일스톤 선택
                 val adjustedMilestones = when {
-                    Constants.SECOND_TEST_MODE -> secondTestMilestones
-                    Constants.TEST_MODE -> minuteTestMilestones
+                    Constants.isSecondTestMode -> secondTestMilestones
+                    Constants.isMinuteTestMode -> minuteTestMilestones
                     else -> levelMilestones
                 }
 
@@ -208,8 +218,8 @@ class StatusActivity : BaseActivity() {
 
             // 테스트 모드에 따라 적절한 마일스톤 선택
             val adjustedMilestones = when {
-                Constants.SECOND_TEST_MODE -> secondTestMilestones
-                Constants.TEST_MODE -> minuteTestMilestones
+                Constants.isSecondTestMode -> secondTestMilestones
+                Constants.isMinuteTestMode -> minuteTestMilestones
                 else -> levelMilestones
             }
 
@@ -223,8 +233,8 @@ class StatusActivity : BaseActivity() {
                 }
             }
 
-            // 프로그레스바 업데이트 - 전체 목표일 수 기준으로 계산
-            val progressPercentage = (timePassed.toFloat() / targetDays) * 100
+            // 프로그레스바 업데이트 - 초 단위로 계산하여 부드러운 진행을 구현
+            val progressPercentage = (secondsPassed.toFloat() / targetSeconds) * 100
             progressLevel.progress = progressPercentage.toInt().coerceIn(0, 100)
 
             // 남은 일수 메시지에도 +1 적용하지 않음 (실제 목표까지 남은 날짜를 정확하게 표시)

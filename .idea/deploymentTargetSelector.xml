@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-07-27T12:02:14.310822600Z">
+        <DropdownSelection timestamp="2025-07-29T22:25:31.232793Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\khafr\.android\avd\Flutter_Inflearn.avd" />

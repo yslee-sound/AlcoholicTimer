@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
+        android:name=".AlcoholicTimerApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -38,6 +39,11 @@
             android:name=".RecordSummaryActivity"
             android:exported="false"
             android:theme="@style/Theme.AlcoholicTimer"/>
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:label="설정"
+            android:theme="@style/Theme.AlcoholicTimer" />
     </application>
 
 </manifest>

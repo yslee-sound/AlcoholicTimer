@@ -74,14 +74,18 @@ abstract class BaseActivity : AppCompatActivity() {
                     Toast.makeText(this, "준비 중인 기능입니다", Toast.LENGTH_SHORT).show()
                 }
                 R.id.nav_settings -> {
-                    Toast.makeText(this, "설정 기능은 준비 중입니다", Toast.LENGTH_SHORT).show()
+                    // 설정 화면으로 이동
+                    val intent = Intent(this, SettingsActivity::class.java)
+                    startActivity(intent)
+                    // 설정 화면에서는 현재 화면을 유지
                 }
             }
+            // 메뉴 선택 후 드로어 닫기
             drawerLayout.close()
             true
         }
 
-        // 각 액티비티의 레이아웃을 contentFrame에 추가
+        // 특정 화면에 필요한 컨텐츠 뷰 설정
         setupContentView()
     }
 
@@ -133,8 +137,8 @@ abstract class BaseActivity : AppCompatActivity() {
 
                 // 레벨 계산 (시간 단위에 따라 적절한 마일스톤 사용)
                 val adjustedMilestones = when {
-                    Constants.SECOND_TEST_MODE -> listOf(0, 7, 14, 30, 60, 120, 240, 365)
-                    Constants.TEST_MODE -> listOf(0, 1, 2, 5, 10, 15, 20, 30)
+                    Constants.isSecondTestMode -> listOf(0, 7, 14, 30, 60, 120, 240, 365)
+                    Constants.isMinuteTestMode -> listOf(0, 1, 2, 5, 10, 15, 20, 30)
                     else -> listOf(0, 7, 14, 30, 60, 120, 240, 365)
                 }
 
