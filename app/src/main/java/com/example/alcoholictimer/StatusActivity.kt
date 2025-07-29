@@ -192,13 +192,13 @@ class StatusActivity : BaseActivity() {
                 // 토스트 메시지 표시
                 Toast.makeText(this, "목표 달성! 금주가 완료되었습니다.", Toast.LENGTH_SHORT).show()
 
-                // 요약 화면으로 이동
+                // 요약 화면으로 이동 (3초 딜레이로 변경)
                 handler.postDelayed({
                     val intent = Intent(this, RecordSummaryActivity::class.java)
                     intent.putExtra("record_id", recordId)
                     startActivity(intent)
                     finish()
-                }, 1000) // 1초 후 이동
+                }, 3000) // 3초 후 이동 (기존 1초에서 변경)
             }
         } else {
             // 아직 목표 달성 전이면 일반적인 숫자 표시 (1일차부터 시작)
