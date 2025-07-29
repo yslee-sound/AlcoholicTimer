@@ -12,11 +12,11 @@ import android.widget.Toast
 import com.example.alcoholictimer.utils.Constants
 import com.example.alcoholictimer.utils.SobrietyRecord
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import java.util.Timer
-import java.util.TimerTask
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.Timer
+import java.util.TimerTask
 
 class StatusActivity : BaseActivity() {
     // 이전에 목표 달성 여부를 확인했는지 체크하는 플래그
