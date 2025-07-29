@@ -55,8 +55,9 @@ abstract class BaseActivity : AppCompatActivity() {
                 }
                 R.id.nav_records -> {
                     // 활동 보기 화면으로 이동
-                    if (this !is StatusActivity) {
-                        val intent = Intent(this, StatusActivity::class.java)
+                    Toast.makeText(this, "활동 보기로 이동합니다", Toast.LENGTH_SHORT).show()
+                    if (this !is RecordsActivity) {
+                        val intent = Intent(this, RecordsActivity::class.java)
                         startActivity(intent)
                         if (this !is MainActivity) {
                             finish()
@@ -107,9 +108,9 @@ abstract class BaseActivity : AppCompatActivity() {
         val startMenuItem = navigationView.menu.findItem(R.id.nav_start)
         startMenuItem.isEnabled = !hasStarted
 
-        // 금주가 시작되었을 때만 상태 메뉴 활성화
-        val statusMenuItem = navigationView.menu.findItem(R.id.nav_records)
-        statusMenuItem.isEnabled = hasStarted
+        // 활동 보기 메뉴는 항상 활성화
+        val recordsMenuItem = navigationView.menu.findItem(R.id.nav_records)
+        recordsMenuItem.isEnabled = true
     }
 
     /**

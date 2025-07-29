@@ -1,49 +1,179 @@
 package com.example.alcoholictimer
 
+import android.graphics.Color
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.temporal.WeekFields
 import java.util.Locale
 
-class RecordsActivity : AppCompatActivity() {
+class RecordsActivity : BaseActivity() {
+
+    private lateinit var tvWeeklyCount: TextView
+    private lateinit var tvMonthlyCount: TextView
+    private lateinit var tvTotalCount: TextView
+    private lateinit var tvSummary: TextView
+    private lateinit var tvPeriodSummary: TextView
+    private lateinit var tvTotalAbstinence: TextView
+    private lateinit var tvLongestStreak: TextView
+    private lateinit var tvLastFailure: TextView
+    private lateinit var chartContainer: FrameLayout
+    private lateinit var rvLevelHistory: RecyclerView
+
+    private lateinit var btnWeek: Button
+    private lateinit var btnMonth: Button
+    private lateinit var btnYear: Button
+    private lateinit var btnAll: Button
+
+    private var startDate: LocalDate? = null
+    private var currentPeriod = Period.ALL
+
+    private enum class Period {
+        WEEK, MONTH, YEAR, ALL
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_records)
 
-        val tvWeeklyCount = findViewById<TextView>(R.id.tvWeeklyCount)
-        val tvMonthlyCount = findViewById<TextView>(R.id.tvMonthlyCount)
-        val tvTotalCount = findViewById<TextView>(R.id.tvTotalCount)
-        val tvSummary = findViewById<TextView>(R.id.tvSummary)
+        // 데이터 로드 및 표시
+        loadAndDisplayData()
+    }
 
+    override fun setupContentView() {
+        // RecordsActivity의 컨텐츠를 contentFrame에 추가
+        val contentFrame = findViewById<ViewGroup>(R.id.contentFrame)
+        LayoutInflater.from(this).inflate(R.layout.activity_records, contentFrame, true)
+
+        // View 초기화
+        initViews()
+
+        // 버튼 클릭 리스너 설정
+        setupButtonListeners()
+    }
+
+    private fun initViews() {
+        tvWeeklyCount = findViewById(R.id.tvWeeklyCount)
+        tvMonthlyCount = findViewById(R.id.tvMonthlyCount)
+        tvTotalCount = findViewById(R.id.tvTotalCount)
+        tvSummary = findViewById(R.id.tvSummary)
+        tvPeriodSummary = findViewById(R.id.tvPeriodSummary)
+        tvTotalAbstinence = findViewById(R.id.tvTotalAbstinence)
+        tvLongestStreak = findViewById(R.id.tvLongestStreak)
+        tvLastFailure = findViewById(R.id.tvLastFailure)
+        chartContainer = findViewById(R.id.chartContainer)
+        rvLevelHistory = findViewById(R.id.rvLevelHistory)
+
+        btnWeek = findViewById(R.id.btnWeek)
+        btnMonth = findViewById(R.id.btnMonth)
+        btnYear = findViewById(R.id.btnYear)
+        btnAll = findViewById(R.id.btnAll)
+
+        // RecyclerView 설정
+        rvLevelHistory.layoutManager = LinearLayoutManager(this)
+    }
+
+    private fun setupButtonListeners() {
+        btnWeek.setOnClickListener {
+            currentPeriod = Period.WEEK
+            updatePeriodUI()
+            loadAndDisplayData()
+        }
+
+        btnMonth.setOnClickListener {
+            currentPeriod = Period.MONTH
+            updatePeriodUI()
+            loadAndDisplayData()
+        }
+
+        btnYear.setOnClickListener {
+            currentPeriod = Period.YEAR
+            updatePeriodUI()
+            loadAndDisplayData()
+        }
+
+        btnAll.setOnClickListener {
+            currentPeriod = Period.ALL
+            updatePeriodUI()
+            loadAndDisplayData()
+        }
+    }
+
+    private fun updatePeriodUI() {
+        // 모든 버튼 기본 스타일로 초기화
+        btnWeek.setBackgroundColor(Color.LTGRAY)
+        btnMonth.setBackgroundColor(Color.LTGRAY)
+        btnYear.setBackgroundColor(Color.LTGRAY)
+        btnAll.setBackgroundColor(Color.LTGRAY)
+
+        // 선택된 버튼 강조
+        when(currentPeriod) {
+            Period.WEEK -> {
+                btnWeek.setBackgroundColor(Color.DKGRAY)
+                tvPeriodSummary.text = "선택 기간: 주"
+            }
+            Period.MONTH -> {
+                btnMonth.setBackgroundColor(Color.DKGRAY)
+                tvPeriodSummary.text = "선택 기간: 월"
+            }
+            Period.YEAR -> {
+                btnYear.setBackgroundColor(Color.DKGRAY)
+                tvPeriodSummary.text = "선택 기간: 년"
+            }
+            Period.ALL -> {
+                btnAll.setBackgroundColor(Color.DKGRAY)
+                tvPeriodSummary.text = "선택 기간: 전체"
+            }
+        }
+    }
+
+    private fun loadAndDisplayData() {
         // SharedPreferences에서 시작일 불러오기
         val sharedPref = getSharedPreferences("AlcoholicPrefs", MODE_PRIVATE)
         val startDateStr = sharedPref.getString("start_date", null)
 
         if (startDateStr != null) {
-            val startDate = LocalDate.parse(startDateStr)
+            startDate = LocalDate.parse(startDateStr)
             val today = LocalDate.now()
 
+            // 기본 통계 업데이트
+            updateBasicStatistics(today)
+
+            // 기간별 통계 업데이트
+            updatePeriodStatistics(today)
+
+            // 레벨 히스토리 업데이트
+            updateLevelHistory()
+        }
+    }
+
+    private fun updateBasicStatistics(today: LocalDate) {
+        startDate?.let { start ->
             // 전체 금주 일수
-            val totalDays = ChronoUnit.DAYS.between(startDate, today)
+            val totalDays = ChronoUnit.DAYS.between(start, today).toInt() + 1 // 오늘 포함
 
             // 이번 주 금주 일수
             val weekFields = WeekFields.of(Locale.getDefault())
             val thisWeekStart = today.with(weekFields.dayOfWeek(), 1)
-            val weeklyDays = if (startDate.isAfter(thisWeekStart)) {
-                ChronoUnit.DAYS.between(startDate, today)
+            val weeklyDays = if (start.isAfter(thisWeekStart)) {
+                ChronoUnit.DAYS.between(start, today).toInt() + 1
             } else {
-                ChronoUnit.DAYS.between(thisWeekStart, today.plusDays(1))
+                ChronoUnit.DAYS.between(thisWeekStart, today).toInt() + 1
             }
 
             // 이번 달 금주 일수
             val thisMonthStart = today.withDayOfMonth(1)
-            val monthlyDays = if (startDate.isAfter(thisMonthStart)) {
-                ChronoUnit.DAYS.between(startDate, today)
+            val monthlyDays = if (start.isAfter(thisMonthStart)) {
+                ChronoUnit.DAYS.between(start, today).toInt() + 1
             } else {
-                ChronoUnit.DAYS.between(thisMonthStart, today.plusDays(1))
+                ChronoUnit.DAYS.between(thisMonthStart, today).toInt() + 1
             }
 
             // UI 업데이트
@@ -60,6 +190,55 @@ class RecordsActivity : AppCompatActivity() {
                 else -> "금주를 시작한지 ${totalDays}일이 지났습니다."
             }
             tvSummary.text = summaryMessage
+
+            // 최고 기록 업데이트
+            tvTotalAbstinence.text = "전체 누적 금주 일수: ${totalDays}일"
+            tvLongestStreak.text = "최장 연속 금주 기록: ${totalDays}일" // 예제에서는 실패 없이 연속으로 진행
+            tvLastFailure.text = "마지막 금주 실패: 없음" // 예제에서는 실패가 없다고 가정
+        }
+    }
+
+    private fun updatePeriodStatistics(today: LocalDate) {
+        // 여기서 기간별 통계를 표시할 수 있습니다
+        // 이 예제에서는 단순화를 위해 코드를 생략합니다
+        // 실제로는 기간에 따른 그래프 등을 표시할 수 있습니다
+    }
+
+    private fun updateLevelHistory() {
+        // 예시 데이터 (실제로는 SharedPreferences나 DB에서 가져와야 함)
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val levelHistory = mutableListOf<LevelHistoryItem>()
+
+        startDate?.let { start ->
+            val today = LocalDate.now()
+            var currentDate = start
+            var level = 1
+
+            // 레벨 달성 예시 데이터 생성
+            // 실제 앱에서는 저장된 레벨 달성 히스토리를 가져와야 함
+            while (!currentDate.isAfter(today) && level <= 7) {
+                // 7일마다 레벨업 (예시)
+                val daysBetween = ChronoUnit.DAYS.between(start, currentDate)
+                if (daysBetween % 7L == 0L) {
+                    levelHistory.add(LevelHistoryItem(
+                        currentDate.format(formatter),
+                        "Level ${level} 달성!"
+                    ))
+                    level++
+                }
+                // 일부 날짜는 금주 성공 기록 추가
+                else if (daysBetween % 3L == 0L) {
+                    levelHistory.add(LevelHistoryItem(
+                        currentDate.format(formatter),
+                        "금주 성공"
+                    ))
+                }
+
+                currentDate = currentDate.plusDays(1)
+            }
+
+            // RecyclerView에 어댑터 설정
+            rvLevelHistory.adapter = LevelHistoryAdapter(levelHistory)
         }
     }
 }
