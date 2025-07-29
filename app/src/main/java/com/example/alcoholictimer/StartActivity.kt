@@ -2,6 +2,7 @@ package com.example.alcoholictimer
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Button
@@ -29,6 +30,10 @@ class StartActivity : BaseActivity() {
         // 테스트 모드에 따라 레이블 변경
         tvDaysLabel.text = Constants.TIME_UNIT_TEXT
 
+        // 기본 숫자 입력 설정
+        editTextDays.inputType = InputType.TYPE_CLASS_NUMBER
+
+        // 시작 버튼 클릭 처리
         btnStart.setOnClickListener {
             val targetTime = editTextDays.text.toString().toIntOrNull() ?: 0
 
@@ -38,7 +43,7 @@ class StartActivity : BaseActivity() {
                 with(sharedPref.edit()) {
                     putInt("target_days", targetTime)
 
-                    // 현재 시간을 시작 시간으로 저장 (조정하지 않음)
+                    // 현재 시간을 시작 시간으로 저장
                     putLong("start_time", System.currentTimeMillis())
                     apply()
                 }

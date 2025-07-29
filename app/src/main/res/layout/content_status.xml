@@ -37,55 +37,16 @@
             android:textSize="24sp"
             android:layout_marginBottom="32dp"/>
 
-        <androidx.cardview.widget.CardView
+        <!-- 심플한 프로그레스바만 표시 -->
+        <ProgressBar
+            android:id="@+id/progressLevel"
+            style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="4dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:id="@+id/tvLevel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Lv. 1"
-                    android:textSize="16sp"
-                    android:layout_marginBottom="8dp"/>
-
-                <TextView
-                    android:id="@+id/tvLevelTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="새싹 도전자"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="16dp"/>
-
-                <TextView
-                    android:id="@+id/tvNextLevel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="다음 레벨까지 7일"
-                    android:layout_marginBottom="8dp"/>
-
-                <!-- 프로그레스바 시각적 효과 개선 -->
-                <ProgressBar
-                    android:id="@+id/progressLevel"
-                    style="?android:attr/progressBarStyleHorizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="12dp"
-                    android:progress="30"
-                    android:max="100"
-                    android:progressDrawable="@drawable/custom_progress_bar"/>
-
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
+            android:layout_height="12dp"
+            android:progress="30"
+            android:max="100"
+            android:progressDrawable="@drawable/custom_progress_bar"
+            android:layout_marginBottom="48dp"/>
 
         <TextView
             android:id="@+id/tvMessage"

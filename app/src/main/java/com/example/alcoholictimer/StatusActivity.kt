@@ -1,7 +1,6 @@
 package com.example.alcoholictimer
 
 import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -42,16 +41,6 @@ class StatusActivity : BaseActivity() {
         "금주의 마스터",
         "절제의 달인"
     )
-    private val levelColors = listOf(
-        "#FF9E9E9E",  // Gray
-        "#FF4CAF50",  // Green
-        "#FF2196F3",  // Blue
-        "#FF9C27B0",  // Purple
-        "#FFFF9800",  // Orange
-        "#FFFF5722",  // Deep Orange
-        "#FF3F51B5",  // Indigo
-        "#FFE91E63"   // Pink
-    )
 
     // UI 업데이트를 위한 타이머 및 핸들러
     private var timer: Timer? = null
@@ -60,9 +49,6 @@ class StatusActivity : BaseActivity() {
     // UI 요소 참조 저장 변수
     private lateinit var tvDaysCount: TextView
     private lateinit var tvTimeUnit: TextView
-    private lateinit var tvLevel: TextView
-    private lateinit var tvLevelTitle: TextView
-    private lateinit var tvNextLevel: TextView
     private lateinit var tvMessage: TextView
     private lateinit var progressLevel: ProgressBar
 
@@ -115,9 +101,6 @@ class StatusActivity : BaseActivity() {
         // UI 요소 초기화
         tvDaysCount = view.findViewById(R.id.tvDaysCount)
         tvTimeUnit = view.findViewById(R.id.tvTimeUnit)
-        tvLevel = view.findViewById(R.id.tvLevel)
-        tvLevelTitle = view.findViewById(R.id.tvLevelTitle)
-        tvNextLevel = view.findViewById(R.id.tvNextLevel)
         tvMessage = view.findViewById(R.id.tvMessage)
         progressLevel = view.findViewById(R.id.progressLevel)
 
@@ -144,75 +127,64 @@ class StatusActivity : BaseActivity() {
         val startTime = sharedPref.getLong("start_time", System.currentTimeMillis())
         val targetDays = sharedPref.getInt("target_days", 30)
 
+        // 타이머가 이미 완료되었는지 확인
+        val completionFlag = sharedPref.getBoolean("timer_completed", false)
+
+        // 타이머가 이미 완료된 상태면 목표 일수를 보여주고 즉시 리턴
+        if (completionFlag) {
+            tvDaysCount.text = targetDays.toString()
+            tvDaysCount.setTextColor(resources.getColor(android.R.color.holo_orange_dark, theme))
+            tvMessage.text = "축하합니다! ${targetDays}${Constants.TIME_UNIT_TEXT} 목표를 달성했습니다!"
+
+            // 완료 상태에서는 프로그레스바를 100%로 설정
+            progressLevel.progress = 100
+            return
+        }
+
         // 경과 시간 계산 (테스트 모드에 따라 일, 분 또는 초 단위로 계산)
         val timePassed = ((System.currentTimeMillis() - startTime) / Constants.TIME_UNIT_MILLIS).toInt()
 
-        // 프로그레스바를 위한 초 단위 경과 시간 계산
-        val secondsPassed = ((System.currentTimeMillis() - startTime) / Constants.PROGRESS_TIME_UNIT_MILLIS).toInt()
-
-        // UI 업데이트
-        tvDaysCount.text = timePassed.toString()
-
-        // 테스트 모드에 따라 적절한 마일스톤 선택
-        val adjustedMilestones = when {
-            Constants.SECOND_TEST_MODE -> secondTestMilestones
-            Constants.TEST_MODE -> minuteTestMilestones
-            else -> levelMilestones
-        }
-
-        // 레벨 계산
-        var currentLevel = 0
-        for (i in adjustedMilestones.indices) {
-            if (timePassed >= adjustedMilestones[i]) {
-                currentLevel = i
-            } else {
-                break
-            }
-        }
-
-        // 레벨 정보 표시
-        tvLevel.text = "Lv. ${currentLevel + 1}"
-        tvLevelTitle.text = levelTitles[currentLevel]
-        tvLevelTitle.setTextColor(Color.parseColor(levelColors[currentLevel]))
-
-        // 다음 레벨 정보
-        if (currentLevel < adjustedMilestones.size - 1) {
-            val nextLevelTime = adjustedMilestones[currentLevel + 1]
-            val timeLeft = nextLevelTime - timePassed
-            tvNextLevel.text = "다음 레벨까지 ${timeLeft}${Constants.TIME_UNIT_TEXT}"
-
-            // 프로그레스바 업데이트 - 초 단위로 계산
-            val currentLevelTimeInSeconds = if (Constants.PROGRESS_TEST_MODE) {
-                adjustedMilestones[currentLevel] * (Constants.TIME_UNIT_MILLIS / Constants.SECOND_IN_MILLIS).toInt()
-            } else {
-                adjustedMilestones[currentLevel]
-            }
-
-            val nextLevelThresholdInSeconds = if (Constants.PROGRESS_TEST_MODE) {
-                adjustedMilestones[currentLevel + 1] * (Constants.TIME_UNIT_MILLIS / Constants.SECOND_IN_MILLIS).toInt()
-            } else {
-                adjustedMilestones[currentLevel + 1]
-            }
-
-            val progressValue = if (Constants.PROGRESS_TEST_MODE) {
-                ((secondsPassed - currentLevelTimeInSeconds).toFloat() / (nextLevelThresholdInSeconds - currentLevelTimeInSeconds)) * 100
-            } else {
-                ((timePassed - adjustedMilestones[currentLevel]).toFloat() / (adjustedMilestones[currentLevel + 1] - adjustedMilestones[currentLevel])) * 100
-            }
-
-            progressLevel.progress = progressValue.toInt().coerceIn(0, 100)
-        } else {
-            tvNextLevel.text = "최고 레벨 달성!"
-            progressLevel.progress = 100
-        }
-
-        // 목표 달성 여부 메시지
+        // UI 업데이트 - 마지막 목표 숫자에 도달하면 숫자를 증가시키지 않고 색상 변경
         if (timePassed >= targetDays) {
+            tvDaysCount.text = targetDays.toString()
+            // 목표 달성 시 주황색으로 변경
+            tvDaysCount.setTextColor(resources.getColor(android.R.color.holo_orange_dark, theme))
+
+            // 프로그레스바를 100%로 강제 설정
+            progressLevel.progress = 100
+
+            // 타이머가 완료되었음을 저장
+            with(sharedPref.edit()) {
+                putBoolean("timer_completed", true)
+                apply()
+            }
+
+            // 목표 달성 시 타이머 즉시 중지
+            stopTimer()
+
+            // 목표 달성 여부 메시지
             tvMessage.text = "축하합니다! ${targetDays}${Constants.TIME_UNIT_TEXT} 목표를 달성했습니다!"
 
             // 목표 달성 시 처리 (한 번만 실행되도록)
             if (!goalAchievementChecked) {
                 goalAchievementChecked = true
+
+                // 테스트 모드에 따라 적절한 마일스톤 선택
+                val adjustedMilestones = when {
+                    Constants.SECOND_TEST_MODE -> secondTestMilestones
+                    Constants.TEST_MODE -> minuteTestMilestones
+                    else -> levelMilestones
+                }
+
+                // 레벨 계산 (기록 목적으로만 사용)
+                var currentLevel = 0
+                for (i in adjustedMilestones.indices) {
+                    if (timePassed >= adjustedMilestones[i]) {
+                        currentLevel = i
+                    } else {
+                        break
+                    }
+                }
 
                 // 기록 저장 및 완료 처리
                 val recordId = saveCompletedRecord(startTime, System.currentTimeMillis(), targetDays, currentLevel + 1)
@@ -229,6 +201,33 @@ class StatusActivity : BaseActivity() {
                 }, 1000) // 1초 후 이동
             }
         } else {
+            // 아직 목표 달성 전이면 일반적인 숫자 표시 (1일차부터 시작)
+            tvDaysCount.text = (timePassed + 1).toString()
+            // 기본 색상으로 설정
+            tvDaysCount.setTextColor(resources.getColor(android.R.color.black, theme))
+
+            // 테스트 모드에 따라 적절한 마일스톤 선택
+            val adjustedMilestones = when {
+                Constants.SECOND_TEST_MODE -> secondTestMilestones
+                Constants.TEST_MODE -> minuteTestMilestones
+                else -> levelMilestones
+            }
+
+            // 레벨 계산 (기록 목적으로만 사용)
+            var currentLevel = 0
+            for (i in adjustedMilestones.indices) {
+                if (timePassed >= adjustedMilestones[i]) {
+                    currentLevel = i
+                } else {
+                    break
+                }
+            }
+
+            // 프로그레스바 업데이트 - 전체 목표일 수 기준으로 계산
+            val progressPercentage = (timePassed.toFloat() / targetDays) * 100
+            progressLevel.progress = progressPercentage.toInt().coerceIn(0, 100)
+
+            // 남은 일수 메시지에도 +1 적용하지 않음 (실제 목표까지 남은 날짜를 정확하게 표시)
             tvMessage.text = "목표까지 ${targetDays - timePassed}${Constants.TIME_UNIT_TEXT} 남았습니다. 힘내세요!"
         }
     }
@@ -301,88 +300,25 @@ class StatusActivity : BaseActivity() {
         // 확인 버튼 클릭 리스너
         val btnConfirm = dialog.findViewById<android.widget.Button>(R.id.btnConfirm)
         btnConfirm.setOnClickListener {
-            // 금주 기록 저장 (중도 포기로 표시)
-            val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
-            val startTime = sharedPref.getLong("start_time", System.currentTimeMillis())
-            val targetDays = sharedPref.getInt("target_days", 30)
-            val timePassed = ((System.currentTimeMillis() - startTime) / Constants.TIME_UNIT_MILLIS).toInt()
+            dialog.dismiss()
 
-            // 현재 레벨 계산
-            var currentLevel = 0
-            val adjustedMilestones = when {
-                Constants.SECOND_TEST_MODE -> secondTestMilestones
-                Constants.TEST_MODE -> minuteTestMilestones
-                else -> levelMilestones
-            }
-
-            for (i in adjustedMilestones.indices) {
-                if (timePassed >= adjustedMilestones[i]) {
-                    currentLevel = i
-                } else {
-                    break
-                }
-            }
-
-            // 중단된 기록 저장 및 요약 화면으로 이동
-            val recordId = saveStoppedRecord(startTime, System.currentTimeMillis(), targetDays, timePassed, currentLevel + 1)
-
-            // SharedPreferences 데이터 초기화
-            with(sharedPref.edit()) {
-                clear()  // 모든 데이터 삭제
+            // SharedPreferences 초기화
+            with(getSharedPreferences("user_settings", MODE_PRIVATE).edit()) {
+                clear()
                 apply()
             }
 
-            Toast.makeText(this, "금주가 중단되었습니다.", Toast.LENGTH_SHORT).show()
-
-            // 요약 화면으로 이동
-            val intent = Intent(this, RecordSummaryActivity::class.java)
-            intent.putExtra("record_id", recordId)
+            // 시작 화면으로 이동
+            val intent = Intent(this@StatusActivity, MainActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
             startActivity(intent)
             finish()
+
+            // 토스트 메시지 표시
+            Toast.makeText(this@StatusActivity, "금주가 초기화되었습니다.", Toast.LENGTH_SHORT).show()
         }
 
         // 다이얼로그 표시
         dialog.show()
-    }
-
-    /**
-     * 중단된 금주 기록을 저장합니다
-     * @return 저장된 기록의 ID
-     */
-    private fun saveStoppedRecord(startTime: Long, endTime: Long, targetDays: Int, achievedDays: Int, level: Int): Long {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-        val startDate = dateFormat.format(Date(startTime))
-        val endDate = dateFormat.format(Date(endTime))
-
-        // 기록 ID 생성
-        val recordId = System.currentTimeMillis()
-
-        // 기록 객체 생성
-        val record = SobrietyRecord(
-            id = recordId,
-            startDate = startDate,
-            endDate = endDate,
-            duration = targetDays,
-            achievedDays = achievedDays,
-            achievedLevel = level,
-            levelTitle = levelTitles[level - 1],
-            isCompleted = false
-        )
-
-        // 기존 기록 불러오기
-        val sharedPref = getSharedPreferences("sobriety_records", MODE_PRIVATE)
-        val recordsJson = sharedPref.getString("records", "[]")
-        val records = SobrietyRecord.fromJsonArray(recordsJson ?: "[]").toMutableList()
-
-        // 새 기록 추가
-        records.add(record)
-
-        // 기록 저장
-        with(sharedPref.edit()) {
-            putString("records", SobrietyRecord.toJsonArray(records))
-            apply()
-        }
-
-        return recordId
     }
 }

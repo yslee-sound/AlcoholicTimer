@@ -2,10 +2,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/primary"
+    android:background="#FFFFFF"
     android:orientation="vertical"
     android:padding="16dp"
-    android:theme="@style/ThemeOverlay.AppCompat.Dark">
+    android:theme="@style/ThemeOverlay.AppCompat.Light">
 
     <!-- 프로필 아이콘 -->
     <ImageView
@@ -24,6 +24,7 @@
         android:layout_marginTop="16dp"
         android:text="알중이"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        android:textColor="#000000"
         android:textSize="18sp"
         android:textStyle="bold" />
 
@@ -35,6 +36,7 @@
         android:layout_marginTop="4dp"
         android:layout_marginBottom="16dp"
         android:text="Level 1 · 0일 금주 중"
+        android:textColor="#000000"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
 </LinearLayout>
