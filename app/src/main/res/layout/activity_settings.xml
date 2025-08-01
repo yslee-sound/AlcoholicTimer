@@ -1,131 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:paddingTop="32dp"
-    android:background="@color/background">
+    android:background="#FFFFFF"
+    tools:context=".SettingsActivity">
 
-    <!-- 상단 타이틀 -->
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="설정"
-        android:textSize="24sp"
-        android:textColor="@color/text_primary"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:layout_marginBottom="24dp"/>
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <!-- 설정 컨테이너 -->
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <LinearLayout
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_marginTop="8dp"
+            android:text="설정"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
-            <!-- 테스트 모드 섹션 -->
-            <TextView
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp"
+            android:background="#DDDDDD" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="테스트 모드 설정"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <RadioGroup
+            android:id="@+id/radioGroupTestMode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/rbRealMode"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="테스트 모드 설정"
-                android:textSize="18sp"
-                android:textColor="@color/text_primary"
-                android:textStyle="bold"
-                android:layout_marginBottom="16dp"/>
+                android:text="실제 모드 (1일 = 24시간)"
+                android:padding="8dp"/>
 
-            <!-- 테스트 모드 라디오 그룹 -->
-            <RadioGroup
-                android:id="@+id/radioGroupTestMode"
+            <RadioButton
+                android:id="@+id/rbMinuteMode"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:text="테스트 모드 (1일 = 1분)"
+                android:padding="8dp"/>
 
-                <!-- 실제 모드 옵션 -->
-                <RadioButton
-                    android:id="@+id/rbRealMode"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="실제 모드 (1일 = 24시간)"
-                    android:textSize="16sp"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="16dp"
-                    android:layout_marginBottom="12dp"/>
-
-                <!-- 분 단위 테스트 모드 옵션 -->
-                <RadioButton
-                    android:id="@+id/rbMinuteMode"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="분 단위 테스트 모드 (1일 = 1분)"
-                    android:textSize="16sp"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="16dp"
-                    android:layout_marginBottom="12dp"/>
-
-                <!-- 초 단위 테스트 모드 옵션 -->
-                <RadioButton
-                    android:id="@+id/rbSecondMode"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="초 단위 테스트 모드 (1일 = 1초)"
-                    android:textSize="16sp"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="16dp"
-                    android:layout_marginBottom="12dp"/>
-            </RadioGroup>
-
-            <!-- 테스트 모드 설명 -->
-            <TextView
+            <RadioButton
+                android:id="@+id/rbSecondMode"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="※ 테스트 모드는 앱의 동작을 빠르게 확인하기 위한 기능입니다. 실제 사용 시에는 '실제 모드'로 설정하세요."
-                android:textSize="14sp"
-                android:textColor="@color/text_primary"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="24dp"/>
+                android:text="테스트 모드 (1일 = 1초)"
+                android:padding="8dp"/>
+        </RadioGroup>
 
-            <!-- 구분선 -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#DDDDDD"
-                android:layout_marginBottom="24dp"/>
-
-            <!-- 앱 정보 섹션 -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="앱 정보"
-                android:textSize="18sp"
-                android:textColor="@color/text_primary"
-                android:textStyle="bold"
-                android:layout_marginBottom="16dp"/>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="버전: 1.0.0"
-                android:textSize="16sp"
-                android:layout_marginBottom="8dp"/>
-
-        </LinearLayout>
-    </ScrollView>
-
-    <!-- 하단 저장 버튼 -->
-    <Button
-        android:id="@+id/btnSaveSettings"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="설정 저장"
-        android:textSize="16sp"
-        android:padding="12dp"
-        android:layout_margin="16dp"/>
+        <Button
+            android:id="@+id/btnSaveSettings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="저장"
+            android:layout_gravity="end"
+            android:layout_marginTop="16dp"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#000000"/>
+    </LinearLayout>
 
 </LinearLayout>

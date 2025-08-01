@@ -35,7 +35,7 @@
 
 | 할 일 | 설명                                              |
 | --- |-------------------------------------------------|
-| 🔹 activity_main.xml 구성 | 버튼 2개: "금주 시작", "활동 보기"                         |
+| 🔹 activity_main.xml 구성 | 버튼 2개: "금주", "활동"                               |
 | 🔹 MainActivity.kt 구현 | 버튼 클릭 시 `StartActivity` 또는 `StatusActivity`로 이동 |
 | 🔹 인텐트(Intent) 학습 | 화면 이동 코드 이해 필요                                  |
 

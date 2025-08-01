@@ -2,7 +2,6 @@ package com.example.alcoholictimer
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
@@ -46,10 +45,28 @@ abstract class BaseActivity : AppCompatActivity() {
         navigationView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_start -> {
-                    if (this !is StartActivity) {
-                        startActivity(Intent(this, StartActivity::class.java))
-                        if (this !is MainActivity) {
-                            finish()
+                    val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+                    val hasStarted = sharedPref.contains("start_time")
+
+                    if (hasStarted) {
+                        // 금주 중일 때는 상태 화면으로 이동
+                        if (this !is StatusActivity) {
+                            val intent = Intent(this, StatusActivity::class.java)
+                            // 기존 StatusActivity를 재사용하기 위한 플래그 설정
+                            intent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                            startActivity(intent)
+                            if (this !is MainActivity) {
+                                finish()
+                            }
+                        }
+                    } else {
+                        // 금주 중이 아닐 때는 시작 화면으로 이동
+                        if (this !is StartActivity) {
+                            val intent = Intent(this, StartActivity::class.java)
+                            startActivity(intent)
+                            if (this !is MainActivity) {
+                                finish()
+                            }
                         }
                     }
                 }
@@ -65,13 +82,34 @@ abstract class BaseActivity : AppCompatActivity() {
                     }
                 }
                 R.id.nav_challenge -> {
-                    Toast.makeText(this, "준비 중인 기능입니다", Toast.LENGTH_SHORT).show()
+                    // 챌린지 화면으로 이동
+                    if (this !is ChallengeActivity) {
+                        val intent = Intent(this, ChallengeActivity::class.java)
+                        startActivity(intent)
+                        if (this !is MainActivity) {
+                            finish()
+                        }
+                    }
                 }
                 R.id.nav_messages -> {
-                    Toast.makeText(this, "준비 중인 기능입니다", Toast.LENGTH_SHORT).show()
+                    // 응원 메시지 화면으로 이동
+                    if (this !is MessageActivity) {
+                        val intent = Intent(this, MessageActivity::class.java)
+                        startActivity(intent)
+                        if (this !is MainActivity) {
+                            finish()
+                        }
+                    }
                 }
                 R.id.nav_notifications -> {
-                    Toast.makeText(this, "준비 중인 기능입니다", Toast.LENGTH_SHORT).show()
+                    // 알림함 화면으로 이동
+                    if (this !is NotificationsActivity) {
+                        val intent = Intent(this, NotificationsActivity::class.java)
+                        startActivity(intent)
+                        if (this !is MainActivity) {
+                            finish()
+                        }
+                    }
                 }
                 R.id.nav_settings -> {
                     // 설정 화면으로 이동
@@ -102,15 +140,20 @@ abstract class BaseActivity : AppCompatActivity() {
 
     /**
      * 금주 상태에 따라 내비게이션 메뉴 상태를 업데이트합니다.
-     * 이미 금주를 시작했다면 금주 시작 메뉴를 비활성화합니다.
+     * 금주 메뉴는 항상 활성화하고, 금주 중인 경우 텍스트를 '금주 상태'로 변경합니다.
      */
     private fun updateNavigationMenuState() {
         val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
         val hasStarted = sharedPref.contains("start_time")
 
-        // 금주가 이미 시작되었으면 시작 메뉴 비활성화
+        // 금주 메뉴는 항상 활성화하고, 금주 중인 경우 텍스트 변경
         val startMenuItem = navigationView.menu.findItem(R.id.nav_start)
-        startMenuItem.isEnabled = !hasStarted
+        startMenuItem.isEnabled = true
+        if (hasStarted) {
+            startMenuItem.title = "금주 상태"
+        } else {
+            startMenuItem.title = "금주"
+        }
 
         // 활동 보기 메뉴는 항상 활성화
         val recordsMenuItem = navigationView.menu.findItem(R.id.nav_records)
@@ -163,4 +206,12 @@ abstract class BaseActivity : AppCompatActivity() {
      * 각자의 레이아웃을 contentFrame에 추가하는 작업을 수행
      */
     protected abstract fun setupContentView()
+
+    /**
+     * 액티비티가 새 인텐트로 재사용될 때 수행할 작업을 정의합니다.
+     * 자식 클래스에서 오버라이드할 수 있습니다.
+     */
+    open fun handleNewIntent(intent: Intent?) {
+        // 기본 구현은 아무 작업도 수행하지 않습니다
+    }
 }

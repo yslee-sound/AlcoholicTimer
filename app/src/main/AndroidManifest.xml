@@ -40,10 +40,22 @@
             android:exported="false"
             android:theme="@style/Theme.AlcoholicTimer"/>
         <activity
+            android:name=".ChallengeActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AlcoholicTimer"/>
+        <activity
+            android:name=".MessageActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AlcoholicTimer"/>
+        <activity
             android:name=".SettingsActivity"
             android:exported="false"
             android:label="설정"
             android:theme="@style/Theme.AlcoholicTimer" />
+        <activity
+            android:name=".NotificationsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AlcoholicTimer"/>
     </application>
 
 </manifest>

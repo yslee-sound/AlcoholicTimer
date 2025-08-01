@@ -48,8 +48,6 @@
         android:layout_gravity="start"
         android:background="@color/background"
         app:headerLayout="@layout/nav_header"
-        app:menu="@menu/drawer_menu"
-        app:itemIconTint="@color/primary"
-        app:itemTextColor="@android:color/black"/>
+        app:menu="@menu/nav_menu" />
 
 </androidx.drawerlayout.widget.DrawerLayout>

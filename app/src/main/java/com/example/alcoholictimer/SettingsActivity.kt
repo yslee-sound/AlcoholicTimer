@@ -2,14 +2,16 @@ package com.example.alcoholictimer
 
 import android.content.Context
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.alcoholictimer.utils.Constants
 
-class SettingsActivity : AppCompatActivity() {
+class SettingsActivity : BaseActivity() {
 
     private lateinit var radioGroupTestMode: RadioGroup
     private lateinit var rbRealMode: RadioButton
@@ -19,7 +21,6 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
 
         // UI 요소 초기화
         radioGroupTestMode = findViewById(R.id.radioGroupTestMode)
@@ -74,5 +75,10 @@ class SettingsActivity : AppCompatActivity() {
 
         // Constants 클래스의 동적 설정 업데이트
         Constants.updateTestMode(testMode)
+    }
+
+    override fun setupContentView() {
+        val contentFrame = findViewById<FrameLayout>(R.id.contentFrame)
+        LayoutInflater.from(this).inflate(R.layout.activity_settings, contentFrame, true)
     }
 }

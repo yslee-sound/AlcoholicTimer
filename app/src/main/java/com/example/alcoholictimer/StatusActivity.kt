@@ -59,7 +59,8 @@ class StatusActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
-        // 화면이 보일 때 타이머 시작
+        // 화면이 보일 때 즉시 UI 업데이트 후 타이머 시작
+        updateUI()
         startTimer()
 
         // 목표 달성 플래그 초기화
@@ -70,6 +71,20 @@ class StatusActivity : BaseActivity() {
         super.onPause()
         // 화면이 보이지 않을 때 타이머 정지
         stopTimer()
+    }
+
+    // Activity 클래스의 onNewIntent를 오버라이드
+    public override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // 새 인텐트로 액티비티가 재사용될 때 수행할 작업
+        setIntent(intent)
+        // UI 즉시 갱신
+        updateUI()
+    }
+
+    override fun handleNewIntent(intent: Intent?) {
+        // BaseActivity의 handleNewIntent 구현
+        updateUI()
     }
 
     private fun startTimer() {
@@ -85,7 +100,7 @@ class StatusActivity : BaseActivity() {
                     updateUI()
                 }
             }
-        }, 0, 1000) // 1초마다 업데이트
+        }, 1000, 1000) // 1초 후부터 1초마다 업데이트 (초기 UI 업데이트는 onResume에서 처리)
     }
 
     private fun stopTimer() {
