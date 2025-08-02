@@ -346,4 +346,18 @@ class StatusActivity : BaseActivity() {
         // 다이얼로그 표시
         dialog.show()
     }
+
+    private fun navigateToStart() {
+        val intent = Intent(this, StartActivity::class.java)
+        startActivity(intent)
+        overridePendingTransition(0, 0)
+        finish()
+        overridePendingTransition(0, 0)
+    }
+
+    private fun navigateToRecords() {
+        val intent = Intent(this, RecordsActivity::class.java)
+        startActivity(intent)
+        overridePendingTransition(0, 0)
+    }
 }

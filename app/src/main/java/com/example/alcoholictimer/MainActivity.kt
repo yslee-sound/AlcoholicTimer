@@ -27,4 +27,17 @@ class MainActivity : BaseActivity() {
         val contentFrame = findViewById<ViewGroup>(R.id.contentFrame)
         LayoutInflater.from(this).inflate(R.layout.content_main, contentFrame, true)
     }
+
+    private fun checkLoginStatusAndNavigate() {
+        val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+        val intent = if (sharedPref.contains("start_time")) {
+            Intent(this, StatusActivity::class.java)
+        } else {
+            Intent(this, StartActivity::class.java)
+        }
+        startActivity(intent)
+        overridePendingTransition(0, 0)
+        finish()
+        overridePendingTransition(0, 0)
+    }
 }

@@ -1,5 +1,6 @@
 package com.example.alcoholictimer
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -240,5 +241,14 @@ class RecordsActivity : BaseActivity() {
             // RecyclerView에 어댑터 설정
             rvLevelHistory.adapter = LevelHistoryAdapter(levelHistory)
         }
+    }
+
+    private fun navigateToMain() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
+        overridePendingTransition(0, 0)
+        finish()
+        overridePendingTransition(0, 0)
     }
 }

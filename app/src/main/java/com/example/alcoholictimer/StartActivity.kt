@@ -49,12 +49,18 @@ class StartActivity : BaseActivity() {
                 }
 
                 Toast.makeText(this, "${targetTime}${Constants.TIME_UNIT_TEXT} 동안 금주를 시작합니다!", Toast.LENGTH_SHORT).show()
-                val intent = Intent(this, StatusActivity::class.java)
-                startActivity(intent)
-                finish()
+                navigateToStatus()
             } else {
                 Toast.makeText(this, "1${Constants.TIME_UNIT_TEXT} 이상의 숫자를 입력해주세요", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun navigateToStatus() {
+        val intent = Intent(this, StatusActivity::class.java)
+        startActivity(intent)
+        overridePendingTransition(0, 0)
+        finish()
+        overridePendingTransition(0, 0)
     }
 }

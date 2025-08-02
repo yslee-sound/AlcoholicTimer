@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.ImageButton
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -72,7 +71,6 @@ abstract class BaseActivity : AppCompatActivity() {
                 }
                 R.id.nav_records -> {
                     // 활동 보기 화면으로 이동
-                    Toast.makeText(this, "활동 보기로 이동합니다", Toast.LENGTH_SHORT).show()
                     if (this !is RecordsActivity) {
                         val intent = Intent(this, RecordsActivity::class.java)
                         startActivity(intent)
@@ -213,5 +211,22 @@ abstract class BaseActivity : AppCompatActivity() {
      */
     open fun handleNewIntent(intent: Intent?) {
         // 기본 구현은 아무 작업도 수행하지 않습니다
+    }
+
+    /**
+     * 효과 없이 액티비티 전환
+     */
+    protected fun navigateToActivity(activityClass: Class<*>) {
+        val intent = Intent(this, activityClass)
+        startActivity(intent)
+        overridePendingTransition(0, 0) // 전환 효과 제거
+    }
+
+    /**
+     * 액티비티 종료 시 효과 없이 전환
+     */
+    override fun finish() {
+        super.finish()
+        overridePendingTransition(0, 0) // 전환 효과 제거
     }
 }
