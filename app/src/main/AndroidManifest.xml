@@ -15,7 +15,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.AlcoholicTimer">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,10 +26,12 @@
         <activity
             android:name=".StartActivity"
             android:exported="false"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.AlcoholicTimer"/>
         <activity
             android:name=".StatusActivity"
             android:exported="false"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.AlcoholicTimer"/>
         <activity
             android:name=".RecordsActivity"

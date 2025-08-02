@@ -5,10 +5,10 @@ import android.os.Bundle
 import android.text.InputType
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.example.alcoholictimer.utils.Constants
 
 class StartActivity : BaseActivity() {
@@ -23,12 +23,12 @@ class StartActivity : BaseActivity() {
         val view = LayoutInflater.from(this).inflate(R.layout.content_start, contentFrame, true)
 
         // 버튼 및 기타 UI 요소에 대한 이벤트 처리
-        val btnStart = view.findViewById<Button>(R.id.btnStart)
         val editTextDays = view.findViewById<EditText>(R.id.editTextDays)
         val tvDaysLabel = view.findViewById<TextView>(R.id.tvDaysLabel)
+        val btnStart = view.findViewById<FloatingActionButton>(R.id.btnStart)
 
         // 테스트 모드에 따라 레이블 변경
-        tvDaysLabel.text = Constants.TIME_UNIT_TEXT
+        tvDaysLabel.text = "금주 목표 ${Constants.TIME_UNIT_TEXT}수"
 
         // 기본 숫자 입력 설정
         editTextDays.inputType = InputType.TYPE_CLASS_NUMBER

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center_horizontal"
@@ -8,18 +9,10 @@
     android:paddingTop="150dp"
     android:paddingBottom="24dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
-        android:text="금주 목표 일수"
-        android:textSize="24sp"
-        android:textStyle="bold" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="8dp"
         android:gravity="center"
         android:orientation="horizontal">
 
@@ -32,20 +25,26 @@
             android:inputType="number|phone"
             android:textSize="32sp" />
 
-        <TextView
-            android:id="@+id/tvDaysLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="일"
-            android:textSize="24sp" />
     </LinearLayout>
 
-    <Button
-        android:id="@+id/btnStart"
-        style="@style/ButtonPrimary"
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/tvDaysLabel"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="금주" />
+        android:layout_marginBottom="32dp"
+        android:text="금주 목표 일수"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btnStart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:contentDescription="금주 시작"
+        android:src="@drawable/ic_play"
+        app:backgroundTint="@android:color/black"
+        app:tint="@android:color/white"
+        app:fabSize="normal" />
 
 </LinearLayout>
