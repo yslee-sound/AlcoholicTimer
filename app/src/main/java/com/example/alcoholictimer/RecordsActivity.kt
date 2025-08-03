@@ -149,134 +149,165 @@ class RecordsActivity : BaseActivity() {
     }
 
     private fun loadAndDisplayData() {
-        // SharedPreferences에서 시작일 불러오기
-        val sharedPref = getSharedPreferences("AlcoholicPrefs", MODE_PRIVATE)
-        val startDateStr = sharedPref.getString("start_date", null)
-
-        if (startDateStr != null) {
-            startDate = LocalDate.parse(startDateStr)
-            val today = LocalDate.now()
-
-            // 기본 통계 업데이트
-            updateBasicStatistics(today)
-
-            // 기간별 통계 업데이트
-            updatePeriodStatistics(today)
-
-            // 레벨 히스토리 업데이트
-            updateLevelHistory()
-
-            // 최근 활동 데이터 로드 및 표시
-            loadRecentActivities()
-        }
+        // 저장된 금주 기록들을 불러와서 통계 계산
+        loadSobrietyRecords()
     }
 
-    private fun updateBasicStatistics(today: LocalDate) {
-        startDate?.let { start ->
-            // 전체 금주 일수
-            val totalDays = ChronoUnit.DAYS.between(start, today).toInt() + 1 // 오늘 포함
-
-            // 이번 주 금주 일수
-            val weekFields = WeekFields.of(Locale.getDefault())
-            val thisWeekStart = today.with(weekFields.dayOfWeek(), 1)
-            val weeklyDays = if (start.isAfter(thisWeekStart)) {
-                ChronoUnit.DAYS.between(start, today).toInt() + 1
-            } else {
-                ChronoUnit.DAYS.between(thisWeekStart, today).toInt() + 1
-            }
-
-            // 이번 달 금주 일수
-            val thisMonthStart = today.withDayOfMonth(1)
-            val monthlyDays = if (start.isAfter(thisMonthStart)) {
-                ChronoUnit.DAYS.between(start, today).toInt() + 1
-            } else {
-                ChronoUnit.DAYS.between(thisMonthStart, today).toInt() + 1
-            }
-
-            // UI 업데이트
-            tvWeeklyCount.text = "${weeklyDays}일"
-            tvMonthlyCount.text = "${monthlyDays}일"
-            tvTotalCount.text = "${totalDays}일"
-
-            // 요약 메시지
-            val summaryMessage = when {
-                totalDays >= 365 -> "1년 이상 금주를 실천하셨네요! 정말 대단합니다! 🎉"
-                totalDays >= 180 -> "6개월 이상 금주를 지속하고 계시네요! 👏"
-                totalDays >= 90 -> "3개월 동안 꾸준히 실천하셨어요! 💪"
-                totalDays >= 30 -> "한 달 동안 잘 해내고 계세요! ⭐"
-                else -> "금주를 시작한지 ${totalDays}일이 지났습니다."
-            }
-            tvSummary.text = summaryMessage
-
-            // 최고 기록 업데이트
-            tvTotalAbstinence.text = "전체 누적 금주 일수: ${totalDays}일"
-            tvLongestStreak.text = "최장 연속 금주 기록: ${totalDays}일" // 예제에서는 실패 없이 연속으로 진행
-            tvLastFailure.text = "마지막 금주 실패: 없음" // 예제에서는 실패가 없다고 가정
-        }
-    }
-
-    private fun updatePeriodStatistics(today: LocalDate) {
-        // 여기서 기간별 통계를 표시할 수 있습니다
-        // 이 예제에서는 단순화를 위해 코드를 생략합니다
-        // 실제로는 기간에 따른 그래프 등을 표시할 수 있습니다
-    }
-
-    private fun updateLevelHistory() {
-        // 예시 데이터 (실제로는 SharedPreferences나 DB에서 가져와야 함)
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        val levelHistory = mutableListOf<LevelHistoryItem>()
-
-        startDate?.let { start ->
-            val today = LocalDate.now()
-            var currentDate = start
-            var level = 1
-
-            // 레벨 달성 예시 데이터 생성
-            // 실제 앱에서는 저장된 레벨 달성 히스토리를 가져와야 함
-            while (!currentDate.isAfter(today) && level <= 7) {
-                // 7일마다 레벨업 (예시)
-                val daysBetween = ChronoUnit.DAYS.between(start, currentDate)
-                if (daysBetween % 7L == 0L) {
-                    levelHistory.add(LevelHistoryItem(
-                        currentDate.format(formatter),
-                        "Level ${level} 달성!"
-                    ))
-                    level++
-                }
-                // 일부 날짜는 금주 성공 기록 추가
-                else if (daysBetween % 3L == 0L) {
-                    levelHistory.add(LevelHistoryItem(
-                        currentDate.format(formatter),
-                        "금주 성공"
-                    ))
-                }
-
-                currentDate = currentDate.plusDays(1)
-            }
-
-            // RecyclerView에 어댑터 설정
-            rvLevelHistory.adapter = LevelHistoryAdapter(levelHistory)
-        }
-    }
-
-    private fun loadRecentActivities() {
-        // SharedPreferences에서 저장된 기록 불러오기
+    private fun loadSobrietyRecords() {
+        // SharedPreferences에서 저장된 금주 기록 불러오기
         val sharedPref = getSharedPreferences("sobriety_records", MODE_PRIVATE)
         val recordsJson = sharedPref.getString("records", "[]")
         val records = SobrietyRecord.fromJsonArray(recordsJson ?: "[]")
 
-        // 최근 활동 목록 생성
-        val recentActivities = records.map { record ->
-            RecentActivity(
-                startDate = record.startDate,
-                endDate = record.endDate,
-                duration = record.duration,
-                isCompleted = record.isCompleted
-            )
-        }.sortedByDescending { it.endDate }.take(3)  // 최근 3개만 표시
+        // 통계 계산 및 UI 업데이트
+        updateStatisticsFromRecords(records)
+        updateLevelHistoryFromRecords(records)
+        loadRecentActivitiesFromRecords(records)
+    }
 
-        // 어댑터 설정
-        recentActivityAdapter = RecentActivityAdapter(recentActivities)
+    private fun updateStatisticsFromRecords(records: List<SobrietyRecord>) {
+        if (records.isEmpty()) {
+            // 기록이 없는 경우 기본값 표시
+            tvWeeklyCount.text = "0일"
+            tvMonthlyCount.text = "0일"
+            tvTotalCount.text = "0일"
+            tvSummary.text = "아직 완료된 금주 기록이 없습니다."
+            tvTotalAbstinence.text = "전체 누적 금주 시간: 0일"
+            tvLongestStreak.text = "최장 연속 금주 기록: 0일"
+            tvLastFailure.text = "기록 없음"
+            return
+        }
+
+        // 완료된 기록들만 필터링
+        val completedRecords = records.filter { it.isCompleted }
+
+        // 전체 누적 금주 시간 계산 (모든 완료된 기록의 duration 합계)
+        val totalDuration = completedRecords.sumOf { it.duration }
+
+        // 최장 연속 금주 기록 찾기
+        val longestStreak = completedRecords.maxOfOrNull { it.duration } ?: 0
+
+        // 최근 완료 기록 수 계산
+        val today = LocalDate.now()
+        val thisWeekStart = today.minusDays(today.dayOfWeek.value.toLong() - 1)
+        val thisMonthStart = today.withDayOfMonth(1)
+
+        val weeklyCount = completedRecords.count { record ->
+            try {
+                val endDate = LocalDate.parse(record.endDate.substring(0, 10))
+                !endDate.isBefore(thisWeekStart)
+            } catch (e: Exception) {
+                false
+            }
+        }
+
+        val monthlyCount = completedRecords.count { record ->
+            try {
+                val endDate = LocalDate.parse(record.endDate.substring(0, 10))
+                !endDate.isBefore(thisMonthStart)
+            } catch (e: Exception) {
+                false
+            }
+        }
+
+        // UI 업데이트 - 테스트 모드에 따른 단위 표시
+        val timeUnit = getTimeUnitForDisplay()
+        tvWeeklyCount.text = "${weeklyCount}회"
+        tvMonthlyCount.text = "${monthlyCount}회"
+        tvTotalCount.text = "${completedRecords.size}회"
+
+        // 요약 메시지
+        val summaryMessage = when {
+            completedRecords.size >= 10 -> "10회 이상 금주를 완료하셨네요! 정말 대단합니다! 🎉"
+            completedRecords.size >= 5 -> "5회 이상 금주를 성공하셨어요! 👏"
+            completedRecords.size >= 3 -> "꾸준히 금주를 실천하고 계시네요! 💪"
+            completedRecords.size >= 1 -> "금주를 성공적으로 완료하셨어요! ⭐"
+            else -> "아직 완료된 금주 기록이 없습니다."
+        }
+        tvSummary.text = summaryMessage
+
+        // 최고 기록 업데이트
+        tvTotalAbstinence.text = "전체 누적 금주 시간: $totalDuration$timeUnit"
+        tvLongestStreak.text = "최장 연속 금주 기록: $longestStreak$timeUnit"
+
+        // 마지막 실패 기록 (중도 포기한 기록 중 가장 최근)
+        val lastFailure = records.filter { !it.isCompleted }
+            .maxByOrNull { it.endDate }
+        tvLastFailure.text = if (lastFailure != null) {
+            "마지막 금주 중단: ${lastFailure.endDate.substring(0, 10)}"
+        } else {
+            "중단 기록 없음"
+        }
+    }
+
+    private fun getTimeUnitForDisplay(): String {
+        return when (com.example.alcoholictimer.utils.Constants.currentTestMode) {
+            com.example.alcoholictimer.utils.Constants.TEST_MODE_SECOND -> "초"
+            com.example.alcoholictimer.utils.Constants.TEST_MODE_MINUTE -> "분"
+            else -> "일"
+        }
+    }
+
+    private fun updateLevelHistoryFromRecords(records: List<SobrietyRecord>) {
+        val levelHistory = mutableListOf<LevelHistoryItem>()
+
+        // 완료된 기록들을 날짜순으로 정렬
+        val completedRecords = records.filter { it.isCompleted }
+            .sortedBy { it.endDate }
+
+        completedRecords.forEach { record ->
+            val endDate = record.endDate.substring(0, 10) // "yyyy-MM-dd" 형식으로 자르기
+            val levelTitle = if (record.levelTitle.isNotEmpty()) {
+                record.levelTitle
+            } else {
+                "레벨 ${record.achievedLevel}"
+            }
+
+            levelHistory.add(LevelHistoryItem(
+                endDate,
+                "$levelTitle 달성 (${record.duration}${getTimeUnitForDisplay()})"
+            ))
+        }
+
+        // 기록이 없는 경우 안내 메시지 추가
+        if (levelHistory.isEmpty()) {
+            levelHistory.add(LevelHistoryItem(
+                LocalDate.now().toString(),
+                "아직 달성한 레벨이 없습니다"
+            ))
+        }
+
+        // RecyclerView에 어댑터 설정
+        rvLevelHistory.adapter = LevelHistoryAdapter(levelHistory)
+    }
+
+    private fun loadRecentActivitiesFromRecords(records: List<SobrietyRecord>) {
+        // 모든 기록을 최근 활동으로 변환 (최근 5개)
+        val recentActivities = records.sortedByDescending { it.endDate }
+            .take(5)
+            .map { record ->
+                RecentActivity(
+                    startDate = record.startDate,
+                    endDate = record.endDate,
+                    duration = record.duration,
+                    isCompleted = record.isCompleted
+                )
+            }
+
+        // 기록이 없는 경우 안내 메시지
+        if (recentActivities.isEmpty()) {
+            // 빈 상태 표시를 위한 더미 데이터
+            val emptyActivity = RecentActivity(
+                startDate = LocalDate.now().toString(),
+                endDate = LocalDate.now().toString(),
+                duration = 0,
+                isCompleted = false
+            )
+            recentActivityAdapter = RecentActivityAdapter(listOf(emptyActivity))
+        } else {
+            recentActivityAdapter = RecentActivityAdapter(recentActivities)
+        }
+
         rvRecentActivities.adapter = recentActivityAdapter
     }
 

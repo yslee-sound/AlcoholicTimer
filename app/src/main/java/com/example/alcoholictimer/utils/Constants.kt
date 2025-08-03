@@ -2,7 +2,6 @@ package com.example.alcoholictimer.utils
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.example.alcoholictimer.AlcoholicTimerApplication
 
 object Constants {
     // SharedPreferences 관련 상수
@@ -14,8 +13,8 @@ object Constants {
     const val TEST_MODE_MINUTE = 1  // 분 단위 테스트 모드 (1일 = 1분)
     const val TEST_MODE_SECOND = 2  // 초 단위 테스트 모드 (1일 = 1초)
 
-    // 현재 선택된 테스트 모드 (기본값: 초 단위 테스트)
-    private var currentTestMode = TEST_MODE_SECOND
+    // 현재 선택된 테스트 모드 (기본값: 실제 모드)
+    var currentTestMode = TEST_MODE_REAL
 
     // 테스트 모드 상태 (런타임에 변경 가능)
     val isTestMode: Boolean
@@ -55,7 +54,7 @@ object Constants {
     // 앱 시작 시 설정 불러오기
     fun init(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        currentTestMode = prefs.getInt(PREF_KEY_TEST_MODE, TEST_MODE_SECOND)
+        currentTestMode = prefs.getInt(PREF_KEY_TEST_MODE, TEST_MODE_REAL)
     }
 
     // 테스트 모드 업데이트
