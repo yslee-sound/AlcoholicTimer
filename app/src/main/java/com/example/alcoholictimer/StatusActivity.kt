@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ProgressBar
@@ -307,13 +308,13 @@ class StatusActivity : BaseActivity() {
             // 완료된 기록을 먼저 저장
             val recordId = saveCompletedRecord(startTime, endTime, targetDays, 1)
 
-            // 3초 후에 기록 요약 화면으로 이동
+            // 결과 화면 전환 지연 후 기록 요약 화면으로 이동
             Handler(Looper.getMainLooper()).postDelayed({
                 // 활동 기록 저장
                 saveActivity(true)
                 // 기록 요약 화면으로 이동 (기록 ID 전달)
                 navigateToRecordSummary(recordId)
-            }, 3000)
+            }, Constants.RESULT_SCREEN_DELAY.toLong())
         }
     }
 
@@ -322,12 +323,26 @@ class StatusActivity : BaseActivity() {
      * @return 저장된 기록의 ID
      */
     private fun saveCompletedRecord(startTime: Long, endTime: Long, targetDays: Int, level: Int): Long {
+        Log.d("StatusActivity", "saveCompletedRecord 시작: startTime=$startTime, endTime=$endTime, targetDays=$targetDays")
+
         val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         val startDate = dateFormat.format(Date(startTime))
         val endDate = dateFormat.format(Date(endTime))
 
         // 기록 ID 생성
         val recordId = System.currentTimeMillis()
+        Log.d("StatusActivity", "생성된 recordId: $recordId")
+
+        // 테스트 모드일 때는 실제 경과 시간 대신 설정한 목표 시간을 그대로 사용
+        val achievedDays = if (Constants.isSecondTestMode || Constants.isMinuteTestMode) {
+            // 테스트 모드에서는 설정한 목표 시간 그대로 표시
+            targetDays
+        } else {
+            // 실제 모드에서만 실제 경과 시간 계산
+            ((endTime - startTime) / Constants.TIME_UNIT_MILLIS).toInt()
+        }
+
+        Log.d("StatusActivity", "테스트 모드: ${Constants.isSecondTestMode}, 설정된 일수: $targetDays, 기록될 일수: $achievedDays")
 
         // 기록 객체 생성
         val record = SobrietyRecord(
@@ -335,24 +350,39 @@ class StatusActivity : BaseActivity() {
             startDate = startDate,
             endDate = endDate,
             duration = targetDays,
+            achievedDays = achievedDays, // 목표 시간을 그대로 사용
             achievedLevel = level,
-            levelTitle = levelTitles[level - 1],
+            levelTitle = if (level > 0 && level <= levelTitles.size) levelTitles[level - 1] else "기본 레벨",
             isCompleted = true
         )
+
+        Log.d("StatusActivity", "생성된 기록: $record")
 
         // 기존 기록 불러오기
         val sharedPref = getSharedPreferences("sobriety_records", MODE_PRIVATE)
         val recordsJson = sharedPref.getString("records", "[]")
+        Log.d("StatusActivity", "기존 기록 JSON: $recordsJson")
+
         val records = SobrietyRecord.fromJsonArray(recordsJson ?: "[]").toMutableList()
+        Log.d("StatusActivity", "기존 기록 개수: ${records.size}")
 
         // 새 기록 추가
         records.add(record)
+        Log.d("StatusActivity", "새 기록 추가 후 총 개수: ${records.size}")
 
         // 기록 저장
+        val newRecordsJson = SobrietyRecord.toJsonArray(records)
+        Log.d("StatusActivity", "저장할 JSON: $newRecordsJson")
+
         with(sharedPref.edit()) {
-            putString("records", SobrietyRecord.toJsonArray(records))
-            apply()
+            putString("records", newRecordsJson)
+            val success = commit() // apply() 대신 commit()으로 즉시 저장
+            Log.d("StatusActivity", "기록 저장 성공: $success")
         }
+
+        // 저장 확인
+        val savedRecordsJson = sharedPref.getString("records", "[]")
+        Log.d("StatusActivity", "저장 확인 JSON: $savedRecordsJson")
 
         // 현재 진행중인 금주 데이터 초기화
         with(getSharedPreferences("user_settings", MODE_PRIVATE).edit()) {
@@ -360,6 +390,7 @@ class StatusActivity : BaseActivity() {
             apply()
         }
 
+        Log.d("StatusActivity", "saveCompletedRecord 완료, 반환 ID: $recordId")
         return recordId
     }
 

@@ -1,12 +1,15 @@
 package com.example.alcoholictimer.utils
 
 import android.content.Context
-import android.content.SharedPreferences
 
 object Constants {
     // SharedPreferences 관련 상수
     const val PREFS_NAME = "AlcoholicTimerPrefs"
     const val PREF_KEY_TEST_MODE = "test_mode"
+    const val PREF_TEST_MODE = "test_mode"
+    const val PREF_START_TIME = "start_time"
+    const val PREF_TARGET_DAYS = "target_days"
+    const val PREF_RECORDS = "records"
 
     // 테스트 모드 상수
     const val TEST_MODE_REAL = 0    // 실제 모드 (1일 = 24시간)
@@ -30,6 +33,12 @@ object Constants {
     const val DAY_IN_MILLIS = 1000L * 60 * 60 * 24  // 일 단위 (1일 = 24시간)
     const val MINUTE_IN_MILLIS = 1000L * 60         // 분 단위 (1분 = 60초)
     const val SECOND_IN_MILLIS = 1000L              // 초 단위
+
+    // UI 관련 상수
+    const val RESULT_SCREEN_DELAY = 2000             // 결과 화면 전환 지연 시간 (2초)
+
+    // 기타 상수
+    const val DEFAULT_VALUE = 2000                   // 기본값 2000
 
     // 사용할 시간 단위 (테스트 모드에 따라 동적으로 결정)
     val TIME_UNIT_MILLIS: Long
