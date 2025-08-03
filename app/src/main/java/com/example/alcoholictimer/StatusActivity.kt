@@ -67,6 +67,10 @@ class StatusActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
         updateTimeModeDisplay()  // 모드 변경사항 업데이트
+
+        // 금주 시작 시간 초기화 (abstainStartTime이 비어있는 경우를 대비)
+        initAbstainStartTime()
+
         updateUI()
         startTimer()
 
@@ -114,9 +118,27 @@ class StatusActivity : BaseActivity() {
 
     private fun updateTimeDisplay() {
         val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+        val completionFlag = sharedPref.getBoolean("timer_completed", false)
+
+        // 목표가 이미 달성되었으면 타이머 업데이트를 중단
+        if (completionFlag) {
+            stopTimer()
+            return
+        }
+
         val startTime = sharedPref.getLong("start_time", System.currentTimeMillis())
         val currentTime = System.currentTimeMillis()
         val secondsPassed = (currentTime - startTime) / 1000L
+
+        // 테스트 모드에 따른 시간 계산 - 대형 숫자 업데이트
+        val timePassed = when {
+            Constants.isSecondTestMode -> secondsPassed.toInt() + 1  // 초 단위
+            Constants.isMinuteTestMode -> (secondsPassed / 60).toInt() + 1  // 분 단위
+            else -> ((currentTime - startTime) / Constants.TIME_UNIT_MILLIS).toInt() + 1  // 일 단위
+        }
+
+        // 대형 숫자 실시간 업데이트 (특히 초 모드에서 중요)
+        tvDaysCount.text = timePassed.toString()
 
         // 시간 계산
         val hours = (secondsPassed / 3600) % 24
@@ -150,6 +172,9 @@ class StatusActivity : BaseActivity() {
         }
 
         tvTimeDetail.text = timeText
+
+        // 진행 상태 확인 및 완료 처리
+        checkProgressStatus()
     }
 
     override fun setupContentView() {
@@ -220,8 +245,17 @@ class StatusActivity : BaseActivity() {
         }
 
         val currentTime = System.currentTimeMillis()
-        val timePassed = ((currentTime - startTime) / Constants.TIME_UNIT_MILLIS).toInt() + 1
         val secondsPassed = (currentTime - startTime) / 1000L
+
+        // 테스트 모드에 따른 시간 계산
+        val timePassed = when {
+            Constants.isSecondTestMode -> secondsPassed.toInt() + 1  // 초 단위
+            Constants.isMinuteTestMode -> (secondsPassed / 60).toInt() + 1  // 분 단위
+            else -> ((currentTime - startTime) / Constants.TIME_UNIT_MILLIS).toInt() + 1  // 일 단위
+        }
+
+        // 대형 숫자에 진행 중인 시간 표시
+        tvDaysCount.text = timePassed.toString()
 
         // 진행률 계산
         val targetSeconds = when {
@@ -234,19 +268,24 @@ class StatusActivity : BaseActivity() {
         progressLevel.progress = progress.coerceIn(0, 100)
 
         // 타이머 표시 업데이트
-        displayTimeDetails(timePassed, secondsPassed)
+        updateTimeDisplay()
 
-        if (timePassed > targetDays) {
+        // 완료 조건 확인 - 초단위 테스트 모드에서는 초 단위로 비교
+        val isCompleted = when {
+            Constants.isSecondTestMode -> secondsPassed >= targetDays
+            Constants.isMinuteTestMode -> secondsPassed >= (targetDays * 60)
+            else -> timePassed > targetDays
+        }
+
+        if (isCompleted) {
             tvDaysCount.text = targetDays.toString()
             tvDaysCount.setTextColor(resources.getColor(android.R.color.holo_orange_dark, theme))
             progressLevel.progress = 100
             handleGoalCompletion(targetDays)
         } else {
-            tvDaysCount.text = timePassed.toString()
-            tvDaysCount.setTextColor(resources.getColor(android.R.color.black, theme))
             // 남은 시간 계산 및 메시지 업데이트
-            val remainingDays = targetDays - timePassed + 1
-            tvMessage.text = "목표까지 ${remainingDays}${Constants.TIME_UNIT_TEXT} 남았습니다. 힘내세요!"
+            val remainingTime = targetDays - timePassed + 1
+            tvMessage.text = "목표까지 ${remainingTime}${Constants.TIME_UNIT_TEXT} 남았습니다. 힘내세요!"
         }
     }
 
@@ -262,14 +301,18 @@ class StatusActivity : BaseActivity() {
 
         if (!goalAchievementChecked) {
             goalAchievementChecked = true
+            // 타이머 즉시 중지
             stopTimer()
 
-            // 3초 후에 기록 화면으로 이동
+            // 완료된 기록을 먼저 저장
+            val recordId = saveCompletedRecord(startTime, endTime, targetDays, 1)
+
+            // 3초 후에 기록 요약 화면으로 이동
             Handler(Looper.getMainLooper()).postDelayed({
                 // 활동 기록 저장
                 saveActivity(true)
-                // 기록 화면으로 이동
-                navigateToRecords()
+                // 기록 요약 화면으로 이동 (기록 ID 전달)
+                navigateToRecordSummary(recordId)
             }, 3000)
         }
     }
@@ -321,13 +364,29 @@ class StatusActivity : BaseActivity() {
     }
 
     private fun saveActivity(isCompleted: Boolean) {
-        val activity = RecentActivity(
-            startDate = abstainStartTime,
-            endDate = getCurrentDate(),
-            duration = calculateDuration(),
-            isCompleted = isCompleted
-        )
-        RecordManager.addActivity(activity)
+        try {
+            val activity = RecentActivity(
+                startDate = abstainStartTime,
+                endDate = getCurrentDate(),
+                duration = calculateDuration(),
+                isCompleted = isCompleted
+            )
+            RecordManager.addActivity(activity)
+        } catch (e: Exception) {
+            // 날짜 파싱 오류 등이 발생하면 로그만 남기고 기본값 사용
+            android.util.Log.e("StatusActivity", "Error saving activity: ${e.message}", e)
+            try {
+                val activity = RecentActivity(
+                    startDate = getCurrentDate(),
+                    endDate = getCurrentDate(),
+                    duration = 1,
+                    isCompleted = isCompleted
+                )
+                RecordManager.addActivity(activity)
+            } catch (fallbackError: Exception) {
+                android.util.Log.e("StatusActivity", "Fallback save also failed: ${fallbackError.message}", fallbackError)
+            }
+        }
     }
 
     private fun onGoalCompleted() {
@@ -346,13 +405,40 @@ class StatusActivity : BaseActivity() {
     }
 
     private fun calculateDuration(): Int {
-        val startDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(abstainStartTime)
-        val currentDate = Date()
-        return ((currentDate.time - startDate.time) / (1000 * 60 * 60 * 24)).toInt() + 1
+        return try {
+            if (abstainStartTime.isBlank()) {
+                // abstainStartTime이 비어있으면 SharedPreferences에서 시작 시간을 가져와서 계산
+                val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+                val startTimeMillis = sharedPref.getLong("start_time", System.currentTimeMillis())
+                val currentTime = System.currentTimeMillis()
+                val daysPassed = ((currentTime - startTimeMillis) / (1000 * 60 * 60 * 24)).toInt()
+                return daysPassed + 1
+            }
+
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val startDate = dateFormat.parse(abstainStartTime)
+            val currentDate = Date()
+
+            if (startDate != null) {
+                ((currentDate.time - startDate.time) / (1000 * 60 * 60 * 24)).toInt() + 1
+            } else {
+                1 // 기본값
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("StatusActivity", "Error calculating duration: ${e.message}", e)
+            1 // 오류 발생 시 기본값 반환
+        }
     }
 
     private fun navigateToRecords() {
         val intent = Intent(this, RecordsActivity::class.java)
+        startActivity(intent)
+        finish()
+    }
+
+    private fun navigateToRecordSummary(recordId: Long) {
+        val intent = Intent(this, RecordSummaryActivity::class.java)
+        intent.putExtra("record_id", recordId)
         startActivity(intent)
         finish()
     }
@@ -416,5 +502,81 @@ class StatusActivity : BaseActivity() {
             else -> "금주 목표 일수"
         }
         tvTimeUnit.text = timeUnitText
+    }
+
+    /**
+     * 진행 상태를 확인하고 필요한 경우 목표 완료 처리를 합니다.
+     * 타이머에서 주기적으로 호출됩니다.
+     */
+    private fun checkProgressStatus() {
+        try {
+            val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+            val startTime = sharedPref.getLong("start_time", System.currentTimeMillis())
+            val targetDays = sharedPref.getInt("target_days", 30)
+            val completionFlag = sharedPref.getBoolean("timer_completed", false)
+
+            if (completionFlag) {
+                return  // 이미 완료된 상태면 처리하지 않음
+            }
+
+            val currentTime = System.currentTimeMillis()
+            val secondsPassed = (currentTime - startTime) / 1000L
+
+            // 진행률 계산
+            val targetSeconds = when {
+                Constants.isSecondTestMode -> targetDays.toLong()
+                Constants.isMinuteTestMode -> targetDays.toLong() * 60
+                else -> targetDays.toLong() * 24 * 60 * 60
+            }
+
+            // 진행률이 100을 초과하지 않도록 제한
+            val progress = ((secondsPassed.toFloat() / targetSeconds.toFloat()) * 100).toInt()
+            val safeProgress = progress.coerceIn(0, 100)
+
+            // UI 업데이트는 runOnUiThread 내에서 수행
+            runOnUiThread {
+                progressLevel.progress = safeProgress
+
+                // 완료 조건 확인
+                val isCompleted = when {
+                    Constants.isSecondTestMode -> secondsPassed >= targetDays
+                    Constants.isMinuteTestMode -> secondsPassed >= (targetDays * 60)
+                    else -> secondsPassed >= (targetDays * 24 * 60 * 60)
+                }
+
+                if (isCompleted && !goalAchievementChecked) {
+                    tvDaysCount.text = targetDays.toString()
+                    tvDaysCount.setTextColor(resources.getColor(android.R.color.holo_orange_dark, theme))
+                    progressLevel.progress = 100
+                    handleGoalCompletion(targetDays)
+                } else if (!isCompleted) {
+                    // 남은 시간 계산 및 메시지 업데이트
+                    val timePassed = when {
+                        Constants.isSecondTestMode -> secondsPassed.toInt() + 1  // 초 단위
+                        Constants.isMinuteTestMode -> (secondsPassed / 60).toInt() + 1  // 분 단위
+                        else -> ((currentTime - startTime) / Constants.TIME_UNIT_MILLIS).toInt() + 1  // 일 단위
+                    }
+                    val remainingTime = targetDays - timePassed + 1
+                    if (remainingTime > 0) {
+                        tvMessage.text = "목표까지 ${remainingTime}${Constants.TIME_UNIT_TEXT} 남았습니다. 힘내세요!"
+                    } else {
+                        tvMessage.text = "목표 달성이 임박했습니다!"
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            // 에러 발생 시 로그만 남기고 앱은 계속 실행
+            android.util.Log.e("StatusActivity", "Error in checkProgressStatus: ${e.message}", e)
+        }
+    }
+
+    /**
+     * 금주 시작 시간을 초기화합니다.
+     */
+    private fun initAbstainStartTime() {
+        val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+        val startTimeMillis = sharedPref.getLong("start_time", System.currentTimeMillis())
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        abstainStartTime = dateFormat.format(Date(startTimeMillis))
     }
 }
