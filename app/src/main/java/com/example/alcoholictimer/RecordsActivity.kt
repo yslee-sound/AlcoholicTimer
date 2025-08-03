@@ -4,12 +4,18 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.alcoholictimer.adapters.LevelHistoryAdapter
+import com.example.alcoholictimer.adapters.RecentActivityAdapter
+import com.example.alcoholictimer.models.LevelHistoryItem
+import com.example.alcoholictimer.models.RecentActivity
+import com.example.alcoholictimer.utils.SobrietyRecord
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -28,11 +34,14 @@ class RecordsActivity : BaseActivity() {
     private lateinit var tvLastFailure: TextView
     private lateinit var chartContainer: FrameLayout
     private lateinit var rvLevelHistory: RecyclerView
+    private lateinit var rvRecentActivities: RecyclerView
 
     private lateinit var btnWeek: Button
     private lateinit var btnMonth: Button
     private lateinit var btnYear: Button
     private lateinit var btnAll: Button
+
+    private lateinit var recentActivityAdapter: RecentActivityAdapter
 
     private var startDate: LocalDate? = null
     private var currentPeriod = Period.ALL
@@ -51,34 +60,38 @@ class RecordsActivity : BaseActivity() {
     override fun setupContentView() {
         // RecordsActivity의 컨텐츠를 contentFrame에 추가
         val contentFrame = findViewById<ViewGroup>(R.id.contentFrame)
-        LayoutInflater.from(this).inflate(R.layout.activity_records, contentFrame, true)
+        val view = LayoutInflater.from(this).inflate(R.layout.activity_records, contentFrame, true)
 
         // View 초기화
-        initViews()
+        initViews(view)
 
         // 버튼 클릭 리스너 설정
         setupButtonListeners()
     }
 
-    private fun initViews() {
-        tvWeeklyCount = findViewById(R.id.tvWeeklyCount)
-        tvMonthlyCount = findViewById(R.id.tvMonthlyCount)
-        tvTotalCount = findViewById(R.id.tvTotalCount)
-        tvSummary = findViewById(R.id.tvSummary)
-        tvPeriodSummary = findViewById(R.id.tvPeriodSummary)
-        tvTotalAbstinence = findViewById(R.id.tvTotalAbstinence)
-        tvLongestStreak = findViewById(R.id.tvLongestStreak)
-        tvLastFailure = findViewById(R.id.tvLastFailure)
-        chartContainer = findViewById(R.id.chartContainer)
-        rvLevelHistory = findViewById(R.id.rvLevelHistory)
+    private fun initViews(view: View) {
+        tvWeeklyCount = view.findViewById(R.id.tvWeeklyCount)
+        tvMonthlyCount = view.findViewById(R.id.tvMonthlyCount)
+        tvTotalCount = view.findViewById(R.id.tvTotalCount)
+        tvSummary = view.findViewById(R.id.tvSummary)
+        tvPeriodSummary = view.findViewById(R.id.tvPeriodSummary)
+        tvTotalAbstinence = view.findViewById(R.id.tvTotalAbstinence)
+        tvLongestStreak = view.findViewById(R.id.tvLongestStreak)
+        tvLastFailure = view.findViewById(R.id.tvLastFailure)
+        chartContainer = view.findViewById(R.id.chartContainer)
+        rvLevelHistory = view.findViewById(R.id.rvLevelHistory)
 
-        btnWeek = findViewById(R.id.btnWeek)
-        btnMonth = findViewById(R.id.btnMonth)
-        btnYear = findViewById(R.id.btnYear)
-        btnAll = findViewById(R.id.btnAll)
+        btnWeek = view.findViewById(R.id.btnWeek)
+        btnMonth = view.findViewById(R.id.btnMonth)
+        btnYear = view.findViewById(R.id.btnYear)
+        btnAll = view.findViewById(R.id.btnAll)
 
         // RecyclerView 설정
         rvLevelHistory.layoutManager = LinearLayoutManager(this)
+
+        // 최근 활동 RecyclerView 초기화
+        rvRecentActivities = view.findViewById(R.id.rvRecentActivities)
+        rvRecentActivities.layoutManager = LinearLayoutManager(this)
     }
 
     private fun setupButtonListeners() {
@@ -152,6 +165,9 @@ class RecordsActivity : BaseActivity() {
 
             // 레벨 히스토리 업데이트
             updateLevelHistory()
+
+            // 최근 활동 데이터 로드 및 표시
+            loadRecentActivities()
         }
     }
 
@@ -241,6 +257,27 @@ class RecordsActivity : BaseActivity() {
             // RecyclerView에 어댑터 설정
             rvLevelHistory.adapter = LevelHistoryAdapter(levelHistory)
         }
+    }
+
+    private fun loadRecentActivities() {
+        // SharedPreferences에서 저장된 기록 불러오기
+        val sharedPref = getSharedPreferences("sobriety_records", MODE_PRIVATE)
+        val recordsJson = sharedPref.getString("records", "[]")
+        val records = SobrietyRecord.fromJsonArray(recordsJson ?: "[]")
+
+        // 최근 활동 목록 생성
+        val recentActivities = records.map { record ->
+            RecentActivity(
+                startDate = record.startDate,
+                endDate = record.endDate,
+                duration = record.duration,
+                isCompleted = record.isCompleted
+            )
+        }.sortedByDescending { it.endDate }.take(3)  // 최근 3개만 표시
+
+        // 어댑터 설정
+        recentActivityAdapter = RecentActivityAdapter(recentActivities)
+        rvRecentActivities.adapter = recentActivityAdapter
     }
 
     private fun navigateToMain() {

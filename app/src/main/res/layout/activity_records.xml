@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="@android:color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -12,10 +12,11 @@
         android:padding="16dp">
 
         <TextView
-            style="@style/TextTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="금주 활동 기록"
+            android:textSize="24sp"
+            android:textStyle="bold"
             android:layout_gravity="center"
             android:layout_marginBottom="16dp"/>
 
@@ -35,31 +36,27 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="주"
-                    android:layout_marginEnd="8dp"
-                    style="@style/Widget.AppCompat.Button.Colored"/>
+                    android:layout_marginEnd="8dp"/>
 
                 <Button
                     android:id="@+id/btnMonth"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="월"
-                    android:layout_marginEnd="8dp"
-                    style="@style/Widget.AppCompat.Button.Colored"/>
+                    android:layout_marginEnd="8dp"/>
 
                 <Button
                     android:id="@+id/btnYear"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="년"
-                    android:layout_marginEnd="8dp"
-                    style="@style/Widget.AppCompat.Button.Colored"/>
+                    android:layout_marginEnd="8dp"/>
 
                 <Button
                     android:id="@+id/btnAll"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="전체"
-                    style="@style/Widget.AppCompat.Button.Colored"/>
+                    android:text="전체"/>
             </LinearLayout>
         </HorizontalScrollView>
 
@@ -75,10 +72,11 @@
 
         <!-- 통계 카드 -->
         <LinearLayout
-            style="@style/CardLevel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:background="#F5F5F5"
+            android:padding="16dp"
             android:layout_marginBottom="16dp">
 
             <!-- 주간 통계 -->
@@ -93,8 +91,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="이번 주"
-                    android:textSize="16sp"
-                    android:textColor="@color/text_primary"/>
+                    android:textSize="16sp"/>
 
                 <TextView
                     android:id="@+id/tvWeeklyCount"
@@ -103,7 +100,6 @@
                     android:text="0일"
                     android:textSize="24sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_accent"
                     android:layout_marginTop="8dp"/>
             </LinearLayout>
 
@@ -119,8 +115,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="이번 달"
-                    android:textSize="16sp"
-                    android:textColor="@color/text_primary"/>
+                    android:textSize="16sp"/>
 
                 <TextView
                     android:id="@+id/tvMonthlyCount"
@@ -129,7 +124,6 @@
                     android:text="0일"
                     android:textSize="24sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_accent"
                     android:layout_marginTop="8dp"/>
             </LinearLayout>
 
@@ -145,8 +139,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="전체"
-                    android:textSize="16sp"
-                    android:textColor="@color/text_primary"/>
+                    android:textSize="16sp"/>
 
                 <TextView
                     android:id="@+id/tvTotalCount"
@@ -155,20 +148,18 @@
                     android:text="0일"
                     android:textSize="24sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_accent"
                     android:layout_marginTop="8dp"/>
             </LinearLayout>
         </LinearLayout>
 
         <TextView
             android:id="@+id/tvSummary"
-            style="@style/TextMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="금주를 시작한지 0일이 지났습니다."
             android:layout_marginBottom="16dp"/>
 
-        <!-- 중단: 통계 및 그래프 -->
+        <!-- 통계 및 그래프 -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -186,7 +177,6 @@
             android:background="#F5F5F5"
             android:layout_marginBottom="16dp">
 
-            <!-- 그래프는 코드에서 동적으로 추가됨 -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -233,7 +223,23 @@
                 android:text="마지막 금주 실패: 없음"/>
         </LinearLayout>
 
-        <!-- 하단: 상세 기록 리스트 -->
+        <!-- 최근 활동 섹션 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="최근 활동"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:layout_marginBottom="8dp"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvRecentActivities"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:nestedScrollingEnabled="false"/>
+
+        <!-- 레벨 달성 히스토리 -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -243,7 +249,6 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"/>
 
-        <!-- 레벨 달성 히스토리 목록 -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvLevelHistory"
             android:layout_width="match_parent"

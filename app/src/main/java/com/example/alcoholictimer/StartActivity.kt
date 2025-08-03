@@ -2,16 +2,17 @@ package com.example.alcoholictimer
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.InputType
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.example.alcoholictimer.utils.Constants
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class StartActivity : BaseActivity() {
+    private lateinit var tvDaysLabel: TextView  // tvTimeUnit을 tvDaysLabel로 변경
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // BaseActivity에서 이미 햄버거 메뉴 및 네비게이션 기능 처리됨
@@ -22,16 +23,13 @@ class StartActivity : BaseActivity() {
         val contentFrame = findViewById<ViewGroup>(R.id.contentFrame)
         val view = LayoutInflater.from(this).inflate(R.layout.content_start, contentFrame, true)
 
-        // 버튼 및 기타 UI 요소에 대한 이벤트 처리
+        // UI 요소 초기화
+        tvDaysLabel = view.findViewById(R.id.tvDaysLabel)  // ID 변경
         val editTextDays = view.findViewById<EditText>(R.id.editTextDays)
-        val tvDaysLabel = view.findViewById<TextView>(R.id.tvDaysLabel)
         val btnStart = view.findViewById<FloatingActionButton>(R.id.btnStart)
 
-        // 테스트 모드에 따라 레이블 변경
-        tvDaysLabel.text = "금주 목표 ${Constants.TIME_UNIT_TEXT}수"
-
-        // 기본 숫자 입력 설정
-        editTextDays.inputType = InputType.TYPE_CLASS_NUMBER
+        // 초기 시간 단위 텍스트 설정
+        updateTimeModeDisplay()
 
         // 시작 버튼 클릭 처리
         btnStart.setOnClickListener {
@@ -62,5 +60,19 @@ class StartActivity : BaseActivity() {
         overridePendingTransition(0, 0)
         finish()
         overridePendingTransition(0, 0)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateTimeModeDisplay()
+    }
+
+    private fun updateTimeModeDisplay() {
+        val timeUnitText = when {
+            Constants.isSecondTestMode -> "금주 목표 초수"
+            Constants.isMinuteTestMode -> "금주 목표 분수"
+            else -> "금주 목표 일수"
+        }
+        tvDaysLabel.text = timeUnitText
     }
 }

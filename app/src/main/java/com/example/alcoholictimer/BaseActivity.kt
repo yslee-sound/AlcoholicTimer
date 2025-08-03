@@ -2,9 +2,11 @@ package com.example.alcoholictimer
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.MenuItem
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
 import androidx.core.view.WindowCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.example.alcoholictimer.utils.Constants
@@ -15,7 +17,7 @@ import java.util.Date
  * 모든 액티비티의 베이스 클래스
  * 공통된 햄버거 메뉴와 네비게이션 기능을 제공합니다.
  */
-abstract class BaseActivity : AppCompatActivity() {
+abstract class BaseActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     protected lateinit var drawerLayout: DrawerLayout
     protected lateinit var navigationView: NavigationView
@@ -37,89 +39,11 @@ abstract class BaseActivity : AppCompatActivity() {
         btnMenu.setOnClickListener {
             // 드로어를 열기 전에 최신 상태로 업데이트
             updateNavigationDrawer()
-            drawerLayout.open()
+            drawerLayout.openDrawer(GravityCompat.START)
         }
 
         // 내비게이션 메뉴 아이템 클릭 이벤트
-        navigationView.setNavigationItemSelectedListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.nav_start -> {
-                    val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
-                    val hasStarted = sharedPref.contains("start_time")
-
-                    if (hasStarted) {
-                        // 금주 중일 때는 상태 화면으로 이동
-                        if (this !is StatusActivity) {
-                            val intent = Intent(this, StatusActivity::class.java)
-                            // 기존 StatusActivity를 재사용하기 위한 플래그 설정
-                            intent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-                            startActivity(intent)
-                            if (this !is MainActivity) {
-                                finish()
-                            }
-                        }
-                    } else {
-                        // 금주 중이 아닐 때는 시작 화면으로 이동
-                        if (this !is StartActivity) {
-                            val intent = Intent(this, StartActivity::class.java)
-                            startActivity(intent)
-                            if (this !is MainActivity) {
-                                finish()
-                            }
-                        }
-                    }
-                }
-                R.id.nav_records -> {
-                    // 활동 보기 화면으로 이동
-                    if (this !is RecordsActivity) {
-                        val intent = Intent(this, RecordsActivity::class.java)
-                        startActivity(intent)
-                        if (this !is MainActivity) {
-                            finish()
-                        }
-                    }
-                }
-                R.id.nav_challenge -> {
-                    // 챌린지 화면으로 이동
-                    if (this !is ChallengeActivity) {
-                        val intent = Intent(this, ChallengeActivity::class.java)
-                        startActivity(intent)
-                        if (this !is MainActivity) {
-                            finish()
-                        }
-                    }
-                }
-                R.id.nav_messages -> {
-                    // 응원 메시지 화면으로 이동
-                    if (this !is MessageActivity) {
-                        val intent = Intent(this, MessageActivity::class.java)
-                        startActivity(intent)
-                        if (this !is MainActivity) {
-                            finish()
-                        }
-                    }
-                }
-                R.id.nav_notifications -> {
-                    // 알림함 화면으로 이동
-                    if (this !is NotificationsActivity) {
-                        val intent = Intent(this, NotificationsActivity::class.java)
-                        startActivity(intent)
-                        if (this !is MainActivity) {
-                            finish()
-                        }
-                    }
-                }
-                R.id.nav_settings -> {
-                    // 설정 화면으로 이동
-                    val intent = Intent(this, SettingsActivity::class.java)
-                    startActivity(intent)
-                    // 설정 화면에서는 현재 화면을 유지
-                }
-            }
-            // 메뉴 선택 후 드로어 닫기
-            drawerLayout.close()
-            true
-        }
+        navigationView.setNavigationItemSelectedListener(this)
 
         // 특정 화면에 필요한 컨텐츠 뷰 설정
         setupContentView()
@@ -145,12 +69,12 @@ abstract class BaseActivity : AppCompatActivity() {
         val hasStarted = sharedPref.contains("start_time")
 
         // 금주 메뉴는 항상 활성화하고, 금주 중인 경우 텍스트 변경
-        val startMenuItem = navigationView.menu.findItem(R.id.nav_start)
-        startMenuItem.isEnabled = true
+        val soberMenuItem = navigationView.menu.findItem(R.id.nav_sober)
+        soberMenuItem.isEnabled = true
         if (hasStarted) {
-            startMenuItem.title = "금주 상태"
+            soberMenuItem.title = "금주 상태"
         } else {
-            startMenuItem.title = "금주"
+            soberMenuItem.title = "금주"
         }
 
         // 활동 보기 메뉴는 항상 활성화
@@ -228,5 +152,62 @@ abstract class BaseActivity : AppCompatActivity() {
     override fun finish() {
         super.finish()
         overridePendingTransition(0, 0) // 전환 효과 제거
+    }
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.nav_records -> {
+                if (this !is RecordsActivity) {
+                    val intent = Intent(this, RecordsActivity::class.java)
+                    startActivity(intent)
+                    overridePendingTransition(0, 0)  // 화면 전환 효과 제거
+                }
+            }
+            R.id.nav_challenge -> {
+                if (this !is ChallengeActivity) {
+                    val intent = Intent(this, ChallengeActivity::class.java)
+                    startActivity(intent)
+                    overridePendingTransition(0, 0)
+                }
+            }
+            R.id.nav_message -> {
+                if (this !is MessageActivity) {
+                    val intent = Intent(this, MessageActivity::class.java)
+                    startActivity(intent)
+                    overridePendingTransition(0, 0)
+                }
+            }
+            R.id.nav_settings -> {
+                if (this !is SettingsActivity) {
+                    val intent = Intent(this, SettingsActivity::class.java)
+                    startActivity(intent)
+                    overridePendingTransition(0, 0)
+                }
+            }
+            R.id.nav_notifications -> {
+                if (this !is NotificationsActivity) {
+                    val intent = Intent(this, NotificationsActivity::class.java)
+                    startActivity(intent)
+                    overridePendingTransition(0, 0)
+                }
+            }
+            R.id.nav_sober -> {
+                // 금주 중일 때만 금주 화면으로 이동 가능
+                val prefs = getSharedPreferences("user_settings", MODE_PRIVATE)
+                val isAbstaining = prefs.contains("start_time")
+
+                if (isAbstaining && this !is StatusActivity) {
+                    val intent = Intent(this, StatusActivity::class.java)
+                    startActivity(intent)
+                    overridePendingTransition(0, 0)
+                } else if (!isAbstaining && this !is StartActivity) {
+                    val intent = Intent(this, StartActivity::class.java)
+                    startActivity(intent)
+                    overridePendingTransition(0, 0)
+                }
+            }
+        }
+        drawerLayout.closeDrawer(GravityCompat.START)
+        return true
     }
 }
