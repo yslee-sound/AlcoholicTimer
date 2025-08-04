@@ -26,6 +26,16 @@ data class SobrietyRecord(
     val isCompleted: Boolean
 ) {
     /**
+     * 달성률 계산 (백분율)
+     */
+    val achievedPercentage: Int
+        get() = if (duration > 0) {
+            ((achievedDays.toFloat() / duration.toFloat()) * 100).toInt()
+        } else {
+            0
+        }
+
+    /**
      * 기록을 JSONObject로 변환
      */
     fun toJson(): JSONObject {

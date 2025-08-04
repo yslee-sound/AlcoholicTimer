@@ -6,7 +6,7 @@ object Constants {
     // SharedPreferences 관련 상수
     const val PREFS_NAME = "AlcoholicTimerPrefs"
     const val PREF_KEY_TEST_MODE = "test_mode"
-    const val PREF_TEST_MODE = "test_mode"
+    const val PREF_TEST_MODE = "test_mode"  // 호환성을 위해 추가
     const val PREF_START_TIME = "start_time"
     const val PREF_TARGET_DAYS = "target_days"
     const val PREF_RECORDS = "records"

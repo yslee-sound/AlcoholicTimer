@@ -67,6 +67,12 @@ class StatusActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
+
+        // SharedPreferences에서 현재 테스트 모드를 읽어와서 Constants 업데이트
+        val sharedPref = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE)
+        val currentTestMode = sharedPref.getInt(Constants.PREF_TEST_MODE, Constants.TEST_MODE_REAL)
+        Constants.updateTestMode(currentTestMode)
+
         updateTimeModeDisplay()  // 모드 변경사항 업데이트
 
         // 금주 시작 시간 초기화 (abstainStartTime이 비어있는 경우를 대비)

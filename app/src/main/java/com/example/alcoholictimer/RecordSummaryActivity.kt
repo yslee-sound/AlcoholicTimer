@@ -7,6 +7,7 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.example.alcoholictimer.utils.Constants
 import com.example.alcoholictimer.utils.SobrietyRecord
 import java.text.SimpleDateFormat
@@ -114,16 +115,13 @@ class RecordSummaryActivity : AppCompatActivity() {
         tvPeriod.text = "${currentRecord.startDate} ~ ${currentRecord.endDate}"
 
         // 달성률 표시
-        val achievementRate = if (currentRecord.isCompleted) "100%" else {
-            val percentage = (currentRecord.achievedDays.toDouble() / currentRecord.duration.toDouble() * 100).toInt()
-            "$percentage%"
-        }
+        val achievementRate = "${currentRecord.achievedPercentage}%"
         tvAchievementRate.text = achievementRate
         tvAchievementRate.setTextColor(
             if (currentRecord.isCompleted)
-                resources.getColor(android.R.color.holo_green_dark, null)
+                ContextCompat.getColor(this, android.R.color.holo_green_dark)
             else
-                resources.getColor(android.R.color.holo_orange_dark, null)
+                ContextCompat.getColor(this, android.R.color.holo_orange_dark)
         )
 
         // 절약 금액 계산 및 표시
@@ -144,14 +142,14 @@ class RecordSummaryActivity : AppCompatActivity() {
                 val totalSeconds = durationValue
                 val minutes = totalSeconds / 60
                 val seconds = totalSeconds % 60
-                "${minutes}분 ${String.format("%02d", seconds)}초"
+                "${minutes}분 ${String.format(Locale.getDefault(), "%02d", seconds)}초"
             }
             Constants.TEST_MODE_MINUTE -> {
                 // 분 단위 테스트 모드: 0시간 00분 형식
                 val totalMinutes = durationValue
                 val hours = totalMinutes / 60
                 val minutes = totalMinutes % 60
-                "${hours}시간 ${String.format("%02d", minutes)}분"
+                "${hours}시간 ${String.format(Locale.getDefault(), "%02d", minutes)}분"
             }
             else -> {
                 // 실제 모드 (일 단위): 0일 형식

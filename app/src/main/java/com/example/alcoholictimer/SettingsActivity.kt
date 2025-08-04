@@ -2,6 +2,7 @@ package com.example.alcoholictimer
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.FrameLayout
@@ -45,7 +46,9 @@ class SettingsActivity : BaseActivity() {
      */
     private fun loadCurrentSettings() {
         val preferences = getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
-        val testMode = preferences.getInt(Constants.PREF_KEY_TEST_MODE, Constants.TEST_MODE_SECOND)
+        // 기본값을 Constants.TEST_MODE_REAL로 변경
+        val testMode = preferences.getInt(Constants.PREF_KEY_TEST_MODE, Constants.TEST_MODE_REAL)
+        Log.d("SettingsActivity", "Loaded testMode: $testMode")
 
         // 라디오 버튼 선택 상태 설정
         when (testMode) {
@@ -67,11 +70,13 @@ class SettingsActivity : BaseActivity() {
             R.id.rbRealMode -> Constants.TEST_MODE_REAL
             R.id.rbMinuteMode -> Constants.TEST_MODE_MINUTE
             R.id.rbSecondMode -> Constants.TEST_MODE_SECOND
-            else -> Constants.TEST_MODE_SECOND // 기본값
+            else -> Constants.TEST_MODE_REAL
         }
 
         editor.putInt(Constants.PREF_KEY_TEST_MODE, testMode)
-        editor.apply()
+        val success = editor.commit() // 동기 저장으로 변경하고 성공 여부 확인
+        Log.d("SettingsActivity", "Settings saved. Mode: $testMode, Success: $success")
+
 
         // Constants 클래스의 동적 설정 업데이트
         Constants.updateTestMode(testMode)

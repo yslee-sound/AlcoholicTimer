@@ -68,9 +68,16 @@ class StartActivity : BaseActivity() {
     }
 
     private fun updateTimeModeDisplay() {
-        val timeUnitText = when {
-            Constants.isSecondTestMode -> "금주 목표 초수"
-            Constants.isMinuteTestMode -> "금주 목표 분수"
+        // SharedPreferences에서 현재 테스트 모드를 읽어옴
+        val sharedPref = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE)
+        val currentTestMode = sharedPref.getInt(Constants.PREF_TEST_MODE, Constants.TEST_MODE_REAL)
+
+        // Constants의 현재 테스트 모드를 업데이트
+        Constants.updateTestMode(currentTestMode)
+
+        val timeUnitText = when (currentTestMode) {
+            Constants.TEST_MODE_SECOND -> "금주 목표 초수"
+            Constants.TEST_MODE_MINUTE -> "금주 목표 분수"
             else -> "금주 목표 일수"
         }
         tvDaysLabel.text = timeUnitText
