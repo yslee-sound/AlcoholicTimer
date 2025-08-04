@@ -37,15 +37,15 @@ class RecordsActivity : BaseActivity() {
     private lateinit var rvLevelHistory: RecyclerView
     private lateinit var rvRecentActivities: RecyclerView
 
-    private lateinit var btnWeek: Button
-    private lateinit var btnMonth: Button
-    private lateinit var btnYear: Button
-    private lateinit var btnAll: Button
+    private lateinit var btnWeek: TextView
+    private lateinit var btnMonth: TextView
+    private lateinit var btnYear: TextView
+    private lateinit var btnAll: TextView
 
     private lateinit var recentActivityAdapter: RecentActivityAdapter
 
     private var startDate: LocalDate? = null
-    private var currentPeriod = Period.ALL
+    private var currentPeriod = Period.MONTH  // 기본값을 월로 변경
 
     private enum class Period {
         WEEK, MONTH, YEAR, ALL
@@ -68,6 +68,9 @@ class RecordsActivity : BaseActivity() {
 
         // 버튼 클릭 리스너 설정
         setupButtonListeners()
+
+        // 초기 UI 상태를 월 기준으로 설정 (뷰 초기화 후에 호출)
+        updatePeriodUI()
     }
 
     private fun initViews(view: View) {
@@ -122,28 +125,28 @@ class RecordsActivity : BaseActivity() {
     }
 
     private fun updatePeriodUI() {
-        // 모든 버튼 기본 스타일로 초기화
-        btnWeek.setBackgroundColor(Color.LTGRAY)
-        btnMonth.setBackgroundColor(Color.LTGRAY)
-        btnYear.setBackgroundColor(Color.LTGRAY)
-        btnAll.setBackgroundColor(Color.LTGRAY)
+        // 모든 탭 선택 해제
+        btnWeek.isSelected = false
+        btnMonth.isSelected = false
+        btnYear.isSelected = false
+        btnAll.isSelected = false
 
-        // 선택된 버튼 강조
+        // 선택된 탭 표시
         when(currentPeriod) {
             Period.WEEK -> {
-                btnWeek.setBackgroundColor(Color.DKGRAY)
+                btnWeek.isSelected = true
                 tvPeriodSummary.text = "선택 기간: 주"
             }
             Period.MONTH -> {
-                btnMonth.setBackgroundColor(Color.DKGRAY)
+                btnMonth.isSelected = true
                 tvPeriodSummary.text = "선택 기간: 월"
             }
             Period.YEAR -> {
-                btnYear.setBackgroundColor(Color.DKGRAY)
+                btnYear.isSelected = true
                 tvPeriodSummary.text = "선택 기간: 년"
             }
             Period.ALL -> {
-                btnAll.setBackgroundColor(Color.DKGRAY)
+                btnAll.isSelected = true
                 tvPeriodSummary.text = "선택 기간: 전체"
             }
         }
