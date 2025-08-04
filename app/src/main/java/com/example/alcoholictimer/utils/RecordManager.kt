@@ -28,7 +28,7 @@ object RecordManager {
 
         // 간단한 문자열 저장 방식 사용
         val activitiesString = activities.joinToString("|") {
-            "${it.startDate},${it.endDate},${it.duration},${it.isCompleted}"
+            "${it.startDate},${it.endDate},${it.duration},${it.isSuccess}"
         }
         prefs.edit().putString(KEY_ACTIVITIES, activitiesString).apply()
     }
@@ -44,7 +44,7 @@ object RecordManager {
                     startDate = parts[0],
                     endDate = parts[1],
                     duration = parts[2].toIntOrNull() ?: 0,
-                    isCompleted = parts[3].toBoolean()
+                    isSuccess = parts[3].toBoolean()
                 )
             } else null
         }

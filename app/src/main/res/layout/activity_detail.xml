@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="#FFFFFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- 상단 헤더 (뒤로가기 버튼 + 제목) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <!-- 뒤로가기 버튼 -->
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_menu_revert"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="뒤로가기"
+                android:layout_marginEnd="16dp" />
+
+            <!-- 제목 -->
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="활동 세부정보"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:gravity="center" />
+
+            <!-- 공간 균형을 위한 더미 뷰 -->
+            <View
+                android:layout_width="48dp"
+                android:layout_height="48dp" />
+
+        </LinearLayout>
+
+        <!-- 활동 제목 -->
+        <TextView
+            android:id="@+id/tvActivityTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="금주 챌린지"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:gravity="center"
+            android:layout_marginBottom="24dp" />
+
+        <!-- 구분선 1 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E0E0E0"
+            android:layout_marginBottom="16dp" />
+
+        <!-- 기본 정보 섹션 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📋 기본 정보"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:id="@+id/tvStartDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="시작일: 2025-08-05"
+            android:textSize="16sp"
+            android:textColor="#333333"
+            android:layout_marginBottom="8dp"
+            android:paddingLeft="16dp" />
+
+        <TextView
+            android:id="@+id/tvEndDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="종료일: 2025-08-05"
+            android:textSize="16sp"
+            android:textColor="#333333"
+            android:layout_marginBottom="8dp"
+            android:paddingLeft="16dp" />
+
+        <TextView
+            android:id="@+id/tvDuration"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="지속 시간: 7일"
+            android:textSize="16sp"
+            android:textColor="#333333"
+            android:layout_marginBottom="8dp"
+            android:paddingLeft="16dp" />
+
+        <TextView
+            android:id="@+id/tvResult"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="결과: 성공"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"
+            android:paddingLeft="16dp" />
+
+        <TextView
+            android:id="@+id/tvSavedMoney"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="절약 금액: 14만원"
+            android:textSize="16sp"
+            android:textColor="#333333"
+            android:layout_marginBottom="24dp"
+            android:paddingLeft="16dp" />
+
+        <!-- 구분선 2 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E0E0E0"
+            android:layout_marginBottom="16dp" />
+
+        <!-- 상세 정보 섹션 -->
+        <TextView
+            android:id="@+id/tvDetailedInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="상세 정보가 여기에 표시됩니다"
+            android:textSize="14sp"
+            android:textColor="#555555"
+            android:lineSpacingMultiplier="1.2"
+            android:padding="16dp"
+            android:background="#F5F5F5"
+            android:layout_marginBottom="24dp" />
+
+    </LinearLayout>
+
+</ScrollView>

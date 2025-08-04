@@ -4,77 +4,102 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="8dp"
-    android:layout_marginVertical="4dp"
-    app:cardElevation="1dp"
-    app:cardCornerRadius="8dp">
+    android:layout_margin="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="0dp"
+    android:background="@android:color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:gravity="center_vertical">
 
-        <!-- 아이콘 -->
+        <!-- 활동 아이콘 -->
         <ImageView
-            android:id="@+id/ivIcon"
+            android:id="@+id/ivActivityIcon"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/ic_launcher_foreground"
-            android:layout_gravity="center_vertical"/>
+            android:layout_marginEnd="16dp"
+            android:src="@android:drawable/ic_menu_agenda"
+            android:contentDescription="활동 아이콘"/>
 
-        <!-- 내용 -->
+        <!-- 활동 정보 -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:layout_marginStart="16dp">
+            android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tvEndDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="14sp"
-                android:textColor="#666666"
-                android:text="2025-08-05"/>
-
+            <!-- 종료일과 활동 제목 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginTop="4dp">
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/tvEndDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="2025-08-05"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/black"
+                    android:layout_marginEnd="8dp"/>
+
+                <TextView
+                    android:id="@+id/tvActivityTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="금주 챌린지"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"/>
+
+            </LinearLayout>
+
+            <!-- 지속 시간과 성공/실패 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="4dp"
+                android:gravity="center_vertical">
 
                 <TextView
                     android:id="@+id/tvDuration"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:text="12일 4시간"/>
+                    android:text="7일 4시간"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/darker_gray"
+                    android:layout_marginEnd="16dp"/>
 
                 <TextView
-                    android:id="@+id/tvStatus"
+                    android:id="@+id/tvResult"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="2dp"
-                    android:background="#E0E0E0"
-                    android:textColor="#333333"
-                    android:textSize="12sp"
-                    android:text="성공"/>
+                    android:text="성공"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginEnd="16dp"/>
 
                 <TextView
                     android:id="@+id/tvSavedMoney"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="end"
-                    android:textSize="14sp"
-                    android:textColor="#2196F3"
-                    android:text="25만원 절약"/>
+                    android:text="25만원"
+                    android:textSize="12sp"
+                    android:textColor="@android:color/holo_blue_dark"
+                    android:background="@android:drawable/editbox_background"
+                    android:padding="4dp"/>
+
             </LinearLayout>
+
         </LinearLayout>
+
     </LinearLayout>
+
 </androidx.cardview.widget.CardView>

@@ -13,6 +13,7 @@ import android.widget.Toast
 import com.example.alcoholictimer.models.RecentActivity
 import com.example.alcoholictimer.utils.Constants
 import com.example.alcoholictimer.utils.RecordManager
+import com.example.alcoholictimer.utils.RecentActivityManager
 import com.example.alcoholictimer.utils.SobrietyRecord
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.text.SimpleDateFormat
@@ -311,13 +312,22 @@ class StatusActivity : BaseActivity() {
             // 타이머 즉시 중지
             stopTimer()
 
+            // RecentActivityManager 초기화
+            RecentActivityManager.init(this)
+
+            // 완료된 활동을 RecentActivityManager에 저장
+            RecentActivityManager.saveCompletedActivity(
+                startTime,
+                endTime,
+                targetDays,
+                Constants.currentTestMode
+            )
+
             // 완료된 기록을 먼저 저장
             val recordId = saveCompletedRecord(startTime, endTime, targetDays, 1)
 
             // 결과 화면 전환 지연 후 기록 요약 화면으로 이동
             Handler(Looper.getMainLooper()).postDelayed({
-                // 활동 기록 저장
-                saveActivity(true)
                 // 기록 요약 화면으로 이동 (기록 ID 전달)
                 navigateToRecordSummary(recordId)
             }, Constants.RESULT_SCREEN_DELAY.toLong())
@@ -406,7 +416,7 @@ class StatusActivity : BaseActivity() {
                 startDate = abstainStartTime,
                 endDate = getCurrentDate(),
                 duration = calculateDuration(),
-                isCompleted = isCompleted
+                isSuccess = isCompleted
             )
             RecordManager.addActivity(activity)
         } catch (e: Exception) {
@@ -417,7 +427,7 @@ class StatusActivity : BaseActivity() {
                     startDate = getCurrentDate(),
                     endDate = getCurrentDate(),
                     duration = 1,
-                    isCompleted = isCompleted
+                    isSuccess = isCompleted
                 )
                 RecordManager.addActivity(activity)
             } catch (fallbackError: Exception) {
@@ -504,8 +514,17 @@ class StatusActivity : BaseActivity() {
         btnConfirm.setOnClickListener {
             dialog.dismiss()
 
+            // 중단된 활동 기록 저장
+            val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+            val startTime = sharedPref.getLong("start_time", System.currentTimeMillis())
+            val endTime = System.currentTimeMillis()
+
+            // RecentActivityManager 초기화 및 중단된 활동 저장
+            RecentActivityManager.init(this@StatusActivity)
+            RecentActivityManager.saveStoppedActivity(startTime, endTime, Constants.currentTestMode)
+
             // SharedPreferences 초기화
-            with(getSharedPreferences("user_settings", MODE_PRIVATE).edit()) {
+            with(sharedPref.edit()) {
                 clear()
                 apply()
             }

@@ -15,6 +15,7 @@ import com.example.alcoholictimer.adapters.LevelHistoryAdapter
 import com.example.alcoholictimer.adapters.RecentActivityAdapter
 import com.example.alcoholictimer.models.LevelHistoryItem
 import com.example.alcoholictimer.models.RecentActivity
+import com.example.alcoholictimer.utils.RecentActivityManager
 import com.example.alcoholictimer.utils.SobrietyRecord
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -149,8 +150,44 @@ class RecordsActivity : BaseActivity() {
     }
 
     private fun loadAndDisplayData() {
-        // 저장된 금주 기록들을 불러와서 통계 계산
+        // RecentActivityManager 초기화
+        RecentActivityManager.init(this)
+
+        // 저장된 금주 기록 로드
         loadSobrietyRecords()
+
+        // 최근 활동 데이터 로드 및 표시
+        loadRecentActivities()
+    }
+
+    /**
+     * 통계 데이터를 로드합니다
+     */
+    private fun loadStatistics() {
+        loadSobrietyRecords()
+    }
+
+    /**
+     * 레벨 히스토리를 로드합니다
+     */
+    private fun loadLevelHistory() {
+        loadSobrietyRecords()
+    }
+
+    /**
+     * 최근 활동 데이터를 로드하고 RecyclerView에 표시합니다
+     */
+    private fun loadRecentActivities() {
+        val recentActivities = RecentActivityManager.getRecentActivities()
+
+        // RecentActivityAdapter 초기화 (아직 생성되지 않은 경우)
+        if (!::recentActivityAdapter.isInitialized) {
+            recentActivityAdapter = RecentActivityAdapter(recentActivities)
+            rvRecentActivities.adapter = recentActivityAdapter
+        } else {
+            // 기존 어댑터 데이터 업데이트
+            recentActivityAdapter.updateData(recentActivities)
+        }
     }
 
     private fun loadSobrietyRecords() {
@@ -290,7 +327,7 @@ class RecordsActivity : BaseActivity() {
                     startDate = record.startDate,
                     endDate = record.endDate,
                     duration = record.duration,
-                    isCompleted = record.isCompleted
+                    isSuccess = record.isCompleted
                 )
             }
 
@@ -301,14 +338,28 @@ class RecordsActivity : BaseActivity() {
                 startDate = LocalDate.now().toString(),
                 endDate = LocalDate.now().toString(),
                 duration = 0,
-                isCompleted = false
+                isSuccess = false
             )
-            recentActivityAdapter = RecentActivityAdapter(listOf(emptyActivity))
+            recentActivityAdapter = RecentActivityAdapter(listOf(emptyActivity)) { activity ->
+                // 빈 활동은 클릭해도 아무 동작 안함
+            }
         } else {
-            recentActivityAdapter = RecentActivityAdapter(recentActivities)
+            recentActivityAdapter = RecentActivityAdapter(recentActivities) { activity ->
+                // 카드 클릭 시 세부정보 화면으로 이동
+                navigateToActivityDetail(activity)
+            }
         }
 
         rvRecentActivities.adapter = recentActivityAdapter
+    }
+
+    /**
+     * 활동 세부정보 화면으로 이동
+     */
+    private fun navigateToActivityDetail(activity: RecentActivity) {
+        val intent = Intent(this, ActivityDetailActivity::class.java)
+        intent.putExtra("activity_json", activity.toJson().toString())
+        startActivity(intent)
     }
 
     private fun navigateToMain() {
