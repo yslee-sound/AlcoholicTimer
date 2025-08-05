@@ -484,7 +484,7 @@ class StatusActivity : BaseActivity() {
     }
 
     private fun navigateToRecordSummary(recordId: Long) {
-        val intent = Intent(this, RecordSummaryActivity::class.java)
+        val intent = Intent(this, DetailActivity::class.java)
         intent.putExtra("record_id", recordId)
         startActivity(intent)
         finish()

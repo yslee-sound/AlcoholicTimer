@@ -38,10 +38,6 @@
             android:exported="false"
             android:theme="@style/Theme.AlcoholicTimer"/>
         <activity
-            android:name=".RecordSummaryActivity"
-            android:exported="false"
-            android:theme="@style/Theme.AlcoholicTimer"/>
-        <activity
             android:name=".ChallengeActivity"
             android:exported="false"
             android:theme="@style/Theme.AlcoholicTimer"/>
@@ -50,11 +46,11 @@
             android:exported="false"
             android:theme="@style/Theme.AlcoholicTimer"/>
         <activity
-            android:name=".ActivityDetailActivity"
+            android:name=".DetailActivity"
             android:exported="false"
             android:theme="@style/Theme.AlcoholicTimer"/>
         <activity
-            android:name=".NotificationsActivity"
+            android:name=".NotificationActivity"
             android:exported="false"
             android:theme="@style/Theme.AlcoholicTimer"/>
         <activity

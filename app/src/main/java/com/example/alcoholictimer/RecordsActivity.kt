@@ -357,10 +357,10 @@ class RecordsActivity : BaseActivity() {
     }
 
     /**
-     * 활동 세부정보 화면으로 이동
+     * 활동 세부정보 화면으로 이동합니다.
      */
     private fun navigateToActivityDetail(activity: RecentActivity) {
-        val intent = Intent(this, ActivityDetailActivity::class.java)
+        val intent = Intent(this, DetailActivity::class.java)
         intent.putExtra("activity_json", activity.toJson().toString())
         startActivity(intent)
     }
