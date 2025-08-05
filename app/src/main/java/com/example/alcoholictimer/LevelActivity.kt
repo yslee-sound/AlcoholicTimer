@@ -1,14 +1,13 @@
 package com.example.alcoholictimer
 
+import android.content.Context
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.example.alcoholictimer.utils.SharedPreferencesManager
 
 class LevelActivity : BaseActivity() {
 
@@ -17,8 +16,15 @@ class LevelActivity : BaseActivity() {
     private lateinit var tvCurrentLevel: TextView
     private lateinit var tvNextLevelDays: TextView
     private lateinit var progressBarLevel: ProgressBar
-    private lateinit var recyclerViewLevels: RecyclerView
-    private lateinit var levelAdapter: LevelAdapter
+
+    // 개별 레벨 카드들
+    private lateinit var levelCard1: LinearLayout
+    private lateinit var levelCard2: LinearLayout
+    private lateinit var levelCard3: LinearLayout
+    private lateinit var levelCard4: LinearLayout
+    private lateinit var levelCard5: LinearLayout
+    private lateinit var levelCard6: LinearLayout
+    private lateinit var levelCard7: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,101 +44,151 @@ class LevelActivity : BaseActivity() {
         tvCurrentLevel = findViewById(R.id.tvCurrentLevel)
         tvNextLevelDays = findViewById(R.id.tvNextLevelDays)
         progressBarLevel = findViewById(R.id.progressBarLevel)
-        recyclerViewLevels = findViewById(R.id.recyclerViewLevels)
 
-        recyclerViewLevels.layoutManager = LinearLayoutManager(this)
-        levelAdapter = LevelAdapter()
-        recyclerViewLevels.adapter = levelAdapter
+        // 개별 레벨 카드들 초기화
+        levelCard1 = findViewById(R.id.levelCard1)
+        levelCard2 = findViewById(R.id.levelCard2)
+        levelCard3 = findViewById(R.id.levelCard3)
+        levelCard4 = findViewById(R.id.levelCard4)
+        levelCard5 = findViewById(R.id.levelCard5)
+        levelCard6 = findViewById(R.id.levelCard6)
+        levelCard7 = findViewById(R.id.levelCard7)
     }
 
     private fun setupLevelData() {
-        val currentDays = getCurrentAbstainDays()
-        val currentLevel = getLevelFromDays(currentDays)
-        val nextLevel = getNextLevel(currentLevel)
+        val sharedPrefs = getSharedPreferences("alcoholic_timer", Context.MODE_PRIVATE)
+        val totalDays = calculateTotalDays(sharedPrefs)
 
-        // 현재 레벨 카드 배경색 설정
-        layoutCurrentLevel.setBackgroundColor(android.graphics.Color.parseColor(currentLevel.color))
+        // 현재 레벨 계산
+        val currentLevel = calculateCurrentLevel(totalDays)
+        val nextLevelDays = getNextLevelDays(currentLevel)
+        val progress = calculateProgress(totalDays, currentLevel)
 
-        // 현재 레벨 배지 색상 설정 (흰색으로 통일)
-        viewCurrentLevelBadge.setBackgroundColor(android.graphics.Color.WHITE)
+        // 현재 레벨 정보 표시
+        updateCurrentLevelInfo(currentLevel, nextLevelDays, progress)
 
-        // 현재 레벨 표시
-        tvCurrentLevel.text = currentLevel.name
+        // 모든 레벨 카드 상태 업데이트
+        updateAllLevelCards(totalDays)
+    }
 
-        // 프로그레스 바와 다음 레벨까지 남은 일수 계산
-        if (nextLevel != null) {
-            val levelRange = nextLevel.minDays - currentLevel.minDays
-            val currentProgressInLevel = currentDays - currentLevel.minDays
-            val daysToNext = nextLevel.minDays - currentDays
+    private fun calculateTotalDays(sharedPrefs: android.content.SharedPreferences): Int {
+        // 모든 완료된 기록들의 총 일수를 계산
+        val recordsJson = sharedPrefs.getString("abstain_records", "[]")
+        var totalDays = 0
 
-            // 현재 레벨 내에서의 진행도 계산
-            val progress = if (levelRange > 0) {
-                ((currentProgressInLevel.toFloat() / levelRange.toFloat()) * 100).toInt().coerceIn(0, 100)
-            } else {
-                100
+        try {
+            // 현재 진행 중인 금주가 있다면 추가
+            val isAbstaining = sharedPrefs.getBoolean("is_abstaining", false)
+            if (isAbstaining) {
+                val startTime = sharedPrefs.getLong("abstain_start_time", 0)
+                if (startTime > 0) {
+                    val currentTime = System.currentTimeMillis()
+                    val elapsedDays = ((currentTime - startTime) / (24 * 60 * 60 * 1000)).toInt()
+                    totalDays += elapsedDays
+                }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
 
-            progressBarLevel.progress = progress
-            tvNextLevelDays.text = "다음 레벨까지 ${daysToNext}일 남음"
+        return totalDays
+    }
+
+    private fun calculateCurrentLevel(totalDays: Int): Int {
+        return when {
+            totalDays >= 365 -> 7  // 1년
+            totalDays >= 100 -> 6  // 100일
+            totalDays >= 30 -> 5   // 한달
+            totalDays >= 14 -> 4   // 2주
+            totalDays >= 7 -> 3    // 일주일
+            totalDays >= 3 -> 2    // 3일
+            totalDays >= 1 -> 1    // 첫걸음
+            else -> 0              // 시작 전
+        }
+    }
+
+    private fun getNextLevelDays(currentLevel: Int): Int {
+        return when (currentLevel) {
+            0 -> 1
+            1 -> 3
+            2 -> 7
+            3 -> 14
+            4 -> 30
+            5 -> 100
+            6 -> 365
+            else -> 0
+        }
+    }
+
+    private fun calculateProgress(totalDays: Int, currentLevel: Int): Int {
+        val currentLevelStart = when (currentLevel) {
+            0 -> 0
+            1 -> 1
+            2 -> 3
+            3 -> 7
+            4 -> 14
+            5 -> 30
+            6 -> 100
+            else -> 365
+        }
+
+        val nextLevelStart = getNextLevelDays(currentLevel)
+
+        if (nextLevelStart == 0) return 100 // 최고 레벨
+
+        val progressInLevel = totalDays - currentLevelStart
+        val levelRange = nextLevelStart - currentLevelStart
+
+        return if (levelRange > 0) {
+            ((progressInLevel.toFloat() / levelRange.toFloat()) * 100).toInt().coerceIn(0, 100)
         } else {
-            // 최고 레벨 달성
-            progressBarLevel.progress = 100
+            100
+        }
+    }
+
+    private fun updateCurrentLevelInfo(level: Int, nextLevelDays: Int, progress: Int) {
+        val levelName = when (level) {
+            0 -> "시작 준비"
+            1 -> "첫걸음 성공"
+            2 -> "의지 다지기"
+            3 -> "일주일 챌린지"
+            4 -> "2주 달성"
+            5 -> "한달 마스터"
+            6 -> "100일 영웅"
+            7 -> "1년 전설"
+            else -> "시작 준비"
+        }
+
+        tvCurrentLevel.text = levelName
+
+        if (nextLevelDays > 0) {
+            tvNextLevelDays.text = "다음 레벨까지 ${nextLevelDays}일 남음"
+        } else {
             tvNextLevelDays.text = "최고 레벨 달성!"
         }
 
-        // 레벨 리스트 설정
-        val allLevels = getAllLevels()
-        levelAdapter.updateLevels(allLevels, currentDays)
+        progressBarLevel.progress = progress
     }
 
-    private fun getCurrentAbstainDays(): Int {
-        val sharedPrefs = SharedPreferencesManager.getInstance(this)
-        if (!sharedPrefs.getBoolean("isAbstaining", false)) {
-            return 0
-        }
-
-        val startTime = sharedPrefs.getLong("abstainStartTime", 0L)
-        if (startTime == 0L) return 0
-
-        val currentTime = System.currentTimeMillis()
-        val diffInMillis = currentTime - startTime
-        return (diffInMillis / (1000 * 60 * 60 * 24)).toInt()
+    private fun updateAllLevelCards(totalDays: Int) {
+        // 각 레벨 카드의 상태를 업데이트
+        updateLevelCard(levelCard1, 1, totalDays >= 1)
+        updateLevelCard(levelCard2, 2, totalDays >= 3)
+        updateLevelCard(levelCard3, 3, totalDays >= 7)
+        updateLevelCard(levelCard4, 4, totalDays >= 14)
+        updateLevelCard(levelCard5, 5, totalDays >= 30)
+        updateLevelCard(levelCard6, 6, totalDays >= 100)
+        updateLevelCard(levelCard7, 7, totalDays >= 365)
     }
 
-    private fun getLevelFromDays(days: Int): Level {
-        val levels = getAllLevels()
-        return levels.findLast { days >= it.minDays } ?: levels.first()
-    }
-
-    private fun getNextLevel(currentLevel: Level): Level? {
-        val levels = getAllLevels()
-        val currentIndex = levels.indexOf(currentLevel)
-        return if (currentIndex < levels.size - 1) {
-            levels[currentIndex + 1]
+    private fun updateLevelCard(card: LinearLayout, level: Int, isAchieved: Boolean) {
+        // 달성하지 못한 레벨은 그레이 처리
+        if (isAchieved) {
+            card.alpha = 1.0f
+            card.setBackgroundColor(resources.getColor(android.R.color.white, null))
         } else {
-            null
+            card.alpha = 0.5f
+            card.setBackgroundColor(resources.getColor(android.R.color.darker_gray, null))
         }
-    }
-
-    private fun getAllLevels(): List<Level> {
-        return listOf(
-            Level("작심 7일", 0, 6, "#9E9E9E", "그레이", "첫 걸음을 시작했습니다"),
-            Level("의지의 2주", 7, 13, "#FFEB3B", "옐로우", "의지가 단단해지고 있습니다"),
-            Level("한달의 기적", 14, 29, "#FF9800", "오렌지", "한 달의 기적을 만들어가고 있습니다"),
-            Level("습관의 탄생", 30, 59, "#4CAF50", "그린", "새로운 습관이 자리잡고 있습니다"),
-            Level("계속되는 도전", 60, 119, "#2196F3", "블루", "꾸준한 도전이 계속되고 있습니다"),
-            Level("거의 1년", 120, 239, "#9C27B0", "퍼플", "1년에 가까워지고 있습니다"),
-            Level("금주 마스터", 240, 364, "#424242", "블랙", "금주의 마스터가 되었습니다"),
-            Level("절제의 레전드", 365, Int.MAX_VALUE, "#FFD700", "골드", "전설적인 절제력을 보여주고 있습니다")
-        )
     }
 }
-
-data class Level(
-    val name: String,
-    val minDays: Int,
-    val maxDays: Int,
-    val color: String,
-    val colorName: String,
-    val description: String
-)
