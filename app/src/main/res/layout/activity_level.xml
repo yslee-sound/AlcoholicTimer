@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- 현재 레벨 카드 -->
+        <LinearLayout
+            android:id="@+id/layoutCurrentLevel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#FF9800"
+            android:padding="24dp"
+            android:layout_marginBottom="24dp"
+            android:elevation="4dp">
+
+            <!-- 현재 레벨 배지와 이름 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+
+                <!-- 레벨 배지 -->
+                <View
+                    android:id="@+id/viewCurrentLevelBadge"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:background="#FFFFFF"
+                    android:layout_marginEnd="12dp" />
+
+                <!-- 현재 레벨명 -->
+                <TextView
+                    android:id="@+id/tvCurrentLevel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="한달의 기적"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF" />
+
+            </LinearLayout>
+
+            <!-- 프로그레스 바 -->
+            <ProgressBar
+                android:id="@+id/progressBarLevel"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:progress="65"
+                android:progressTint="#FFFFFF"
+                android:progressBackgroundTint="#80FFFFFF"
+                android:layout_marginBottom="12dp" />
+
+            <!-- 다음 레벨까지 남은 일수 -->
+            <TextView
+                android:id="@+id/tvNextLevelDays"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="다음 레벨까지 6일 남음"
+                android:textSize="16sp"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:gravity="center" />
+
+        </LinearLayout>
+
+        <!-- 구분선 -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#E0E0E0"
+            android:layout_marginBottom="24dp" />
+
+        <!-- 전체 레벨 리스트 제목 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="금주 레벨 시스템"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:layout_marginBottom="16dp" />
+
+        <!-- 레벨 리스트 -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewLevels"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false" />
+
+    </LinearLayout>
+
+</ScrollView>

@@ -46,6 +46,10 @@
             android:exported="false"
             android:theme="@style/Theme.AlcoholicTimer"/>
         <activity
+            android:name=".LevelActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AlcoholicTimer"/>
+        <activity
             android:name=".DetailActivity"
             android:exported="false"
             android:theme="@style/Theme.AlcoholicTimer"/>

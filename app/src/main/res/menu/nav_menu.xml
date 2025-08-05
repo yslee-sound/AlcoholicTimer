@@ -1,22 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/nav_sober"
-        android:title="금주"/>
+        android:id="@+id/nav_sobriety"
+        android:title="금주" />
+    <item
+        android:id="@+id/nav_levels"
+        android:title="금주 레벨" />
     <item
         android:id="@+id/nav_records"
-        android:title="활동 보기"/>
+        android:title="활동 보기" />
     <item
-        android:id="@+id/nav_challenge"
-        android:title="챌린지"/>
+        android:id="@+id/nav_challenges"
+        android:title="챌린지" />
     <item
-        android:id="@+id/nav_message"
-        android:title="응원 메시지"/>
-    <item
-        android:id="@+id/nav_settings"
-        android:title="설정"/>
+        android:id="@+id/nav_messages"
+        android:title="응원 메시지" />
     <item
         android:id="@+id/nav_notifications"
-        android:title="알림함"/>
+        android:title="알림함" />
+    <item
+        android:id="@+id/nav_settings"
+        android:title="설정" />
 </menu>
-

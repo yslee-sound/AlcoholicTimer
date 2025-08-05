@@ -10,6 +10,7 @@ import androidx.core.view.GravityCompat
 import androidx.core.view.WindowCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.example.alcoholictimer.utils.Constants
+import com.example.alcoholictimer.utils.SharedPreferencesManager
 import com.google.android.material.navigation.NavigationView
 import java.util.Date
 
@@ -69,7 +70,7 @@ abstract class BaseActivity : AppCompatActivity(), NavigationView.OnNavigationIt
         val hasStarted = sharedPref.contains("start_time")
 
         // 금주 메뉴는 항상 활성화하고, 금주 중인 경우 텍스트 변경
-        val soberMenuItem = navigationView.menu.findItem(R.id.nav_sober)
+        val soberMenuItem = navigationView.menu.findItem(R.id.nav_sobriety)
         soberMenuItem.isEnabled = true
         if (hasStarted) {
             soberMenuItem.title = "금주 상태"
@@ -156,54 +157,53 @@ abstract class BaseActivity : AppCompatActivity(), NavigationView.OnNavigationIt
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.nav_sobriety -> {
+                // 금주 상태에 따라 다른 화면으로 이동
+                val sharedPrefs = SharedPreferencesManager.getInstance(this)
+                val isAbstaining = sharedPrefs.getBoolean("isAbstaining", false)
+
+                if (isAbstaining) {
+                    // 금주 중이면 상태 화면으로
+                    if (this !is StatusActivity) {
+                        navigateToActivity(StatusActivity::class.java)
+                    }
+                } else {
+                    // 금주 중이 아니면 시작 화면으로
+                    if (this !is StartActivity) {
+                        navigateToActivity(StartActivity::class.java)
+                    }
+                }
+            }
+            R.id.nav_levels -> {
+                if (this.javaClass.simpleName != "LevelActivity") {
+                    val intent = Intent(this, Class.forName("com.example.alcoholictimer.LevelActivity"))
+                    startActivity(intent)
+                    overridePendingTransition(0, 0)
+                }
+            }
             R.id.nav_records -> {
                 if (this !is RecordsActivity) {
-                    val intent = Intent(this, RecordsActivity::class.java)
-                    startActivity(intent)
-                    overridePendingTransition(0, 0)  // 화면 전환 효과 제거
+                    navigateToActivity(RecordsActivity::class.java)
                 }
             }
-            R.id.nav_challenge -> {
+            R.id.nav_challenges -> {
                 if (this !is ChallengeActivity) {
-                    val intent = Intent(this, ChallengeActivity::class.java)
-                    startActivity(intent)
-                    overridePendingTransition(0, 0)
+                    navigateToActivity(ChallengeActivity::class.java)
                 }
             }
-            R.id.nav_message -> {
+            R.id.nav_messages -> {
                 if (this !is MessageActivity) {
-                    val intent = Intent(this, MessageActivity::class.java)
-                    startActivity(intent)
-                    overridePendingTransition(0, 0)
+                    navigateToActivity(MessageActivity::class.java)
+                }
+            }
+            R.id.nav_notifications -> {
+                if (this !is NotificationActivity) {
+                    navigateToActivity(NotificationActivity::class.java)
                 }
             }
             R.id.nav_settings -> {
                 if (this !is SettingsActivity) {
-                    val intent = Intent(this, SettingsActivity::class.java)
-                    startActivity(intent)
-                    overridePendingTransition(0, 0)
-                }
-            }
-            R.id.nav_notifications -> {
-                if (this !is NotificationsActivity) {
-                    val intent = Intent(this, NotificationsActivity::class.java)
-                    startActivity(intent)
-                    overridePendingTransition(0, 0)
-                }
-            }
-            R.id.nav_sober -> {
-                // 금주 중일 때만 금주 화면으로 이동 가능
-                val prefs = getSharedPreferences("user_settings", MODE_PRIVATE)
-                val isAbstaining = prefs.contains("start_time")
-
-                if (isAbstaining && this !is StatusActivity) {
-                    val intent = Intent(this, StatusActivity::class.java)
-                    startActivity(intent)
-                    overridePendingTransition(0, 0)
-                } else if (!isAbstaining && this !is StartActivity) {
-                    val intent = Intent(this, StartActivity::class.java)
-                    startActivity(intent)
-                    overridePendingTransition(0, 0)
+                    navigateToActivity(SettingsActivity::class.java)
                 }
             }
         }
