@@ -13,7 +13,7 @@ class LevelHistoryAdapter(private val items: List<LevelHistoryItem>) :
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvDate: TextView = view.findViewById(R.id.tvDate)
-        val tvDescription: TextView = view.findViewById(R.id.tvDescription)
+        val tvAchievement: TextView = view.findViewById(R.id.tvAchievement)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -25,7 +25,7 @@ class LevelHistoryAdapter(private val items: List<LevelHistoryItem>) :
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
         holder.tvDate.text = item.date
-        holder.tvDescription.text = item.description
+        holder.tvAchievement.text = item.description
     }
 
     override fun getItemCount() = items.size

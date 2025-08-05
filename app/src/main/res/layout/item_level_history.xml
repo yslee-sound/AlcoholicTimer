@@ -2,24 +2,33 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="8dp">
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:background="#FFFFFF">
 
     <TextView
         android:id="@+id/tvDate"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="2025-07-01"
-        android:textSize="14sp" />
+        android:text="2025-08-05"
+        android:textSize="14sp"
+        android:textColor="#666666"
+        android:layout_marginBottom="4dp" />
 
     <TextView
-        android:id="@+id/tvDescription"
-        android:layout_width="0dp"
+        android:id="@+id/tvAchievement"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="2"
-        android:text="Level 1 달성!"
-        android:textSize="14sp"
+        android:text="Level 1 달성 (7일)"
+        android:textSize="16sp"
+        android:textColor="#000000"
         android:textStyle="bold" />
+
+    <!-- 구분선 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EEEEEE"
+        android:layout_marginTop="8dp" />
 
 </LinearLayout>
