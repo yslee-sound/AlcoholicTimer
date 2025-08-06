@@ -186,21 +186,6 @@ abstract class BaseActivity : AppCompatActivity(), NavigationView.OnNavigationIt
                     navigateToActivity(RecordsActivity::class.java)
                 }
             }
-            R.id.nav_challenges -> {
-                if (this !is ChallengeActivity) {
-                    navigateToActivity(ChallengeActivity::class.java)
-                }
-            }
-            R.id.nav_messages -> {
-                if (this !is MessageActivity) {
-                    navigateToActivity(MessageActivity::class.java)
-                }
-            }
-            R.id.nav_notifications -> {
-                if (this !is NotificationActivity) {
-                    navigateToActivity(NotificationActivity::class.java)
-                }
-            }
             R.id.nav_settings -> {
                 if (this !is SettingsActivity) {
                     navigateToActivity(SettingsActivity::class.java)
