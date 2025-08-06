@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
 import com.example.alcoholictimer.utils.Constants
+import androidx.compose.ui.tooling.preview.Preview
 
 class StartActivity : BaseActivity() {
 
@@ -110,6 +111,14 @@ class StartActivity : BaseActivity() {
             Constants.TEST_MODE_SECOND -> "금주 목표 초수"
             Constants.TEST_MODE_MINUTE -> "금주 목표 분수"
             else -> "금주 목표 일수"
+        }
+    }
+
+    @Preview(showBackground = true)
+    @Composable
+    fun PreviewStartScreen() {
+        BaseScreen {
+            StartScreen()
         }
     }
 }

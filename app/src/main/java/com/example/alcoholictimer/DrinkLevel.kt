@@ -1,6 +1,14 @@
 package com.example.alcoholictimer
 
 import androidx.annotation.ColorRes
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
 
 enum class DrinkLevel(
     val levelName: String,
@@ -73,6 +81,18 @@ enum class DrinkLevel(
             "${startDays}일 이상"
         } else {
             "${startDays}~${endDays}일"
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewDrinkLevel() {
+    MaterialTheme {
+        Column(modifier = Modifier.padding(16.dp)) {
+            DrinkLevel.values().forEach { level ->
+                Text(text = "${level.levelName}: ${level.description}")
+            }
         }
     }
 }

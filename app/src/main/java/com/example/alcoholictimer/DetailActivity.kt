@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.text.SimpleDateFormat
@@ -56,6 +57,14 @@ class DetailActivity : BaseActivity() {
                 text = "완료된 금주 기록의 상세정보가 여기에 표시됩니다.",
                 fontSize = 16.sp
             )
+        }
+    }
+
+    @Preview(showBackground = true)
+    @Composable
+    fun PreviewDetailScreen() {
+        BaseScreen {
+            DetailScreen(recordId = 1L)
         }
     }
 }

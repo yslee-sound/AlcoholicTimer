@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
@@ -76,7 +77,7 @@ abstract class BaseActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun DrawerMenu(onItemSelected: (String) -> Unit) {
+    fun DrawerMenu(onItemSelected: (String) -> Unit) {
         val menuItems = listOf(
             "금주" to Icons.Default.Home,
             "활동 보기" to Icons.Default.List,
@@ -158,10 +159,59 @@ abstract class BaseActivity : ComponentActivity() {
     private fun navigateToActivity(activityClass: Class<*>) {
         val intent = Intent(this, activityClass)
         startActivity(intent)
+        overridePendingTransition(0, 0) // 화면 전환 효과 제거
     }
 
     /**
      * 각 액티비티에서 구현해야 할 화면 제목
      */
     protected abstract fun getScreenTitle(): String
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewDrawerMenu() {
+    val menuItems = listOf(
+        "금주" to Icons.Default.Home,
+        "활동 보기" to Icons.Default.List,
+        "기록 보기" to Icons.Default.Info,
+        "레벨" to Icons.Default.Star,
+        "설정" to Icons.Default.Settings
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "금주 타이머",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+        menuItems.forEach { (title, icon) ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { }
+                    .padding(vertical = 12.dp, horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = title,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = title,
+                    fontSize = 16.sp
+                )
+            }
+        }
+    }
 }

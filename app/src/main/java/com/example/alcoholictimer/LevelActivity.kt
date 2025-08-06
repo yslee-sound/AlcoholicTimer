@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -27,7 +28,7 @@ class LevelActivity : BaseActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun LevelScreen() {
+    fun LevelScreen() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -42,5 +43,23 @@ class LevelActivity : BaseActivity() {
             // 레벨 관련 UI 구현
             Text("레벨별 진행도가 여기에 표시됩니다.")
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewLevelScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "금주 레벨",
+            fontSize = 24.sp,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+        Text("레벨별 진행도가 여기에 표시됩니다.")
     }
 }
