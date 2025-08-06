@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
 
 class SettingsActivity : BaseActivity() {
 
@@ -91,5 +92,18 @@ class SettingsActivity : BaseActivity() {
 
         // Constants 클래스의 동적 설정 업데이트
         Constants.updateTestMode(selectedMode)
+    }
+
+    @Composable
+    fun SettingsScreenPreview() {
+        BaseScreen {
+            SettingsScreen()
+        }
+    }
+
+    @Preview(showBackground = true)
+    @Composable
+    fun PreviewSettingsScreen() {
+        SettingsScreenPreview()
     }
 }
