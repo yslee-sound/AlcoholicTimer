@@ -5,35 +5,41 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.ViewGroup
-import android.widget.ProgressBar
-import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import com.example.alcoholictimer.models.RecentActivity
 import com.example.alcoholictimer.utils.Constants
 import com.example.alcoholictimer.utils.RecordManager
 import com.example.alcoholictimer.utils.RecentActivityManager
 import com.example.alcoholictimer.utils.SobrietyRecord
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.Timer
 import java.util.TimerTask
+import kotlinx.coroutines.launch
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.graphics.vector.ImageVector
 
 class StatusActivity : BaseActivity() {
     // 이전에 목표 달성 여부를 확인했는지 체크하는 플래그
     private var goalAchievementChecked = false
-
-    // 일 단위 레벨 마일스톤 (실제 운영)
-    private val levelMilestones = listOf(0, 7, 14, 30, 60, 120, 240, 365)
-
-    // 분 단위 레벨 마일스톤 (테스트 모드)
-    private val minuteTestMilestones = listOf(0, 1, 2, 5, 10, 15, 20, 30)
-
-    // 초 단위 레벨 마일스톤 (초 단위 테스트 모드)
-    private val secondTestMilestones = listOf(0, 7, 14, 30, 60, 90, 120, 180)
 
     private val levelTitles = listOf(
         "새싹 도전자",
@@ -50,20 +56,26 @@ class StatusActivity : BaseActivity() {
     private var timer: Timer? = null
     private val handler = Handler(Looper.getMainLooper())
 
-    // UI 요소 참조 저장 변수
-    private lateinit var tvDaysCount: TextView
-    private lateinit var tvTimeUnit: TextView
-    private lateinit var tvMessage: TextView
-    private lateinit var progressLevel: ProgressBar
-    private lateinit var tvTimeDetail: TextView
-    private lateinit var tvHoursDisplay: TextView // 시간 표시용 TextView 추가
-
     // 금주 시작 시간 저장 변수
     private var abstainStartTime: String = ""
 
+    // Compose State 변수들
+    private var timePassed by mutableIntStateOf(0)
+    private var hoursDisplay by mutableStateOf("")
+    private var timeDetail by mutableStateOf("")
+    private var progressValue by mutableFloatStateOf(0f)
+    private var statusMessage by mutableStateOf("")
+    private var timeUnitText by mutableStateOf("일")
+
+    override fun getScreenTitle(): String = "금주 상태"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // BaseActivity에서 이미 햄버거 메뉴 및 네비게이션 기능 처리됨
+        setContent {
+            BaseScreen {
+                StatusScreen()
+            }
+        }
     }
 
     override fun onResume() {
@@ -95,22 +107,15 @@ class StatusActivity : BaseActivity() {
     // Activity 클래스의 onNewIntent를 오버라이드
     public override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        // 새 인텐트로 액티비티가 재사용될 때 수행할 작업
         setIntent(intent)
         updateTimeModeDisplay()  // 모드 변경사항 업데이트
-        // UI 즉시 갱신
-        updateUI()
-    }
-
-    override fun handleNewIntent(intent: Intent?) {
-        // BaseActivity의 handleNewIntent 구현
-        updateUI()
+        updateUI()  // UI 즉시 갱신
     }
 
     private fun startTimer() {
         stopTimer()
         timer = Timer()
-        timer?.scheduleAtFixedRate(object : TimerTask() {
+        timer?.schedule(object : TimerTask() {
             override fun run() {
                 handler.post {
                     updateTimeDisplay()
@@ -139,100 +144,190 @@ class StatusActivity : BaseActivity() {
         val secondsPassed = (currentTime - startTime) / 1000L
 
         // 테스트 모드에 따른 시간 계산 - 대형 숫자 업데이트
-        val timePassed = when {
+        timePassed = when {
             Constants.isSecondTestMode -> secondsPassed.toInt() + 1  // 초 단위
             Constants.isMinuteTestMode -> (secondsPassed / 60).toInt() + 1  // 분 단위
             else -> ((currentTime - startTime) / Constants.TIME_UNIT_MILLIS).toInt() + 1  // 일 단위
         }
 
-        // 대형 숫자 실시간 업데이트 (특히 초 모드에서 중요)
-        tvDaysCount.text = timePassed.toString()
-
         // 시간 계산
         val hours = (secondsPassed / 3600) % 24
 
-        // 시간 표시 업데이트
-        tvHoursDisplay.text = String.format("%02d시간", hours)
+        // 시간 표시 업데이트 - Compose State 사용
+        hoursDisplay = String.format(Locale.getDefault(), "%02d시간", hours)
 
         // 테스트 모드별 시간 표시 업데이트
-        val timeText = when {
+        timeDetail = when {
             Constants.isSecondTestMode -> {
                 val totalSeconds = secondsPassed
                 val hours = totalSeconds / 3600
                 val minutes = (totalSeconds % 3600) / 60
                 val seconds = totalSeconds % 60
-                String.format("%02d:%02d:%02d", hours, minutes, seconds)
+                String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
             }
             Constants.isMinuteTestMode -> {
                 val totalSeconds = secondsPassed
                 val hours = totalSeconds / 3600
                 val minutes = (totalSeconds % 3600) / 60
                 val seconds = totalSeconds % 60
-                String.format("%02d:%02d:%02d", hours, minutes, seconds)
+                String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
             }
             else -> {
                 val totalSeconds = secondsPassed
                 val hours = totalSeconds / 3600
                 val minutes = (totalSeconds % 3600) / 60
                 val seconds = totalSeconds % 60
-                String.format("%02d:%02d:%02d", hours, minutes, seconds)
+                String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
             }
         }
-
-        tvTimeDetail.text = timeText
 
         // 진행 상태 확인 및 완료 처리
         checkProgressStatus()
     }
 
-    override fun setupContentView() {
-        // StatusActivity 고유의 컨텐츠를 contentFrame에 추가
-        val contentFrame = findViewById<ViewGroup>(R.id.contentFrame)
-        val view = LayoutInflater.from(this).inflate(R.layout.content_status, contentFrame, true)
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun StatusScreen() {
+        var showStopDialog by remember { mutableStateOf(false) }
 
-        // UI 요소 초기화
-        tvDaysCount = view.findViewById(R.id.tvDaysCount)
-        tvTimeUnit = view.findViewById(R.id.tvTimeUnit)
-        tvMessage = view.findViewById(R.id.tvMessage)
-        progressLevel = view.findViewById(R.id.progressLevel)
-        tvTimeDetail = view.findViewById(R.id.tvTimeDetail)
-        tvHoursDisplay = view.findViewById(R.id.tvHoursDisplay) // 시간 표시 TextView 초기화
-        tvTimeDetail.text = "00:00:00"  // 초기값 변경
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "금주 진행 상황",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
 
-        // 시간 단위 텍스트 설정
-        tvTimeUnit.text = Constants.TIME_UNIT_TEXT
+            // 대형 숫자 표시
+            Text(
+                text = timePassed.toString(),
+                fontSize = 48.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
 
-        // 중지 버튼 설정
-        val btnStopSobriety = view.findViewById<FloatingActionButton>(R.id.btnStopSobriety)
-        btnStopSobriety.setOnClickListener {
-            // 기존 AlertDialog 대신 커스텀 다이얼로그 사용
-            showCustomStopDialog()
+            // 시간 단위 표시
+            Text(
+                text = timeUnitText,
+                fontSize = 18.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            // 시간 표시
+            Text(
+                text = hoursDisplay,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            // 상세 시간 표시
+            Text(
+                text = timeDetail,
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            // 진행률 표시
+            LinearProgressIndicator(
+                progress = { progressValue },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .padding(bottom = 16.dp)
+            )
+
+            // 상태 메시지
+            Text(
+                text = statusMessage,
+                fontSize = 16.sp,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+
+            // 중지 버튼
+            Button(
+                onClick = { showStopDialog = true },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text("금주 중지", fontSize = 16.sp)
+            }
         }
 
-        // 최초 UI 업데이트
-        updateUI()
+        // 중지 확인 다이얼로그
+        if (showStopDialog) {
+            AlertDialog(
+                onDismissRequest = { showStopDialog = false },
+                title = { Text("금주 중지", fontWeight = FontWeight.Bold) },
+                text = { Text("정말 금주를 중지하시겠습니까?\n모든 금주 기록이 초기화됩니다.") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showStopDialog = false
+                            handleStopSobriety()
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text("확인")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { showStopDialog = false }) {
+                        Text("취소")
+                    }
+                }
+            )
+        }
     }
 
-    private fun displayTimeDetails(timePassed: Int, secondsPassed: Long) {
-        val timeText = when {
-            Constants.isSecondTestMode -> {
-                val seconds = secondsPassed % 60
-                val millis = (System.currentTimeMillis() % 1000) / 10
-                String.format("%02d:%02d", seconds, millis)
+    private fun handleMenuSelection(menuItem: String) {
+        when (menuItem) {
+            "금주" -> {
+                // 현재 화면이므로 아무 작업 안함
             }
-            Constants.isMinuteTestMode -> {
-                val minutes = secondsPassed / 60
-                val seconds = secondsPassed % 60
-                String.format("%02d:%02d", minutes, seconds)
+            "활동 보기" -> {
+                val intent = Intent(this, RecordsActivity::class.java)
+                startActivity(intent)
             }
-            else -> {
-                val hours = (secondsPassed / 3600) % 24
-                val minutes = (secondsPassed / 60) % 60
-                String.format("%02d:%02d", hours, minutes)
+            "설정" -> {
+                val intent = Intent(this, SettingsActivity::class.java)
+                startActivity(intent)
             }
         }
+    }
 
-        tvTimeDetail.text = timeText
+    private fun handleStopSobriety() {
+        // 중단된 활동 기록 저장
+        val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+        val startTime = sharedPref.getLong("start_time", System.currentTimeMillis())
+        val endTime = System.currentTimeMillis()
+
+        // RecentActivityManager 초기화 및 중단된 활동 저장
+        RecentActivityManager.init(this@StatusActivity)
+        RecentActivityManager.saveStoppedActivity(startTime, endTime, Constants.currentTestMode)
+
+        // SharedPreferences 초기화
+        sharedPref.edit().clear().apply()
+
+        // 시작 화면으로 이동
+        val intent = Intent(this@StatusActivity, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
+        finish()
+
+        // 토스트 메시지 표시
+        Toast.makeText(this@StatusActivity, "금주가 초기화되었습니다.", Toast.LENGTH_SHORT).show()
     }
 
     /**
@@ -245,10 +340,9 @@ class StatusActivity : BaseActivity() {
         val completionFlag = sharedPref.getBoolean("timer_completed", false)
 
         if (completionFlag) {
-            tvDaysCount.text = targetDays.toString()
-            tvDaysCount.setTextColor(resources.getColor(android.R.color.holo_orange_dark, theme))
-            tvMessage.text = "축하합니다! ${targetDays}${Constants.TIME_UNIT_TEXT} 목표를 달성했습니다!"
-            progressLevel.progress = 100
+            timePassed = targetDays
+            statusMessage = "축하합니다! ${targetDays}${Constants.TIME_UNIT_TEXT} 목표를 달성했습니다!"
+            progressValue = 1.0f
             return
         }
 
@@ -256,14 +350,14 @@ class StatusActivity : BaseActivity() {
         val secondsPassed = (currentTime - startTime) / 1000L
 
         // 테스트 모드에 따른 시간 계산
-        val timePassed = when {
+        val currentTimePassed = when {
             Constants.isSecondTestMode -> secondsPassed.toInt() + 1  // 초 단위
             Constants.isMinuteTestMode -> (secondsPassed / 60).toInt() + 1  // 분 단위
             else -> ((currentTime - startTime) / Constants.TIME_UNIT_MILLIS).toInt() + 1  // 일 단위
         }
 
         // 대형 숫자에 진행 중인 시간 표시
-        tvDaysCount.text = timePassed.toString()
+        timePassed = currentTimePassed
 
         // 진행률 계산
         val targetSeconds = when {
@@ -273,7 +367,7 @@ class StatusActivity : BaseActivity() {
         }
 
         val progress = ((secondsPassed.toFloat() / targetSeconds.toFloat()) * 100).toInt()
-        progressLevel.progress = progress.coerceIn(0, 100)
+        progressValue = (progress.coerceIn(0, 100) / 100f)
 
         // 타이머 표시 업데이트
         updateTimeDisplay()
@@ -282,18 +376,17 @@ class StatusActivity : BaseActivity() {
         val isCompleted = when {
             Constants.isSecondTestMode -> secondsPassed >= targetDays
             Constants.isMinuteTestMode -> secondsPassed >= (targetDays * 60)
-            else -> timePassed > targetDays
+            else -> currentTimePassed > targetDays
         }
 
         if (isCompleted) {
-            tvDaysCount.text = targetDays.toString()
-            tvDaysCount.setTextColor(resources.getColor(android.R.color.holo_orange_dark, theme))
-            progressLevel.progress = 100
+            timePassed = targetDays
+            progressValue = 1.0f
             handleGoalCompletion(targetDays)
         } else {
             // 남은 시간 계산 및 메시지 업데이트
-            val remainingTime = targetDays - timePassed + 1
-            tvMessage.text = "목표까지 ${remainingTime}${Constants.TIME_UNIT_TEXT} 남았습니다. 힘내세요!"
+            val remainingTime = targetDays - currentTimePassed + 1
+            statusMessage = "남은 시간: ${remainingTime}${Constants.TIME_UNIT_TEXT}"
         }
     }
 
@@ -302,10 +395,7 @@ class StatusActivity : BaseActivity() {
         val startTime = sharedPref.getLong("start_time", System.currentTimeMillis())
         val endTime = System.currentTimeMillis()
 
-        with(sharedPref.edit()) {
-            putBoolean("timer_completed", true)
-            apply()
-        }
+        sharedPref.edit().putBoolean("timer_completed", true).apply()
 
         if (!goalAchievementChecked) {
             goalAchievementChecked = true
@@ -390,21 +480,14 @@ class StatusActivity : BaseActivity() {
         val newRecordsJson = SobrietyRecord.toJsonArray(records)
         Log.d("StatusActivity", "저장할 JSON: $newRecordsJson")
 
-        with(sharedPref.edit()) {
-            putString("records", newRecordsJson)
-            val success = commit() // apply() 대신 commit()으로 즉시 저장
-            Log.d("StatusActivity", "기록 저장 성공: $success")
-        }
+        sharedPref.edit().putString("records", newRecordsJson).commit()
 
         // 저장 확인
         val savedRecordsJson = sharedPref.getString("records", "[]")
         Log.d("StatusActivity", "저장 확인 JSON: $savedRecordsJson")
 
         // 현재 진행중인 금주 데이터 초기화
-        with(getSharedPreferences("user_settings", MODE_PRIVATE).edit()) {
-            clear()
-            apply()
-        }
+        getSharedPreferences("user_settings", MODE_PRIVATE).edit().clear().apply()
 
         Log.d("StatusActivity", "saveCompletedRecord 완료, 반환 ID: $recordId")
         return recordId
@@ -421,7 +504,7 @@ class StatusActivity : BaseActivity() {
             RecordManager.addActivity(activity)
         } catch (e: Exception) {
             // 날짜 파싱 오류 등이 발생하면 로그만 남기고 기본값 사용
-            android.util.Log.e("StatusActivity", "Error saving activity: ${e.message}", e)
+            Log.e("StatusActivity", "Error saving activity: ${e.message}", e)
             try {
                 val activity = RecentActivity(
                     startDate = getCurrentDate(),
@@ -431,19 +514,9 @@ class StatusActivity : BaseActivity() {
                 )
                 RecordManager.addActivity(activity)
             } catch (fallbackError: Exception) {
-                android.util.Log.e("StatusActivity", "Fallback save also failed: ${fallbackError.message}", fallbackError)
+                Log.e("StatusActivity", "Fallback save also failed: ${fallbackError.message}", fallbackError)
             }
         }
-    }
-
-    private fun onGoalCompleted() {
-        saveActivity(true)
-        navigateToRecords()
-    }
-
-    private fun stopAbstaining() {
-        saveActivity(false)
-        // ...existing stop logic...
     }
 
     private fun getCurrentDate(): String {
@@ -472,15 +545,9 @@ class StatusActivity : BaseActivity() {
                 1 // 기본값
             }
         } catch (e: Exception) {
-            android.util.Log.e("StatusActivity", "Error calculating duration: ${e.message}", e)
+            Log.e("StatusActivity", "Error calculating duration: ${e.message}", e)
             1 // 오류 발생 시 기본값 반환
         }
-    }
-
-    private fun navigateToRecords() {
-        val intent = Intent(this, RecordsActivity::class.java)
-        startActivity(intent)
-        finish()
     }
 
     private fun navigateToRecordSummary(recordId: Long) {
@@ -490,74 +557,12 @@ class StatusActivity : BaseActivity() {
         finish()
     }
 
-    /**
-     * 눈에 잘 보이는 버튼이 있는 커스텀 중지 확인 다이얼로그를 표시합니다.
-     */
-    private fun showCustomStopDialog() {
-        // 커스텀 다이얼로그 생성
-        val dialog = android.app.Dialog(this)
-        dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
-        dialog.setContentView(com.example.alcoholictimer.R.layout.dialog_stop_sobriety)
-
-        // 다이얼로그 배경을 투명하게 설정하고 외부 영역 클릭으로 닫히지 않게 설정
-        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        dialog.setCancelable(false)
-
-        // 취소 버튼 클릭 리스너
-        val btnCancel = dialog.findViewById<android.widget.Button>(R.id.btnCancel)
-        btnCancel.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        // 확인 버튼 클릭 리스너
-        val btnConfirm = dialog.findViewById<android.widget.Button>(R.id.btnConfirm)
-        btnConfirm.setOnClickListener {
-            dialog.dismiss()
-
-            // 중단된 활동 기록 저장
-            val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
-            val startTime = sharedPref.getLong("start_time", System.currentTimeMillis())
-            val endTime = System.currentTimeMillis()
-
-            // RecentActivityManager 초기화 및 중단된 활동 저장
-            RecentActivityManager.init(this@StatusActivity)
-            RecentActivityManager.saveStoppedActivity(startTime, endTime, Constants.currentTestMode)
-
-            // SharedPreferences 초기화
-            with(sharedPref.edit()) {
-                clear()
-                apply()
-            }
-
-            // 시작 화면으로 이동
-            val intent = Intent(this@StatusActivity, MainActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(intent)
-            finish()
-
-            // 토스트 메시지 표시
-            Toast.makeText(this@StatusActivity, "금주가 초기화되었습니다.", Toast.LENGTH_SHORT).show()
-        }
-
-        // 다이얼로그 표시
-        dialog.show()
-    }
-
-    private fun navigateToStart() {
-        val intent = Intent(this, StartActivity::class.java)
-        startActivity(intent)
-        overridePendingTransition(0, 0)
-        finish()
-        overridePendingTransition(0, 0)
-    }
-
     private fun updateTimeModeDisplay() {
-        val timeUnitText = when {
-            Constants.isSecondTestMode -> "금주 목표 초수"
-            Constants.isMinuteTestMode -> "금주 목표 분수"
-            else -> "금주 목표 일수"
+        timeUnitText = when {
+            Constants.isSecondTestMode -> "초"
+            Constants.isMinuteTestMode -> "분"
+            else -> "일"
         }
-        tvTimeUnit.text = timeUnitText
     }
 
     /**
@@ -591,7 +596,7 @@ class StatusActivity : BaseActivity() {
 
             // UI 업데이트는 runOnUiThread 내에서 수행
             runOnUiThread {
-                progressLevel.progress = safeProgress
+                progressValue = safeProgress / 100f
 
                 // 완료 조건 확인
                 val isCompleted = when {
@@ -601,28 +606,27 @@ class StatusActivity : BaseActivity() {
                 }
 
                 if (isCompleted && !goalAchievementChecked) {
-                    tvDaysCount.text = targetDays.toString()
-                    tvDaysCount.setTextColor(resources.getColor(android.R.color.holo_orange_dark, theme))
-                    progressLevel.progress = 100
+                    timePassed = targetDays
+                    progressValue = 1.0f
                     handleGoalCompletion(targetDays)
                 } else if (!isCompleted) {
                     // 남은 시간 계산 및 메시지 업데이트
-                    val timePassed = when {
+                    val currentTimePassed = when {
                         Constants.isSecondTestMode -> secondsPassed.toInt() + 1  // 초 단위
                         Constants.isMinuteTestMode -> (secondsPassed / 60).toInt() + 1  // 분 단위
                         else -> ((currentTime - startTime) / Constants.TIME_UNIT_MILLIS).toInt() + 1  // 일 단위
                     }
-                    val remainingTime = targetDays - timePassed + 1
+                    val remainingTime = targetDays - currentTimePassed + 1
                     if (remainingTime > 0) {
-                        tvMessage.text = "목표까지 ${remainingTime}${Constants.TIME_UNIT_TEXT} 남았습니다. 힘내세요!"
+                        statusMessage = "남은 시간: ${remainingTime}${Constants.TIME_UNIT_TEXT}"
                     } else {
-                        tvMessage.text = "목표 달성이 임박했습니다!"
+                        statusMessage = "목표 달성이 임박했습니다!"
                     }
                 }
             }
         } catch (e: Exception) {
             // 에러 발생 시 로그만 남기고 앱은 계속 실행
-            android.util.Log.e("StatusActivity", "Error in checkProgressStatus: ${e.message}", e)
+            Log.e("StatusActivity", "Error in checkProgressStatus: ${e.message}", e)
         }
     }
 
@@ -634,5 +638,193 @@ class StatusActivity : BaseActivity() {
         val startTimeMillis = sharedPref.getLong("start_time", System.currentTimeMillis())
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         abstainStartTime = dateFormat.format(Date(startTimeMillis))
+    }
+}
+
+// 프리뷰 코드
+@Preview(showBackground = true)
+@Composable
+fun StatusScreenPreview() {
+    MaterialTheme {
+        StatusScreenContent(
+            timePassed = 15,
+            timeUnitText = "일",
+            hoursDisplay = "08시간",
+            timeDetail = "08:23:45",
+            progressValue = 0.5f,
+            statusMessage = "남은 시간: 15일",
+            onStopClick = {},
+            onMenuClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DrawerMenuPreview() {
+    MaterialTheme {
+        ModalDrawerSheet(
+            modifier = Modifier.width(300.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "메뉴",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
+
+                DrawerMenuItemPreview(
+                    title = "금주",
+                    icon = Icons.Default.Home,
+                    onClick = {}
+                )
+
+                DrawerMenuItemPreview(
+                    title = "활동 보기",
+                    icon = Icons.Default.Menu,
+                    onClick = {}
+                )
+
+                DrawerMenuItemPreview(
+                    title = "설정",
+                    icon = Icons.Default.Settings,
+                    onClick = {}
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun DrawerMenuItemPreview(
+    title: String,
+    icon: ImageVector,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 12.dp, horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = title,
+            modifier = Modifier.padding(end = 16.dp)
+        )
+        Text(
+            text = title,
+            fontSize = 18.sp
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StatusScreenContent(
+    timePassed: Int,
+    timeUnitText: String,
+    hoursDisplay: String,
+    timeDetail: String,
+    progressValue: Float,
+    statusMessage: String,
+    onStopClick: () -> Unit,
+    onMenuClick: () -> Unit
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("금주 상태", fontSize = 20.sp) },
+                navigationIcon = {
+                    IconButton(onClick = onMenuClick) {
+                        Icon(
+                            imageVector = Icons.Default.Menu,
+                            contentDescription = "메뉴 열기",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "금주 진행 상황",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            // 대형 숫자 표시
+            Text(
+                text = timePassed.toString(),
+                fontSize = 48.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            // 시간 단위 표시
+            Text(
+                text = timeUnitText,
+                fontSize = 18.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            // 시간 표시
+            Text(
+                text = hoursDisplay,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            // 상세 시간 표시
+            Text(
+                text = timeDetail,
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            // 진행률 표시
+            LinearProgressIndicator(
+                progress = { progressValue },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .padding(bottom = 16.dp)
+            )
+
+            // 상태 메시지
+            Text(
+                text = statusMessage,
+                fontSize = 16.sp,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+
+            // 중지 버튼
+            Button(
+                onClick = onStopClick,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text("금주 중지", fontSize = 16.sp)
+            }
+        }
     }
 }

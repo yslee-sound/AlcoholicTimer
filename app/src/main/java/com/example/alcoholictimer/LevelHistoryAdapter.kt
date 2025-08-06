@@ -1,32 +1,35 @@
 package com.example.alcoholictimer
 
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.TextView
-import androidx.recyclerview.widget.RecyclerView
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
-class LevelHistoryAdapter(private val historyList: List<LevelHistoryItem>) :
-    RecyclerView.Adapter<LevelHistoryAdapter.HistoryViewHolder>() {
-
-    class HistoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val tvDate: TextView = itemView.findViewById(R.id.tvDate)
-        val tvAchievement: TextView = itemView.findViewById(R.id.tvAchievement)
+@Composable
+fun LevelHistoryList(historyList: List<LevelHistoryItem>) {
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        items(historyList) { item ->
+            LevelHistoryItemView(item)
+        }
     }
+}
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HistoryViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_level_history, parent, false)
-        return HistoryViewHolder(view)
+@Composable
+fun LevelHistoryItemView(item: LevelHistoryItem) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(text = item.date, fontSize = 16.sp)
+        Text(text = item.achievement, fontSize = 16.sp)
     }
-
-    override fun onBindViewHolder(holder: HistoryViewHolder, position: Int) {
-        val item = historyList[position]
-        holder.tvDate.text = item.date
-        holder.tvAchievement.text = item.achievement
-    }
-
-    override fun getItemCount() = historyList.size
 }
 
 data class LevelHistoryItem(

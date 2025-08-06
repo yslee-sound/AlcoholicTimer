@@ -2,197 +2,166 @@ package com.example.alcoholictimer
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.MenuItem
-import android.widget.ImageButton
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.GravityCompat
-import androidx.core.view.WindowCompat
-import androidx.drawerlayout.widget.DrawerLayout
-import com.example.alcoholictimer.utils.Constants
-import com.example.alcoholictimer.utils.SharedPreferencesManager
-import com.google.android.material.navigation.NavigationView
-import java.util.Date
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 
 /**
  * 모든 액티비티의 베이스 클래스
  * 공통된 햄버거 메뉴와 네비게이션 기능을 제공합니다.
  */
-abstract class BaseActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+abstract class BaseActivity : ComponentActivity() {
 
-    protected lateinit var drawerLayout: DrawerLayout
-    protected lateinit var navigationView: NavigationView
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    protected fun BaseScreen(content: @Composable () -> Unit) {
+        val drawerState = rememberDrawerState(DrawerValue.Closed)
+        val scope = rememberCoroutineScope()
+        val context = LocalContext.current
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        // 시스템 UI와의 겹침 처리를 위한 설정
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        setContentView(R.layout.layout_base)
-
-        // 공통 UI 요소 초기화
-        drawerLayout = findViewById(R.id.drawerLayout)
-        navigationView = findViewById(R.id.navigationView)
-        val btnMenu = findViewById<ImageButton>(R.id.btnMenu)
-
-        // 메뉴 버튼 클릭 시 드로어 열기
-        btnMenu.setOnClickListener {
-            // 드로어를 열기 전에 최신 상태로 업데이트
-            updateNavigationDrawer()
-            drawerLayout.openDrawer(GravityCompat.START)
-        }
-
-        // 내비게이션 메뉴 아이템 클릭 이벤트
-        navigationView.setNavigationItemSelectedListener(this)
-
-        // 특정 화면에 필요한 컨텐츠 뷰 설정
-        setupContentView()
-    }
-
-    /**
-     * 금주 상태에 따라 내비게이션 메뉴 상태와 헤더 정보를 업데이트합니다.
-     */
-    private fun updateNavigationDrawer() {
-        // 네비게이션 메뉴 상태 업데이트
-        updateNavigationMenuState()
-
-        // 네비게이션 헤더 정보 업데이트
-        updateNavigationHeader()
-    }
-
-    /**
-     * 금주 상태에 따라 내비게이션 메뉴 상태를 업데이트합니다.
-     * 금주 메뉴는 항상 활성화하고, 금주 중인 경우 텍스트를 '금주 상태'로 변경합니다.
-     */
-    private fun updateNavigationMenuState() {
-        val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
-        val hasStarted = sharedPref.contains("start_time")
-
-        // 금주 메뉴는 항상 활성화하고, 금주 중인 경우 텍스트 변경
-        val soberMenuItem = navigationView.menu.findItem(R.id.nav_sobriety)
-        soberMenuItem.isEnabled = true
-        if (hasStarted) {
-            soberMenuItem.title = "금주 상태"
-        } else {
-            soberMenuItem.title = "금주"
-        }
-
-        // 활동 보기 메뉴는 항상 활성화
-        val recordsMenuItem = navigationView.menu.findItem(R.id.nav_records)
-        recordsMenuItem.isEnabled = true
-    }
-
-    /**
-     * 네비게이션 헤더의 사용자 정보를 업데이트합니다.
-     */
-    private fun updateNavigationHeader() {
-        val headerView = navigationView.getHeaderView(0)
-        if (headerView != null) {
-            val tvUserNickname = headerView.findViewById<TextView>(R.id.tvUserNickname)
-            val tvUserLevelDays = headerView.findViewById<TextView>(R.id.tvUserLevelDays)
-
-            // 사용자 이름은 기본값으로 "알중이" 사용
-            tvUserNickname.text = "알중이"
-
-            // 금주 상태에 따른 레벨 및 일수 정보 업데이트
-            val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
-            if (sharedPref.contains("start_time")) {
-                val startTime = sharedPref.getLong("start_time", Date().time)
-                val timePassed = ((System.currentTimeMillis() - startTime) / Constants.TIME_UNIT_MILLIS).toInt()
-
-                // 레벨 계산 (시간 단위에 따라 적절한 마일스톤 사용)
-                val adjustedMilestones = when {
-                    Constants.isSecondTestMode -> listOf(0, 7, 14, 30, 60, 120, 240, 365)
-                    Constants.isMinuteTestMode -> listOf(0, 1, 2, 5, 10, 15, 20, 30)
-                    else -> listOf(0, 7, 14, 30, 60, 120, 240, 365)
-                }
-
-                var currentLevel = 1
-                for (i in adjustedMilestones.indices) {
-                    if (timePassed >= adjustedMilestones[i]) {
-                        currentLevel = i + 1
-                    } else {
-                        break
+        ModalNavigationDrawer(
+            drawerState = drawerState,
+            drawerContent = {
+                ModalDrawerSheet {
+                    DrawerMenu { menuItem ->
+                        scope.launch { drawerState.close() }
+                        handleMenuSelection(menuItem)
                     }
                 }
-
-                tvUserLevelDays.text = "Level $currentLevel · ${timePassed}${Constants.TIME_UNIT_TEXT} 금주 중"
-            } else {
-                tvUserLevelDays.text = "금주를 시작해보세요!"
+            }
+        ) {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text(getScreenTitle()) },
+                        navigationIcon = {
+                            IconButton(
+                                onClick = {
+                                    scope.launch {
+                                        drawerState.open()
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Menu,
+                                    contentDescription = "메뉴"
+                                )
+                            }
+                        }
+                    )
+                }
+            ) { paddingValues ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                ) {
+                    content()
+                }
             }
         }
     }
 
-    /**
-     * 각 액티비티에서 구현할 추상 메소드
-     * 각자의 레이아웃을 contentFrame에 추가하는 작업을 수행
-     */
-    protected abstract fun setupContentView()
+    @Composable
+    private fun DrawerMenu(onItemSelected: (String) -> Unit) {
+        val menuItems = listOf(
+            "금주" to Icons.Default.Home,
+            "활동 보기" to Icons.Default.List,
+            "기록 보기" to Icons.Default.Info,
+            "레벨" to Icons.Default.Star,
+            "설정" to Icons.Default.Settings
+        )
 
-    /**
-     * 액티비티가 새 인텐트로 재사용될 때 수행할 작업을 정의합니다.
-     * 자식 클래스에서 오버라이드할 수 있습니다.
-     */
-    open fun handleNewIntent(intent: Intent?) {
-        // 기본 구현은 아무 작업도 수행하지 않습니다
-    }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "금주 타이머",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
 
-    /**
-     * 효과 없이 액티비티 전환
-     */
-    protected fun navigateToActivity(activityClass: Class<*>) {
-        val intent = Intent(this, activityClass)
-        startActivity(intent)
-        overridePendingTransition(0, 0) // 전환 효과 제거
-    }
+            Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-    /**
-     * 액티비티 종료 시 효과 없이 전환
-     */
-    override fun finish() {
-        super.finish()
-        overridePendingTransition(0, 0) // 전환 효과 제거
-    }
-
-    override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.nav_sobriety -> {
-                // 금주 상태에 따라 다른 화면으로 이동
-                val sharedPrefs = SharedPreferencesManager.getInstance(this)
-                val isAbstaining = sharedPrefs.getBoolean("isAbstaining", false)
-
-                if (isAbstaining) {
-                    // 금주 중이면 상태 화면으로
-                    if (this !is StatusActivity) {
-                        navigateToActivity(StatusActivity::class.java)
-                    }
-                } else {
-                    // 금주 중이 아니면 시작 화면으로
-                    if (this !is StartActivity) {
-                        navigateToActivity(StartActivity::class.java)
-                    }
+            menuItems.forEach { (title, icon) ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onItemSelected(title) }
+                        .padding(vertical = 12.dp, horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = title,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        text = title,
+                        fontSize = 16.sp
+                    )
                 }
             }
-            R.id.nav_levels -> {
-                if (this.javaClass.simpleName != "LevelActivity") {
-                    val intent = Intent(this, Class.forName("com.example.alcoholictimer.LevelActivity"))
-                    startActivity(intent)
-                    overridePendingTransition(0, 0)
+        }
+    }
+
+    private fun handleMenuSelection(menuItem: String) {
+        when (menuItem) {
+            "금주" -> {
+                if (this !is StatusActivity) {
+                    navigateToActivity(StatusActivity::class.java)
                 }
             }
-            R.id.nav_records -> {
+            "활동 보기" -> {
+                if (this !is StartActivity) {
+                    navigateToActivity(StartActivity::class.java)
+                }
+            }
+            "기록 보기" -> {
                 if (this !is RecordsActivity) {
                     navigateToActivity(RecordsActivity::class.java)
                 }
             }
-            R.id.nav_settings -> {
+            "레벨" -> {
+                if (this !is LevelActivity) {
+                    navigateToActivity(LevelActivity::class.java)
+                }
+            }
+            "설정" -> {
                 if (this !is SettingsActivity) {
                     navigateToActivity(SettingsActivity::class.java)
                 }
             }
         }
-        drawerLayout.closeDrawer(GravityCompat.START)
-        return true
     }
+
+    /**
+     * 효과 없이 액티비티 전환
+     */
+    private fun navigateToActivity(activityClass: Class<*>) {
+        val intent = Intent(this, activityClass)
+        startActivity(intent)
+    }
+
+    /**
+     * 각 액티비티에서 구현해야 할 화면 제목
+     */
+    protected abstract fun getScreenTitle(): String
 }

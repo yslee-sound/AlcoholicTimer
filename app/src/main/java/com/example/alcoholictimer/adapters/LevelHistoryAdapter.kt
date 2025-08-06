@@ -1,32 +1,29 @@
 package com.example.alcoholictimer.adapters
 
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.TextView
-import androidx.recyclerview.widget.RecyclerView
-import com.example.alcoholictimer.R
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.models.LevelHistoryItem
 
-class LevelHistoryAdapter(private val items: List<LevelHistoryItem>) :
-    RecyclerView.Adapter<LevelHistoryAdapter.ViewHolder>() {
-
-    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val tvDate: TextView = view.findViewById(R.id.tvDate)
-        val tvAchievement: TextView = view.findViewById(R.id.tvAchievement)
+@Composable
+fun LevelHistoryList(items: List<LevelHistoryItem>) {
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        items.forEach { item ->
+            LevelHistoryItemView(item)
+        }
     }
+}
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_level_history, parent, false)
-        return ViewHolder(view)
+@Composable
+fun LevelHistoryItemView(item: LevelHistoryItem) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(text = item.date, fontSize = 16.sp)
+        Text(text = item.description, fontSize = 16.sp)
     }
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = items[position]
-        holder.tvDate.text = item.date
-        holder.tvAchievement.text = item.description
-    }
-
-    override fun getItemCount() = items.size
 }

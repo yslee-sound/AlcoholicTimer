@@ -3,87 +3,93 @@ package com.example.alcoholictimer
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.widget.Button
-import android.widget.FrameLayout
-import android.widget.RadioButton
-import android.widget.RadioGroup
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import com.example.alcoholictimer.utils.Constants
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 class SettingsActivity : BaseActivity() {
 
-    private lateinit var radioGroupTestMode: RadioGroup
-    private lateinit var rbRealMode: RadioButton
-    private lateinit var rbMinuteMode: RadioButton
-    private lateinit var rbSecondMode: RadioButton
-    private lateinit var btnSaveSettings: Button
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // UI 요소 초기화
-        radioGroupTestMode = findViewById(R.id.radioGroupTestMode)
-        rbRealMode = findViewById(R.id.rbRealMode)
-        rbMinuteMode = findViewById(R.id.rbMinuteMode)
-        rbSecondMode = findViewById(R.id.rbSecondMode)
-        btnSaveSettings = findViewById(R.id.btnSaveSettings)
-
-        // 현재 설정 불러오기 및 UI에 반영
-        loadCurrentSettings()
-
-        // 저장 버튼 클릭 이벤트
-        btnSaveSettings.setOnClickListener {
-            saveSettings()
-            Toast.makeText(this, "설정이 저장되었습니다.", Toast.LENGTH_SHORT).show()
-            finish()
+        setContent {
+            BaseScreen {
+                SettingsScreen()
+            }
         }
     }
 
-    /**
-     * 현재 설정을 불러와 UI에 반영합니다.
-     */
-    private fun loadCurrentSettings() {
-        val preferences = getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
-        // 기본값을 Constants.TEST_MODE_REAL로 변경
-        val testMode = preferences.getInt(Constants.PREF_KEY_TEST_MODE, Constants.TEST_MODE_REAL)
-        Log.d("SettingsActivity", "Loaded testMode: $testMode")
+    override fun getScreenTitle(): String = "설정"
 
-        // 라디오 버튼 선택 상태 설정
-        when (testMode) {
-            Constants.TEST_MODE_REAL -> rbRealMode.isChecked = true
-            Constants.TEST_MODE_MINUTE -> rbMinuteMode.isChecked = true
-            Constants.TEST_MODE_SECOND -> rbSecondMode.isChecked = true
+    @Composable
+    private fun SettingsScreen() {
+        val context = LocalContext.current
+        var selectedMode by remember { mutableStateOf(Constants.TEST_MODE_REAL) }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "설정",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            Text(
+                text = "테스트 모드 선택",
+                fontSize = 18.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                RadioButton(
+                    selected = selectedMode == Constants.TEST_MODE_REAL,
+                    onClick = { selectedMode = Constants.TEST_MODE_REAL }
+                )
+                Text("실제 모드")
+                RadioButton(
+                    selected = selectedMode == Constants.TEST_MODE_MINUTE,
+                    onClick = { selectedMode = Constants.TEST_MODE_MINUTE }
+                )
+                Text("분 모드")
+                RadioButton(
+                    selected = selectedMode == Constants.TEST_MODE_SECOND,
+                    onClick = { selectedMode = Constants.TEST_MODE_SECOND }
+                )
+                Text("초 모드")
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(onClick = {
+                saveSettings(selectedMode)
+                Toast.makeText(context, "설정이 저장되었습니다.", Toast.LENGTH_SHORT).show()
+            }) {
+                Text("저장", fontSize = 18.sp)
+            }
         }
     }
 
-    /**
-     * 사용자 설정을 저장합니다.
-     */
-    private fun saveSettings() {
+    private fun saveSettings(selectedMode: Int) {
         val preferences = getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
         val editor = preferences.edit()
-
-        // 선택된 테스트 모드 저장
-        val testMode = when (radioGroupTestMode.checkedRadioButtonId) {
-            R.id.rbRealMode -> Constants.TEST_MODE_REAL
-            R.id.rbMinuteMode -> Constants.TEST_MODE_MINUTE
-            R.id.rbSecondMode -> Constants.TEST_MODE_SECOND
-            else -> Constants.TEST_MODE_REAL
-        }
-
-        editor.putInt(Constants.PREF_KEY_TEST_MODE, testMode)
+        editor.putInt(Constants.PREF_KEY_TEST_MODE, selectedMode)
         val success = editor.commit() // 동기 저장으로 변경하고 성공 여부 확인
-        Log.d("SettingsActivity", "Settings saved. Mode: $testMode, Success: $success")
-
+        Log.d("SettingsActivity", "Settings saved. Mode: $selectedMode, Success: $success")
 
         // Constants 클래스의 동적 설정 업데이트
-        Constants.updateTestMode(testMode)
-    }
-
-    override fun setupContentView() {
-        val contentFrame = findViewById<FrameLayout>(R.id.contentFrame)
-        LayoutInflater.from(this).inflate(R.layout.activity_settings, contentFrame, true)
+        Constants.updateTestMode(selectedMode)
     }
 }

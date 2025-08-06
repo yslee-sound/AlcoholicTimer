@@ -2,64 +2,95 @@ package com.example.alcoholictimer
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
 import com.example.alcoholictimer.utils.Constants
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class StartActivity : BaseActivity() {
-    private lateinit var tvDaysLabel: TextView  // tvTimeUnit을 tvDaysLabel로 변경
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // BaseActivity에서 이미 햄버거 메뉴 및 네비게이션 기능 처리됨
-    }
-
-    override fun setupContentView() {
-        // StartActivity 고유의 컨텐츠를 contentFrame에 추가
-        val contentFrame = findViewById<ViewGroup>(R.id.contentFrame)
-        val view = LayoutInflater.from(this).inflate(R.layout.content_start, contentFrame, true)
-
-        // UI 요소 초기화
-        tvDaysLabel = view.findViewById(R.id.tvDaysLabel)  // ID 변경
-        val editTextDays = view.findViewById<EditText>(R.id.editTextDays)
-        val btnStart = view.findViewById<FloatingActionButton>(R.id.btnStart)
-
-        // 초기 시간 단위 텍스트 설정
-        updateTimeModeDisplay()
-
-        // 시작 버튼 클릭 처리
-        btnStart.setOnClickListener {
-            val targetTime = editTextDays.text.toString().toIntOrNull() ?: 0
-
-            if (targetTime > 0) {
-                // 사용자 설정을 SharedPreferences에 저장
-                val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
-                with(sharedPref.edit()) {
-                    putInt("target_days", targetTime)
-
-                    // 현재 시간을 시작 시간으로 저장
-                    putLong("start_time", System.currentTimeMillis())
-                    apply()
-                }
-
-                Toast.makeText(this, "${targetTime}${Constants.TIME_UNIT_TEXT} 동안 금주를 시작합니다!", Toast.LENGTH_SHORT).show()
-                navigateToStatus()
-            } else {
-                Toast.makeText(this, "1${Constants.TIME_UNIT_TEXT} 이상의 숫자를 입력해주세요", Toast.LENGTH_SHORT).show()
+        setContent {
+            BaseScreen {
+                StartScreen()
             }
         }
     }
 
-    private fun navigateToStatus() {
-        val intent = Intent(this, StatusActivity::class.java)
-        startActivity(intent)
-        overridePendingTransition(0, 0)
-        finish()
-        overridePendingTransition(0, 0)
+    override fun getScreenTitle(): String = "목표 설정"
+
+    @Composable
+    private fun StartScreen() {
+        val context = LocalContext.current
+        var targetTime by remember { mutableStateOf(0) }
+        var inputText by remember { mutableStateOf("") }
+        var errorText by remember { mutableStateOf("") }
+        val timeUnitText = Constants.TIME_UNIT_TEXT
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "금주 목표 설정",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            Text(
+                text = "목표 ${timeUnitText} 입력",
+                fontSize = 18.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            TextField(
+                value = inputText,
+                onValueChange = {
+                    inputText = it
+                    targetTime = it.toIntOrNull() ?: 0
+                },
+                label = { Text("목표 ${timeUnitText}") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
+            )
+            if (errorText.isNotEmpty()) {
+                Text(
+                    text = errorText,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(onClick = {
+                if (targetTime > 0) {
+                    val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
+                    sharedPref.edit().apply {
+                        putInt("target_days", targetTime)
+                        putLong("start_time", System.currentTimeMillis())
+                        putBoolean("timer_completed", false)
+                        apply()
+                    }
+                    // StatusActivity로 이동
+                    val intent = Intent(context, StatusActivity::class.java)
+                    context.startActivity(intent)
+                } else {
+                    errorText = "목표 ${timeUnitText}를 올바르게 입력하세요."
+                }
+            }) {
+                Text("시작", fontSize = 18.sp)
+            }
+        }
     }
 
     override fun onResume() {
@@ -80,6 +111,5 @@ class StartActivity : BaseActivity() {
             Constants.TEST_MODE_MINUTE -> "금주 목표 분수"
             else -> "금주 목표 일수"
         }
-        tvDaysLabel.text = timeUnitText
     }
 }
