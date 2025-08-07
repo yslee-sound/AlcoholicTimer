@@ -3,19 +3,29 @@ package com.example.alcoholictimer
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.font.FontWeight
 import com.example.alcoholictimer.utils.Constants
-import androidx.compose.ui.tooling.preview.Preview
 
 class StartActivity : BaseActivity() {
 
@@ -33,63 +43,134 @@ class StartActivity : BaseActivity() {
     @Composable
     private fun StartScreen() {
         val context = LocalContext.current
-        var targetTime by remember { mutableStateOf(0) }
         var inputText by remember { mutableStateOf("") }
         var errorText by remember { mutableStateOf("") }
         val timeUnitText = Constants.TIME_UNIT_TEXT
+        val isValid = inputText.toIntOrNull()?.let { it > 0 } ?: false
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
+            // 상단 아이콘만 유지
             Text(
-                text = "금주 목표 설정",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
+                text = "🍃",
+                fontSize = 80.sp,
+                modifier = Modifier.padding(bottom = 80.dp)
             )
-            Text(
-                text = "목표 ${timeUnitText} 입력",
-                fontSize = 18.sp,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            TextField(
-                value = inputText,
-                onValueChange = {
-                    inputText = it
-                    targetTime = it.toIntOrNull() ?: 0
-                },
-                label = { Text("목표 ${timeUnitText}") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-            if (errorText.isNotEmpty()) {
+
+            // 입력 영역
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // 목표 입력 텍스트 (간소화)
                 Text(
-                    text = errorText,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 4.dp)
+                    text = "목표 ${timeUnitText}",
+                    fontSize = 18.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(bottom = 24.dp)
                 )
-            }
-            Spacer(modifier = Modifier.height(24.dp))
-            Button(onClick = {
-                if (targetTime > 0) {
-                    val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
-                    sharedPref.edit().apply {
-                        putInt("target_days", targetTime)
-                        putLong("start_time", System.currentTimeMillis())
-                        putBoolean("timer_completed", false)
-                        apply()
+
+                // 커스텀 입력 필드
+                Box(
+                    modifier = Modifier.width(200.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column {
+                        BasicTextField(
+                            value = inputText,
+                            onValueChange = {
+                                inputText = it
+                                errorText = ""
+                            },
+                            textStyle = LocalTextStyle.current.copy(
+                                fontSize = 36.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                color = if (isValid) MaterialTheme.colorScheme.primary else Color.Black
+                            ),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            singleLine = true,
+                            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 8.dp)
+                        )
+
+                        // 밑줄
+                        Canvas(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(3.dp)
+                        ) {
+                            drawLine(
+                                color = if (!isValid && inputText.isNotEmpty())
+                                    Color.Red
+                                else if (isValid)
+                                    androidx.compose.ui.graphics.Color(0xFF6200EA)
+                                else
+                                    Color.Gray,
+                                start = Offset(0f, 0f),
+                                end = Offset(size.width, 0f),
+                                strokeWidth = 6.dp.toPx(),
+                                cap = StrokeCap.Round
+                            )
+                        }
                     }
-                    // StatusActivity로 이동
-                    val intent = Intent(context, StatusActivity::class.java)
-                    context.startActivity(intent)
-                } else {
-                    errorText = "목표 ${timeUnitText}를 올바르게 입력하세요."
                 }
-            }) {
-                Text("시작", fontSize = 18.sp)
+
+                // 힌트 텍스트만 유지
+                if (inputText.isEmpty()) {
+                    Text(
+                        text = "예: 30",
+                        fontSize = 16.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                }
+
+                // 에러 메시지 (최소화)
+                if (!isValid && inputText.isNotEmpty()) {
+                    Text(
+                        text = "1 이상의 숫자를 입력하세요",
+                        color = Color.Red,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(80.dp))
+
+            // 플레이 버튼만 유지
+            FloatingActionButton(
+                onClick = {
+                    val targetTime = inputText.toIntOrNull() ?: 0
+                    if (targetTime > 0) {
+                        val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
+                        sharedPref.edit().apply {
+                            putInt("target_days", targetTime)
+                            putLong("start_time", System.currentTimeMillis())
+                            putBoolean("timer_completed", false)
+                            apply()
+                        }
+                        val intent = Intent(context, StatusActivity::class.java)
+                        context.startActivity(intent)
+                    }
+                },
+                modifier = Modifier.size(80.dp),
+                shape = CircleShape,
+                containerColor = if (isValid) MaterialTheme.colorScheme.primary else Color.Gray
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = "시작",
+                    modifier = Modifier.size(40.dp),
+                    tint = Color.White
+                )
             }
         }
     }
