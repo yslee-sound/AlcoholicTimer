@@ -73,7 +73,7 @@ class LevelActivity : BaseActivity() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.33f)
-                    .background(currentLevel.color.copy(alpha = 0.2f)),
+                    .background(Color.White), // 배경을 흰색으로 변경
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
