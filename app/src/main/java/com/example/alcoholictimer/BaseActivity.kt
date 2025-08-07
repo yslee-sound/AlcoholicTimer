@@ -57,23 +57,36 @@ abstract class BaseActivity : ComponentActivity() {
         ) {
             Scaffold(
                 topBar = {
-                    TopAppBar(
-                        title = { Text(getScreenTitle()) },
-                        navigationIcon = {
-                            IconButton(
-                                onClick = {
-                                    scope.launch {
-                                        drawerState.open()
+                    Column {
+                        TopAppBar(
+                            title = { Text(getScreenTitle(), color = Color.Black) },
+                            colors = TopAppBarDefaults.topAppBarColors(
+                                containerColor = Color.White,
+                                titleContentColor = Color.Black,
+                                navigationIconContentColor = Color.Black,
+                                actionIconContentColor = Color.Black
+                            ),
+                            navigationIcon = {
+                                IconButton(
+                                    onClick = {
+                                        scope.launch {
+                                            drawerState.open()
+                                        }
                                     }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Menu,
+                                        contentDescription = "메뉴",
+                                        tint = Color.Black
+                                    )
                                 }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Menu,
-                                    contentDescription = "메뉴"
-                                )
                             }
-                        }
-                    )
+                        )
+                        Divider(
+                            modifier = Modifier.fillMaxWidth().height(1.dp),
+                            color = Color.LightGray
+                        )
+                    }
                 }
             ) { paddingValues ->
                 Box(
