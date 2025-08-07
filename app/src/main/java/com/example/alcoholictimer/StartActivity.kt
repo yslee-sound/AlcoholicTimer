@@ -43,7 +43,7 @@ class StartActivity : BaseActivity() {
     @Composable
     private fun StartScreen() {
         val context = LocalContext.current
-        var inputText by remember { mutableStateOf("") }
+        var inputText by remember { mutableStateOf("0") }
         var errorText by remember { mutableStateOf("") }
         val timeUnitText = Constants.TIME_UNIT_TEXT
         val isValid = inputText.toIntOrNull()?.let { it > 0 } ?: false
@@ -53,30 +53,32 @@ class StartActivity : BaseActivity() {
                 .fillMaxSize()
                 .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
-            // 상단 아이콘만 유지
+            Spacer(modifier = Modifier.height(0.dp))
+
+            // 상단 아이콘
             Text(
                 text = "🍃",
-                fontSize = 80.sp,
-                modifier = Modifier.padding(bottom = 80.dp)
+                fontSize = 150.sp,
+                modifier = Modifier.padding(bottom = 60.dp)
             )
 
             // 입력 영역
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // 목표 입력 텍스트 (간소화)
+                // 목표 입력 텍스트
                 Text(
-                    text = "목표 ${timeUnitText}",
-                    fontSize = 18.sp,
+                    text = "목표 설정",
+                    fontSize = 24.sp,
                     color = Color.Gray,
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
 
-                // 커스텀 입력 필드
+                // 커스텀 입력 필드 (3자리 숫자 넓이)
                 Box(
-                    modifier = Modifier.width(200.dp),
+                    modifier = Modifier.width(150.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Column {
@@ -87,7 +89,7 @@ class StartActivity : BaseActivity() {
                                 errorText = ""
                             },
                             textStyle = LocalTextStyle.current.copy(
-                                fontSize = 36.sp,
+                                fontSize = 48.sp,
                                 fontWeight = FontWeight.Bold,
                                 textAlign = TextAlign.Center,
                                 color = if (isValid) MaterialTheme.colorScheme.primary else Color.Black
@@ -100,52 +102,35 @@ class StartActivity : BaseActivity() {
                                 .padding(bottom = 8.dp)
                         )
 
-                        // 밑줄
+                        // 밑줄 (얇고 검은색)
                         Canvas(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(3.dp)
+                                .height(1.dp)
                         ) {
                             drawLine(
-                                color = if (!isValid && inputText.isNotEmpty())
-                                    Color.Red
-                                else if (isValid)
-                                    androidx.compose.ui.graphics.Color(0xFF6200EA)
-                                else
-                                    Color.Gray,
+                                color = Color.Black,
                                 start = Offset(0f, 0f),
                                 end = Offset(size.width, 0f),
-                                strokeWidth = 6.dp.toPx(),
-                                cap = StrokeCap.Round
+                                strokeWidth = 2.dp.toPx(),
+                                cap = StrokeCap.Square
                             )
                         }
                     }
                 }
 
-                // 힌트 텍스트만 유지
-                if (inputText.isEmpty()) {
-                    Text(
-                        text = "예: 30",
-                        fontSize = 16.sp,
-                        color = Color.Gray,
-                        modifier = Modifier.padding(top = 16.dp)
-                    )
-                }
-
-                // 에러 메시지 (최소화)
-                if (!isValid && inputText.isNotEmpty()) {
-                    Text(
-                        text = "1 이상의 숫자를 입력하세요",
-                        color = Color.Red,
-                        fontSize = 14.sp,
-                        modifier = Modifier.padding(top = 16.dp)
-                    )
-                }
+                // 단위 표시
+                Text(
+                    text = "일",
+                    fontSize = 20.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(top = 16.dp)
+                )
             }
 
-            Spacer(modifier = Modifier.height(80.dp))
+            Spacer(modifier = Modifier.height(60.dp))
 
-            // 플레이 버튼만 유지
+            // 플레이 버튼
             FloatingActionButton(
                 onClick = {
                     val targetTime = inputText.toIntOrNull() ?: 0
@@ -161,14 +146,14 @@ class StartActivity : BaseActivity() {
                         context.startActivity(intent)
                     }
                 },
-                modifier = Modifier.size(80.dp),
+                modifier = Modifier.size(100.dp),
                 shape = CircleShape,
                 containerColor = if (isValid) MaterialTheme.colorScheme.primary else Color.Gray
             ) {
                 Icon(
                     imageVector = Icons.Default.PlayArrow,
                     contentDescription = "시작",
-                    modifier = Modifier.size(40.dp),
+                    modifier = Modifier.size(50.dp),
                     tint = Color.White
                 )
             }

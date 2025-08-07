@@ -104,8 +104,19 @@ abstract class BaseActivity : ComponentActivity() {
     private fun handleMenuSelection(menuItem: String) {
         when (menuItem) {
             "금주" -> {
-                if (this !is StatusActivity) {
-                    navigateToActivity(StatusActivity::class.java)
+                val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+                val startTime = sharedPref.getLong("start_time", 0L)
+                val timerCompleted = sharedPref.getBoolean("timer_completed", false)
+                if (startTime == 0L || timerCompleted) {
+                    // 금주가 시작되지 않았거나 완료된 경우 StartActivity로 이동
+                    if (this !is StartActivity) {
+                        navigateToActivity(StartActivity::class.java)
+                    }
+                } else {
+                    // 금주 진행 중인 경우 StatusActivity로 이동
+                    if (this !is StatusActivity) {
+                        navigateToActivity(StatusActivity::class.java)
+                    }
                 }
             }
             "기록" -> {
