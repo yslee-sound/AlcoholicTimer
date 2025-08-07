@@ -28,7 +28,7 @@ class StartActivity : BaseActivity() {
         }
     }
 
-    override fun getScreenTitle(): String = "목표 설정"
+    override fun getScreenTitle(): String = "금주 설정"
 
     @Composable
     private fun StartScreen() {

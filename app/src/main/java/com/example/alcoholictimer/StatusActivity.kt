@@ -301,7 +301,7 @@ class StatusActivity : BaseActivity() {
                 startActivity(intent)
             }
             "설정" -> {
-                val intent = Intent(this, SettingsActivity::class.java)
+                val intent = Intent(this, TestActivity::class.java)
                 startActivity(intent)
             }
         }

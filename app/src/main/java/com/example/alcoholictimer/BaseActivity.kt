@@ -19,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import kotlin.jvm.java
 
 /**
  * 모든 액티비티의 베이스 클래스
@@ -37,10 +38,14 @@ abstract class BaseActivity : ComponentActivity() {
             drawerState = drawerState,
             drawerContent = {
                 ModalDrawerSheet {
-                    DrawerMenu { menuItem ->
-                        scope.launch { drawerState.close() }
-                        handleMenuSelection(menuItem)
-                    }
+                    DrawerMenu(
+                        nickname = "알중이1",
+                        onNicknameClick = {},
+                        onItemSelected = { menuItem ->
+                            scope.launch { drawerState.close() }
+                            handleMenuSelection(menuItem)
+                        }
+                    )
                 }
             }
         ) {
@@ -76,53 +81,6 @@ abstract class BaseActivity : ComponentActivity() {
         }
     }
 
-    @Composable
-    fun DrawerMenu(onItemSelected: (String) -> Unit) {
-        val menuItems = listOf(
-            "금주" to Icons.Default.Home,
-            "활동 보기" to Icons.Default.List,
-            "기록 보기" to Icons.Default.Info,
-            "레벨" to Icons.Default.Star,
-            "설정" to Icons.Default.Settings
-        )
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = "금주 타이머",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
-
-            menuItems.forEach { (title, icon) ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onItemSelected(title) }
-                        .padding(vertical = 12.dp, horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = title,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Text(
-                        text = title,
-                        fontSize = 16.sp
-                    )
-                }
-            }
-        }
-    }
-
     private fun handleMenuSelection(menuItem: String) {
         when (menuItem) {
             "금주" -> {
@@ -130,12 +88,7 @@ abstract class BaseActivity : ComponentActivity() {
                     navigateToActivity(StatusActivity::class.java)
                 }
             }
-            "활동 보기" -> {
-                if (this !is StartActivity) {
-                    navigateToActivity(StartActivity::class.java)
-                }
-            }
-            "기록 보기" -> {
+            "기록" -> {
                 if (this !is RecordsActivity) {
                     navigateToActivity(RecordsActivity::class.java)
                 }
@@ -146,8 +99,13 @@ abstract class BaseActivity : ComponentActivity() {
                 }
             }
             "설정" -> {
-                if (this !is SettingsActivity) {
-                    navigateToActivity(SettingsActivity::class.java)
+                if (this !is TestActivity) {
+                    navigateToActivity(TestActivity::class.java)
+                }
+            }
+            "테스트" -> {
+                if (this !is TestActivity) {
+                    navigateToActivity(TestActivity::class.java)
                 }
             }
         }
@@ -168,37 +126,63 @@ abstract class BaseActivity : ComponentActivity() {
     protected abstract fun getScreenTitle(): String
 }
 
-@Preview(showBackground = true)
 @Composable
-fun PreviewDrawerMenu() {
+fun DrawerMenu(
+    nickname: String,
+    onNicknameClick: () -> Unit,
+    onItemSelected: (String) -> Unit
+) {
     val menuItems = listOf(
-        "금주" to Icons.Default.Home,
-        "활동 보기" to Icons.Default.List,
-        "기록 보기" to Icons.Default.Info,
-        "레벨" to Icons.Default.Star,
-        "설정" to Icons.Default.Settings
+        "금주" to Icons.Default.PlayArrow,
+        "기록" to Icons.Default.List,
+        "레벨" to Icons.Default.Star
     )
-
+    val settingsItems = listOf(
+        "설정" to Icons.Default.Settings,
+        "테스트" to Icons.Default.Build
+    )
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.Start
     ) {
+        Box(
+            modifier = Modifier
+                .size(72.dp)
+                .align(Alignment.Start)
+                .padding(start = 10.dp) // 아바타만 오른쪽으로 이동
+        ) {
+            Surface(
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "아바타",
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(40.dp).align(Alignment.Center)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "금주 타이머",
-            fontSize = 24.sp,
+            text = nickname,
+            fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier
+                .align(Alignment.Start)
+                .padding(start = 8.dp) // 별명도 오른쪽으로 이동
+                .clickable { onNicknameClick() }
         )
-
-        Divider(modifier = Modifier.padding(vertical = 8.dp))
-
+        Divider(modifier = Modifier.padding(vertical = 12.dp))
         menuItems.forEach { (title, icon) ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { }
-                    .padding(vertical = 12.dp, horizontal = 16.dp),
+                    .clickable { onItemSelected(title) }
+                    .padding(vertical = 12.dp, horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
@@ -212,6 +196,149 @@ fun PreviewDrawerMenu() {
                     fontSize = 16.sp
                 )
             }
+        }
+        Divider(modifier = Modifier.padding(vertical = 8.dp))
+        settingsItems.forEach { (title, icon) ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onItemSelected(title) }
+                    .padding(vertical = 12.dp, horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = title,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = title,
+                    fontSize = 16.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun DrawerMenuPreview(
+    nickname: String = "알중이1",
+    onNicknameClick: () -> Unit = {},
+    onItemSelected: (String) -> Unit = {}
+) {
+    val menuItems = listOf(
+        "금주" to Icons.Default.PlayArrow,
+        "기록" to Icons.Default.List,
+        "레벨" to Icons.Default.Star
+    )
+
+    val settingsItems = listOf(
+        "설정" to Icons.Default.Settings,
+        "테스트" to Icons.Default.Build // 대체 아이콘 사용
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.Start
+    ) {
+        Box(
+            modifier = Modifier
+                .size(72.dp)
+                .align(Alignment.Start)
+                .padding(start = 8.dp) // 아바타만 오른쪽으로 이동
+        ) {
+            Surface(
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "아바타",
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(40.dp).align(Alignment.Center)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = nickname,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .align(Alignment.Start)
+                .padding(start = 8.dp) // 별명도 오른쪽으로 이동
+                .clickable { onNicknameClick() }
+        )
+        Divider(modifier = Modifier.padding(vertical = 12.dp))
+        menuItems.forEach { (title, icon) ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onItemSelected(title) }
+                    .padding(vertical = 12.dp, horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = title,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = title,
+                    fontSize = 16.sp
+                )
+            }
+        }
+
+        // 구분선
+        Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+        // 설정 메뉴 목록
+        settingsItems.forEach { (title, icon) ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onItemSelected(title) }
+                    .padding(vertical = 12.dp, horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = title,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = title,
+                    fontSize = 16.sp
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewDrawerMenu() {
+    MaterialTheme {
+        ModalNavigationDrawer(
+            drawerState = rememberDrawerState(DrawerValue.Open),
+            drawerContent = {
+                ModalDrawerSheet {
+                    DrawerMenu(
+                        nickname = "알중이1",
+                        onNicknameClick = {},
+                        onItemSelected = {}
+                    )
+                }
+            }
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {}
         }
     }
 }

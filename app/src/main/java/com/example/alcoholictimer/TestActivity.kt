@@ -5,8 +5,6 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
-import androidx.appcompat.app.AppCompatActivity
-import com.example.alcoholictimer.utils.Constants
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,11 +12,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.tooling.preview.Preview
+import com.example.alcoholictimer.utils.Constants
 
-class SettingsActivity : BaseActivity() {
+class TestActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,23 +86,18 @@ class SettingsActivity : BaseActivity() {
         val preferences = getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
         val editor = preferences.edit()
         editor.putInt(Constants.PREF_KEY_TEST_MODE, selectedMode)
-        val success = editor.commit() // 동기 저장으로 변경하고 성공 여부 확인
-        Log.d("SettingsActivity", "Settings saved. Mode: $selectedMode, Success: $success")
+        val success = editor.commit()
+        Log.d("TestActivity", "Settings saved. Mode: $selectedMode, Success: $success")
 
         // Constants 클래스의 동적 설정 업데이트
         Constants.updateTestMode(selectedMode)
     }
 
-    @Composable
-    fun SettingsScreenPreview() {
-        BaseScreen {
-            SettingsScreen()
-        }
-    }
-
     @Preview(showBackground = true)
     @Composable
     fun PreviewSettingsScreen() {
-        SettingsScreenPreview()
+        BaseScreen {
+            SettingsScreen()
+        }
     }
 }
