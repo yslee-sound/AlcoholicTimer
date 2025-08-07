@@ -6,12 +6,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -149,19 +151,20 @@ fun DrawerMenu(
     ) {
         Box(
             modifier = Modifier
-                .size(72.dp)
+                .width(80.dp) // 가로 크기를 수동으로 조절 가능
+                .height(72.dp) // 세로 크기를 수동으로 조절 가능
                 .align(Alignment.Start)
-                .padding(start = 10.dp) // 아바타만 오른쪽으로 이동
+                .padding(start = 8.dp)
         ) {
             Surface(
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.primary,
+                shape = CircleShape, // 원형 배경으로 변경
+                color = Color(0xFF888888), // 더 진한 그레이 톤 배경 적용
                 modifier = Modifier.fillMaxSize()
             ) {
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = "아바타",
-                    tint = MaterialTheme.colorScheme.onPrimary,
+                    tint = Color.White, // 아이콘을 밝은 흰색으로 변경
                     modifier = Modifier.size(40.dp).align(Alignment.Center)
                 )
             }
@@ -246,19 +249,20 @@ fun DrawerMenuPreview(
     ) {
         Box(
             modifier = Modifier
-                .size(72.dp)
+                .width(80.dp) // 가로 크기를 수동으로 조절 가능
+                .height(72.dp) // 세로 크기를 수동으로 조절 가능
                 .align(Alignment.Start)
-                .padding(start = 8.dp) // 아바타만 오른쪽으로 이동
+                .padding(start = 8.dp)
         ) {
             Surface(
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.primary,
+                shape = CircleShape, // 원형 배경으로 변경
+                color = Color(0xFF888888), // 더 진한 그레이 톤 배경 적용
                 modifier = Modifier.fillMaxSize()
             ) {
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = "아바타",
-                    tint = MaterialTheme.colorScheme.onPrimary,
+                    tint = Color.White, // 아이콘을 밝은 흰색으로 변경
                     modifier = Modifier.size(40.dp).align(Alignment.Center)
                 )
             }
