@@ -1,8 +1,6 @@
 package com.example.alcoholictimer
 
-import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -22,10 +20,15 @@ class TestActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            BaseScreen {
-                SettingsScreen()
+        try {
+            setContent {
+                BaseScreen {
+                    SettingsScreen()
+                }
             }
+        } catch (e: Exception) {
+            // 예외 발생 시 앱 종료 방지
+            finish()
         }
     }
 
@@ -35,6 +38,16 @@ class TestActivity : BaseActivity() {
     private fun SettingsScreen() {
         val context = LocalContext.current
         var selectedMode by remember { mutableStateOf(Constants.TEST_MODE_REAL) }
+
+        // 현재 저장된 설정 로드
+        LaunchedEffect(Unit) {
+            try {
+                val sharedPref = context.getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE)
+                selectedMode = sharedPref.getInt(Constants.PREF_KEY_TEST_MODE, Constants.TEST_MODE_REAL)
+            } catch (_: Exception) {
+                selectedMode = Constants.TEST_MODE_REAL
+            }
+        }
 
         Column(
             modifier = Modifier
@@ -48,7 +61,10 @@ class TestActivity : BaseActivity() {
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 32.dp)
             )
-            HorizontalDivider(modifier = Modifier.fillMaxWidth().height(2.dp), color = Color.LightGray)
+            HorizontalDivider(
+                modifier = Modifier.fillMaxWidth().height(2.dp),
+                color = Color.LightGray
+            )
             Spacer(modifier = Modifier.height(32.dp))
             Text(
                 text = "테스트 모드 선택",
@@ -80,11 +96,16 @@ class TestActivity : BaseActivity() {
             Button(
                 onClick = {
                     try {
-                        val sharedPref = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
-                        sharedPref.edit().putInt(Constants.PREF_TEST_MODE, selectedMode).apply()
+                        val sharedPref = context.getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE)
+                        sharedPref.edit().apply {
+                            putInt(Constants.PREF_KEY_TEST_MODE, selectedMode)
+                            apply()
+                        }
+                        // Constants 업데이트
+                        Constants.updateTestMode(selectedMode)
                         Toast.makeText(context, "설정이 저장되었습니다.", Toast.LENGTH_SHORT).show()
-                    } catch (e: Exception) {
-                        Toast.makeText(context, "설정 저장 중 오류 발생", Toast.LENGTH_SHORT).show()
+                    } catch (_: Exception) {
+                        Toast.makeText(context, "설정 저장 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp)
@@ -106,17 +127,6 @@ class TestActivity : BaseActivity() {
         ) {
             Text(label, fontSize = 16.sp, fontWeight = FontWeight.Medium)
         }
-    }
-
-    private fun saveSettings(selectedMode: Int) {
-        val preferences = getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
-        val editor = preferences.edit()
-        editor.putInt(Constants.PREF_KEY_TEST_MODE, selectedMode)
-        val success = editor.commit()
-        Log.d("TestActivity", "Settings saved. Mode: $selectedMode, Success: $success")
-
-        // Constants 클래스의 동적 설정 업데이트
-        Constants.updateTestMode(selectedMode)
     }
 
     @Preview(showBackground = true)

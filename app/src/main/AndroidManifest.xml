@@ -1,53 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.alcoholictimer">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <application
-        android:name=".AlcoholicApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AlcoholicTimer">
+        android:theme="@style/Theme.Material3.DayNight"
+        tools:targetApi="31">
+
+        <!-- 메인 액티비티 (시작 화면) -->
         <activity
-            android:name=".MainActivity"
+            android:name=".StartActivity"
             android:exported="true"
-            android:launchMode="singleTask"
-            android:theme="@style/Theme.AlcoholicTimer">
+            android:theme="@style/Theme.Material3.DayNight">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".StartActivity"
-            android:exported="false"
-            android:launchMode="singleTop"
-            android:theme="@style/Theme.AlcoholicTimer"/>
+
+        <!-- 금주 진행 상황 화면 -->
         <activity
             android:name=".StatusActivity"
             android:exported="false"
-            android:launchMode="singleTop"
-            android:theme="@style/Theme.AlcoholicTimer"/>
+            android:theme="@style/Theme.Material3.DayNight" />
+
+        <!-- 기록 화면 -->
         <activity
             android:name=".RecordsActivity"
             android:exported="false"
-            android:theme="@style/Theme.AlcoholicTimer"/>
+            android:theme="@style/Theme.Material3.DayNight" />
+
+        <!-- 레벨 화면 -->
         <activity
             android:name=".LevelActivity"
             android:exported="false"
-            android:theme="@style/Theme.AlcoholicTimer"/>
+            android:theme="@style/Theme.Material3.DayNight" />
+
+        <!-- 설정/테스트 화면 -->
+        <activity
+            android:name=".TestActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Material3.DayNight" />
+
+        <!-- 세부 기록 화면 -->
         <activity
             android:name=".DetailActivity"
             android:exported="false"
-            android:theme="@style/Theme.AlcoholicTimer"/>
-        <activity
-            android:name=".SettingsActivity"
-            android:exported="false"
-            android:label="설정"
-            android:theme="@style/Theme.AlcoholicTimer" />
+            android:theme="@style/Theme.Material3.DayNight" />
+
     </application>
 
 </manifest>

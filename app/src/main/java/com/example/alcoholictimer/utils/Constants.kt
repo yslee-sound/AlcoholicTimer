@@ -48,16 +48,12 @@ object Constants {
             else -> DAY_IN_MILLIS                 // 실제 일 단위 (1일 = 24시간)
         }
 
-    // 프로그레스바용 시간 단위 (테스트 모드와 동일하게 설정)
-    val PROGRESS_TIME_UNIT_MILLIS: Long
-        get() = TIME_UNIT_MILLIS
-
-    // 단위 텍스트
+    // 시간 단위 텍스트 (테스트 모드에 따라 동적으로 결정)
     val TIME_UNIT_TEXT: String
         get() = when (currentTestMode) {
-            TEST_MODE_SECOND -> "초"  // 초 단위 테스트 시 표시 텍스트
-            TEST_MODE_MINUTE -> "분"  // 분 단위 테스트 시 표시 텍스트
-            else -> "일"              // 실제 모드 시 표시 텍스트
+            TEST_MODE_SECOND -> "초"
+            TEST_MODE_MINUTE -> "분"
+            else -> "일"
         }
 
     // 앱 시작 시 설정 불러오기
@@ -66,8 +62,14 @@ object Constants {
         currentTestMode = prefs.getInt(PREF_KEY_TEST_MODE, TEST_MODE_REAL)
     }
 
-    // 테스트 모드 업데이트
+    /**
+     * 테스트 모드를 업데이트하는 함수
+     * TestActivity에서 설정 저장 시 호출됩니다.
+     */
     fun updateTestMode(mode: Int) {
-        currentTestMode = mode
+        currentTestMode = when (mode) {
+            TEST_MODE_SECOND, TEST_MODE_MINUTE, TEST_MODE_REAL -> mode
+            else -> TEST_MODE_REAL // 잘못된 값이면 기본값으로 설정
+        }
     }
 }

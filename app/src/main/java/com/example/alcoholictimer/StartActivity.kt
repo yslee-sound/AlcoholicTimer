@@ -84,8 +84,14 @@ class StartActivity : BaseActivity() {
                     Column {
                         BasicTextField(
                             value = inputText,
-                            onValueChange = {
-                                inputText = it
+                            onValueChange = { newValue ->
+                                // 숫자만 허용하고, 첫 번째 문자가 0이면서 길이가 1보다 크면 0을 제거
+                                val filteredValue = newValue.filter { it.isDigit() }
+                                inputText = if (filteredValue.length > 1 && filteredValue.startsWith("0")) {
+                                    filteredValue.substring(1)
+                                } else {
+                                    filteredValue
+                                }
                                 errorText = ""
                             },
                             textStyle = LocalTextStyle.current.copy(
