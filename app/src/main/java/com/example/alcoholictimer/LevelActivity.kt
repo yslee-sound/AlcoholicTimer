@@ -56,34 +56,71 @@ class LevelActivity : BaseActivity() {
             LevelInfo("금주 마스터", 240, 364, Color(0xFF212121)),
             LevelInfo("절제의 레전드", 365, Int.MAX_VALUE, Color(0xFFFFD700)),
         )
-        val currentLevel = levels.firstOrNull { currentDays in it.start..it.end } ?: levels.last()
-
+        val currentLevelIndex = levels.indexOfFirst { currentDays in it.start..it.end }.coerceAtLeast(0)
+        val currentLevel = levels[currentLevelIndex]
+        val nextLevel = levels.getOrNull(currentLevelIndex + 1)
+        val daysToNext = if (nextLevel != null) nextLevel.start - currentDays else 0
+        val progress = when {
+            currentDays < currentLevel.start -> 0f
+            currentDays > currentLevel.end -> 1f
+            else -> (currentDays - currentLevel.start + 1).toFloat() / (currentLevel.end - currentLevel.start + 1)
+        }
         Column(
-            modifier = Modifier.fillMaxSize().background(Color.White),
+            modifier = Modifier.fillMaxSize().background(Color.White)
         ) {
-            // 상단바
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+            // 현재 레벨 영역 (상단 1/3)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.33f)
+                    .background(currentLevel.color.copy(alpha = 0.2f)),
+                contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "뒤로가기",
-                    modifier = Modifier.size(28.dp).clickable { onBack?.invoke() }
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "금주 레벨",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Start
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = currentLevel.name,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LinearProgressIndicator(
+                        progress = progress,
+                        modifier = Modifier.fillMaxWidth(0.7f).height(10.dp),
+                        color = currentLevel.color
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    if (nextLevel != null) {
+                        Text(
+                            text = "다음 레벨까지 ${daysToNext}일 남음",
+                            fontSize = 16.sp,
+                            color = Color.Black
+                        )
+                    } else {
+                        Text(
+                            text = "최고 레벨입니다!",
+                            fontSize = 16.sp,
+                            color = Color.Black
+                        )
+                    }
+                }
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            // 레벨 카드 리스트
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                levels.forEach { level ->
-                    LevelCard(level, currentDays)
+            // 구분선
+            Divider(
+                modifier = Modifier.fillMaxWidth().height(2.dp).background(Color.LightGray)
+            )
+            // 전체 레벨 리스트 (하단 2/3)
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()).weight(1f)
+            ) {
+                Spacer(modifier = Modifier.height(16.dp)) // 첫 레벨 위에 여백 추가
+                levels.forEachIndexed { idx, level ->
+                    val isAchieved = idx <= currentLevelIndex
+                    LevelCard(
+                        level = level,
+                        currentDays = currentDays,
+                        enabled = isAchieved
+                    )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
             }
@@ -93,17 +130,12 @@ class LevelActivity : BaseActivity() {
     data class LevelInfo(val name: String, val start: Int, val end: Int, val color: Color)
 
     @Composable
-    fun LevelCard(level: LevelInfo, currentDays: Int) {
+    fun LevelCard(level: LevelInfo, currentDays: Int, enabled: Boolean) {
         val isCurrent = currentDays in level.start..level.end
-        val progress = when {
-            currentDays < level.start -> 0f
-            currentDays > level.end -> 1f
-            else -> (currentDays - level.start + 1).toFloat() / (level.end - level.start + 1)
-        }
         val dateText = if (level.name == "절제의 레전드") "1년 이상" else "${level.start}~${level.end}일"
         Card(
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = level.color.copy(alpha = if (isCurrent) 1f else 0.3f)),
+            colors = CardDefaults.cardColors(containerColor = level.color.copy(alpha = if (enabled) 1f else 0.2f)),
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
@@ -111,7 +143,7 @@ class LevelActivity : BaseActivity() {
                     text = level.name,
                     fontSize = 18.sp,
                     fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
-                    color = if (isCurrent) Color.Black else Color.DarkGray
+                    color = if (enabled) Color.Black else Color.Gray
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
@@ -119,20 +151,6 @@ class LevelActivity : BaseActivity() {
                     fontSize = 14.sp,
                     color = Color.Gray
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                LinearProgressIndicator(
-                    progress = progress,
-                    modifier = Modifier.fillMaxWidth().height(8.dp),
-                    color = if (isCurrent) Color.Black else Color.Gray
-                )
-                if (isCurrent) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "현재 진행도: ${(progress * 100).toInt()}%",
-                        fontSize = 13.sp,
-                        color = Color.Black
-                    )
-                }
             }
         }
     }
