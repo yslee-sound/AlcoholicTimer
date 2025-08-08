@@ -185,12 +185,17 @@ fun DrawerMenu(
                 color = Color(0xFF888888),
                 modifier = Modifier.fillMaxSize()
             ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "아바타",
-                    tint = Color.White,
-                    modifier = Modifier.size(40.dp).wrapContentSize(Alignment.Center)
-                )
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "아바타",
+                        tint = Color.White,
+                        modifier = Modifier.fillMaxSize(0.9f) // 원의 70% 크기로 설정
+                    )
+                }
             }
         }
         Spacer(modifier = Modifier.height(8.dp))

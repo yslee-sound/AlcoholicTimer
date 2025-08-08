@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
@@ -14,12 +16,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,10 +48,18 @@ class StartActivity : BaseActivity() {
     @Composable
     private fun StartScreen() {
         val context = LocalContext.current
-        var inputText by remember { mutableStateOf("0") }
-        var errorText by remember { mutableStateOf("") }
-        val timeUnitText = Constants.TIME_UNIT_TEXT
-        val isValid = inputText.toIntOrNull()?.let { it > 0 } ?: false
+        var textFieldValue by remember {
+            mutableStateOf(
+                TextFieldValue(
+                    text = "5",
+                    selection = TextRange(0, 1) // 초기에 전체 선택
+                )
+            )
+        }
+        val isValid = textFieldValue.text.toIntOrNull()?.let { it > 0 } ?: false
+
+        // 텍스트가 선택된 상태인지 추적
+        var isTextSelected by remember { mutableStateOf(true) }
 
         Column(
             modifier = Modifier
@@ -82,31 +95,75 @@ class StartActivity : BaseActivity() {
                     contentAlignment = Alignment.Center
                 ) {
                     Column {
-                        BasicTextField(
-                            value = inputText,
-                            onValueChange = { newValue ->
-                                // 숫자만 허용하고, 첫 번째 문자가 0이면서 길이가 1보다 크면 0을 제거
-                                val filteredValue = newValue.filter { it.isDigit() }
-                                inputText = if (filteredValue.length > 1 && filteredValue.startsWith("0")) {
-                                    filteredValue.substring(1)
-                                } else {
-                                    filteredValue
-                                }
-                                errorText = ""
-                            },
-                            textStyle = LocalTextStyle.current.copy(
-                                fontSize = 48.sp,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center,
-                                color = if (isValid) MaterialTheme.colorScheme.primary else Color.Black
-                            ),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            singleLine = true,
-                            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 8.dp)
-                        )
+                        Box(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            BasicTextField(
+                                value = textFieldValue,
+                                onValueChange = { newValue ->
+                                    val filteredValue = newValue.text.filter { it.isDigit() }
+
+                                    if (isTextSelected && filteredValue.isNotEmpty()) {
+                                        // 전체 선택 상태에서 새 숫자 입력 시 완전 교체
+                                        val finalText = if (filteredValue.length > 1 && filteredValue.startsWith("0")) {
+                                            filteredValue.substring(1)
+                                        } else {
+                                            filteredValue
+                                        }
+                                        textFieldValue = TextFieldValue(
+                                            text = finalText,
+                                            selection = TextRange(0, finalText.length) // 새 입력도 전체 선택
+                                        )
+                                        isTextSelected = true
+                                    } else {
+                                        // 일반적인 편집
+                                        val finalText = if (filteredValue.isEmpty()) {
+                                            "0"
+                                        } else if (filteredValue.length > 1 && filteredValue.startsWith("0")) {
+                                            filteredValue.substring(1)
+                                        } else {
+                                            filteredValue
+                                        }
+                                        textFieldValue = TextFieldValue(
+                                            text = finalText,
+                                            selection = TextRange(finalText.length)
+                                        )
+                                        isTextSelected = false
+                                    }
+                                },
+                                textStyle = LocalTextStyle.current.copy(
+                                    fontSize = 48.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center,
+                                    color = Color.Black
+                                ),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                singleLine = true,
+                                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 8.dp)
+                                    .clickable(
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() }
+                                    ) {
+                                        // 클릭 시 전체 텍스트 선택
+                                        textFieldValue = textFieldValue.copy(
+                                            selection = TextRange(0, textFieldValue.text.length)
+                                        )
+                                        isTextSelected = true
+                                    }
+                                    .onFocusChanged { focusState ->
+                                        if (focusState.isFocused) {
+                                            // 포커스를 받을 때도 전체 텍스트 선택
+                                            textFieldValue = textFieldValue.copy(
+                                                selection = TextRange(0, textFieldValue.text.length)
+                                            )
+                                            isTextSelected = true
+                                        }
+                                    }
+                            )
+                        }
 
                         // 밑줄 (얇고 검은색)
                         Canvas(
@@ -139,7 +196,7 @@ class StartActivity : BaseActivity() {
             // 플레이 버튼
             FloatingActionButton(
                 onClick = {
-                    val targetTime = inputText.toIntOrNull() ?: 0
+                    val targetTime = textFieldValue.text.toIntOrNull() ?: 0
                     if (targetTime > 0) {
                         val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
                         sharedPref.edit().apply {
