@@ -130,8 +130,8 @@ abstract class BaseActivity : ComponentActivity() {
                 }
             }
             "테스트" -> {
-                if (this !is SettingsActivity) {
-                    navigateToActivity(SettingsActivity::class.java)
+                if (this !is TestActivity) {
+                    navigateToActivity(TestActivity::class.java)
                 }
             }
         }

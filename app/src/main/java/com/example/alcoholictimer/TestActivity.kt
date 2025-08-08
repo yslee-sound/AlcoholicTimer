@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,12 +20,14 @@ import com.example.alcoholictimer.utils.Constants
 
 class TestActivity : BaseActivity() {
 
+    override fun getScreenTitle(): String = "테스트"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         try {
             setContent {
                 BaseScreen {
-                    SettingsScreen()
+                    TestScreen()
                 }
             }
         } catch (e: Exception) {
@@ -31,109 +35,131 @@ class TestActivity : BaseActivity() {
             finish()
         }
     }
+}
 
-    override fun getScreenTitle(): String = "설정"
+@Composable
+fun TestScreen() {
+    var selectedMode by remember { mutableStateOf(Constants.TEST_MODE_REAL) }
+    val context = LocalContext.current
 
-    @Composable
-    private fun SettingsScreen() {
-        val context = LocalContext.current
-        var selectedMode by remember { mutableStateOf(Constants.TEST_MODE_REAL) }
-
-        // 현재 저장된 설정 로드
-        LaunchedEffect(Unit) {
-            try {
-                val sharedPref = context.getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE)
-                selectedMode = sharedPref.getInt(Constants.PREF_KEY_TEST_MODE, Constants.TEST_MODE_REAL)
-            } catch (_: Exception) {
-                selectedMode = Constants.TEST_MODE_REAL
-            }
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 60.dp, start = 32.dp, end = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "설정",
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 32.dp)
-            )
-            HorizontalDivider(
-                modifier = Modifier.fillMaxWidth().height(2.dp),
-                color = Color.LightGray
-            )
-            Spacer(modifier = Modifier.height(32.dp))
-            Text(
-                text = "테스트 모드 선택",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(bottom = 24.dp)
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                ModeButton(
-                    label = "실제 시간",
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // 시간 모드 설정
+        Text("시간 모드", fontSize = 20.sp)
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(
                     selected = selectedMode == Constants.TEST_MODE_REAL,
                     onClick = { selectedMode = Constants.TEST_MODE_REAL }
                 )
-                ModeButton(
-                    label = "분 단위",
+                Text("실제 시간 모드", fontSize = 16.sp)
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(
                     selected = selectedMode == Constants.TEST_MODE_MINUTE,
                     onClick = { selectedMode = Constants.TEST_MODE_MINUTE }
                 )
-                ModeButton(
-                    label = "초 단위",
+                Text("분 단위 테스트 모드", fontSize = 16.sp)
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(
                     selected = selectedMode == Constants.TEST_MODE_SECOND,
                     onClick = { selectedMode = Constants.TEST_MODE_SECOND }
                 )
+                Text("초 단위 테스트 모드", fontSize = 16.sp)
             }
-            Spacer(modifier = Modifier.height(40.dp))
-            Button(
+        }
+
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 8.dp),
+            thickness = 1.dp,
+            color = Color.Black
+        )
+
+        // 설명 섹션
+        Text("모드 설명", fontSize = 20.sp)
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("• 실제 시간: 정상적인 시간 흐름", fontSize = 16.sp)
+            Text("• 분 단위: 빠른 테스트용 (1분 = 1일)", fontSize = 16.sp)
+            Text("• 초 단위: 매우 빠른 테스트용 (1초 = 1일)", fontSize = 16.sp)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 버튼들
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally)
+        ) {
+            // 저장 버튼
+            OutlinedButton(
                 onClick = {
-                    try {
-                        val sharedPref = context.getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE)
-                        sharedPref.edit().apply {
-                            putInt(Constants.PREF_KEY_TEST_MODE, selectedMode)
-                            apply()
-                        }
-                        // Constants 업데이트
-                        Constants.updateTestMode(selectedMode)
-                        Toast.makeText(context, "설정이 저장되었습니다.", Toast.LENGTH_SHORT).show()
-                    } catch (_: Exception) {
-                        Toast.makeText(context, "설정 저장 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+                    val sharedPref = context.getSharedPreferences("test_settings", android.content.Context.MODE_PRIVATE)
+                    with(sharedPref.edit()) {
+                        putInt("test_mode", selectedMode)
+                        apply()
                     }
                 },
-                modifier = Modifier.fillMaxWidth().height(56.dp)
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = Color.Black
+                )
             ) {
-                Text("저장", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("저장", fontSize = 16.sp)
+            }
+
+            // 리셋 버튼
+            OutlinedButton(
+                onClick = {
+                    selectedMode = Constants.TEST_MODE_REAL
+                },
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = Color.Black
+                )
+            ) {
+                Text("리셋", fontSize = 16.sp)
             }
         }
     }
+}
 
-    @Composable
-    private fun ModeButton(label: String, selected: Boolean, onClick: () -> Unit) {
-        Button(
-            onClick = onClick,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (selected) MaterialTheme.colorScheme.primary else Color.LightGray,
-                contentColor = if (selected) Color.White else Color.Black
-            ),
-            modifier = Modifier.height(48.dp)
-        ) {
-            Text(label, fontSize = 16.sp, fontWeight = FontWeight.Medium)
-        }
+@Composable
+private fun ModeButton(label: String, selected: Boolean, onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        border = androidx.compose.foundation.BorderStroke(
+            width = if (selected) 2.dp else 1.dp,
+            color = Color.Black
+        ),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = if (selected) Color.Black else Color.Transparent,
+            contentColor = if (selected) Color.White else Color.Black
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(label, fontSize = 16.sp)
     }
+}
 
-    @Preview(showBackground = true)
-    @Composable
-    fun PreviewSettingsScreen() {
-        BaseScreen {
-            SettingsScreen()
-        }
+private fun getModeText(mode: Int): String {
+    return when (mode) {
+        Constants.TEST_MODE_REAL -> "실제 시간"
+        Constants.TEST_MODE_MINUTE -> "분 단위 테스트"
+        Constants.TEST_MODE_SECOND -> "초 단위 테스트"
+        else -> "알 수 없음"
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewTestScreen() {
+    TestScreen()
 }
