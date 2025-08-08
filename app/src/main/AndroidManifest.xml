@@ -46,6 +46,12 @@
             android:exported="false"
             android:theme="@style/Theme.Material3.DayNight" />
 
+        <!-- 금주 진행 화면 -->
+        <activity
+            android:name=".RunActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Material3.DayNight" />
+
         <!-- 설정/테스트 화면 -->
         <activity
             android:name=".TestActivity"

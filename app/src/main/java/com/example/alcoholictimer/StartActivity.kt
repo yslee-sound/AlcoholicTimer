@@ -205,7 +205,7 @@ class StartActivity : BaseActivity() {
                             putBoolean("timer_completed", false)
                             apply()
                         }
-                        val intent = Intent(context, StatusActivity::class.java)
+                        val intent = Intent(context, RunActivity::class.java)
                         context.startActivity(intent)
                     }
                 },

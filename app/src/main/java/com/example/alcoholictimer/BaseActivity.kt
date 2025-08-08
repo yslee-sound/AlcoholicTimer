@@ -108,9 +108,9 @@ abstract class BaseActivity : ComponentActivity() {
                         navigateToActivity(StartActivity::class.java)
                     }
                 } else {
-                    // 금주 진행 중인 경우 StatusActivity로 이동
-                    if (this !is StatusActivity) {
-                        navigateToActivity(StatusActivity::class.java)
+                    // 금주 진행 중인 경우 RunActivity로 이동
+                    if (this !is RunActivity) {
+                        navigateToActivity(RunActivity::class.java)
                     }
                 }
             }
