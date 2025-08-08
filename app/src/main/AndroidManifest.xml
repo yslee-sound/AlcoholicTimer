@@ -40,6 +40,12 @@
             android:exported="false"
             android:theme="@style/Theme.Material3.DayNight" />
 
+        <!-- 설정 화면 -->
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Material3.DayNight" />
+
         <!-- 설정/테스트 화면 -->
         <activity
             android:name=".TestActivity"

@@ -1,4 +1,6 @@
 # 🍺 금주 상태 화면 상세 기획서 (StatusActivity)
+- Jetpack Compose 기반으로 구현하며, 미니멀하고 직관적인 UX를 제공합니다.
+
 
 금주 타이머 앱의 **금주 상태 화면**(StatusActivity) 상세 기획서입니다.  
 Jetpack Compose 기반으로, UI/UX, 데이터 처리, 레벨 시스템, 동기부여 메시지 등 주요 기능을 명확히 정의합니다.
