@@ -502,7 +502,51 @@ fun StatisticsCardsSection(
                     .clickable(enabled = selectedPeriod != "전체") { if (selectedPeriod != "전체") expanded = true }
                     .padding(vertical = 8.dp)
             )
-            if (selectedPeriod != "전체") {
+            if (selectedPeriod == "월") {
+                // 월일 때 2컬럼 드롭다운
+                val years = listOf("2025년", "2024년")
+                val months = listOf("8월", "7월", "6월", "5월", "4월", "3월", "2월", "1월")
+                var selectedYear by remember { mutableStateOf(years.first()) }
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.width(260.dp)
+                ) {
+                    Row(modifier = Modifier.padding(8.dp)) {
+                        // 년도 선택
+                        Column(modifier = Modifier.weight(1f)) {
+                            years.forEach { year ->
+                                Text(
+                                    text = year,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            selectedYear = year
+                                        }
+                                        .padding(8.dp),
+                                    fontWeight = if (selectedYear == year) FontWeight.Bold else FontWeight.Normal
+                                )
+                            }
+                        }
+                        // 월 선택
+                        Column(modifier = Modifier.weight(1f)) {
+                            months.forEach { month ->
+                                Text(
+                                    text = month,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            onRangeSelected("$selectedYear $month")
+                                            expanded = false
+                                        }
+                                        .padding(8.dp),
+                                    fontWeight = FontWeight.Normal
+                                )
+                            }
+                        }
+                    }
+                }
+            } else if (selectedPeriod != "전체") {
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
