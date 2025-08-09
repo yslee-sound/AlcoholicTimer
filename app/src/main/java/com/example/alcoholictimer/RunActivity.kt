@@ -1,6 +1,9 @@
 package com.example.alcoholictimer
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.*
 import kotlin.math.roundToInt
+import org.json.JSONArray
+import org.json.JSONObject
 
 class RunActivity : BaseActivity() {
 
@@ -43,7 +48,7 @@ fun RunScreen() {
     // SharedPreferences에서 데이터 가져오기
     val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
     val startTime = sharedPref.getLong("start_time", 0L)
-    val targetDays = sharedPref.getInt("target_days", 30)
+    val targetDays = sharedPref.getFloat("target_days", 30f)
 
     // 설정값 가져오기 (범주형 설정값)
     val selectedCost = sharedPref.getString("selected_cost", "중") ?: "중"
@@ -63,6 +68,7 @@ fun RunScreen() {
     // 경과 시간 계산 (startTime이 0이면 아직 시작되지 않음)
     val elapsedTime = if (startTime > 0) currentTime - startTime else 0L
     val elapsedDays = (elapsedTime / (24 * 60 * 60 * 1000)).toInt()
+    val elapsedDaysFloat = (elapsedTime / (24.0 * 60 * 60 * 1000)).toFloat() // 소수점 포함 일수
     val elapsedHours = ((elapsedTime % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)).toInt()
     val elapsedMinutes = ((elapsedTime % (60 * 60 * 1000)) / (60 * 1000)).toInt()
     val elapsedSeconds = ((elapsedTime % (60 * 1000)) / 1000).toInt()
@@ -107,8 +113,8 @@ fun RunScreen() {
     val savedHours = (weeks * freqVal * (drinkHoursVal + hangoverHoursVal)).roundToInt()
     val lifeGainDays = ((elapsedDays / 30.0) * 1.0).roundToInt() // 30일→+1일 규칙
 
-    // 진행률 계산
-    val progress = if (targetDays > 0) (elapsedDays.toFloat() / targetDays).coerceAtMost(1.0f) else 0f
+    // 진행률 계산 (소수점 포함)
+    val progress = if (targetDays > 0) (elapsedDaysFloat / targetDays).coerceAtMost(1.0f) else 0f
 
     // 레벨에 따른 배경색 (명세서 기준)
     val backgroundColor = when {
@@ -177,94 +183,106 @@ fun RunScreen() {
                 modifier = Modifier.padding(bottom = 32.dp)
             )
 
-            // 중앙 메인 지표 (StartActivity 스타일)
+            // 중앙 메인 지표 (고정 크기 컨테이너)
             Box(
-                modifier = Modifier.width(200.dp),
+                modifier = Modifier
+                    .width(300.dp)
+                    .height(120.dp), // 고정 높이 추가
                 contentAlignment = Alignment.Center
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+                // 메인 숫자 표시 (클릭 가능, 크기 고정)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable {
+                            currentIndicator = (currentIndicator + 1) % 6
+                        }
+                        .padding(8.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    // 메인 숫자 표시 (클릭 가능, 애니메이션 없음)
-                    Box(
-                        modifier = Modifier
-                            .clickable {
-                                currentIndicator = (currentIndicator + 1) % 6
-                            }
-                            .padding(vertical = 8.dp)
-                    ) {
-                        when (currentIndicator) {
-                            0 -> {
-                                // 금주 일수
-                                Text(
-                                    text = if (elapsedHours > 0) "${elapsedDays}일 ${elapsedHours}시간" else "${elapsedDays}",
-                                    fontSize = 72.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    textAlign = TextAlign.Center,
-                                    color = Color.Black
-                                )
-                            }
-                            1 -> {
-                                // 진행 시간 (시:분:초 형식)
-                                Text(
-                                    text = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds),
-                                    fontSize = 72.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    textAlign = TextAlign.Center,
-                                    color = Color.Black
-                                )
-                            }
-                            2 -> {
-                                // 현재 레벨
-                                Text(
-                                    text = getLevelName(elapsedDays),
-                                    fontSize = 72.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    textAlign = TextAlign.Center,
-                                    color = Color.Black
-                                )
-                            }
-                            3 -> {
-                                // 절약한 금액 (천단위 구분)
-                                Text(
-                                    text = String.format(Locale.getDefault(), "%,d", savedMoney),
-                                    fontSize = 72.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    textAlign = TextAlign.Center,
-                                    color = Color.Black
-                                )
-                            }
-                            4 -> {
-                                // 절약한 시간
-                                Text(
-                                    text = "${savedHours}",
-                                    fontSize = 72.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    textAlign = TextAlign.Center,
-                                    color = Color.Black
-                                )
-                            }
-                            5 -> {
-                                // 기대 수명
-                                Text(
-                                    text = "${lifeGainDays}",
-                                    fontSize = 72.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    textAlign = TextAlign.Center,
-                                    color = Color.Black
-                                )
-                            }
+                    when (currentIndicator) {
+                        0 -> {
+                            // 금주 일수
+                            Text(
+                                text = if (elapsedHours > 0) "${elapsedDays}일 ${elapsedHours}시간" else "${elapsedDays}",
+                                fontSize = 48.sp, // 크기 축소
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                color = Color.Black,
+                                maxLines = 2, // 최대 2줄
+                                lineHeight = 52.sp
+                            )
+                        }
+                        1 -> {
+                            // 진행 시간 (시:분:초 형식)
+                            Text(
+                                text = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds),
+                                fontSize = 42.sp, // 긴 텍스트이므로 더 작게
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                color = Color.Black,
+                                maxLines = 1,
+                                lineHeight = 46.sp
+                            )
+                        }
+                        2 -> {
+                            // 현재 레벨
+                            Text(
+                                text = getLevelName(elapsedDays),
+                                fontSize = 36.sp, // 레벨명은 더 작게
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                color = Color.Black,
+                                maxLines = 2,
+                                lineHeight = 40.sp
+                            )
+                        }
+                        3 -> {
+                            // 절약한 금액 (천단위 구분)
+                            Text(
+                                text = String.format(Locale.getDefault(), "%,d", savedMoney),
+                                fontSize = 42.sp, // 숫자이므로 적당한 크기
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                color = Color.Black,
+                                maxLines = 1,
+                                lineHeight = 46.sp
+                            )
+                        }
+                        4 -> {
+                            // 절약한 시간
+                            Text(
+                                text = "${savedHours}",
+                                fontSize = 48.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                color = Color.Black,
+                                maxLines = 1,
+                                lineHeight = 52.sp
+                            )
+                        }
+                        5 -> {
+                            // 기대 수명
+                            Text(
+                                text = "+${lifeGainDays}일",
+                                fontSize = 42.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                color = Color.Black,
+                                maxLines = 1,
+                                lineHeight = 46.sp
+                            )
                         }
                     }
                 }
             }
 
-            // 단위 표시 (StartActivity 스타일)
+            // 단위 표시 (모든 지표에 일관된 단위 표시)
             Text(
                 text = when (currentIndicator) {
                     0 -> if (elapsedHours > 0) "" else "일"
-                    1 -> ""  // 시:분은 단위 표시 없음
-                    2 -> ""  // 레벨명은 단위 표시 없음
+                    1 -> "시간"  // 진행 시간에 단위 추가
+                    2 -> "레벨"  // 현재 레벨에 단위 추가
                     3 -> "원"
                     4 -> "시간"
                     5 -> "일"
@@ -285,10 +303,9 @@ fun RunScreen() {
             // 중지 버튼 (StartActivity 스타일)
             StopButton(
                 onStop = {
-                    // TODO: 금주 중지 로직 구현
-                    // 1. 현재 기록 저장
-                    // 2. 시작 시간 리셋
-                    // 3. StartActivity로 이동
+                    // QuitActivity로 이동 (중지 확인 화면)
+                    val intent = Intent(context, QuitActivity::class.java)
+                    context.startActivity(intent)
                 }
             )
         }
@@ -338,7 +355,60 @@ fun StopButton(onStop: () -> Unit) {
     }
 }
 
-// 레벨명 함수 (기��� 레벨 테이블 기준)
+// 금주 기록 저장 함수
+private fun saveCompletedRecord(
+    context: Context,
+    startTime: Long,
+    endTime: Long,
+    targetDays: Int,
+    actualDays: Int,
+    isCompleted: Boolean
+) {
+    try {
+        val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
+
+        // 기록 ID 생성
+        val recordId = System.currentTimeMillis().toString()
+
+        // 기록 데이터 생성 (JSONObject 사용)
+        val record = JSONObject().apply {
+            put("id", recordId)
+            put("startTime", startTime)
+            put("endTime", endTime)
+            put("targetDays", targetDays)
+            put("actualDays", actualDays)
+            put("isCompleted", isCompleted)
+            put("status", if (isCompleted) "완료" else "중지")
+            put("createdAt", System.currentTimeMillis())
+        }
+
+        // 기존 기록들 가져오기
+        val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
+        val recordsList = try {
+            JSONArray(recordsJson)
+        } catch (e: Exception) {
+            JSONArray()
+        }
+
+        // 새 기록 추가
+        recordsList.put(record)
+
+        // 저장
+        with(sharedPref.edit()) {
+            putString("sobriety_records", recordsList.toString())
+            apply()
+        }
+
+        // 사용자에게 알림
+        val message = if (isCompleted) "금주 목표를 달성했습니다!" else "금주 기록이 저장되었습니다."
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+
+    } catch (e: Exception) {
+        Toast.makeText(context, "기록 저장 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+    }
+}
+
+// 레벨명 함수 (기존 레벨 테이블 기준)
 private fun getLevelName(days: Int): String {
     return when {
         days < 7 -> "시작"

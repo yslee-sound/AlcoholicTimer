@@ -51,12 +51,12 @@ class StartActivity : BaseActivity() {
         var textFieldValue by remember {
             mutableStateOf(
                 TextFieldValue(
-                    text = "5",
-                    selection = TextRange(0, 1) // 초기에 전체 선택
+                    text = "5.0",
+                    selection = TextRange(0, 3) // 초기에 전체 선택
                 )
             )
         }
-        val isValid = textFieldValue.text.toIntOrNull()?.let { it > 0 } ?: false
+        val isValid = textFieldValue.text.toFloatOrNull()?.let { it > 0 } ?: false
 
         // 텍스트가 선택된 상태인지 추적
         var isTextSelected by remember { mutableStateOf(true) }
@@ -101,14 +101,19 @@ class StartActivity : BaseActivity() {
                             BasicTextField(
                                 value = textFieldValue,
                                 onValueChange = { newValue ->
-                                    val filteredValue = newValue.text.filter { it.isDigit() }
+                                    // 소수점 입력을 허용하는 필터링
+                                    val filteredValue = newValue.text.filter { it.isDigit() || it == '.' }
 
-                                    if (isTextSelected && filteredValue.isNotEmpty()) {
+                                    // 소수점이 여러 개 있는지 검사
+                                    val dotCount = filteredValue.count { it == '.' }
+                                    val finalFilteredValue = if (dotCount <= 1) filteredValue else textFieldValue.text
+
+                                    if (isTextSelected && finalFilteredValue.isNotEmpty()) {
                                         // 전체 선택 상태에서 새 숫자 입력 시 완전 교체
-                                        val finalText = if (filteredValue.length > 1 && filteredValue.startsWith("0")) {
-                                            filteredValue.substring(1)
+                                        val finalText = if (finalFilteredValue.length > 1 && finalFilteredValue.startsWith("0") && !finalFilteredValue.startsWith("0.")) {
+                                            finalFilteredValue.substring(1)
                                         } else {
-                                            filteredValue
+                                            finalFilteredValue
                                         }
                                         textFieldValue = TextFieldValue(
                                             text = finalText,
@@ -117,12 +122,12 @@ class StartActivity : BaseActivity() {
                                         isTextSelected = true
                                     } else {
                                         // 일반적인 편집
-                                        val finalText = if (filteredValue.isEmpty()) {
+                                        val finalText = if (finalFilteredValue.isEmpty()) {
                                             "0"
-                                        } else if (filteredValue.length > 1 && filteredValue.startsWith("0")) {
-                                            filteredValue.substring(1)
+                                        } else if (finalFilteredValue.length > 1 && finalFilteredValue.startsWith("0") && !finalFilteredValue.startsWith("0.")) {
+                                            finalFilteredValue.substring(1)
                                         } else {
-                                            filteredValue
+                                            finalFilteredValue
                                         }
                                         textFieldValue = TextFieldValue(
                                             text = finalText,
@@ -196,11 +201,11 @@ class StartActivity : BaseActivity() {
             // 플레이 버튼
             FloatingActionButton(
                 onClick = {
-                    val targetTime = textFieldValue.text.toIntOrNull() ?: 0
+                    val targetTime = textFieldValue.text.toFloatOrNull() ?: 0f
                     if (targetTime > 0) {
                         val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
                         sharedPref.edit().apply {
-                            putInt("target_days", targetTime)
+                            putFloat("target_days", targetTime) // Float로 저장
                             putLong("start_time", System.currentTimeMillis())
                             putBoolean("timer_completed", false)
                             apply()

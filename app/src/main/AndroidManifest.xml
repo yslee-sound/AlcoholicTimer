@@ -22,12 +22,6 @@
             </intent-filter>
         </activity>
 
-        <!-- 금주 진행 상황 화면 -->
-        <activity
-            android:name=".StatusActivity"
-            android:exported="false"
-            android:theme="@style/Theme.Material3.DayNight" />
-
         <!-- 기록 화면 -->
         <activity
             android:name=".RecordsActivity"
@@ -49,6 +43,12 @@
         <!-- 금주 진행 화면 -->
         <activity
             android:name=".RunActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Material3.DayNight" />
+
+        <!-- 금주 종료 확인 화면 -->
+        <activity
+            android:name=".QuitActivity"
             android:exported="false"
             android:theme="@style/Theme.Material3.DayNight" />
 

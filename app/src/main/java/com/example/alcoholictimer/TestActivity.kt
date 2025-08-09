@@ -94,9 +94,9 @@ fun TestScreen() {
         // 버튼들
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally)
+            horizontalArrangement = Arrangement.Center
         ) {
-            // 저장 버튼
+            // 적용 버튼
             OutlinedButton(
                 onClick = {
                     val sharedPref = context.getSharedPreferences("test_settings", android.content.Context.MODE_PRIVATE)
@@ -104,6 +104,7 @@ fun TestScreen() {
                         putInt("test_mode", selectedMode)
                         apply()
                     }
+                    Toast.makeText(context, "설정이 적용되었습니다", Toast.LENGTH_SHORT).show()
                 },
                 border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black),
                 colors = ButtonDefaults.outlinedButtonColors(
@@ -111,21 +112,7 @@ fun TestScreen() {
                     contentColor = Color.Black
                 )
             ) {
-                Text("저장", fontSize = 16.sp)
-            }
-
-            // 리셋 버튼
-            OutlinedButton(
-                onClick = {
-                    selectedMode = Constants.TEST_MODE_REAL
-                },
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = Color.Black
-                )
-            ) {
-                Text("리셋", fontSize = 16.sp)
+                Text("적용", fontSize = 16.sp)
             }
         }
     }
