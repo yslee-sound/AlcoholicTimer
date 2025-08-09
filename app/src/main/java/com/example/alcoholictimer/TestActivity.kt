@@ -90,7 +90,23 @@ fun TestScreen() {
             OutlinedButton(
                 onClick = {
                     val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
-                    sharedPref.edit().clear().apply()
+                    val editor = sharedPref.edit()
+
+                    // 기존 기록 확인
+                    val beforeRecords = sharedPref.getString("sobriety_records", "[]")
+                    android.util.Log.d("TestActivity", "초기화 전 기록: $beforeRecords")
+
+                    // 모든 데이터 삭제
+                    editor.clear()
+
+                    // 명시적으로 sobriety_records 키도 삭제
+                    editor.remove("sobriety_records")
+                    editor.apply()
+
+                    // 삭제 후 확인
+                    val afterRecords = sharedPref.getString("sobriety_records", "[]")
+                    android.util.Log.d("TestActivity", "초기화 후 기록: $afterRecords")
+
                     Toast.makeText(context, "모든 기록이 초기화되었습니다", Toast.LENGTH_SHORT).show()
                 },
                 border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black),

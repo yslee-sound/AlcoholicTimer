@@ -67,36 +67,8 @@ class RecordsActivity : BaseActivity() {
             records = loadSobrietyRecords(context)
             Log.d(TAG, "로드된 기록: ${records.size}개")
 
-            // 기록이 없으면 테스트용 더미 데이터 추가
-            if (records.isEmpty()) {
-                Log.d(TAG, "기록이 없어서 테스트용 더미 데이터 추가")
-                records = listOf(
-                    SobrietyRecord(
-                        id = "test1",
-                        startTime = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L),
-                        endTime = System.currentTimeMillis(),
-                        targetDays = 30,
-                        actualDays = 7,
-                        isCompleted = false,
-                        status = "중단됨",
-                        createdAt = System.currentTimeMillis()
-                    ),
-                    SobrietyRecord(
-                        id = "test2",
-                        startTime = System.currentTimeMillis() - (10 * 24 * 60 * 60 * 1000L),
-                        endTime = System.currentTimeMillis() - (3 * 24 * 60 * 60 * 1000L),
-                        targetDays = 14,
-                        actualDays = 14,
-                        isCompleted = true,
-                        status = "완료",
-                        createdAt = System.currentTimeMillis() - (3 * 24 * 60 * 60 * 1000L)
-                    )
-                )
-                Log.d(TAG, "더미 데이터 추가 완료: ${records.size}개")
-                records.forEach { record ->
-                    Log.d(TAG, "더미 데이터: id=${record.id}, actualDays=${record.actualDays}, targetDays=${record.targetDays}")
-                }
-            }
+            // 더미 데이터 자동 추가 로직 제거 (초기화 테스트를 위해)
+            // 필요시 수동으로 테스트 데이터를 추가할 수 있도록 별도 함수로 분리
         }
 
         LazyColumn(
