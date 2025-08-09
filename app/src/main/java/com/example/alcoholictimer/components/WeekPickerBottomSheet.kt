@@ -147,7 +147,7 @@ private fun generateWeekOptions(): List<WeekOption> {
     val dateFormat = SimpleDateFormat("MM-dd", Locale.getDefault())
     val options = mutableListOf<WeekOption>()
 
-    // 이번 주부터 시작
+    // 이번 주부터 시작해서 과거로 거슬러 올라가면서 데이터 생성
     calendar.firstDayOfWeek = Calendar.MONDAY
     calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
     calendar.set(Calendar.HOUR_OF_DAY, 0)
@@ -175,5 +175,6 @@ private fun generateWeekOptions(): List<WeekOption> {
         calendar.add(Calendar.DAY_OF_WEEK, -13) // 일요일에서 이전 주 월요일로
     }
 
-    return options
+    // 과거에서 현재 순으로 정렬 (reverse)
+    return options.reversed()
 }

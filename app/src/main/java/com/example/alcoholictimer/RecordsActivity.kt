@@ -63,11 +63,12 @@ class RecordsActivity : BaseActivity() {
         val context = LocalContext.current
         var records by remember { mutableStateOf<List<SobrietyRecord>>(emptyList()) }
         var selectedPeriod by remember { mutableStateOf("월") }
-        var selectedRange by remember { mutableStateOf("전체") }
-        var showMonthPicker by remember { mutableStateOf(false) }
-        var showWeekPicker by remember { mutableStateOf(false) }
         var selectedYear by remember { mutableStateOf(Calendar.getInstance().get(Calendar.YEAR)) }
         var selectedMonth by remember { mutableStateOf(Calendar.getInstance().get(Calendar.MONTH) + 1) }
+        // selectedRange를 월 기본값으로 초기화
+        var selectedRange by remember { mutableStateOf("${selectedYear}년 ${selectedMonth}월") }
+        var showMonthPicker by remember { mutableStateOf(false) }
+        var showWeekPicker by remember { mutableStateOf(false) }
 
         // 기록 로드
         LaunchedEffect(Unit) {
@@ -121,7 +122,7 @@ class RecordsActivity : BaseActivity() {
                     selectedPeriod = selectedPeriod,
                     onPeriodSelected = {
                         selectedPeriod = it
-                        // 기간이 바뀌면 드롭다운 기본값도 변경
+                        // 기간이 바뀌면 ��롭다운 기본값도 변경
                         selectedRange = when (it) {
                             "주" -> "이번 주"
                             "월" -> "${selectedYear}년 ${selectedMonth}월"
