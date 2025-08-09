@@ -4,16 +4,20 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -55,6 +59,7 @@ class RecordsActivity : BaseActivity() {
     private fun RecordsScreen() {
         val context = LocalContext.current
         var records by remember { mutableStateOf<List<SobrietyRecord>>(emptyList()) }
+        var selectedPeriod by remember { mutableStateOf("월") } // 선택된 기간 상태 추가
 
         // 기록 로드
         LaunchedEffect(Unit) {
@@ -101,12 +106,20 @@ class RecordsActivity : BaseActivity() {
         ) {
             // 상단: 기간 선택 탭 섹션
             item {
-                PeriodSelectionSection()
+                PeriodSelectionSection(
+                    selectedPeriod = selectedPeriod,
+                    onPeriodSelected = { selectedPeriod = it }
+                )
             }
 
-            // 중단: 통계 및 그래프 섹션
+            // 통계 카드들을 별도 아이템으로 빼내기
             item {
-                StatisticsSection(records = records)
+                StatisticsCardsSection(records = records)
+            }
+
+            // 그래프 섹션을 별도 아이템으로 분리
+            item {
+                GraphSection(records = records, selectedPeriod = selectedPeriod)
             }
 
             // 하단: 최근 활동 섹션 헤더
@@ -378,8 +391,10 @@ private fun loadSobrietyRecords(context: android.content.Context): List<Sobriety
 
 // 상단: 기간 선택 탭 섹션
 @Composable
-fun PeriodSelectionSection() {
-    var selectedPeriod by remember { mutableStateOf("월") }
+fun PeriodSelectionSection(
+    selectedPeriod: String,
+    onPeriodSelected: (String) -> Unit
+) {
     val periods = listOf("주", "월", "년", "전체")
 
     Card(
@@ -416,7 +431,7 @@ fun PeriodSelectionSection() {
                                 if (isSelected) Color.Black else Color.Transparent,
                                 RoundedCornerShape(20.dp)
                             )
-                            .clickable { selectedPeriod = period }
+                            .clickable { onPeriodSelected(period) }
                             .padding(vertical = 8.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -435,68 +450,293 @@ fun PeriodSelectionSection() {
 
 // 중단: 통계 및 그래프 섹션
 @Composable
-fun StatisticsSection(records: List<SobrietyRecord>) {
+fun StatisticsCardsSection(records: List<SobrietyRecord>) {
     val totalDays = records.sumOf { it.actualDays }
     val completedCount = records.count { it.isCompleted }
     val totalAttempts = records.size
     val successRate = if (totalAttempts > 0) (completedCount * 100) / totalAttempts else 0
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    // Card 제거하고 Column으로 직접 표시
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
+        Text(
+            text = "통계 요약",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        // 상단 통계 카드들
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Text(
-                text = "통계 요약",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
+            StatCard(
+                title = "총 금주일",
+                value = "${totalDays}일",
+                modifier = Modifier.weight(1f)
             )
-
-            // 상단 통계 카드들
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                StatCard(
-                    title = "총 금주일",
-                    value = "${totalDays}일",
-                    modifier = Modifier.weight(1f)
-                )
-                StatCard(
-                    title = "성공률",
-                    value = "${successRate}%",
-                    modifier = Modifier.weight(1f)
-                )
-                StatCard(
-                    title = "시도 횟수",
-                    value = "${totalAttempts}회",
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // TODO: 향후 그래프 영역 추가 예정
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp)
-                    .background(Color(0xFFF5F5F5), RoundedCornerShape(8.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "그래프 영역\n(향후 구현 예정)",
-                    color = Color.Gray,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
-            }
+            StatCard(
+                title = "성공률",
+                value = "${successRate}%",
+                modifier = Modifier.weight(1f)
+            )
+            StatCard(
+                title = "시도 횟수",
+                value = "${totalAttempts}회",
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
+
+// 그래프 섹션을 별도 아이템으로 분리
+@Composable
+fun GraphSection(records: List<SobrietyRecord>, selectedPeriod: String) {
+    // 실제 그래프 표시
+    MiniBarChart(
+        records = records,
+        selectedPeriod = selectedPeriod,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(150.dp)
+    )
+}
+
+// 간단한 미니 막대 그래프 컴포저블 추가
+@Composable
+fun MiniBarChart(
+    records: List<SobrietyRecord>,
+    selectedPeriod: String,
+    modifier: Modifier = Modifier
+) {
+    // 선택된 기간에 따라 그래프 데이터 생성
+    val graphData = when (selectedPeriod) {
+        "주" -> generateWeeklyGraphData(records)
+        "월" -> generateMonthlyGraphData(records)
+        "년" -> generateYearlyGraphData(records)
+        "전체" -> generateAllTimeGraphData(records)
+        else -> generateWeeklyGraphData(records)
+    }
+
+    Box(modifier = modifier) {
+        Canvas(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (graphData.isEmpty()) return@Canvas
+
+            val canvasWidth = size.width
+            val canvasHeight = size.height
+
+            // 여백 설정
+            val leftMargin = 40.dp.toPx()
+            val rightMargin = 20.dp.toPx()
+            val topMargin = 20.dp.toPx()
+            val bottomMargin = 40.dp.toPx()
+
+            val chartWidth = canvasWidth - leftMargin - rightMargin
+            val chartHeight = canvasHeight - topMargin - bottomMargin
+
+            // Y축 가로선 그리기 (값 0, 0.5, 1에 해당하는 위치)
+            val yLines = listOf(0f, 0.5f, 1f)
+            yLines.forEach { value ->
+                val y = topMargin + chartHeight - (value * chartHeight)
+                drawLine(
+                    color = Color.Gray.copy(alpha = 0.3f),
+                    start = Offset(leftMargin, y),
+                    end = Offset(leftMargin + chartWidth, y),
+                    strokeWidth = 1.dp.toPx()
+                )
+            }
+
+            // Y축 선
+            drawLine(
+                color = Color.Gray,
+                start = Offset(leftMargin, topMargin),
+                end = Offset(leftMargin, topMargin + chartHeight),
+                strokeWidth = 2.dp.toPx()
+            )
+
+            // X축 선
+            drawLine(
+                color = Color.Gray,
+                start = Offset(leftMargin, topMargin + chartHeight),
+                end = Offset(leftMargin + chartWidth, topMargin + chartHeight),
+                strokeWidth = 2.dp.toPx()
+            )
+
+            // 막대 그래프
+            val barWidth = chartWidth / graphData.size * 0.7f
+            val barSpacing = chartWidth / graphData.size * 0.3f
+
+            graphData.forEachIndexed { index, item ->
+                val barHeight = if (item.value > 0) chartHeight * 0.6f else 0f
+                val x = leftMargin + (index * (barWidth + barSpacing)) + barSpacing / 2
+                val y = topMargin + chartHeight - barHeight
+
+                // 막대 그리기
+                drawRect(
+                    color = if (item.value > 0) Color(0xFF4CAF50) else Color(0xFFE0E0E0),
+                    topLeft = Offset(x, y),
+                    size = androidx.compose.ui.geometry.Size(barWidth, barHeight)
+                )
+            }
+        }
+
+        // X축 레이블
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 5.dp)
+                .padding(horizontal = 40.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            graphData.forEachIndexed { index, item ->
+                val shouldShowLabel = when (selectedPeriod) {
+                    "주" -> true
+                    "월" -> index % 5 == 0 || index == graphData.size - 1
+                    "년" -> true
+                    "전체" -> true
+                    else -> true
+                }
+
+                if (shouldShowLabel) {
+                    Text(
+                        text = item.label,
+                        fontSize = 10.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.weight(1f),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                } else {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
+        }
+
+        // Y축 레이블
+        Column(
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = 10.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "1",
+                fontSize = 10.sp,
+                color = Color.Gray
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                text = "0",
+                fontSize = 10.sp,
+                color = Color.Gray
+            )
+        }
+    }
+}
+
+// 최근 7일간의 그래프 데이터 생성 함수
+private fun generateWeeklyGraphData(records: List<SobrietyRecord>): List<SimpleGraphData> {
+    val calendar = Calendar.getInstance()
+    val weekDays = listOf("월", "화", "수", "목", "금", "토", "일")
+    val completedRecords = records.filter { it.isCompleted }
+
+    // 이번 주 월요일부터 시작
+    calendar.firstDayOfWeek = Calendar.MONDAY
+    calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+    calendar.set(Calendar.HOUR_OF_DAY, 0)
+    calendar.set(Calendar.MINUTE, 0)
+    calendar.set(Calendar.SECOND, 0)
+    calendar.set(Calendar.MILLISECOND, 0)
+
+    val weekStart = calendar.timeInMillis
+
+    return weekDays.mapIndexed { index, dayName ->
+        val dayStart = weekStart + (index * 24 * 60 * 60 * 1000L)
+        val dayEnd = dayStart + (24 * 60 * 60 * 1000L)
+
+        val hasSuccess = completedRecords.any { record ->
+            record.startTime >= dayStart && record.startTime < dayEnd
+        }
+
+        SimpleGraphData(dayName, if (hasSuccess) 1 else 0)
+    }
+}
+
+// 최근 30일간의 그래프 데이터 생성 함수
+private fun generateMonthlyGraphData(records: List<SobrietyRecord>): List<SimpleGraphData> {
+    val calendar = Calendar.getInstance()
+    val monthNames = listOf("1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월")
+    val completedRecords = records.filter { it.isCompleted }
+
+    // 이번 달 1일자로 설정
+    calendar.set(Calendar.DAY_OF_MONTH, 1)
+    calendar.set(Calendar.HOUR_OF_DAY, 0)
+    calendar.set(Calendar.MINUTE, 0)
+    calendar.set(Calendar.SECOND, 0)
+    calendar.set(Calendar.MILLISECOND, 0)
+
+    val monthStart = calendar.timeInMillis
+
+    return monthNames.mapIndexed { index, monthName ->
+        val monthStartTime = monthStart + (index * 30 * 24 * 60 * 60 * 1000L)
+        val monthEndTime = monthStartTime + (30 * 24 * 60 * 60 * 1000L)
+
+        val hasSuccess = completedRecords.any { record ->
+            record.startTime >= monthStartTime && record.startTime < monthEndTime
+        }
+
+        SimpleGraphData(monthName, if (hasSuccess) 1 else 0)
+    }.take(12) // 최근 12개월만 표시
+}
+
+// 최근 1년간의 그래프 데이터 생성 함수
+private fun generateYearlyGraphData(records: List<SobrietyRecord>): List<SimpleGraphData> {
+    val calendar = Calendar.getInstance()
+    val completedRecords = records.filter { it.isCompleted }
+
+    // 올해 1월 1일자로 설정
+    calendar.set(Calendar.MONTH, Calendar.JANUARY)
+    calendar.set(Calendar.DAY_OF_MONTH, 1)
+    calendar.set(Calendar.HOUR_OF_DAY, 0)
+    calendar.set(Calendar.MINUTE, 0)
+    calendar.set(Calendar.SECOND, 0)
+    calendar.set(Calendar.MILLISECOND, 0)
+
+    val yearStart = calendar.timeInMillis
+
+    // 최근 1년간의 월별 데이터 생성
+    return (0 until 12).map { monthOffset ->
+        val monthStart = yearStart + (monthOffset * 30 * 24 * 60 * 60 * 1000L)
+        val monthEnd = monthStart + (30 * 24 * 60 * 60 * 1000L)
+
+        val hasSuccess = completedRecords.any { record ->
+            record.startTime >= monthStart && record.startTime < monthEnd
+        }
+
+        SimpleGraphData("${monthOffset + 1}월", if (hasSuccess) 1 else 0)
+    }
+}
+
+// 전체 기간에 대한 그래프 데이터 생성 함수
+private fun generateAllTimeGraphData(records: List<SobrietyRecord>): List<SimpleGraphData> {
+    val completedRecords = records.filter { it.isCompleted }
+
+    return listOf(
+        SimpleGraphData("전체", if (completedRecords.isNotEmpty()) 1 else 0)
+    )
+}
+
+// RecordsActivity 전용 간단한 그래프 데이터 클래스
+data class SimpleGraphData(
+    val label: String,
+    val value: Int // 0 또는 1 (성공 여부)
+)
 
 @Composable
 fun StatCard(
