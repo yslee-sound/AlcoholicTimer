@@ -4,13 +4,12 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.edit
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.*
@@ -45,7 +45,7 @@ fun QuitScreen() {
     val context = LocalContext.current
 
     // SharedPreferences에서 데이터 가져오기
-    val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+    val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
     val startTime = sharedPref.getLong("start_time", 0L)
     val targetDays = sharedPref.getFloat("target_days", 30f)
 
@@ -148,7 +148,7 @@ fun QuitScreen() {
                         modifier = Modifier.weight(1f)
                     )
                     StatisticItem(
-                        value = String.format("%02d:%02d", elapsedHours, elapsedMinutes),
+                        value = String.format(Locale.getDefault(), "%02d:%02d", elapsedHours, elapsedMinutes),
                         label = "경과 시간",
                         modifier = Modifier.weight(1f)
                     )
@@ -208,17 +208,16 @@ fun QuitScreen() {
                         startTime = startTime,
                         endTime = System.currentTimeMillis(),
                         targetDays = targetDays,
-                        actualDays = elapsedDays,
-                        isCompleted = false
+                        actualDays = elapsedDays
                     )
 
                     // SharedPreferences 초기화
-                    val editor = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE).edit()
-                    editor.remove("start_time")
-                    editor.putBoolean("timer_completed", true)
-                    editor.apply()
+                    sharedPref.edit {
+                        remove("start_time")
+                        putBoolean("timer_completed", true)
+                    }
 
-                    // StartActivity로 이동
+                    // StartActivity로 이동 (홈으로 돌아가기)
                     val intent = Intent(context, StartActivity::class.java)
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
                     context.startActivity(intent)
@@ -320,9 +319,8 @@ private fun saveCompletedRecord(
     context: Context,
     startTime: Long,
     endTime: Long,
-    targetDays: Float, // Int에서 Float로 변경
-    actualDays: Int,
-    isCompleted: Boolean
+    targetDays: Float,
+    actualDays: Int
 ) {
     try {
         val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
@@ -333,31 +331,30 @@ private fun saveCompletedRecord(
             put("id", recordId)
             put("startTime", startTime)
             put("endTime", endTime)
-            put("targetDays", targetDays.toDouble()) // Float를 Double로 변환하여 저장
+            put("targetDays", targetDays.toDouble())
             put("actualDays", actualDays)
-            put("isCompleted", isCompleted)
-            put("status", if (isCompleted) "완료" else "중지")
+            put("isCompleted", false)
+            put("status", "중지")
             put("createdAt", System.currentTimeMillis())
         }
 
         val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
         val recordsList = try {
             JSONArray(recordsJson)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             JSONArray()
         }
 
         recordsList.put(record)
 
-        with(sharedPref.edit()) {
+        sharedPref.edit {
             putString("sobriety_records", recordsList.toString())
-            apply()
         }
 
-        val message = if (isCompleted) "금주 목표를 달성했습니다!" else "금주 기록이 저장되었습니다."
+        val message = "금주 기록이 저장되었습니다."
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         Toast.makeText(context, "기록 저장 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
     }
 }

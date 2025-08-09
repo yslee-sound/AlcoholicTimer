@@ -116,30 +116,56 @@ fun RunScreen() {
     // 진행률 계산 (소수점 포함)
     val progress = if (targetDays > 0) (elapsedDaysFloat / targetDays).coerceAtMost(1.0f) else 0f
 
-    // 목표 달성 감지 및 자동 저장
-    LaunchedEffect(progress) {
-        if (progress >= 1.0f && startTime > 0) {
-            // 목표 달성 시 자동으로 기록 저장
-            saveCompletedRecord(
+    // 목표 달성 감지 및 자동 저장 (개선된 버전)
+    var hasCompleted by remember { mutableStateOf(false) }
+
+    // 목표 달성 시 DetailActivity로 이동하는 상태
+    var shouldNavigateToDetail by remember { mutableStateOf(false) }
+
+    LaunchedEffect(elapsedDaysFloat, targetDays) {
+        if (elapsedDaysFloat >= targetDays && targetDays > 0 && startTime > 0 && !hasCompleted) {
+            hasCompleted = true // 중복 실행 방지
+
+            try {
+                // 목표 달성 시 자동으로 기록 저장
+                saveCompletedRecord(
+                    context = context,
+                    startTime = startTime,
+                    endTime = System.currentTimeMillis(),
+                    targetDays = targetDays.toInt(),
+                    actualDays = elapsedDays,
+                    isCompleted = true
+                )
+
+                // SharedPreferences 초기화
+                val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
+                sharedPref.edit().apply {
+                    remove("start_time")
+                    putBoolean("timer_completed", true)
+                    apply()
+                }
+
+                // 바로 DetailActivity로 이동
+                shouldNavigateToDetail = true
+
+            } catch (e: Exception) {
+                // 오류 발생 시 로그 출력
+                Toast.makeText(context, "목표 달성 처리 중 오류: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    // DetailActivity로 이동 처리
+    LaunchedEffect(shouldNavigateToDetail) {
+        if (shouldNavigateToDetail) {
+            DetailActivity.start(
                 context = context,
                 startTime = startTime,
                 endTime = System.currentTimeMillis(),
-                targetDays = targetDays.toInt(),
+                targetDays = targetDays,
                 actualDays = elapsedDays,
-                isCompleted = true // 목표 달성
+                isCompleted = true
             )
-
-            // SharedPreferences 초기화
-            val editor = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE).edit()
-            editor.remove("start_time")
-            editor.putBoolean("timer_completed", true)
-            editor.apply()
-
-            // 축하 메시지 후 StartActivity로 이동
-            kotlinx.coroutines.delay(2000) // 2초 대기
-            val intent = Intent(context, StartActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            context.startActivity(intent)
             (context as? RunActivity)?.finish()
         }
     }

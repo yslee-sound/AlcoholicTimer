@@ -101,16 +101,37 @@ abstract class BaseActivity : ComponentActivity() {
             "금주" -> {
                 val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
                 val startTime = sharedPref.getLong("start_time", 0L)
-                val timerCompleted = sharedPref.getBoolean("timer_completed", false)
-                if (startTime == 0L || timerCompleted) {
-                    // 금주가 시작되지 않았거나 완료된 경우 StartActivity로 이동
-                    if (this !is StartActivity) {
-                        navigateToActivity(StartActivity::class.java)
+                val targetDays = sharedPref.getFloat("target_days", 0f)
+
+                // 기획서 5.3: 목표 달성 중 앱 종료 시 달성 여부 자동 확인
+                if (startTime > 0 && targetDays > 0) {
+                    val currentTime = System.currentTimeMillis()
+                    val elapsedDays = (currentTime - startTime) / (24.0 * 60 * 60 * 1000)
+
+                    if (elapsedDays >= targetDays) {
+                        // 목표 달성된 경우 DetailActivity로 이동
+                        val intent = Intent(this, DetailActivity::class.java).apply {
+                            putExtra("start_time", startTime)
+                            putExtra("end_time", currentTime)
+                            putExtra("target_days", targetDays)
+                            putExtra("actual_days", elapsedDays.toInt())
+                            putExtra("is_completed", true)
+                        }
+                        startActivity(intent)
+                        return
                     }
-                } else {
+                }
+
+                // 기획서 5.1: 앱 재시작 시 로직
+                if (startTime > 0) {
                     // 금주 진행 중인 경우 RunActivity로 이동
                     if (this !is RunActivity) {
                         navigateToActivity(RunActivity::class.java)
+                    }
+                } else {
+                    // 금주가 시작되지 않은 경우 StartActivity로 이동
+                    if (this !is StartActivity) {
+                        navigateToActivity(StartActivity::class.java)
                     }
                 }
             }

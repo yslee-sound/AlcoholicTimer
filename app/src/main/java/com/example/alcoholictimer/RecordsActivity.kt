@@ -3,6 +3,7 @@ package com.example.alcoholictimer
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -95,7 +96,20 @@ class RecordsActivity : BaseActivity() {
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(records) { record ->
-                        SobrietyRecordCard(record = record)
+                        SobrietyRecordCard(
+                            record = record,
+                            onClick = {
+                                // DetailActivity로 이동
+                                DetailActivity.start(
+                                    context = context,
+                                    startTime = record.startTime,
+                                    endTime = record.endTime,
+                                    targetDays = record.targetDays.toFloat(),
+                                    actualDays = record.actualDays,
+                                    isCompleted = record.isCompleted
+                                )
+                            }
+                        )
                     }
                 }
             }
@@ -112,7 +126,10 @@ class RecordsActivity : BaseActivity() {
 }
 
 @Composable
-fun SobrietyRecordCard(record: SobrietyRecord) {
+fun SobrietyRecordCard(
+    record: SobrietyRecord,
+    onClick: () -> Unit = {}
+) {
     val dateFormatter = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault())
     val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
 
@@ -133,7 +150,8 @@ fun SobrietyRecordCard(record: SobrietyRecord) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp),
+            .padding(4.dp)
+            .clickable { onClick() }, // 클릭 이벤트 추가
         colors = CardDefaults.cardColors(
             containerColor = if (record.isCompleted) Color(0xFFE8F5E8) else Color(0xFFFFF3CD)
         ),

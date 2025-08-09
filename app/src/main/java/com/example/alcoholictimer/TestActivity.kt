@@ -81,14 +81,27 @@ fun TestScreen() {
             color = Color.Black
         )
 
-        // 설명 섹션
-        Text("모드 설명", fontSize = 20.sp)
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("• 실제 시간: 정상적인 시간 흐름", fontSize = 16.sp)
-            Text("• 분 단위: 빠른 테스트용 (1분 = 1일)", fontSize = 16.sp)
-            Text("• 초 단위: 매우 빠른 테스트용 (1초 = 1일)", fontSize = 16.sp)
+        // 기록 초기화 버튼
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            OutlinedButton(
+                onClick = {
+                    val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+                    sharedPref.edit().clear().apply()
+                    Toast.makeText(context, "모든 기록이 초기화되었습니다", Toast.LENGTH_SHORT).show()
+                },
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = Color.Black
+                )
+            ) {
+                Text("모든 기록 초기화", fontSize = 18.sp)
+            }
         }
-
         Spacer(modifier = Modifier.height(16.dp))
 
         // 버튼들
