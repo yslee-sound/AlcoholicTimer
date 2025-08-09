@@ -179,7 +179,7 @@ class RecordsActivity : BaseActivity() {
             intent.putExtra("is_completed", record.isCompleted)
 
             Log.d(TAG, "Intent 데이터 전달: targetDays=$safeTargetDays, actualDays=${record.actualDays}")
-            Log.d(TAG, "DetailActivity 호출...")
+            Log.d(TAG, "DetailActivity 호��...")
             startActivity(intent)
             Log.d(TAG, "startActivity 호출 완료")
             Log.d(TAG, "===== 카드 클릭 종료 =====")
@@ -431,9 +431,8 @@ fun StatisticsCardsSection(
     val totalAttempts = records.size
     val successRate = if (totalAttempts > 0) (completedCount * 100) / totalAttempts else 0
 
-    // 드롭다운 메뉴 항목 생성 함수
+    // 드롭다운 메뉴 항목 생성 ��수
     fun getDropdownItems(period: String): List<String> {
-        val now = Calendar.getInstance()
         return when (period) {
             "주" -> listOf(
                 "이번 주",
@@ -744,13 +743,13 @@ private fun generateWeeklyGraphData(records: List<SobrietyRecord>): List<SimpleG
     }
 }
 
-// 최근 30일간의 그래프 데이터 생성 함수
+// 최근 30일간의 그���프 데이터 생성 함수
 private fun generateMonthlyGraphData(records: List<SobrietyRecord>): List<SimpleGraphData> {
     val calendar = Calendar.getInstance()
     val monthNames = listOf("1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월")
     val completedRecords = records.filter { it.isCompleted }
 
-    // 이번 달 1일자로 설정
+    // 이�� 달 1일자로 설정
     calendar.set(Calendar.DAY_OF_MONTH, 1)
     calendar.set(Calendar.HOUR_OF_DAY, 0)
     calendar.set(Calendar.MINUTE, 0)
