@@ -2,7 +2,6 @@ package com.example.alcoholictimer
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,7 +11,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
@@ -62,14 +60,19 @@ fun RunScreen() {
         }
     }
 
-    // 경과 시간 계산
-    val elapsedTime = currentTime - startTime
+    // 경과 시간 계산 (startTime이 0이면 아직 시작되지 않음)
+    val elapsedTime = if (startTime > 0) currentTime - startTime else 0L
     val elapsedDays = (elapsedTime / (24 * 60 * 60 * 1000)).toInt()
     val elapsedHours = ((elapsedTime % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)).toInt()
     val elapsedMinutes = ((elapsedTime % (60 * 60 * 1000)) / (60 * 1000)).toInt()
+    val elapsedSeconds = ((elapsedTime % (60 * 1000)) / 1000).toInt()
 
-    // 진행 중인 시간 포맷 (HH:MM)
-    val progressTimeText = String.format("%02d:%02d", elapsedHours, elapsedMinutes)
+    // 진행 중인 시간 포맷 (HH:MM:SS)
+    val progressTimeText = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds)
+
+    // 디버그용 로그 (실제 배포시 제거)
+    // println("DEBUG: startTime=$startTime, currentTime=$currentTime, elapsedTime=$elapsedTime")
+    // println("DEBUG: days=$elapsedDays, hours=$elapsedHours, minutes=$elapsedMinutes, seconds=$elapsedSeconds")
 
     // 중앙 지표 순환 상태 (0: 일수, 1: 진행시간, 2: 레벨, 3: 금액, 4: 절약시간, 5: 수명) - 명세서 준수
     var currentIndicator by remember { mutableStateOf(0) }
@@ -143,7 +146,7 @@ fun RunScreen() {
                 color = Color.Black
             )
 
-            // 현재 진행되고 있는 시간 표시 (HH:MM 형식)
+            // 현재 진행되고 있는 시간 표시 (HH:MM:SS 형식)
             Text(
                 text = progressTimeText,
                 fontSize = 14.sp,
@@ -202,9 +205,9 @@ fun RunScreen() {
                                 )
                             }
                             1 -> {
-                                // 진행 시간 (시:분 형식)
+                                // 진행 시간 (시:분:초 형식)
                                 Text(
-                                    text = String.format("%02d:%02d", elapsedHours, elapsedMinutes),
+                                    text = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds),
                                     fontSize = 72.sp,
                                     fontWeight = FontWeight.Bold,
                                     textAlign = TextAlign.Center,
@@ -311,7 +314,8 @@ fun ProgressIndicator(progress: Float) {
                 .height(8.dp)
                 .clip(CircleShape),
             color = Color(0xFF4CAF50),
-            trackColor = Color(0xFFE0E0E0)
+            trackColor = Color(0xFFE0E0E0),
+            strokeCap = StrokeCap.Round
         )
     }
 }
