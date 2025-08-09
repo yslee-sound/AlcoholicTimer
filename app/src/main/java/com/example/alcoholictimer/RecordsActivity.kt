@@ -397,52 +397,36 @@ fun PeriodSelectionSection(
 ) {
     val periods = listOf("주", "월", "년", "전체")
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FA))
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = "기간별 보기",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 12.dp)
+    // Card 배경 제거하고 바로 Row로 구성
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                Color(0xFFE0E0E0),
+                RoundedCornerShape(25.dp)
             )
-
-            // 라운딩된 한 줄 버튼 디자인 (iOS 스타일 segmented control)
-            Row(
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        periods.forEach { period ->
+            val isSelected = period == selectedPeriod
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .weight(1f)
                     .background(
-                        Color(0xFFE0E0E0),
-                        RoundedCornerShape(25.dp)
+                        if (isSelected) Color.Black else Color.Transparent,
+                        RoundedCornerShape(20.dp)
                     )
-                    .padding(4.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                    .clickable { onPeriodSelected(period) }
+                    .padding(vertical = 8.dp),
+                contentAlignment = Alignment.Center
             ) {
-                periods.forEach { period ->
-                    val isSelected = period == selectedPeriod
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .background(
-                                if (isSelected) Color.Black else Color.Transparent,
-                                RoundedCornerShape(20.dp)
-                            )
-                            .clickable { onPeriodSelected(period) }
-                            .padding(vertical = 8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = period,
-                            color = if (isSelected) Color.White else Color.Black,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            fontSize = 14.sp
-                        )
-                    }
-                }
+                Text(
+                    text = period,
+                    color = if (isSelected) Color.White else Color.Black,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    fontSize = 14.sp
+                )
             }
         }
     }
