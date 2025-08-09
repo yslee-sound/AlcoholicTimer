@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -36,8 +37,11 @@ abstract class BaseActivity : ComponentActivity() {
             drawerState = drawerState,
             drawerContent = {
                 ModalDrawerSheet(
-                    modifier = Modifier.background(Color.White),
-                    drawerContainerColor = Color.White
+                    modifier = Modifier
+                        .fillMaxWidth(0.75f) // 화면 가로의 3/4만 차지
+                        .background(Color.White),
+                    drawerContainerColor = Color.White,
+                    drawerShape = RoundedCornerShape(0.dp) // 라운딩 제거 (직각 모서리)
                 ) {
                     DrawerMenu(
                         nickname = "알중이1",

@@ -3,6 +3,8 @@ package com.example.alcoholictimer
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,34 +25,11 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
 
-class DetailActivity : BaseActivity() {  // ComponentActivity에서 BaseActivity로 변경
-
-    override fun getScreenTitle(): String = "금주 기록 상세"  // 타이틀 추가
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        
-        // Intent에서 데이터 받기
-        val startTime = intent.getLongExtra("start_time", 0L)
-        val endTime = intent.getLongExtra("end_time", System.currentTimeMillis())
-        val targetDays = intent.getFloatExtra("target_days", 30f)
-        val actualDays = intent.getIntExtra("actual_days", 0)
-        val isCompleted = intent.getBooleanExtra("is_completed", false)
-        
-        setContent {
-            BaseScreen {  // BaseScreen으로 감싸기
-                DetailScreen(
-                    startTime = startTime,
-                    endTime = endTime,
-                    targetDays = targetDays,
-                    actualDays = actualDays,
-                    isCompleted = isCompleted
-                )
-            }
-        }
-    }
+class DetailActivity : ComponentActivity() {  // BaseActivity에서 ComponentActivity로 변경
 
     companion object {
+        private const val TAG = "DetailActivity"
+
         fun start(
             context: Context,
             startTime: Long,
@@ -70,6 +49,56 @@ class DetailActivity : BaseActivity() {  // ComponentActivity에서 BaseActivity
             context.startActivity(intent)
         }
     }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        Log.d(TAG, "===== DetailActivity onCreate 시작 =====")
+
+        try {
+            // Intent에서 데이터 받기 (안전한 방식으로)
+            val startTime = intent.getLongExtra("start_time", 0L)
+            val endTime = intent.getLongExtra("end_time", System.currentTimeMillis())
+            val targetDays = intent.getFloatExtra("target_days", 30f)
+            val actualDays = intent.getIntExtra("actual_days", 0)
+            val isCompleted = intent.getBooleanExtra("is_completed", false)
+
+            Log.d(TAG, "수신된 데이터: startTime=$startTime, endTime=$endTime, targetDays=$targetDays, actualDays=$actualDays, isCompleted=$isCompleted")
+
+            // 데이터 유효성 검사 (관대하게)
+            if (actualDays < 0) {
+                Log.e(TAG, "잘못된 데이터: actualDays=$actualDays")
+                finish()
+                return
+            }
+
+            // targetDays가 0 이하인 경우 기본값으로 설정
+            val safeTargetDays = if (targetDays <= 0) 30f else targetDays
+            // actualDays가 0인 경우도 허용하되, 최소 1로 계산에 사용
+            val safeActualDays = if (actualDays <= 0) 1 else actualDays
+
+            Log.d(TAG, "안전한 값들: targetDays=$safeTargetDays, actualDays=$safeActualDays")
+
+            setContent {
+                DetailScreen(
+                    startTime = startTime,
+                    endTime = endTime,
+                    targetDays = safeTargetDays,
+                    actualDays = safeActualDays,
+                    isCompleted = isCompleted,
+                    onBack = {
+                        Log.d(TAG, "뒤로가기 버튼 클릭")
+                        finish()
+                    }
+                )
+            }
+            Log.d(TAG, "===== DetailActivity onCreate 완료 =====")
+        } catch (e: Exception) {
+            Log.e(TAG, "DetailActivity 초기화 중 오류", e)
+            Log.e(TAG, "오류 스택트레이스: ${e.stackTraceToString()}")
+            finish()
+        }
+    }
 }
 
 @Composable
@@ -78,7 +107,8 @@ fun DetailScreen(
     endTime: Long,
     targetDays: Float,
     actualDays: Int,
-    isCompleted: Boolean
+    isCompleted: Boolean,
+    onBack: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -174,26 +204,20 @@ fun DetailScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 뒤로가기 버튼
+            // 뒤로가기 버튼 (화살표 아이콘만)
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .size(40.dp)
-                    .background(Color.LightGray, CircleShape)
-                    .clickable { 
-                        try {
-                            if (context is DetailActivity) {
-                                context.finish()
-                            }
-                        } catch (e: Exception) {
-                            // 안전하게 처리
-                        }
+                    .clickable {
+                        onBack()
                     }
             ) {
                 Text(
-                    text = "←",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    text = "◀", // 더 깔끔한 화살표 아이콘
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
                 )
             }
             
@@ -205,6 +229,14 @@ fun DetailScreen(
             
             Spacer(modifier = Modifier.width(40.dp)) // 균형 맞추기
         }
+
+        // 구분선 추가
+        Spacer(modifier = Modifier.height(16.dp))
+        Divider(
+            modifier = Modifier.fillMaxWidth(),
+            thickness = 1.dp,
+            color = Color(0xFFE0E0E0)
+        )
 
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -226,16 +258,23 @@ fun DetailScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
+        // 기록 제목 아래 구분선 추가
+        Spacer(modifier = Modifier.height(16.dp))
+        Divider(
+            modifier = Modifier.fillMaxWidth(),
+            thickness = 1.dp,
+            color = Color(0xFFE0E0E0)
+        )
+
         Spacer(modifier = Modifier.height(40.dp))
 
-        // 주요 통계 영역
+        // 주요 통계 영역 - 트로피 아이콘 부분 제거
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.Start // SpaceBetween에서 Start로 변경
         ) {
-            // 왼쪽 대형 숫자
+            // 대형 숫자만 표시 (오른쪽 트로피 아이콘 제거)
             Column(
-                modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
@@ -249,24 +288,6 @@ fun DetailScreen(
                     text = "일",
                     fontSize = 16.sp,
                     color = Color.Gray
-                )
-            }
-
-            // 오른쪽 성취 아이콘
-            Column(
-                modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.End
-            ) {
-                Text(
-                    text = if (isCompleted) "🏆" else "⏸️",
-                    fontSize = 60.sp
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = if (isCompleted) "목표 달성" else "중단됨",
-                    fontSize = 14.sp,
-                    color = if (isCompleted) Color(0xFF4CAF50) else Color(0xFFFF9800),
-                    fontWeight = FontWeight.Bold
                 )
             }
         }
@@ -324,31 +345,8 @@ fun DetailScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // 하단 버튼
-        Button(
-            onClick = { 
-                if (isCompleted) {
-                    // 목표 달성 완료 시 StartActivity로 이동
-                    shouldFinish = true
-                } else {
-                    // 기록 조회에서 온 경우 단순히 화면 종료
-                    shouldFinish = true
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Black
-            )
-        ) {
-            Text(
-                text = "확인",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-        }
+        // 확인 버튼 제거 - 하단 여백만 유지
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
@@ -398,6 +396,7 @@ fun PreviewDetailScreen() {
         endTime = System.currentTimeMillis(),
         targetDays = 30f,
         actualDays = 7,
-        isCompleted = true
+        isCompleted = true,
+        onBack = {} // 누락된 onBack 파라미터 추가
     )
 }

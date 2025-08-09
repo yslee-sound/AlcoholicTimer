@@ -64,12 +64,6 @@
             android:exported="false"
             android:theme="@style/Theme.Material3.DayNight" />
 
-        <!-- 카드 상세 화면 -->
-        <activity
-            android:name=".CardDetailActivity"
-            android:exported="false"
-            android:theme="@style/Theme.Material3.DayNight" />
-
     </application>
 
 </manifest>

@@ -152,8 +152,8 @@ class RecordsActivity : BaseActivity() {
                                     // targetDays가 0이면 기본값으로 설정
                                     val safeTargetDays = if (record.targetDays <= 0) 30 else record.targetDays
 
-                                    // CardDetailActivity로 이동
-                                    val intent = Intent(this@RecordsActivity, CardDetailActivity::class.java)
+                                    // DetailActivity로 이동 (CardDetailActivity 대신)
+                                    val intent = Intent(this@RecordsActivity, DetailActivity::class.java)
                                     intent.putExtra("start_time", record.startTime)
                                     intent.putExtra("end_time", record.endTime)
                                     intent.putExtra("target_days", safeTargetDays.toFloat())
@@ -161,7 +161,7 @@ class RecordsActivity : BaseActivity() {
                                     intent.putExtra("is_completed", record.isCompleted)
 
                                     Log.d(TAG, "Intent 데이터 전달: targetDays=$safeTargetDays, actualDays=${record.actualDays}")
-                                    Log.d(TAG, "Intent 생성 완료, startActivity 호출...")
+                                    Log.d(TAG, "DetailActivity 호출...")
                                     startActivity(intent)
                                     Log.d(TAG, "startActivity 호출 완료")
                                     Log.d(TAG, "===== 카드 클릭 종료 =====")
