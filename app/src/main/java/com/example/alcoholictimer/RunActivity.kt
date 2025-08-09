@@ -116,6 +116,34 @@ fun RunScreen() {
     // 진행률 계산 (소수점 포함)
     val progress = if (targetDays > 0) (elapsedDaysFloat / targetDays).coerceAtMost(1.0f) else 0f
 
+    // 목표 달성 감지 및 자동 저장
+    LaunchedEffect(progress) {
+        if (progress >= 1.0f && startTime > 0) {
+            // 목표 달성 시 자동으로 기록 저장
+            saveCompletedRecord(
+                context = context,
+                startTime = startTime,
+                endTime = System.currentTimeMillis(),
+                targetDays = targetDays.toInt(),
+                actualDays = elapsedDays,
+                isCompleted = true // 목표 달성
+            )
+
+            // SharedPreferences 초기화
+            val editor = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE).edit()
+            editor.remove("start_time")
+            editor.putBoolean("timer_completed", true)
+            editor.apply()
+
+            // 축하 메시지 후 StartActivity로 이동
+            kotlinx.coroutines.delay(2000) // 2초 대기
+            val intent = Intent(context, StartActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            context.startActivity(intent)
+            (context as? RunActivity)?.finish()
+        }
+    }
+
     // 레벨에 따른 배경색 (명세서 기준)
     val backgroundColor = when {
         elapsedDays < 7 -> Color(0xFFF5F5F5) // Gray
