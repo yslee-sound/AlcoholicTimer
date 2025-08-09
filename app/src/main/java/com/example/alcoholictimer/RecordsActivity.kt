@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -97,83 +98,61 @@ class RecordsActivity : BaseActivity() {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Text(
-                text = "최근 활동",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
+            // 상단: 기간 선택 탭 섹션
+            PeriodSelectionSection()
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // 중단: 통계 및 그래프 섹션
+            StatisticsSection(records = records)
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // 하단: 최근 활동 섹션
+            RecentActivitiesSection(
+                records = records,
+                onCardClick = { record ->
+                    handleCardClick(record)
+                }
             )
+        }
+    }
 
-            if (records.isEmpty()) {
-                // 기록이 없을 때
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "아직 금주 기록이 없습니다.\n첫 번째 금주를 시작해보세요!",
-                            fontSize = 16.sp,
-                            color = Color.Gray,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                        )
-                    }
-                }
-            } else {
-                // 기록이 있을 때 카드 형태로 표시
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(records) { record ->
-                        SobrietyRecordCard(
-                            record = record,
-                            onClick = {
-                                Log.d(TAG, "===== 카드 클릭 시작 =====")
-                                Log.d(TAG, "카드 클릭: ${record.id}")
-                                Log.d(TAG, "actualDays=${record.actualDays}, targetDays=${record.targetDays}")
-                                Log.d(TAG, "startTime=${record.startTime}, endTime=${record.endTime}")
-                                Log.d(TAG, "isCompleted=${record.isCompleted}")
+    private fun handleCardClick(record: SobrietyRecord) {
+        Log.d(TAG, "===== 카드 클릭 시작 =====")
+        Log.d(TAG, "카드 클릭: ${record.id}")
+        Log.d(TAG, "actualDays=${record.actualDays}, targetDays=${record.targetDays}")
+        Log.d(TAG, "startTime=${record.startTime}, endTime=${record.endTime}")
+        Log.d(TAG, "isCompleted=${record.isCompleted}")
 
-                                try {
-                                    // 데이터 유효성 검사 (더 관대하게)
-                                    if (record.actualDays < 0) {
-                                        Log.e(TAG, "잘못된 기록 데이터: actualDays=${record.actualDays}")
-                                        return@SobrietyRecordCard
-                                    }
-
-                                    Log.d(TAG, "Intent 생성 시작...")
-
-                                    // targetDays가 0이면 기본값으로 설정
-                                    val safeTargetDays = if (record.targetDays <= 0) 30 else record.targetDays
-
-                                    // DetailActivity로 이동 (CardDetailActivity 대신)
-                                    val intent = Intent(this@RecordsActivity, DetailActivity::class.java)
-                                    intent.putExtra("start_time", record.startTime)
-                                    intent.putExtra("end_time", record.endTime)
-                                    intent.putExtra("target_days", safeTargetDays.toFloat())
-                                    intent.putExtra("actual_days", record.actualDays)
-                                    intent.putExtra("is_completed", record.isCompleted)
-
-                                    Log.d(TAG, "Intent 데이터 전달: targetDays=$safeTargetDays, actualDays=${record.actualDays}")
-                                    Log.d(TAG, "DetailActivity 호출...")
-                                    startActivity(intent)
-                                    Log.d(TAG, "startActivity 호출 완료")
-                                    Log.d(TAG, "===== 카드 클릭 종료 =====")
-                                } catch (e: Exception) {
-                                    Log.e(TAG, "CardDetail 화면 이동 중 오류", e)
-                                    Log.e(TAG, "오류 스택트레이스: ${e.stackTraceToString()}")
-                                }
-                            }
-                        )
-                    }
-                }
+        try {
+            // 데이터 유효성 검사 (더 관대하게)
+            if (record.actualDays < 0) {
+                Log.e(TAG, "잘못된 기록 데이터: actualDays=${record.actualDays}")
+                return
             }
+
+            Log.d(TAG, "Intent 생성 시작...")
+
+            // targetDays가 0이면 기본값으로 설정
+            val safeTargetDays = if (record.targetDays <= 0) 30 else record.targetDays
+
+            // DetailActivity로 이동
+            val intent = Intent(this@RecordsActivity, DetailActivity::class.java)
+            intent.putExtra("start_time", record.startTime)
+            intent.putExtra("end_time", record.endTime)
+            intent.putExtra("target_days", safeTargetDays.toFloat())
+            intent.putExtra("actual_days", record.actualDays)
+            intent.putExtra("is_completed", record.isCompleted)
+
+            Log.d(TAG, "Intent 데이터 전달: targetDays=$safeTargetDays, actualDays=${record.actualDays}")
+            Log.d(TAG, "DetailActivity 호출...")
+            startActivity(intent)
+            Log.d(TAG, "startActivity 호출 완료")
+            Log.d(TAG, "===== 카드 클릭 종료 =====")
+        } catch (e: Exception) {
+            Log.e(TAG, "CardDetail 화면 이동 중 오류", e)
+            Log.e(TAG, "오류 스택트레이스: ${e.stackTraceToString()}")
         }
     }
 
@@ -360,5 +339,185 @@ private fun loadSobrietyRecords(context: android.content.Context): List<Sobriety
         records.sortedByDescending { it.createdAt }
     } catch (_: Exception) {
         emptyList()
+    }
+}
+
+// 상단: 기간 선택 탭 섹션
+@Composable
+fun PeriodSelectionSection() {
+    var selectedPeriod by remember { mutableStateOf("전체") }
+    val periods = listOf("주", "월", "년", "전체")
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FA))
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "기간별 보기",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                periods.forEach { period ->
+                    FilterChip(
+                        onClick = { selectedPeriod = period },
+                        label = { Text(period) },
+                        selected = selectedPeriod == period,
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = Color.Black,
+                            selectedLabelColor = Color.White
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
+// 중단: 통계 및 그래프 섹션
+@Composable
+fun StatisticsSection(records: List<SobrietyRecord>) {
+    val totalDays = records.sumOf { it.actualDays }
+    val completedCount = records.count { it.isCompleted }
+    val totalAttempts = records.size
+    val successRate = if (totalAttempts > 0) (completedCount * 100) / totalAttempts else 0
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "통계 요약",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            // 상단 통계 카드들
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                StatCard(
+                    title = "총 금주일",
+                    value = "${totalDays}일",
+                    modifier = Modifier.weight(1f)
+                )
+                StatCard(
+                    title = "성공률",
+                    value = "${successRate}%",
+                    modifier = Modifier.weight(1f)
+                )
+                StatCard(
+                    title = "시도 횟수",
+                    value = "${totalAttempts}회",
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // TODO: 향후 그래프 영역 추가 예정
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .background(Color(0xFFF5F5F5), RoundedCornerShape(8.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "그래프 영역\n(향후 구현 예정)",
+                    color = Color.Gray,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun StatCard(
+    title: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.padding(horizontal = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = value,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
+        Text(
+            text = title,
+            fontSize = 12.sp,
+            color = Color.Gray
+        )
+    }
+}
+
+// 하단: 최근 활동 섹션
+@Composable
+fun RecentActivitiesSection(
+    records: List<SobrietyRecord>,
+    onCardClick: (SobrietyRecord) -> Unit
+) {
+    Column {
+        Text(
+            text = "최근 활동",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        if (records.isEmpty()) {
+            // 기록이 없을 때
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "아직 금주 기록이 없습니다.\n첫 번째 금주를 시작해보세요!",
+                        fontSize = 16.sp,
+                        color = Color.Gray,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            }
+        } else {
+            // 기록이 있을 때 카드 형태로 표시
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(records) { record ->
+                    SobrietyRecordCard(
+                        record = record,
+                        onClick = { onCardClick(record) }
+                    )
+                }
+            }
+        }
     }
 }
