@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.json.JSONArray
@@ -431,7 +432,7 @@ fun StatisticsCardsSection(
     val totalAttempts = records.size
     val successRate = if (totalAttempts > 0) (completedCount * 100) / totalAttempts else 0
 
-    // 드롭다운 메뉴 항목 생성 ��수
+    // 드롭다운 메뉴 항목 생성 함수
     fun getDropdownItems(period: String): List<String> {
         return when (period) {
             "주" -> listOf(
@@ -462,15 +463,32 @@ fun StatisticsCardsSection(
             .padding(16.dp)
     ) {
         // 텍스트 드롭다운 (왼쪽 정렬)
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopStart) {
-            Text(
-                text = selectedRange,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
+        Box(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
                 modifier = Modifier
-                    .clickable(enabled = selectedPeriod != "전체") { if (selectedPeriod != "전체") expanded = true }
-                    .padding(vertical = 8.dp)
-            )
+                    .clickable(enabled = selectedPeriod != "전체") {
+                        if (selectedPeriod != "전체") expanded = true
+                    }
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = selectedRange,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                if (selectedPeriod != "전체") {
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "▼",
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
+
             if (selectedPeriod == "월") {
                 // 월일 때 2컬럼 드롭다운
                 val years = listOf("2025년", "2024년")
@@ -479,7 +497,8 @@ fun StatisticsCardsSection(
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
-                    modifier = Modifier.width(260.dp)
+                    modifier = Modifier.width(260.dp),
+                    offset = DpOffset(0.dp, 0.dp)
                 ) {
                     Row(modifier = Modifier.padding(8.dp)) {
                         // 년도 선택
@@ -519,7 +538,8 @@ fun StatisticsCardsSection(
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
-                    modifier = Modifier.width(180.dp)
+                    modifier = Modifier.width(180.dp),
+                    offset = DpOffset(0.dp, 0.dp)
                 ) {
                     dropdownItems.forEach { item ->
                         DropdownMenuItem(
@@ -775,7 +795,7 @@ private fun generateYearlyGraphData(records: List<SobrietyRecord>): List<SimpleG
     val calendar = Calendar.getInstance()
     val completedRecords = records.filter { it.isCompleted }
 
-    // 올해 1월 1일자로 설정
+    // 올�� 1월 1일자로 설정
     calendar.set(Calendar.MONTH, Calendar.JANUARY)
     calendar.set(Calendar.DAY_OF_MONTH, 1)
     calendar.set(Calendar.HOUR_OF_DAY, 0)
