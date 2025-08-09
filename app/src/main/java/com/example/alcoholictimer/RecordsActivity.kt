@@ -60,6 +60,7 @@ class RecordsActivity : BaseActivity() {
         val context = LocalContext.current
         var records by remember { mutableStateOf<List<SobrietyRecord>>(emptyList()) }
         var selectedPeriod by remember { mutableStateOf("월") } // 선택된 기간 상태 추가
+        var selectedRange by remember { mutableStateOf("전체") } // 드롭다운 선택 상태 추가
 
         // 기록 로드
         LaunchedEffect(Unit) {
@@ -108,13 +109,28 @@ class RecordsActivity : BaseActivity() {
             item {
                 PeriodSelectionSection(
                     selectedPeriod = selectedPeriod,
-                    onPeriodSelected = { selectedPeriod = it }
+                    onPeriodSelected = {
+                        selectedPeriod = it
+                        // 기간이 바뀌면 드롭다운 기본값도 변경
+                        selectedRange = when (it) {
+                            "주" -> "이번 주"
+                            "월" -> "2025년"
+                            "년" -> "2025년"
+                            "전체" -> "2025년"
+                            else -> "전체"
+                        }
+                    }
                 )
             }
 
             // 통계 카드들을 별도 아이템으로 빼내기
             item {
-                StatisticsCardsSection(records = records)
+                StatisticsCardsSection(
+                    records = records,
+                    selectedPeriod = selectedPeriod,
+                    selectedRange = selectedRange,
+                    onRangeSelected = { selectedRange = it }
+                )
             }
 
             // 그래프 섹션을 별도 아이템으로 분리
@@ -434,24 +450,78 @@ fun PeriodSelectionSection(
 
 // 중단: 통계 및 그래프 섹션
 @Composable
-fun StatisticsCardsSection(records: List<SobrietyRecord>) {
+fun StatisticsCardsSection(
+    records: List<SobrietyRecord>,
+    selectedPeriod: String,
+    selectedRange: String,
+    onRangeSelected: (String) -> Unit
+) {
     val totalDays = records.sumOf { it.actualDays }
     val completedCount = records.count { it.isCompleted }
     val totalAttempts = records.size
     val successRate = if (totalAttempts > 0) (completedCount * 100) / totalAttempts else 0
 
-    // Card 제거하고 Column으로 직접 표시
+    // 드롭다운 메뉴 항목 생성 함수
+    fun getDropdownItems(period: String): List<String> {
+        val now = Calendar.getInstance()
+        return when (period) {
+            "주" -> listOf(
+                "이번 주",
+                "지난 주",
+                "07-20 ~ 07-26",
+                "07-13 ~ 07-19"
+            )
+            "월" -> listOf(
+                "2025년", "2024년", "8월", "7월"
+            )
+            "년" -> listOf(
+                "2025년", "2024년"
+            )
+            "전체" -> listOf(
+                "2025년", "2024년 - 2025년"
+            )
+            else -> listOf("전체")
+        }
+    }
+
+    var expanded by remember { mutableStateOf(false) }
+    val dropdownItems = getDropdownItems(selectedPeriod)
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        Text(
-            text = "통계 요약",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        // 텍스트 드롭다운 (왼쪽 정렬)
+        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopStart) {
+            Text(
+                text = selectedRange,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .clickable(enabled = selectedPeriod != "전체") { if (selectedPeriod != "전체") expanded = true }
+                    .padding(vertical = 8.dp)
+            )
+            if (selectedPeriod != "전체") {
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.width(180.dp)
+                ) {
+                    dropdownItems.forEach { item ->
+                        DropdownMenuItem(
+                            text = { Text(item) },
+                            onClick = {
+                                onRangeSelected(item)
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         // 상단 통계 카드들
         Row(
