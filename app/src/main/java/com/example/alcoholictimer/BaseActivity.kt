@@ -99,40 +99,21 @@ abstract class BaseActivity : ComponentActivity() {
     private fun handleMenuSelection(menuItem: String) {
         when (menuItem) {
             "금주" -> {
+                // DetailActivity에서는 햄버거 메뉴의 '금주' 항목 클릭 시 아무 작업도 하지 않음
+                if (this is DetailActivity) {
+                    return
+                }
+
                 val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
                 val startTime = sharedPref.getLong("start_time", 0L)
                 val targetDays = sharedPref.getFloat("target_days", 0f)
 
-                // 기획서 5.3: 목표 달성 중 앱 종료 시 달성 여부 자동 확인
-                if (startTime > 0 && targetDays > 0) {
-                    val currentTime = System.currentTimeMillis()
-                    val elapsedDays = (currentTime - startTime) / (24.0 * 60 * 60 * 1000)
-
-                    if (elapsedDays >= targetDays) {
-                        // 목표 달성된 경우 DetailActivity로 이동
-                        val intent = Intent(this, DetailActivity::class.java).apply {
-                            putExtra("start_time", startTime)
-                            putExtra("end_time", currentTime)
-                            putExtra("target_days", targetDays)
-                            putExtra("actual_days", elapsedDays.toInt())
-                            putExtra("is_completed", true)
-                        }
-                        startActivity(intent)
-                        return
-                    }
-                }
-
-                // 기획서 5.1: 앱 재시작 시 로직
+                // 진행 중인 금주가 있는 경우
                 if (startTime > 0) {
-                    // 금주 진행 중인 경우 RunActivity로 이동
-                    if (this !is RunActivity) {
-                        navigateToActivity(RunActivity::class.java)
-                    }
+                    navigateToActivity(RunActivity::class.java)
                 } else {
-                    // 금주가 시작되지 않은 경우 StartActivity로 이동
-                    if (this !is StartActivity) {
-                        navigateToActivity(StartActivity::class.java)
-                    }
+                    // 진행 중인 금주가 없는 경우
+                    navigateToActivity(StartActivity::class.java)
                 }
             }
             "기록" -> {

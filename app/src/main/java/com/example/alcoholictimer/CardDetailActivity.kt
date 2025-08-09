@@ -1,8 +1,9 @@
 package com.example.alcoholictimer
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,80 +24,79 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
 
-class DetailActivity : BaseActivity() {  // ComponentActivity에서 BaseActivity로 변경
+/**
+ * 금주 기록 카드의 상세 정보를 표시하는 액티비티
+ * DetailActivity와 구분하여 카드 클릭 시 표시되는 화면으로 사용
+ */
+class CardDetailActivity : ComponentActivity() {
 
-    override fun getScreenTitle(): String = "금주 기록 상세"  // 타이틀 추가
+    companion object {
+        private const val TAG = "CardDetailActivity"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        // Intent에서 데이터 받기
-        val startTime = intent.getLongExtra("start_time", 0L)
-        val endTime = intent.getLongExtra("end_time", System.currentTimeMillis())
-        val targetDays = intent.getFloatExtra("target_days", 30f)
-        val actualDays = intent.getIntExtra("actual_days", 0)
-        val isCompleted = intent.getBooleanExtra("is_completed", false)
-        
-        setContent {
-            BaseScreen {  // BaseScreen으로 감싸기
-                DetailScreen(
+
+        Log.d(TAG, "===== CardDetailActivity onCreate 시작 =====")
+
+        try {
+            // Intent에서 데이터 받기 (안전한 방식으로)
+            val startTime = intent.getLongExtra("start_time", 0L)
+            val endTime = intent.getLongExtra("end_time", System.currentTimeMillis())
+            val targetDays = intent.getFloatExtra("target_days", 30f)
+            val actualDays = intent.getIntExtra("actual_days", 0)
+            val isCompleted = intent.getBooleanExtra("is_completed", false)
+
+            Log.d(TAG, "수신된 데이터: startTime=$startTime, endTime=$endTime, targetDays=$targetDays, actualDays=$actualDays, isCompleted=$isCompleted")
+
+            // 데이터 유효성 검사 (더 관대하게)
+            if (actualDays < 0) {
+                Log.e(TAG, "잘못된 데이터: actualDays=$actualDays")
+                finish()
+                return
+            }
+
+            // targetDays가 0 이하인 경우 기본값으로 설정
+            val safeTargetDays = if (targetDays <= 0) 30f else targetDays
+            // actualDays가 0인 경우도 허용하되, 최소 1로 계산에 사용
+            val safeActualDays = if (actualDays <= 0) 1 else actualDays
+
+            Log.d(TAG, "안전한 값들: targetDays=$safeTargetDays, actualDays=$safeActualDays")
+
+            Log.d(TAG, "setContent 호출 시작...")
+            setContent {
+                CardDetailScreen(
                     startTime = startTime,
                     endTime = endTime,
-                    targetDays = targetDays,
-                    actualDays = actualDays,
-                    isCompleted = isCompleted
+                    targetDays = safeTargetDays,
+                    actualDays = safeActualDays,
+                    isCompleted = isCompleted,
+                    onBack = {
+                        Log.d(TAG, "뒤로가기 버튼 클릭")
+                        finish()
+                    }
                 )
             }
-        }
-    }
-
-    companion object {
-        fun start(
-            context: Context,
-            startTime: Long,
-            endTime: Long,
-            targetDays: Float,
-            actualDays: Int,
-            isCompleted: Boolean
-        ) {
-            val intent = Intent(context, DetailActivity::class.java).apply {
-                putExtra("start_time", startTime)
-                putExtra("end_time", endTime)
-                putExtra("target_days", targetDays)
-                putExtra("actual_days", actualDays)
-                putExtra("is_completed", isCompleted)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            }
-            context.startActivity(intent)
+            Log.d(TAG, "setContent 호출 완료")
+            Log.d(TAG, "===== CardDetailActivity onCreate 완료 =====")
+        } catch (e: Exception) {
+            Log.e(TAG, "CardDetailActivity 초기화 중 오류", e)
+            Log.e(TAG, "오류 스택트레이스: ${e.stackTraceToString()}")
+            finish()
         }
     }
 }
 
 @Composable
-fun DetailScreen(
+fun CardDetailScreen(
     startTime: Long,
     endTime: Long,
     targetDays: Float,
     actualDays: Int,
-    isCompleted: Boolean
+    isCompleted: Boolean,
+    onBack: () -> Unit
 ) {
     val context = LocalContext.current
-
-    // 네비게이션 상태 관리 (컴포지션 최상단으로 이동)
-    var shouldFinish by remember { mutableStateOf(false) }
-
-    // 안전한 네비게이션 처리 (컴포지션 최상단으로 이동)
-    LaunchedEffect(shouldFinish) {
-        if (shouldFinish) {
-            try {
-                if (context is DetailActivity) {
-                    context.finish()
-                }
-            } catch (e: Exception) {
-                // 안전하게 처리
-            }
-        }
-    }
 
     // 날짜/시간 포맷
     val dateTimeFormat = SimpleDateFormat("yyyy-MM-dd - a h:mm", Locale.getDefault())
@@ -153,15 +153,6 @@ fun DetailScreen(
     val savedMoney = (weeks * freqVal * costVal).roundToInt()
     val savedHours = (weeks * freqVal * (drinkHoursVal + hangoverHoursVal)).roundToInt()
 
-    // 레벨에 따른 배경색
-    val backgroundColor = when {
-        actualDays < 7 -> Color(0xFFF5F5F5)
-        actualDays < 30 -> Color(0xFFFFF3CD)
-        actualDays < 90 -> Color(0xFFE7F3FF)
-        actualDays < 365 -> Color(0xFFE8F5E8)
-        else -> Color(0xFFFFF0DC)
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -180,15 +171,7 @@ fun DetailScreen(
                 modifier = Modifier
                     .size(40.dp)
                     .background(Color.LightGray, CircleShape)
-                    .clickable { 
-                        try {
-                            if (context is DetailActivity) {
-                                context.finish()
-                            }
-                        } catch (e: Exception) {
-                            // 안전하게 처리
-                        }
-                    }
+                    .clickable { onBack() }
             ) {
                 Text(
                     text = "←",
@@ -196,13 +179,13 @@ fun DetailScreen(
                     fontWeight = FontWeight.Bold
                 )
             }
-            
+
             Text(
                 text = "금주 기록 상세",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
-            
+
             Spacer(modifier = Modifier.width(40.dp)) // 균형 맞추기
         }
 
@@ -280,17 +263,17 @@ fun DetailScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                SubStatItem(
+                CardSubStatItem(
                     value = "${totalDuration}일",
                     label = "총 금주 기간",
                     modifier = Modifier.weight(1f)
                 )
-                SubStatItem(
-                    value = String.format("%,d원", savedMoney),
+                CardSubStatItem(
+                    value = String.format(Locale.getDefault(), "%,d원", savedMoney),
                     label = "절약한 금액",
                     modifier = Modifier.weight(1f)
                 )
-                SubStatItem(
+                CardSubStatItem(
                     value = "${savedHours}시간",
                     label = "절약한 시간",
                     modifier = Modifier.weight(1f)
@@ -304,18 +287,18 @@ fun DetailScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                SubStatItem(
+                CardSubStatItem(
                     value = "${((actualDays.toFloat() / targetDays) * 100).roundToInt()}%",
                     label = "목표 달성률",
                     modifier = Modifier.weight(1f)
                 )
-                SubStatItem(
+                CardSubStatItem(
                     value = getLevelName(actualDays),
                     label = "달성 레벨",
                     modifier = Modifier.weight(1f)
                 )
-                SubStatItem(
-                    value = "+${(actualDays / 30.0).roundToInt()}일",
+                CardSubStatItem(
+                    value = "${(actualDays / 30.0).roundToInt()}일",
                     label = "기대 수명 증가",
                     modifier = Modifier.weight(1f)
                 )
@@ -326,15 +309,7 @@ fun DetailScreen(
 
         // 하단 버튼
         Button(
-            onClick = { 
-                if (isCompleted) {
-                    // 목표 달성 완료 시 StartActivity로 이동
-                    shouldFinish = true
-                } else {
-                    // 기록 조회에서 온 경우 단순히 화면 종료
-                    shouldFinish = true
-                }
-            },
+            onClick = { onBack() },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
@@ -353,7 +328,7 @@ fun DetailScreen(
 }
 
 @Composable
-fun SubStatItem(
+private fun CardSubStatItem(
     value: String,
     label: String,
     modifier: Modifier = Modifier
@@ -392,12 +367,13 @@ private fun getLevelName(days: Int): String {
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewDetailScreen() {
-    DetailScreen(
+fun PreviewCardDetailScreen() {
+    CardDetailScreen(
         startTime = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L),
         endTime = System.currentTimeMillis(),
         targetDays = 30f,
         actualDays = 7,
-        isCompleted = true
+        isCompleted = true,
+        onBack = {}
     )
 }

@@ -1,8 +1,9 @@
 package com.example.alcoholictimer
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,7 +20,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.json.JSONArray
-import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -35,6 +35,9 @@ data class SobrietyRecord(
 )
 
 class RecordsActivity : BaseActivity() {
+
+    // 디버깅용 태그
+    private val TAG = "RecordsActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +58,38 @@ class RecordsActivity : BaseActivity() {
         // 기록 로드
         LaunchedEffect(Unit) {
             records = loadSobrietyRecords(context)
+            Log.d(TAG, "로드된 기록: ${records.size}개")
+
+            // 기록이 없으면 테스트용 더미 데이터 추가
+            if (records.isEmpty()) {
+                Log.d(TAG, "기록이 없어서 테스트용 더미 데이터 추가")
+                records = listOf(
+                    SobrietyRecord(
+                        id = "test1",
+                        startTime = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L),
+                        endTime = System.currentTimeMillis(),
+                        targetDays = 30,
+                        actualDays = 7,
+                        isCompleted = false,
+                        status = "중단됨",
+                        createdAt = System.currentTimeMillis()
+                    ),
+                    SobrietyRecord(
+                        id = "test2",
+                        startTime = System.currentTimeMillis() - (10 * 24 * 60 * 60 * 1000L),
+                        endTime = System.currentTimeMillis() - (3 * 24 * 60 * 60 * 1000L),
+                        targetDays = 14,
+                        actualDays = 14,
+                        isCompleted = true,
+                        status = "완료",
+                        createdAt = System.currentTimeMillis() - (3 * 24 * 60 * 60 * 1000L)
+                    )
+                )
+                Log.d(TAG, "더미 데이터 추가 완료: ${records.size}개")
+                records.forEach { record ->
+                    Log.d(TAG, "더미 데이터: id=${record.id}, actualDays=${record.actualDays}, targetDays=${record.targetDays}")
+                }
+            }
         }
 
         Column(
@@ -99,15 +134,41 @@ class RecordsActivity : BaseActivity() {
                         SobrietyRecordCard(
                             record = record,
                             onClick = {
-                                // DetailActivity로 이동
-                                DetailActivity.start(
-                                    context = context,
-                                    startTime = record.startTime,
-                                    endTime = record.endTime,
-                                    targetDays = record.targetDays.toFloat(),
-                                    actualDays = record.actualDays,
-                                    isCompleted = record.isCompleted
-                                )
+                                Log.d(TAG, "===== 카드 클릭 시작 =====")
+                                Log.d(TAG, "카드 클릭: ${record.id}")
+                                Log.d(TAG, "actualDays=${record.actualDays}, targetDays=${record.targetDays}")
+                                Log.d(TAG, "startTime=${record.startTime}, endTime=${record.endTime}")
+                                Log.d(TAG, "isCompleted=${record.isCompleted}")
+
+                                try {
+                                    // 데이터 유효성 검사 (더 관대하게)
+                                    if (record.actualDays < 0) {
+                                        Log.e(TAG, "잘못된 기록 데이터: actualDays=${record.actualDays}")
+                                        return@SobrietyRecordCard
+                                    }
+
+                                    Log.d(TAG, "Intent 생성 시작...")
+
+                                    // targetDays가 0이면 기본값으로 설정
+                                    val safeTargetDays = if (record.targetDays <= 0) 30 else record.targetDays
+
+                                    // CardDetailActivity로 이동
+                                    val intent = Intent(this@RecordsActivity, CardDetailActivity::class.java)
+                                    intent.putExtra("start_time", record.startTime)
+                                    intent.putExtra("end_time", record.endTime)
+                                    intent.putExtra("target_days", safeTargetDays.toFloat())
+                                    intent.putExtra("actual_days", record.actualDays)
+                                    intent.putExtra("is_completed", record.isCompleted)
+
+                                    Log.d(TAG, "Intent 데이터 전달: targetDays=$safeTargetDays, actualDays=${record.actualDays}")
+                                    Log.d(TAG, "Intent 생성 완료, startActivity 호출...")
+                                    startActivity(intent)
+                                    Log.d(TAG, "startActivity 호출 완료")
+                                    Log.d(TAG, "===== 카드 클릭 종료 =====")
+                                } catch (e: Exception) {
+                                    Log.e(TAG, "CardDetail 화면 이동 중 오류", e)
+                                    Log.e(TAG, "오류 스택트레이스: ${e.stackTraceToString()}")
+                                }
                             }
                         )
                     }
@@ -297,7 +358,7 @@ private fun loadSobrietyRecords(context: android.content.Context): List<Sobriety
 
         // 최신 순으로 정렬
         records.sortedByDescending { it.createdAt }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         emptyList()
     }
 }
