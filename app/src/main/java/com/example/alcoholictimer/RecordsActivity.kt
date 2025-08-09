@@ -93,28 +93,62 @@ class RecordsActivity : BaseActivity() {
             }
         }
 
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // 상단: 기간 선택 탭 섹션
-            PeriodSelectionSection()
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
+            item {
+                PeriodSelectionSection()
+            }
+
             // 중단: 통계 및 그래프 섹션
-            StatisticsSection(records = records)
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // 하단: 최근 활동 섹션
-            RecentActivitiesSection(
-                records = records,
-                onCardClick = { record ->
-                    handleCardClick(record)
+            item {
+                StatisticsSection(records = records)
+            }
+
+            // 하단: 최근 활동 섹션 헤더
+            item {
+                Text(
+                    text = "최근 활동",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            if (records.isEmpty()) {
+                // 기록이 없을 때
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "아직 금주 기록이 없습니다.\n첫 번째 금주를 시작해보세요!",
+                                fontSize = 16.sp,
+                                color = Color.Gray,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            )
+                        }
+                    }
                 }
-            )
+            } else {
+                // 기록이 있을 때 각 카드를 개별 아이템으로 표시
+                items(records) { record ->
+                    SobrietyRecordCard(
+                        record = record,
+                        onClick = { handleCardClick(record) }
+                    )
+                }
+            }
         }
     }
 
@@ -345,7 +379,7 @@ private fun loadSobrietyRecords(context: android.content.Context): List<Sobriety
 // 상단: 기간 선택 탭 섹션
 @Composable
 fun PeriodSelectionSection() {
-    var selectedPeriod by remember { mutableStateOf("전체") }
+    var selectedPeriod by remember { mutableStateOf("월") }
     val periods = listOf("주", "월", "년", "전체")
 
     Card(
@@ -362,20 +396,37 @@ fun PeriodSelectionSection() {
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
+            // 라운딩된 한 줄 버튼 디자인 (iOS 스타일 segmented control)
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Color(0xFFE0E0E0),
+                        RoundedCornerShape(25.dp)
+                    )
+                    .padding(4.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 periods.forEach { period ->
-                    FilterChip(
-                        onClick = { selectedPeriod = period },
-                        label = { Text(period) },
-                        selected = selectedPeriod == period,
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Color.Black,
-                            selectedLabelColor = Color.White
+                    val isSelected = period == selectedPeriod
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .background(
+                                if (isSelected) Color.Black else Color.Transparent,
+                                RoundedCornerShape(20.dp)
+                            )
+                            .clickable { selectedPeriod = period }
+                            .padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = period,
+                            color = if (isSelected) Color.White else Color.Black,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                            fontSize = 14.sp
                         )
-                    )
+                    }
                 }
             }
         }
@@ -468,56 +519,5 @@ fun StatCard(
             fontSize = 12.sp,
             color = Color.Gray
         )
-    }
-}
-
-// 하단: 최근 활동 섹션
-@Composable
-fun RecentActivitiesSection(
-    records: List<SobrietyRecord>,
-    onCardClick: (SobrietyRecord) -> Unit
-) {
-    Column {
-        Text(
-            text = "최근 활동",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
-        if (records.isEmpty()) {
-            // 기록이 없을 때
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(32.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "아직 금주 기록이 없습니다.\n첫 번째 금주를 시작해보세요!",
-                        fontSize = 16.sp,
-                        color = Color.Gray,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
-                }
-            }
-        } else {
-            // 기록이 있을 때 카드 형태로 표시
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(records) { record ->
-                    SobrietyRecordCard(
-                        record = record,
-                        onClick = { onCardClick(record) }
-                    )
-                }
-            }
-        }
     }
 }
