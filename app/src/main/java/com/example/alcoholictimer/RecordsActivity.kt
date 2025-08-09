@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +25,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.alcoholictimer.components.MonthPickerBottomSheet
+import com.example.alcoholictimer.components.WeekPickerBottomSheet
 import org.json.JSONArray
 import java.text.SimpleDateFormat
 import java.util.*
@@ -58,17 +62,52 @@ class RecordsActivity : BaseActivity() {
     private fun RecordsScreen() {
         val context = LocalContext.current
         var records by remember { mutableStateOf<List<SobrietyRecord>>(emptyList()) }
-        var selectedPeriod by remember { mutableStateOf("월") } // 선택된 기간 상태 추가
-        var selectedRange by remember { mutableStateOf("전체") } // 드롭다운 선택 상태 추가
+        var selectedPeriod by remember { mutableStateOf("월") }
+        var selectedRange by remember { mutableStateOf("전체") }
+        var showMonthPicker by remember { mutableStateOf(false) }
+        var showWeekPicker by remember { mutableStateOf(false) }
+        var selectedYear by remember { mutableStateOf(Calendar.getInstance().get(Calendar.YEAR)) }
+        var selectedMonth by remember { mutableStateOf(Calendar.getInstance().get(Calendar.MONTH) + 1) }
 
         // 기록 로드
         LaunchedEffect(Unit) {
             records = loadSobrietyRecords(context)
             Log.d(TAG, "로드된 기록: ${records.size}개")
-
-            // 더미 데이터 자동 추가 로직 제거 (초기화 테스트를 위해)
-            // 필요시 수동으로 테스트 데이터를 추가할 수 있도록 별도 함수로 분리
         }
+
+        // 선택된 연/월에 따라 데이터 필터링 (예시)
+        val filteredRecords = remember(selectedYear, selectedMonth, selectedPeriod) {
+            if (selectedPeriod == "월") {
+                // 실제로는 선택된 연/월에 해당하는 기록만 필터링해야 함
+                records
+            } else {
+                records
+            }
+        }
+
+        // MonthPickerBottomSheet
+        MonthPickerBottomSheet(
+            isVisible = showMonthPicker,
+            onDismiss = { showMonthPicker = false },
+            onMonthPicked = { year, month ->
+                selectedYear = year
+                selectedMonth = month
+                selectedRange = "${year}년 ${month}월"
+                Log.d(TAG, "선택된 연/월: ${year}년 ${month}월")
+            },
+            initialYear = selectedYear,
+            initialMonth = selectedMonth
+        )
+
+        // WeekPickerBottomSheet
+        WeekPickerBottomSheet(
+            isVisible = showWeekPicker,
+            onDismiss = { showWeekPicker = false },
+            onWeekPicked = { weekStart, weekEnd, displayText ->
+                selectedRange = displayText
+                Log.d(TAG, "선택된 주: $displayText")
+            }
+        )
 
         LazyColumn(
             modifier = Modifier
@@ -85,9 +124,9 @@ class RecordsActivity : BaseActivity() {
                         // 기간이 바뀌면 드롭다운 기본값도 변경
                         selectedRange = when (it) {
                             "주" -> "이번 주"
-                            "월" -> "2025년"
-                            "년" -> "2025년"
-                            "전체" -> "2025년"
+                            "월" -> "${selectedYear}년 ${selectedMonth}월"
+                            "년" -> "${selectedYear}년"
+                            "전체" -> "전체"
                             else -> "전체"
                         }
                     }
@@ -97,16 +136,23 @@ class RecordsActivity : BaseActivity() {
             // 통계 카드들을 별도 아이템으로 빼내기
             item {
                 StatisticsCardsSection(
-                    records = records,
+                    records = filteredRecords,
                     selectedPeriod = selectedPeriod,
                     selectedRange = selectedRange,
-                    onRangeSelected = { selectedRange = it }
+                    onRangeSelected = {
+                        selectedRange = it
+                        // 선택된 기간에 따라 적절한 바텀시트를 표시
+                        when (selectedPeriod) {
+                            "월" -> showMonthPicker = true
+                            "주" -> showWeekPicker = true
+                        }
+                    }
                 )
             }
 
             // 그래프 섹션을 별도 아이템으로 분리
             item {
-                GraphSection(records = records, selectedPeriod = selectedPeriod)
+                GraphSection(records = filteredRecords, selectedPeriod = selectedPeriod)
             }
 
             // 하단: 최근 활동 섹션 헤더
@@ -118,7 +164,7 @@ class RecordsActivity : BaseActivity() {
                 )
             }
 
-            if (records.isEmpty()) {
+            if (filteredRecords.isEmpty()) {
                 // 기록이 없을 때
                 item {
                     Card(
@@ -142,7 +188,7 @@ class RecordsActivity : BaseActivity() {
                 }
             } else {
                 // 기록이 있을 때 각 카드를 개별 아이템으로 표시
-                items(records) { record ->
+                items(filteredRecords) { record ->
                     SobrietyRecordCard(
                         record = record,
                         onClick = { handleCardClick(record) }
@@ -180,7 +226,7 @@ class RecordsActivity : BaseActivity() {
             intent.putExtra("is_completed", record.isCompleted)
 
             Log.d(TAG, "Intent 데이터 전달: targetDays=$safeTargetDays, actualDays=${record.actualDays}")
-            Log.d(TAG, "DetailActivity 호��...")
+            Log.d(TAG, "DetailActivity 호출...")
             startActivity(intent)
             Log.d(TAG, "startActivity 호출 완료")
             Log.d(TAG, "===== 카드 클릭 종료 =====")
@@ -284,7 +330,7 @@ fun SobrietyRecordCard(
                     )
                 }
 
-                // 중앙: 목표 대비 진행률
+                // 중앙: 목표 대비 ��행률
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "${progressPercent}%",
@@ -337,7 +383,7 @@ fun SobrietyRecordCard(
             if (durationDays > 0 || durationHours > 0 || durationMinutes > 0) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "지속 시간: ${durationDays}일 ${durationHours}시간 ${durationMinutes}분",
+                    text = "지속 시간: ${durationDays}일 ${durationHours}시��� ${durationMinutes}분",
                     fontSize = 12.sp,
                     color = Color.Gray
                 )
@@ -432,125 +478,34 @@ fun StatisticsCardsSection(
     val totalAttempts = records.size
     val successRate = if (totalAttempts > 0) (completedCount * 100) / totalAttempts else 0
 
-    // 드롭다운 메뉴 항목 생성 함수
-    fun getDropdownItems(period: String): List<String> {
-        return when (period) {
-            "주" -> listOf(
-                "이번 주",
-                "지난 주",
-                "07-20 ~ 07-26",
-                "07-13 ~ 07-19"
-            )
-            "월" -> listOf(
-                "2025년", "2024년", "8월", "7월"
-            )
-            "년" -> listOf(
-                "2025년", "2024년"
-            )
-            "전체" -> listOf(
-                "2025년", "2024년 - 2025년"
-            )
-            else -> listOf("전체")
-        }
-    }
-
-    var expanded by remember { mutableStateOf(false) }
-    val dropdownItems = getDropdownItems(selectedPeriod)
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        // 텍스트 드롭다운 (왼쪽 정렬)
-        Box(
-            modifier = Modifier.fillMaxWidth()
+        // 텍스트 클릭 영역 (왼쪽 정렬)
+        Row(
+            modifier = Modifier
+                .clickable(enabled = selectedPeriod != "전체") {
+                    if (selectedPeriod != "전체") {
+                        onRangeSelected(selectedRange)
+                    }
+                }
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier
-                    .clickable(enabled = selectedPeriod != "전체") {
-                        if (selectedPeriod != "전체") expanded = true
-                    }
-                    .padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Text(
+                text = selectedRange,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+            if (selectedPeriod != "전체") {
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = selectedRange,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
+                    text = "▼",
+                    fontSize = 12.sp,
+                    color = Color.Gray
                 )
-                if (selectedPeriod != "전체") {
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "▼",
-                        fontSize = 12.sp,
-                        color = Color.Gray
-                    )
-                }
-            }
-
-            if (selectedPeriod == "월") {
-                // 월일 때 2컬럼 드롭다운
-                val years = listOf("2025년", "2024년")
-                val months = listOf("8월", "7월", "6월", "5월", "4월", "3월", "2월", "1월")
-                var selectedYear by remember { mutableStateOf(years.first()) }
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    modifier = Modifier.width(260.dp),
-                    offset = DpOffset(0.dp, 0.dp)
-                ) {
-                    Row(modifier = Modifier.padding(8.dp)) {
-                        // 년도 선택
-                        Column(modifier = Modifier.weight(1f)) {
-                            years.forEach { year ->
-                                Text(
-                                    text = year,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            selectedYear = year
-                                        }
-                                        .padding(8.dp),
-                                    fontWeight = if (selectedYear == year) FontWeight.Bold else FontWeight.Normal
-                                )
-                            }
-                        }
-                        // 월 선택
-                        Column(modifier = Modifier.weight(1f)) {
-                            months.forEach { month ->
-                                Text(
-                                    text = month,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            onRangeSelected("$selectedYear $month")
-                                            expanded = false
-                                        }
-                                        .padding(8.dp),
-                                    fontWeight = FontWeight.Normal
-                                )
-                            }
-                        }
-                    }
-                }
-            } else if (selectedPeriod != "전체") {
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    modifier = Modifier.width(180.dp),
-                    offset = DpOffset(0.dp, 0.dp)
-                ) {
-                    dropdownItems.forEach { item ->
-                        DropdownMenuItem(
-                            text = { Text(item) },
-                            onClick = {
-                                onRangeSelected(item)
-                                expanded = false
-                            }
-                        )
-                    }
-                }
             }
         }
 
@@ -580,7 +535,7 @@ fun StatisticsCardsSection(
     }
 }
 
-// 그래프 섹션을 별도 아이템으로 분리
+// 그래프 섹션을 별도 아이템으로 분���
 @Composable
 fun GraphSection(records: List<SobrietyRecord>, selectedPeriod: String) {
     // 실제 그래프 표시
@@ -735,7 +690,7 @@ fun MiniBarChart(
     }
 }
 
-// 최근 7일간의 그래프 데이터 생성 함수
+// 최근 7일간의 ���래프 데이터 생성 함수
 private fun generateWeeklyGraphData(records: List<SobrietyRecord>): List<SimpleGraphData> {
     val calendar = Calendar.getInstance()
     val weekDays = listOf("월", "화", "수", "목", "금", "토", "일")
@@ -805,7 +760,7 @@ private fun generateYearlyGraphData(records: List<SobrietyRecord>): List<SimpleG
 
     val yearStart = calendar.timeInMillis
 
-    // 최근 1년간의 월별 데이터 생성
+    // 최근 1년간의 월별 데이�� 생성
     return (0 until 12).map { monthOffset ->
         val monthStart = yearStart + (monthOffset * 30 * 24 * 60 * 60 * 1000L)
         val monthEnd = monthStart + (30 * 24 * 60 * 60 * 1000L)
@@ -827,7 +782,7 @@ private fun generateAllTimeGraphData(records: List<SobrietyRecord>): List<Simple
     )
 }
 
-// RecordsActivity 전용 간단한 그래프 데이터 클래스
+// RecordsActivity 전용 간단한 그래프 ���이터 클래스
 data class SimpleGraphData(
     val label: String,
     val value: Int // 0 또는 1 (성공 여부)
