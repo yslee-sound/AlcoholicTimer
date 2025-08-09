@@ -602,7 +602,7 @@ fun MiniBarChart(
             val canvasHeight = size.height
 
             // 여백 설정
-            val leftMargin = 40.dp.toPx()
+            val leftMargin = 20.dp.toPx()
             val rightMargin = 20.dp.toPx()
             val topMargin = 20.dp.toPx()
             val bottomMargin = 40.dp.toPx()
@@ -662,7 +662,7 @@ fun MiniBarChart(
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 5.dp)
-                .padding(horizontal = 40.dp),
+                .padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             graphData.forEachIndexed { index, item ->
@@ -689,22 +689,30 @@ fun MiniBarChart(
         }
 
         // Y축 레이블
-        Column(
+        Box(
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .padding(start = 10.dp),
-            verticalArrangement = Arrangement.SpaceBetween
+                .padding(start = 5.dp)
+                .fillMaxHeight()
         ) {
+            // 1 레이블 - 상단 가로선과 정렬
             Text(
                 text = "1",
                 fontSize = 10.sp,
-                color = Color.Gray
+                color = Color.Gray,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .offset(y = 15.dp)
             )
-            Spacer(modifier = Modifier.weight(1f))
+
+            // 0 레이블 - 하단 가로선과 정렬
             Text(
                 text = "0",
                 fontSize = 10.sp,
-                color = Color.Gray
+                color = Color.Gray,
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .offset(y = (-35).dp)
             )
         }
     }
