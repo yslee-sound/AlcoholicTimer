@@ -51,6 +51,20 @@ fun RunScreen() {
     val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
     val startTime = sharedPref.getLong("start_time", 0L)
     val targetDays = sharedPref.getFloat("target_days", 30f)
+    val timerCompleted = sharedPref.getBoolean("timer_completed", false)
+
+    // 금주가 종료된 경우 진행 화면 대신 시작 화면으로 이동
+    if (startTime == 0L || timerCompleted) {
+        LaunchedEffect(Unit) {
+            val intent = Intent(context, StartActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            context.startActivity(intent)
+            if (context is RunActivity) {
+                context.finish()
+            }
+        }
+        return
+    }
 
     // 시작 시간이 0인 경우 강제로 현재 시간으로 설정 (임시 해결책)
     val actualStartTime = if (startTime == 0L) {
