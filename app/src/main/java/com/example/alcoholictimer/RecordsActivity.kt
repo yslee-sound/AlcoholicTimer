@@ -74,68 +74,42 @@ class RecordsActivity : BaseActivity() {
         var showWeekPicker by remember { mutableStateOf(false) }
         var showYearPicker by remember { mutableStateOf(false) }
         var refreshTrigger by remember { mutableStateOf(0) }
-
-        // Pull-to-Refresh 상태
         var isRefreshing by remember { mutableStateOf(false) }
         val swipeRefreshState = rememberSwipeRefreshState(isRefreshing)
 
-        // 테스트용 기록 추가 함수
-        fun addTestRecord() {
+        // 테스트 기록 입력 다이얼로그 상태
+        var showTestDialog by remember { mutableStateOf(false) }
+        var inputStartTime by remember { mutableStateOf(System.currentTimeMillis()) }
+        var inputEndTime by remember { mutableStateOf(System.currentTimeMillis()) }
+        var inputTargetDays by remember { mutableStateOf(30) }
+        var inputActualDays by remember { mutableStateOf(30) }
+        var inputIsCompleted by remember { mutableStateOf(true) }
+
+        fun addCustomTestRecord() {
             try {
-                Log.d(TAG, "========== 테스트 기록 추가 시작 ==========")
                 val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
                 val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
                 val recordsList = try {
                     JSONArray(recordsJson)
                 } catch (e: Exception) {
-                    Log.w(TAG, "기존 기록 파싱 실패: "+e.message)
                     JSONArray()
                 }
-
-                // 마지막 기록의 endTime 이후로 시작 시간 설정
-                val lastEndTime = if (recordsList.length() > 0) {
-                    val lastRecord = recordsList.getJSONObject(recordsList.length() - 1)
-                    lastRecord.optLong("endTime", System.currentTimeMillis())
-                } else {
-                    System.currentTimeMillis()
-                }
-
-                // 10일 단위 기간 랜덤 생성
-                val periodDays = (1..5).random() * 10 // 10, 20, 30, 40, 50 중 하나
-                val targetDays = periodDays
-
-                // 목표 완료/미완료 랜덤 결정
-                val isCompleted = (0..1).random() == 1
-                val actualDays = if (isCompleted) targetDays else (targetDays * 0.8).toInt()
-
-                val startTime = lastEndTime + 1000 * 60 * 60 // 마지막 기록 이후 1시간 뒤
-                val endTime = startTime + actualDays * 24 * 60 * 60 * 1000L
-
                 val testRecord = JSONObject().apply {
                     put("id", "test_${System.currentTimeMillis()}")
-                    put("startTime", startTime)
-                    put("endTime", endTime)
-                    put("targetDays", targetDays)
-                    put("actualDays", actualDays)
-                    put("isCompleted", isCompleted)
-                    put("status", if (isCompleted) "완료" else "중지")
+                    put("startTime", inputStartTime)
+                    put("endTime", inputEndTime)
+                    put("targetDays", inputTargetDays)
+                    put("actualDays", inputActualDays)
+                    put("isCompleted", inputIsCompleted)
+                    put("status", if (inputIsCompleted) "완료" else "중지")
                     put("createdAt", System.currentTimeMillis())
                 }
-
-                Log.d(TAG, "생성된 테스트 기록: $testRecord")
                 recordsList.put(testRecord)
-                Log.d(TAG, "기록 추가 후: $recordsList")
-
-                val editor = sharedPref.edit()
-                editor.putString("sobriety_records", recordsList.toString())
-                val success = editor.commit()
-                Log.d(TAG, "저장 성공: $success")
-                val savedData = sharedPref.getString("sobriety_records", "[]")
-                Log.d(TAG, "저장 확인: $savedData")
-                Log.d(TAG, "========== 테스트 기록 추가 완료 ==========")
-            } catch (e: Exception) {
-                Log.e(TAG, "테스트 기록 추가 중 오류: ${e.message}", e)
-            }
+                sharedPref.edit().apply {
+                    putString("sobriety_records", recordsList.toString())
+                    apply()
+                }
+            } catch (_: Exception) {}
         }
 
         // 데이터 로드 함수
@@ -290,11 +264,7 @@ class RecordsActivity : BaseActivity() {
 
                             // 디버깅용 테스트 기록 추가 버튼
                             Button(
-                                onClick = {
-                                    addTestRecord()
-                                    // 즉시 새로고침 트리거
-                                    refreshTrigger++
-                                },
+                                onClick = { showTestDialog = true },
                                 modifier = Modifier.padding(start = 8.dp)
                             ) {
                                 Text("테스트 기록 추가")
@@ -335,6 +305,38 @@ class RecordsActivity : BaseActivity() {
                     }
                 }
             }
+        }
+
+        // 테스트 기록 입력 다이얼로그 - LazyColumn 밖으로 이동
+        if (showTestDialog) {
+            AlertDialog(
+                onDismissRequest = { showTestDialog = false },
+                confirmButton = {
+                    Button(onClick = {
+                        addCustomTestRecord()
+                        showTestDialog = false
+                        refreshTrigger++
+                    }) { Text("추가") }
+                },
+                dismissButton = {
+                    Button(onClick = { showTestDialog = false }) { Text("취소") }
+                },
+                title = { Text("테스트 기록 직접 추가") },
+                text = {
+                    TestRecordInputDialogContent(
+                        inputStartTime = inputStartTime,
+                        onStartTimeChange = { v -> v.toLongOrNull()?.let { inputStartTime = it } },
+                        inputEndTime = inputEndTime,
+                        onEndTimeChange = { v -> v.toLongOrNull()?.let { inputEndTime = it } },
+                        inputTargetDays = inputTargetDays,
+                        onTargetDaysChange = { v -> v.toIntOrNull()?.let { inputTargetDays = it } },
+                        inputActualDays = inputActualDays,
+                        onActualDaysChange = { v -> v.toIntOrNull()?.let { inputActualDays = it } },
+                        inputIsCompleted = inputIsCompleted,
+                        onIsCompletedChange = { inputIsCompleted = it }
+                    )
+                }
+            )
         }
     }
 
@@ -959,5 +961,53 @@ fun StatCard(
             fontSize = 12.sp,
             color = Color.Gray
         )
+    }
+}
+
+@Composable
+fun TestRecordInputDialogContent(
+    inputStartTime: Long,
+    onStartTimeChange: (String) -> Unit,
+    inputEndTime: Long,
+    onEndTimeChange: (String) -> Unit,
+    inputTargetDays: Int,
+    onTargetDaysChange: (String) -> Unit,
+    inputActualDays: Int,
+    onActualDaysChange: (String) -> Unit,
+    inputIsCompleted: Boolean,
+    onIsCompletedChange: (Boolean) -> Unit
+) {
+    Column {
+        Text("시작일(Unix ms):")
+        OutlinedTextField(
+            value = inputStartTime.toString(),
+            onValueChange = onStartTimeChange,
+            singleLine = true
+        )
+        Text("종료일(Unix ms):")
+        OutlinedTextField(
+            value = inputEndTime.toString(),
+            onValueChange = onEndTimeChange,
+            singleLine = true
+        )
+        Text("목표 일수:")
+        OutlinedTextField(
+            value = inputTargetDays.toString(),
+            onValueChange = onTargetDaysChange,
+            singleLine = true
+        )
+        Text("실제 일수:")
+        OutlinedTextField(
+            value = inputActualDays.toString(),
+            onValueChange = onActualDaysChange,
+            singleLine = true
+        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(
+                checked = inputIsCompleted,
+                onCheckedChange = onIsCompletedChange
+            )
+            Text("완료 여부")
+        }
     }
 }
