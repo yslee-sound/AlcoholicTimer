@@ -75,6 +75,7 @@ data class SobrietyRecord(
 
     private fun formatDate(timestamp: Long): String {
         val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        sdf.timeZone = java.util.TimeZone.getDefault()
         return sdf.format(Date(timestamp))
     }
 

@@ -134,11 +134,15 @@ fun DetailScreen(
     }
 
     // 날짜/시간 포맷
-    val dateTimeFormat = SimpleDateFormat("yyyy-MM-dd - a h:mm", Locale.getDefault())
+    val dateTimeFormat = SimpleDateFormat("yyyy-MM-dd - a h:mm", Locale.getDefault()).apply {
+        timeZone = java.util.TimeZone.getDefault()
+    }
     val displayDateTime = if (startTime > 0) {
         dateTimeFormat.format(Date(startTime))
     } else {
-        "오늘 - ${SimpleDateFormat("a h:mm", Locale.getDefault()).format(Date())}"
+        "오늘 - ${SimpleDateFormat("a h:mm", Locale.getDefault()).apply {
+            timeZone = java.util.TimeZone.getDefault()
+        }.format(Date())}"
     }
 
     // 기록 제목 자동 생성

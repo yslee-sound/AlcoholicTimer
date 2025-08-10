@@ -36,6 +36,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.text.toIntOrNull
+import kotlin.text.toLongOrNull
 
 class RecordsActivity : BaseActivity() {
 
@@ -325,13 +327,13 @@ class RecordsActivity : BaseActivity() {
                 text = {
                     TestRecordInputDialogContent(
                         inputStartTime = inputStartTime,
-                        onStartTimeChange = { v -> v.toLongOrNull()?.let { inputStartTime = it } },
+                        onStartTimeChange = { inputStartTime = it },
                         inputEndTime = inputEndTime,
-                        onEndTimeChange = { v -> v.toLongOrNull()?.let { inputEndTime = it } },
+                        onEndTimeChange = { inputEndTime = it },
                         inputTargetDays = inputTargetDays,
-                        onTargetDaysChange = { v -> v.toIntOrNull()?.let { inputTargetDays = it } },
+                        onTargetDaysChange = { inputTargetDays = it },
                         inputActualDays = inputActualDays,
-                        onActualDaysChange = { v -> v.toIntOrNull()?.let { inputActualDays = it } },
+                        onActualDaysChange = { inputActualDays = it },
                         inputIsCompleted = inputIsCompleted,
                         onIsCompletedChange = { inputIsCompleted = it }
                     )
@@ -392,8 +394,12 @@ fun SobrietyRecordCard(
     record: SobrietyRecord,
     onClick: () -> Unit = {}
 ) {
-    val dateFormatter = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault())
-    val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+    val dateFormatter = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault()).apply {
+        timeZone = java.util.TimeZone.getDefault()
+    }
+    val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault()).apply {
+        timeZone = java.util.TimeZone.getDefault()
+    }
 
     val startDate = dateFormatter.format(Date(record.startTime))
     val endDate = dateFormatter.format(Date(record.endTime))
@@ -406,7 +412,7 @@ fun SobrietyRecordCard(
     val durationMinutes = ((duration % (60 * 60 * 1000)) / (60 * 1000)).toInt()
 
     val progressPercent = if (record.targetDays > 0) {
-        ((record.actualDays.toFloat() / record.targetDays) * 100).toInt()
+        ((record.actualDays.toFloat() / record.targetDays) * 100).coerceAtMost(100f).toInt()
     } else 0
 
     Card(
@@ -967,47 +973,125 @@ fun StatCard(
 @Composable
 fun TestRecordInputDialogContent(
     inputStartTime: Long,
-    onStartTimeChange: (String) -> Unit,
+    onStartTimeChange: (Long) -> Unit,
     inputEndTime: Long,
-    onEndTimeChange: (String) -> Unit,
+    onEndTimeChange: (Long) -> Unit,
     inputTargetDays: Int,
-    onTargetDaysChange: (String) -> Unit,
+    onTargetDaysChange: (Int) -> Unit,
     inputActualDays: Int,
-    onActualDaysChange: (String) -> Unit,
+    onActualDaysChange: (Int) -> Unit,
     inputIsCompleted: Boolean,
     onIsCompletedChange: (Boolean) -> Unit
 ) {
+    val calendar = Calendar.getInstance()
+    // 시작일 드롭다운 상태
+    var startYear by remember { mutableStateOf(calendar.get(Calendar.YEAR)) }
+    var startMonth by remember { mutableStateOf(calendar.get(Calendar.MONTH) + 1) }
+    var startDay by remember { mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH)) }
+    // 종료일 드롭다운 상태
+    var endYear by remember { mutableStateOf(calendar.get(Calendar.YEAR)) }
+    var endMonth by remember { mutableStateOf(calendar.get(Calendar.MONTH) + 1) }
+    var endDay by remember { mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH)) }
+    // 목표일수/실제 종료된 일수 드롭다운
+    val daysList = (1..365).toList()
+    val actualDaysList = (1..inputTargetDays).toList()
+
+    // 날짜 선택 시 Unix ms로 변환
+    fun getMillis(year: Int, month: Int, day: Int): Long {
+        val cal = Calendar.getInstance()
+        cal.set(year, month - 1, day, 0, 0, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        return cal.timeInMillis
+    }
+
+    LaunchedEffect(startYear, startMonth, startDay) {
+        onStartTimeChange(getMillis(startYear, startMonth, startDay))
+    }
+    LaunchedEffect(endYear, endMonth, endDay) {
+        onEndTimeChange(getMillis(endYear, endMonth, endDay))
+    }
+
+    // 목표일수 또는 실제 종료된 일수 변경 시 종료일 자동 계산
+    fun updateEndDateByDays(targetDays: Int, actualDays: Int) {
+        val cal = Calendar.getInstance()
+        cal.set(startYear, startMonth - 1, startDay, 0, 0, 0)
+        val daysToAdd = if (actualDays > 0) actualDays else targetDays
+        cal.add(Calendar.DAY_OF_MONTH, daysToAdd)
+        endYear = cal.get(Calendar.YEAR)
+        endMonth = cal.get(Calendar.MONTH) + 1
+        endDay = cal.get(Calendar.DAY_OF_MONTH)
+    }
+
     Column {
-        Text("시작일(Unix ms):")
-        OutlinedTextField(
-            value = inputStartTime.toString(),
-            onValueChange = onStartTimeChange,
-            singleLine = true
-        )
-        Text("종료일(Unix ms):")
-        OutlinedTextField(
-            value = inputEndTime.toString(),
-            onValueChange = onEndTimeChange,
-            singleLine = true
-        )
-        Text("목표 일수:")
-        OutlinedTextField(
-            value = inputTargetDays.toString(),
-            onValueChange = onTargetDaysChange,
-            singleLine = true
-        )
-        Text("실제 일수:")
-        OutlinedTextField(
-            value = inputActualDays.toString(),
-            onValueChange = onActualDaysChange,
-            singleLine = true
-        )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(
-                checked = inputIsCompleted,
-                onCheckedChange = onIsCompletedChange
+        Text("시작일:")
+        Row {
+            // 년도 드롭다운
+            DropdownSelector(
+                label = "년",
+                options = (2020..calendar.get(Calendar.YEAR)).toList(),
+                selected = startYear,
+                onSelected = { startYear = it; updateEndDateByDays(inputTargetDays, inputActualDays) }
             )
-            Text("완료 여부")
+            Spacer(modifier = Modifier.width(8.dp))
+            // 월 드롭다운
+            DropdownSelector(
+                label = "월",
+                options = (1..12).toList(),
+                selected = startMonth,
+                onSelected = { startMonth = it; updateEndDateByDays(inputTargetDays, inputActualDays) }
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            // 일 드롭다운
+            DropdownSelector(
+                label = "일",
+                options = (1..31).toList(),
+                selected = startDay,
+                onSelected = { startDay = it; updateEndDateByDays(inputTargetDays, inputActualDays) }
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("목표일수:")
+        DropdownSelector(
+            label = "일수",
+            options = daysList,
+            selected = inputTargetDays,
+            onSelected = {
+                onTargetDaysChange(it)
+                updateEndDateByDays(it, inputActualDays)
+            }
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("실제 종료된 일수:")
+        DropdownSelector(
+            label = "일수",
+            options = actualDaysList,
+            selected = inputActualDays.coerceAtMost(inputTargetDays),
+            onSelected = {
+                onActualDaysChange(it)
+                updateEndDateByDays(inputTargetDays, it)
+            }
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("종료일: $endYear-$endMonth-$endDay (목표/실제 일수에 따라 자동 설정)")
+        // 종료일 드롭다운 제거 또는 비활성화
+        // ...기존 종료일 드롭다운 부분은 삭제 또는 주석처리...
+    }
+}
+
+@Composable
+fun <T> DropdownSelector(label: String, options: List<T>, selected: T, onSelected: (T) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        OutlinedButton(onClick = { expanded = true }) {
+            Text("$selected $label")
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            options.forEach { option ->
+                DropdownMenuItem(text = { Text(option.toString()) }, onClick = {
+                    onSelected(option)
+                    expanded = false
+                })
+            }
         }
     }
 }

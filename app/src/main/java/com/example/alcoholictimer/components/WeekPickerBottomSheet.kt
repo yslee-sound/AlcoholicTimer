@@ -145,7 +145,9 @@ data class WeekOption(
 
 private fun generateWeekOptions(): List<WeekOption> {
     val calendar = Calendar.getInstance()
-    val dateFormat = SimpleDateFormat("MM-dd", Locale.getDefault())
+    val dateFormat = SimpleDateFormat("MM-dd", Locale.getDefault()).apply {
+        timeZone = java.util.TimeZone.getDefault()
+    }
     val options = mutableListOf<WeekOption>()
 
     // 이번 주부터 시작해서 과거로 거슬러 올라가면서 데이터 생성
