@@ -178,7 +178,7 @@ fun DrawerMenu(
         "레벨" to Icons.Default.Star
     )
     val settingsItems = listOf(
-        "설��" to Icons.Default.Settings,
+        "설정" to Icons.Default.Settings,
         "테스트" to Icons.Default.Build
     )
 
