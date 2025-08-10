@@ -47,6 +47,23 @@ class StartActivity : BaseActivity() {
     @Composable
     private fun StartScreen() {
         val context = LocalContext.current
+        // SharedPreferences에서 금주 진행 여부 확인
+        val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
+        val startTime = sharedPref.getLong("start_time", 0L)
+        val timerCompleted = sharedPref.getBoolean("timer_completed", false)
+        // 이미 금주가 진행 중이면 RunActivity로 이동
+        if (startTime != 0L && !timerCompleted) {
+            LaunchedEffect(Unit) {
+                val intent = Intent(context, RunActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                context.startActivity(intent)
+                if (context is StartActivity) {
+                    context.finish()
+                }
+            }
+            return
+        }
+
         var textFieldValue by remember {
             mutableStateOf(
                 TextFieldValue(

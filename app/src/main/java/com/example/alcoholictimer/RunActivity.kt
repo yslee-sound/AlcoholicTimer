@@ -53,8 +53,8 @@ fun RunScreen() {
     val targetDays = sharedPref.getFloat("target_days", 30f)
     val timerCompleted = sharedPref.getBoolean("timer_completed", false)
 
-    // 금주가 종료된 경우 진행 화면 대신 시작 화면으로 이동
-    if (startTime == 0L || timerCompleted) {
+    // 금주가 완전히 완료되었거나 아직 시작하지 않은 경우에만 시작 화면으로 이동
+    if (timerCompleted || (startTime == 0L && !timerCompleted)) {
         LaunchedEffect(Unit) {
             val intent = Intent(context, StartActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
