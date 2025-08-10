@@ -200,8 +200,8 @@ class StartActivity : BaseActivity() {
                 onClick = {
                     val targetTime = textFieldValue.text.toFloatOrNull() ?: 0f
                     if (targetTime > 0) {
-                        // Ensure the input is treated as a single number
-                        val formattedTargetTime = String.format("%.1f", targetTime).toFloat()
+                        // 극소수점 값도 보존하도록 소수점 자리수 증가
+                        val formattedTargetTime = String.format("%.6f", targetTime).toFloat()
                         // Use formattedTargetTime for further processing
                         val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
                         sharedPref.edit().apply {
@@ -210,6 +210,11 @@ class StartActivity : BaseActivity() {
                             putBoolean("timer_completed", false)
                             apply()
                         }
+
+                        // 디버깅 로그 추가
+                        android.util.Log.d("StartActivity", "입력값: $targetTime")
+                        android.util.Log.d("StartActivity", "포맷된 값: $formattedTargetTime")
+
                         val intent = Intent(context, RunActivity::class.java)
                         context.startActivity(intent)
                     }
@@ -234,18 +239,16 @@ class StartActivity : BaseActivity() {
     }
 
     private fun updateTimeModeDisplay() {
-        // SharedPreferences에서 현재 테스트 모드를 읽어옴
+        // 테스트 모드는 레벨에만 영향을 미치므로 항상 "일수"로 표시
+        // SharedPreferences에서 현재 테스트 모드를 읽어옴 (레벨 계산용으로만 사용)
         val sharedPref = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE)
         val currentTestMode = sharedPref.getInt(Constants.PREF_TEST_MODE, Constants.TEST_MODE_REAL)
 
-        // Constants의 현재 테스트 모드를 업데이트
+        // Constants의 현재 테스트 모드를 업데이트 (레벨 계산용)
         Constants.updateTestMode(currentTestMode)
 
-        val timeUnitText = when (currentTestMode) {
-            Constants.TEST_MODE_SECOND -> "금주 목표 초수"
-            Constants.TEST_MODE_MINUTE -> "금주 목표 분수"
-            else -> "금주 목표 일수"
-        }
+        // 목표 입력은 항상 일수로 표시 (금주 진행은 실제 시간 기준)
+        val timeUnitText = "금주 목표 일수"
     }
 
     @Preview(showBackground = true)

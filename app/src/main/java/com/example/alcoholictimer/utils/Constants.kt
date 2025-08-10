@@ -11,10 +11,10 @@ object Constants {
     const val PREF_TARGET_DAYS = "target_days"
     const val PREF_RECORDS = "records"
 
-    // 테스트 모드 상수
-    const val TEST_MODE_REAL = 0    // 실제 모드 (1일 = 24시간)
-    const val TEST_MODE_MINUTE = 1  // 분 단위 테스트 모드 (1일 = 1분)
-    const val TEST_MODE_SECOND = 2  // 초 단위 테스트 모드 (1일 = 1초)
+    // 테스트 모드 상수 (레벨 계산용)
+    const val TEST_MODE_REAL = 0    // 실제 모드 (레벨 계산: 1일 = 24시간)
+    const val TEST_MODE_MINUTE = 1  // 분 단위 테스트 모드 (레벨 계산: 1분 = 1일)
+    const val TEST_MODE_SECOND = 2  // 초 단위 테스트 모드 (레벨 계산: 1초 = 1일)
 
     // 현재 선택된 테스트 모드 (기본값: 실제 모드)
     var currentTestMode = TEST_MODE_REAL
@@ -40,21 +40,37 @@ object Constants {
     // 기타 상수
     const val DEFAULT_VALUE = 2000                   // 기본값 2000
 
-    // 사용할 시간 단위 (테스트 모드에 따라 동적으로 결정)
-    val TIME_UNIT_MILLIS: Long
+    // 레벨 계산용 시간 단위 (테스트 모드에 따라 동적으로 결정)
+    val LEVEL_TIME_UNIT_MILLIS: Long
         get() = when (currentTestMode) {
             TEST_MODE_SECOND -> SECOND_IN_MILLIS  // 초 단위 테스트 (1초 = 1일)
             TEST_MODE_MINUTE -> MINUTE_IN_MILLIS  // 분 단위 테스트 (1분 = 1일)
             else -> DAY_IN_MILLIS                 // 실제 일 단위 (1일 = 24시간)
         }
 
-    // 시간 단위 텍스트 (테스트 모드에 따라 동적으로 결정)
-    val TIME_UNIT_TEXT: String
+    // 레벨 계산용 시간 단위 텍스트 (테스트 모드에 따라 동적으로 결정)
+    val LEVEL_TIME_UNIT_TEXT: String
         get() = when (currentTestMode) {
             TEST_MODE_SECOND -> "초"
             TEST_MODE_MINUTE -> "분"
             else -> "일"
         }
+
+    /**
+     * 레벨 계산용 일수 계산 함수
+     * 테스트 모드에 따라 다른 시간 단위로 계산
+     */
+    fun calculateLevelDays(elapsedTimeMillis: Long): Int {
+        return (elapsedTimeMillis / LEVEL_TIME_UNIT_MILLIS).toInt()
+    }
+
+    /**
+     * 레벨 계산용 일수 계산 함수 (Float)
+     * 테스트 모드에 따라 다른 시간 단위로 계산
+     */
+    fun calculateLevelDaysFloat(elapsedTimeMillis: Long): Float {
+        return (elapsedTimeMillis / LEVEL_TIME_UNIT_MILLIS.toFloat())
+    }
 
     // 앱 시작 시 설정 불러오기
     fun init(context: Context) {

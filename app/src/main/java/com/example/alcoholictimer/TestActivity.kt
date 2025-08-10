@@ -49,29 +49,45 @@ fun TestScreen() {
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // 시간 모드 설정
-        Text("시간 모드", fontSize = 20.sp)
+        // 레벨 테스트 모드 설정 (금주 진행에는 영향 없음)
+        Text("레벨 테스트 모드", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Text(
+            text = "※ 이 설정은 레벨 계산에만 영향을 미치며, 실제 금주 진행 시간은 변경되지 않습니다.",
+            fontSize = 14.sp,
+            color = Color.Gray,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(
                     selected = selectedMode == Constants.TEST_MODE_REAL,
                     onClick = { selectedMode = Constants.TEST_MODE_REAL }
                 )
-                Text("실제 시간 모드", fontSize = 16.sp)
+                Column {
+                    Text("실제 시간 모드", fontSize = 16.sp)
+                    Text("레벨 계산: 1일 = 24시간", fontSize = 12.sp, color = Color.Gray)
+                }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(
                     selected = selectedMode == Constants.TEST_MODE_MINUTE,
                     onClick = { selectedMode = Constants.TEST_MODE_MINUTE }
                 )
-                Text("분 단위 테스트 모드", fontSize = 16.sp)
+                Column {
+                    Text("분 단위 레벨 테스트", fontSize = 16.sp)
+                    Text("레벨 계산: 1분 = 1일 (테스트용)", fontSize = 12.sp, color = Color.Gray)
+                }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(
                     selected = selectedMode == Constants.TEST_MODE_SECOND,
                     onClick = { selectedMode = Constants.TEST_MODE_SECOND }
                 )
-                Text("초 단위 테스트 모드", fontSize = 16.sp)
+                Column {
+                    Text("초 단위 레벨 테스트", fontSize = 16.sp)
+                    Text("레벨 계산: 1초 = 1일 (테스트용)", fontSize = 12.sp, color = Color.Gray)
+                }
             }
         }
 

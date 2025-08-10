@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.alcoholictimer.utils.Constants
 import java.util.*
 import kotlin.math.roundToInt
 import org.json.JSONArray
@@ -51,10 +52,29 @@ fun RunScreen() {
     val startTime = sharedPref.getLong("start_time", 0L)
     val targetDays = sharedPref.getFloat("target_days", 30f)
 
+    // 시작 시간이 0인 경우 강제로 현재 시간으로 설정 (임시 해결책)
+    val actualStartTime = if (startTime == 0L) {
+        val currentTimeMillis = System.currentTimeMillis()
+        // SharedPreferences에 저장
+        sharedPref.edit().apply {
+            putLong("start_time", currentTimeMillis)
+            apply()
+        }
+        Log.w("RunActivity", "startTime이 0이어서 현재 시간으로 강제 설정: $currentTimeMillis")
+        currentTimeMillis
+    } else {
+        startTime
+    }
+
     // 설정값 가져오기 (범주형 설정값)
     val selectedCost = sharedPref.getString("selected_cost", "중") ?: "중"
     val selectedFrequency = sharedPref.getString("selected_frequency", "주 2~3회") ?: "주 2~3회"
     val selectedDuration = sharedPref.getString("selected_duration", "보통") ?: "보통"
+
+    // 테스트 모드 설정 로드 및 적용 (레벨 계산용)
+    val testModePrefs = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
+    val currentTestMode = testModePrefs.getInt(Constants.PREF_TEST_MODE, Constants.TEST_MODE_REAL)
+    Constants.updateTestMode(currentTestMode)
 
     // 실시간 시간 업데이트
     var currentTime by remember { mutableStateOf(System.currentTimeMillis()) }
@@ -66,10 +86,17 @@ fun RunScreen() {
         }
     }
 
-    // 경과 시간 계산 (startTime이 0이면 아직 시작되지 않음)
-    val elapsedTime = if (startTime > 0) currentTime - startTime else 0L
-    val elapsedDays = (elapsedTime / (24 * 60 * 60 * 1000)).toInt()
-    val elapsedDaysFloat = (elapsedTime / (24.0 * 60 * 60 * 1000)).toFloat() // 소수점 포함 일수
+    // 경과 시간 계산 (항상 실제 시간 사용)
+    val elapsedTime = if (actualStartTime > 0) currentTime - actualStartTime else 0L
+
+    // 금주 진행은 항상 실제 시간으로 계산 (소수점 지원)
+    val elapsedDaysFloat = (elapsedTime / Constants.DAY_IN_MILLIS.toFloat())
+    val elapsedDays = elapsedDaysFloat.toInt()
+
+    // 레벨 계산용 일수 (테스트 모드 적용)
+    val levelDays = Constants.calculateLevelDays(elapsedTime)
+
+    // 실제 경과 시간 계산 (시:분:초 표시용)
     val elapsedHours = ((elapsedTime % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)).toInt()
     val elapsedMinutes = ((elapsedTime % (60 * 60 * 1000)) / (60 * 1000)).toInt()
     val elapsedSeconds = ((elapsedTime % (60 * 1000)) / 1000).toInt()
@@ -77,9 +104,8 @@ fun RunScreen() {
     // 진행 중인 시간 포맷 (HH:MM:SS)
     val progressTimeText = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds)
 
-    // 디버그용 로그 (실제 배포시 제거)
-    // println("DEBUG: startTime=$startTime, currentTime=$currentTime, elapsedTime=$elapsedTime")
-    // println("DEBUG: days=$elapsedDays, hours=$elapsedHours, minutes=$elapsedMinutes, seconds=$elapsedSeconds")
+    // 디버깅 로그
+    Log.d("RunActivity", "실제 경과일수: $elapsedDays, 레벨용 일수: $levelDays, 테스트모드: ${Constants.currentTestMode}")
 
     // 중앙 지표 순환 상태 (0: 일수, 1: 진행시간, 2: 레벨, 3: 금액, 4: 절약시간, 5: 수명) - 명세서 준수
     var currentIndicator by remember { mutableStateOf(0) }
@@ -114,25 +140,57 @@ fun RunScreen() {
     val savedHours = (weeks * freqVal * (drinkHoursVal + hangoverHoursVal)).roundToInt()
     val lifeGainDays = ((elapsedDays / 30.0) * 1.0).roundToInt() // 30일→+1일 규칙
 
-    // 진행률 계산 (소수점 포함)
-    val progress = if (targetDays > 0) (elapsedDaysFloat / targetDays).coerceAtMost(1.0f) else 0f
-
-    // 목표 달성 감지 및 자동 저장 (개선된 버전)
+    // 목표 달성 감지 및 자동 저장을 위한 상태 변수들 (먼저 선언)
     var hasCompleted by remember { mutableStateOf(false) }
-
-    // 목표 달성 시 DetailActivity로 이동하는 상태
     var shouldNavigateToDetail by remember { mutableStateOf(false) }
 
+    // 진행률 계산 (실제 시간으로 고정) - 더 상세한 디버깅
+    val totalTargetMillis = (targetDays * Constants.DAY_IN_MILLIS).toLong()
+    val progress = if (totalTargetMillis > 0) {
+        val rawProgress = elapsedTime.toFloat() / totalTargetMillis.toFloat()
+        rawProgress.coerceAtMost(1.0f)
+    } else 0f
+
+    // 매우 상세한 디버깅 로그
+    Log.d("RunActivity", "========== 초정밀 디버깅 ==========")
+    Log.d("RunActivity", "startTime 원본: $startTime")
+    Log.d("RunActivity", "actualStartTime: $actualStartTime")
+    Log.d("RunActivity", "currentTime: $currentTime")
+    Log.d("RunActivity", "elapsedTime: ${elapsedTime}ms")
+    Log.d("RunActivity", "targetDays: $targetDays")
+    Log.d("RunActivity", "Constants.DAY_IN_MILLIS: ${Constants.DAY_IN_MILLIS}")
+    Log.d("RunActivity", "totalTargetMillis: ${totalTargetMillis}ms")
+    Log.d("RunActivity", "목표까지 남은 시간: ${totalTargetMillis - elapsedTime}ms")
+    Log.d("RunActivity", "rawProgress 계산: $elapsedTime / $totalTargetMillis = ${elapsedTime.toFloat() / totalTargetMillis.toFloat()}")
+    Log.d("RunActivity", "최종 progress: $progress")
+    Log.d("RunActivity", "progress 백분율: ${(progress * 100)}%")
+    Log.d("RunActivity", "elapsedDaysFloat: $elapsedDaysFloat")
+    Log.d("RunActivity", "목표 달성 여부: ${elapsedDaysFloat >= targetDays}")
+    Log.d("RunActivity", "hasCompleted: $hasCompleted")
+
+    // 0.0001일 테스트를 위한 특별 계산
+    if (targetDays < 0.001f) {
+        val targetSeconds = targetDays * 24 * 60 * 60
+        val elapsedSeconds = elapsedTime / 1000.0
+        Log.d("RunActivity", "=== 극소수점 테스트 모드 ===")
+        Log.d("RunActivity", "목표 초수: ${targetSeconds}초")
+        Log.d("RunActivity", "경과 초수: ${elapsedSeconds}초")
+        Log.d("RunActivity", "남은 초수: ${targetSeconds - elapsedSeconds}초")
+        Log.d("RunActivity", "========================")
+    }
+    Log.d("RunActivity", "=====================================")
+
+    // 목표 달성 감지 및 자동 저장 LaunchedEffect
     LaunchedEffect(elapsedDaysFloat, targetDays) {
-        if (elapsedDaysFloat >= targetDays && targetDays > 0 && startTime > 0 && !hasCompleted) {
+        if (elapsedDaysFloat >= targetDays && targetDays > 0 && actualStartTime > 0 && !hasCompleted) {
             hasCompleted = true // 중복 실행 방지
 
             try {
                 // 목표 달성 시 자동으로 기록 저장
-                val isCompleted = elapsedDaysFloat >= targetDays && targetDays > 0 && startTime > 0
+                val isCompleted = elapsedDaysFloat >= targetDays && targetDays > 0 && actualStartTime > 0
                 saveCompletedRecord(
                     context = context,
-                    startTime = startTime,
+                    startTime = actualStartTime,
                     endTime = System.currentTimeMillis(),
                     targetDays = targetDays.toInt(),
                     actualDays = elapsedDays,
@@ -162,7 +220,7 @@ fun RunScreen() {
         if (shouldNavigateToDetail) {
             DetailActivity.start(
                 context = context,
-                startTime = startTime,
+                startTime = actualStartTime,
                 endTime = System.currentTimeMillis(),
                 targetDays = targetDays,
                 actualDays = elapsedDays,
@@ -193,7 +251,7 @@ fun RunScreen() {
             )
 
             Text(
-                text = getLevelName(elapsedDays),
+                text = getLevelName(levelDays), // 실제 일수 대신 레벨용 일수 사용
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
@@ -273,9 +331,9 @@ fun RunScreen() {
                             )
                         }
                         2 -> {
-                            // 현재 레벨
+                            // 현재 레벨 (테스트 모드 적용)
                             Text(
-                                text = getLevelName(elapsedDays),
+                                text = getLevelName(levelDays), // 실제 일수 대신 레벨용 일수 사용
                                 fontSize = 36.sp, // 레벨명은 더 작게
                                 fontWeight = FontWeight.Bold,
                                 textAlign = TextAlign.Center,
@@ -371,8 +429,16 @@ fun ProgressIndicator(progress: Float) {
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
+        // 디버깅용 추가 정보 표시
+        Text(
+            text = "Progress value: $progress",
+            fontSize = 12.sp,
+            color = Color.Red,
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
+
         LinearProgressIndicator(
-            progress = { progress },
+            progress = progress, // 람다 대신 직접 값 전달로 변경
             modifier = Modifier
                 .fillMaxWidth()
                 .height(8.dp)
