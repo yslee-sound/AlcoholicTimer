@@ -30,6 +30,9 @@ import kotlinx.coroutines.launch
  */
 abstract class BaseActivity : ComponentActivity() {
 
+    // 별명 상태를 관리하는 mutable state
+    private var nicknameState = mutableStateOf("")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -38,6 +41,15 @@ abstract class BaseActivity : ComponentActivity() {
 
         // 상태 바와 내비게이션 바 색상 조정
         WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        // 초기 별명 로드
+        nicknameState.value = getNickname()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 화면이 다시 나타날 때마다 별명을 업데이트
+        nicknameState.value = getNickname()
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -45,7 +57,7 @@ abstract class BaseActivity : ComponentActivity() {
     protected fun BaseScreen(content: @Composable () -> Unit) {
         val drawerState = rememberDrawerState(DrawerValue.Closed)
         val scope = rememberCoroutineScope()
-        var currentNickname by remember { mutableStateOf(getNickname()) }
+        val currentNickname by nicknameState
 
         ModalNavigationDrawer(
             drawerState = drawerState,
