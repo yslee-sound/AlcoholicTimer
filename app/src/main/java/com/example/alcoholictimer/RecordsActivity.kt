@@ -25,29 +25,22 @@ import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.components.MonthPickerBottomSheet
 import com.example.alcoholictimer.components.WeekPickerBottomSheet
 import com.example.alcoholictimer.components.YearPickerBottomSheet
+import com.example.alcoholictimer.utils.SobrietyRecord
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONArray
+import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
-
-data class SobrietyRecord(
-    val id: String,
-    val startTime: Long,
-    val endTime: Long,
-    val targetDays: Int,
-    val actualDays: Int,
-    val isCompleted: Boolean,
-    val status: String,
-    val createdAt: Long
-)
 
 class RecordsActivity : BaseActivity() {
 
     // 디버깅용 태그
-    private val TAG = "RecordsActivity"
+    companion object {
+        private const val TAG = "RecordsActivity"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,25 +51,81 @@ class RecordsActivity : BaseActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // 화면이 다시 나타날 때마다 데이터를 새로고침
+        Log.d(TAG, "onResume: 기록 화면이 다시 나타남 - 데이터 새로고침")
+    }
+
     override fun getScreenTitle(): String = "금주 기록"
 
     @Composable
     private fun RecordsScreen() {
         val context = LocalContext.current
-        val coroutineScope = rememberCoroutineScope() // 코루틴 스코프 추가
+        val coroutineScope = rememberCoroutineScope()
         var records by remember { mutableStateOf<List<SobrietyRecord>>(emptyList()) }
         var selectedPeriod by remember { mutableStateOf("월") }
         var selectedYear by remember { mutableStateOf(Calendar.getInstance().get(Calendar.YEAR)) }
         var selectedMonth by remember { mutableStateOf(Calendar.getInstance().get(Calendar.MONTH) + 1) }
-        // selectedRange를 월 기본값으로 초기화
         var selectedRange by remember { mutableStateOf("${selectedYear}년 ${selectedMonth}월") }
         var showMonthPicker by remember { mutableStateOf(false) }
         var showWeekPicker by remember { mutableStateOf(false) }
         var showYearPicker by remember { mutableStateOf(false) }
+        var refreshTrigger by remember { mutableStateOf(0) }
 
         // Pull-to-Refresh 상태
         var isRefreshing by remember { mutableStateOf(false) }
         val swipeRefreshState = rememberSwipeRefreshState(isRefreshing)
+
+        // 테스트용 기록 추가 함수
+        fun addTestRecord() {
+            try {
+                Log.d(TAG, "========== 테스트 기록 추가 시작 ==========")
+                val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+                val currentTime = System.currentTimeMillis()
+                val startTime = currentTime - (2 * 24 * 60 * 60 * 1000L) // 2일 전 시작
+
+                val testRecord = JSONObject().apply {
+                    put("id", "test_${System.currentTimeMillis()}")
+                    put("startTime", startTime)
+                    put("endTime", currentTime)
+                    put("targetDays", 30)
+                    put("actualDays", 2)
+                    put("isCompleted", false)
+                    put("status", "중지")
+                    put("createdAt", currentTime)
+                }
+
+                Log.d(TAG, "생성된 테스트 기록: $testRecord")
+
+                val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
+                Log.d(TAG, "기존 기록들: $recordsJson")
+
+                val recordsList = try {
+                    JSONArray(recordsJson)
+                } catch (e: Exception) {
+                    Log.w(TAG, "기존 기록 파싱 실패: ${e.message}")
+                    JSONArray()
+                }
+
+                recordsList.put(testRecord)
+                Log.d(TAG, "기록 추가 후: $recordsList")
+
+                val editor = sharedPref.edit()
+                editor.putString("sobriety_records", recordsList.toString())
+                val success = editor.commit() // apply() 대신 commit() 사용
+
+                Log.d(TAG, "저장 성공: $success")
+
+                // 저장 확인
+                val savedData = sharedPref.getString("sobriety_records", "[]")
+                Log.d(TAG, "저장 확인: $savedData")
+                Log.d(TAG, "========== 테스트 기록 추가 완료 ==========")
+
+            } catch (e: Exception) {
+                Log.e(TAG, "테스트 기록 추가 중 오류: ${e.message}", e)
+            }
+        }
 
         // 데이터 로드 함수
         suspend fun loadRecords() {
@@ -85,25 +134,38 @@ class RecordsActivity : BaseActivity() {
                 // 약간의 지연을 추가하여 새로고침 애니메이션을 보여줌
                 delay(500)
                 records = loadSobrietyRecords(context)
+                Log.d(TAG, "========== 기록 로딩 디버깅 ==========")
                 Log.d(TAG, "새로고침: 로드된 기록: ${records.size}개")
+
+                // 디버깅: 각 기록의 상세 정보 출력
+                records.forEachIndexed { index, record ->
+                    Log.d(TAG, "기록 $index: id=${record.id}")
+                    Log.d(TAG, "  목표=${record.targetDays}일, 달성=${record.actualDays}일")
+                    Log.d(TAG, "  완료=${record.isCompleted}, 상태=${record.status}")
+                    Log.d(TAG, "  시작=${record.startTime}, 종료=${record.endTime}")
+                    Log.d(TAG, "  생성=${record.createdAt}")
+                }
+                Log.d(TAG, "====================================")
             } finally {
                 isRefreshing = false
             }
         }
 
-        // 초기 기록 로드
+        // 초기 기록 로드 및 화면이 다시 나타날 때마다 새로고침
+        LaunchedEffect(refreshTrigger) {
+            loadRecords()
+        }
+
+        // 화면이 다시 나타날 때 새로고침 (onResume 대신 LaunchedEffect 사용)
         LaunchedEffect(Unit) {
             loadRecords()
         }
 
-        // 선택된 연/월에 따라 데이터 필터링 (예시)
-        val filteredRecords = remember(selectedYear, selectedMonth, selectedPeriod) {
-            if (selectedPeriod == "월") {
-                // 실제로는 선택된 연/월에 해당하는 기록만 필터링해야 함
-                records
-            } else {
-                records
-            }
+        // 선택된 연/월에 따라 데이터 필터링
+        val filteredRecords = remember(records, selectedYear, selectedMonth, selectedPeriod) {
+            Log.d(TAG, "필터링 적용: 기간=$selectedPeriod, 전체 기록=${records.size}개")
+            // 최근 활동(전체)에서는 조건 없이 모든 기록을 보여줌
+            records
         }
 
         // MonthPickerBottomSheet
@@ -204,11 +266,29 @@ class RecordsActivity : BaseActivity() {
 
                     // 하단: 최근 활동 섹션 헤더
                     item {
-                        Text(
-                            text = "최근 활동",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "최근 활동",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            // 디버깅용 테스트 기록 추가 버튼
+                            Button(
+                                onClick = {
+                                    addTestRecord()
+                                    // 즉시 새로고침 트리거
+                                    refreshTrigger++
+                                },
+                                modifier = Modifier.padding(start = 8.dp)
+                            ) {
+                                Text("테스트 기록 추가")
+                            }
+                        }
                     }
 
                     if (filteredRecords.isEmpty()) {
@@ -320,7 +400,7 @@ fun SobrietyRecordCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(4.dp)
-            .clickable { onClick() }, // 클릭 이벤트 추가
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(
             containerColor = if (record.isCompleted) Color(0xFFE8F5E8) else Color(0xFFFFF3CD)
         ),
@@ -379,7 +459,7 @@ fun SobrietyRecordCard(
                     )
                 }
 
-                // 중앙: 목표 대비 ��행률
+                // 중앙: 목표 대비 진행률
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "${progressPercent}%",
@@ -432,7 +512,7 @@ fun SobrietyRecordCard(
             if (durationDays > 0 || durationHours > 0 || durationMinutes > 0) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "지속 시간: ${durationDays}일 ${durationHours}시��� ${durationMinutes}분",
+                    text = "지속 시간: ${durationDays}일 ${durationHours}시간 ${durationMinutes}분",
                     fontSize = 12.sp,
                     color = Color.Gray
                 )
@@ -445,28 +525,34 @@ private fun loadSobrietyRecords(context: android.content.Context): List<Sobriety
     return try {
         val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
         val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
-        val jsonArray = JSONArray(recordsJson)
 
-        val records = mutableListOf<SobrietyRecord>()
-        for (i in 0 until jsonArray.length()) {
-            val jsonObject = jsonArray.getJSONObject(i)
-            records.add(
-                SobrietyRecord(
-                    id = jsonObject.getString("id"),
-                    startTime = jsonObject.getLong("startTime"),
-                    endTime = jsonObject.getLong("endTime"),
-                    targetDays = jsonObject.getInt("targetDays"),
-                    actualDays = jsonObject.getInt("actualDays"),
-                    isCompleted = jsonObject.getBoolean("isCompleted"),
-                    status = jsonObject.getString("status"),
-                    createdAt = jsonObject.getLong("createdAt")
-                )
-            )
+        Log.d("RecordsActivity", "========== 디버깅 정보 ==========")
+        Log.d("RecordsActivity", "저장된 JSON 문자열: $recordsJson")
+        Log.d("RecordsActivity", "JSON 길이: ${recordsJson.length}")
+
+        // SobrietyRecord의 companion object 메서드 사용
+        val records = SobrietyRecord.fromJsonArray(recordsJson)
+
+        Log.d("RecordsActivity", "파싱된 기록 개수: ${records.size}")
+        records.forEachIndexed { index, record ->
+            Log.d("RecordsActivity", "기록 $index:")
+            Log.d("RecordsActivity", "  ID: ${record.id}")
+            Log.d("RecordsActivity", "  시작시간: ${record.startTime}")
+            Log.d("RecordsActivity", "  종료시간: ${record.endTime}")
+            Log.d("RecordsActivity", "  목표일수: ${record.targetDays}")
+            Log.d("RecordsActivity", "  달성일수: ${record.actualDays}")
+            Log.d("RecordsActivity", "  완료여부: ${record.isCompleted}")
+            Log.d("RecordsActivity", "  상태: ${record.status}")
+            Log.d("RecordsActivity", "  생성시간: ${record.createdAt}")
         }
+        Log.d("RecordsActivity", "===============================")
 
         // 최신 순으로 정렬
         records.sortedByDescending { it.createdAt }
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        Log.e("RecordsActivity", "기록 로딩 중 오류 발생", e)
+        Log.e("RecordsActivity", "오류 상세: ${e.message}")
+        Log.e("RecordsActivity", "스택 트레이스: ${e.stackTraceToString()}")
         emptyList()
     }
 }

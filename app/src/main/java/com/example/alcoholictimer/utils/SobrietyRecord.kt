@@ -2,38 +2,81 @@ package com.example.alcoholictimer.utils
 
 import org.json.JSONArray
 import org.json.JSONObject
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  * 금주 기록을 저장하는 데이터 클래스
  *
- * @property id 고유 ID (저장 시간 기반)
- * @property startDate 금주 시작 날짜 (문자열 형식: "yyyy-MM-dd HH:mm:ss")
- * @property endDate 금주 종료 날짜 (문자열 형식: "yyyy-MM-dd HH:mm:ss")
- * @property duration 목표 기간 (일 또는 분 단위)
- * @property achievedDays 실제 달성한 기간 (일 또는 분 단위, 완료 시 duration과 동일)
- * @property achievedLevel 달성한 레벨
- * @property levelTitle 달성한 레벨 타이틀
+ * @property id 고유 ID (저장 시간 기반, String 타입)
+ * @property startTime 금주 시작 시간 (밀리초 타임스탬프)
+ * @property endTime 금주 종료 시간 (밀리초 타임스탬프)
+ * @property targetDays 목표 기간 (일 단위)
+ * @property actualDays 실제 달성한 기간 (일 단위)
  * @property isCompleted 목표를 완료했는지 여부 (true: 완료, false: 중도 포기)
+ * @property status 상태 ("완료" 또는 "중지")
+ * @property createdAt 기록 생성 시간 (밀리초 타임스탬프)
  */
 data class SobrietyRecord(
-    val id: Long,
-    val startDate: String,
-    val endDate: String,
-    val duration: Int,
-    val achievedDays: Int = duration, // 완료된 경우 기본값은 전체 기간
-    val achievedLevel: Int,
-    val levelTitle: String,
-    val isCompleted: Boolean
+    val id: String,
+    val startTime: Long,
+    val endTime: Long,
+    val targetDays: Int,
+    val actualDays: Int,
+    val isCompleted: Boolean,
+    val status: String,
+    val createdAt: Long
 ) {
     /**
      * 달성률 계산 (백분율)
      */
     val achievedPercentage: Int
-        get() = if (duration > 0) {
-            ((achievedDays.toFloat() / duration.toFloat()) * 100).toInt()
+        get() = if (targetDays > 0) {
+            ((actualDays.toFloat() / targetDays.toFloat()) * 100).toInt()
         } else {
             0
         }
+
+    /**
+     * 시작 날짜를 문자열로 포맷
+     */
+    val startDateString: String
+        get() = formatDate(startTime)
+
+    /**
+     * 종료 날짜를 문자열로 포맷
+     */
+    val endDateString: String
+        get() = formatDate(endTime)
+
+    /**
+     * 달성한 레벨 계산
+     */
+    val achievedLevel: Int
+        get() = when {
+            actualDays < 7 -> 1
+            actualDays < 30 -> 2
+            actualDays < 90 -> 3
+            actualDays < 365 -> 4
+            else -> 5
+        }
+
+    /**
+     * 달성한 레벨 타이틀
+     */
+    val levelTitle: String
+        get() = when {
+            actualDays < 7 -> "시작"
+            actualDays < 30 -> "작심 7일"
+            actualDays < 90 -> "한 달 클리어"
+            actualDays < 365 -> "3개월 클리어"
+            else -> "절제의 레전드"
+        }
+
+    private fun formatDate(timestamp: Long): String {
+        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        return sdf.format(Date(timestamp))
+    }
 
     /**
      * 기록을 JSONObject로 변환
@@ -41,13 +84,13 @@ data class SobrietyRecord(
     fun toJson(): JSONObject {
         val json = JSONObject()
         json.put("id", id)
-        json.put("startDate", startDate)
-        json.put("endDate", endDate)
-        json.put("duration", duration)
-        json.put("achievedDays", achievedDays)
-        json.put("achievedLevel", achievedLevel)
-        json.put("levelTitle", levelTitle)
+        json.put("startTime", startTime)
+        json.put("endTime", endTime)
+        json.put("targetDays", targetDays)
+        json.put("actualDays", actualDays)
         json.put("isCompleted", isCompleted)
+        json.put("status", status)
+        json.put("createdAt", createdAt)
         return json
     }
 
@@ -57,14 +100,14 @@ data class SobrietyRecord(
          */
         fun fromJson(json: JSONObject): SobrietyRecord {
             return SobrietyRecord(
-                id = json.getLong("id"),
-                startDate = json.getString("startDate"),
-                endDate = json.getString("endDate"),
-                duration = json.getInt("duration"),
-                achievedDays = json.getInt("achievedDays"),
-                achievedLevel = json.getInt("achievedLevel"),
-                levelTitle = json.getString("levelTitle"),
-                isCompleted = json.getBoolean("isCompleted")
+                id = json.getString("id"),
+                startTime = json.getLong("startTime"),
+                endTime = json.getLong("endTime"),
+                targetDays = json.getInt("targetDays"),
+                actualDays = json.getInt("actualDays"),
+                isCompleted = json.getBoolean("isCompleted"),
+                status = json.getString("status"),
+                createdAt = json.getLong("createdAt")
             )
         }
 

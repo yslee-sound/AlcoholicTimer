@@ -3,6 +3,7 @@ package com.example.alcoholictimer
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -323,38 +324,60 @@ private fun saveCompletedRecord(
     actualDays: Int
 ) {
     try {
+        Log.d("QuitActivity", "========== 기록 저장 시작 ==========")
+        Log.d("QuitActivity", "startTime: $startTime")
+        Log.d("QuitActivity", "endTime: $endTime")
+        Log.d("QuitActivity", "targetDays: $targetDays")
+        Log.d("QuitActivity", "actualDays: $actualDays")
+
         val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
 
         val recordId = System.currentTimeMillis().toString()
+        Log.d("QuitActivity", "생성된 기록 ID: $recordId")
 
         val record = JSONObject().apply {
             put("id", recordId)
             put("startTime", startTime)
             put("endTime", endTime)
-            put("targetDays", targetDays.toDouble())
+            put("targetDays", targetDays.toInt()) // Double에서 Int로 변경
             put("actualDays", actualDays)
             put("isCompleted", false)
             put("status", "중지")
             put("createdAt", System.currentTimeMillis())
         }
 
+        Log.d("QuitActivity", "생성된 기록 JSON: $record")
+
         val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
+        Log.d("QuitActivity", "기존 기록들: $recordsJson")
+
         val recordsList = try {
             JSONArray(recordsJson)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.w("QuitActivity", "기존 기록 파싱 실패, 새로운 배열 생성: ${e.message}")
             JSONArray()
         }
 
         recordsList.put(record)
+        Log.d("QuitActivity", "기록 추가 후 배열: $recordsList")
 
+        val finalJson = recordsList.toString()
         sharedPref.edit {
-            putString("sobriety_records", recordsList.toString())
+            putString("sobriety_records", finalJson)
         }
+
+        // 저장 확인
+        val savedJson = sharedPref.getString("sobriety_records", "[]")
+        Log.d("QuitActivity", "저장 확인 - 저장된 데이터: $savedJson")
+        Log.d("QuitActivity", "========== 기록 저장 완료 ==========")
 
         val message = "금주 기록이 저장되었습니다."
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        Log.e("QuitActivity", "기록 저장 중 오류 발생", e)
+        Log.e("QuitActivity", "오류 상세: ${e.message}")
+        Log.e("QuitActivity", "스택 트레이스: ${e.stackTraceToString()}")
         Toast.makeText(context, "기록 저장 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
     }
 }
