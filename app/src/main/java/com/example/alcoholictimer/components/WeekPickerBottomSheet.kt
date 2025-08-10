@@ -21,16 +21,17 @@ fun WeekPickerBottomSheet(
     onDismiss: () -> Unit,
     onWeekPicked: (weekStart: Long, weekEnd: Long, displayText: String) -> Unit
 ) {
-    var selectedWeekIndex by remember { mutableStateOf(0) }
-
-    val bottomSheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
-
     // 최근 8주간의 주 목록 생성
     val weekOptions = remember {
         generateWeekOptions()
     }
+
+    // 기본값을 "이번 주"(마지막 인덱스)로 설정
+    var selectedWeekIndex by remember { mutableStateOf(weekOptions.size - 1) }
+
+    val bottomSheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
 
     if (isVisible) {
         ModalBottomSheet(
@@ -175,6 +176,6 @@ private fun generateWeekOptions(): List<WeekOption> {
         calendar.add(Calendar.DAY_OF_WEEK, -13) // 일요일에서 이전 주 월요일로
     }
 
-    // 과거에서 현재 순으로 정렬 - 이번 주가 맨 위에 오도록
-    return options
+    // 과거에서 현재 순으로 정렬 (reverse)
+    return options.reversed()
 }
