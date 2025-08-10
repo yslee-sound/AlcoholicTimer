@@ -30,11 +30,11 @@ fun NumberPicker(
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = value - range.first)
     val coroutineScope = rememberCoroutineScope()
     val snapBehavior = rememberSnapFlingBehavior(lazyListState = listState)
-
+    
     val itemHeight = 48.dp
     val visibleItemsCount = 5
     val visibleItemsMiddle = visibleItemsCount / 2
-
+    
     // 스크롤 상태 변경을 debounce하여 처리
     LaunchedEffect(listState.isScrollInProgress) {
         if (!listState.isScrollInProgress) {
@@ -45,7 +45,7 @@ fun NumberPicker(
             }
         }
     }
-
+    
     LaunchedEffect(value) {
         val targetIndex = value - range.first
         if (targetIndex != listState.firstVisibleItemIndex) {
@@ -54,7 +54,7 @@ fun NumberPicker(
             }
         }
     }
-
+    
     Box(
         modifier = modifier
             .height(itemHeight * visibleItemsCount)
@@ -71,7 +71,7 @@ fun NumberPicker(
                     RoundedCornerShape(8.dp)
                 )
         )
-
+        
         LazyColumn(
             state = listState,
             flingBehavior = snapBehavior,
@@ -85,9 +85,9 @@ fun NumberPicker(
                 } else {
                     itemValue.toString()
                 }
-
+                
                 val isSelected = itemValue == value
-
+                
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -107,7 +107,7 @@ fun NumberPicker(
                 }
             }
         }
-
+        
         // 레이블
         if (label.isNotEmpty()) {
             Text(

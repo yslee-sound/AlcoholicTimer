@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.components.MonthPickerBottomSheet
 import com.example.alcoholictimer.components.WeekPickerBottomSheet
+import com.example.alcoholictimer.components.YearPickerBottomSheet
 import org.json.JSONArray
 import java.text.SimpleDateFormat
 import java.util.*
@@ -69,11 +70,12 @@ class RecordsActivity : BaseActivity() {
         var selectedRange by remember { mutableStateOf("${selectedYear}년 ${selectedMonth}월") }
         var showMonthPicker by remember { mutableStateOf(false) }
         var showWeekPicker by remember { mutableStateOf(false) }
+        var showYearPicker by remember { mutableStateOf(false) }
 
         // 기록 로드
         LaunchedEffect(Unit) {
             records = loadSobrietyRecords(context)
-            Log.d(TAG, "로드된 기록: ${records.size}개")
+            Log.d(TAG, "로드된 기록: ${records.size}���")
         }
 
         // 선택된 연/월에 따라 데이터 필터링 (예시)
@@ -108,6 +110,18 @@ class RecordsActivity : BaseActivity() {
                 selectedRange = displayText
                 Log.d(TAG, "선택된 주: $displayText")
             }
+        )
+
+        // YearPickerBottomSheet
+        YearPickerBottomSheet(
+            isVisible = showYearPicker,
+            onDismiss = { showYearPicker = false },
+            onYearPicked = { year ->
+                selectedYear = year
+                selectedRange = "${year}년"
+                Log.d(TAG, "선택된 연: ${year}년")
+            },
+            initialYear = selectedYear
         )
 
         LazyColumn(
@@ -146,6 +160,7 @@ class RecordsActivity : BaseActivity() {
                         when (selectedPeriod) {
                             "월" -> showMonthPicker = true
                             "주" -> showWeekPicker = true
+                            "년" -> showYearPicker = true
                         }
                     }
                 )
