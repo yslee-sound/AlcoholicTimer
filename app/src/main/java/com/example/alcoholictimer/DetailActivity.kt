@@ -334,13 +334,13 @@ fun DetailScreen(
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
                     lineHeight = 72.sp,
-                    modifier = Modifier.padding(start = 26.dp) // 왼쪽 패딩 추가
+                    modifier = Modifier.padding(start = 0.dp) // 왼쪽 패딩 추가
                 )
                 Text(
                     text = "일",
                     fontSize = 16.sp,
                     color = Color.Gray,
-                    modifier = Modifier.padding(start = 39.dp) // 왼쪽 패딩 추가
+                    modifier = Modifier.padding(start = 0.dp) // 왼쪽 패딩 추가
                 )
             }
         }
@@ -362,12 +362,12 @@ fun DetailScreen(
                 SubStatItem(
                     value = String.format("%,d원", savedMoney),
                     label = "절약한 금액",
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1.3f)
                 )
                 SubStatItem(
                     value = "${savedHours}시간",
                     label = "절약한 시간",
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(0.7f)
                 )
             }
 
@@ -386,12 +386,12 @@ fun DetailScreen(
                 SubStatItem(
                     value = getLevelName(actualDays),
                     label = "달성 레벨",
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1.3f)
                 )
                 SubStatItem(
                     value = "+${(actualDays / 30.0).roundToInt()}일",
                     label = "기대 수명 증가",
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(0.7f)
                 )
             }
         }
@@ -407,25 +407,26 @@ fun DetailScreen(
 fun SubStatItem(
     value: String,
     label: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    alignEnd: Boolean = false // 정렬 방향 파라미터 추가
 ) {
     Column(
-        modifier = modifier.padding(horizontal = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = modifier,
+        horizontalAlignment = if (alignEnd) Alignment.End else Alignment.Start // 정렬 방향 선택
     ) {
         Text(
             text = value,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
-            textAlign = TextAlign.Center
+            textAlign = if (alignEnd) TextAlign.End else TextAlign.Start // 정렬 방향 선택
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = label,
             fontSize = 12.sp,
             color = Color.Gray,
-            textAlign = TextAlign.Center
+            textAlign = if (alignEnd) TextAlign.End else TextAlign.Start // 정렬 방향 선택
         )
     }
 }
