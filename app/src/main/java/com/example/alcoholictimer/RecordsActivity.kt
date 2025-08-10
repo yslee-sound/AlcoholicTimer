@@ -25,6 +25,10 @@ import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.components.MonthPickerBottomSheet
 import com.example.alcoholictimer.components.WeekPickerBottomSheet
 import com.example.alcoholictimer.components.YearPickerBottomSheet
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 import java.text.SimpleDateFormat
 import java.util.*
@@ -59,6 +63,7 @@ class RecordsActivity : BaseActivity() {
     @Composable
     private fun RecordsScreen() {
         val context = LocalContext.current
+        val coroutineScope = rememberCoroutineScope() // 코루틴 스코프 추가
         var records by remember { mutableStateOf<List<SobrietyRecord>>(emptyList()) }
         var selectedPeriod by remember { mutableStateOf("월") }
         var selectedYear by remember { mutableStateOf(Calendar.getInstance().get(Calendar.YEAR)) }
@@ -69,10 +74,26 @@ class RecordsActivity : BaseActivity() {
         var showWeekPicker by remember { mutableStateOf(false) }
         var showYearPicker by remember { mutableStateOf(false) }
 
-        // 기록 로드
+        // Pull-to-Refresh 상태
+        var isRefreshing by remember { mutableStateOf(false) }
+        val swipeRefreshState = rememberSwipeRefreshState(isRefreshing)
+
+        // 데이터 로드 함수
+        suspend fun loadRecords() {
+            isRefreshing = true
+            try {
+                // 약간의 지연을 추가하여 새로고침 애니메이션을 보여줌
+                delay(500)
+                records = loadSobrietyRecords(context)
+                Log.d(TAG, "새로고침: 로드된 기록: ${records.size}개")
+            } finally {
+                isRefreshing = false
+            }
+        }
+
+        // 초기 기록 로드
         LaunchedEffect(Unit) {
-            records = loadSobrietyRecords(context)
-            Log.d(TAG, "로드된 기록: ${records.size}���")
+            loadRecords()
         }
 
         // 선택된 연/월에 따라 데이터 필터링 (예시)
@@ -121,91 +142,106 @@ class RecordsActivity : BaseActivity() {
             initialYear = selectedYear
         )
 
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 상단: 기간 선택 탭 섹션
-            item {
-                PeriodSelectionSection(
-                    selectedPeriod = selectedPeriod,
-                    onPeriodSelected = {
-                        selectedPeriod = it
-                        // 기간이 바뀌면 ��롭다운 기본값도 변경
-                        selectedRange = when (it) {
-                            "주" -> "이번 주"
-                            "월" -> "${selectedYear}년 ${selectedMonth}월"
-                            "년" -> "${selectedYear}년"
-                            "전체" -> "전체"
-                            else -> "전체"
-                        }
+            SwipeRefresh(
+                state = swipeRefreshState,
+                onRefresh = {
+                    // Pull-to-Refresh 새로고침 실행
+                    coroutineScope.launch {
+                        loadRecords()
                     }
-                )
-            }
-
-            // 통계 카드들을 별도 아이템으로 빼내기
-            item {
-                StatisticsCardsSection(
-                    records = filteredRecords,
-                    selectedPeriod = selectedPeriod,
-                    selectedRange = selectedRange,
-                    onRangeSelected = {
-                        selectedRange = it
-                        // 선택된 기간에 따라 적절한 바텀시트를 표시
-                        when (selectedPeriod) {
-                            "월" -> showMonthPicker = true
-                            "주" -> showWeekPicker = true
-                            "년" -> showYearPicker = true
-                        }
+                }
+            ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // 상단: 기간 선택 탭 섹션 (새로고침 버튼 제거)
+                    item {
+                        PeriodSelectionSection(
+                            selectedPeriod = selectedPeriod,
+                            onPeriodSelected = {
+                                selectedPeriod = it
+                                // 기간이 바뀌면 드롭다운 기본값도 변경
+                                selectedRange = when (it) {
+                                    "주" -> "이번 주"
+                                    "월" -> "${selectedYear}년 ${selectedMonth}월"
+                                    "년" -> "${selectedYear}년"
+                                    "전체" -> "전체"
+                                    else -> "전체"
+                                }
+                            }
+                        )
                     }
-                )
-            }
 
-            // 그래프 섹션을 별도 아이템으로 분리
-            item {
-                GraphSection(records = filteredRecords, selectedPeriod = selectedPeriod)
-            }
+                    // 통계 카드들을 별도 아이템으로 빼내기
+                    item {
+                        StatisticsCardsSection(
+                            records = filteredRecords,
+                            selectedPeriod = selectedPeriod,
+                            selectedRange = selectedRange,
+                            onRangeSelected = {
+                                selectedRange = it
+                                // 선택된 기간에 따라 적절한 바텀시트를 표시
+                                when (selectedPeriod) {
+                                    "월" -> showMonthPicker = true
+                                    "주" -> showWeekPicker = true
+                                    "년" -> showYearPicker = true
+                                }
+                            }
+                        )
+                    }
 
-            // 하단: 최근 활동 섹션 헤더
-            item {
-                Text(
-                    text = "최근 활동",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+                    // 그래프 섹션을 별도 아이템으로 분리
+                    item {
+                        GraphSection(records = filteredRecords, selectedPeriod = selectedPeriod)
+                    }
 
-            if (filteredRecords.isEmpty()) {
-                // 기록이 없을 때
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(32.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "아직 금주 기록이 없습니다.\n첫 번째 금주를 시작해보세요!",
-                                fontSize = 16.sp,
-                                color = Color.Gray,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    // 하단: 최근 활동 섹션 헤더
+                    item {
+                        Text(
+                            text = "최근 활동",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    if (filteredRecords.isEmpty()) {
+                        // 기록이 없을 때
+                        item {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(32.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "아직 금주 기록이 없습니다.\n첫 번째 금주를 시작해보세요!",
+                                        fontSize = 16.sp,
+                                        color = Color.Gray,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        // 기록이 있을 때 각 카드를 개별 아이템으로 표시
+                        items(filteredRecords) { record ->
+                            SobrietyRecordCard(
+                                record = record,
+                                onClick = { handleCardClick(record) }
                             )
                         }
                     }
-                }
-            } else {
-                // 기록이 있을 때 각 카드를 개별 아이템으로 표시
-                items(filteredRecords) { record ->
-                    SobrietyRecordCard(
-                        record = record,
-                        onClick = { handleCardClick(record) }
-                    )
                 }
             }
         }
