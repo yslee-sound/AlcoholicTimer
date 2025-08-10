@@ -82,46 +82,55 @@ class RecordsActivity : BaseActivity() {
             try {
                 Log.d(TAG, "========== 테스트 기록 추가 시작 ==========")
                 val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
-                val currentTime = System.currentTimeMillis()
-                val startTime = currentTime - (2 * 24 * 60 * 60 * 1000L) // 2일 전 시작
+                val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
+                val recordsList = try {
+                    JSONArray(recordsJson)
+                } catch (e: Exception) {
+                    Log.w(TAG, "기존 기록 파싱 실패: "+e.message)
+                    JSONArray()
+                }
+
+                // 마지막 기록의 endTime 이후로 시작 시간 설정
+                val lastEndTime = if (recordsList.length() > 0) {
+                    val lastRecord = recordsList.getJSONObject(recordsList.length() - 1)
+                    lastRecord.optLong("endTime", System.currentTimeMillis())
+                } else {
+                    System.currentTimeMillis()
+                }
+
+                // 10일 단위 기간 랜덤 생성
+                val periodDays = (1..5).random() * 10 // 10, 20, 30, 40, 50 중 하나
+                val targetDays = periodDays
+
+                // 목표 완료/미완료 랜덤 결정
+                val isCompleted = (0..1).random() == 1
+                val actualDays = if (isCompleted) targetDays else (targetDays * 0.8).toInt()
+
+                val startTime = lastEndTime + 1000 * 60 * 60 // 마지막 기록 이후 1시간 뒤
+                val endTime = startTime + actualDays * 24 * 60 * 60 * 1000L
 
                 val testRecord = JSONObject().apply {
                     put("id", "test_${System.currentTimeMillis()}")
                     put("startTime", startTime)
-                    put("endTime", currentTime)
-                    put("targetDays", 30)
-                    put("actualDays", 2)
-                    put("isCompleted", false)
-                    put("status", "중지")
-                    put("createdAt", currentTime)
+                    put("endTime", endTime)
+                    put("targetDays", targetDays)
+                    put("actualDays", actualDays)
+                    put("isCompleted", isCompleted)
+                    put("status", if (isCompleted) "완료" else "중지")
+                    put("createdAt", System.currentTimeMillis())
                 }
 
                 Log.d(TAG, "생성된 테스트 기록: $testRecord")
-
-                val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
-                Log.d(TAG, "기존 기록들: $recordsJson")
-
-                val recordsList = try {
-                    JSONArray(recordsJson)
-                } catch (e: Exception) {
-                    Log.w(TAG, "기존 기록 파싱 실패: ${e.message}")
-                    JSONArray()
-                }
-
                 recordsList.put(testRecord)
                 Log.d(TAG, "기록 추가 후: $recordsList")
 
                 val editor = sharedPref.edit()
                 editor.putString("sobriety_records", recordsList.toString())
-                val success = editor.commit() // apply() 대신 commit() 사용
-
+                val success = editor.commit()
                 Log.d(TAG, "저장 성공: $success")
-
-                // 저장 확인
                 val savedData = sharedPref.getString("sobriety_records", "[]")
                 Log.d(TAG, "저장 확인: $savedData")
                 Log.d(TAG, "========== 테스트 기록 추가 완료 ==========")
-
             } catch (e: Exception) {
                 Log.e(TAG, "테스트 기록 추가 중 오류: ${e.message}", e)
             }
