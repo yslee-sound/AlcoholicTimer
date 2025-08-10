@@ -96,7 +96,8 @@ class LevelActivity : BaseActivity() {
                     LinearProgressIndicator(
                         progress = { progress },
                         modifier = Modifier
-                            .fillMaxWidth(0.7f)
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp)
                             .height(10.dp)
                             .clip(RoundedCornerShape(5.dp)), // 모서리 둥글게
                         color = currentLevel.color, // 레벨별 색상
