@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -60,6 +59,20 @@ class StartActivity : BaseActivity() {
 
         // 텍스트가 선택된 상태인지 추적
         var isTextSelected by remember { mutableStateOf(true) }
+
+        // 포커스 상태 추적
+        var isFocused by remember { mutableStateOf(false) }
+
+        // 포커스가 변경될 때 텍스트 선택 처리
+        LaunchedEffect(isFocused) {
+            if (isFocused) {
+                kotlinx.coroutines.delay(50) // 약간의 지연 후 선택
+                textFieldValue = textFieldValue.copy(
+                    selection = TextRange(0, textFieldValue.text.length)
+                )
+                isTextSelected = true
+            }
+        }
 
         Column(
             modifier = Modifier
@@ -117,9 +130,9 @@ class StartActivity : BaseActivity() {
                                         }
                                         textFieldValue = TextFieldValue(
                                             text = finalText,
-                                            selection = TextRange(0, finalText.length) // 새 입력도 전체 선택
+                                            selection = TextRange(finalText.length) // 커서를 끝으로 이동
                                         )
-                                        isTextSelected = true
+                                        isTextSelected = false // 선택 상태 해제
                                     } else {
                                         // 일반적인 편집
                                         val finalText = if (finalFilteredValue.isEmpty()) {
@@ -148,24 +161,8 @@ class StartActivity : BaseActivity() {
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(bottom = 8.dp)
-                                    .clickable(
-                                        indication = null,
-                                        interactionSource = remember { MutableInteractionSource() }
-                                    ) {
-                                        // 클릭 시 전체 텍스트 선택
-                                        textFieldValue = textFieldValue.copy(
-                                            selection = TextRange(0, textFieldValue.text.length)
-                                        )
-                                        isTextSelected = true
-                                    }
                                     .onFocusChanged { focusState ->
-                                        if (focusState.isFocused) {
-                                            // 포커스를 받을 때도 전체 텍스트 선택
-                                            textFieldValue = textFieldValue.copy(
-                                                selection = TextRange(0, textFieldValue.text.length)
-                                            )
-                                            isTextSelected = true
-                                        }
+                                        isFocused = focusState.isFocused
                                     }
                             )
                         }
@@ -203,9 +200,12 @@ class StartActivity : BaseActivity() {
                 onClick = {
                     val targetTime = textFieldValue.text.toFloatOrNull() ?: 0f
                     if (targetTime > 0) {
+                        // Ensure the input is treated as a single number
+                        val formattedTargetTime = String.format("%.1f", targetTime).toFloat()
+                        // Use formattedTargetTime for further processing
                         val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
                         sharedPref.edit().apply {
-                            putFloat("target_days", targetTime) // Float로 저장
+                            putFloat("target_days", formattedTargetTime) // Float로 저장
                             putLong("start_time", System.currentTimeMillis())
                             putBoolean("timer_completed", false)
                             apply()
