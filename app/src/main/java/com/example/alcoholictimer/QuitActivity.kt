@@ -335,14 +335,27 @@ private fun saveCompletedRecord(
         val recordId = System.currentTimeMillis().toString()
         Log.d("QuitActivity", "생성된 기록 ID: $recordId")
 
+        // 목표 달성률 계산
+        val achievementRate = if (targetDays > 0) {
+            (actualDays.toFloat() / targetDays) * 100
+        } else {
+            0f
+        }
+
+        // 목표 달성 여부 확인
+        val isCompleted = achievementRate >= 100f
+        val status = if (isCompleted) "완료" else "중지"
+
+        Log.d("QuitActivity", "달성률: ${achievementRate}%, 완료 여부: $isCompleted, 상태: $status")
+
         val record = JSONObject().apply {
             put("id", recordId)
             put("startTime", startTime)
             put("endTime", endTime)
             put("targetDays", targetDays.toInt()) // Double에서 Int로 변경
             put("actualDays", actualDays)
-            put("isCompleted", false)
-            put("status", "중지")
+            put("isCompleted", isCompleted)
+            put("status", status)
             put("createdAt", System.currentTimeMillis())
         }
 
