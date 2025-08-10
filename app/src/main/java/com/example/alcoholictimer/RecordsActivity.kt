@@ -83,11 +83,12 @@ class RecordsActivity : BaseActivity() {
         var showTestDialog by remember { mutableStateOf(false) }
         var inputStartTime by remember { mutableStateOf(System.currentTimeMillis()) }
         var inputEndTime by remember { mutableStateOf(System.currentTimeMillis()) }
-        var inputTargetDays by remember { mutableStateOf(1) } // 기본값을 30일에서 1일로 변경
-        var inputActualDays by remember { mutableStateOf(1) } // 목표일수가 1일이므로 달성일수도 1일로 설정
+        var inputTargetDays by remember { mutableStateOf(1) }
+        var inputActualDays by remember { mutableStateOf(1) }
         var inputIsCompleted by remember { mutableStateOf(true) }
+        var selectedPercentage by remember { mutableStateOf(100) } // <-- 위치 이동 및 선언
 
-        fun addCustomTestRecord() {
+        fun addCustomTestRecord(selectedPercentage: Int) {
             try {
                 val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
                 val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
@@ -123,6 +124,7 @@ class RecordsActivity : BaseActivity() {
                     put("isCompleted", inputIsCompleted)
                     put("status", if (inputIsCompleted) "완료" else "중지")
                     put("createdAt", System.currentTimeMillis())
+                    put("percentage", selectedPercentage) // 목표 달성률 저장
                 }
                 recordsList.put(testRecord)
                 sharedPref.edit().apply {
@@ -336,7 +338,7 @@ class RecordsActivity : BaseActivity() {
                 onDismissRequest = { showTestDialog = false },
                 confirmButton = {
                     Button(onClick = {
-                        addCustomTestRecord()
+                        addCustomTestRecord(selectedPercentage)
                         showTestDialog = false
                         refreshTrigger++
                     }) { Text("추가") }
@@ -356,7 +358,9 @@ class RecordsActivity : BaseActivity() {
                         inputActualDays = inputActualDays,
                         onActualDaysChange = { inputActualDays = it },
                         inputIsCompleted = inputIsCompleted,
-                        onIsCompletedChange = { inputIsCompleted = it }
+                        onIsCompletedChange = { inputIsCompleted = it },
+                        selectedPercentage = selectedPercentage,
+                        onPercentageChange = { selectedPercentage = it }
                     )
                 }
             )
@@ -432,7 +436,7 @@ fun SobrietyRecordCard(
     val durationHours = ((duration % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)).toInt()
     val durationMinutes = ((duration % (60 * 60 * 1000)) / (60 * 1000)).toInt()
 
-    val progressPercent = if (record.targetDays > 0) {
+    val progressPercent = record.percentage ?: if (record.targetDays > 0) {
         ((record.actualDays.toFloat() / record.targetDays) * 100).coerceAtMost(100f).toInt()
     } else 0
 
@@ -1002,7 +1006,9 @@ fun TestRecordInputDialogContent(
     inputActualDays: Int,
     onActualDaysChange: (Int) -> Unit,
     inputIsCompleted: Boolean,
-    onIsCompletedChange: (Boolean) -> Unit
+    onIsCompletedChange: (Boolean) -> Unit,
+    selectedPercentage: Int,
+    onPercentageChange: (Int) -> Unit
 ) {
     val calendar = Calendar.getInstance()
     // 시작일 드롭다운 상태
@@ -1017,11 +1023,11 @@ fun TestRecordInputDialogContent(
     val daysList = (1..365).toList()
 
     // 현재 선택된 달성률을 로컬 상태로 관리
-    var selectedPercentage by remember { mutableStateOf(100) }
+    var localSelectedPercentage by remember { mutableStateOf(selectedPercentage) }
 
     // 컴포넌트가 처음 표시될 때 입력 값에 맞게 퍼센테이지 초기화
     LaunchedEffect(Unit) {
-        selectedPercentage = if (inputTargetDays > 0) {
+        localSelectedPercentage = if (inputTargetDays > 0) {
             ((inputActualDays.toFloat() / inputTargetDays) * 100).toInt().coerceIn(0, 100)
             // 가장 가까운 10% 단위로 맞추기
             .let { ((it + 5) / 10) * 10 }
@@ -1060,9 +1066,9 @@ fun TestRecordInputDialogContent(
     LaunchedEffect(inputTargetDays, inputActualDays) {
         if (inputTargetDays > 0) {
             val percentage = ((inputActualDays.toFloat() / inputTargetDays) * 100).toInt()
-            selectedPercentage = ((percentage + 5) / 10 * 10).coerceIn(0, 100)
+            localSelectedPercentage = ((percentage + 5) / 10 * 10).coerceIn(0, 100)
         } else {
-            selectedPercentage = 100
+            localSelectedPercentage = 100
         }
     }
 
@@ -1103,9 +1109,9 @@ fun TestRecordInputDialogContent(
             onSelected = { newTargetDays ->
                 onTargetDaysChange(newTargetDays)
                 // 목표일수 변경 시 선택된 퍼센테이지를 그대로 유지하며 실제 달성일수 계산
-                val newActualDays = calculateActualDaysFromPercentage(newTargetDays, selectedPercentage)
+                val newActualDays = calculateActualDaysFromPercentage(newTargetDays, localSelectedPercentage)
                 onActualDaysChange(newActualDays)
-                onIsCompletedChange(selectedPercentage == 100)
+                onIsCompletedChange(localSelectedPercentage == 100)
                 updateEndDateByDays(newTargetDays, newActualDays)
             }
         )
@@ -1118,9 +1124,10 @@ fun TestRecordInputDialogContent(
         DropdownSelector(
             label = "%",
             options = percentageOptions,
-            selected = selectedPercentage,
+            selected = localSelectedPercentage,
             onSelected = { newPercentage ->
-                selectedPercentage = newPercentage
+                localSelectedPercentage = newPercentage
+                onPercentageChange(newPercentage) // 상위 컴포넌트에 값 전달
                 val newActualDays = calculateActualDaysFromPercentage(inputTargetDays, newPercentage)
 
                 onActualDaysChange(newActualDays)
@@ -1132,16 +1139,16 @@ fun TestRecordInputDialogContent(
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = when {
-                selectedPercentage == 0 -> "시작하자마자 중지"
-                selectedPercentage == 100 -> "목표 완전 달성"
-                selectedPercentage < 50 -> "목표 대비 미달성"
+                localSelectedPercentage == 0 -> "시작하자마자 중지"
+                localSelectedPercentage == 100 -> "목표 완전 달성"
+                localSelectedPercentage < 50 -> "목표 대비 미달성"
                 else -> "목표 대비 부분 달성"
             },
             fontSize = 12.sp,
             color = when {
-                selectedPercentage == 0 -> Color.Red
-                selectedPercentage == 100 -> Color(0xFF4CAF50)
-                selectedPercentage < 50 -> Color.Red
+                localSelectedPercentage == 0 -> Color.Red
+                localSelectedPercentage == 100 -> Color(0xFF4CAF50)
+                localSelectedPercentage < 50 -> Color.Red
                 else -> Color(0xFFFF9800)
             }
         )
@@ -1149,7 +1156,7 @@ fun TestRecordInputDialogContent(
 
         // 디버깅용 텍스트 (개발 중에만 표시하고 나중에 제거)
         Text(
-            text = "목표: ${inputTargetDays}일, 달성: ${inputActualDays}일, 달성률: $selectedPercentage%",
+            text = "목표: ${inputTargetDays}일, 달성: ${inputActualDays}일, 달성률: $localSelectedPercentage%",
             fontSize = 12.sp,
             color = Color.Gray
         )

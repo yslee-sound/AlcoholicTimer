@@ -16,6 +16,7 @@ import java.util.*
  * @property isCompleted 목표를 완료했는지 여부 (true: 완료, false: 중도 포기)
  * @property status 상태 ("완료" 또는 "중지")
  * @property createdAt 기록 생성 시간 (밀리초 타임스탬프)
+ * @property percentage 목표 달성률 (0-100, nullable)
  */
 data class SobrietyRecord(
     val id: String,
@@ -25,7 +26,8 @@ data class SobrietyRecord(
     val actualDays: Int,
     val isCompleted: Boolean,
     val status: String,
-    val createdAt: Long
+    val createdAt: Long,
+    val percentage: Int? = null
 ) {
     /**
      * 달성률 계산 (백분율)
@@ -92,6 +94,7 @@ data class SobrietyRecord(
         json.put("isCompleted", isCompleted)
         json.put("status", status)
         json.put("createdAt", createdAt)
+        percentage?.let { json.put("percentage", it) }
         return json
     }
 
@@ -108,7 +111,8 @@ data class SobrietyRecord(
                 actualDays = json.getInt("actualDays"),
                 isCompleted = json.getBoolean("isCompleted"),
                 status = json.getString("status"),
-                createdAt = json.getLong("createdAt")
+                createdAt = json.getLong("createdAt"),
+                percentage = if (json.has("percentage")) json.getInt("percentage") else null
             )
         }
 
