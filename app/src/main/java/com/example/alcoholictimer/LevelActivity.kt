@@ -97,7 +97,7 @@ class LevelActivity : BaseActivity() {
                         progress = { progress },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 20.dp)
+                            .padding(horizontal = 22.dp)
                             .height(10.dp)
                             .clip(RoundedCornerShape(5.dp)), // 모서리 둥글게
                         color = currentLevel.color, // 레벨별 색상
