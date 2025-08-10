@@ -170,19 +170,10 @@ fun RunScreen() {
         }
     }
 
-    // 레벨에 따른 배경색 (명세서 기준)
-    val backgroundColor = when {
-        elapsedDays < 7 -> Color.White // Gray에서 White로 변경
-        elapsedDays < 30 -> Color.White // Light Yellow에서 White로 변경
-        elapsedDays < 90 -> Color.White // Light Blue에서 White로 변경
-        elapsedDays < 365 -> Color.White // Light Green에서 White로 변경
-        else -> Color.White // Light Gold에서 White로 변경
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(backgroundColor)
+            .background(Color.White)
             .padding(32.dp)
     ) {
         // 상단 정보
