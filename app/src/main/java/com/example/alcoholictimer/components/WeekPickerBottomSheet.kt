@@ -156,7 +156,7 @@ private fun generateWeekOptions(): List<WeekOption> {
     calendar.set(Calendar.SECOND, 0)
     calendar.set(Calendar.MILLISECOND, 0)
 
-    for (i in 0 until 8) { // 최근 8주
+    for (i in 0 until 4) { // 최근 4주로 제한
         val weekStart = calendar.timeInMillis
         calendar.add(Calendar.DAY_OF_WEEK, 6) // 일요일로 이동
         val weekEnd = calendar.timeInMillis

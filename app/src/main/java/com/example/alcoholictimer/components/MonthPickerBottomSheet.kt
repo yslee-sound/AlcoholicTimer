@@ -20,10 +20,15 @@ fun MonthPickerBottomSheet(
     onDismiss: () -> Unit,
     onMonthPicked: (year: Int, month: Int) -> Unit,
     initialYear: Int = Calendar.getInstance().get(Calendar.YEAR),
-    initialMonth: Int = Calendar.getInstance().get(Calendar.MONTH) + 1 // Calendar.MONTH는 0부터 시작
+    initialMonth: Int = Calendar.getInstance().get(Calendar.MONTH) + 1
 ) {
-    var selectedYear by remember { mutableStateOf(initialYear) }
-    var selectedMonth by remember { mutableStateOf(initialMonth) }
+    // 현재와 과거 4개월 목록 생성
+    val monthOptions = remember {
+        generateMonthOptions()
+    }
+
+    // 기본값을 현재 월(첫 번째 인덱스)로 설정
+    var selectedMonthIndex by remember { mutableStateOf(0) }
 
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
@@ -62,12 +67,8 @@ fun MonthPickerBottomSheet(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // 이전월 표시
-                    val calendar = Calendar.getInstance()
-                    calendar.add(Calendar.MONTH, -1)
-                    val prevMonth = calendar.get(Calendar.MONTH) + 1
-
                     Text(
-                        text = "${prevMonth}월",
+                        text = if (monthOptions.size > 1) monthOptions[1].displayText else "",
                         fontSize = 16.sp,
                         color = Color.Gray,
                         fontWeight = FontWeight.Normal
@@ -77,71 +78,40 @@ fun MonthPickerBottomSheet(
 
                     // 안내 텍스트
                     Text(
-                        text = "년/월 선택",
+                        text = "월 선택",
                         fontSize = 14.sp,
                         color = Color.Gray
                     )
                 }
 
-                // 가운데: NumberPicker 2개 (연도, 월)
-                Row(
+                // 가운데: 월 선택 NumberPicker
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 24.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // 연도 선택
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "연도",
-                            fontSize = 14.sp,
-                            color = Color.Gray,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                        NumberPicker(
-                            value = selectedYear,
-                            onValueChange = { selectedYear = it },
-                            range = 2000..2030,
-                            displayValues = (2000..2030).map { "${it}년" },
-                            modifier = Modifier.width(120.dp)
-                        )
-                    }
-
-                    // 구분선
-                    Box(
-                        modifier = Modifier
-                            .width(1.dp)
-                            .height(120.dp)
-                            .background(Color.Gray.copy(alpha = 0.3f))
+                    Text(
+                        text = "월 선택",
+                        fontSize = 14.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(bottom = 8.dp)
                     )
 
-                    // 월 선택
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "월",
-                            fontSize = 14.sp,
-                            color = Color.Gray,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-                        NumberPicker(
-                            value = selectedMonth,
-                            onValueChange = { selectedMonth = it },
-                            range = 1..12,
-                            displayValues = (1..12).map { "${it}월" },
-                            modifier = Modifier.width(100.dp)
-                        )
-                    }
+                    NumberPicker(
+                        value = selectedMonthIndex,
+                        onValueChange = { selectedMonthIndex = it },
+                        range = 0 until monthOptions.size,
+                        displayValues = monthOptions.map { it.displayText },
+                        modifier = Modifier.width(200.dp)
+                    )
                 }
 
                 // 하단: 선택 버튼
                 Button(
                     onClick = {
-                        onMonthPicked(selectedYear, selectedMonth)
+                        val selectedMonth = monthOptions[selectedMonthIndex]
+                        onMonthPicked(selectedMonth.year, selectedMonth.month)
                         onDismiss()
                     },
                     modifier = Modifier
@@ -166,4 +136,30 @@ fun MonthPickerBottomSheet(
             }
         }
     }
+}
+
+data class MonthOption(
+    val year: Int,
+    val month: Int,
+    val displayText: String
+)
+
+private fun generateMonthOptions(): List<MonthOption> {
+    val calendar = Calendar.getInstance()
+    val options = mutableListOf<MonthOption>()
+
+    // 현재 월부터 시작해서 과거로 거슬러 올라가면서 4개월 생성
+    for (i in 0 until 4) {
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH) + 1 // Calendar.MONTH는 0부터 시작
+
+        val displayText = "${year}년 ${month}월"
+        options.add(MonthOption(year, month, displayText))
+
+        // 이전 달로 이동
+        calendar.add(Calendar.MONTH, -1)
+    }
+
+    // 현재에서 과거 순으로 반환 (현재 월이 첫 번째)
+    return options
 }
