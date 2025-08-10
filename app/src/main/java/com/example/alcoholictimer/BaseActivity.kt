@@ -45,6 +45,7 @@ abstract class BaseActivity : ComponentActivity() {
     protected fun BaseScreen(content: @Composable () -> Unit) {
         val drawerState = rememberDrawerState(DrawerValue.Closed)
         val scope = rememberCoroutineScope()
+        var currentNickname by remember { mutableStateOf(getNickname()) }
 
         ModalNavigationDrawer(
             drawerState = drawerState,
@@ -57,8 +58,11 @@ abstract class BaseActivity : ComponentActivity() {
                     drawerShape = RoundedCornerShape(0.dp) // 라운딩 제거 (직각 모서리)
                 ) {
                     DrawerMenu(
-                        nickname = "알중이1",
-                        onNicknameClick = {},
+                        nickname = currentNickname,
+                        onNicknameClick = {
+                            scope.launch { drawerState.close() }
+                            navigateToNicknameEdit()
+                        },
                         onItemSelected = { menuItem ->
                             scope.launch { drawerState.close() }
                             handleMenuSelection(menuItem)
@@ -115,6 +119,19 @@ abstract class BaseActivity : ComponentActivity() {
         }
     }
 
+    private fun getNickname(): String {
+        val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+        return sharedPref.getString("nickname", "알중이1") ?: "알중이1"
+    }
+
+    private fun saveNickname(nickname: String) {
+        val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putString("nickname", nickname)
+            apply()
+        }
+    }
+
     private fun handleMenuSelection(menuItem: String) {
         when (menuItem) {
             "금주" -> {
@@ -157,6 +174,14 @@ abstract class BaseActivity : ComponentActivity() {
      */
     private fun navigateToActivity(activityClass: Class<*>) {
         val intent = Intent(this, activityClass)
+        startActivity(intent)
+    }
+
+    /**
+     * 별명 편집 화면으로 네비게이션
+     */
+    private fun navigateToNicknameEdit() {
+        val intent = Intent(this, NicknameEditActivity::class.java)
         startActivity(intent)
     }
 

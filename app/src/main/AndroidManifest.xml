@@ -64,6 +64,12 @@
             android:exported="false"
             android:theme="@style/Theme.Material3.DayNight" />
 
+        <!-- 별명 편집 화면 -->
+        <activity
+            android:name=".NicknameEditActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Material3.DayNight" />
+
     </application>
 
 </manifest>
