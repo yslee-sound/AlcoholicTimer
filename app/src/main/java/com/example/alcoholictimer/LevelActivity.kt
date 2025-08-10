@@ -1,35 +1,29 @@
 package com.example.alcoholictimer
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.utils.SobrietyRecord
-import org.json.JSONArray
 
 class LevelActivity : BaseActivity() {
 
@@ -53,16 +47,22 @@ class LevelActivity : BaseActivity() {
         val context = LocalContext.current
         // 기록 불러오기
         val records = remember {
-            val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
-            val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
-            SobrietyRecord.fromJsonArray(recordsJson)
+            try {
+                val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+                val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
+                SobrietyRecord.fromJsonArray(recordsJson)
+            } catch (e: Exception) {
+                // Preview 환경에서는 빈 리스트 반환
+                emptyList()
+            }
         }
         // 전체 달성 일수 계산
         val totalDays = records.sumOf { it.actualDays }
-        // 성공(완료) 횟수 계산
-        val completedCount = records.count { it.isCompleted }
-        // 전체 시도 횟수
-        val totalAttempts = records.size
+
+        // 현재 레벨 인덱스 계산 (안전한 방식)
+        val currentLevelIndex = remember(totalDays) {
+            levels.indexOfFirst { totalDays in it.start..it.end }.coerceAtLeast(0)
+        }
 
         // 레벨 산정 예시 (단순화)
         val currentLevel = levels[currentLevelIndex]
@@ -119,7 +119,7 @@ class LevelActivity : BaseActivity() {
                 }
             }
             // 구분선
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.fillMaxWidth().height(2.dp).background(Color.LightGray)
             )
             // 전체 레벨 리스트 (하단 2/3)
@@ -146,24 +146,105 @@ class LevelActivity : BaseActivity() {
     fun LevelCard(level: LevelInfo, currentDays: Int, enabled: Boolean) {
         val isCurrent = currentDays in level.start..level.end
         val dateText = if (level.name == "절제의 레전드") "1년 이상" else "${level.start}~${level.end}일"
+
         Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .shadow(
+                    elevation = if (isCurrent) 8.dp else 4.dp,
+                    shape = RoundedCornerShape(16.dp)
+                ),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = level.color.copy(alpha = if (enabled) 1f else 0.2f)),
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+            colors = CardDefaults.cardColors(
+                containerColor = if (enabled) {
+                    Color.White
+                } else {
+                    Color(0xFFF8F9FA)
+                }
+            ),
+            border = if (isCurrent) {
+                BorderStroke(2.dp, level.color)
+            } else null
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = level.name,
-                    fontSize = 18.sp,
-                    fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
-                    color = if (enabled) Color.Black else Color.Gray
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = dateText,
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // 레벨 인디케이터
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(
+                            if (enabled) level.color else Color(0xFFE0E0E0)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isCurrent) {
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = "현재 레벨",
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    } else {
+                        Text(
+                            text = (levels.indexOf(level) + 1).toString(),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (enabled) Color.White else Color.Gray
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                // 텍스트 영역
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = level.name,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (enabled) Color.Black else Color.Gray
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = dateText,
+                        fontSize = 14.sp,
+                        color = if (enabled) Color(0xFF6B7280) else Color.Gray
+                    )
+
+                    if (isCurrent) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "현재 진행 중",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = level.color
+                        )
+                    }
+                }
+
+                // 상태 아이콘
+                if (enabled && !isCurrent) {
+                    Box(
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFF10B981)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "✓",
+                            fontSize = 12.sp,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
         }
     }
@@ -179,17 +260,6 @@ class LevelActivity : BaseActivity() {
         LevelInfo("금주 마스터", 240, 364, Color(0xFF212121)),
         LevelInfo("절제의 레전드", 365, Int.MAX_VALUE, Color(0xFFFFD700))
     )
-
-    // 현재 레벨 인덱스 계산 (기획서 공식 적용)
-    private val currentLevelIndex: Int
-        get() {
-            val context = this
-            val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
-            val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
-            val records = com.example.alcoholictimer.utils.SobrietyRecord.fromJsonArray(recordsJson)
-            val totalDays = records.sumOf { it.actualDays }
-            return levels.indexOfFirst { totalDays in it.start..it.end }.coerceAtLeast(0)
-        }
 }
 
 @Preview(showBackground = true)
