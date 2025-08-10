@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -64,22 +65,14 @@ class LevelActivity : BaseActivity() {
         val totalAttempts = records.size
 
         // 레벨 산정 예시 (단순화)
-        val currentLevel = when {
-            totalDays >= 365 -> Level("절제의 레전드", Color(0xFFFFF0DC), 365)
-            totalDays >= 90 -> Level("3개월 클리어", Color(0xFFE8F5E8), 90)
-            totalDays >= 30 -> Level("한 달 클리어", Color(0xFFE7F3FF), 30)
-            totalDays >= 7 -> Level("작심 7일", Color(0xFFFFF3CD), 7)
-            else -> Level("시작", Color(0xFFF5F5F5), 0)
+        val currentLevel = levels[currentLevelIndex]
+        val nextLevel = levels.getOrNull(currentLevelIndex + 1)
+        val daysToNext = nextLevel?.start?.minus(totalDays) ?: 0
+        val progress = when {
+            totalDays < currentLevel.start -> 0f
+            totalDays > currentLevel.end -> 1f
+            else -> (totalDays - currentLevel.start + 1).toFloat() / (currentLevel.end - currentLevel.start + 1)
         }
-        val nextLevel = when {
-            totalDays < 7 -> Level("작심 7일", Color(0xFFFFF3CD), 7)
-            totalDays < 30 -> Level("한 달 클리어", Color(0xFFE7F3FF), 30)
-            totalDays < 90 -> Level("3개월 클리어", Color(0xFFE8F5E8), 90)
-            totalDays < 365 -> Level("절제의 레전드", Color(0xFFFFF0DC), 365)
-            else -> null
-        }
-        val daysToNext = nextLevel?.threshold?.minus(totalDays) ?: 0
-        val progress = if (nextLevel != null) totalDays.toFloat() / nextLevel.threshold else 1f
 
         Column(
             modifier = Modifier.fillMaxSize().background(Color.White)
@@ -102,8 +95,12 @@ class LevelActivity : BaseActivity() {
                     Spacer(modifier = Modifier.height(8.dp))
                     LinearProgressIndicator(
                         progress = { progress },
-                        modifier = Modifier.fillMaxWidth(0.7f).height(10.dp),
-                        color = currentLevel.color
+                        modifier = Modifier
+                            .fillMaxWidth(0.7f)
+                            .height(10.dp)
+                            .clip(RoundedCornerShape(5.dp)), // 모서리 둥글게
+                        color = currentLevel.color, // 레벨별 색상
+                        trackColor = Color(0xFFE0E0E0) // 배경을 연한 회색으로 명확하게 지정
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     if (nextLevel != null) {
@@ -171,10 +168,7 @@ class LevelActivity : BaseActivity() {
         }
     }
 
-    // 레벨 데이터 클래스
-    private data class Level(val name: String, val color: Color, val threshold: Int)
-
-    // 최신 레벨 정보 리스트로 교체
+    // 최신 레벨 정의 (기획서 기준)
     private val levels = listOf(
         LevelInfo("작심 7일", 0, 6, Color(0xFFBDBDBD)),
         LevelInfo("의지의 2주", 7, 13, Color(0xFFFFEB3B)),
@@ -186,7 +180,7 @@ class LevelActivity : BaseActivity() {
         LevelInfo("절제의 레전드", 365, Int.MAX_VALUE, Color(0xFFFFD700))
     )
 
-    // 현재 레벨 인덱스 계산
+    // 현재 레벨 인덱스 계산 (기획서 공식 적용)
     private val currentLevelIndex: Int
         get() {
             val context = this
@@ -194,7 +188,7 @@ class LevelActivity : BaseActivity() {
             val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
             val records = com.example.alcoholictimer.utils.SobrietyRecord.fromJsonArray(recordsJson)
             val totalDays = records.sumOf { it.actualDays }
-            return levels.indexOfLast { totalDays >= it.start }
+            return levels.indexOfFirst { totalDays in it.start..it.end }.coerceAtLeast(0)
         }
 }
 
