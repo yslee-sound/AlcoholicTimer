@@ -10,6 +10,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -111,6 +115,7 @@ fun DetailScreen(
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     // 네비게이션 상태 관리 (컴포지션 최상단으로 이동)
     var shouldFinish by remember { mutableStateOf(false) }
@@ -200,34 +205,80 @@ fun DetailScreen(
     ) {
         // 헤더 영역
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 0.dp), // 왼쪽 패딩 추가
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 뒤로가기 버튼 (화살표 아이콘만)
             Box(
-                contentAlignment = Alignment.Center,
+                contentAlignment = Alignment.CenterStart,
                 modifier = Modifier
                     .size(40.dp)
                     .clickable {
                         onBack()
                     }
             ) {
-                Text(
-                    text = "◀", // 더 깔끔한 화살표 아이콘
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                Icon(
+                    imageVector = Icons.Outlined.ArrowBack,
+                    contentDescription = "뒤로가기",
+                    tint = Color.Black
                 )
             }
-            
-            Text(
-                text = "금주 기록 상세",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
+
+            // 타이틀 + 삭제 아이콘 그룹을 Row로 묶어서 최대 너비로 확장
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "금주 기록 상세",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 8.dp) // 왼쪽 패딩 추가
+                )
+                IconButton(
+                    onClick = { showDeleteDialog = true },
+                    modifier = Modifier.padding(end = 0.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Delete,
+                        contentDescription = "기록 삭제",
+                        tint = Color.Black
+                    )
+                }
+            }
+        }
+
+        // 삭제 경고 다이얼로그
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("기록 삭제") },
+                text = { Text("정말로 이 금주 기록을 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        deleteRecord(context, startTime)
+                        showDeleteDialog = false
+                        // 삭제 후 화면 종료
+                        if (context is DetailActivity) {
+                            context.finish()
+                        }
+                    }) {
+                        Text("삭제", color = Color.Red)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text("취소")
+                    }
+                }
             )
-            
-            Spacer(modifier = Modifier.width(40.dp)) // 균형 맞추기
         }
 
         // 구분선 추가
@@ -282,12 +333,14 @@ fun DetailScreen(
                     fontSize = 72.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
-                    lineHeight = 72.sp
+                    lineHeight = 72.sp,
+                    modifier = Modifier.padding(start = 26.dp) // 왼쪽 패딩 추가
                 )
                 Text(
                     text = "일",
                     fontSize = 16.sp,
-                    color = Color.Gray
+                    color = Color.Gray,
+                    modifier = Modifier.padding(start = 39.dp) // 왼쪽 패딩 추가
                 )
             }
         }
@@ -399,4 +452,23 @@ fun PreviewDetailScreen() {
         isCompleted = true,
         onBack = {} // 누락된 onBack 파라미터 추가
     )
+}
+
+// 기록 삭제 함수
+private fun deleteRecord(context: Context, startTime: Long) {
+    val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
+    val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
+    try {
+        val recordsArray = org.json.JSONArray(recordsJson)
+        val newArray = org.json.JSONArray()
+        for (i in 0 until recordsArray.length()) {
+            val record = recordsArray.getJSONObject(i)
+            if (record.optLong("startTime") != startTime) {
+                newArray.put(record)
+            }
+        }
+        sharedPref.edit().putString("sobriety_records", newArray.toString()).apply()
+    } catch (e: Exception) {
+        Log.e("DetailActivity", "기록 삭제 중 오류", e)
+    }
 }
