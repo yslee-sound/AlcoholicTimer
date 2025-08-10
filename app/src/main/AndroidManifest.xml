@@ -64,12 +64,6 @@
             android:exported="false"
             android:theme="@style/Theme.Material3.DayNight" />
 
-        <!-- 그래프 화면 -->
-        <activity
-            android:name=".GraphActivity"
-            android:exported="false"
-            android:theme="@style/Theme.Material3.DayNight" />
-
     </application>
 
 </manifest>

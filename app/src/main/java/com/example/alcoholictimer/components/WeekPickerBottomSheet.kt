@@ -175,6 +175,6 @@ private fun generateWeekOptions(): List<WeekOption> {
         calendar.add(Calendar.DAY_OF_WEEK, -13) // 일요일에서 이전 주 월요일로
     }
 
-    // 과거에서 현재 순으로 정렬 (reverse)
-    return options.reversed()
+    // 과거에서 현재 순으로 정렬 - 이번 주가 맨 위에 오도록
+    return options
 }
