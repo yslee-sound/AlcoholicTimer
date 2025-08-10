@@ -83,8 +83,8 @@ class RecordsActivity : BaseActivity() {
         var showTestDialog by remember { mutableStateOf(false) }
         var inputStartTime by remember { mutableStateOf(System.currentTimeMillis()) }
         var inputEndTime by remember { mutableStateOf(System.currentTimeMillis()) }
-        var inputTargetDays by remember { mutableStateOf(30) }
-        var inputActualDays by remember { mutableStateOf(30) }
+        var inputTargetDays by remember { mutableStateOf(1) } // 기본값을 30일에서 1일로 변경
+        var inputActualDays by remember { mutableStateOf(1) } // 목표일수가 1일이므로 달성일수도 1일로 설정
         var inputIsCompleted by remember { mutableStateOf(true) }
 
         fun addCustomTestRecord() {
@@ -96,6 +96,24 @@ class RecordsActivity : BaseActivity() {
                 } catch (e: Exception) {
                     JSONArray()
                 }
+
+                // 중복 시간대 검사
+                for (i in 0 until recordsList.length()) {
+                    val existingRecord = recordsList.getJSONObject(i)
+                    val existingStartTime = existingRecord.getLong("startTime")
+                    val existingEndTime = existingRecord.getLong("endTime")
+
+                    // 새로운 기록의 시간대가 기존 기록과 겹치는지 검사
+                    if ((inputStartTime >= existingStartTime && inputStartTime <= existingEndTime) ||
+                        (inputEndTime >= existingStartTime && inputEndTime <= existingEndTime) ||
+                        (inputStartTime <= existingStartTime && inputEndTime >= existingEndTime)) {
+
+                        // 중복된 시간대가 있으면 토스트 메시지 표시하고 함수 종료
+                        android.widget.Toast.makeText(context, "시간대가 중복입니다", android.widget.Toast.LENGTH_SHORT).show()
+                        return
+                    }
+                }
+
                 val testRecord = JSONObject().apply {
                     put("id", "test_${System.currentTimeMillis()}")
                     put("startTime", inputStartTime)
@@ -111,6 +129,9 @@ class RecordsActivity : BaseActivity() {
                     putString("sobriety_records", recordsList.toString())
                     apply()
                 }
+
+                // 성공적으로 추가되었음을 알리는 토스트 메시지
+                android.widget.Toast.makeText(context, "테스트 기록이 추가되었습니다", android.widget.Toast.LENGTH_SHORT).show()
             } catch (_: Exception) {}
         }
 
@@ -994,7 +1015,20 @@ fun TestRecordInputDialogContent(
     var endDay by remember { mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH)) }
     // 목표일수/실제 종료된 일수 드롭다운
     val daysList = (1..365).toList()
-    val actualDaysList = (1..inputTargetDays).toList()
+
+    // 현재 선택된 달성률을 로컬 상태로 관리
+    var selectedPercentage by remember { mutableStateOf(100) }
+
+    // 컴포넌트가 처음 표시될 때 입력 값에 맞게 퍼센테이지 초기화
+    LaunchedEffect(Unit) {
+        selectedPercentage = if (inputTargetDays > 0) {
+            ((inputActualDays.toFloat() / inputTargetDays) * 100).toInt().coerceIn(0, 100)
+            // 가장 가까운 10% 단위로 맞추기
+            .let { ((it + 5) / 10) * 10 }
+        } else {
+            100
+        }
+    }
 
     // 날짜 선택 시 Unix ms로 변환
     fun getMillis(year: Int, month: Int, day: Int): Long {
@@ -1015,11 +1049,21 @@ fun TestRecordInputDialogContent(
     fun updateEndDateByDays(targetDays: Int, actualDays: Int) {
         val cal = Calendar.getInstance()
         cal.set(startYear, startMonth - 1, startDay, 0, 0, 0)
-        val daysToAdd = if (actualDays > 0) actualDays else targetDays
+        val daysToAdd = actualDays.coerceAtLeast(0)
         cal.add(Calendar.DAY_OF_MONTH, daysToAdd)
         endYear = cal.get(Calendar.YEAR)
         endMonth = cal.get(Calendar.MONTH) + 1
         endDay = cal.get(Calendar.DAY_OF_MONTH)
+    }
+
+    // 수정: 목표일수와 실제 달성일수가 변경될 때마다 선택된 퍼센테이지 값 업데이트
+    LaunchedEffect(inputTargetDays, inputActualDays) {
+        if (inputTargetDays > 0) {
+            val percentage = ((inputActualDays.toFloat() / inputTargetDays) * 100).toInt()
+            selectedPercentage = ((percentage + 5) / 10 * 10).coerceIn(0, 100)
+        } else {
+            selectedPercentage = 100
+        }
     }
 
     Column {
@@ -1050,31 +1094,78 @@ fun TestRecordInputDialogContent(
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
+
         Text("목표일수:")
         DropdownSelector(
             label = "일수",
             options = daysList,
             selected = inputTargetDays,
-            onSelected = {
-                onTargetDaysChange(it)
-                updateEndDateByDays(it, inputActualDays)
+            onSelected = { newTargetDays ->
+                onTargetDaysChange(newTargetDays)
+                // 목표일수 변경 시 선택된 퍼센테이지를 그대로 유지하며 실제 달성일수 계산
+                val newActualDays = calculateActualDaysFromPercentage(newTargetDays, selectedPercentage)
+                onActualDaysChange(newActualDays)
+                onIsCompletedChange(selectedPercentage == 100)
+                updateEndDateByDays(newTargetDays, newActualDays)
             }
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Text("실제 종료된 일수:")
+
+        // 목표 달성률 드롭다운
+        Text("목표 달성률:")
+        val percentageOptions = (0..100 step 10).toList()
+
         DropdownSelector(
-            label = "일수",
-            options = actualDaysList,
-            selected = inputActualDays.coerceAtMost(inputTargetDays),
-            onSelected = {
-                onActualDaysChange(it)
-                updateEndDateByDays(inputTargetDays, it)
+            label = "%",
+            options = percentageOptions,
+            selected = selectedPercentage,
+            onSelected = { newPercentage ->
+                selectedPercentage = newPercentage
+                val newActualDays = calculateActualDaysFromPercentage(inputTargetDays, newPercentage)
+
+                onActualDaysChange(newActualDays)
+                onIsCompletedChange(newPercentage == 100)
+                updateEndDateByDays(inputTargetDays, newActualDays)
+            }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = when {
+                selectedPercentage == 0 -> "시작하자마자 중지"
+                selectedPercentage == 100 -> "목표 완전 달성"
+                selectedPercentage < 50 -> "목표 대비 미달성"
+                else -> "목표 대비 부분 달성"
+            },
+            fontSize = 12.sp,
+            color = when {
+                selectedPercentage == 0 -> Color.Red
+                selectedPercentage == 100 -> Color(0xFF4CAF50)
+                selectedPercentage < 50 -> Color.Red
+                else -> Color(0xFFFF9800)
             }
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Text("종료일: $endYear-$endMonth-$endDay (목표/실제 일수에 따라 자동 설정)")
-        // 종료일 드롭다운 제거 또는 비활성화
-        // ...기존 종료일 드롭다운 부분은 삭제 또는 주석처리...
+
+        // 디버깅용 텍스트 (개발 중에만 표시하고 나중에 제거)
+        Text(
+            text = "목표: ${inputTargetDays}일, 달성: ${inputActualDays}일, 달성률: $selectedPercentage%",
+            fontSize = 12.sp,
+            color = Color.Gray
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+        Text("종료일: $endYear-$endMonth-$endDay (실제 달성일수에 따라 자동 설정)")
+    }
+}
+
+// 퍼센테이지에 따라 실제 달성일수를 계산하는 함수
+private fun calculateActualDaysFromPercentage(targetDays: Int, percentage: Int): Int {
+    return when {
+        percentage == 0 -> 0
+        targetDays == 0 -> 0
+        targetDays == 1 -> if (percentage > 0) 1 else 0
+        else -> ((targetDays * percentage / 100f) + 0.5f).toInt().coerceAtMost(targetDays)
     }
 }
 
