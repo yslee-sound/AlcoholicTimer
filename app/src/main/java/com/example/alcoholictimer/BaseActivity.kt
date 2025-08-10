@@ -144,10 +144,14 @@ abstract class BaseActivity : ComponentActivity() {
 
                 // 진행 중인 금주가 있는 경우
                 if (startTime > 0) {
-                    navigateToActivity(RunActivity::class.java)
+                    if (this !is RunActivity) {
+                        navigateToActivity(RunActivity::class.java)
+                    }
                 } else {
                     // 진행 중인 금주가 없는 경우
-                    navigateToActivity(StartActivity::class.java)
+                    if (this !is StartActivity) {
+                        navigateToActivity(StartActivity::class.java)
+                    }
                 }
             }
             "기록" -> {
