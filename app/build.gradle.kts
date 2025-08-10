@@ -40,10 +40,10 @@ android {
 }
 
 dependencies {
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.11.0")
-    implementation("androidx.drawerlayout:drawerlayout:1.2.0")
-    implementation("com.google.accompanist:accompanist-swiperefresh:0.32.0") // SwipeRefresh 라이브러리 추가
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.material)
+    implementation(libs.androidx.drawerlayout)
+    implementation(libs.accompanist.swiperefresh)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
