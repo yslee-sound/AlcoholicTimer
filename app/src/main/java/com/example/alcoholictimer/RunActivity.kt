@@ -3,6 +3,7 @@ package com.example.alcoholictimer
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -46,7 +47,7 @@ fun RunScreen() {
     val context = LocalContext.current
 
     // SharedPreferences에서 데이터 가져오기
-    val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+    val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
     val startTime = sharedPref.getLong("start_time", 0L)
     val targetDays = sharedPref.getFloat("target_days", 30f)
 
@@ -128,13 +129,14 @@ fun RunScreen() {
 
             try {
                 // 목표 달성 시 자동으로 기록 저장
+                val isCompleted = elapsedDaysFloat >= targetDays && targetDays > 0 && startTime > 0
                 saveCompletedRecord(
                     context = context,
                     startTime = startTime,
                     endTime = System.currentTimeMillis(),
                     targetDays = targetDays.toInt(),
                     actualDays = elapsedDays,
-                    isCompleted = true
+                    isCompleted = isCompleted
                 )
 
                 // SharedPreferences 초기화
@@ -370,7 +372,7 @@ fun ProgressIndicator(progress: Float) {
         )
 
         LinearProgressIndicator(
-            progress = progress,
+            progress = { progress },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(8.dp)
@@ -432,6 +434,8 @@ private fun saveCompletedRecord(
         val recordsList = try {
             JSONArray(recordsJson)
         } catch (e: Exception) {
+            // Log the exception for debugging purposes
+            Log.e("RunActivity", "Error parsing recordsJson", e)
             JSONArray()
         }
 
@@ -439,7 +443,7 @@ private fun saveCompletedRecord(
         recordsList.put(record)
 
         // 저장
-        with(sharedPref.edit()) {
+        sharedPref.edit().apply {
             putString("sobriety_records", recordsList.toString())
             apply()
         }
@@ -449,7 +453,9 @@ private fun saveCompletedRecord(
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 
     } catch (e: Exception) {
-        Toast.makeText(context, "기록 저장 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+        // Log the exception for debugging purposes
+        Log.e("RunActivity", "Error saving record", e)
+        Toast.makeText(context, "기록 저장 중 오류가 발생했습니다: ${e.message}", Toast.LENGTH_SHORT).show()
     }
 }
 

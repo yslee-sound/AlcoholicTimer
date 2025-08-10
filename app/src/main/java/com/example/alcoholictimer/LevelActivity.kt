@@ -85,7 +85,7 @@ class LevelActivity : BaseActivity() {
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     LinearProgressIndicator(
-                        progress = progress,
+                        progress = { progress },
                         modifier = Modifier.fillMaxWidth(0.7f).height(10.dp),
                         color = currentLevel.color
                     )
