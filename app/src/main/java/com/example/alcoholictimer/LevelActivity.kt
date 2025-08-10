@@ -56,8 +56,12 @@ class LevelActivity : BaseActivity() {
                 emptyList()
             }
         }
-        // 전체 달성 일수 계산
-        val totalDays = records.sumOf { it.actualDays }
+        // 전체 달성 일수 계산 (실제 데이터가 있으면 사용, 없으면 currentDays 사용)
+        val totalDays = if (records.isNotEmpty()) {
+            records.sumOf { it.actualDays }
+        } else {
+            currentDays
+        }
 
         // 현재 레벨 인덱스 계산 (안전한 방식)
         val currentLevelIndex = remember(totalDays) {
@@ -132,7 +136,7 @@ class LevelActivity : BaseActivity() {
                     val isAchieved = idx <= currentLevelIndex
                     LevelCard(
                         level = level,
-                        currentDays = currentDays,
+                        currentDays = totalDays, // currentDays 대신 totalDays 사용
                         enabled = isAchieved
                     )
                     Spacer(modifier = Modifier.height(12.dp))
