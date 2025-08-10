@@ -172,11 +172,11 @@ fun RunScreen() {
 
     // 레벨에 따른 배경색 (명세서 기준)
     val backgroundColor = when {
-        elapsedDays < 7 -> Color(0xFFF5F5F5) // Gray
-        elapsedDays < 30 -> Color(0xFFFFF3CD) // Light Yellow
-        elapsedDays < 90 -> Color(0xFFE7F3FF) // Light Blue
-        elapsedDays < 365 -> Color(0xFFE8F5E8) // Light Green
-        else -> Color(0xFFFFF0DC) // Light Gold
+        elapsedDays < 7 -> Color.White // Gray에서 White로 변경
+        elapsedDays < 30 -> Color.White // Light Yellow에서 White로 변경
+        elapsedDays < 90 -> Color.White // Light Blue에서 White로 변경
+        elapsedDays < 365 -> Color.White // Light Green에서 White로 변경
+        else -> Color.White // Light Gold에서 White로 변경
     }
 
     Box(

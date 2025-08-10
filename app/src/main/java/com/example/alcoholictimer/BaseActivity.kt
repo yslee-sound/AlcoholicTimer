@@ -136,14 +136,6 @@ abstract class BaseActivity : ComponentActivity() {
         return sharedPref.getString("nickname", "알중이1") ?: "알중이1"
     }
 
-    private fun saveNickname(nickname: String) {
-        val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
-        with(sharedPref.edit()) {
-            putString("nickname", nickname)
-            apply()
-        }
-    }
-
     private fun handleMenuSelection(menuItem: String) {
         when (menuItem) {
             "금주" -> {
