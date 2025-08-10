@@ -98,32 +98,15 @@ fun TestScreen() {
         )
 
         // 기록 초기화 버튼
-        Spacer(modifier = Modifier.height(16.dp))
+        var showDialog by remember { mutableStateOf(false) }
+        Spacer(modifier = Modifier.height(10.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Start
         ) {
             OutlinedButton(
                 onClick = {
-                    val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
-                    val editor = sharedPref.edit()
-
-                    // 기존 기록 확인
-                    val beforeRecords = sharedPref.getString("sobriety_records", "[]")
-                    android.util.Log.d("TestActivity", "초기화 전 기록: $beforeRecords")
-
-                    // 모든 데이터 삭제
-                    editor.clear()
-
-                    // 명시적으로 sobriety_records 키도 삭제
-                    editor.remove("sobriety_records")
-                    editor.apply()
-
-                    // 삭제 후 확인
-                    val afterRecords = sharedPref.getString("sobriety_records", "[]")
-                    android.util.Log.d("TestActivity", "초기화 후 기록: $afterRecords")
-
-                    Toast.makeText(context, "모든 기록이 초기화되었습니다", Toast.LENGTH_SHORT).show()
+                    showDialog = true
                 },
                 border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black),
                 colors = ButtonDefaults.outlinedButtonColors(
@@ -131,10 +114,38 @@ fun TestScreen() {
                     contentColor = Color.Black
                 )
             ) {
-                Text("모든 기록 초기화", fontSize = 18.sp)
+                Text("모든 기록 초기화")
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text("기록 초기화") },
+                text = { Text("모든 기록을 초기화하시겠습니까?") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+                        val editor = sharedPref.edit()
+                        val beforeRecords = sharedPref.getString("sobriety_records", "[]")
+                        android.util.Log.d("TestActivity", "초기화 전 기록: $beforeRecords")
+                        editor.clear()
+                        editor.remove("sobriety_records")
+                        editor.apply()
+                        val afterRecords = sharedPref.getString("sobriety_records", "[]")
+                        android.util.Log.d("TestActivity", "초기화 후 기록: $afterRecords")
+                        Toast.makeText(context, "모든 기록이 초기화되었습니다", Toast.LENGTH_SHORT).show()
+                        showDialog = false
+                    }) {
+                        Text("확인")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDialog = false }) {
+                        Text("취소")
+                    }
+                }
+            )
+        }
 
         // 버튼들
         Row(
