@@ -840,8 +840,15 @@ fun MiniBarChart(
                 val shouldShowLabel = when (selectedPeriod) {
                     "주" -> true
                     "월" -> {
-                        // 1, 5, 10, 15, 20, 25, 마지막일에만 표시
-                        day == 1 || day == 5 || day == 10 || day == 15 || day == 20 || day == 25 || day == graphData.size
+                        // 매월의 시작일(1일), 매월의 월요일, 매월의 마지막일에만 표시
+                        if (day == 1 || day == graphData.size) {
+                            true // 1일과 마지막일은 항상 표시
+                        } else {
+                            // 해당 날짜가 월요일인지 확인
+                            val calendar = Calendar.getInstance()
+                            calendar.set(selectedYear, selectedMonth - 1, day)
+                            calendar.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY
+                        }
                     }
                     "년" -> true
                     "전체" -> true
