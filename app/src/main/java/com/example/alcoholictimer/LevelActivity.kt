@@ -41,7 +41,7 @@ class LevelActivity : BaseActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun LevelScreen(
-        currentDays: Int = 15, // 예시: 실제 데이터 연동 시 파라미터로 변경
+        currentDays: Int = 0, // 기본값을 0으로 변경
         onBack: (() -> Unit)? = null
     ) {
         val context = LocalContext.current
@@ -56,12 +56,8 @@ class LevelActivity : BaseActivity() {
                 emptyList()
             }
         }
-        // 전체 달성 일수 계산 (실제 데이터가 있으면 사용, 없으면 currentDays 사용)
-        val totalDays = if (records.isNotEmpty()) {
-            records.sumOf { it.actualDays }
-        } else {
-            currentDays
-        }
+        // 전체 달성 일수 계산 - 모든 기록의 actualDays를 합산
+        val totalDays = records.sumOf { it.actualDays }
 
         // 현재 레벨 인덱스 계산 (안전한 방식)
         val currentLevelIndex = remember(totalDays) {
