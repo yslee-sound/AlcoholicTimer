@@ -71,7 +71,7 @@ class LevelActivity : BaseActivity() {
         val progress = when {
             totalDays < currentLevel.start -> 0f
             totalDays > currentLevel.end -> 1f
-            else -> (totalDays - currentLevel.start + 1).toFloat() / (currentLevel.end - currentLevel.start + 1)
+            else -> (totalDays - currentLevel.start).toFloat() / (currentLevel.end - currentLevel.start + 1)
         }
 
         Column(
