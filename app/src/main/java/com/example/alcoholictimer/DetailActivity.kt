@@ -8,8 +8,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.ArrowBack
@@ -56,6 +58,10 @@ class DetailActivity : ComponentActivity() {  // BaseActivity에서 ComponentAct
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 상태표시줄 표시 설정
+        window.statusBarColor = android.graphics.Color.WHITE
+        window.decorView.systemUiVisibility = android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
 
         Log.d(TAG, "===== DetailActivity onCreate 시작 =====")
 
@@ -116,22 +122,6 @@ fun DetailScreen(
 ) {
     val context = LocalContext.current
     var showDeleteDialog by remember { mutableStateOf(false) }
-
-    // 네비게이션 상태 관리 (컴포지션 최상단으로 이동)
-    var shouldFinish by remember { mutableStateOf(false) }
-
-    // 안전한 네비게이션 처리 (컴포지션 최상단으로 이동)
-    LaunchedEffect(shouldFinish) {
-        if (shouldFinish) {
-            try {
-                if (context is DetailActivity) {
-                    context.finish()
-                }
-            } catch (e: Exception) {
-                // 안전하게 처리
-            }
-        }
-    }
 
     // 날짜/시간 포맷
     val dateTimeFormat = SimpleDateFormat("yyyy-MM-dd - a h:mm", Locale.getDefault()).apply {
@@ -211,7 +201,7 @@ fun DetailScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 0.dp), // 왼쪽 패딩 추가
+                .padding(start = 0.dp, top = 24.dp), // 위쪽 패딩 24dp 추가
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -246,14 +236,19 @@ fun DetailScreen(
                         .weight(1f)
                         .padding(start = 8.dp) // 왼쪽 패딩 추가
                 )
-                IconButton(
-                    onClick = { showDeleteDialog = true },
-                    modifier = Modifier.padding(end = 0.dp)
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .padding(end = 0.dp)
+                        .size(40.dp) // 전체 클릭 영역 크기
+                        .clip(CircleShape) // 원형으로 클리핑하여 리플 효과도 원형으로 만듦
+                        .clickable { showDeleteDialog = true }
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Delete,
                         contentDescription = "기록 삭제",
-                        tint = Color.Black
+                        tint = Color.Black,
+                        modifier = Modifier.size(30.dp) // 아이콘 자체 크기는 유지
                     )
                 }
             }
@@ -267,12 +262,16 @@ fun DetailScreen(
                 text = { Text("정말로 이 금주 기록을 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.") },
                 confirmButton = {
                     TextButton(onClick = {
-                        deleteRecord(context, startTime)
+                        // 다이얼로그 먼저 닫기
                         showDeleteDialog = false
-                        // 삭제 후 화면 종료
-                        if (context is DetailActivity) {
-                            context.finish()
+                        // 삭제 실행
+                        try {
+                            deleteRecord(context, startTime, endTime)
+                        } catch (e: Exception) {
+                            Log.e("DetailActivity", "삭제 중 오류", e)
                         }
+                        // 즉시 액티비티 종료
+                        (context as? DetailActivity)?.finish()
                     }) {
                         Text("삭제", color = Color.Red)
                     }
@@ -459,20 +458,35 @@ fun PreviewDetailScreen() {
     )
 }
 
-// 기록 삭제 함수
-private fun deleteRecord(context: Context, startTime: Long) {
-    val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
-    val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
+// 기록 삭제 함수 - 최적화
+private fun deleteRecord(context: Context, startTime: Long, endTime: Long) {
     try {
+        val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
+        val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
         val recordsArray = org.json.JSONArray(recordsJson)
         val newArray = org.json.JSONArray()
+
+        var deleted = false
         for (i in 0 until recordsArray.length()) {
             val record = recordsArray.getJSONObject(i)
-            if (record.optLong("startTime") != startTime) {
+            val recordStartTime = record.optLong("startTime", -1L)
+            val recordEndTime = record.optLong("endTime", -1L)
+
+            // 정확히 일치하는 기록만 삭제
+            if (recordStartTime == startTime && recordEndTime == endTime) {
+                deleted = true
+                Log.d("DetailActivity", "기록 삭제됨: startTime=$startTime, endTime=$endTime")
+            } else {
                 newArray.put(record)
             }
         }
-        sharedPref.edit().putString("sobriety_records", newArray.toString()).apply()
+
+        if (deleted) {
+            sharedPref.edit().putString("sobriety_records", newArray.toString()).apply()
+            Log.d("DetailActivity", "삭제 완료. 남은 기록 수: ${newArray.length()}")
+        } else {
+            Log.w("DetailActivity", "삭제할 기록을 찾지 못함: startTime=$startTime, endTime=$endTime")
+        }
     } catch (e: Exception) {
         Log.e("DetailActivity", "기록 삭제 중 오류", e)
     }

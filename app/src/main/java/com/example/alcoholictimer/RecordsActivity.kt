@@ -46,11 +46,14 @@ class RecordsActivity : BaseActivity() {
         private const val TAG = "RecordsActivity"
     }
 
+    // refreshTrigger를 Activity 레벨로 이동
+    private var refreshTrigger by mutableStateOf(0)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             BaseScreen {
-                RecordsScreen()
+                RecordsScreen(refreshTrigger)
             }
         }
     }
@@ -59,12 +62,14 @@ class RecordsActivity : BaseActivity() {
         super.onResume()
         // 화면이 다시 나타날 때마다 데이터를 새로고침
         Log.d(TAG, "onResume: 기록 화면이 다시 나타남 - 데이터 새로고침")
+        // refreshTrigger 증가시켜 강제 새로고침
+        refreshTrigger++
     }
 
     override fun getScreenTitle(): String = "금주 기록"
 
     @Composable
-    private fun RecordsScreen() {
+    private fun RecordsScreen(externalRefreshTrigger: Int) {
         val context = LocalContext.current
         val coroutineScope = rememberCoroutineScope()
         var records by remember { mutableStateOf<List<SobrietyRecord>>(emptyList()) }
@@ -75,7 +80,6 @@ class RecordsActivity : BaseActivity() {
         var showMonthPicker by remember { mutableStateOf(false) }
         var showWeekPicker by remember { mutableStateOf(false) }
         var showYearPicker by remember { mutableStateOf(false) }
-        var refreshTrigger by remember { mutableStateOf(0) }
         var isRefreshing by remember { mutableStateOf(false) }
         val swipeRefreshState = rememberSwipeRefreshState(isRefreshing)
 
@@ -161,12 +165,12 @@ class RecordsActivity : BaseActivity() {
             }
         }
 
-        // 초기 기록 로드 및 화면이 다시 나타날 때마다 새로고침
-        LaunchedEffect(refreshTrigger) {
+        // 외부 refreshTrigger가 변경될 때마다 새로고침
+        LaunchedEffect(externalRefreshTrigger) {
             loadRecords()
         }
 
-        // 화면이 다시 나타날 때 새로고침 (onResume 대신 LaunchedEffect 사용)
+        // 초기 로드
         LaunchedEffect(Unit) {
             loadRecords()
         }
@@ -271,7 +275,7 @@ class RecordsActivity : BaseActivity() {
 
                     // 그래프 섹션을 별도 아이템으로 분리
                     item {
-                        GraphSection(records = filteredRecords, selectedPeriod = selectedPeriod)
+                        GraphSection(records = filteredRecords, selectedPeriod = selectedPeriod, selectedYear = selectedYear, selectedMonth = selectedMonth)
                     }
 
                     // 하단: 최근 활동 섹션 헤더
@@ -409,7 +413,7 @@ class RecordsActivity : BaseActivity() {
     @Composable
     fun PreviewRecordsScreen() {
         BaseScreen {
-            RecordsScreen()
+            RecordsScreen(0)
         }
     }
 }
@@ -720,11 +724,13 @@ fun StatisticsCardsSection(
 
 // 그래프 섹션을 별도 아이템으로 분���
 @Composable
-fun GraphSection(records: List<SobrietyRecord>, selectedPeriod: String) {
+fun GraphSection(records: List<SobrietyRecord>, selectedPeriod: String, selectedYear: Int, selectedMonth: Int) {
     // 실제 그래프 표시
     MiniBarChart(
         records = records,
         selectedPeriod = selectedPeriod,
+        selectedYear = selectedYear,
+        selectedMonth = selectedMonth,
         modifier = Modifier
             .fillMaxWidth()
             .height(150.dp)
@@ -736,12 +742,14 @@ fun GraphSection(records: List<SobrietyRecord>, selectedPeriod: String) {
 fun MiniBarChart(
     records: List<SobrietyRecord>,
     selectedPeriod: String,
+    selectedYear: Int,
+    selectedMonth: Int,
     modifier: Modifier = Modifier
 ) {
     // 선택된 기간에 따라 그래프 데이터 생성
     val graphData = when (selectedPeriod) {
         "주" -> generateWeeklyGraphData(records)
-        "월" -> generateMonthlyGraphData(records)
+        "월" -> generateMonthlyGraphData(records, selectedYear, selectedMonth)
         "년" -> generateYearlyGraphData(records)
         "전체" -> generateAllTimeGraphData(records)
         else -> generateWeeklyGraphData(records)
@@ -798,16 +806,23 @@ fun MiniBarChart(
             val barSpacing = chartWidth / graphData.size * 0.3f
 
             graphData.forEachIndexed { index, item ->
-                val barHeight = if (item.value > 0) chartHeight * 0.6f else 0f
+                // 실제 비율에 따라 막대 높이 계산 (0.0~1.0 비율을 차트 높이에 맞게 변환)
+                val barHeight = chartHeight * item.value
                 val x = leftMargin + (index * (barWidth + barSpacing)) + barSpacing / 2
                 val y = topMargin + chartHeight - barHeight
 
-                // 막대 그리기
-                drawRect(
-                    color = if (item.value > 0) Color(0xFF4CAF50) else Color(0xFFE0E0E0),
-                    topLeft = Offset(x, y),
-                    size = androidx.compose.ui.geometry.Size(barWidth, barHeight)
-                )
+                // 막대 그리기 - 진행 시간이 있을 때만 표시
+                if (item.value > 0) {
+                    drawRect(
+                        color = when {
+                            item.value >= 1.0f -> Color(0xFF4CAF50) // 완전 금주 (녹색)
+                            item.value >= 0.5f -> Color(0xFFFF9800) // 절반 이상 (주황색)
+                            else -> Color(0xFFFFEB3B) // 절반 미만 (노란색)
+                        },
+                        topLeft = Offset(x, y),
+                        size = androidx.compose.ui.geometry.Size(barWidth, barHeight)
+                    )
+                }
             }
         }
 
@@ -821,9 +836,13 @@ fun MiniBarChart(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             graphData.forEachIndexed { index, item ->
+                val day = index + 1 // 1-based 날짜
                 val shouldShowLabel = when (selectedPeriod) {
                     "주" -> true
-                    "월" -> index % 5 == 0 || index == graphData.size - 1
+                    "월" -> {
+                        // 1, 5, 10, 15, 20, 25, 마지막일에만 표시
+                        day == 1 || day == 5 || day == 10 || day == 15 || day == 20 || day == 25 || day == graphData.size
+                    }
                     "년" -> true
                     "전체" -> true
                     else -> true
@@ -835,7 +854,9 @@ fun MiniBarChart(
                         fontSize = 10.sp,
                         color = Color.Gray,
                         modifier = Modifier.weight(1f),
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        maxLines = 1,
+                        softWrap = false
                     )
                 } else {
                     Spacer(modifier = Modifier.weight(1f))
@@ -877,7 +898,6 @@ fun MiniBarChart(
 private fun generateWeeklyGraphData(records: List<SobrietyRecord>): List<SimpleGraphData> {
     val calendar = Calendar.getInstance()
     val weekDays = listOf("월", "화", "수", "목", "금", "토", "일")
-    val completedRecords = records.filter { it.isCompleted }
 
     // 이번 주 월요일부터 시작
     calendar.firstDayOfWeek = Calendar.MONDAY
@@ -893,47 +913,82 @@ private fun generateWeeklyGraphData(records: List<SobrietyRecord>): List<SimpleG
         val dayStart = weekStart + (index * 24 * 60 * 60 * 1000L)
         val dayEnd = dayStart + (24 * 60 * 60 * 1000L)
 
-        val hasSuccess = completedRecords.any { record ->
-            record.startTime >= dayStart && record.startTime < dayEnd
+        // 해당 날짜에 시작된 완료된 기록들 찾기
+        val dayRecords = records.filter { record ->
+            val recordStartDate = Calendar.getInstance().apply {
+                timeInMillis = record.startTime
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
+
+            recordStartDate == dayStart && record.isCompleted
         }
 
-        SimpleGraphData(dayName, if (hasSuccess) 1 else 0)
+        if (dayRecords.isEmpty()) {
+            SimpleGraphData(dayName, 0f)
+        } else {
+            // 해당 날짜에 시작된 기록 중 가장 높은 달성률 사용
+            val maxAchievedPercentage = dayRecords.maxOfOrNull { record ->
+                record.achievedPercentage
+            } ?: 0
+
+            // 백분율을 0.0~1.0 비율로 변환
+            val ratio = (maxAchievedPercentage / 100.0f).coerceIn(0.0f, 1.0f)
+
+            SimpleGraphData(dayName, ratio)
+        }
     }
 }
 
-// 최근 30일간의 그���프 데이터 생성 함수
-private fun generateMonthlyGraphData(records: List<SobrietyRecord>): List<SimpleGraphData> {
+// 최근 30일간의 그래프 데이터 생성 함수
+private fun generateMonthlyGraphData(records: List<SobrietyRecord>, year: Int, month: Int): List<SimpleGraphData> {
     val calendar = Calendar.getInstance()
-    val monthNames = listOf("1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월")
-    val completedRecords = records.filter { it.isCompleted }
 
-    // 이�� 달 1일자로 설정
-    calendar.set(Calendar.DAY_OF_MONTH, 1)
-    calendar.set(Calendar.HOUR_OF_DAY, 0)
-    calendar.set(Calendar.MINUTE, 0)
-    calendar.set(Calendar.SECOND, 0)
+    // 선택된 연/월의 1일부터 마지막 날까지 생성
+    calendar.set(year, month - 1, 1, 0, 0, 0) // month - 1 because Calendar.MONTH is 0-based
     calendar.set(Calendar.MILLISECOND, 0)
 
-    val monthStart = calendar.timeInMillis
+    // 선택된 월의 마지막 날 계산
+    val lastDayOfMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
 
-    return monthNames.mapIndexed { index, monthName ->
-        val monthStartTime = monthStart + (index * 30 * 24 * 60 * 60 * 1000L)
-        val monthEndTime = monthStartTime + (30 * 24 * 60 * 60 * 1000L)
+    return (1..lastDayOfMonth).map { day ->
+        // 그래프의 해당 날짜
+        calendar.set(year, month - 1, day, 0, 0, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        val graphYear = calendar.get(Calendar.YEAR)
+        val graphMonth = calendar.get(Calendar.MONTH)
+        val graphDay = calendar.get(Calendar.DAY_OF_MONTH)
 
-        val hasSuccess = completedRecords.any { record ->
-            record.startTime >= monthStartTime && record.startTime < monthEndTime
+        // 해당 날짜에 시작된 완료된 기록들 찾기 (연,월,일 단위로 비교)
+        val dayRecords = records.filter { record ->
+            val recordCal = Calendar.getInstance().apply { timeInMillis = record.startTime }
+            recordCal.get(Calendar.YEAR) == graphYear &&
+            recordCal.get(Calendar.MONTH) == graphMonth &&
+            recordCal.get(Calendar.DAY_OF_MONTH) == graphDay &&
+            record.isCompleted
         }
 
-        SimpleGraphData(monthName, if (hasSuccess) 1 else 0)
-    }.take(12) // 최근 12개월만 표시
+        if (dayRecords.isEmpty()) {
+            SimpleGraphData("${day}", 0.0f)
+        } else {
+            // 해당 날짜에 시작된 기록 중 가장 높은 달성률 사용
+            val maxAchievedPercentage = dayRecords.maxOfOrNull { record ->
+                record.achievedPercentage
+            } ?: 0
+            // 백분율을 0.0~1.0 비율로 변환
+            val ratio = (maxAchievedPercentage / 100.0f).coerceIn(0.0f, 1.0f)
+            SimpleGraphData("${day}", ratio)
+        }
+    }
 }
 
 // 최근 1년간의 그래프 데이터 생성 함수
 private fun generateYearlyGraphData(records: List<SobrietyRecord>): List<SimpleGraphData> {
     val calendar = Calendar.getInstance()
-    val completedRecords = records.filter { it.isCompleted }
 
-    // 올�� 1월 1일자로 설정
+    // 올해 1월 1일자로 설정
     calendar.set(Calendar.MONTH, Calendar.JANUARY)
     calendar.set(Calendar.DAY_OF_MONTH, 1)
     calendar.set(Calendar.HOUR_OF_DAY, 0)
@@ -941,18 +996,46 @@ private fun generateYearlyGraphData(records: List<SobrietyRecord>): List<SimpleG
     calendar.set(Calendar.SECOND, 0)
     calendar.set(Calendar.MILLISECOND, 0)
 
-    val yearStart = calendar.timeInMillis
-
-    // 최근 1년간의 월별 데이�� 생성
+    // 최근 1년간의 월별 데이터 생성
     return (0 until 12).map { monthOffset ->
-        val monthStart = yearStart + (monthOffset * 30 * 24 * 60 * 60 * 1000L)
-        val monthEnd = monthStart + (30 * 24 * 60 * 60 * 1000L)
+        calendar.set(Calendar.MONTH, monthOffset)
+        calendar.set(Calendar.DAY_OF_MONTH, 1)
+        val monthStart = calendar.timeInMillis
 
-        val hasSuccess = completedRecords.any { record ->
-            record.startTime >= monthStart && record.startTime < monthEnd
+        // 해당 월의 마지막 날 계산
+        val lastDayOfMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+        calendar.set(Calendar.DAY_OF_MONTH, lastDayOfMonth)
+        calendar.set(Calendar.HOUR_OF_DAY, 23)
+        calendar.set(Calendar.MINUTE, 59)
+        calendar.set(Calendar.SECOND, 59)
+        calendar.set(Calendar.MILLISECOND, 999)
+        val monthEnd = calendar.timeInMillis
+
+        // 해당 월에 시작된 완료된 기록들 찾기
+        val monthRecords = records.filter { record ->
+            val recordStartDate = Calendar.getInstance().apply {
+                timeInMillis = record.startTime
+            }
+            val recordMonth = recordStartDate.get(Calendar.MONTH)
+            val recordYear = recordStartDate.get(Calendar.YEAR)
+            val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+
+            recordMonth == monthOffset && recordYear == currentYear && record.isCompleted
         }
 
-        SimpleGraphData("${monthOffset + 1}월", if (hasSuccess) 1 else 0)
+        if (monthRecords.isEmpty()) {
+            SimpleGraphData("${monthOffset + 1}월", 0f)
+        } else {
+            // 해당 월에 시작된 기록 중 가장 높은 달성률 사용
+            val maxAchievedPercentage = monthRecords.maxOfOrNull { record ->
+                record.achievedPercentage
+            } ?: 0
+
+            // 백분율을 0.0~1.0 비율로 변환
+            val ratio = (maxAchievedPercentage / 100.0f).coerceIn(0.0f, 1.0f)
+
+            SimpleGraphData("${monthOffset + 1}월", ratio)
+        }
     }
 }
 
@@ -961,14 +1044,14 @@ private fun generateAllTimeGraphData(records: List<SobrietyRecord>): List<Simple
     val completedRecords = records.filter { it.isCompleted }
 
     return listOf(
-        SimpleGraphData("전체", if (completedRecords.isNotEmpty()) 1 else 0)
+        SimpleGraphData("전체", if (completedRecords.isNotEmpty()) 1f else 0f)
     )
 }
 
 // RecordsActivity 전용 간단한 그래프 ���이터 클래스
 data class SimpleGraphData(
     val label: String,
-    val value: Int // 0 또는 1 (성공 여부)
+    val value: Float // 0.0~1.0 (금주 진행 비율)
 )
 
 @Composable
@@ -1015,6 +1098,8 @@ fun TestRecordInputDialogContent(
     var startYear by remember { mutableStateOf(calendar.get(Calendar.YEAR)) }
     var startMonth by remember { mutableStateOf(calendar.get(Calendar.MONTH) + 1) }
     var startDay by remember { mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH)) }
+    var startHour by remember { mutableStateOf(calendar.get(Calendar.HOUR_OF_DAY)) }
+    var startMinute by remember { mutableStateOf(calendar.get(Calendar.MINUTE)) }
     // 종료일 드롭다운 상태
     var endYear by remember { mutableStateOf(calendar.get(Calendar.YEAR)) }
     var endMonth by remember { mutableStateOf(calendar.get(Calendar.MONTH) + 1) }
@@ -1037,15 +1122,15 @@ fun TestRecordInputDialogContent(
     }
 
     // 날짜 선택 시 Unix ms로 변환
-    fun getMillis(year: Int, month: Int, day: Int): Long {
+    fun getMillis(year: Int, month: Int, day: Int, hour: Int = 0, minute: Int = 0): Long {
         val cal = Calendar.getInstance()
-        cal.set(year, month - 1, day, 0, 0, 0)
+        cal.set(year, month - 1, day, hour, minute, 0)
         cal.set(Calendar.MILLISECOND, 0)
         return cal.timeInMillis
     }
 
-    LaunchedEffect(startYear, startMonth, startDay) {
-        onStartTimeChange(getMillis(startYear, startMonth, startDay))
+    LaunchedEffect(startYear, startMonth, startDay, startHour, startMinute) {
+        onStartTimeChange(getMillis(startYear, startMonth, startDay, startHour, startMinute))
     }
     LaunchedEffect(endYear, endMonth, endDay) {
         onEndTimeChange(getMillis(endYear, endMonth, endDay))
@@ -1054,12 +1139,39 @@ fun TestRecordInputDialogContent(
     // 목표일수 또는 실제 종료된 일수 변경 시 종료일 자동 계산
     fun updateEndDateByDays(targetDays: Int, actualDays: Int) {
         val cal = Calendar.getInstance()
-        cal.set(startYear, startMonth - 1, startDay, 0, 0, 0)
+        cal.set(startYear, startMonth - 1, startDay, startHour, startMinute, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+
+        // 실제 달성한 일수만큼 시작시간에서 더하기
         val daysToAdd = actualDays.coerceAtLeast(0)
-        cal.add(Calendar.DAY_OF_MONTH, daysToAdd)
-        endYear = cal.get(Calendar.YEAR)
-        endMonth = cal.get(Calendar.MONTH) + 1
-        endDay = cal.get(Calendar.DAY_OF_MONTH)
+
+        // 목표 달성률에 따른 더 정확한 종료 시간 계산
+        if (daysToAdd == 0) {
+            // 0일 달성 시 시작 시간과 동일하게 설정
+            endYear = startYear
+            endMonth = startMonth
+            endDay = startDay
+        } else if (daysToAdd == targetDays && localSelectedPercentage == 100) {
+            // 100% 달성 시 정확히 목표일수만큼 더하기
+            cal.add(Calendar.DAY_OF_MONTH, daysToAdd)
+            endYear = cal.get(Calendar.YEAR)
+            endMonth = cal.get(Calendar.MONTH) + 1
+            endDay = cal.get(Calendar.DAY_OF_MONTH)
+        } else {
+            // 부분 달성 시 달성률에 따른 시간 계산
+            val totalTargetHours = targetDays * 24L
+            val achievedHours = (totalTargetHours * localSelectedPercentage / 100.0).toLong()
+
+            cal.add(Calendar.HOUR_OF_DAY, achievedHours.toInt())
+
+            endYear = cal.get(Calendar.YEAR)
+            endMonth = cal.get(Calendar.MONTH) + 1
+            endDay = cal.get(Calendar.DAY_OF_MONTH)
+        }
+
+        // 종료 시간을 계산된 시점으로 설정
+        val endTimeMillis = getMillis(endYear, endMonth, endDay, startHour, startMinute)
+        onEndTimeChange(endTimeMillis)
     }
 
     // 수정: 목표일수와 실제 달성일수가 변경될 때마다 선택된 퍼센테이지 값 업데이트
@@ -1074,16 +1186,18 @@ fun TestRecordInputDialogContent(
 
     Column {
         Text("시작일:")
+        // 첫 번째 줄: 년도
         Row {
-            // 년도 드롭다운
             DropdownSelector(
                 label = "년",
                 options = (2020..calendar.get(Calendar.YEAR)).toList(),
                 selected = startYear,
                 onSelected = { startYear = it; updateEndDateByDays(inputTargetDays, inputActualDays) }
             )
-            Spacer(modifier = Modifier.width(8.dp))
-            // 월 드롭다운
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        // 두 번째 줄: 월과 일
+        Row {
             DropdownSelector(
                 label = "월",
                 options = (1..12).toList(),
@@ -1091,12 +1205,28 @@ fun TestRecordInputDialogContent(
                 onSelected = { startMonth = it; updateEndDateByDays(inputTargetDays, inputActualDays) }
             )
             Spacer(modifier = Modifier.width(8.dp))
-            // 일 드롭다운
             DropdownSelector(
                 label = "일",
                 options = (1..31).toList(),
                 selected = startDay,
                 onSelected = { startDay = it; updateEndDateByDays(inputTargetDays, inputActualDays) }
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        // 세 번째 줄: 시간
+        Row {
+            DropdownSelector(
+                label = "시",
+                options = (0..23).toList(),
+                selected = startHour,
+                onSelected = { startHour = it }
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            DropdownSelector(
+                label = "분",
+                options = (0..59 step 5).toList(), // 5분 단위로 선택
+                selected = startMinute,
+                onSelected = { startMinute = it }
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -1183,7 +1313,11 @@ fun <T> DropdownSelector(label: String, options: List<T>, selected: T, onSelecte
         OutlinedButton(onClick = { expanded = true }) {
             Text("$selected $label")
         }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.heightIn(max = 200.dp) // 최대 높이 제한으로 스크롤 가능하게 함
+        ) {
             options.forEach { option ->
                 DropdownMenuItem(text = { Text(option.toString()) }, onClick = {
                     onSelected(option)
