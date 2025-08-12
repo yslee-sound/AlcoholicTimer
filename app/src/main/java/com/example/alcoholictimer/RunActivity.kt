@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,7 +55,8 @@ fun RunScreen() {
     val timerCompleted = sharedPref.getBoolean("timer_completed", false)
 
     // 금주가 완전히 완료되었거나 아직 시작하지 않은 경우에만 시작 화면으로 이동
-    if (timerCompleted || (startTime == 0L && !timerCompleted)) {
+    val isPreview = LocalInspectionMode.current
+    if (!isPreview && (timerCompleted || (startTime == 0L && !timerCompleted))) {
         LaunchedEffect(Unit) {
             val intent = Intent(context, StartActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
