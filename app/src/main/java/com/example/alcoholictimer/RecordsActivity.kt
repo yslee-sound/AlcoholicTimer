@@ -30,14 +30,11 @@ import com.example.alcoholictimer.components.YearPickerBottomSheet
 import com.example.alcoholictimer.utils.SobrietyRecord
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.text.toIntOrNull
-import kotlin.text.toLongOrNull
 
 class RecordsActivity : BaseActivity() {
 
@@ -95,7 +92,6 @@ class RecordsActivity : BaseActivity() {
             isRefreshing = true
             try {
                 // 약간의 지연을 추가하여 새로고침 애니메이션을 보여줌
-                delay(500)
                 records = loadSobrietyRecords(context)
                 Log.d(TAG, "========== 기록 로딩 디버깅 ==========")
                 Log.d(TAG, "새로고침: 로드된 기록: ${records.size}개")
@@ -978,9 +974,7 @@ private fun generateWeeklyGraphData(records: List<SobrietyRecord>): List<SimpleG
             } ?: 0
 
             // 백분율을 0.0~1.0 비율로 변환
-            val ratio = (maxAchievedPercentage / 100.0f).coerceIn(0.0f, 1.0f)
-
-            SimpleGraphData(dayName, ratio)
+            SimpleGraphData(dayName, (maxAchievedPercentage / 100.0f).coerceIn(0.0f, 1.0f))
         }
     }
 }
