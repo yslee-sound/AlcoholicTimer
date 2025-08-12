@@ -273,12 +273,14 @@ fun RunScreen() {
 
             Text(
                 text = getLevelName(elapsedDays), // 실제 일수로 레벨명 표시
-                fontSize = 16.sp,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = Color.Black,
+                modifier = Modifier
+                    .weight(1f), // 가운데 영역을 넓게 차지
+                textAlign = TextAlign.Center // 중앙 정렬
             )
 
-            // 현재 진행되고 있는 시간 표시 (HH:MM:SS 형식)
             Text(
                 text = progressTimeText,
                 fontSize = 14.sp,
@@ -539,18 +541,7 @@ private fun saveCompletedRecord(
 
 // 레벨명 함수 (기존 레벨 테이블 기준)
 private fun getLevelName(days: Int): String {
-    // LevelActivity의 레벨명과 일수 구간을 그대로 사용하도록 변경
-    val levels = listOf(
-        "작심 7일" to 0..6,
-        "의지의 2주" to 7..13,
-        "한달의 기적" to 14..29,
-        "습관의 탄생" to 30..59,
-        "계속되는 도전" to 60..119,
-        "거의 1년" to 120..239,
-        "금주 마스터" to 240..364,
-        "절제의 레전드" to 365..Int.MAX_VALUE
-    )
-    return levels.firstOrNull { days in it.second }?.first ?: "작심 7일"
+    return LevelDefinitions.getLevelName(days)
 }
 
 @Preview(showBackground = true)
