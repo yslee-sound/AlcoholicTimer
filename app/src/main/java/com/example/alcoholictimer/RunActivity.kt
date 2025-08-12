@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
@@ -337,10 +338,9 @@ fun RunScreen() {
                 text = when (currentIndicator) {
                     0 -> "금주 일수"
                     1 -> "진행 시간"
-                    2 -> "현재 레벨"
-                    3 -> "절약한 금액"
-                    4 -> "절약한 시간"
-                    5 -> "기대 수명+"
+                    2 -> "절약한 금액"
+                    3 -> "절약한 시간"
+                    4 -> "기대 수명+"
                     else -> "금주 일수"
                 },
                 fontSize = 20.sp,
@@ -351,19 +351,22 @@ fun RunScreen() {
             // 중앙 메인 지표 (고정 크기 컨테이너)
             Box(
                 modifier = Modifier
-                    .width(400.dp) // 300dp -> 400dp로 증가
-                    .height(200.dp), // 고정 높이 추가
-                contentAlignment = Alignment.BottomCenter // 아래쪽 기준으로 정렬
+                    .width(400.dp)
+                    .height(200.dp),
+                contentAlignment = Alignment.BottomCenter
             ) {
                 // 메인 숫자 표시 (클릭 가능, 크기 고정)
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .clickable {
-                            currentIndicator = (currentIndicator + 1) % 6
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {
+                            currentIndicator = (currentIndicator + 1) % 5
                         }
-                        .padding(bottom = 100.dp), // 아래쪽 여백 추가
-                    contentAlignment = Alignment.BottomCenter // 아래쪽 기준으로 정렬
+                        .padding(bottom = 100.dp),
+                    contentAlignment = Alignment.BottomCenter
                 ) {
                     when (currentIndicator) {
                         0 -> {
@@ -375,14 +378,11 @@ fun RunScreen() {
                             } else {
                                 "${elapsedDays}"
                             }
-
-                            // 기본 크기를 크게 하고, 긴 텍스트만 줄이기
                             val fontSize = when {
-                                displayText.length <= 8 -> 80.sp   // 기본 크기
-                                displayText.length <= 12 -> 64.sp  // 조금 긴 경우
-                                else -> 48.sp                      // 매우 긴 경우
+                                displayText.length <= 8 -> 80.sp
+                                displayText.length <= 12 -> 64.sp
+                                else -> 48.sp
                             }
-
                             Text(
                                 text = displayText,
                                 fontSize = fontSize,
@@ -396,14 +396,11 @@ fun RunScreen() {
                         1 -> {
                             // 진행 시간 (시:분:초 형식)
                             val timeText = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds)
-
-                            // 기본 크기를 크게 하고, 긴 텍스트만 줄이기
                             val fontSize = when {
                                 timeText.length <= 8 -> 80.sp   // 기본 크기
                                 timeText.length <= 12 -> 64.sp  // 조금 긴 경우
                                 else -> 48.sp                   // 매우 긴 경우
                             }
-
                             Text(
                                 text = timeText,
                                 fontSize = fontSize,
@@ -416,28 +413,6 @@ fun RunScreen() {
                             )
                         }
                         2 -> {
-                            // 현재 레벨 (테스트 모드 적용)
-                            val levelText = getLevelName(elapsedDays)
-
-                            // 기본 크기를 크게 하고, 긴 텍스트만 줄이기
-                            val fontSize = when {
-                                levelText.length <= 8 -> 80.sp   // 기본 크기
-                                levelText.length <= 12 -> 64.sp  // 조금 긴 경우
-                                else -> 48.sp                    // 매우 긴 경우
-                            }
-
-                            Text(
-                                text = levelText,
-                                fontSize = fontSize,
-                                fontWeight = FontWeight.Bold,
-                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                                textAlign = TextAlign.Center,
-                                color = Color.Black,
-                                maxLines = 2,
-                                lineHeight = fontSize
-                            )
-                        }
-                        3 -> {
                             // 절약한 금액 (천단위 구분)
                             val moneyText = String.format(Locale.getDefault(), "%,d", savedMoney)
 
@@ -459,7 +434,7 @@ fun RunScreen() {
                                 lineHeight = fontSize
                             )
                         }
-                        4 -> {
+                        3 -> {
                             // 절약한 시간
                             val hoursText = "${savedHours}"
 
@@ -481,9 +456,9 @@ fun RunScreen() {
                                 lineHeight = fontSize
                             )
                         }
-                        5 -> {
+                        4 -> {
                             // 기대 수명
-                            val lifeText = "${lifeGainDays}일"
+                            val lifeText = "${lifeGainDays}" // '일' 제거
 
                             // 기본 크기를 크게 하고, 긴 텍스트만 줄이기
                             val fontSize = when {
