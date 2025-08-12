@@ -356,6 +356,16 @@ fun RunScreen() {
                 contentAlignment = Alignment.BottomCenter
             ) {
                 // 메인 숫자 표시 (클릭 가능, 크기 고정)
+                var pendingIndicator by remember { mutableStateOf<Int?>(null) }
+
+                LaunchedEffect(pendingIndicator) {
+                    if (pendingIndicator != null) {
+                        kotlinx.coroutines.delay(200)
+                        currentIndicator = pendingIndicator!!
+                        pendingIndicator = null
+                    }
+                }
+
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -363,7 +373,9 @@ fun RunScreen() {
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() }
                         ) {
-                            currentIndicator = (currentIndicator + 1) % 5
+                            if (pendingIndicator == null) {
+                                pendingIndicator = (currentIndicator + 1) % 5
+                            }
                         }
                         .padding(bottom = 100.dp),
                     contentAlignment = Alignment.BottomCenter
