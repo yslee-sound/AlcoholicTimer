@@ -1124,11 +1124,36 @@ private fun generateYearlyGraphData(records: List<SobrietyRecord>): List<SimpleG
 
 // 전체 기간에 대한 그래프 데이터 생성 함수
 private fun generateAllTimeGraphData(records: List<SobrietyRecord>): List<SimpleGraphData> {
-    val completedRecords = records.filter { it.isCompleted }
+    // 12년치 그래프 (현재 기준 2025년만 데이터 있음)
+    val startYear = 2025
+    val maxYears = 12
+    val years = (startYear until startYear + maxYears)
 
-    return listOf(
-        SimpleGraphData("전체", if (completedRecords.isNotEmpty()) 1f else 0f)
-    )
+    return years.map { year ->
+        // 해당 년도에 걸친 기록들 찾기
+        val yearStartCal = Calendar.getInstance().apply { set(year, Calendar.JANUARY, 1, 0, 0, 0); set(Calendar.MILLISECOND, 0) }
+        val yearStart = yearStartCal.timeInMillis
+        val yearEndCal = Calendar.getInstance().apply { set(year, Calendar.DECEMBER, 31, 23, 59, 59); set(Calendar.MILLISECOND, 999) }
+        val yearEnd = yearEndCal.timeInMillis
+        val yearRecords = records.filter { it.endTime >= yearStart && it.startTime <= yearEnd }
+
+        // 실제 금주 일수 합산
+        val totalDays = if (yearRecords.isNotEmpty()) {
+            val daysInYear = yearEndCal.getActualMaximum(Calendar.DAY_OF_YEAR)
+            val achievedDays = yearRecords.sumOf { record ->
+                val overlapStart = maxOf(record.startTime, yearStart)
+                val overlapEnd = minOf(record.endTime, yearEnd)
+                val overlapMs = (overlapEnd - overlapStart).coerceAtLeast(0)
+                (overlapMs / (24 * 60 * 60 * 1000L)).toInt()
+            }
+            achievedDays.toFloat() / daysInYear
+        } else {
+            0f
+        }
+        // x축 레이블: 2025년만 표시, 나머지는 빈 문자열
+        val label = if (year == startYear) "2025년" else ""
+        SimpleGraphData(label, totalDays.coerceIn(0f, 1f))
+    }
 }
 
 // RecordsActivity 전용 간단한 그래프 데이터 클래스
