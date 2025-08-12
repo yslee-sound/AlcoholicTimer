@@ -268,21 +268,23 @@ fun RunScreen() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.Center, // 중앙 정렬로 변경
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.CenterStart
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 0.dp),
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "목표: ${targetDays}일",
-                        fontSize = 14.sp,
-                        color = Color.Gray
+                        text = "${targetDays}",
+                        fontSize = 24.sp,
+                        color = Color.Black
                     )
                 }
                 Box(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1.6f), // 가운데 박스만 더 넓게
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -294,13 +296,14 @@ fun RunScreen() {
                     )
                 }
                 Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.CenterEnd
+                    modifier = Modifier.weight(1f)
+                        .padding(start = 0.dp),
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = progressTimeText,
-                        fontSize = 14.sp,
-                        color = Color.Gray,
+                        fontSize = 24.sp,
+                        color = Color.Black,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -311,12 +314,13 @@ fun RunScreen() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 20.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.Center, // 중앙 정렬로 변경
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.CenterStart
+                    modifier = Modifier.weight(1f)
+                        .padding(end = 0.dp),
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "목표일",
@@ -326,7 +330,7 @@ fun RunScreen() {
                     )
                 }
                 Box(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1.6f), // 가운데 박스만 더 넓게
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -337,8 +341,9 @@ fun RunScreen() {
                     )
                 }
                 Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.CenterEnd
+                    modifier = Modifier.weight(1f)
+                        .padding(start = 0.dp),
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "시간",
@@ -367,7 +372,7 @@ fun RunScreen() {
                     4 -> "기대 수명+"
                     else -> "금주 일수"
                 },
-                fontSize = 20.sp,
+                fontSize = 24.sp,
                 color = Color.Gray,
                 modifier = Modifier.padding(bottom = 0.dp)
             )
