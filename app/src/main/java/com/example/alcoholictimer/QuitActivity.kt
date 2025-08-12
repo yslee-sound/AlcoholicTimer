@@ -27,6 +27,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.*
 import kotlin.math.roundToInt
+import androidx.compose.ui.draw.shadow
 
 class QuitActivity : BaseActivity() {
 
@@ -302,6 +303,7 @@ fun ControlButton(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .size(80.dp)
+            .shadow(8.dp, CircleShape) // 그림자 효과 추가
             .background(backgroundColor, CircleShape)
             .clickable { onClick() }
     ) {

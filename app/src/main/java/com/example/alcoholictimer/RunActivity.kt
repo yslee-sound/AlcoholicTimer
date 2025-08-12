@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
@@ -471,13 +472,14 @@ fun StopButton(onStop: () -> Unit) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .size(120.dp)
+            .size(100.dp)
+            .shadow(8.dp, CircleShape) // 그림자 효과 추가
             .background(Color.Black, CircleShape)
             .clickable { onStop() }
     ) {
         Text(
             text = "■",
-            fontSize = 48.sp,
+            fontSize = 40.sp,
             color = Color.White,
             fontWeight = FontWeight.Bold
         )
