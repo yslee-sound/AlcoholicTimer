@@ -352,8 +352,8 @@ fun RunScreen() {
             Box(
                 modifier = Modifier
                     .width(400.dp) // 300dp -> 400dp로 증가
-                    .height(120.dp), // 고정 높이 추가
-                contentAlignment = Alignment.Center
+                    .height(200.dp), // 고정 높이 추가
+                contentAlignment = Alignment.BottomCenter // 아래쪽 기준으로 정렬
             ) {
                 // 메인 숫자 표시 (클릭 가능, 크기 고정)
                 Box(
@@ -362,8 +362,8 @@ fun RunScreen() {
                         .clickable {
                             currentIndicator = (currentIndicator + 1) % 6
                         }
-                        .padding(8.dp),
-                    contentAlignment = Alignment.Center
+                        .padding(bottom = 100.dp), // 아래쪽 여백 추가
+                    contentAlignment = Alignment.BottomCenter // 아래쪽 기준으로 정렬
                 ) {
                     when (currentIndicator) {
                         0 -> {
@@ -376,12 +376,11 @@ fun RunScreen() {
                                 "${elapsedDays}"
                             }
 
-                            // 통일된 폰트 크기 기준 적용
+                            // 기본 크기를 크게 하고, 긴 텍스트만 줄이기
                             val fontSize = when {
-                                displayText.length <= 2 -> 80.sp
-                                displayText.length <= 4 -> 64.sp
-                                displayText.length <= 7 -> 48.sp
-                                else -> 36.sp
+                                displayText.length <= 8 -> 80.sp   // 기본 크기
+                                displayText.length <= 12 -> 64.sp  // 조금 긴 경우
+                                else -> 48.sp                      // 매우 긴 경우
                             }
 
                             Text(
@@ -398,12 +397,11 @@ fun RunScreen() {
                             // 진행 시간 (시:분:초 형식)
                             val timeText = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds)
 
-                            // 통일된 폰트 크기 기준 적용
+                            // 기본 크기를 크게 하고, 긴 텍스트만 줄이기
                             val fontSize = when {
-                                timeText.length <= 2 -> 80.sp
-                                timeText.length <= 4 -> 64.sp
-                                timeText.length <= 7 -> 48.sp
-                                else -> 36.sp
+                                timeText.length <= 8 -> 80.sp   // 기본 크기
+                                timeText.length <= 12 -> 64.sp  // 조금 긴 경우
+                                else -> 48.sp                   // 매우 긴 경우
                             }
 
                             Text(
@@ -421,12 +419,11 @@ fun RunScreen() {
                             // 현재 레벨 (테스트 모드 적용)
                             val levelText = getLevelName(elapsedDays)
 
-                            // 통일된 폰트 크기 기준 적용
+                            // 기본 크기를 크게 하고, 긴 텍스트만 줄이기
                             val fontSize = when {
-                                levelText.length <= 2 -> 80.sp
-                                levelText.length <= 4 -> 64.sp
-                                levelText.length <= 7 -> 48.sp
-                                else -> 36.sp
+                                levelText.length <= 8 -> 80.sp   // 기본 크기
+                                levelText.length <= 12 -> 64.sp  // 조금 긴 경우
+                                else -> 48.sp                    // 매우 긴 경우
                             }
 
                             Text(
@@ -444,12 +441,11 @@ fun RunScreen() {
                             // 절약한 금액 (천단위 구분)
                             val moneyText = String.format(Locale.getDefault(), "%,d", savedMoney)
 
-                            // 통일된 폰트 크기 기준 적용
+                            // 기본 크기를 크게 하고, 긴 텍스트만 줄이기
                             val fontSize = when {
-                                moneyText.length <= 2 -> 80.sp
-                                moneyText.length <= 4 -> 64.sp
-                                moneyText.length <= 7 -> 48.sp
-                                else -> 36.sp
+                                moneyText.length <= 8 -> 80.sp   // 기본 크기
+                                moneyText.length <= 12 -> 64.sp  // 조금 긴 경우
+                                else -> 48.sp                    // 매우 긴 경우
                             }
 
                             Text(
@@ -467,12 +463,11 @@ fun RunScreen() {
                             // 절약한 시간
                             val hoursText = "${savedHours}"
 
-                            // 통일된 폰트 크기 기준 적용
+                            // 기본 크기를 크게 하고, 긴 텍스트만 줄이기
                             val fontSize = when {
-                                hoursText.length <= 2 -> 80.sp
-                                hoursText.length <= 4 -> 64.sp
-                                hoursText.length <= 7 -> 48.sp
-                                else -> 36.sp
+                                hoursText.length <= 8 -> 80.sp   // 기본 크기
+                                hoursText.length <= 12 -> 64.sp  // 조금 긴 경우
+                                else -> 48.sp                    // 매우 긴 경우
                             }
 
                             Text(
@@ -490,12 +485,11 @@ fun RunScreen() {
                             // 기대 수명
                             val lifeText = "${lifeGainDays}일"
 
-                            // 통일된 폰트 크기 기준 적용
+                            // 기본 크기를 크게 하고, 긴 텍스트만 줄이기
                             val fontSize = when {
-                                lifeText.length <= 2 -> 80.sp
-                                lifeText.length <= 4 -> 64.sp
-                                lifeText.length <= 7 -> 48.sp
-                                else -> 36.sp
+                                lifeText.length <= 8 -> 80.sp   // 기본 크기
+                                lifeText.length <= 12 -> 64.sp  // 조금 긴 경우
+                                else -> 48.sp                   // 매우 긴 경우
                             }
 
                             Text(
@@ -537,7 +531,7 @@ fun ProgressIndicator(progress: Float) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(80.dp))
+        Spacer(modifier = Modifier.height(0.dp))
         // 진행률 텍스트 및 디버깅 정보 삭제
         LinearProgressIndicator(
             progress = progress,
