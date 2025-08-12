@@ -233,10 +233,7 @@ fun QuitScreen() {
                 contentColor = Color.White,
                 content = "▶",
                 onClick = {
-                    // RunActivity로 돌아가기
-                    val intent = Intent(context, RunActivity::class.java)
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                    context.startActivity(intent)
+                    // QuitActivity만 종료하여 RunActivity로 자연스럽게 돌아가도록 변경
                     (context as? QuitActivity)?.finish()
                 }
             )
