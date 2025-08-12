@@ -458,23 +458,6 @@ fun RunScreen() {
                 }
             }
 
-            // 단위 표시 (모든 지표에 일관된 단위 표시)
-            if (currentIndicator != 0) {
-                Text(
-                    text = when (currentIndicator) {
-                        1 -> "시간"  // 진행 시간에 단위 추가
-                        2 -> "레벨"  // 현재 레벨에 단위 추가
-                        3 -> "원"
-                        4 -> "시간"
-                        5 -> "일"
-                        else -> ""
-                    },
-                    fontSize = 20.sp,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(top = 16.dp)
-                )
-            }
-
             Spacer(modifier = Modifier.height(40.dp))
 
             // 진행률 바
