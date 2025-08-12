@@ -35,6 +35,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.forEachIndexed
 
 class RecordsActivity : BaseActivity() {
 
@@ -950,27 +951,25 @@ private fun generateWeeklyGraphData(records: List<SobrietyRecord>): List<SimpleG
 
     return weekDays.mapIndexed { index, dayName ->
         val dayStart = weekStart + (index * 24 * 60 * 60 * 1000L)
-        val dayEnd = dayStart + (24 * 60 * 60 * 1000L)
+        val dayEnd = dayStart + (24 * 60 * 60 * 1000L) - 1
 
-        // 해당 날짜에 시작된 기록들 찾기 (완료 여부 상관없이)
+        // 해당 날짜가 기록 기간에 포함되는 기록들 찾기
         val dayRecords = records.filter { record ->
-            val recordStartDate = Calendar.getInstance().apply {
-                timeInMillis = record.startTime
-                set(Calendar.HOUR_OF_DAY, 0)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            }.timeInMillis
-
-            recordStartDate == dayStart
+            dayStart <= record.endTime && dayEnd >= record.startTime
         }
 
         if (dayRecords.isEmpty()) {
             SimpleGraphData(dayName, 0f)
         } else {
-            // 해당 날짜에 시작된 기록 중 가장 높은 달성률 사용
+            // 해당 날짜에 포함된 기록 중 가장 높은 달성률 사용 (실시간 계산)
             val maxAchievedPercentage = dayRecords.maxOfOrNull { record ->
-                record.achievedPercentage
+                val actualDurationMs = record.endTime - record.startTime
+                val actualDurationDays = (actualDurationMs / (24 * 60 * 60 * 1000f))
+                if (record.targetDays > 0) {
+                    ((actualDurationDays / record.targetDays) * 100).coerceAtMost(100f).toInt()
+                } else {
+                    0
+                }
             } ?: 0
 
             // 백분율을 0.0~1.0 비율로 변환
@@ -996,59 +995,69 @@ private fun generateMonthlyGraphData(records: List<SobrietyRecord>, year: Int, m
 
     records.forEachIndexed { index, record ->
         val recordCal = Calendar.getInstance().apply { timeInMillis = record.startTime }
-        Log.d("GraphDebug", "기록 $index: ${recordCal.get(Calendar.YEAR)}년 ${recordCal.get(Calendar.MONTH)+1}월 ${recordCal.get(Calendar.DAY_OF_MONTH)}일, ID=${record.id}")
+        val actualDurationMs = record.endTime - record.startTime
+        val actualDurationDays = (actualDurationMs / (24 * 60 * 60 * 1000f))
+        val realPercentage = if (record.targetDays > 0) {
+            ((actualDurationDays / record.targetDays) * 100).coerceAtMost(100f).toInt()
+        } else {
+            0
+        }
+        Log.d("GraphDebug", "기록 $index: ${recordCal.get(Calendar.YEAR)}년 ${recordCal.get(Calendar.MONTH)+1}월 ${recordCal.get(Calendar.DAY_OF_MONTH)}일, ID=${record.id}, 실제달성률=${realPercentage}%")
     }
 
     return (1..lastDayOfMonth).map { day ->
-        // 그래프의 해당 날짜
+        // 그래프의 해당 날짜 시작과 끝
         calendar.set(year, month - 1, day, 0, 0, 0)
         calendar.set(Calendar.MILLISECOND, 0)
-        val graphYear = calendar.get(Calendar.YEAR)
-        val graphMonth = calendar.get(Calendar.MONTH)
-        val graphDay = calendar.get(Calendar.DAY_OF_MONTH)
+        val dayStart = calendar.timeInMillis
 
-        // 해당 날짜에 시작된 기록들 찾기 (완료 여부 상관없이, 연,월,일 단위로 비교)
+        calendar.set(year, month - 1, day, 23, 59, 59)
+        calendar.set(Calendar.MILLISECOND, 999)
+        val dayEnd = calendar.timeInMillis
+
+        // 해당 날짜가 기록 기간에 포함되는 기록들 찾기
         val dayRecords = records.filter { record ->
-            val recordCal = Calendar.getInstance().apply { timeInMillis = record.startTime }
-            val recordYear = recordCal.get(Calendar.YEAR)
-            val recordMonth = recordCal.get(Calendar.MONTH)
-            val recordDay = recordCal.get(Calendar.DAY_OF_MONTH)
-
-            val isMatch = recordYear == graphYear && recordMonth == graphMonth && recordDay == graphDay
-
-            if (day == 1) { // 8월 1일에 대해서만 로그 출력
-                Log.d("GraphDebug", "8월 1일 체크: 기록 ${recordYear}년 ${recordMonth+1}월 ${recordDay}일 vs 그래프 ${graphYear}년 ${graphMonth+1}월 ${graphDay}일 = $isMatch")
-            }
-
-            isMatch
+            dayStart <= record.endTime && dayEnd >= record.startTime
         }
 
-        if (day == 1) {
-            Log.d("GraphDebug", "8월 1일 매칭된 기록 수: ${dayRecords.size}")
+        if (day == 15 && month == 6) { // 6월 15일에 대해서만 로그 출력
+            Log.d("GraphDebug", "6월 15일 매칭된 기록 수: ${dayRecords.size}")
+            dayRecords.forEach { record ->
+                val startCal = Calendar.getInstance().apply { timeInMillis = record.startTime }
+                val endCal = Calendar.getInstance().apply { timeInMillis = record.endTime }
+                val actualDurationMs = record.endTime - record.startTime
+                val actualDurationDays = (actualDurationMs / (24 * 60 * 60 * 1000f))
+                val realPercentage = if (record.targetDays > 0) {
+                    ((actualDurationDays / record.targetDays) * 100).coerceAtMost(100f).toInt()
+                } else {
+                    0
+                }
+                Log.d("GraphDebug", "6월 15일 기록: ${startCal.get(Calendar.MONTH)+1}/${startCal.get(Calendar.DAY_OF_MONTH)} ~ ${endCal.get(Calendar.MONTH)+1}/${endCal.get(Calendar.DAY_OF_MONTH)}, 실제달성률=${realPercentage}%")
+            }
         }
 
         if (dayRecords.isEmpty()) {
             SimpleGraphData("${day}", 0.0f)
         } else {
-            // 해당 날짜에 시작된 기록 중 가장 높은 달성률 사용
-            val maxAchievedPercentage = dayRecords.maxOfOrNull { record ->
-                record.achievedPercentage
-            } ?: 0
+            // 해당 날짜에 포함된 기록들의 평균 달성률 사용
+            val avgAchievedPercentage = dayRecords.map { record ->
+                val actualDurationMs = record.endTime - record.startTime
+                val actualDurationDays = (actualDurationMs / (24 * 60 * 60 * 1000f))
+                if (record.targetDays > 0) {
+                    ((actualDurationDays / record.targetDays) * 100).coerceAtMost(100f).toInt()
+                } else {
+                    0
+                }
+            }.average().toFloat()
 
             // 백분율을 0.0~1.0 비율로 변환
-            // 기록이 있는데 달성률이 0%인 경우 최소값(0.05 = 5%)으로 설정
-            val ratio = if (maxAchievedPercentage == 0 && dayRecords.isNotEmpty()) {
+            val ratio = if (avgAchievedPercentage == 0f && dayRecords.isNotEmpty()) {
                 0.05f // 최소 5% 표시
             } else {
-                (maxAchievedPercentage / 100.0f).coerceIn(0.0f, 1.0f)
+                (avgAchievedPercentage / 100.0f).coerceIn(0.0f, 1.0f)
             }
 
-            if (day == 1) {
-                Log.d("GraphDebug", "8월 1일 최대 달성률: $maxAchievedPercentage%, 비율: $ratio")
-                dayRecords.forEach { record ->
-                    Log.d("GraphDebug", "8월 1일 기록 상세: ID=${record.id}, actualDays=${record.actualDays}, targetDays=${record.targetDays}, achievedPercentage=${record.achievedPercentage}")
-                }
-            }
+            Log.d("GraphDebug", "${month}월 ${day}일 평균 달성률: $avgAchievedPercentage%, 비율: $ratio")
 
             SimpleGraphData("${day}", ratio)
         }
@@ -1101,7 +1110,13 @@ private fun generateYearlyGraphData(records: List<SobrietyRecord>): List<SimpleG
         } else {
             // 해당 월에 시작된 기록 중 가장 높은 달성률 사용
             val maxAchievedPercentage = monthRecords.maxOfOrNull { record ->
-                record.achievedPercentage
+                val actualDurationMs = record.endTime - record.startTime
+                val actualDurationDays = (actualDurationMs / (24 * 60 * 60 * 1000f))
+                if (record.targetDays > 0) {
+                    ((actualDurationDays / record.targetDays) * 100).coerceAtMost(100f).toInt()
+                } else {
+                    0
+                }
             } ?: 0
 
             // 백분율을 0.0~1.0 비율로 변환
@@ -1121,7 +1136,7 @@ private fun generateAllTimeGraphData(records: List<SobrietyRecord>): List<Simple
     )
 }
 
-// RecordsActivity 전용 간단한 그래프 ���이터 클래스
+// RecordsActivity 전용 간단한 그래프 데이터 클래스
 data class SimpleGraphData(
     val label: String,
     val value: Float // 0.0~1.0 (금주 진행 비율)
@@ -1445,16 +1460,6 @@ fun TestRecordInputDialogContent(
                 )
             }
         }
-    }
-}
-
-// 퍼센테이지에 따라 실제 달성일수를 계산하는 함수
-private fun calculateActualDaysFromPercentage(targetDays: Int, percentage: Int): Int {
-    return when {
-        percentage == 0 -> 0
-        targetDays == 0 -> 0
-        targetDays == 1 -> if (percentage > 0) 1 else 0
-        else -> ((targetDays * percentage / 100f) + 0.5f).toInt().coerceAtMost(targetDays)
     }
 }
 
