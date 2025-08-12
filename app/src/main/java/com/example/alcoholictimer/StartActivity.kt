@@ -238,7 +238,7 @@ class StartActivity : BaseActivity() {
                 },
                 modifier = Modifier.size(100.dp), // 크기 120dp로 변경
                 shape = CircleShape,
-                containerColor = Color.Black // 항상 검정색으로 고정
+                containerColor = Color(0xFF8ABF33) // 시작버튼 색상 #8ABF33으로 변경
             ) {
                 Icon(
                     imageVector = Icons.Default.PlayArrow,
