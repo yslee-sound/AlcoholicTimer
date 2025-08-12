@@ -471,18 +471,40 @@ fun SobrietyRecordCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 상태 배지
-                Surface(
-                    color = if (record.isCompleted) Color(0xFF4CAF50) else Color(0xFFFF9800),
-                    shape = RoundedCornerShape(16.dp)
+                // 상태 배지와 테스트 표시를 포함하는 Row
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = record.status,
-                        color = Color.White,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
-                    )
+                    // 상태 배지
+                    Surface(
+                        color = if (record.isCompleted) Color(0xFF4CAF50) else Color(0xFFFF9800),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text(
+                            text = record.status,
+                            color = Color.White,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                        )
+                    }
+
+                    // 테스트 기록 표시
+                    if (record.isTest) {
+                        Surface(
+                            color = Color(0xFF9C27B0),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text(
+                                text = "테스트",
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
                 }
 
                 Text(

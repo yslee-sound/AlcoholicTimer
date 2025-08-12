@@ -17,6 +17,7 @@ import java.util.*
  * @property status 상태 ("완료" 또는 "중지")
  * @property createdAt 기록 생성 시간 (밀리초 타임스탬프)
  * @property percentage 목표 달성률 (0-100, nullable)
+ * @property isTestRecord 테스트 기록 여부 (기본값: false)
  */
 data class SobrietyRecord(
     val id: String,
@@ -27,8 +28,15 @@ data class SobrietyRecord(
     val isCompleted: Boolean,
     val status: String,
     val createdAt: Long,
-    val percentage: Int? = null
+    val percentage: Int? = null,
+    val isTestRecord: Boolean = false
 ) {
+    /**
+     * 테스트 기록 여부 확인 (ID 기반 자동 판별)
+     */
+    val isTest: Boolean
+        get() = isTestRecord || id.startsWith("test_")
+
     /**
      * 달성률 계산 (백분율)
      */
