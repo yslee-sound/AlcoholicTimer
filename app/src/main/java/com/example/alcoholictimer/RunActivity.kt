@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -20,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -31,6 +33,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.utils.Constants
+import kotlinx.coroutines.delay
 import java.util.*
 import kotlin.math.roundToInt
 import org.json.JSONArray
@@ -355,26 +358,37 @@ fun RunScreen() {
                     .height(200.dp),
                 contentAlignment = Alignment.BottomCenter
             ) {
-                // 메인 숫자 표시 (클릭 가능, 크기 고정)
-                var pendingIndicator by remember { mutableStateOf<Int?>(null) }
+                var scale by remember { mutableStateOf(1f) }
+                var isAnimating by remember { mutableStateOf(false) }
+                val animatedScale by animateFloatAsState(
+                    targetValue = scale,
+                    animationSpec = androidx.compose.animation.core.tween(
+                        durationMillis = 100,
+                        easing = androidx.compose.animation.core.FastOutSlowInEasing
+                    )
+                )
 
-                LaunchedEffect(pendingIndicator) {
-                    if (pendingIndicator != null) {
-                        kotlinx.coroutines.delay(200)
-                        currentIndicator = pendingIndicator!!
-                        pendingIndicator = null
+                LaunchedEffect(isAnimating) {
+                    if (isAnimating) {
+                        scale = 0.7f
+                        delay(100)  // 축소 상태 유지
+                        scale = 1f
+                        delay(100)  // 복원 애니메이션 완료 대기
+                        currentIndicator = (currentIndicator + 1) % 5  // 애니메이션 완료 후 지표 전환
+                        isAnimating = false
                     }
                 }
 
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
+                        .scale(animatedScale)
                         .clickable(
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() }
                         ) {
-                            if (pendingIndicator == null) {
-                                pendingIndicator = (currentIndicator + 1) % 5
+                            if (!isAnimating) {
+                                isAnimating = true
                             }
                         }
                         .padding(bottom = 100.dp),
@@ -515,13 +529,46 @@ fun RunScreen() {
 
 @Composable
 fun ProgressIndicator(progress: Float) {
+    var scale by remember { mutableStateOf(1f) }
+    var isAnimating by remember { mutableStateOf(false) }
+    val animatedScale by animateFloatAsState(
+        targetValue = scale,
+        animationSpec = androidx.compose.animation.core.tween(
+            durationMillis = 100,  // 더 빠른 애니메이션
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        )
+    )
+
+    // 애니메이션 상태 변경 감지 및 처리
+    LaunchedEffect(isAnimating) {
+        if (isAnimating) {
+            scale = 0.7f
+            kotlinx.coroutines.delay(100)  // 축소 상태 유지 시간
+            scale = 1f
+            kotlinx.coroutines.delay(100)  // 복원 완료 대기
+            isAnimating = false
+        }
+    }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Text(
+            text = "${(progress * 100).toInt()}%",
+            fontSize = 48.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .scale(animatedScale)
+                .clickable {
+                    if (!isAnimating) {
+                        isAnimating = true
+                    }
+                },
+            color = Color.Black
+        )
         Spacer(modifier = Modifier.height(0.dp))
-        // 진행률 텍스트 및 디버깅 정보 삭제
         LinearProgressIndicator(
-            progress = progress,
+            progress = { progress },
             modifier = Modifier
                 .width(330.dp)
                 .height(10.dp)
