@@ -579,19 +579,7 @@ fun ProgressIndicator(progress: Float) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "${(progress * 100).toInt()}%",
-            fontSize = 48.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .scale(animatedScale)
-                .clickable {
-                    if (!isAnimating) {
-                        isAnimating = true
-                    }
-                },
-            color = Color.Black
-        )
+        // 진행률 숫자 텍스트 제거
         Spacer(modifier = Modifier.height(0.dp))
         LinearProgressIndicator(
             progress = { progress },
