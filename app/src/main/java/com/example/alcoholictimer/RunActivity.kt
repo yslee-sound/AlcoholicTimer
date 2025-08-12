@@ -291,8 +291,9 @@ fun RunScreen() {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
+            Spacer(modifier = Modifier.height(140.dp))
             // 현재 지표에 따른 제목 텍스트
             Text(
                 text = when (currentIndicator) {
@@ -306,7 +307,7 @@ fun RunScreen() {
                 },
                 fontSize = 20.sp,
                 color = Color.Gray,
-                modifier = Modifier.padding(bottom = 32.dp)
+                modifier = Modifier.padding(bottom = 0.dp)
             )
 
             // 중앙 메인 지표 (고정 크기 컨테이너)
@@ -445,23 +446,10 @@ fun ProgressIndicator(progress: Float) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "진행률: ${(progress * 100).roundToInt()}%",
-            fontSize = 16.sp,
-            color = Color.Gray,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        // 디버깅용 추가 정보 표시
-        Text(
-            text = "Progress value: $progress",
-            fontSize = 12.sp,
-            color = Color.Red,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
-
+        Spacer(modifier = Modifier.height(80.dp))
+        // 진행률 텍스트 및 디버깅 정보 삭제
         LinearProgressIndicator(
-            progress = progress, // 람다 대신 직접 값 전달로 변경
+            progress = progress,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(8.dp)
