@@ -272,7 +272,7 @@ fun RunScreen() {
             )
 
             Text(
-                text = getLevelName(levelDays), // 실제 일수 대신 레벨용 일수 사용
+                text = getLevelName(elapsedDays), // 실제 일수로 레벨명 표시
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
@@ -356,7 +356,7 @@ fun RunScreen() {
                         2 -> {
                             // 현재 레벨 (테스트 모드 적용)
                             Text(
-                                text = getLevelName(levelDays), // 실제 일수 대신 레벨용 일수 사용
+                                text = getLevelName(elapsedDays), // 실제 일수로 레벨명 표시
                                 fontSize = 36.sp, // 레벨명은 더 작게
                                 fontWeight = FontWeight.Bold,
                                 textAlign = TextAlign.Center,
@@ -539,13 +539,18 @@ private fun saveCompletedRecord(
 
 // 레벨명 함수 (기존 레벨 테이블 기준)
 private fun getLevelName(days: Int): String {
-    return when {
-        days < 7 -> "시작"
-        days < 30 -> "작심 7일"
-        days < 90 -> "한 달 클리어"
-        days < 365 -> "3개월 클리어"
-        else -> "절제의 레전드"
-    }
+    // LevelActivity의 레벨명과 일수 구간을 그대로 사용하도록 변경
+    val levels = listOf(
+        "작심 7일" to 0..6,
+        "의지의 2주" to 7..13,
+        "한달의 기적" to 14..29,
+        "습관의 탄생" to 30..59,
+        "계속되는 도전" to 60..119,
+        "거의 1년" to 120..239,
+        "금주 마스터" to 240..364,
+        "절제의 레전드" to 365..Int.MAX_VALUE
+    )
+    return levels.firstOrNull { days in it.second }?.first ?: "작심 7일"
 }
 
 @Preview(showBackground = true)
