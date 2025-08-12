@@ -631,8 +631,8 @@ private fun loadSobrietyRecords(context: android.content.Context): List<Sobriety
         }
         Log.d("RecordsActivity", "===============================")
 
-        // 최신 순으로 정렬
-        records.sortedByDescending { it.createdAt }
+        // 종료일 기준으로 최신 순 정렬 (가장 최근 종료된 기록이 맨 위)
+        records.sortedByDescending { it.endTime }
     } catch (e: Exception) {
         Log.e("RecordsActivity", "기록 로딩 중 오류 발생", e)
         Log.e("RecordsActivity", "오류 상세: ${e.message}")
