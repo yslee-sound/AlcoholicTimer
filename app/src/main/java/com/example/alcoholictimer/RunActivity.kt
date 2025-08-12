@@ -255,7 +255,7 @@ fun RunScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .padding(32.dp)
+            .padding(10.dp)
     ) {
         // 상단 정보
         Row(
@@ -263,7 +263,7 @@ fun RunScreen() {
                 .fillMaxWidth()
                 .padding(bottom = 20.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = "목표: ${targetDays}일",
@@ -331,16 +331,15 @@ fun RunScreen() {
                 ) {
                     when (currentIndicator) {
                         0 -> {
-                            // 금주 일수
+                            // 금주 일수 - 시간 표시 제거
                             Text(
-                                text = if (elapsedHours > 0) "${elapsedDays}일 ${elapsedHours}시간" else "${elapsedDays}",
-                                fontSize = 96.sp, // 크기 축소
+                                text = "${elapsedDays}",
+                                fontSize = 100.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
                                 textAlign = TextAlign.Center,
                                 color = Color.Black,
-                                maxLines = 2, // 최대 2줄
-                                lineHeight = 52.sp
+                                maxLines = 1
                             )
                         }
                         1 -> {
