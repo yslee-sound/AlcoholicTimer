@@ -267,32 +267,43 @@ fun RunScreen() {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 4.dp), // 간격 조정
+                    .padding(bottom = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "목표: ${targetDays}일",
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
-
-                Text(
-                    text = getLevelName(elapsedDays), // 실제 일수로 레벨명 표시
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = LevelDefinitions.getLevelInfo(elapsedDays).color, // 레벨에 맞는 색상 적용
-                    modifier = Modifier
-                        .weight(1f), // 가운데 영역을 넓게 차지
-                    textAlign = TextAlign.Center // 중앙 정렬
-                )
-
-                Text(
-                    text = progressTimeText,
-                    fontSize = 14.sp,
-                    color = Color.Gray,
-                    fontWeight = FontWeight.Medium
-                )
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Text(
+                        text = "목표: ${targetDays}일",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+                }
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = getLevelName(elapsedDays),
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = LevelDefinitions.getLevelInfo(elapsedDays).color,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    Text(
+                        text = progressTimeText,
+                        fontSize = 14.sp,
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
 
             // 두 번째 행: 제목들
@@ -303,29 +314,39 @@ fun RunScreen() {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "목표",
-                    fontSize = 12.sp,
-                    color = Color.Gray,
-                    fontWeight = FontWeight.Medium
-                )
-
-                Text(
-                    text = "Level",
-                    fontSize = 12.sp,
-                    color = Color.Gray,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier
-                        .weight(1f),
-                    textAlign = TextAlign.Center
-                )
-
-                Text(
-                    text = "시간",
-                    fontSize = 12.sp,
-                    color = Color.Gray,
-                    fontWeight = FontWeight.Medium
-                )
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Text(
+                        text = "목표일",
+                        fontSize = 24.sp,
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Level",
+                        fontSize = 24.sp,
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    Text(
+                        text = "시간",
+                        fontSize = 24.sp,
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         }
 
