@@ -229,7 +229,7 @@ fun QuitScreen() {
 
             // 계속 버튼
             ControlButton(
-                backgroundColor = continueButtonColor,
+                backgroundColor = Color(0xFF8ABF33), // 시작버튼 색상 #8ABF33으로 변경
                 contentColor = Color.White,
                 content = "▶",
                 onClick = {
