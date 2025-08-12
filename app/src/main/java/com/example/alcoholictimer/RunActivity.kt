@@ -315,7 +315,7 @@ fun RunScreen() {
             // 중앙 메인 지표 (고정 크기 컨테이너)
             Box(
                 modifier = Modifier
-                    .width(300.dp)
+                    .width(400.dp) // 300dp -> 400dp로 증가
                     .height(120.dp), // 고정 높이 추가
                 contentAlignment = Alignment.Center
             ) {
@@ -331,10 +331,26 @@ fun RunScreen() {
                 ) {
                     when (currentIndicator) {
                         0 -> {
-                            // 금주 일수 - 시간 표시 제거
+                            // 금주 일수 - 365일 이상시 년/일 형태로 표시
+                            val displayText = if (elapsedDays >= 365) {
+                                val years = elapsedDays / 365
+                                val remainingDays = elapsedDays % 365
+                                "${years}년 ${remainingDays}일"
+                            } else {
+                                "${elapsedDays}"
+                            }
+
+                            // 텍스트 길이에 따라 동적으로 폰트 크기 조정
+                            val fontSize = when {
+                                displayText.length <= 2 -> 96.sp  // 1~2자리 숫자 (0~99)
+                                displayText.length <= 3 -> 84.sp  // 3자리 숫자 (100~999)
+                                displayText.length <= 7 -> 64.sp  // "12년 316일" 같은 긴 텍스트
+                                else -> 48.sp  // 매우 긴 텍스트
+                            }
+
                             Text(
-                                text = "${elapsedDays}",
-                                fontSize = 100.sp,
+                                text = displayText,
+                                fontSize = fontSize,
                                 fontWeight = FontWeight.Bold,
                                 fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
                                 textAlign = TextAlign.Center,
@@ -343,15 +359,15 @@ fun RunScreen() {
                             )
                         }
                         1 -> {
-                            // 진행 시간 (시:분:초 형식)
+                            // 진행 시간 (시:분:초 형식) - 고정 크기
                             Text(
                                 text = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds),
-                                fontSize = 42.sp, // 긴 텍스트이므로 더 작게
+                                fontSize = 48.sp, // 가독성을 위해 약간 증가
                                 fontWeight = FontWeight.Bold,
                                 textAlign = TextAlign.Center,
                                 color = Color.Black,
                                 maxLines = 1,
-                                lineHeight = 46.sp
+                                lineHeight = 52.sp
                             )
                         }
                         2 -> {
@@ -452,8 +468,8 @@ fun ProgressIndicator(progress: Float) {
         LinearProgressIndicator(
             progress = progress,
             modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
+                .width(330.dp)
+                .height(10.dp)
                 .clip(CircleShape),
             color = Color(0xFF4CAF50),
             trackColor = Color(0xFFE0E0E0),
