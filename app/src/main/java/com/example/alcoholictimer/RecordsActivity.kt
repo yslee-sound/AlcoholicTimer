@@ -88,6 +88,9 @@ class RecordsActivity : BaseActivity() {
         var inputTargetDays by remember { mutableStateOf(1) }
         var inputActualDays by remember { mutableStateOf(1) }
 
+        // 선택된 주 시작일 변수 추가
+        var selectedWeekStart by remember { mutableStateOf<Long?>(null) }
+
         // 데이터 로드 함수
         suspend fun loadRecords() {
             isRefreshing = true
@@ -212,7 +215,8 @@ class RecordsActivity : BaseActivity() {
             onDismiss = { showWeekPicker = false },
             onWeekPicked = { weekStart, weekEnd, displayText ->
                 selectedRange = displayText
-                Log.d(TAG, "선택된 주: $displayText")
+                selectedWeekStart = weekStart
+                Log.d(TAG, "선택된 주: $displayText, 시작: $weekStart")
             }
         )
 
@@ -285,7 +289,13 @@ class RecordsActivity : BaseActivity() {
 
                     // 그래프 섹션을 별도 아이템으로 분리
                     item {
-                        GraphSection(records = filteredRecords, selectedPeriod = selectedPeriod, selectedYear = selectedYear, selectedMonth = selectedMonth)
+                        GraphSection(
+                            records = filteredRecords,
+                            selectedPeriod = selectedPeriod,
+                            selectedYear = selectedYear,
+                            selectedMonth = selectedMonth,
+                            selectedWeekStart = selectedWeekStart
+                        )
                     }
 
                     // 하단: 최근 활동 섹션 헤더
@@ -757,13 +767,14 @@ fun StatisticsCardsSection(
 
 // 그래프 섹션을 별도 아이템으로 분���
 @Composable
-fun GraphSection(records: List<SobrietyRecord>, selectedPeriod: String, selectedYear: Int, selectedMonth: Int) {
+fun GraphSection(records: List<SobrietyRecord>, selectedPeriod: String, selectedYear: Int, selectedMonth: Int, selectedWeekStart: Long?) {
     // 실제 그래프 표시
     MiniBarChart(
         records = records,
         selectedPeriod = selectedPeriod,
         selectedYear = selectedYear,
         selectedMonth = selectedMonth,
+        selectedWeekStart = selectedWeekStart,
         modifier = Modifier
             .fillMaxWidth()
             .height(150.dp)
@@ -777,15 +788,16 @@ fun MiniBarChart(
     selectedPeriod: String,
     selectedYear: Int,
     selectedMonth: Int,
+    selectedWeekStart: Long?,
     modifier: Modifier = Modifier
 ) {
     // 선택된 기간에 따라 그래프 데이터 생성
     val graphData = when (selectedPeriod) {
-        "주" -> generateWeeklyGraphData(records)
+        "주" -> generateWeeklyGraphData(records, selectedWeekStart)
         "월" -> generateMonthlyGraphData(records, selectedYear, selectedMonth)
         "년" -> generateYearlyGraphData(records)
         "전체" -> generateAllTimeGraphData(records)
-        else -> generateWeeklyGraphData(records)
+        else -> generateWeeklyGraphData(records, selectedWeekStart)
     }
 
     Box(modifier = modifier) {
@@ -935,22 +947,23 @@ fun MiniBarChart(
 }
 
 // 최근 7일간의 ���래프 데이터 생성 함수
-private fun generateWeeklyGraphData(records: List<SobrietyRecord>): List<SimpleGraphData> {
+private fun generateWeeklyGraphData(records: List<SobrietyRecord>, weekStart: Long?): List<SimpleGraphData> {
     val calendar = Calendar.getInstance()
     val weekDays = listOf("월", "화", "수", "목", "금", "토", "일")
 
-    // 이번 주 월요일부터 시작
-    calendar.firstDayOfWeek = Calendar.MONDAY
-    calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
-    calendar.set(Calendar.HOUR_OF_DAY, 0)
-    calendar.set(Calendar.MINUTE, 0)
-    calendar.set(Calendar.SECOND, 0)
-    calendar.set(Calendar.MILLISECOND, 0)
-
-    val weekStart = calendar.timeInMillis
+    // 선택된 주의 시작이 있으면 그 값을 사용, 없으면 이번 주 월요일
+    val actualWeekStart = weekStart ?: run {
+        calendar.firstDayOfWeek = Calendar.MONDAY
+        calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        calendar.timeInMillis
+    }
 
     return weekDays.mapIndexed { index, dayName ->
-        val dayStart = weekStart + (index * 24 * 60 * 60 * 1000L)
+        val dayStart = actualWeekStart + (index * 24 * 60 * 60 * 1000L)
         val dayEnd = dayStart + (24 * 60 * 60 * 1000L) - 1
 
         // 해당 날짜가 기록 기간에 포함되는 기록들 찾기
@@ -961,19 +974,27 @@ private fun generateWeeklyGraphData(records: List<SobrietyRecord>): List<SimpleG
         if (dayRecords.isEmpty()) {
             SimpleGraphData(dayName, 0f)
         } else {
-            // 해당 날짜에 포함된 기록 중 가장 높은 달성률 사용 (실시간 계산)
-            val maxAchievedPercentage = dayRecords.maxOfOrNull { record ->
-                val actualDurationMs = record.endTime - record.startTime
-                val actualDurationDays = (actualDurationMs / (24 * 60 * 60 * 1000f))
-                if (record.targetDays > 0) {
-                    ((actualDurationDays / record.targetDays) * 100).coerceAtMost(100f).toInt()
-                } else {
-                    0
-                }
-            } ?: 0
+            // 해당 날짜에 실제로 달성한 시간만 반영 (월 그래프와 동일)
+            val dayTotalMs = 24 * 60 * 60 * 1000f
+            val achievedRatio = dayRecords.map { record ->
+                val recordStart = record.startTime
+                val recordEnd = record.endTime
+                val overlapStart = maxOf(recordStart, dayStart)
+                val overlapEnd = minOf(recordEnd, dayEnd)
+                val overlapMs = (overlapEnd - overlapStart).coerceAtLeast(0)
+                overlapMs / dayTotalMs
+            }.sum().coerceAtMost(1.0f)
 
-            // 백분율을 0.0~1.0 비율로 변환
-            SimpleGraphData(dayName, (maxAchievedPercentage / 100.0f).coerceIn(0.0f, 1.0f))
+            // 최소 5% 표시
+            val ratio = if (achievedRatio == 0f && dayRecords.isNotEmpty()) {
+                0.05f
+            } else {
+                achievedRatio
+            }
+
+            Log.d("GraphDebug", "주간 ${dayName} 실제 달성 비율: $achievedRatio, 표시 비율: $ratio")
+
+            SimpleGraphData(dayName, ratio)
         }
     }
 }
@@ -1069,61 +1090,35 @@ private fun generateMonthlyGraphData(records: List<SobrietyRecord>, year: Int, m
 // 최근 1년간의 그래프 데이터 생성 함수
 private fun generateYearlyGraphData(records: List<SobrietyRecord>): List<SimpleGraphData> {
     val calendar = Calendar.getInstance()
+    val currentYear = calendar.get(Calendar.YEAR)
 
-    // 올해 1월 1일자로 설정
-    calendar.set(Calendar.MONTH, Calendar.JANUARY)
-    calendar.set(Calendar.DAY_OF_MONTH, 1)
-    calendar.set(Calendar.HOUR_OF_DAY, 0)
-    calendar.set(Calendar.MINUTE, 0)
-    calendar.set(Calendar.SECOND, 0)
-    calendar.set(Calendar.MILLISECOND, 0)
-
-    // 최근 1년간의 월별 데이터 생성
+    // 올해 1월~12월 반복
     return (0 until 12).map { monthOffset ->
-        calendar.set(Calendar.MONTH, monthOffset)
-        calendar.set(Calendar.DAY_OF_MONTH, 1)
+        // 월 시작/끝 계산
+        calendar.set(currentYear, monthOffset, 1, 0, 0, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
         val monthStart = calendar.timeInMillis
-
-        // 해당 월의 마지막 날 계산
         val lastDayOfMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
-        calendar.set(Calendar.DAY_OF_MONTH, lastDayOfMonth)
-        calendar.set(Calendar.HOUR_OF_DAY, 23)
-        calendar.set(Calendar.MINUTE, 59)
-        calendar.set(Calendar.SECOND, 59)
+        calendar.set(currentYear, monthOffset, lastDayOfMonth, 23, 59, 59)
         calendar.set(Calendar.MILLISECOND, 999)
         val monthEnd = calendar.timeInMillis
 
-        // 해당 월에 시작된 기록들 찾기
+        // 해당 월에 걸친 기록들 찾기
         val monthRecords = records.filter { record ->
-            val recordStartDate = Calendar.getInstance().apply {
-                timeInMillis = record.startTime
-            }
-            val recordMonth = recordStartDate.get(Calendar.MONTH)
-            val recordYear = recordStartDate.get(Calendar.YEAR)
-            val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-
-            recordMonth == monthOffset && recordYear == currentYear
+            record.endTime >= monthStart && record.startTime <= monthEnd
         }
 
-        if (monthRecords.isEmpty()) {
-            SimpleGraphData("${monthOffset + 1}월", 0f)
-        } else {
-            // 해당 월에 시작된 기록 중 가장 높은 달성률 사용
-            val maxAchievedPercentage = monthRecords.maxOfOrNull { record ->
-                val actualDurationMs = record.endTime - record.startTime
-                val actualDurationDays = (actualDurationMs / (24 * 60 * 60 * 1000f))
-                if (record.targetDays > 0) {
-                    ((actualDurationDays / record.targetDays) * 100).coerceAtMost(100f).toInt()
-                } else {
-                    0
-                }
-            } ?: 0
-
-            // 백분율을 0.0~1.0 비율로 변환
-            val ratio = (maxAchievedPercentage / 100.0f).coerceIn(0.0f, 1.0f)
-
-            SimpleGraphData("${monthOffset + 1}월", ratio)
+        // 실제 금주 일수 합산
+        val monthTotalDays = lastDayOfMonth
+        val achievedDays = monthRecords.sumOf { record ->
+            val overlapStart = maxOf(record.startTime, monthStart)
+            val overlapEnd = minOf(record.endTime, monthEnd)
+            val overlapMs = (overlapEnd - overlapStart).coerceAtLeast(0)
+            (overlapMs / (24 * 60 * 60 * 1000L)).toInt()
         }
+        val ratio = if (monthTotalDays > 0) achievedDays.toFloat() / monthTotalDays else 0f
+
+        SimpleGraphData("${monthOffset + 1}월", ratio.coerceIn(0f, 1f))
     }
 }
 
