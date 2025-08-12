@@ -123,7 +123,6 @@ abstract class BaseActivity : ComponentActivity() {
                         .fillMaxSize()
                         .background(Color.White)
                         .padding(paddingValues)
-                        .statusBarsPadding()
                 ) {
                     content()
                 }
