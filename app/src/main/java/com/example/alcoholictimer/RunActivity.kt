@@ -340,7 +340,7 @@ fun RunScreen() {
                     2 -> "현재 레벨"
                     3 -> "절약한 금액"
                     4 -> "절약한 시간"
-                    5 -> "기대 수명"
+                    5 -> "기대 수명+"
                     else -> "금주 일수"
                 },
                 fontSize = 20.sp,
@@ -376,12 +376,12 @@ fun RunScreen() {
                                 "${elapsedDays}"
                             }
 
-                            // 텍스트 길이에 따라 동적으로 폰트 크기 조정
+                            // 통일된 폰트 크기 기준 적용
                             val fontSize = when {
-                                displayText.length <= 2 -> 96.sp  // 1~2자리 숫자 (0~99)
-                                displayText.length <= 3 -> 84.sp  // 3자리 숫자 (100~999)
-                                displayText.length <= 7 -> 64.sp  // "12년 316일" 같은 긴 텍스트
-                                else -> 48.sp  // 매우 긴 텍스트
+                                displayText.length <= 2 -> 80.sp
+                                displayText.length <= 4 -> 64.sp
+                                displayText.length <= 7 -> 48.sp
+                                else -> 36.sp
                             }
 
                             Text(
@@ -395,63 +395,118 @@ fun RunScreen() {
                             )
                         }
                         1 -> {
-                            // 진행 시간 (시:분:초 형식) - 고정 크기
+                            // 진행 시간 (시:분:초 형식)
+                            val timeText = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds)
+
+                            // 통일된 폰트 크기 기준 적용
+                            val fontSize = when {
+                                timeText.length <= 2 -> 80.sp
+                                timeText.length <= 4 -> 64.sp
+                                timeText.length <= 7 -> 48.sp
+                                else -> 36.sp
+                            }
+
                             Text(
-                                text = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds),
-                                fontSize = 48.sp, // 가독성을 위해 약간 증가
+                                text = timeText,
+                                fontSize = fontSize,
                                 fontWeight = FontWeight.Bold,
+                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
                                 textAlign = TextAlign.Center,
                                 color = Color.Black,
                                 maxLines = 1,
-                                lineHeight = 52.sp
+                                lineHeight = fontSize
                             )
                         }
                         2 -> {
                             // 현재 레벨 (테스트 모드 적용)
+                            val levelText = getLevelName(elapsedDays)
+
+                            // 통일된 폰트 크기 기준 적용
+                            val fontSize = when {
+                                levelText.length <= 2 -> 80.sp
+                                levelText.length <= 4 -> 64.sp
+                                levelText.length <= 7 -> 48.sp
+                                else -> 36.sp
+                            }
+
                             Text(
-                                text = getLevelName(elapsedDays), // 실제 일수로 레벨명 표시
-                                fontSize = 36.sp, // 레벨명은 더 작게
+                                text = levelText,
+                                fontSize = fontSize,
                                 fontWeight = FontWeight.Bold,
+                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
                                 textAlign = TextAlign.Center,
                                 color = Color.Black,
                                 maxLines = 2,
-                                lineHeight = 40.sp
+                                lineHeight = fontSize
                             )
                         }
                         3 -> {
                             // 절약한 금액 (천단위 구분)
+                            val moneyText = String.format(Locale.getDefault(), "%,d", savedMoney)
+
+                            // 통일된 폰트 크기 기준 적용
+                            val fontSize = when {
+                                moneyText.length <= 2 -> 80.sp
+                                moneyText.length <= 4 -> 64.sp
+                                moneyText.length <= 7 -> 48.sp
+                                else -> 36.sp
+                            }
+
                             Text(
-                                text = String.format(Locale.getDefault(), "%,d", savedMoney),
-                                fontSize = 42.sp, // 숫자이므로 적당한 크기
+                                text = moneyText,
+                                fontSize = fontSize,
                                 fontWeight = FontWeight.Bold,
+                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
                                 textAlign = TextAlign.Center,
                                 color = Color.Black,
                                 maxLines = 1,
-                                lineHeight = 46.sp
+                                lineHeight = fontSize
                             )
                         }
                         4 -> {
                             // 절약한 시간
+                            val hoursText = "${savedHours}"
+
+                            // 통일된 폰트 크기 기준 적용
+                            val fontSize = when {
+                                hoursText.length <= 2 -> 80.sp
+                                hoursText.length <= 4 -> 64.sp
+                                hoursText.length <= 7 -> 48.sp
+                                else -> 36.sp
+                            }
+
                             Text(
-                                text = "${savedHours}",
-                                fontSize = 48.sp,
+                                text = hoursText,
+                                fontSize = fontSize,
                                 fontWeight = FontWeight.Bold,
+                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
                                 textAlign = TextAlign.Center,
                                 color = Color.Black,
                                 maxLines = 1,
-                                lineHeight = 52.sp
+                                lineHeight = fontSize
                             )
                         }
                         5 -> {
                             // 기대 수명
+                            val lifeText = "${lifeGainDays}일"
+
+                            // 통일된 폰트 크기 기준 적용
+                            val fontSize = when {
+                                lifeText.length <= 2 -> 80.sp
+                                lifeText.length <= 4 -> 64.sp
+                                lifeText.length <= 7 -> 48.sp
+                                else -> 36.sp
+                            }
+
                             Text(
-                                text = "+${lifeGainDays}일",
-                                fontSize = 42.sp,
+                                text = lifeText,
+                                fontSize = fontSize,
                                 fontWeight = FontWeight.Bold,
+                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
                                 textAlign = TextAlign.Center,
                                 color = Color.Black,
                                 maxLines = 1,
-                                lineHeight = 46.sp
+                                lineHeight = fontSize
                             )
                         }
                     }
