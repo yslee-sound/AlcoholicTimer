@@ -142,11 +142,33 @@ fun DetailScreen(
         "금주 ${actualDays}일차 중단 기록"
     }
 
-    // 금주 기간 계산
-    val totalDuration = if (startTime > 0) {
-        ((endTime - startTime) / (24 * 60 * 60 * 1000)).toInt()
+    // 정확한 금주 기간 계산 (시간 단위까지)
+    val totalDurationMillis = if (startTime > 0) {
+        endTime - startTime
     } else {
-        actualDays
+        actualDays * 24 * 60 * 60 * 1000L
+    }
+    val totalHours = totalDurationMillis / (60 * 60 * 1000.0)
+    val totalDays = totalHours / 24.0
+
+    // 금주 기간 표시 형식 결정
+    val durationDisplay = when {
+        totalDays >= 1.0 -> {
+            val days = totalDays.toInt()
+            val remainingHours = ((totalDays - days) * 24).toInt()
+            if (remainingHours > 0) {
+                "${days}일 ${remainingHours}시간"
+            } else {
+                "${days}일"
+            }
+        }
+        totalHours >= 1.0 -> {
+            "${totalHours.toInt()}시간"
+        }
+        else -> {
+            val minutes = (totalDurationMillis / (60 * 1000)).toInt()
+            "${minutes}분"
+        }
     }
 
     // 설정값 가져오기 (절약 금액/시간 계산용)
@@ -155,7 +177,7 @@ fun DetailScreen(
     val selectedFrequency = sharedPref.getString("selected_frequency", "주 2~3회") ?: "주 2~3회"
     val selectedDuration = sharedPref.getString("selected_duration", "보통") ?: "보통"
 
-    // 절약 금액/시간 계산
+    // 절약 금액/시간 계산 (정확한 시간 기반)
     val costVal = when(selectedCost) {
         "저" -> 10000
         "중" -> 40000
@@ -178,9 +200,19 @@ fun DetailScreen(
     }
 
     val hangoverHoursVal = 5
-    val weeks = actualDays / 7.0
-    val savedMoney = (weeks * freqVal * costVal).roundToInt()
-    val savedHours = (weeks * freqVal * (drinkHoursVal + hangoverHoursVal)).roundToInt()
+
+    // 정확한 주 단위 계산 (시간 기반)
+    val exactWeeks = totalHours / (24.0 * 7.0)
+    val savedMoney = (exactWeeks * freqVal * costVal).roundToInt()
+    val savedHours = (exactWeeks * freqVal * (drinkHoursVal + hangoverHoursVal)).roundToInt()
+
+    // 정확한 목표 달성률 계산 (실제 금주 기간 기반)
+    val achievementRate = ((totalDays / targetDays) * 100.0).let { rate ->
+        if (rate > 100) 100.0 else rate
+    }
+
+    // 기대 수명 증가 계산 (소수점 표기)
+    val lifeExpectancyIncrease = totalDays / 30.0
 
     // 레벨에 따른 배경색
     val backgroundColor = when {
@@ -358,7 +390,7 @@ fun DetailScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 SubStatItem(
-                    value = "${totalDuration}일",
+                    value = durationDisplay,
                     label = "총 금주 기간",
                     modifier = Modifier.weight(1f)
                 )
@@ -382,7 +414,7 @@ fun DetailScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 SubStatItem(
-                    value = "${((actualDays.toFloat() / targetDays) * 100).roundToInt()}%",
+                    value = String.format("%.1f%%", achievementRate),
                     label = "목표 달성률",
                     modifier = Modifier.weight(1f)
                 )
@@ -392,7 +424,7 @@ fun DetailScreen(
                     modifier = Modifier.weight(1.3f)
                 )
                 SubStatItem(
-                    value = "+${(actualDays / 30.0).roundToInt()}일",
+                    value = String.format("%.1f일", lifeExpectancyIncrease),
                     label = "기대 수명 증가",
                     modifier = Modifier.weight(0.7f)
                 )
@@ -437,10 +469,13 @@ fun SubStatItem(
 // 레벨명 함수
 private fun getLevelName(days: Int): String {
     return when {
-        days < 7 -> "시작"
-        days < 30 -> "작심 7일"
-        days < 90 -> "한 달 클리어"
-        days < 365 -> "3개월 클리어"
+        days in 0..6 -> "작심 7일"
+        days in 7..13 -> "의지의 2주"
+        days in 14..29 -> "한달의 기적"
+        days in 30..59 -> "습관의 탄생"
+        days in 60..119 -> "계속되는 도전"
+        days in 120..239 -> "거의 1년"
+        days in 240..364 -> "금주 마스터"
         else -> "절제의 레전드"
     }
 }

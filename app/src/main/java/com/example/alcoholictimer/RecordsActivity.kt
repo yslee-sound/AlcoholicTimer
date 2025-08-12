@@ -89,7 +89,30 @@ class RecordsActivity : BaseActivity() {
         var inputEndTime by remember { mutableStateOf(System.currentTimeMillis()) }
         var inputTargetDays by remember { mutableStateOf(1) }
         var inputActualDays by remember { mutableStateOf(1) }
-        var inputIsCompleted by remember { mutableStateOf(true) }
+
+        // 데이터 로드 함수
+        suspend fun loadRecords() {
+            isRefreshing = true
+            try {
+                // 약간의 지연을 추가하여 새로고침 애니메이션을 보여줌
+                delay(500)
+                records = loadSobrietyRecords(context)
+                Log.d(TAG, "========== 기록 로딩 디버깅 ==========")
+                Log.d(TAG, "새로고침: 로드된 기록: ${records.size}개")
+
+                // 디버깅: 각 기록의 상세 정보 출력
+                records.forEachIndexed { index, record ->
+                    Log.d(TAG, "기록 $index: id=${record.id}")
+                    Log.d(TAG, "  목표=${record.targetDays}일, 달성=${record.actualDays}일")
+                    Log.d(TAG, "  완료=${record.isCompleted}, 상태=${record.status}")
+                    Log.d(TAG, "  시작=${record.startTime}, 종료=${record.endTime}")
+                    Log.d(TAG, "  생성=${record.createdAt}")
+                }
+                Log.d(TAG, "====================================")
+            } finally {
+                isRefreshing = false
+            }
+        }
 
         fun addCustomTestRecord() {
             try {
@@ -120,8 +143,12 @@ class RecordsActivity : BaseActivity() {
 
                 // 실제 시간 차이를 기반으로 달성률 계산
                 val actualDurationMs = inputEndTime - inputStartTime
-                val actualDurationDays = (actualDurationMs / (24 * 60 * 60 * 1000f)).toFloat()
+                val actualDurationDays = (actualDurationMs / (24 * 60 * 60 * 1000f))
                 val achievedPercentage = ((actualDurationDays / inputTargetDays) * 100).coerceAtMost(100f).toInt()
+
+                // 목표 달성 여부 판단 (100% 이상이면 완료, 미만이면 중지)
+                val isCompleted = achievedPercentage >= 100
+                val status = if (isCompleted) "완료" else "중지"
 
                 val testRecord = JSONObject().apply {
                     put("id", "test_${System.currentTimeMillis()}")
@@ -129,8 +156,8 @@ class RecordsActivity : BaseActivity() {
                     put("endTime", inputEndTime)
                     put("targetDays", inputTargetDays)
                     put("actualDays", actualDurationDays.toInt())
-                    put("isCompleted", inputIsCompleted)
-                    put("status", if (inputIsCompleted) "완료" else "중지")
+                    put("isCompleted", isCompleted)
+                    put("status", status)
                     put("createdAt", System.currentTimeMillis())
                     put("percentage", achievedPercentage) // 실제 시간 차이 기반 달성률
                 }
@@ -140,34 +167,16 @@ class RecordsActivity : BaseActivity() {
                     apply()
                 }
 
+                // 데이터 즉시 새로고침
+                coroutineScope.launch {
+                    loadRecords()
+                }
+
                 // 성공적으로 추가되었음을 알리는 토스트 메시지
                 android.widget.Toast.makeText(context, "테스트 기록이 추가되었습니다", android.widget.Toast.LENGTH_SHORT).show()
             } catch (_: Exception) {}
         }
 
-        // 데이터 로드 함수
-        suspend fun loadRecords() {
-            isRefreshing = true
-            try {
-                // 약간의 지연을 추가하여 새로고침 애니메이션을 보여줌
-                delay(500)
-                records = loadSobrietyRecords(context)
-                Log.d(TAG, "========== 기록 로딩 디버깅 ==========")
-                Log.d(TAG, "새로고침: 로드된 기록: ${records.size}개")
-
-                // 디버깅: 각 기록의 상세 정보 출력
-                records.forEachIndexed { index, record ->
-                    Log.d(TAG, "기록 $index: id=${record.id}")
-                    Log.d(TAG, "  목표=${record.targetDays}일, 달성=${record.actualDays}일")
-                    Log.d(TAG, "  완료=${record.isCompleted}, 상태=${record.status}")
-                    Log.d(TAG, "  시작=${record.startTime}, 종료=${record.endTime}")
-                    Log.d(TAG, "  생성=${record.createdAt}")
-                }
-                Log.d(TAG, "====================================")
-            } finally {
-                isRefreshing = false
-            }
-        }
 
         // 외부 refreshTrigger가 변경될 때마다 새로고침
         LaunchedEffect(externalRefreshTrigger) {
@@ -364,9 +373,7 @@ class RecordsActivity : BaseActivity() {
                         inputTargetDays = inputTargetDays,
                         onTargetDaysChange = { inputTargetDays = it },
                         inputActualDays = inputActualDays,
-                        onActualDaysChange = { inputActualDays = it },
-                        inputIsCompleted = inputIsCompleted,
-                        onIsCompletedChange = { inputIsCompleted = it }
+                        onActualDaysChange = { inputActualDays = it }
                     )
                 }
             )
@@ -949,7 +956,7 @@ private fun generateWeeklyGraphData(records: List<SobrietyRecord>): List<SimpleG
         val dayStart = weekStart + (index * 24 * 60 * 60 * 1000L)
         val dayEnd = dayStart + (24 * 60 * 60 * 1000L)
 
-        // 해당 날짜에 시작된 완료된 기록들 찾기
+        // 해당 날짜에 시작된 기록들 찾기 (완료 여부 상관없이)
         val dayRecords = records.filter { record ->
             val recordStartDate = Calendar.getInstance().apply {
                 timeInMillis = record.startTime
@@ -959,7 +966,7 @@ private fun generateWeeklyGraphData(records: List<SobrietyRecord>): List<SimpleG
                 set(Calendar.MILLISECOND, 0)
             }.timeInMillis
 
-            recordStartDate == dayStart && record.isCompleted
+            recordStartDate == dayStart
         }
 
         if (dayRecords.isEmpty()) {
@@ -989,6 +996,15 @@ private fun generateMonthlyGraphData(records: List<SobrietyRecord>, year: Int, m
     // 선택된 월의 마지막 날 계산
     val lastDayOfMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
 
+    Log.d("GraphDebug", "=== 월별 그래프 생성 시작 ===")
+    Log.d("GraphDebug", "선택된 기간: ${year}년 ${month}월")
+    Log.d("GraphDebug", "전체 기록 수: ${records.size}")
+
+    records.forEachIndexed { index, record ->
+        val recordCal = Calendar.getInstance().apply { timeInMillis = record.startTime }
+        Log.d("GraphDebug", "기록 $index: ${recordCal.get(Calendar.YEAR)}년 ${recordCal.get(Calendar.MONTH)+1}월 ${recordCal.get(Calendar.DAY_OF_MONTH)}일, ID=${record.id}")
+    }
+
     return (1..lastDayOfMonth).map { day ->
         // 그래프의 해당 날짜
         calendar.set(year, month - 1, day, 0, 0, 0)
@@ -997,13 +1013,24 @@ private fun generateMonthlyGraphData(records: List<SobrietyRecord>, year: Int, m
         val graphMonth = calendar.get(Calendar.MONTH)
         val graphDay = calendar.get(Calendar.DAY_OF_MONTH)
 
-        // 해당 날짜에 시작된 완료된 기록들 찾기 (연,월,일 단위로 비교)
+        // 해당 날짜에 시작된 기록들 찾기 (완료 여부 상관없이, 연,월,일 단위로 비교)
         val dayRecords = records.filter { record ->
             val recordCal = Calendar.getInstance().apply { timeInMillis = record.startTime }
-            recordCal.get(Calendar.YEAR) == graphYear &&
-            recordCal.get(Calendar.MONTH) == graphMonth &&
-            recordCal.get(Calendar.DAY_OF_MONTH) == graphDay &&
-            record.isCompleted
+            val recordYear = recordCal.get(Calendar.YEAR)
+            val recordMonth = recordCal.get(Calendar.MONTH)
+            val recordDay = recordCal.get(Calendar.DAY_OF_MONTH)
+
+            val isMatch = recordYear == graphYear && recordMonth == graphMonth && recordDay == graphDay
+
+            if (day == 1) { // 8월 1일에 대해서만 로그 출력
+                Log.d("GraphDebug", "8월 1일 체크: 기록 ${recordYear}년 ${recordMonth+1}월 ${recordDay}일 vs 그래프 ${graphYear}년 ${graphMonth+1}월 ${graphDay}일 = $isMatch")
+            }
+
+            isMatch
+        }
+
+        if (day == 1) {
+            Log.d("GraphDebug", "8월 1일 매칭된 기록 수: ${dayRecords.size}")
         }
 
         if (dayRecords.isEmpty()) {
@@ -1013,10 +1040,26 @@ private fun generateMonthlyGraphData(records: List<SobrietyRecord>, year: Int, m
             val maxAchievedPercentage = dayRecords.maxOfOrNull { record ->
                 record.achievedPercentage
             } ?: 0
+
             // 백분율을 0.0~1.0 비율로 변환
-            val ratio = (maxAchievedPercentage / 100.0f).coerceIn(0.0f, 1.0f)
+            // 기록이 있는데 달성률이 0%인 경우 최소값(0.05 = 5%)으로 설정
+            val ratio = if (maxAchievedPercentage == 0 && dayRecords.isNotEmpty()) {
+                0.05f // 최소 5% 표시
+            } else {
+                (maxAchievedPercentage / 100.0f).coerceIn(0.0f, 1.0f)
+            }
+
+            if (day == 1) {
+                Log.d("GraphDebug", "8월 1일 최대 달성률: $maxAchievedPercentage%, 비율: $ratio")
+                dayRecords.forEach { record ->
+                    Log.d("GraphDebug", "8월 1일 기록 상세: ID=${record.id}, actualDays=${record.actualDays}, targetDays=${record.targetDays}, achievedPercentage=${record.achievedPercentage}")
+                }
+            }
+
             SimpleGraphData("${day}", ratio)
         }
+    }.also {
+        Log.d("GraphDebug", "=== 월별 그래프 생성 완료 ===")
     }
 }
 
@@ -1047,7 +1090,7 @@ private fun generateYearlyGraphData(records: List<SobrietyRecord>): List<SimpleG
         calendar.set(Calendar.MILLISECOND, 999)
         val monthEnd = calendar.timeInMillis
 
-        // 해당 월에 시작된 완료된 기록들 찾기
+        // 해당 월에 시작된 기록들 찾기
         val monthRecords = records.filter { record ->
             val recordStartDate = Calendar.getInstance().apply {
                 timeInMillis = record.startTime
@@ -1056,7 +1099,7 @@ private fun generateYearlyGraphData(records: List<SobrietyRecord>): List<SimpleG
             val recordYear = recordStartDate.get(Calendar.YEAR)
             val currentYear = Calendar.getInstance().get(Calendar.YEAR)
 
-            recordMonth == monthOffset && recordYear == currentYear && record.isCompleted
+            recordMonth == monthOffset && recordYear == currentYear
         }
 
         if (monthRecords.isEmpty()) {
@@ -1123,9 +1166,7 @@ fun TestRecordInputDialogContent(
     inputTargetDays: Int,
     onTargetDaysChange: (Int) -> Unit,
     inputActualDays: Int,
-    onActualDaysChange: (Int) -> Unit,
-    inputIsCompleted: Boolean,
-    onIsCompletedChange: (Boolean) -> Unit
+    onActualDaysChange: (Int) -> Unit
 ) {
     val calendar = Calendar.getInstance()
     // 시작일 드롭다운 상태
@@ -1377,19 +1418,6 @@ fun TestRecordInputDialogContent(
             selected = inputTargetDays,
             onSelected = { onTargetDaysChange(it) }
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 완료 여부
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Checkbox(
-                checked = inputIsCompleted,
-                onCheckedChange = { onIsCompletedChange(it) }
-            )
-            Text("완료된 기록")
-        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
