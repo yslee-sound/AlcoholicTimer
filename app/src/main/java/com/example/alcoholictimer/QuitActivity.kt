@@ -219,10 +219,12 @@ fun QuitScreen() {
                         putBoolean("timer_completed", true)
                     }
 
-                    // StartActivity로 이동 (홈으로 돌아가기)
+                    // StartActivity로 이동 (금주 설정 화면으로 한번만 이동)
                     val intent = Intent(context, StartActivity::class.java)
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                     context.startActivity(intent)
+                    // QuitActivity만 종료 (전환효과 없이 바로 이동)
+                    (context as? QuitActivity)?.overridePendingTransition(0, 0)
                     (context as? QuitActivity)?.finish()
                 }
             )

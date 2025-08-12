@@ -1,5 +1,9 @@
 package com.example.alcoholictimer
 
+import android.R.attr.fontStyle
+import android.R.attr.fontWeight
+import android.R.attr.lineHeight
+import android.R.attr.maxLines
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -327,8 +331,9 @@ fun RunScreen() {
                             // 금주 일수
                             Text(
                                 text = if (elapsedHours > 0) "${elapsedDays}일 ${elapsedHours}시간" else "${elapsedDays}",
-                                fontSize = 48.sp, // 크기 축소
+                                fontSize = 96.sp, // 크기 축소
                                 fontWeight = FontWeight.Bold,
+                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
                                 textAlign = TextAlign.Center,
                                 color = Color.Black,
                                 maxLines = 2, // 최대 2줄
@@ -400,20 +405,21 @@ fun RunScreen() {
             }
 
             // 단위 표시 (모든 지표에 일관된 단위 표시)
-            Text(
-                text = when (currentIndicator) {
-                    0 -> if (elapsedHours > 0) "" else "일"
-                    1 -> "시간"  // 진행 시간에 단위 추가
-                    2 -> "레벨"  // 현재 레벨에 단위 추가
-                    3 -> "원"
-                    4 -> "시간"
-                    5 -> "일"
-                    else -> "일"
-                },
-                fontSize = 20.sp,
-                color = Color.Gray,
-                modifier = Modifier.padding(top = 16.dp)
-            )
+            if (currentIndicator != 0) {
+                Text(
+                    text = when (currentIndicator) {
+                        1 -> "시간"  // 진행 시간에 단위 추가
+                        2 -> "레벨"  // 현재 레벨에 단위 추가
+                        3 -> "원"
+                        4 -> "시간"
+                        5 -> "일"
+                        else -> ""
+                    },
+                    fontSize = 20.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(top = 16.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(40.dp))
 
