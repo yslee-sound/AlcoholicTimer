@@ -1039,25 +1039,25 @@ private fun generateMonthlyGraphData(records: List<SobrietyRecord>, year: Int, m
         if (dayRecords.isEmpty()) {
             SimpleGraphData("${day}", 0.0f)
         } else {
-            // 해당 날짜에 포함된 기록들의 평균 달성률 사용
-            val avgAchievedPercentage = dayRecords.map { record ->
-                val actualDurationMs = record.endTime - record.startTime
-                val actualDurationDays = (actualDurationMs / (24 * 60 * 60 * 1000f))
-                if (record.targetDays > 0) {
-                    ((actualDurationDays / record.targetDays) * 100).coerceAtMost(100f).toInt()
-                } else {
-                    0
-                }
-            }.average().toFloat()
+            // 해당 날짜에 실제로 달성한 시간만 반영
+            val dayTotalMs = 24 * 60 * 60 * 1000f
+            val achievedRatio = dayRecords.map { record ->
+                val recordStart = record.startTime
+                val recordEnd = record.endTime
+                val overlapStart = maxOf(recordStart, dayStart)
+                val overlapEnd = minOf(recordEnd, dayEnd)
+                val overlapMs = (overlapEnd - overlapStart).coerceAtLeast(0)
+                overlapMs / dayTotalMs
+            }.sum().coerceAtMost(1.0f)
 
-            // 백분율을 0.0~1.0 비율로 변환
-            val ratio = if (avgAchievedPercentage == 0f && dayRecords.isNotEmpty()) {
-                0.05f // 최소 5% 표시
+            // 최소 5% 표시
+            val ratio = if (achievedRatio == 0f && dayRecords.isNotEmpty()) {
+                0.05f
             } else {
-                (avgAchievedPercentage / 100.0f).coerceIn(0.0f, 1.0f)
+                achievedRatio
             }
 
-            Log.d("GraphDebug", "${month}월 ${day}일 평균 달성률: $avgAchievedPercentage%, 비율: $ratio")
+            Log.d("GraphDebug", "${month}월 ${day}일 실제 달성 비율: $achievedRatio, 표시 비율: $ratio")
 
             SimpleGraphData("${day}", ratio)
         }
