@@ -210,7 +210,8 @@ class StartActivity : BaseActivity() {
                 )
             }
 
-            Spacer(modifier = Modifier.height(60.dp))
+            // 기존 고정 높이 Spacer를 제거하고 가변 Spacer로 변경하여 버튼을 하단에 고정
+            Spacer(modifier = Modifier.weight(1f))
 
             // 플레이 버튼
             FloatingActionButton(
@@ -236,7 +237,7 @@ class StartActivity : BaseActivity() {
                         context.startActivity(intent)
                     }
                 },
-                modifier = Modifier.size(100.dp), // 크기 120dp로 변경
+                modifier = Modifier.size(100.dp), // 버튼 크기 통일
                 shape = CircleShape,
                 containerColor = Color(0xFF8ABF33) // 시작버튼 색상 #8ABF33으로 변경
             ) {

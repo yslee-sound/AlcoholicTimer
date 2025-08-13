@@ -255,301 +255,295 @@ fun RunScreen() {
         }
     }
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .padding(10.dp)
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
     ) {
         // 상단 정보
-        Column {
-            // 첫 번째 행: 값들
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 4.dp),
-                horizontalArrangement = Arrangement.Center, // 중앙 정렬로 변경
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 0.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "${targetDays}",
-                        fontSize = 24.sp,
-                        color = Color.Black
-                    )
-                }
-                Box(
-                    modifier = Modifier.weight(1.6f), // 가운데 박스만 더 넓게
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = getLevelName(elapsedDays),
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = LevelDefinitions.getLevelInfo(elapsedDays).color,
-                        textAlign = TextAlign.Center
-                    )
-                }
-                Box(
-                    modifier = Modifier.weight(1f)
-                        .padding(start = 0.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = progressTimeText,
-                        fontSize = 20.sp,
-                        color = Color.Black,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-
-            // 두 번째 행: 제목들
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 20.dp),
-                horizontalArrangement = Arrangement.Center, // 중앙 정렬로 변경
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier.weight(1f)
-                        .padding(end = 0.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "목표일",
-                        fontSize = 24.sp,
-                        color = Color.Gray,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-                Box(
-                    modifier = Modifier.weight(1.6f), // 가운데 박스만 더 넓게
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Level",
-                        fontSize = 24.sp,
-                        color = Color.Gray,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-                Box(
-                    modifier = Modifier.weight(1f)
-                        .padding(start = 0.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "시간",
-                        fontSize = 24.sp,
-                        color = Color.Gray,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-        }
-
-        // 중앙 메인 영역
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+        // 첫 번째 행: 값들
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 4.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Spacer(modifier = Modifier.height(140.dp))
-            // 현재 지표에 따른 제목 텍스트
-            Text(
-                text = when (currentIndicator) {
-                    0 -> "금주 일수"
-                    1 -> "진행 시간"
-                    2 -> "절약한 금액"
-                    3 -> "절약한 시간"
-                    4 -> "기대 수명+"
-                    else -> "금주 일수"
-                },
-                fontSize = 24.sp,
-                color = Color.Gray,
-                modifier = Modifier.padding(bottom = 0.dp)
-            )
-
-            // 중앙 메인 지표 (고정 크기 컨테이너)
             Box(
                 modifier = Modifier
-                    .width(400.dp)
-                    .height(200.dp),
-                contentAlignment = Alignment.BottomCenter
+                    .weight(1f)
+                    .padding(start = 0.dp),
+                contentAlignment = Alignment.Center
             ) {
-                var scale by remember { mutableStateOf(1f) }
-                var isAnimating by remember { mutableStateOf(false) }
-                val animatedScale by animateFloatAsState(
-                    targetValue = scale,
-                    animationSpec = androidx.compose.animation.core.tween(
-                        durationMillis = 100,
-                        easing = androidx.compose.animation.core.FastOutSlowInEasing
-                    )
+                Text(
+                    text = "${targetDays}",
+                    fontSize = 24.sp,
+                    color = Color.Black
                 )
+            }
+            Box(
+                modifier = Modifier.weight(1.6f), // 가운데 박스만 더 넓게
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = getLevelName(elapsedDays),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = LevelDefinitions.getLevelInfo(elapsedDays).color,
+                    textAlign = TextAlign.Center
+                )
+            }
+            Box(
+                modifier = Modifier.weight(1f)
+                    .padding(start = 0.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = progressTimeText,
+                    fontSize = 20.sp,
+                    color = Color.Black,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
 
-                LaunchedEffect(isAnimating) {
-                    if (isAnimating) {
-                        scale = 0.7f
-                        delay(100)  // 축소 상태 유지
-                        scale = 1f
-                        delay(100)  // 복원 애니메이션 완료 대기
-                        currentIndicator = (currentIndicator + 1) % 5  // 애니메이션 완료 후 지표 전환
-                        isAnimating = false
-                    }
-                }
+        // 두 번째 행: 제목들
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 20.dp),
+            horizontalArrangement = Arrangement.Center, // 중앙 정렬로 변경
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier.weight(1f)
+                    .padding(end = 0.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "목표일",
+                    fontSize = 24.sp,
+                    color = Color.Gray,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            Box(
+                modifier = Modifier.weight(1.6f), // 가운데 박스만 더 넓게
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Level",
+                    fontSize = 24.sp,
+                    color = Color.Gray,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            Box(
+                modifier = Modifier.weight(1f)
+                    .padding(start = 0.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "시간",
+                    fontSize = 24.sp,
+                    color = Color.Gray,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .scale(animatedScale)
-                        .clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
-                        ) {
-                            if (!isAnimating) {
-                                isAnimating = true
-                            }
-                        }
-                        .padding(bottom = 100.dp),
-                    contentAlignment = Alignment.BottomCenter
-                ) {
-                    when (currentIndicator) {
-                        0 -> {
-                            // 금주 일수 - 365일 이상시 년/일 형태로 표시
-                            val displayText = if (elapsedDays >= 365) {
-                                val years = elapsedDays / 365
-                                val remainingDays = elapsedDays % 365
-                                "${years}년 ${remainingDays}일"
-                            } else {
-                                "${elapsedDays}"
-                            }
-                            val fontSize = when {
-                                displayText.length <= 8 -> 80.sp
-                                displayText.length <= 12 -> 64.sp
-                                else -> 48.sp
-                            }
-                            Text(
-                                text = displayText,
-                                fontSize = fontSize,
-                                fontWeight = FontWeight.Bold,
-                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                                textAlign = TextAlign.Center,
-                                color = Color.Black,
-                                maxLines = 1
-                            )
-                        }
-                        1 -> {
-                            // 진행 시간 (시:분:초 형식)
-                            val timeText = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds)
-                            val fontSize = when {
-                                timeText.length <= 8 -> 80.sp   // 기본 크기
-                                timeText.length <= 12 -> 64.sp  // 조금 긴 경우
-                                else -> 48.sp                   // 매우 긴 경우
-                            }
-                            Text(
-                                text = timeText,
-                                fontSize = fontSize,
-                                fontWeight = FontWeight.Bold,
-                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                                textAlign = TextAlign.Center,
-                                color = Color.Black,
-                                maxLines = 1,
-                                lineHeight = fontSize
-                            )
-                        }
-                        2 -> {
-                            // 절약한 금액 (천단위 구분)
-                            val moneyText = String.format(Locale.getDefault(), "%,d", savedMoney)
+        Spacer(modifier = Modifier.height(40.dp))
 
-                            // 기본 크기를 크게 하고, 긴 텍스트만 줄이기
-                            val fontSize = when {
-                                moneyText.length <= 8 -> 80.sp   // 기본 크기
-                                moneyText.length <= 12 -> 64.sp  // 조금 긴 경우
-                                else -> 48.sp                    // 매우 긴 경우
-                            }
+        // 현재 지표에 따른 제목 텍스트
+        Text(
+            text = when (currentIndicator) {
+                0 -> "금주 일수"
+                1 -> "진행 시간"
+                2 -> "절약한 금액"
+                3 -> "절약한 시간"
+                4 -> "기대 수명+"
+                else -> "금주 일수"
+            },
+            fontSize = 24.sp,
+            color = Color.Gray,
+            modifier = Modifier.padding(bottom = 0.dp)
+        )
 
-                            Text(
-                                text = moneyText,
-                                fontSize = fontSize,
-                                fontWeight = FontWeight.Bold,
-                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                                textAlign = TextAlign.Center,
-                                color = Color.Black,
-                                maxLines = 1,
-                                lineHeight = fontSize
-                            )
-                        }
-                        3 -> {
-                            // 절약한 시간
-                            val hoursText = "${savedHours}"
+        // 중앙 메인 지표 (고정 크기 컨테이너)
+        Box(
+            modifier = Modifier
+                .width(400.dp)
+                .height(200.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            var scale by remember { mutableStateOf(1f) }
+            var isAnimating by remember { mutableStateOf(false) }
+            val animatedScale by animateFloatAsState(
+                targetValue = scale,
+                animationSpec = androidx.compose.animation.core.tween(
+                    durationMillis = 100,
+                    easing = androidx.compose.animation.core.FastOutSlowInEasing
+                )
+            )
 
-                            // 기본 크기를 크게 하고, 긴 텍스트만 줄이기
-                            val fontSize = when {
-                                hoursText.length <= 8 -> 80.sp   // 기본 크기
-                                hoursText.length <= 12 -> 64.sp  // 조금 긴 경우
-                                else -> 48.sp                    // 매우 긴 경우
-                            }
-
-                            Text(
-                                text = hoursText,
-                                fontSize = fontSize,
-                                fontWeight = FontWeight.Bold,
-                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                                textAlign = TextAlign.Center,
-                                color = Color.Black,
-                                maxLines = 1,
-                                lineHeight = fontSize
-                            )
-                        }
-                        4 -> {
-                            // 기대 수명
-                            val lifeText = "${lifeGainDays}" // '일' 제거
-
-                            // 기본 크기를 크게 하고, 긴 텍스트만 줄이기
-                            val fontSize = when {
-                                lifeText.length <= 8 -> 80.sp   // 기본 크기
-                                lifeText.length <= 12 -> 64.sp  // 조금 긴 경우
-                                else -> 48.sp                   // 매우 긴 경우
-                            }
-
-                            Text(
-                                text = lifeText,
-                                fontSize = fontSize,
-                                fontWeight = FontWeight.Bold,
-                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                                textAlign = TextAlign.Center,
-                                color = Color.Black,
-                                maxLines = 1,
-                                lineHeight = fontSize
-                            )
-                        }
-                    }
+            LaunchedEffect(isAnimating) {
+                if (isAnimating) {
+                    scale = 0.7f
+                    delay(100)  // 축소 상태 유지
+                    scale = 1f
+                    delay(100)  // 복원 애니메이션 완료 대기
+                    currentIndicator = (currentIndicator + 1) % 5  // 애니메이션 완료 후 지표 전환
+                    isAnimating = false
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .scale(animatedScale)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        if (!isAnimating) {
+                            isAnimating = true
+                        }
+                    }
+                    .padding(bottom = 100.dp),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                when (currentIndicator) {
+                    0 -> {
+                        // 금주 일수 - 365일 이상시 년/일 형태로 표시
+                        val displayText = if (elapsedDays >= 365) {
+                            val years = elapsedDays / 365
+                            val remainingDays = elapsedDays % 365
+                            "${years}년 ${remainingDays}일"
+                        } else {
+                            "${elapsedDays}"
+                        }
+                        val fontSize = when {
+                            displayText.length <= 8 -> 80.sp
+                            displayText.length <= 12 -> 64.sp
+                            else -> 48.sp
+                        }
+                        Text(
+                            text = displayText,
+                            fontSize = fontSize,
+                            fontWeight = FontWeight.Bold,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                            textAlign = TextAlign.Center,
+                            color = Color.Black,
+                            maxLines = 1
+                        )
+                    }
+                    1 -> {
+                        // 진행 시간 (시:분:초 형식)
+                        val timeText = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds)
+                        val fontSize = when {
+                            timeText.length <= 8 -> 80.sp   // 기본 크기
+                            timeText.length <= 12 -> 64.sp  // 조금 긴 경우
+                            else -> 48.sp                   // 매우 긴 경우
+                        }
+                        Text(
+                            text = timeText,
+                            fontSize = fontSize,
+                            fontWeight = FontWeight.Bold,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                            textAlign = TextAlign.Center,
+                            color = Color.Black,
+                            maxLines = 1,
+                            lineHeight = fontSize
+                        )
+                    }
+                    2 -> {
+                        // 절약한 금액 (천단위 구분)
+                        val moneyText = String.format(Locale.getDefault(), "%,d", savedMoney)
 
-            // 진행률 바
-            ProgressIndicator(progress = progress)
+                        // 기본 크기를 크게 하고, 긴 텍스트만 줄이기
+                        val fontSize = when {
+                            moneyText.length <= 8 -> 80.sp   // 기본 크기
+                            moneyText.length <= 12 -> 64.sp  // 조금 긴 경우
+                            else -> 48.sp                    // 매우 긴 경우
+                        }
 
-            Spacer(modifier = Modifier.height(60.dp))
+                        Text(
+                            text = moneyText,
+                            fontSize = fontSize,
+                            fontWeight = FontWeight.Bold,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                            textAlign = TextAlign.Center,
+                            color = Color.Black,
+                            maxLines = 1,
+                            lineHeight = fontSize
+                        )
+                    }
+                    3 -> {
+                        // 절약한 시간
+                        val hoursText = "${savedHours}"
 
-            // 중지 버튼 (StartActivity 스타일)
-            StopButton(
-                onStop = {
-                    // QuitActivity로 이동 (중지 확인 화면)
-                    val intent = Intent(context, QuitActivity::class.java)
-                    context.startActivity(intent)
+                        // 기본 크기를 크게 하고, 긴 텍스트만 줄이기
+                        val fontSize = when {
+                            hoursText.length <= 8 -> 80.sp   // 기본 크기
+                            hoursText.length <= 12 -> 64.sp  // 조금 긴 경우
+                            else -> 48.sp                    // 매우 긴 경우
+                        }
+
+                        Text(
+                            text = hoursText,
+                            fontSize = fontSize,
+                            fontWeight = FontWeight.Bold,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                            textAlign = TextAlign.Center,
+                            color = Color.Black,
+                            maxLines = 1,
+                            lineHeight = fontSize
+                        )
+                    }
+                    4 -> {
+                        // 기대 수명
+                        val lifeText = "${lifeGainDays}" // '일' 제거
+
+                        // 기본 크기를 크게 하고, 긴 텍스트만 줄이기
+                        val fontSize = when {
+                            lifeText.length <= 8 -> 80.sp   // 기본 크기
+                            lifeText.length <= 12 -> 64.sp  // 조금 긴 경우
+                            else -> 48.sp                   // 매우 긴 경우
+                        }
+
+                        Text(
+                            text = lifeText,
+                            fontSize = fontSize,
+                            fontWeight = FontWeight.Bold,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                            textAlign = TextAlign.Center,
+                            color = Color.Black,
+                            maxLines = 1,
+                            lineHeight = fontSize
+                        )
+                    }
                 }
-            )
+            }
         }
+
+        Spacer(modifier = Modifier.height(40.dp))
+
+        // 진행률 바
+        ProgressIndicator(progress = progress)
+
+        // 버튼을 하단에 고정하기 위한 가변 Spacer
+        Spacer(modifier = Modifier.weight(1f))
+
+        // 중지 버튼 (StartActivity와 동일한 구조)
+        StopButton(
+            onStop = {
+                val intent = Intent(context, QuitActivity::class.java)
+                context.startActivity(intent)
+            }
+        )
     }
 }
 
@@ -595,12 +589,12 @@ fun ProgressIndicator(progress: Float) {
 }
 
 @Composable
-fun StopButton(onStop: () -> Unit) {
+fun StopButton(onStop: () -> Unit, modifier: Modifier = Modifier) {
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier
+        modifier = modifier
             .size(100.dp)
-            .shadow(8.dp, CircleShape) // 그림자 효과 추가
+            .shadow(8.dp, CircleShape)
             .background(Color.Black, CircleShape)
             .clickable { onStop() }
     ) {

@@ -113,6 +113,7 @@ fun QuitScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(backgroundColor)
+            .windowInsetsPadding(WindowInsets.safeDrawing) // 안전 영역 패딩 추가
             .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -193,7 +194,10 @@ fun QuitScreen() {
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // 컨트롤 버튼 영역
+        // 버튼들을 하단에 고정하기 위한 가변 Spacer
+        Spacer(modifier = Modifier.weight(1f))
+
+        // 컨트롤 버튼 영역 (하단 고정)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
@@ -240,8 +244,6 @@ fun QuitScreen() {
                 }
             )
         }
-
-        Spacer(modifier = Modifier.weight(1f))
     }
 }
 
@@ -301,14 +303,14 @@ fun ControlButton(
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .size(80.dp)
+            .size(100.dp) // 버튼 크기 통일
             .shadow(8.dp, CircleShape) // 그림자 효과 추가
             .background(backgroundColor, CircleShape)
             .clickable { onClick() }
     ) {
         Text(
             text = content,
-            fontSize = 32.sp, // 아이콘 크기 줄임 (48sp → 32sp)
+            fontSize = 40.sp, // 아이콘 크기 통일
             color = contentColor,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
