@@ -612,6 +612,25 @@ fun SobrietyRecordCard(
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+fun PreviewSobrietyRecordCard() {
+    SobrietyRecordCard(
+        record = SobrietyRecord(
+            id = "test_1",
+            startTime = System.currentTimeMillis() - 3 * 24 * 60 * 60 * 1000,
+            endTime = System.currentTimeMillis(),
+            targetDays = 7,
+            actualDays = 3,
+            isCompleted = false,
+            status = "중지",
+            createdAt = System.currentTimeMillis(),
+            percentage = 43,
+            isTestRecord = true
+        )
+    )
+}
+
 private fun loadSobrietyRecords(context: android.content.Context): List<SobrietyRecord> {
     return try {
         val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
