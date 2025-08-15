@@ -12,8 +12,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.utils.Constants
@@ -50,7 +52,10 @@ fun TestScreen() {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // 레벨 테스트 모드 설정 (금주 진행에는 영향 없음)
-        Text("레벨 테스트 모드", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        val density = LocalDensity.current
+        CompositionLocalProvider(LocalDensity provides Density(density.density, 1f)) {
+            Text("레벨 테스트 모드", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        }
         Text(
             text = "※ 이 설정은 레벨 계산에만 영향을 미치며, 실제 금주 진행 시간은 변경되지 않습니다.",
             fontSize = 14.sp,
@@ -114,7 +119,10 @@ fun TestScreen() {
                     contentColor = Color.Black
                 )
             ) {
-                Text("모든 기록 초기화")
+                val density = LocalDensity.current
+                CompositionLocalProvider(LocalDensity provides Density(density.density, 1f)) {
+                    Text("모든 기록 초기화")
+                }
             }
         }
         if (showDialog) {
@@ -201,8 +209,20 @@ private fun getModeText(mode: Int): String {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "fontScale 1.0")
 @Composable
-fun PreviewTestScreen() {
-    TestScreen()
+fun PreviewTestScreenFont1() {
+    val density = LocalDensity.current
+    CompositionLocalProvider(LocalDensity provides Density(density.density, 1f)) {
+        TestScreen()
+    }
+}
+
+@Preview(showBackground = true, name = "fontScale 2.0")
+@Composable
+fun PreviewTestScreenFont2() {
+    val density = LocalDensity.current
+    CompositionLocalProvider(LocalDensity provides Density(density.density, 2f)) {
+        TestScreen()
+    }
 }
