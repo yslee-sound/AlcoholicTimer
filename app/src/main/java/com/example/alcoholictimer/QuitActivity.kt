@@ -238,7 +238,7 @@ fun QuitScreen() {
                 }
             )
 
-            // 계속 버튼
+            // 계속 버튼 (Play)
             ControlButton(
                 backgroundColor = Color(0xFF8ABF33), // 시작버튼 색상 #8ABF33으로 변경
                 contentColor = Color.White,
@@ -249,6 +249,7 @@ fun QuitScreen() {
                 }
             )
         }
+        Spacer(modifier = Modifier.height(64.dp))
     }
 }
 
