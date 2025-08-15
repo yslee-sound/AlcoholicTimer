@@ -426,35 +426,6 @@ class RecordsActivity : BaseActivity() {
             Log.e(TAG, "오류 스택트레이스: ${e.stackTraceToString()}")
         }
     }
-
-    @Preview(showBackground = true, name = "fontScale 1.0")
-    @Preview(showBackground = true, fontScale = 1.5f, name = "fontScale 1.5")
-    @Composable
-    fun PreviewRecordsScreen() {
-        BaseScreen {
-            RecordsScreen(0)
-        }
-    }
-
-    @Preview(showBackground = true, name = "fontScale 1.0")
-    @Preview(showBackground = true, fontScale = 1.5f, name = "fontScale 1.5")
-    @Composable
-    fun PreviewSobrietyRecordCard() {
-        SobrietyRecordCard(
-            record = SobrietyRecord(
-                id = "test_1",
-                startTime = System.currentTimeMillis() - 3 * 24 * 60 * 60 * 1000,
-                endTime = System.currentTimeMillis(),
-                targetDays = 7,
-                actualDays = 3,
-                isCompleted = false,
-                status = "중지",
-                createdAt = System.currentTimeMillis(),
-                percentage = 43,
-                isTestRecord = true
-            )
-        )
-    }
 }
 
 @Composable
@@ -637,26 +608,6 @@ fun SobrietyRecordCard(
             }
         }
     }
-}
-
-@Preview(showBackground = true, name = "fontScale 1.0")
-@Preview(showBackground = true, fontScale = 1.5f, name = "fontScale 1.5")
-@Composable
-fun PreviewSobrietyRecordCard() {
-    SobrietyRecordCard(
-        record = SobrietyRecord(
-            id = "test_1",
-            startTime = System.currentTimeMillis() - 3 * 24 * 60 * 60 * 1000,
-            endTime = System.currentTimeMillis(),
-            targetDays = 7,
-            actualDays = 3,
-            isCompleted = false,
-            status = "중지",
-            createdAt = System.currentTimeMillis(),
-            percentage = 43,
-            isTestRecord = true
-        )
-    )
 }
 
 private fun loadSobrietyRecords(context: android.content.Context): List<SobrietyRecord> {
@@ -1548,6 +1499,124 @@ fun <T> DropdownSelector(label: String, options: List<T>, selected: T, onSelecte
                     expanded = false
                 })
             }
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "fontScale 1.0")
+@Preview(showBackground = true, fontScale = 2.0f, name = "fontScale 2.0")
+@Composable
+fun PreviewSobrietyRecordCard() {
+    SobrietyRecordCard(
+        record = SobrietyRecord(
+            id = "test_1",
+            startTime = System.currentTimeMillis() - 3 * 24 * 60 * 60 * 1000,
+            endTime = System.currentTimeMillis(),
+            targetDays = 7,
+            actualDays = 3,
+            isCompleted = false,
+            status = "중지",
+            createdAt = System.currentTimeMillis(),
+            percentage = 43,
+            isTestRecord = true
+        )
+    )
+}
+
+@Preview(showBackground = true, name = "fontScale 1.0")
+@Preview(showBackground = true, fontScale = 2.0f, name = "fontScale 2.0")
+@Composable
+fun PreviewRecordsScreen() {
+    // 테스트용 샘플 데이터
+    val sampleRecords = listOf(
+        SobrietyRecord(
+            id = "test_1",
+            startTime = System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000,
+            endTime = System.currentTimeMillis() - 2 * 24 * 60 * 60 * 1000,
+            targetDays = 30,
+            actualDays = 5,
+            isCompleted = false,
+            status = "중지",
+            createdAt = System.currentTimeMillis() - 2 * 24 * 60 * 60 * 1000,
+            percentage = 17,
+            isTestRecord = true
+        ),
+        SobrietyRecord(
+            id = "test_2",
+            startTime = System.currentTimeMillis() - 45 * 24 * 60 * 60 * 1000,
+            endTime = System.currentTimeMillis() - 15 * 24 * 60 * 60 * 1000,
+            targetDays = 30,
+            actualDays = 30,
+            isCompleted = true,
+            status = "완료",
+            createdAt = System.currentTimeMillis() - 15 * 24 * 60 * 60 * 1000,
+            percentage = 100,
+            isTestRecord = false
+        )
+    )
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // 기간 선택 탭
+        item {
+            PeriodSelectionSection(
+                selectedPeriod = "월",
+                onPeriodSelected = {}
+            )
+        }
+
+        // 통계 카드
+        item {
+            StatisticsCardsSection(
+                records = sampleRecords,
+                selectedPeriod = "월",
+                selectedRange = "2025년 1월",
+                onRangeSelected = {}
+            )
+        }
+
+        // 그래프 섹션
+        item {
+            MiniBarChart(
+                records = sampleRecords,
+                selectedPeriod = "월",
+                selectedYear = 2025,
+                selectedMonth = 1,
+                selectedWeekStart = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp)
+            )
+        }
+
+        // 최근 활동 헤더
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "최근 활동",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Button(onClick = {}) {
+                    Text("테스트 기록 추가")
+                }
+            }
+        }
+
+        // 기록 카드들
+        items(sampleRecords) { record ->
+            SobrietyRecordCard(
+                record = record,
+                onClick = {}
+            )
         }
     }
 }
