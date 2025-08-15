@@ -28,6 +28,8 @@ import org.json.JSONObject
 import java.util.*
 import kotlin.math.roundToInt
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 
 class QuitActivity : BaseActivity() {
 
@@ -120,11 +122,14 @@ fun QuitScreen() {
         Spacer(modifier = Modifier.height(40.dp))
 
         // 상단 배경 영역 (아이콘)
-        Text(
-            text = "🍃",
-            fontSize = 120.sp,
-            modifier = Modifier.padding(bottom = 40.dp)
-        )
+        val baseDensity = LocalDensity.current
+        CompositionLocalProvider(LocalDensity provides Density(baseDensity.density, fontScale = 1f)) {
+            Text(
+                text = "🍃",
+                fontSize = 120.sp,
+                modifier = Modifier.padding(bottom = 40.dp)
+            )
+        }
 
         // 금주 기록 요약 영역
         Surface(
@@ -265,15 +270,18 @@ fun StatisticItem(
                 .height(64.dp), // 고정 높이로 숫자 영역 통일
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = value,
-                fontSize = 24.sp, // 크기 조절하여 일관성 확보
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                color = Color.Black,
-                lineHeight = 26.sp,
-                maxLines = 2 // 긴 텍스트 처리
-            )
+            val baseDensity = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(baseDensity.density, fontScale = 1f)) {
+                Text(
+                    text = value,
+                    fontSize = 24.sp, // 크기 조절하여 일관성 확보
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    color = Color.Black,
+                    lineHeight = 26.sp,
+                    maxLines = 2 // 긴 텍스트 처리
+                )
+            }
         }
         Spacer(modifier = Modifier.height(8.dp))
         Box(
@@ -308,13 +316,16 @@ fun ControlButton(
             .background(backgroundColor, CircleShape)
             .clickable { onClick() }
     ) {
-        Text(
-            text = content,
-            fontSize = 40.sp, // 아이콘 크기 통일
-            color = contentColor,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
+        val baseDensity = LocalDensity.current
+        CompositionLocalProvider(LocalDensity provides Density(baseDensity.density, fontScale = 1f)) {
+            Text(
+                text = content,
+                fontSize = 40.sp, // 아이콘 크기 통일
+                color = contentColor,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
 
@@ -413,4 +424,22 @@ private fun getLevelName(days: Int): String {
 @Composable
 fun PreviewQuitScreen() {
     QuitScreen()
+}
+
+@Preview(showBackground = true, name = "QuitScreen fontScale 1.0")
+@Composable
+fun PreviewQuitScreenFontScale1() {
+    val baseDensity = LocalDensity.current
+    CompositionLocalProvider(LocalDensity provides Density(baseDensity.density, fontScale = 1f)) {
+        QuitScreen()
+    }
+}
+
+@Preview(showBackground = true, name = "QuitScreen fontScale 1.5")
+@Composable
+fun PreviewQuitScreenFontScale15() {
+    val baseDensity = LocalDensity.current
+    CompositionLocalProvider(LocalDensity provides Density(baseDensity.density, fontScale = 1.5f)) {
+        QuitScreen()
+    }
 }
