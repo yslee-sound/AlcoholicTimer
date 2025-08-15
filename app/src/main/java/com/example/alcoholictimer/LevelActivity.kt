@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,8 +20,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.LevelDefinitions
@@ -87,12 +90,16 @@ class LevelActivity : BaseActivity() {
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = currentLevel.name,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
+                    CompositionLocalProvider(
+                        LocalDensity provides Density(LocalDensity.current.density, 1f)
+                    ) {
+                        Text(
+                            text = currentLevel.name,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+                    }
                     Spacer(modifier = Modifier.height(8.dp))
                     LinearProgressIndicator(
                         progress = { progress },
@@ -183,20 +190,24 @@ class LevelActivity : BaseActivity() {
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (isCurrent) {
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = "현재 레벨",
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    } else {
-                        Text(
-                            text = (levels.indexOf(level) + 1).toString(),
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (enabled) Color.White else Color.Gray
-                        )
+                    CompositionLocalProvider(
+                        LocalDensity provides Density(LocalDensity.current.density, 1f)
+                    ) {
+                        if (isCurrent) {
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = "현재 레벨",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        } else {
+                            Text(
+                                text = (levels.indexOf(level) + 1).toString(),
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (enabled) Color.White else Color.Gray
+                            )
+                        }
                     }
                 }
 
@@ -237,12 +248,16 @@ class LevelActivity : BaseActivity() {
                             .background(Color(0xFF10B981)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "✓",
-                            fontSize = 12.sp,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
-                        )
+                        CompositionLocalProvider(
+                            LocalDensity provides Density(LocalDensity.current.density, 1f)
+                        ) {
+                            Text(
+                                text = "✓",
+                                fontSize = 12.sp,
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
@@ -257,4 +272,26 @@ class LevelActivity : BaseActivity() {
 @Composable
 fun PreviewLevelScreen() {
     LevelActivity().LevelScreen(currentDays = 15)
+}
+
+@Preview(showBackground = true, name = "FontScale 1.0")
+@Composable
+fun PreviewLevelScreenFont1() {
+    val density = androidx.compose.ui.platform.LocalDensity.current.density
+    androidx.compose.runtime.CompositionLocalProvider(
+        androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(density, 1f)
+    ) {
+        LevelActivity().LevelScreen(currentDays = 15)
+    }
+}
+
+@Preview(showBackground = true, name = "FontScale 2.0")
+@Composable
+fun PreviewLevelScreenFont2() {
+    val density = androidx.compose.ui.platform.LocalDensity.current.density
+    androidx.compose.runtime.CompositionLocalProvider(
+        androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(density, 2f)
+    ) {
+        LevelActivity().LevelScreen(currentDays = 15)
+    }
 }
