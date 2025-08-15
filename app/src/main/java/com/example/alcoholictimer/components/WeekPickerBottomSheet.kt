@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.text.SimpleDateFormat
@@ -21,14 +22,6 @@ fun WeekPickerBottomSheet(
     onDismiss: () -> Unit,
     onWeekPicked: (weekStart: Long, weekEnd: Long, displayText: String) -> Unit
 ) {
-    // 최근 8주간의 주 목록 생성
-    val weekOptions = remember {
-        generateWeekOptions()
-    }
-
-    // 기본값을 "이번 주"(마지막 인덱스)로 설정
-    var selectedWeekIndex by remember { mutableStateOf(weekOptions.size - 1) }
-
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
     )
@@ -51,89 +44,108 @@ fun WeekPickerBottomSheet(
                 )
             }
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // 상단: 이전주 표시와 안내
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // 이전주 표시
-                    Text(
-                        text = "지난 주",
-                        fontSize = 16.sp,
-                        color = Color.Gray,
-                        fontWeight = FontWeight.Normal
-                    )
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    // 안내 텍스트
-                    Text(
-                        text = "주 선택",
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
-                }
-
-                // 가운데: 주 선택 NumberPicker
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "주 선택",
-                        fontSize = 14.sp,
-                        color = Color.Gray,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-
-                    NumberPicker(
-                        value = selectedWeekIndex,
-                        onValueChange = { selectedWeekIndex = it },
-                        range = 0 until weekOptions.size,
-                        displayValues = weekOptions.map { it.displayText },
-                        modifier = Modifier.width(200.dp)
-                    )
-                }
-
-                // 하단: 선택 버튼
-                Button(
-                    onClick = {
-                        val selectedWeek = weekOptions[selectedWeekIndex]
-                        onWeekPicked(selectedWeek.startTime, selectedWeek.endTime, selectedWeek.displayText)
-                        onDismiss()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .padding(top = 16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Black,
-                        contentColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Text(
-                        text = "선택",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                // 하단 여백
-                Spacer(modifier = Modifier.height(16.dp))
-            }
+            WeekPickerContent(
+                onWeekPicked = onWeekPicked,
+                onDismiss = onDismiss
+            )
         }
+    }
+}
+
+@Composable
+internal fun WeekPickerContent(
+    onWeekPicked: (weekStart: Long, weekEnd: Long, displayText: String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    // 최근 8주간의 주 목록 생성
+    val weekOptions = remember {
+        generateWeekOptions()
+    }
+
+    // 기본값을 "이번 주"(마지막 인덱스)로 설정
+    var selectedWeekIndex by remember { mutableStateOf(weekOptions.size - 1) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 상단: 이전주 표시와 안내
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // 이전주 표시
+            Text(
+                text = "지난 주",
+                fontSize = 16.sp,
+                color = Color.Gray,
+                fontWeight = FontWeight.Normal
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // 안내 텍스트
+            Text(
+                text = "주 선택",
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
+        }
+
+        // 가운데: 주 선택 NumberPicker
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "주 선택",
+                fontSize = 14.sp,
+                color = Color.Gray,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            NumberPicker(
+                value = selectedWeekIndex,
+                onValueChange = { selectedWeekIndex = it },
+                range = 0 until weekOptions.size,
+                displayValues = weekOptions.map { it.displayText },
+                modifier = Modifier.width(200.dp)
+            )
+        }
+
+        // 하단: 선택 버튼
+        Button(
+            onClick = {
+                val selectedWeek = weekOptions[selectedWeekIndex]
+                onWeekPicked(selectedWeek.startTime, selectedWeek.endTime, selectedWeek.displayText)
+                onDismiss()
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .padding(top = 16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Black,
+                contentColor = Color.White
+            ),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Text(
+                text = "선택",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        // 하단 여백
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -180,4 +192,32 @@ private fun generateWeekOptions(): List<WeekOption> {
 
     // 과거에서 현재 순으로 정렬 (reverse)
     return options.reversed()
+}
+
+@Preview(showBackground = true)
+@Composable
+fun WeekPickerBottomSheetPreview() {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = Color.White
+    ) {
+        WeekPickerContent(
+            onWeekPicked = { _, _, _ -> },
+            onDismiss = { }
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "WeekPicker - Dark Mode")
+@Composable
+fun WeekPickerBottomSheetDarkPreview() {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = Color.Black
+    ) {
+        WeekPickerContent(
+            onWeekPicked = { _, _, _ -> },
+            onDismiss = { }
+        )
+    }
 }

@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.*
@@ -22,14 +23,6 @@ fun MonthPickerBottomSheet(
     initialYear: Int = Calendar.getInstance().get(Calendar.YEAR),
     initialMonth: Int = Calendar.getInstance().get(Calendar.MONTH) + 1
 ) {
-    // 현재와 과거 4개월 목록 생성
-    val monthOptions = remember {
-        generateMonthOptions()
-    }
-
-    // 기본값을 현재 월(첫 번째 인덱스)로 설정
-    var selectedMonthIndex by remember { mutableStateOf(0) }
-
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
     )
@@ -52,89 +45,108 @@ fun MonthPickerBottomSheet(
                 )
             }
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // 상단: 이전월 표시와 안내
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // 이전월 표시
-                    Text(
-                        text = if (monthOptions.size > 1) monthOptions[1].displayText else "",
-                        fontSize = 16.sp,
-                        color = Color.Gray,
-                        fontWeight = FontWeight.Normal
-                    )
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    // 안내 텍스트
-                    Text(
-                        text = "월 선택",
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
-                }
-
-                // 가운데: 월 선택 NumberPicker
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "월 선택",
-                        fontSize = 14.sp,
-                        color = Color.Gray,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-
-                    NumberPicker(
-                        value = selectedMonthIndex,
-                        onValueChange = { selectedMonthIndex = it },
-                        range = 0 until monthOptions.size,
-                        displayValues = monthOptions.map { it.displayText },
-                        modifier = Modifier.width(200.dp)
-                    )
-                }
-
-                // 하단: 선택 버튼
-                Button(
-                    onClick = {
-                        val selectedMonth = monthOptions[selectedMonthIndex]
-                        onMonthPicked(selectedMonth.year, selectedMonth.month)
-                        onDismiss()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .padding(top = 16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Black,
-                        contentColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Text(
-                        text = "선택",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                // 하단 여백
-                Spacer(modifier = Modifier.height(16.dp))
-            }
+            MonthPickerContent(
+                onMonthPicked = onMonthPicked,
+                onDismiss = onDismiss
+            )
         }
+    }
+}
+
+@Composable
+internal fun MonthPickerContent(
+    onMonthPicked: (year: Int, month: Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    // 현재와 과거 4개월 목록 생성
+    val monthOptions = remember {
+        generateMonthOptions()
+    }
+
+    // 기본값을 현재 월(첫 번째 인덱스)로 설정
+    var selectedMonthIndex by remember { mutableStateOf(0) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 상단: 이전월 표시와 안내
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // 이전월 표시
+            Text(
+                text = if (monthOptions.size > 1) monthOptions[1].displayText else "",
+                fontSize = 16.sp,
+                color = Color.Gray,
+                fontWeight = FontWeight.Normal
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // 안내 텍스트
+            Text(
+                text = "월 선택",
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
+        }
+
+        // 가운데: 월 선택 NumberPicker
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "월 선택",
+                fontSize = 14.sp,
+                color = Color.Gray,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            NumberPicker(
+                value = selectedMonthIndex,
+                onValueChange = { selectedMonthIndex = it },
+                range = 0 until monthOptions.size,
+                displayValues = monthOptions.map { it.displayText },
+                modifier = Modifier.width(200.dp)
+            )
+        }
+
+        // 하단: 선택 버튼
+        Button(
+            onClick = {
+                val selectedMonth = monthOptions[selectedMonthIndex]
+                onMonthPicked(selectedMonth.year, selectedMonth.month)
+                onDismiss()
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .padding(top = 16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Black,
+                contentColor = Color.White
+            ),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Text(
+                text = "선택",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        // 하단 여백
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -162,4 +174,32 @@ private fun generateMonthOptions(): List<MonthOption> {
 
     // 현재에서 과거 순으로 반환 (현재 월이 첫 번째)
     return options
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MonthPickerBottomSheetPreview() {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = Color.White
+    ) {
+        MonthPickerContent(
+            onMonthPicked = { _, _ -> },
+            onDismiss = { }
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "MonthPicker - Dark Mode")
+@Composable
+fun MonthPickerBottomSheetDarkPreview() {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = Color.Black
+    ) {
+        MonthPickerContent(
+            onMonthPicked = { _, _ -> },
+            onDismiss = { }
+        )
+    }
 }
