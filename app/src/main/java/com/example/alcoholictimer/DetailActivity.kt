@@ -22,10 +22,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.sp
 import java.text.SimpleDateFormat
 import java.util.*
@@ -259,15 +261,19 @@ fun DetailScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "금주 기록 상세",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 8.dp) // 왼쪽 패딩 추가
-                )
+                val baseDensity = LocalDensity.current
+                val fixedFontDensity = Density(baseDensity.density, 1f)
+                CompositionLocalProvider(LocalDensity provides fixedFontDensity) {
+                    Text(
+                        text = "금주 기록 상세",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 8.dp) // 왼쪽 패딩 추가
+                    )
+                }
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
@@ -288,29 +294,35 @@ fun DetailScreen(
 
         // 삭제 경고 다이얼로그
         if (showDeleteDialog) {
+            val baseDensity = LocalDensity.current
+            val fixedFontDensity = Density(baseDensity.density, 1f)
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
                 title = { Text("기록 삭제") },
                 text = { Text("정말로 이 금주 기록을 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.") },
                 confirmButton = {
-                    TextButton(onClick = {
-                        // 다이얼로그 먼저 닫기
-                        showDeleteDialog = false
-                        // 삭제 실행
-                        try {
-                            deleteRecord(context, startTime, endTime)
-                        } catch (e: Exception) {
-                            Log.e("DetailActivity", "삭제 중 오류", e)
+                    CompositionLocalProvider(LocalDensity provides fixedFontDensity) {
+                        TextButton(onClick = {
+                            // 다이얼로그 먼저 닫기
+                            showDeleteDialog = false
+                            // 삭제 실행
+                            try {
+                                deleteRecord(context, startTime, endTime)
+                            } catch (e: Exception) {
+                                Log.e("DetailActivity", "삭제 중 오류", e)
+                            }
+                            // 즉시 액티비티 종료
+                            (context as? DetailActivity)?.finish()
+                        }) {
+                            Text("삭제", color = Color.Red)
                         }
-                        // 즉시 액티비티 종료
-                        (context as? DetailActivity)?.finish()
-                    }) {
-                        Text("삭제", color = Color.Red)
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showDeleteDialog = false }) {
-                        Text("취소")
+                    CompositionLocalProvider(LocalDensity provides fixedFontDensity) {
+                        TextButton(onClick = { showDeleteDialog = false }) {
+                            Text("취소")
+                        }
                     }
                 }
             )
@@ -363,20 +375,24 @@ fun DetailScreen(
             Column(
                 horizontalAlignment = Alignment.Start
             ) {
-                Text(
-                    text = actualDays.toString(),
-                    fontSize = 72.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    lineHeight = 72.sp,
-                    modifier = Modifier.padding(start = 0.dp) // 왼쪽 패딩 추가
-                )
-                Text(
-                    text = "일",
-                    fontSize = 16.sp,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(start = 0.dp) // 왼쪽 패딩 추가
-                )
+                val baseDensity = LocalDensity.current
+                val fixedFontDensity = Density(baseDensity.density, 1f)
+                CompositionLocalProvider(LocalDensity provides fixedFontDensity) {
+                    Text(
+                        text = actualDays.toString(),
+                        fontSize = 72.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black,
+                        lineHeight = 72.sp,
+                        modifier = Modifier.padding(start = 0.dp) // 왼쪽 패딩 추가
+                    )
+                    Text(
+                        text = "일",
+                        fontSize = 16.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(start = 0.dp) // 왼쪽 패딩 추가
+                    )
+                }
             }
         }
 
@@ -449,20 +465,24 @@ fun SubStatItem(
         modifier = modifier,
         horizontalAlignment = if (alignEnd) Alignment.End else Alignment.Start // 정렬 방향 선택
     ) {
-        Text(
-            text = value,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            textAlign = if (alignEnd) TextAlign.End else TextAlign.Start // 정렬 방향 선택
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = label,
-            fontSize = 12.sp,
-            color = Color.Gray,
-            textAlign = if (alignEnd) TextAlign.End else TextAlign.Start // 정렬 방향 선택
-        )
+        val baseDensity = LocalDensity.current
+        val fixedFontDensity = Density(baseDensity.density, 1f)
+        CompositionLocalProvider(LocalDensity provides fixedFontDensity) {
+            Text(
+                text = value,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                textAlign = if (alignEnd) TextAlign.End else TextAlign.Start // 정렬 방향 선택
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                color = Color.Gray,
+                textAlign = if (alignEnd) TextAlign.End else TextAlign.Start // 정렬 방향 선택
+            )
+        }
     }
 }
 
@@ -491,6 +511,40 @@ fun PreviewDetailScreen() {
         isCompleted = true,
         onBack = {} // 누락된 onBack 파라미터 추가
     )
+}
+
+@Preview(showBackground = true, name = "fontScale 1.0")
+@Composable
+fun PreviewDetailScreenFont1_0() {
+    val baseDensity = LocalDensity.current
+    val fixedFontDensity = Density(baseDensity.density, 1f)
+    CompositionLocalProvider(LocalDensity provides fixedFontDensity) {
+        DetailScreen(
+            startTime = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L),
+            endTime = System.currentTimeMillis(),
+            targetDays = 30f,
+            actualDays = 7,
+            isCompleted = true,
+            onBack = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "fontScale 1.5")
+@Composable
+fun PreviewDetailScreenFont1_5() {
+    val baseDensity = LocalDensity.current
+    val fixedFontDensity = Density(baseDensity.density, 1.5f)
+    CompositionLocalProvider(LocalDensity provides fixedFontDensity) {
+        DetailScreen(
+            startTime = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L),
+            endTime = System.currentTimeMillis(),
+            targetDays = 30f,
+            actualDays = 7,
+            isCompleted = true,
+            onBack = {}
+        )
+    }
 }
 
 // 기록 삭제 함수 - 최적화
