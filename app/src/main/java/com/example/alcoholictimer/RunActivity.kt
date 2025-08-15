@@ -1,9 +1,5 @@
 package com.example.alcoholictimer
 
-import android.R.attr.fontStyle
-import android.R.attr.fontWeight
-import android.R.attr.lineHeight
-import android.R.attr.maxLines
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -11,18 +7,31 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
@@ -55,6 +64,7 @@ class RunActivity : BaseActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RunScreen() {
     val context = LocalContext.current
@@ -108,7 +118,7 @@ fun RunScreen() {
 
     LaunchedEffect(Unit) {
         while (true) {
-            kotlinx.coroutines.delay(1000) // 1초마다 업데이트
+            delay(1000) // 1초마다 업데이트
             currentTime = System.currentTimeMillis()
         }
     }
@@ -257,121 +267,219 @@ fun RunScreen() {
         }
     }
 
+    // 모던한 그라데이션 배경
+    val backgroundBrush = Brush.linearGradient(
+        colors = listOf(
+            Color(0xFFF8F9FA),
+            Color(0xFFE3F2FD),
+            Color(0xFFF1F8E9)
+        ),
+        start = Offset(0f, 0f),
+        end = Offset(1000f, 1000f)
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
-            .padding(32.dp),
+            .background(backgroundBrush)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // 상단 정보
-        // 첫 번째 행: 값들
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 4.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(
-                modifier = Modifier.weight(1f)
-                    .padding(start = 0.dp),
-                contentAlignment = Alignment.Center
+            // 상단 정보 카드
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White.copy(alpha = 0.9f)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
-                // 목표일 텍스트(본문, 시스템 fontScale 반영)
-                Text(
-                    text = "$targetDays",
-                    fontSize = 24.sp,
-                    color = Color.Black
-                )
-            }
-            Box(
-                modifier = Modifier.weight(1.6f),
-                contentAlignment = Alignment.Center
-            ) {
-                // 레벨명(디자인 고정)
-                val density = LocalDensity.current
-                CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
-                    Text(
-                        text = getLevelName(elapsedDays),
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = LevelDefinitions.getLevelInfo(elapsedDays).color,
-                        textAlign = TextAlign.Center
-                    )
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // 첫 번째 행: 값들
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // 목표일
+                        StatCard(
+                            value = "$targetDays",
+                            label = "목표일",
+                            color = Color(0xFF2196F3)
+                        )
+
+                        // 레벨
+                        StatCard(
+                            value = getLevelName(elapsedDays),
+                            label = "Level",
+                            color = LevelDefinitions.getLevelInfo(elapsedDays).color,
+                            isLevel = true
+                        )
+
+                        // 진행 시간
+                        StatCard(
+                            value = progressTimeText,
+                            label = "시간",
+                            color = Color(0xFF4CAF50)
+                        )
+                    }
                 }
             }
-            Box(
-                modifier = Modifier.weight(1f)
-                    .padding(start = 0.dp),
-                contentAlignment = Alignment.Center
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 메인 지표 카드
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White.copy(alpha = 0.95f)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
             ) {
-                // 진행 시간(디자인 고정)
-                val density = LocalDensity.current
-                CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
+                MainIndicatorCard(
+                    currentIndicator = currentIndicator,
+                    elapsedDays = elapsedDays,
+                    elapsedHours = elapsedHours,
+                    elapsedMinutes = elapsedMinutes,
+                    elapsedSeconds = elapsedSeconds,
+                    savedMoney = savedMoney,
+                    savedHours = savedHours,
+                    lifeGainDays = lifeGainDays,
+                    onIndicatorChange = { newIndicator -> currentIndicator = newIndicator }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 진행률 카드
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White.copy(alpha = 0.9f)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Text(
-                        text = progressTimeText,
-                        fontSize = 20.sp,
-                        color = Color.Black,
-                        fontWeight = FontWeight.Medium
+                        text = "진행률",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF666666),
+                        modifier = Modifier.padding(bottom = 12.dp)
                     )
+                    ModernProgressIndicator(progress = progress)
                 }
             }
         }
 
-        // 두 번째 행: 제목들
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 20.dp),
-            horizontalArrangement = Arrangement.Center, // 중앙 정렬로 변경
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier.weight(1f)
-                    .padding(end = 0.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "목표일",
-                    fontSize = 24.sp,
-                    color = Color.Gray,
-                    fontWeight = FontWeight.Medium
-                )
+        // 모던한 중지 버튼 (하단 고정)
+        ModernStopButton(
+            onStop = {
+                val intent = Intent(context, QuitActivity::class.java)
+                context.startActivity(intent)
             }
-            Box(
-                modifier = Modifier.weight(1.6f),
-                contentAlignment = Alignment.Center
-            ) {
-                // Level(로고 역할, 디자인 고정)
-                val density = LocalDensity.current
-                CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
-                    Text(
-                        text = "Level",
-                        fontSize = 24.sp,
-                        color = Color.Gray,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-            Box(
-                modifier = Modifier.weight(1f)
-                    .padding(start = 0.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "시간",
-                    fontSize = 24.sp,
-                    color = Color.Gray,
-                    fontWeight = FontWeight.Medium
-                )
-            }
+        )
+    }
+}
+
+@Composable
+fun StatCard(
+    value: String,
+    label: String,
+    color: Color,
+    isLevel: Boolean = false
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(8.dp)
+    ) {
+        // 값 텍스트
+        val density = LocalDensity.current
+        CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
+            Text(
+                text = value,
+                fontSize = if (isLevel) 18.sp else 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = color,
+                textAlign = TextAlign.Center,
+                maxLines = 1
+            )
         }
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
-        // 현재 지표에 따른 제목 텍스트
+        // 라벨
+        Text(
+            text = label,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color(0xFF757575),
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+fun MainIndicatorCard(
+    currentIndicator: Int,
+    elapsedDays: Int,
+    elapsedHours: Int,
+    elapsedMinutes: Int,
+    elapsedSeconds: Int,
+    savedMoney: Int,
+    savedHours: Int,
+    lifeGainDays: Int,
+    onIndicatorChange: (Int) -> Unit
+) {
+    var scale by remember { mutableStateOf(1f) }
+    var isAnimating by remember { mutableStateOf(false) }
+    val animatedScale by animateFloatAsState(
+        targetValue = scale,
+        animationSpec = tween(
+            durationMillis = 150,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        )
+    )
+
+    LaunchedEffect(isAnimating) {
+        if (isAnimating) {
+            scale = 0.85f
+            delay(150)
+            scale = 1f
+            delay(150)
+            onIndicatorChange((currentIndicator + 1) % 5)
+            isAnimating = false
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // 지표 제목
         Text(
             text = when (currentIndicator) {
                 0 -> "금주 일수"
@@ -381,253 +489,143 @@ fun RunScreen() {
                 4 -> "기대 수명+"
                 else -> "금주 일수"
             },
-            fontSize = 24.sp,
-            color = Color.Gray,
-            modifier = Modifier.padding(bottom = 0.dp)
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color(0xFF666666),
+            modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        // 중앙 메인 지표 (고정 크기 컨테이너)
+        // 메인 값 (애니메이션 적용)
         Box(
             modifier = Modifier
-                .width(400.dp)
-                .height(200.dp),
-            contentAlignment = Alignment.BottomCenter
-        ) {
-            var scale by remember { mutableStateOf(1f) }
-            var isAnimating by remember { mutableStateOf(false) }
-            val animatedScale by animateFloatAsState(
-                targetValue = scale,
-                animationSpec = androidx.compose.animation.core.tween(
-                    durationMillis = 100,
-                    easing = androidx.compose.animation.core.FastOutSlowInEasing
-                )
-            )
-
-            LaunchedEffect(isAnimating) {
-                if (isAnimating) {
-                    scale = 0.7f
-                    delay(100)  // 축소 상태 유지
-                    scale = 1f
-                    delay(100)  // 복원 애니메이션 완료 대기
-                    currentIndicator = (currentIndicator + 1) % 5  // 애니메이션 완료 후 지표 전환
-                    isAnimating = false
-                }
-            }
-
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .scale(animatedScale)
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) {
-                        if (!isAnimating) {
-                            isAnimating = true
-                        }
+                .fillMaxWidth()
+                .height(120.dp)
+                .scale(animatedScale)
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ) {
+                    if (!isAnimating) {
+                        isAnimating = true
                     }
-                    .padding(bottom = 100.dp),
-                contentAlignment = Alignment.BottomCenter
-            ) {
-                when (currentIndicator) {
-                    0 -> {
-                        val displayText = if (elapsedDays >= 365) {
-                            val years = elapsedDays / 365
-                            val remainingDays = elapsedDays % 365
-                            "${years}년 ${remainingDays}일"
-                        } else {
-                            "${elapsedDays}"
-                        }
-                        val fontSize = when {
-                            displayText.length <= 8 -> 80.sp
-                            displayText.length <= 12 -> 64.sp
-                            else -> 48.sp
-                        }
-                        // 중앙 대형 지표(디자인 고정)
-                        val density = LocalDensity.current
-                        CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            AnimatedContent(
+                targetState = currentIndicator,
+                transitionSpec = {
+                    (slideInVertically { height -> height } + fadeIn()).togetherWith(
+                        slideOutVertically { height -> -height } + fadeOut()
+                    )
+                }
+            ) { indicator ->
+                val density = LocalDensity.current
+                CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
+                    when (indicator) {
+                        0 -> {
+                            val displayText = if (elapsedDays >= 365) {
+                                val years = elapsedDays / 365
+                                val remainingDays = elapsedDays % 365
+                                "${years}년 ${remainingDays}일"
+                            } else {
+                                "${elapsedDays}일"
+                            }
                             Text(
                                 text = displayText,
-                                fontSize = fontSize,
+                                fontSize = 48.sp,
                                 fontWeight = FontWeight.Bold,
-                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                                textAlign = TextAlign.Center,
-                                color = Color.Black,
-                                maxLines = 1
+                                color = Color(0xFF1976D2),
+                                textAlign = TextAlign.Center
                             )
                         }
-                    }
-                    1 -> {
-                        val timeText = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds)
-                        val fontSize = when {
-                            timeText.length <= 8 -> 80.sp
-                            timeText.length <= 12 -> 64.sp
-                            else -> 48.sp
-                        }
-                        // 중앙 대형 지표(디자인 고정)
-                        val density = LocalDensity.current
-                        CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
+                        1 -> {
                             Text(
-                                text = timeText,
-                                fontSize = fontSize,
+                                text = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds),
+                                fontSize = 42.sp,
                                 fontWeight = FontWeight.Bold,
-                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                                textAlign = TextAlign.Center,
-                                color = Color.Black,
-                                maxLines = 1
+                                color = Color(0xFF388E3C),
+                                textAlign = TextAlign.Center
                             )
                         }
-                    }
-                    2 -> {
-                        // 절약한 금액 (천단위 구분)
-                        val moneyText = String.format(Locale.getDefault(), ",%d", savedMoney)
-                        val fontSize = when {
-                            moneyText.length <= 8 -> 80.sp   // 기본 크기
-                            moneyText.length <= 12 -> 64.sp  // 조금 긴 경우
-                            else -> 48.sp                    // 매우 긴 경우
-                        }
-                        // 중앙 대형 지표(디자인 고정)
-                        val density = LocalDensity.current
-                        CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
+                        2 -> {
                             Text(
-                                text = moneyText,
-                                fontSize = fontSize,
+                                text = String.format(Locale.getDefault(), "%,d원", savedMoney),
+                                fontSize = 36.sp,
                                 fontWeight = FontWeight.Bold,
-                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                                textAlign = TextAlign.Center,
-                                color = Color.Black,
-                                maxLines = 1,
-                                lineHeight = fontSize
+                                color = Color(0xFFE91E63),
+                                textAlign = TextAlign.Center
                             )
                         }
-                    }
-                    3 -> {
-                        // 절약한 시간
-                        val hoursText = "${savedHours}"
-                        val fontSize = when {
-                            hoursText.length <= 8 -> 80.sp   // 기본 크기
-                            hoursText.length <= 12 -> 64.sp  // 조금 긴 경우
-                            else -> 48.sp                    // 매우 긴 경우
-                        }
-                        // 중앙 대형 지표(디자인 고정)
-                        val density = LocalDensity.current
-                        CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
+                        3 -> {
                             Text(
-                                text = hoursText,
-                                fontSize = fontSize,
+                                text = "${savedHours}시간",
+                                fontSize = 42.sp,
                                 fontWeight = FontWeight.Bold,
-                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                                textAlign = TextAlign.Center,
-                                color = Color.Black,
-                                maxLines = 1,
-                                lineHeight = fontSize
+                                color = Color(0xFFFF9800),
+                                textAlign = TextAlign.Center
                             )
                         }
-                    }
-                    4 -> {
-                        // 기대 수명
-                        val lifeText = "${lifeGainDays}" // '일' 제거
-
-                        // 기본 크기를 크게 하고, 긴 텍스트만 줄이기
-                        val fontSize = when {
-                            lifeText.length <= 8 -> 80.sp   // 기본 크기
-                            lifeText.length <= 12 -> 64.sp  // 조금 긴 경우
-                            else -> 48.sp                   // 매우 긴 경우
+                        4 -> {
+                            Text(
+                                text = "${lifeGainDays}일",
+                                fontSize = 42.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF9C27B0),
+                                textAlign = TextAlign.Center
+                            )
                         }
-
-                        Text(
-                            text = lifeText,
-                            fontSize = fontSize,
-                            fontWeight = FontWeight.Bold,
-                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                            textAlign = TextAlign.Center,
-                            color = Color.Black,
-                            maxLines = 1,
-                            lineHeight = fontSize
-                        )
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // 진행률 바
-        ProgressIndicator(progress = progress)
-
-        // 버튼을 하단에 고정하기 위한 가변 Spacer
-        Spacer(modifier = Modifier.weight(1f))
-
-        // 중지 버튼 (StartActivity와 동일한 구조)
-        StopButton(
-            onStop = {
-                val intent = Intent(context, QuitActivity::class.java)
-                context.startActivity(intent)
-            }
+        // 터치 안내
+        Text(
+            text = "탭하여 다른 지표 보기",
+            fontSize = 12.sp,
+            color = Color(0xFF999999),
+            modifier = Modifier.padding(top = 16.dp)
         )
-        Spacer(modifier = Modifier.height(64.dp))
     }
 }
 
 @Composable
-fun ProgressIndicator(progress: Float) {
-    var scale by remember { mutableStateOf(1f) }
-    var isAnimating by remember { mutableStateOf(false) }
-    val animatedScale by animateFloatAsState(
-        targetValue = scale,
-        animationSpec = androidx.compose.animation.core.tween(
-            durationMillis = 100,  // 더 빠른 애니메이션
-            easing = androidx.compose.animation.core.FastOutSlowInEasing
-        )
+fun ModernProgressIndicator(progress: Float) {
+    // 진행률 바만 표시 (퍼센트 텍스트 제거)
+    LinearProgressIndicator(
+        progress = { progress },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(12.dp)
+            .clip(RoundedCornerShape(6.dp)),
+        color = Color(0xFF4CAF50),
+        trackColor = Color(0xFFE8F5E8),
+        strokeCap = StrokeCap.Round
     )
-
-    // 애니메이션 상태 변경 감지 및 처리
-    LaunchedEffect(isAnimating) {
-        if (isAnimating) {
-            scale = 0.7f
-            kotlinx.coroutines.delay(100)  // 축소 상태 유지 시간
-            scale = 1f
-            kotlinx.coroutines.delay(100)  // 복원 완료 대기
-            isAnimating = false
-        }
-    }
-
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // 진행률 숫자 텍스트 제거
-        Spacer(modifier = Modifier.height(0.dp))
-        LinearProgressIndicator(
-            progress = { progress },
-            modifier = Modifier
-                .width(330.dp)
-                .height(10.dp)
-                .clip(CircleShape),
-            color = Color(0xFF4CAF50),
-            trackColor = Color(0xFFE0E0E0),
-            strokeCap = StrokeCap.Round
-        )
-    }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StopButton(onStop: () -> Unit, modifier: Modifier = Modifier) {
-    Box(
-        contentAlignment = Alignment.Center,
+fun ModernStopButton(onStop: () -> Unit, modifier: Modifier = Modifier) {
+    Card(
+        onClick = onStop,
         modifier = modifier
-            .size(100.dp)
-            .shadow(8.dp, CircleShape)
-            .background(Color.Black, CircleShape)
-            .clickable { onStop() }
+            .size(80.dp),
+        shape = CircleShape,
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFE53935)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
-        // 버튼 라벨(디자인 고정)
-        val density = LocalDensity.current
-        CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
-            Text(
-                text = "STOP",
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 28.sp
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "정지",
+                tint = Color.White,
+                modifier = Modifier.size(32.dp)
             )
         }
     }
@@ -695,9 +693,331 @@ private fun getLevelName(days: Int): String {
     return LevelDefinitions.getLevelName(days)
 }
 
-@Preview(showBackground = true, name = "RunScreen fontScale 1.0", fontScale = 1.0f)
-@Preview(showBackground = true, name = "RunScreen fontScale 2.0", fontScale = 2.0f)
+// Preview용 가짜 데이터를 사용하는 RunScreen 컴포넌트
 @Composable
-fun PreviewRunScreen() {
-    RunScreen()
+fun RunScreenPreview(
+    targetDays: Float = 30f,
+    elapsedDays: Int = 7,
+    elapsedHours: Int = 15,
+    elapsedMinutes: Int = 30,
+    elapsedSeconds: Int = 45,
+    progress: Float = 0.23f
+) {
+    // 가짜 계산값들
+    val savedMoney = 280000 // 7일 기준 예시값
+    val savedHours = 63 // 7일 기준 예시값
+    val lifeGainDays = 0 // 7일이므로 아직 0
+
+    var currentIndicator by remember { mutableStateOf(0) }
+    val progressTimeText = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds)
+
+    // 모던한 그라데이션 배경
+    val backgroundBrush = Brush.linearGradient(
+        colors = listOf(
+            Color(0xFFF8F9FA),
+            Color(0xFFE3F2FD),
+            Color(0xFFF1F8E9)
+        ),
+        start = Offset(0f, 0f),
+        end = Offset(1000f, 1000f)
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundBrush)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // 상단 정보 카드
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White.copy(alpha = 0.9f)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // 첫 번째 행: 값들
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // 목표일
+                        StatCard(
+                            value = "$targetDays",
+                            label = "목표일",
+                            color = Color(0xFF2196F3)
+                        )
+
+                        // 레벨
+                        StatCard(
+                            value = "새싹",
+                            label = "Level",
+                            color = Color(0xFF4CAF50),
+                            isLevel = true
+                        )
+
+                        // 진행 시간
+                        StatCard(
+                            value = progressTimeText,
+                            label = "시간",
+                            color = Color(0xFF4CAF50)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 메인 지표 카드
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White.copy(alpha = 0.95f)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+            ) {
+                MainIndicatorCard(
+                    currentIndicator = currentIndicator,
+                    elapsedDays = elapsedDays,
+                    elapsedHours = elapsedHours,
+                    elapsedMinutes = elapsedMinutes,
+                    elapsedSeconds = elapsedSeconds,
+                    savedMoney = savedMoney,
+                    savedHours = savedHours,
+                    lifeGainDays = lifeGainDays,
+                    onIndicatorChange = { newIndicator -> currentIndicator = newIndicator }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 진행률 카드
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White.copy(alpha = 0.9f)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "진행률",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF666666),
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    ModernProgressIndicator(progress = progress)
+                }
+            }
+        }
+
+        // 모던한 중지 버튼 (하단 고정)
+        ModernStopButton(
+            onStop = { /* Preview에서는 동작 안함 */ }
+        )
+    }
+}
+
+@Preview(
+    showBackground = true,
+    name = "RunScreen - 시작 단계",
+    widthDp = 360,
+    heightDp = 800
+)
+@Composable
+fun RunScreenStartPreview() {
+    RunScreenPreview(
+        targetDays = 30f,
+        elapsedDays = 1,
+        elapsedHours = 8,
+        elapsedMinutes = 30,
+        elapsedSeconds = 15,
+        progress = 0.03f
+    )
+}
+
+@Preview(
+    showBackground = true,
+    name = "RunScreen - 진행 중",
+    widthDp = 360,
+    heightDp = 800
+)
+@Composable
+fun RunScreenProgressPreview() {
+    RunScreenPreview(
+        targetDays = 30f,
+        elapsedDays = 15,
+        elapsedHours = 12,
+        elapsedMinutes = 45,
+        elapsedSeconds = 30,
+        progress = 0.5f
+    )
+}
+
+@Preview(
+    showBackground = true,
+    name = "RunScreen - 거의 완료",
+    widthDp = 360,
+    heightDp = 800
+)
+@Composable
+fun RunScreenNearCompletePreview() {
+    RunScreenPreview(
+        targetDays = 30f,
+        elapsedDays = 28,
+        elapsedHours = 6,
+        elapsedMinutes = 20,
+        elapsedSeconds = 45,
+        progress = 0.93f
+    )
+}
+
+@Preview(
+    showBackground = true,
+    name = "RunScreen - 다크 모드",
+    widthDp = 360,
+    heightDp = 800,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
+)
+@Composable
+fun RunScreenDarkPreview() {
+    RunScreenPreview(
+        targetDays = 30f,
+        elapsedDays = 7,
+        elapsedHours = 15,
+        elapsedMinutes = 30,
+        elapsedSeconds = 45,
+        progress = 0.23f
+    )
+}
+
+@Preview(
+    showBackground = true,
+    name = "RunScreen - 큰 폰트",
+    widthDp = 360,
+    heightDp = 800,
+    fontScale = 1.5f
+)
+@Composable
+fun RunScreenLargeFontPreview() {
+    RunScreenPreview(
+        targetDays = 30f,
+        elapsedDays = 7,
+        elapsedHours = 15,
+        elapsedMinutes = 30,
+        elapsedSeconds = 45,
+        progress = 0.23f
+    )
+}
+
+// 개별 컴포넌트 Preview들
+@Preview(showBackground = true, name = "StatCard Preview")
+@Composable
+fun StatCardPreview() {
+    Row(
+        modifier = Modifier.padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        StatCard(
+            value = "30.0",
+            label = "목표일",
+            color = Color(0xFF2196F3)
+        )
+        StatCard(
+            value = "새싹",
+            label = "Level",
+            color = Color(0xFF4CAF50),
+            isLevel = true
+        )
+        StatCard(
+            value = "15:30:45",
+            label = "시간",
+            color = Color(0xFF4CAF50)
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "ModernProgressIndicator Preview")
+@Composable
+fun ModernProgressIndicatorPreview() {
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        ModernProgressIndicator(progress = 0.0f)
+        ModernProgressIndicator(progress = 0.25f)
+        ModernProgressIndicator(progress = 0.5f)
+        ModernProgressIndicator(progress = 0.75f)
+        ModernProgressIndicator(progress = 1.0f)
+    }
+}
+
+@Preview(showBackground = true, name = "ModernStopButton Preview")
+@Composable
+fun ModernStopButtonPreview() {
+    Row(
+        modifier = Modifier.padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        ModernStopButton(onStop = {})
+    }
+}
+
+@Preview(
+    showBackground = true,
+    name = "MainIndicatorCard Preview",
+    widthDp = 360,
+    heightDp = 300
+)
+@Composable
+fun MainIndicatorCardPreview() {
+    var currentIndicator by remember { mutableStateOf(0) }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp),
+        shape = RoundedCornerShape(32.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.95f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
+    ) {
+        MainIndicatorCard(
+            currentIndicator = currentIndicator,
+            elapsedDays = 15,
+            elapsedHours = 12,
+            elapsedMinutes = 30,
+            elapsedSeconds = 45,
+            savedMoney = 600000,
+            savedHours = 135,
+            lifeGainDays = 0,
+            onIndicatorChange = { newIndicator -> currentIndicator = newIndicator }
+        )
+    }
 }
