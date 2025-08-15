@@ -20,8 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.components.MonthPickerBottomSheet
@@ -425,12 +427,33 @@ class RecordsActivity : BaseActivity() {
         }
     }
 
-    @Preview(showBackground = true)
+    @Preview(showBackground = true, name = "fontScale 1.0")
+    @Preview(showBackground = true, fontScale = 1.5f, name = "fontScale 1.5")
     @Composable
     fun PreviewRecordsScreen() {
         BaseScreen {
             RecordsScreen(0)
         }
+    }
+
+    @Preview(showBackground = true, name = "fontScale 1.0")
+    @Preview(showBackground = true, fontScale = 1.5f, name = "fontScale 1.5")
+    @Composable
+    fun PreviewSobrietyRecordCard() {
+        SobrietyRecordCard(
+            record = SobrietyRecord(
+                id = "test_1",
+                startTime = System.currentTimeMillis() - 3 * 24 * 60 * 60 * 1000,
+                endTime = System.currentTimeMillis(),
+                targetDays = 7,
+                actualDays = 3,
+                isCompleted = false,
+                status = "중지",
+                createdAt = System.currentTimeMillis(),
+                percentage = 43,
+                isTestRecord = true
+            )
+        )
     }
 }
 
@@ -491,32 +514,36 @@ fun SobrietyRecordCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // 상태 배지
-                    Surface(
-                        color = if (record.isCompleted) Color(0xFF4CAF50) else Color(0xFFFF9800),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Text(
-                            text = record.status,
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
-                        )
-                    }
-
-                    // 테스트 기록 표시
-                    if (record.isTest) {
+                    CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, 1f)) {
                         Surface(
-                            color = Color(0xFF9C27B0),
+                            color = if (record.isCompleted) Color(0xFF4CAF50) else Color(0xFFFF9800),
                             shape = RoundedCornerShape(16.dp)
                         ) {
                             Text(
-                                text = "테스트",
+                                text = record.status,
                                 color = Color.White,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                             )
+                        }
+                    }
+
+                    // 테스트 기록 표시
+                    if (record.isTest) {
+                        CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, 1f)) {
+                            Surface(
+                                color = Color(0xFF9C27B0),
+                                shape = RoundedCornerShape(16.dp)
+                            ) {
+                                Text(
+                                    text = "테스트",
+                                    color = Color.White,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                                )
+                            }
                         }
                     }
                 }
@@ -612,7 +639,8 @@ fun SobrietyRecordCard(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "fontScale 1.0")
+@Preview(showBackground = true, fontScale = 1.5f, name = "fontScale 1.5")
 @Composable
 fun PreviewSobrietyRecordCard() {
     SobrietyRecordCard(
