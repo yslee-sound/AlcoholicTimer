@@ -480,47 +480,49 @@ fun RunScreen() {
                     }
                     2 -> {
                         // 절약한 금액 (천단위 구분)
-                        val moneyText = String.format(Locale.getDefault(), "%,d", savedMoney)
-
-                        // 기본 크기를 크게 하고, 긴 텍스트만 줄이기
+                        val moneyText = String.format(Locale.getDefault(), ",%d", savedMoney)
                         val fontSize = when {
                             moneyText.length <= 8 -> 80.sp   // 기본 크기
                             moneyText.length <= 12 -> 64.sp  // 조금 긴 경우
                             else -> 48.sp                    // 매우 긴 경우
                         }
-
-                        Text(
-                            text = moneyText,
-                            fontSize = fontSize,
-                            fontWeight = FontWeight.Bold,
-                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                            textAlign = TextAlign.Center,
-                            color = Color.Black,
-                            maxLines = 1,
-                            lineHeight = fontSize
-                        )
+                        // 중앙 대형 지표(디자인 고정)
+                        val density = LocalDensity.current
+                        CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
+                            Text(
+                                text = moneyText,
+                                fontSize = fontSize,
+                                fontWeight = FontWeight.Bold,
+                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                                textAlign = TextAlign.Center,
+                                color = Color.Black,
+                                maxLines = 1,
+                                lineHeight = fontSize
+                            )
+                        }
                     }
                     3 -> {
                         // 절약한 시간
                         val hoursText = "${savedHours}"
-
-                        // 기본 크기를 크게 하고, 긴 텍스트만 줄이기
                         val fontSize = when {
                             hoursText.length <= 8 -> 80.sp   // 기본 크기
                             hoursText.length <= 12 -> 64.sp  // 조금 긴 경우
                             else -> 48.sp                    // 매우 긴 경우
                         }
-
-                        Text(
-                            text = hoursText,
-                            fontSize = fontSize,
-                            fontWeight = FontWeight.Bold,
-                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                            textAlign = TextAlign.Center,
-                            color = Color.Black,
-                            maxLines = 1,
-                            lineHeight = fontSize
-                        )
+                        // 중앙 대형 지표(디자인 고정)
+                        val density = LocalDensity.current
+                        CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
+                            Text(
+                                text = hoursText,
+                                fontSize = fontSize,
+                                fontWeight = FontWeight.Bold,
+                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                                textAlign = TextAlign.Center,
+                                color = Color.Black,
+                                maxLines = 1,
+                                lineHeight = fontSize
+                            )
+                        }
                     }
                     4 -> {
                         // 기대 수명
@@ -701,23 +703,11 @@ fun PreviewRunScreenFontScale1() {
     }
 }
 
-@Preview(showBackground = true, name = "RunScreen fontScale 1.5")
+@Preview(showBackground = true, name = "RunScreen fontScale 2.0")
 @Composable
-fun PreviewRunScreenFontScale1_5() {
+fun PreviewRunScreenFontScale2() {
     val density = LocalDensity.current
-    CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1.5f)) {
-        RunScreen()
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewRunScreen() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
+    CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 2.0f)) {
         RunScreen()
     }
 }
