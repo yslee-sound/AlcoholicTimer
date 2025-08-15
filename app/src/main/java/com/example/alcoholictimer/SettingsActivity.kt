@@ -11,7 +11,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -42,6 +45,20 @@ fun SettingsScreen() {
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // 앱 로고(타이틀) - fontScale 고정
+        val density = LocalDensity.current
+        val fixedDensity = Density(density.density, 1f)
+        CompositionLocalProvider(
+            LocalDensity provides fixedDensity
+        ) {
+            Text(
+                text = "설정", // 앱 로고나 타이틀 역할
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+        }
+
         // 음주 비용 설정
         Text("음주 비용", fontSize = 20.sp)
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -146,8 +163,9 @@ fun SettingsScreen() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(name = "fontScale 1.0", fontScale = 1.0f, showBackground = true)
+@Preview(name = "fontScale 2.0", fontScale = 2.0f, showBackground = true)
 @Composable
-fun PreviewSettingsScreen() {
+fun SettingsScreenPreview() {
     SettingsScreen()
 }
