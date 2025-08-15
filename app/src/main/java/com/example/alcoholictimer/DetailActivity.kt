@@ -500,19 +500,6 @@ private fun getLevelName(days: Int): String {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewDetailScreen() {
-    DetailScreen(
-        startTime = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L),
-        endTime = System.currentTimeMillis(),
-        targetDays = 30f,
-        actualDays = 7,
-        isCompleted = true,
-        onBack = {} // 누락된 onBack 파라미터 추가
-    )
-}
-
 @Preview(showBackground = true, name = "fontScale 1.0")
 @Composable
 fun PreviewDetailScreenFont1_0() {
@@ -530,11 +517,11 @@ fun PreviewDetailScreenFont1_0() {
     }
 }
 
-@Preview(showBackground = true, name = "fontScale 1.5")
+@Preview(showBackground = true, name = "fontScale 2.0")
 @Composable
 fun PreviewDetailScreenFont1_5() {
     val baseDensity = LocalDensity.current
-    val fixedFontDensity = Density(baseDensity.density, 1.5f)
+    val fixedFontDensity = Density(baseDensity.density, 2.0f)
     CompositionLocalProvider(LocalDensity provides fixedFontDensity) {
         DetailScreen(
             startTime = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L),

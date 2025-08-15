@@ -17,8 +17,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
@@ -88,7 +90,13 @@ abstract class BaseActivity : ComponentActivity() {
                 topBar = {
                     Column {
                         TopAppBar(
-                            title = { Text(getScreenTitle(), color = Color.Black) },
+                            title = {
+                                CompositionLocalProvider(
+                                    LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)
+                                ) {
+                                    Text(getScreenTitle(), color = Color.Black)
+                                }
+                            },
                             colors = TopAppBarDefaults.topAppBarColors(
                                 containerColor = Color.White,
                                 titleContentColor = Color.Black,
@@ -246,15 +254,18 @@ fun DrawerMenu(
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = nickname,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .align(Alignment.Start)
-                .padding(start = 8.dp)
-                .clickable { onNicknameClick() }
-        )
+        // 닉네임(로고 역할) fontScale 고정
+        CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)) {
+            Text(
+                text = nickname,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(start = 8.dp)
+                    .clickable { onNicknameClick() }
+            )
+        }
         HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
         menuItems.forEach { (title, icon) ->
             Row(
@@ -270,10 +281,13 @@ fun DrawerMenu(
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(16.dp))
-                Text(
-                    text = title,
-                    fontSize = 16.sp
-                )
+                // 버튼/아이콘 라벨 fontScale 고정
+                CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)) {
+                    Text(
+                        text = title,
+                        fontSize = 16.sp
+                    )
+                }
             }
         }
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
@@ -291,16 +305,20 @@ fun DrawerMenu(
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(16.dp))
-                Text(
-                    text = title,
-                    fontSize = 16.sp
-                )
+                // 버튼/아이콘 라벨 fontScale 고정
+                CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)) {
+                    Text(
+                        text = title,
+                        fontSize = 16.sp
+                    )
+                }
             }
         }
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "fontScale 1.0", fontScale = 1.0f)
+@Preview(showBackground = true, name = "fontScale 2.0", fontScale = 2.0f)
 @Composable
 fun PreviewDrawerMenu() {
     MaterialTheme {
