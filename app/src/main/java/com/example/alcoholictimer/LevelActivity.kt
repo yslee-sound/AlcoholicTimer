@@ -268,12 +268,6 @@ class LevelActivity : BaseActivity() {
     private val levels = LevelDefinitions.levels
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewLevelScreen() {
-    LevelActivity().LevelScreen(currentDays = 15)
-}
-
 @Preview(showBackground = true, name = "FontScale 1.0")
 @Composable
 fun PreviewLevelScreenFont1() {
