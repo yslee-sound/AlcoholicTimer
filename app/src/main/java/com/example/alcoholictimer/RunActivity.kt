@@ -26,10 +26,12 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.utils.Constants
@@ -273,40 +275,48 @@ fun RunScreen() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier
-                    .weight(1f)
+                modifier = Modifier.weight(1f)
                     .padding(start = 0.dp),
                 contentAlignment = Alignment.Center
             ) {
+                // 목표일 텍스트(본문, 시스템 fontScale 반영)
                 Text(
-                    text = "${targetDays}",
+                    text = "$targetDays",
                     fontSize = 24.sp,
                     color = Color.Black
                 )
             }
             Box(
-                modifier = Modifier.weight(1.6f), // 가운데 박스만 더 넓게
+                modifier = Modifier.weight(1.6f),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = getLevelName(elapsedDays),
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = LevelDefinitions.getLevelInfo(elapsedDays).color,
-                    textAlign = TextAlign.Center
-                )
+                // 레벨명(디자인 고정)
+                val density = LocalDensity.current
+                CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
+                    Text(
+                        text = getLevelName(elapsedDays),
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = LevelDefinitions.getLevelInfo(elapsedDays).color,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
             Box(
                 modifier = Modifier.weight(1f)
                     .padding(start = 0.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = progressTimeText,
-                    fontSize = 20.sp,
-                    color = Color.Black,
-                    fontWeight = FontWeight.Medium
-                )
+                // 진행 시간(디자인 고정)
+                val density = LocalDensity.current
+                CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
+                    Text(
+                        text = progressTimeText,
+                        fontSize = 20.sp,
+                        color = Color.Black,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         }
 
@@ -331,15 +341,19 @@ fun RunScreen() {
                 )
             }
             Box(
-                modifier = Modifier.weight(1.6f), // 가운데 박스만 더 넓게
+                modifier = Modifier.weight(1.6f),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "Level",
-                    fontSize = 24.sp,
-                    color = Color.Gray,
-                    fontWeight = FontWeight.Medium
-                )
+                // Level(로고 역할, 디자인 고정)
+                val density = LocalDensity.current
+                CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
+                    Text(
+                        text = "Level",
+                        fontSize = 24.sp,
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
             Box(
                 modifier = Modifier.weight(1f)
@@ -417,7 +431,6 @@ fun RunScreen() {
             ) {
                 when (currentIndicator) {
                     0 -> {
-                        // 금주 일수 - 365일 이상시 년/일 형태로 표시
                         val displayText = if (elapsedDays >= 365) {
                             val years = elapsedDays / 365
                             val remainingDays = elapsedDays % 365
@@ -430,34 +443,40 @@ fun RunScreen() {
                             displayText.length <= 12 -> 64.sp
                             else -> 48.sp
                         }
-                        Text(
-                            text = displayText,
-                            fontSize = fontSize,
-                            fontWeight = FontWeight.Bold,
-                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                            textAlign = TextAlign.Center,
-                            color = Color.Black,
-                            maxLines = 1
-                        )
+                        // 중앙 대형 지표(디자인 고정)
+                        val density = LocalDensity.current
+                        CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
+                            Text(
+                                text = displayText,
+                                fontSize = fontSize,
+                                fontWeight = FontWeight.Bold,
+                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                                textAlign = TextAlign.Center,
+                                color = Color.Black,
+                                maxLines = 1
+                            )
+                        }
                     }
                     1 -> {
-                        // 진행 시간 (시:분:초 형식)
                         val timeText = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds)
                         val fontSize = when {
-                            timeText.length <= 8 -> 80.sp   // 기본 크기
-                            timeText.length <= 12 -> 64.sp  // 조금 긴 경우
-                            else -> 48.sp                   // 매우 긴 경우
+                            timeText.length <= 8 -> 80.sp
+                            timeText.length <= 12 -> 64.sp
+                            else -> 48.sp
                         }
-                        Text(
-                            text = timeText,
-                            fontSize = fontSize,
-                            fontWeight = FontWeight.Bold,
-                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                            textAlign = TextAlign.Center,
-                            color = Color.Black,
-                            maxLines = 1,
-                            lineHeight = fontSize
-                        )
+                        // 중앙 대형 지표(디자인 고정)
+                        val density = LocalDensity.current
+                        CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
+                            Text(
+                                text = timeText,
+                                fontSize = fontSize,
+                                fontWeight = FontWeight.Bold,
+                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                                textAlign = TextAlign.Center,
+                                color = Color.Black,
+                                maxLines = 1
+                            )
+                        }
                     }
                     2 -> {
                         // 절약한 금액 (천단위 구분)
@@ -598,12 +617,16 @@ fun StopButton(onStop: () -> Unit, modifier: Modifier = Modifier) {
             .background(Color.Black, CircleShape)
             .clickable { onStop() }
     ) {
-        Text(
-            text = "■",
-            fontSize = 40.sp,
-            color = Color.White,
-            fontWeight = FontWeight.Bold
-        )
+        // 버튼 라벨(디자인 고정)
+        val density = LocalDensity.current
+        CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
+            Text(
+                text = "STOP",
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 28.sp
+            )
+        }
     }
 }
 
@@ -667,6 +690,24 @@ private fun saveCompletedRecord(
 // 레벨명 함수 (기존 레벨 테이블 기준)
 private fun getLevelName(days: Int): String {
     return LevelDefinitions.getLevelName(days)
+}
+
+@Preview(showBackground = true, name = "RunScreen fontScale 1.0")
+@Composable
+fun PreviewRunScreenFontScale1() {
+    val density = LocalDensity.current
+    CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
+        RunScreen()
+    }
+}
+
+@Preview(showBackground = true, name = "RunScreen fontScale 1.5")
+@Composable
+fun PreviewRunScreenFontScale1_5() {
+    val density = LocalDensity.current
+    CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1.5f)) {
+        RunScreen()
+    }
 }
 
 @Preview(showBackground = true)
