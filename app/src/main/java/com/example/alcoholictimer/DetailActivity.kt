@@ -500,38 +500,18 @@ private fun getLevelName(days: Int): String {
     }
 }
 
-@Preview(showBackground = true, name = "fontScale 1.0")
+@Preview(showBackground = true, name = "fontScale 1.0", fontScale = 1.0f)
+@Preview(showBackground = true, name = "fontScale 2.0", fontScale = 2.0f)
 @Composable
-fun PreviewDetailScreenFont1_0() {
-    val baseDensity = LocalDensity.current
-    val fixedFontDensity = Density(baseDensity.density, 1f)
-    CompositionLocalProvider(LocalDensity provides fixedFontDensity) {
-        DetailScreen(
-            startTime = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L),
-            endTime = System.currentTimeMillis(),
-            targetDays = 30f,
-            actualDays = 7,
-            isCompleted = true,
-            onBack = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "fontScale 2.0")
-@Composable
-fun PreviewDetailScreenFont1_5() {
-    val baseDensity = LocalDensity.current
-    val fixedFontDensity = Density(baseDensity.density, 2.0f)
-    CompositionLocalProvider(LocalDensity provides fixedFontDensity) {
-        DetailScreen(
-            startTime = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L),
-            endTime = System.currentTimeMillis(),
-            targetDays = 30f,
-            actualDays = 7,
-            isCompleted = true,
-            onBack = {}
-        )
-    }
+fun PreviewDetailScreen() {
+    DetailScreen(
+        startTime = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L),
+        endTime = System.currentTimeMillis(),
+        targetDays = 30f,
+        actualDays = 7,
+        isCompleted = true,
+        onBack = {}
+    )
 }
 
 // 기록 삭제 함수 - 최적화

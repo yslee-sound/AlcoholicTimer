@@ -209,20 +209,9 @@ private fun getModeText(mode: Int): String {
     }
 }
 
-@Preview(showBackground = true, name = "fontScale 1.0")
+@Preview(showBackground = true, name = "fontScale 1.0", fontScale = 1.0f)
+@Preview(showBackground = true, name = "fontScale 2.0", fontScale = 2.0f)
 @Composable
-fun PreviewTestScreenFont1() {
-    val density = LocalDensity.current
-    CompositionLocalProvider(LocalDensity provides Density(density.density, 1f)) {
-        TestScreen()
-    }
-}
-
-@Preview(showBackground = true, name = "fontScale 2.0")
-@Composable
-fun PreviewTestScreenFont2() {
-    val density = LocalDensity.current
-    CompositionLocalProvider(LocalDensity provides Density(density.density, 2f)) {
-        TestScreen()
-    }
+fun PreviewTestScreen() {
+    TestScreen()
 }

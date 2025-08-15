@@ -275,27 +275,12 @@ class StartActivity : BaseActivity() {
         val timeUnitText = "금주 목표 일수"
     }
 
-    @Preview(showBackground = true, name = "fontScale 1.0")
+    @Preview(showBackground = true, name = "fontScale 1.0", fontScale = 1.0f)
+    @Preview(showBackground = true, name = "fontScale 2.0", fontScale = 2.0f)
     @Composable
-    fun PreviewStartScreenFont1() {
-        CompositionLocalProvider(
-            LocalDensity provides Density(LocalDensity.current.density, 1f)
-        ) {
-            BaseScreen {
-                StartScreen()
-            }
-        }
-    }
-
-    @Preview(showBackground = true, name = "fontScale 2.0")
-    @Composable
-    fun PreviewStartScreenFont2() {
-        CompositionLocalProvider(
-            LocalDensity provides Density(LocalDensity.current.density, 2f)
-        ) {
-            BaseScreen {
-                StartScreen()
-            }
+    fun PreviewStartScreen() {
+        BaseScreen {
+            StartScreen()
         }
     }
 }

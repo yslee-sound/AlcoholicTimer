@@ -694,20 +694,9 @@ private fun getLevelName(days: Int): String {
     return LevelDefinitions.getLevelName(days)
 }
 
-@Preview(showBackground = true, name = "RunScreen fontScale 1.0")
+@Preview(showBackground = true, name = "RunScreen fontScale 1.0", fontScale = 1.0f)
+@Preview(showBackground = true, name = "RunScreen fontScale 2.0", fontScale = 2.0f)
 @Composable
-fun PreviewRunScreenFontScale1() {
-    val density = LocalDensity.current
-    CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
-        RunScreen()
-    }
-}
-
-@Preview(showBackground = true, name = "RunScreen fontScale 2.0")
-@Composable
-fun PreviewRunScreenFontScale2() {
-    val density = LocalDensity.current
-    CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 2.0f)) {
-        RunScreen()
-    }
+fun PreviewRunScreen() {
+    RunScreen()
 }

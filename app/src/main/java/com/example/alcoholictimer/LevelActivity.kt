@@ -268,24 +268,9 @@ class LevelActivity : BaseActivity() {
     private val levels = LevelDefinitions.levels
 }
 
-@Preview(showBackground = true, name = "FontScale 1.0")
+@Preview(showBackground = true, name = "FontScale 1.0", fontScale = 1.0f)
+@Preview(showBackground = true, name = "FontScale 2.0", fontScale = 2.0f)
 @Composable
-fun PreviewLevelScreenFont1() {
-    val density = androidx.compose.ui.platform.LocalDensity.current.density
-    androidx.compose.runtime.CompositionLocalProvider(
-        androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(density, 1f)
-    ) {
-        LevelActivity().LevelScreen(currentDays = 15)
-    }
-}
-
-@Preview(showBackground = true, name = "FontScale 2.0")
-@Composable
-fun PreviewLevelScreenFont2() {
-    val density = androidx.compose.ui.platform.LocalDensity.current.density
-    androidx.compose.runtime.CompositionLocalProvider(
-        androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(density, 2f)
-    ) {
-        LevelActivity().LevelScreen(currentDays = 15)
-    }
+fun PreviewLevelScreen() {
+    LevelActivity().LevelScreen(currentDays = 15)
 }

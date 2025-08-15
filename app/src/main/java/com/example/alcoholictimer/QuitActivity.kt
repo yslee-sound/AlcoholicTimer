@@ -420,20 +420,9 @@ private fun getLevelName(days: Int): String {
     }
 }
 
-@Preview(showBackground = true, name = "QuitScreen fontScale 1.0")
+@Preview(showBackground = true, name = "QuitScreen fontScale 1.0", fontScale = 1.0f)
+@Preview(showBackground = true, name = "QuitScreen fontScale 2.0", fontScale = 2.0f)
 @Composable
-fun PreviewQuitScreenFontScale1() {
-    val baseDensity = LocalDensity.current
-    CompositionLocalProvider(LocalDensity provides Density(baseDensity.density, fontScale = 1f)) {
-        QuitScreen()
-    }
-}
-
-@Preview(showBackground = true, name = "QuitScreen fontScale 2.0")
-@Composable
-fun PreviewQuitScreenFontScale2() {
-    val baseDensity = LocalDensity.current
-    CompositionLocalProvider(LocalDensity provides Density(baseDensity.density, fontScale = 2.0f)) {
-        QuitScreen()
-    }
+fun PreviewQuitScreen() {
+    QuitScreen()
 }
