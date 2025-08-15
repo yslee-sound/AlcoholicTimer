@@ -254,6 +254,7 @@ class StartActivity : BaseActivity() {
                     tint = Color.White
                 )
             }
+            Spacer(modifier = Modifier.height(64.dp))
         }
     }
 

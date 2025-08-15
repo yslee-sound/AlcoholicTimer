@@ -550,7 +550,7 @@ fun RunScreen() {
             }
         }
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // 진행률 바
         ProgressIndicator(progress = progress)
@@ -565,6 +565,7 @@ fun RunScreen() {
                 context.startActivity(intent)
             }
         )
+        Spacer(modifier = Modifier.height(64.dp))
     }
 }
 
