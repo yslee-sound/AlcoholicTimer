@@ -21,12 +21,14 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.utils.Constants
@@ -100,12 +102,16 @@ class StartActivity : BaseActivity() {
         ) {
             Spacer(modifier = Modifier.height(0.dp))
 
-            // 상단 아이콘
-            Text(
-                text = "🍃",
-                fontSize = 150.sp,
-                modifier = Modifier.padding(bottom = 60.dp)
-            )
+            // 상단 아이콘 (fontScale 고정)
+            CompositionLocalProvider(
+                LocalDensity provides Density(LocalDensity.current.density, 1f)
+            ) {
+                Text(
+                    text = "🍃",
+                    fontSize = 150.sp,
+                    modifier = Modifier.padding(bottom = 60.dp)
+                )
+            }
 
             // 입력 영역
             Column(
@@ -269,11 +275,27 @@ class StartActivity : BaseActivity() {
         val timeUnitText = "금주 목표 일수"
     }
 
-    @Preview(showBackground = true)
+    @Preview(showBackground = true, name = "fontScale 1.0")
     @Composable
-    fun PreviewStartScreen() {
-        BaseScreen {
-            StartScreen()
+    fun PreviewStartScreenFont1() {
+        CompositionLocalProvider(
+            LocalDensity provides Density(LocalDensity.current.density, 1f)
+        ) {
+            BaseScreen {
+                StartScreen()
+            }
+        }
+    }
+
+    @Preview(showBackground = true, name = "fontScale 2.0")
+    @Composable
+    fun PreviewStartScreenFont2() {
+        CompositionLocalProvider(
+            LocalDensity provides Density(LocalDensity.current.density, 2f)
+        ) {
+            BaseScreen {
+                StartScreen()
+            }
         }
     }
 }
