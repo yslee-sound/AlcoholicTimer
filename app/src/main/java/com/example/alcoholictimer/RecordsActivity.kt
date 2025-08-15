@@ -87,7 +87,7 @@ class RecordsActivity : BaseActivity() {
         var showTestDialog by remember { mutableStateOf(false) }
         var inputStartTime by remember { mutableStateOf(System.currentTimeMillis()) }
         var inputEndTime by remember { mutableStateOf(System.currentTimeMillis()) }
-        var inputTargetDays by remember { mutableStateOf(1) }
+        var inputTargetDays by remember { mutableStateOf(1f) }
         var inputActualDays by remember { mutableStateOf(1) }
 
         // 선택된 주 시작일 변수 추가
@@ -151,7 +151,6 @@ class RecordsActivity : BaseActivity() {
                 // 목표 달성 여부 판단 (100% 이상이면 완료, 미만이면 중지)
                 val isCompleted = achievedPercentage >= 100
                 val status = if (isCompleted) "완료" else "중지"
-
                 val testRecord = JSONObject().apply {
                     put("id", "test_${System.currentTimeMillis()}")
                     put("startTime", inputStartTime)
@@ -161,7 +160,7 @@ class RecordsActivity : BaseActivity() {
                     put("isCompleted", isCompleted)
                     put("status", status)
                     put("createdAt", System.currentTimeMillis())
-                    put("percentage", achievedPercentage) // 실제 시간 차이 기반 달성률
+                    put("percentage", achievedPercentage)
                 }
                 recordsList.put(testRecord)
                 sharedPref.edit().apply {
@@ -1190,8 +1189,8 @@ fun TestRecordInputDialogContent(
     onStartTimeChange: (Long) -> Unit,
     inputEndTime: Long,
     onEndTimeChange: (Long) -> Unit,
-    inputTargetDays: Int,
-    onTargetDaysChange: (Int) -> Unit,
+    inputTargetDays: Float,
+    onTargetDaysChange: (Float) -> Unit,
     inputActualDays: Int,
     onActualDaysChange: (Int) -> Unit
 ) {
@@ -1210,8 +1209,10 @@ fun TestRecordInputDialogContent(
     var endHour by remember { mutableStateOf(calendar.get(Calendar.HOUR_OF_DAY)) }
     var endMinute by remember { mutableStateOf(calendar.get(Calendar.MINUTE)) }
 
-    // 목표일수 드롭다운
-    val daysList = (1..365).toList()
+    // 목표일수 드롭다운 (0.1~0.9 + 1~365)
+    val daysList = (1..365).map { it.toFloat() }.toMutableList().apply {
+        addAll(0, (1..9).map { it / 10f }.reversed())
+    }
 
     // 날짜 선택 시 Unix ms로 변환
     fun getMillis(year: Int, month: Int, day: Int, hour: Int = 0, minute: Int = 0): Long {
@@ -1443,7 +1444,8 @@ fun TestRecordInputDialogContent(
             label = "일수",
             options = daysList,
             selected = inputTargetDays,
-            onSelected = { onTargetDaysChange(it) }
+            onSelected = { onTargetDaysChange(it) },
+            optionLabel = { String.format("%.1f", it) }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -1482,7 +1484,7 @@ fun TestRecordInputDialogContent(
 }
 
 @Composable
-fun <T> DropdownSelector(label: String, options: List<T>, selected: T, onSelected: (T) -> Unit) {
+fun <T> DropdownSelector(label: String, options: List<T>, selected: T, onSelected: (T) -> Unit, optionLabel: (T) -> String = { it.toString() }) {
     var expanded by remember { mutableStateOf(false) }
     Box {
         OutlinedButton(onClick = { expanded = true }) {
@@ -1494,7 +1496,7 @@ fun <T> DropdownSelector(label: String, options: List<T>, selected: T, onSelecte
             modifier = Modifier.heightIn(max = 200.dp) // 최대 높이 제한으로 스크롤 가능하게 함
         ) {
             options.forEach { option ->
-                DropdownMenuItem(text = { Text(option.toString()) }, onClick = {
+                DropdownMenuItem(text = { Text(optionLabel(option)) }, onClick = {
                     onSelected(option)
                     expanded = false
                 })
