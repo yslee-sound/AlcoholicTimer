@@ -9,8 +9,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
@@ -49,6 +47,7 @@ import java.util.*
 import kotlin.math.roundToInt
 import org.json.JSONArray
 import org.json.JSONObject
+import androidx.compose.animation.SizeTransform
 
 class RunActivity : BaseActivity() {
 
@@ -97,18 +96,18 @@ fun RunScreen() {
             putLong("start_time", currentTimeMillis)
             apply()
         }
-        Log.w("RunActivity", "startTime이 0이어서 현재 시간으로 강제 설정: $currentTimeMillis")
+        Log.w("RunActivity", "startTime이 0이어서 현재 시간으로 강����������������������� 설정: $currentTimeMillis")
         currentTimeMillis
     } else {
         startTime
     }
 
-    // 설정값 가져오기 (범주형 설정값)
+    // ���정��� 가져오기 (범주형 설정���)
     val selectedCost = sharedPref.getString("selected_cost", "중") ?: "중"
     val selectedFrequency = sharedPref.getString("selected_frequency", "주 2~3회") ?: "주 2~3회"
     val selectedDuration = sharedPref.getString("selected_duration", "보통") ?: "보통"
 
-    // 테스트 모드 설정 로드 및 적용 (레벨 계산용)
+    // 테스트 모드 설정 로드 및 적용 (레벨 ��산용)
     val testModePrefs = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
     val currentTestMode = testModePrefs.getInt(Constants.PREF_TEST_MODE, Constants.TEST_MODE_REAL)
     Constants.updateTestMode(currentTestMode)
@@ -123,7 +122,7 @@ fun RunScreen() {
         }
     }
 
-    // 경과 시간 계산 (항상 실제 시간 사용)
+    // 경과 시간 계산 (항상 ���제 시간 사용)
     val elapsedTime = if (actualStartTime > 0) currentTime - actualStartTime else 0L
 
     // 금주 진행은 항상 실제 시간으로 계산 (소수점 지원)
@@ -133,7 +132,7 @@ fun RunScreen() {
     // 레벨 계산용 일수 (테스트 모드 적용)
     val levelDays = Constants.calculateLevelDays(elapsedTime)
 
-    // 실제 경과 시간 계산 (시:분:초 표시용)
+    // 실�� 경과 시간 계산 (시:분:초 ���시용)
     val elapsedHours = ((elapsedTime % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)).toInt()
     val elapsedMinutes = ((elapsedTime % (60 * 60 * 1000)) / (60 * 1000)).toInt()
     val elapsedSeconds = ((elapsedTime % (60 * 1000)) / 1000).toInt()
@@ -144,10 +143,10 @@ fun RunScreen() {
     // 디버깅 로그
     Log.d("RunActivity", "실제 경과일수: $elapsedDays, 레벨용 일수: $levelDays, 테스트모드: ${Constants.currentTestMode}")
 
-    // 중앙 지표 순환 상태 (0: 일수, 1: 진행시간, 2: 레벨, 3: 금액, 4: 절약시간, 5: 수명) - 명세서 준수
+    // 중앙 지표 순환 상태 (0: 일수, 1: 진���시���, 2: 레벨, 3: 금액, 4: 절약시간, 5: 수명) - 명세서 준수
     var currentIndicator by remember { mutableStateOf(0) }
 
-    // 내부 매핑값 계산 (명세서 기준)
+    // 내부 매핑값 계산 (명��서 기준)
     val costVal = when(selectedCost) {
         "저" -> 10000
         "중" -> 40000
@@ -197,7 +196,7 @@ fun RunScreen() {
     Log.d("RunActivity", "targetDays: $targetDays")
     Log.d("RunActivity", "Constants.DAY_IN_MILLIS: ${Constants.DAY_IN_MILLIS}")
     Log.d("RunActivity", "totalTargetMillis: ${totalTargetMillis}ms")
-    Log.d("RunActivity", "목표까지 남은 시간: ${totalTargetMillis - elapsedTime}ms")
+    Log.d("RunActivity", "목표까지 남은 시��: ${totalTargetMillis - elapsedTime}ms")
     Log.d("RunActivity", "rawProgress 계산: $elapsedTime / $totalTargetMillis = ${elapsedTime.toFloat() / totalTargetMillis.toFloat()}")
     Log.d("RunActivity", "최종 progress: $progress")
     Log.d("RunActivity", "progress 백분율: ${(progress * 100)}%")
@@ -212,7 +211,7 @@ fun RunScreen() {
         Log.d("RunActivity", "=== 극소수점 테스트 모드 ===")
         Log.d("RunActivity", "목표 초수: ${targetSeconds}초")
         Log.d("RunActivity", "경과 초수: ${elapsedSeconds}초")
-        Log.d("RunActivity", "남은 초수: ${targetSeconds - elapsedSeconds}초")
+        Log.d("RunActivity", "남은 ���수: ${targetSeconds - elapsedSeconds}초")
         Log.d("RunActivity", "========================")
     }
     Log.d("RunActivity", "=====================================")
@@ -267,7 +266,7 @@ fun RunScreen() {
         }
     }
 
-    // 모던한 그라데이션 배경
+    // 모던한 그라데이�� 배경
     val backgroundBrush = Brush.linearGradient(
         colors = listOf(
             Color(0xFFF8F9FA),
@@ -301,25 +300,23 @@ fun RunScreen() {
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(20.dp), // 패딩 약간 증가
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // 첫 번째 행: 값들
+                    // StatCard들을 균등하게 배치
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.Top // 상단 정렬로 변경
                     ) {
-                        // 목표일
+                        // 목표일 카드
                         StatCard(
                             value = "$targetDays",
                             label = "목표일",
                             color = Color(0xFF2196F3)
                         )
 
-                        // 레벨
+                        // 레벨 카드
                         StatCard(
                             value = getLevelName(elapsedDays),
                             label = "Level",
@@ -327,7 +324,7 @@ fun RunScreen() {
                             isLevel = true
                         )
 
-                        // 진행 시간
+                        // 진행 시간 카드
                         StatCard(
                             value = progressTimeText,
                             label = "시간",
@@ -343,7 +340,8 @@ fun RunScreen() {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(220.dp),
+                    .height(260.dp)
+                    .wrapContentSize(Alignment.Center),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = Color.White.copy(alpha = 0.95f)
@@ -411,31 +409,50 @@ fun StatCard(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(8.dp)
+        modifier = Modifier
+            .padding(horizontal = 4.dp)
+            .width(80.dp) // 카드 너비 통일
     ) {
-        // 값 텍스트
+        // 값 텍스트 - 고정 높이 Box 사용
         val density = LocalDensity.current
         CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(28.dp), // 모든 카드 동일한 높이
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = value,
+                    fontSize = 18.sp, // 모든 카드 동일한 크기
+                    lineHeight = 18.sp,
+                    fontWeight = FontWeight.Bold, // 모든 카드 동일한 굵기
+                    color = color,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // 라벨 - 고정 높이 Box 사용
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(20.dp), // 라벨 높이도 고정
+            contentAlignment = Alignment.Center
+        ) {
             Text(
-                text = value,
-                fontSize = if (isLevel) 18.sp else 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = color,
+                text = label,
+                fontSize = 13.sp,
+                lineHeight = 13.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF757575),
                 textAlign = TextAlign.Center,
                 maxLines = 1
             )
         }
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        // 라벨
-        Text(
-            text = label,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color(0xFF757575),
-            textAlign = TextAlign.Center
-        )
     }
 }
 
@@ -475,9 +492,9 @@ fun MainIndicatorCard(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(horizontal = 24.dp, vertical = 12.dp), // 패딩 축소
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center // 중앙 정렬로 변경
     ) {
         // 지표 제목
         Text(
@@ -492,10 +509,9 @@ fun MainIndicatorCard(
             fontSize = 18.sp,
             fontWeight = FontWeight.Medium,
             color = Color(0xFF666666),
-            modifier = Modifier.padding(bottom = 24.dp)
+            modifier = Modifier.padding(bottom = 0.dp)
         )
-
-        // 메인 값 (애니메이션 적용)
+        // 메인 값 (애니메이션 적용) - 제목 바로 아래로 이동
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -514,10 +530,19 @@ fun MainIndicatorCard(
             AnimatedContent(
                 targetState = currentIndicator,
                 transitionSpec = {
-                    (slideInVertically { height -> height } + fadeIn()).togetherWith(
-                        slideOutVertically { height -> -height } + fadeOut()
+                    slideInVertically(
+                        animationSpec = tween(300),
+                        initialOffsetY = { height -> height }
+                    ).togetherWith(
+                        slideOutVertically(
+                            animationSpec = tween(300),
+                            targetOffsetY = { height -> -height }
+                        )
+                    ).using(
+                        SizeTransform(clip = true)
                     )
-                }
+                },
+                label = "indicator_animation"
             ) { indicator ->
                 val density = LocalDensity.current
                 CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
@@ -530,61 +555,90 @@ fun MainIndicatorCard(
                             } else {
                                 "${elapsedDays}일"
                             }
-                            Text(
-                                text = displayText,
-                                fontSize = 48.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1976D2),
-                                textAlign = TextAlign.Center
-                            )
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = displayText,
+                                    fontSize = 42.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF1976D2),
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
                         1 -> {
-                            Text(
-                                text = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds),
-                                fontSize = 42.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF388E3C),
-                                textAlign = TextAlign.Center
-                            )
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds),
+                                    fontSize = 42.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF388E3C),
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
                         2 -> {
-                            Text(
-                                text = String.format(Locale.getDefault(), "%,d원", savedMoney),
-                                fontSize = 36.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFFE91E63),
-                                textAlign = TextAlign.Center
-                            )
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = String.format(Locale.getDefault(), "%,d원", savedMoney),
+                                    fontSize = 42.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFE91E63),
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
                         3 -> {
-                            Text(
-                                text = "${savedHours}시간",
-                                fontSize = 42.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFFFF9800),
-                                textAlign = TextAlign.Center
-                            )
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "${savedHours}시간",
+                                    fontSize = 42.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFFF9800),
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
                         4 -> {
-                            Text(
-                                text = "${lifeGainDays}일",
-                                fontSize = 42.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF9C27B0),
-                                textAlign = TextAlign.Center
-                            )
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "${lifeGainDays}일",
+                                    fontSize = 42.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF9C27B0),
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
                     }
                 }
             }
         }
-
         // 터치 안내
         Text(
             text = "탭하여 다른 지표 보기",
             fontSize = 12.sp,
             color = Color(0xFF999999),
-            modifier = Modifier.padding(top = 16.dp)
+            modifier = Modifier.padding(top = 8.dp, bottom = 0.dp) // 불필요한 ��백 제거
         )
     }
 }
@@ -678,7 +732,7 @@ private fun saveCompletedRecord(
         }
 
         // 사용자에게 알림
-        val message = if (isCompleted) "금주 목표를 달성했습니다!" else "금주 기록이 저장되었습니다."
+        val message = if (isCompleted) "금주 목표를 달성했습니다!" else "��주 기록이 저장되었습니다."
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 
     } catch (e: Exception) {
@@ -693,7 +747,7 @@ private fun getLevelName(days: Int): String {
     return LevelDefinitions.getLevelName(days)
 }
 
-// Preview용 가짜 데이터를 사용하는 RunScreen 컴포넌트
+// Preview용 가짜 데이터�� 사용하는 RunScreen 컴포넌트
 @Composable
 fun RunScreenPreview(
     targetDays: Float = 30f,
@@ -745,25 +799,23 @@ fun RunScreenPreview(
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(20.dp), // 패딩 약간 증가
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // 첫 번째 행: 값들
+                    // StatCard들을 균등하게 배치
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.Top // 상단 정렬로 변경
                     ) {
-                        // 목표일
+                        // 목표일 카드
                         StatCard(
                             value = "$targetDays",
                             label = "목표일",
                             color = Color(0xFF2196F3)
                         )
 
-                        // 레벨
+                        // 레벨 카드
                         StatCard(
                             value = "새싹",
                             label = "Level",
@@ -771,7 +823,7 @@ fun RunScreenPreview(
                             isLevel = true
                         )
 
-                        // 진행 시간
+                        // 진행 ���간 카드
                         StatCard(
                             value = progressTimeText,
                             label = "시간",
@@ -787,7 +839,8 @@ fun RunScreenPreview(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(220.dp),
+                    .height(260.dp)
+                    .wrapContentSize(Alignment.Center),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = Color.White.copy(alpha = 0.95f)
@@ -941,7 +994,7 @@ fun RunScreenLargeFontPreview() {
 fun StatCardPreview() {
     Row(
         modifier = Modifier.padding(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.SpaceEvenly // SpaceEvenly로 변경
     ) {
         StatCard(
             value = "30.0",

@@ -318,6 +318,13 @@ fun DrawerMenu(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // 메뉴 위 Divider
+        Divider(
+            modifier = Modifier.fillMaxWidth(),
+            color = Color(0xFFE0E0E0),
+            thickness = 1.dp
+        )
+
         // 메인 메뉴 섹션
         Text(
             text = "메뉴",
@@ -370,6 +377,13 @@ fun DrawerMenu(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        // 설정 위 Divider
+        Divider(
+            modifier = Modifier.fillMaxWidth(),
+            color = Color(0xFFE0E0E0),
+            thickness = 1.dp
+        )
 
         // 설정 섹션
         Text(
