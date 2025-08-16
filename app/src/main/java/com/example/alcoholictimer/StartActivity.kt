@@ -3,10 +3,12 @@ package com.example.alcoholictimer
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -15,14 +17,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -46,6 +51,7 @@ class StartActivity : BaseActivity() {
 
     override fun getScreenTitle(): String = "금주 설정"
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun StartScreen() {
         val context = LocalContext.current
@@ -53,6 +59,7 @@ class StartActivity : BaseActivity() {
         val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
         val startTime = sharedPref.getLong("start_time", 0L)
         val timerCompleted = sharedPref.getBoolean("timer_completed", false)
+
         // 이미 금주가 진행 중이면 RunActivity로 이동
         if (startTime != 0L && !timerCompleted) {
             LaunchedEffect(Unit) {
@@ -69,8 +76,8 @@ class StartActivity : BaseActivity() {
         var textFieldValue by remember {
             mutableStateOf(
                 TextFieldValue(
-                    text = "5.0",
-                    selection = TextRange(0, 3) // 초기에 전체 선택
+                    text = "30",
+                    selection = TextRange(0, 2) // 초기에 전체 선택
                 )
             )
         }
@@ -93,168 +100,257 @@ class StartActivity : BaseActivity() {
             }
         }
 
+        // 모던한 그라데이션 배경 (RunActivity와 동일)
+        val backgroundBrush = Brush.linearGradient(
+            colors = listOf(
+                Color(0xFFF8F9FA),
+                Color(0xFFE3F2FD),
+                Color(0xFFF1F8E9)
+            ),
+            start = Offset(0f, 0f),
+            end = Offset(1000f, 1000f)
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(32.dp),
+                .background(backgroundBrush)
+                .padding(horizontal = 16.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Spacer(modifier = Modifier.height(0.dp))
-
-            // 상단 아이콘 (fontScale 고정)
-            CompositionLocalProvider(
-                LocalDensity provides Density(LocalDensity.current.density, 1f)
-            ) {
-                Text(
-                    text = "🍃",
-                    fontSize = 150.sp,
-                    modifier = Modifier.padding(bottom = 60.dp)
-                )
-            }
-
-            // 입력 영역
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.weight(1f)
             ) {
-                // 목표 입력 텍스트
-                Text(
-                    text = "목표 설정",
-                    fontSize = 24.sp,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(bottom = 24.dp)
-                )
+                Spacer(modifier = Modifier.height(40.dp))
 
-                // 커스텀 입력 필드 (3자리 숫자 넓이)
-                Box(
-                    modifier = Modifier.width(150.dp),
-                    contentAlignment = Alignment.Center
+                // 환영 메시지 카드
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White.copy(alpha = 0.95f)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
                 ) {
-                    Column {
-                        Box(
-                            modifier = Modifier.fillMaxWidth()
+                    Column(
+                        modifier = Modifier.padding(32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        // 이모지 아이콘
+                        CompositionLocalProvider(
+                            LocalDensity provides Density(LocalDensity.current.density, 1f)
                         ) {
-                            BasicTextField(
-                                value = textFieldValue,
-                                onValueChange = { newValue ->
-                                    // 소수점 입력을 허용하는 필터링
-                                    val filteredValue = newValue.text.filter { it.isDigit() || it == '.' }
-
-                                    // 소수점이 여러 개 있는지 검사
-                                    val dotCount = filteredValue.count { it == '.' }
-                                    val finalFilteredValue = if (dotCount <= 1) filteredValue else textFieldValue.text
-
-                                    if (isTextSelected && finalFilteredValue.isNotEmpty()) {
-                                        // 전체 선택 상태에서 새 숫자 입력 시 완전 교체
-                                        val finalText = if (finalFilteredValue.length > 1 && finalFilteredValue.startsWith("0") && !finalFilteredValue.startsWith("0.")) {
-                                            finalFilteredValue.substring(1)
-                                        } else {
-                                            finalFilteredValue
-                                        }
-                                        textFieldValue = TextFieldValue(
-                                            text = finalText,
-                                            selection = TextRange(finalText.length) // 커서를 끝으로 이동
-                                        )
-                                        isTextSelected = false // 선택 상태 해제
-                                    } else {
-                                        // 일반적인 편집
-                                        val finalText = if (finalFilteredValue.isEmpty()) {
-                                            "0"
-                                        } else if (finalFilteredValue.length > 1 && finalFilteredValue.startsWith("0") && !finalFilteredValue.startsWith("0.")) {
-                                            finalFilteredValue.substring(1)
-                                        } else {
-                                            finalFilteredValue
-                                        }
-                                        textFieldValue = TextFieldValue(
-                                            text = finalText,
-                                            selection = TextRange(finalText.length)
-                                        )
-                                        isTextSelected = false
-                                    }
-                                },
-                                textStyle = LocalTextStyle.current.copy(
-                                    fontSize = 48.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    textAlign = TextAlign.Center,
-                                    color = Color.Black
-                                ),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                singleLine = true,
-                                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 8.dp)
-                                    .onFocusChanged { focusState ->
-                                        isFocused = focusState.isFocused
-                                    }
+                            Text(
+                                text = "🌿",
+                                fontSize = 80.sp,
+                                modifier = Modifier.padding(bottom = 16.dp)
                             )
                         }
 
-                        // 밑줄 (얇고 검은색)
-                        Canvas(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(1.dp)
-                        ) {
-                            drawLine(
-                                color = Color.Black,
-                                start = Offset(0f, 0f),
-                                end = Offset(size.width, 0f),
-                                strokeWidth = 2.dp.toPx(),
-                                cap = StrokeCap.Square
-                            )
-                        }
+                        Text(
+                            text = "새로운 시작",
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF2E7D32),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+
+                        Text(
+                            text = "건강한 변화를 위한 첫걸음",
+                            fontSize = 16.sp,
+                            color = Color(0xFF666666),
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
 
-                // 단위 표시
-                Text(
-                    text = "일",
-                    fontSize = 20.sp,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(top = 16.dp)
-                )
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // 목표 설정 카드
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White.copy(alpha = 0.95f)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "목표 기간 설정",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF333333),
+                            modifier = Modifier.padding(bottom = 32.dp)
+                        )
+
+                        // 입력 필드 영역
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.padding(bottom = 24.dp)
+                        ) {
+                            // 커스텀 입력 필드
+                            Card(
+                                modifier = Modifier.width(120.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color(0xFFF5F5F5)
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    BasicTextField(
+                                        value = textFieldValue,
+                                        onValueChange = { newValue ->
+                                            // 소수점 입력을 허용하는 필터링
+                                            val filteredValue = newValue.text.filter { it.isDigit() || it == '.' }
+
+                                            // 소수점이 여러 개 있는지 검사
+                                            val dotCount = filteredValue.count { it == '.' }
+                                            val finalFilteredValue = if (dotCount <= 1) filteredValue else textFieldValue.text
+
+                                            if (isTextSelected && finalFilteredValue.isNotEmpty()) {
+                                                // 전체 선택 상태에서 새 숫자 입력 시 완전 교체
+                                                val finalText = if (finalFilteredValue.length > 1 && finalFilteredValue.startsWith("0") && !finalFilteredValue.startsWith("0.")) {
+                                                    finalFilteredValue.substring(1)
+                                                } else {
+                                                    finalFilteredValue
+                                                }
+                                                textFieldValue = TextFieldValue(
+                                                    text = finalText,
+                                                    selection = TextRange(finalText.length)
+                                                )
+                                                isTextSelected = false
+                                            } else {
+                                                // 일반적인 편집
+                                                val finalText = if (finalFilteredValue.isEmpty()) {
+                                                    "0"
+                                                } else if (finalFilteredValue.length > 1 && finalFilteredValue.startsWith("0") && !finalFilteredValue.startsWith("0.")) {
+                                                    finalFilteredValue.substring(1)
+                                                } else {
+                                                    finalFilteredValue
+                                                }
+                                                textFieldValue = TextFieldValue(
+                                                    text = finalText,
+                                                    selection = TextRange(finalText.length)
+                                                )
+                                                isTextSelected = false
+                                            }
+                                        },
+                                        textStyle = TextStyle(
+                                            fontSize = 32.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            textAlign = TextAlign.Center,
+                                            color = Color(0xFF1976D2)
+                                        ),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        singleLine = true,
+                                        cursorBrush = SolidColor(Color(0xFF1976D2)),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .onFocusChanged { focusState ->
+                                                isFocused = focusState.isFocused
+                                            }
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.width(16.dp))
+
+                            // 단위 표시
+                            Text(
+                                text = "일",
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color(0xFF666666)
+                            )
+                        }
+
+                        // 안내 메시지
+                        Text(
+                            text = "금주할 목표 기간을 입력해주세요",
+                            fontSize = 14.sp,
+                            color = Color(0xFF999999),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
             }
 
-            // 기존 고정 높이 Spacer를 제거하고 가변 Spacer로 변경하여 버튼을 하단에 고정
-            Spacer(modifier = Modifier.weight(1f))
-
-            // 플레이 버튼
-            FloatingActionButton(
-                onClick = {
+            // 시작 버튼 (하단 고정)
+            ModernStartButton(
+                isEnabled = isValid,
+                onStart = {
                     val targetTime = textFieldValue.text.toFloatOrNull() ?: 0f
                     if (targetTime > 0) {
-                        // 극소수점 값도 보존하도록 소수점 자리수 증가
                         val formattedTargetTime = String.format("%.6f", targetTime).toFloat()
-                        // Use formattedTargetTime for further processing
                         val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
                         sharedPref.edit().apply {
-                            putFloat("target_days", formattedTargetTime) // Float로 저장
+                            putFloat("target_days", formattedTargetTime)
                             putLong("start_time", System.currentTimeMillis())
                             putBoolean("timer_completed", false)
                             apply()
                         }
 
-                        // 디버깅 로그 추가
                         android.util.Log.d("StartActivity", "입력값: $targetTime")
                         android.util.Log.d("StartActivity", "포맷된 값: $formattedTargetTime")
 
                         val intent = Intent(context, RunActivity::class.java)
                         context.startActivity(intent)
                     }
-                },
-                modifier = Modifier.size(100.dp), // 버튼 크기 통일
-                shape = CircleShape,
-                containerColor = Color(0xFF8ABF33) // 시작버튼 색상 #8ABF33으로 변경
+                }
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+    }
+
+    @Composable
+    fun ModernStartButton(
+        isEnabled: Boolean,
+        onStart: () -> Unit,
+        modifier: Modifier = Modifier
+    ) {
+        Card(
+            onClick = { if (isEnabled) onStart() },
+            modifier = modifier.size(80.dp),
+            shape = CircleShape,
+            colors = CardDefaults.cardColors(
+                containerColor = if (isEnabled) Color(0xFF4CAF50) else Color(0xFFCCCCCC)
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = if (isEnabled) 8.dp else 2.dp
+            )
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize()
             ) {
                 Icon(
                     imageVector = Icons.Default.PlayArrow,
                     contentDescription = "시작",
-                    modifier = Modifier.size(70.dp),
-                    tint = Color.White
+                    tint = Color.White,
+                    modifier = Modifier.size(32.dp)
                 )
             }
-            Spacer(modifier = Modifier.height(64.dp))
         }
     }
 
@@ -275,13 +371,273 @@ class StartActivity : BaseActivity() {
         // 목표 입력은 항상 일수로 표시 (금주 진행은 실제 시간 기준)
         val timeUnitText = "금주 목표 일수"
     }
+}
 
-    @Preview(showBackground = true, name = "fontScale 1.0", fontScale = 1.0f)
-    @Preview(showBackground = true, name = "fontScale 2.0", fontScale = 2.0f)
-    @Composable
-    fun PreviewStartScreen() {
-        BaseScreen {
-            StartScreen()
+// Preview 컴포넌트들
+@Composable
+fun StartScreenPreview() {
+    var textFieldValue by remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = "30",
+                selection = TextRange(0, 2)
+            )
+        )
+    }
+
+    // 모던한 그라데이션 배경
+    val backgroundBrush = Brush.linearGradient(
+        colors = listOf(
+            Color(0xFFF8F9FA),
+            Color(0xFFE3F2FD),
+            Color(0xFFF1F8E9)
+        ),
+        start = Offset(0f, 0f),
+        end = Offset(1000f, 1000f)
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundBrush)
+            .padding(horizontal = 16.dp, vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.weight(1f)
+        ) {
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // 환영 메시지 카드
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White.copy(alpha = 0.95f)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "🌿",
+                        fontSize = 80.sp,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    Text(
+                        text = "새로운 시작",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF2E7D32),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    Text(
+                        text = "건강한 변화를 위한 첫걸음",
+                        fontSize = 16.sp,
+                        color = Color(0xFF666666),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // 목표 설정 카드
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White.copy(alpha = 0.95f)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "목표 기간 설정",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF333333),
+                        modifier = Modifier.padding(bottom = 32.dp)
+                    )
+
+                    // 입력 필드 영역
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(bottom = 24.dp)
+                    ) {
+                        // 커스텀 입력 필드
+                        Card(
+                            modifier = Modifier.width(120.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color(0xFFF5F5F5)
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "30",
+                                    fontSize = 32.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF1976D2),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Text(
+                            text = "일",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF666666)
+                        )
+                    }
+
+                    Text(
+                        text = "금주할 목표 기간을 입력해주세요",
+                        fontSize = 14.sp,
+                        color = Color(0xFF999999),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+
+        // 시작 버튼
+        Card(
+            modifier = Modifier.size(80.dp),
+            shape = CircleShape,
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFF4CAF50)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = "시작",
+                    tint = Color.White,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+    }
+}
+
+@Preview(
+    showBackground = true,
+    name = "StartScreen - 기본",
+    widthDp = 360,
+    heightDp = 800
+)
+@Composable
+fun StartScreenDefaultPreview() {
+    StartScreenPreview()
+}
+
+@Preview(
+    showBackground = true,
+    name = "StartScreen - 다크 모드",
+    widthDp = 360,
+    heightDp = 800,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
+)
+@Composable
+fun StartScreenDarkPreview() {
+    StartScreenPreview()
+}
+
+@Preview(
+    showBackground = true,
+    name = "StartScreen - 큰 폰트",
+    widthDp = 360,
+    heightDp = 800,
+    fontScale = 1.5f
+)
+@Composable
+fun StartScreenLargeFontPreview() {
+    StartScreenPreview()
+}
+
+@Preview(
+    showBackground = true,
+    name = "ModernStartButton Preview"
+)
+@Composable
+fun ModernStartButtonPreview() {
+    Row(
+        modifier = Modifier.padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // 활성화된 버튼
+        Card(
+            modifier = Modifier.size(80.dp),
+            shape = CircleShape,
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFF4CAF50)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = "시작",
+                    tint = Color.White,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+        }
+
+        // 비활성화된 버튼
+        Card(
+            modifier = Modifier.size(80.dp),
+            shape = CircleShape,
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFFCCCCCC)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = "시작",
+                    tint = Color.White,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
         }
     }
 }
