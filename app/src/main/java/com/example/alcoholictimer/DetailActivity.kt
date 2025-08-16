@@ -8,26 +8,26 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.sp
 import java.text.SimpleDateFormat
 import java.util.*
@@ -127,13 +127,13 @@ fun DetailScreen(
 
     // 날짜/시간 포맷
     val dateTimeFormat = SimpleDateFormat("yyyy-MM-dd - a h:mm", Locale.getDefault()).apply {
-        timeZone = java.util.TimeZone.getDefault()
+        timeZone = TimeZone.getDefault()
     }
     val displayDateTime = if (startTime > 0) {
         dateTimeFormat.format(Date(startTime))
     } else {
         "오늘 - ${SimpleDateFormat("a h:mm", Locale.getDefault()).apply {
-            timeZone = java.util.TimeZone.getDefault()
+            timeZone = TimeZone.getDefault()
         }.format(Date())}"
     }
 
@@ -216,271 +216,266 @@ fun DetailScreen(
     // 기대 수명 증가 계산 (소수점 표기)
     val lifeExpectancyIncrease = totalDays / 30.0
 
-    // 레벨에 따른 배경색
-    val backgroundColor = when {
-        actualDays < 7 -> Color(0xFFF5F5F5)
-        actualDays < 30 -> Color(0xFFFFF3CD)
-        actualDays < 90 -> Color(0xFFE7F3FF)
-        actualDays < 365 -> Color(0xFFE8F5E8)
-        else -> Color(0xFFFFF0DC)
-    }
-
-    Column(
+    // 모던한 그라데이션 배경
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
-            .padding(24.dp)
-    ) {
-        // 헤더 영역
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 0.dp, top = 24.dp), // 위쪽 패딩 24dp 추가
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 뒤로가기 버튼 (화살표 아이콘만)
-            Box(
-                contentAlignment = Alignment.CenterStart,
-                modifier = Modifier
-                    .size(40.dp)
-                    .clickable {
-                        onBack()
-                    }
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.ArrowBack,
-                    contentDescription = "뒤로가기",
-                    tint = Color.Black
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFFF8F9FA),
+                        Color(0xFFE9ECEF)
+                    )
                 )
-            }
-
-            // 타이틀 + 삭제 아이콘 그룹을 Row로 묶어서 최대 너비로 확장
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp)
+        ) {
+            // 헤더 영역
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 24.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val baseDensity = LocalDensity.current
-                val fixedFontDensity = Density(baseDensity.density, 1f)
-                CompositionLocalProvider(LocalDensity provides fixedFontDensity) {
-                    Text(
-                        text = "금주 기록 상세",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 8.dp) // 왼쪽 패딩 추가
-                    )
-                }
+                // 뒤로가기 버튼
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .padding(end = 0.dp)
-                        .size(40.dp) // 전체 클릭 영역 크기
-                        .clip(CircleShape) // 원형으로 클리핑하여 리플 효과도 원형으로 만듦
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .clickable { onBack() }
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.ArrowBack,
+                        contentDescription = "뒤로가기",
+                        tint = Color(0xFF2D3748),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                // 타이틀
+                Text(
+                    text = "금주 기록 상세",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF2D3748)
+                )
+
+                // 삭제 버튼
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
                         .clickable { showDeleteDialog = true }
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Delete,
                         contentDescription = "기록 삭제",
-                        tint = Color.Black,
-                        modifier = Modifier.size(30.dp) // 아이콘 자체 크기는 유지
+                        tint = Color(0xFFE53E3E),
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // 메인 정보 카드
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp)
+                ) {
+                    // 날짜 및 시간
+                    Text(
+                        text = displayDateTime,
+                        fontSize = 14.sp,
+                        color = Color(0xFF718096),
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // 기록 제목
+                    Text(
+                        text = recordTitle,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF2D3748)
+                    )
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    // 대형 숫자 표시
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = actualDays.toString(),
+                                fontSize = 64.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color(0xFF4299E1),
+                                lineHeight = 64.sp
+                            )
+                            Text(
+                                text = "일",
+                                fontSize = 18.sp,
+                                color = Color(0xFF718096),
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 통계 카드들
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                DetailStatCard(
+                    value = durationDisplay,
+                    label = "총 금주 기간",
+                    modifier = Modifier.weight(1f)
+                )
+                DetailStatCard(
+                    value = String.format(Locale.getDefault(), "%,d원", savedMoney),
+                    label = "절약한 금액",
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                DetailStatCard(
+                    value = "${savedHours}시간",
+                    label = "절약한 시간",
+                    modifier = Modifier.weight(1f)
+                )
+                DetailStatCard(
+                    value = String.format(Locale.getDefault(), "%.1f%%", achievementRate),
+                    label = "목표 달성률",
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                DetailStatCard(
+                    value = getLevelName(actualDays),
+                    label = "달성 레벨",
+                    modifier = Modifier.weight(1f)
+                )
+                DetailStatCard(
+                    value = String.format(Locale.getDefault(), "%.1f일", lifeExpectancyIncrease),
+                    label = "기대 수명 증가",
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
         }
 
         // 삭제 경고 다이얼로그
         if (showDeleteDialog) {
-            val baseDensity = LocalDensity.current
-            val fixedFontDensity = Density(baseDensity.density, 1f)
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
-                title = { Text("기록 삭제") },
-                text = { Text("정말로 이 금주 기록을 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.") },
+                title = {
+                    Text(
+                        "기록 삭제",
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF2D3748)
+                    )
+                },
+                text = {
+                    Text(
+                        "정말로 이 금주 기록을 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.",
+                        color = Color(0xFF4A5568)
+                    )
+                },
                 confirmButton = {
-                    CompositionLocalProvider(LocalDensity provides fixedFontDensity) {
-                        TextButton(onClick = {
-                            // 다이얼로그 먼저 닫기
+                    TextButton(
+                        onClick = {
                             showDeleteDialog = false
-                            // 삭제 실행
                             try {
                                 deleteRecord(context, startTime, endTime)
                             } catch (e: Exception) {
                                 Log.e("DetailActivity", "삭제 중 오류", e)
                             }
-                            // 즉시 액티비티 종료
                             (context as? DetailActivity)?.finish()
-                        }) {
-                            Text("삭제", color = Color.Red)
                         }
+                    ) {
+                        Text("삭제", color = Color(0xFFE53E3E), fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {
-                    CompositionLocalProvider(LocalDensity provides fixedFontDensity) {
-                        TextButton(onClick = { showDeleteDialog = false }) {
-                            Text("취소")
-                        }
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text("취소", color = Color(0xFF718096))
                     }
-                }
+                },
+                containerColor = Color.White,
+                shape = RoundedCornerShape(16.dp)
             )
         }
-
-        // 구분선 추가
-        Spacer(modifier = Modifier.height(16.dp))
-        Divider(
-            modifier = Modifier.fillMaxWidth(),
-            thickness = 1.dp,
-            color = Color(0xFFE0E0E0)
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // 날짜 및 시간
-        Text(
-            text = displayDateTime,
-            fontSize = 16.sp,
-            color = Color.Gray,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // 기록 제목
-        Text(
-            text = recordTitle,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // 기록 제목 아래 구분선 추가
-        Spacer(modifier = Modifier.height(16.dp))
-        Divider(
-            modifier = Modifier.fillMaxWidth(),
-            thickness = 1.dp,
-            color = Color(0xFFE0E0E0)
-        )
-
-        Spacer(modifier = Modifier.height(40.dp))
-
-        // 주요 통계 영역 - 트로피 아이콘 부분 제거
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start // SpaceBetween에서 Start로 변경
-        ) {
-            // 대형 숫자만 표시 (오른쪽 트로피 아이콘 제거)
-            Column(
-                horizontalAlignment = Alignment.Start
-            ) {
-                val baseDensity = LocalDensity.current
-                val fixedFontDensity = Density(baseDensity.density, 1f)
-                CompositionLocalProvider(LocalDensity provides fixedFontDensity) {
-                    Text(
-                        text = actualDays.toString(),
-                        fontSize = 72.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black,
-                        lineHeight = 72.sp,
-                        modifier = Modifier.padding(start = 0.dp) // 왼쪽 패딩 추가
-                    )
-                    Text(
-                        text = "일",
-                        fontSize = 16.sp,
-                        color = Color.Gray,
-                        modifier = Modifier.padding(start = 0.dp) // 왼쪽 패딩 추가
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // 서브 통계 (2줄 배치)
-        Column {
-            // 첫 번째 줄
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                SubStatItem(
-                    value = durationDisplay,
-                    label = "총 금주 기간",
-                    modifier = Modifier.weight(1f)
-                )
-                SubStatItem(
-                    value = String.format("%,d원", savedMoney),
-                    label = "절약한 금액",
-                    modifier = Modifier.weight(1.3f)
-                )
-                SubStatItem(
-                    value = "${savedHours}시간",
-                    label = "절약한 시간",
-                    modifier = Modifier.weight(0.7f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // 두 번째 줄
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                SubStatItem(
-                    value = String.format("%.1f%%", achievementRate),
-                    label = "목표 달성률",
-                    modifier = Modifier.weight(1f)
-                )
-                SubStatItem(
-                    value = getLevelName(actualDays),
-                    label = "달성 레벨",
-                    modifier = Modifier.weight(1.3f)
-                )
-                SubStatItem(
-                    value = String.format("%.1f일", lifeExpectancyIncrease),
-                    label = "기대 수명 증가",
-                    modifier = Modifier.weight(0.7f)
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        // 확인 버튼 제거 - 하단 여백만 유지
-        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
 @Composable
-fun SubStatItem(
+fun DetailStatCard(
     value: String,
     label: String,
-    modifier: Modifier = Modifier,
-    alignEnd: Boolean = false // 정렬 방향 파라미터 추가
+    modifier: Modifier = Modifier
 ) {
-    Column(
+    Card(
         modifier = modifier,
-        horizontalAlignment = if (alignEnd) Alignment.End else Alignment.Start // 정렬 방향 선택
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        val baseDensity = LocalDensity.current
-        val fixedFontDensity = Density(baseDensity.density, 1f)
-        CompositionLocalProvider(LocalDensity provides fixedFontDensity) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(
                 text = value,
-                fontSize = 18.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black,
-                textAlign = if (alignEnd) TextAlign.End else TextAlign.Start // 정렬 방향 선택
+                color = Color(0xFF2D3748),
+                textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = label,
                 fontSize = 12.sp,
-                color = Color.Gray,
-                textAlign = if (alignEnd) TextAlign.End else TextAlign.Start // 정렬 방향 선택
+                color = Color(0xFF718096),
+                textAlign = TextAlign.Center,
+                lineHeight = 14.sp
             )
         }
     }
