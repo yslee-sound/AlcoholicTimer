@@ -53,6 +53,7 @@ class StartActivity : BaseActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
+    // private 을 삭제함 - 영석
     private fun StartScreen() {
         val context = LocalContext.current
         // SharedPreferences에서 금주 진행 여부 확인
@@ -336,6 +337,7 @@ class StartActivity : BaseActivity() {
 }
 
 // Preview 컴포넌트들
+
 @Composable
 fun StartScreenPreview() {
     var textFieldValue by remember {

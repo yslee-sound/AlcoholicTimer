@@ -139,7 +139,9 @@ fun QuitScreen() {
                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(32.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     // 이모지 아이콘
@@ -237,7 +239,7 @@ fun QuitScreen() {
             )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(100.dp))
     }
 }
 
@@ -304,8 +306,8 @@ fun StatisticsCardsSection(
                 modifier = Modifier.weight(1f)
             )
             ModernStatCard(
-                value = "+${lifeGainDays}일",
-                label = "기대 수명",
+                value = "${lifeGainDays}일",
+                label = "기대 수명+",
                 color = Color(0xFF9C27B0),
                 modifier = Modifier.weight(1f)
             )
@@ -477,6 +479,12 @@ private fun saveCompletedRecord(
 // 레벨명 함수
 private fun getLevelName(days: Int): String {
     return LevelDefinitions.getLevelName(days)
+}
+
+@Preview(showBackground = true)
+@Composable
+fun QuitScreenAuto() {
+    QuitScreen()
 }
 
 @Preview(showBackground = true, name = "QuitScreen fontScale 1.0", fontScale = 1.0f)

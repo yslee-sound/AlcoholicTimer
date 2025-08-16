@@ -397,6 +397,7 @@ fun RunScreen() {
                 context.startActivity(intent)
             }
         )
+        Spacer(modifier = Modifier.height(100.dp))
     }
 }
 
@@ -758,6 +759,12 @@ private fun saveCompletedRecord(
 // 레벨명 함수 (기존 ���벨 테이블 기준)
 private fun getLevelName(days: Int): String {
     return LevelDefinitions.getLevelName(days)
+}
+
+@Preview(showBackground = true)
+@Composable
+fun RunScreenAuto() {
+    RunScreen()
 }
 
 // Preview용 가짜 데이터�� 사용하는 RunScreen 컴포넌트
