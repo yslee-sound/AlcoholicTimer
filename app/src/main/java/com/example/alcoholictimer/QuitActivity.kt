@@ -34,6 +34,8 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONArray
 import org.json.JSONObject
@@ -198,56 +200,59 @@ fun QuitScreen() {
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 중지 버튼 (RunActivity와 완전히 동일한 구조)
-            var isLongPressing by remember { mutableStateOf(false) }
+            // 중지 버튼
+            var isPressed by remember { mutableStateOf(false) }
+            val coroutineScope = rememberCoroutineScope()
 
             Card(
-                onClick = {
-                    if (!isLongPressing) {
-                        Toast.makeText(context, "중지하려면 길게 누르세요", Toast.LENGTH_SHORT).show()
-                    }
-                },
                 modifier = Modifier
                     .size(80.dp)
                     .pointerInput(Unit) {
                         awaitEachGesture {
                             val down = awaitFirstDown()
-                            isLongPressing = false
+                            isPressed = true
+                            val downTime = System.currentTimeMillis()
+                            Log.d("QuitActivity", "터치 시작: $downTime")
 
-                            val longPressResult = withTimeoutOrNull(1000L) { // 1초 롱프레스
+                            // 3초 동안 기다리면서, 손을 떼면 중단, 3초가 지나면 자동 실행
+                            val result = withTimeoutOrNull(3000L) {
                                 waitForUpOrCancellation()
                             }
 
-                            if (longPressResult == null) {
-                                // 롱프레스 성공
-                                isLongPressing = true
+                            isPressed = false
+                            val upTime = System.currentTimeMillis()
+                            val duration = upTime - downTime
 
-                                // 금주 중지 로직
-                                saveCompletedRecord(
-                                    context = context,
-                                    startTime = startTime,
-                                    endTime = System.currentTimeMillis(),
-                                    targetDays = targetDays,
-                                    actualDays = elapsedDays
-                                )
-
-                                // SharedPreferences 초기화
-                                sharedPref.edit {
-                                    remove("start_time")
-                                    putBoolean("timer_completed", true)
+                            if (result == null) {
+                                // 3초가 지났음 (타임아웃 발생) - 자동으로 중지 처리
+                                Log.d("QuitActivity", "3초 지났음 - 자동 중지 처리 시작")
+                                coroutineScope.launch {
+                                    saveCompletedRecord(
+                                        context = context,
+                                        startTime = startTime,
+                                        endTime = System.currentTimeMillis(),
+                                        targetDays = targetDays,
+                                        actualDays = elapsedDays
+                                    )
+                                    sharedPref.edit {
+                                        remove("start_time")
+                                        putBoolean("timer_completed", true)
+                                    }
+                                    val intent = Intent(context, StartActivity::class.java)
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                                    context.startActivity(intent)
+                                    (context as? QuitActivity)?.finish()
                                 }
-
-                                // StartActivity로 이동
-                                val intent = Intent(context, StartActivity::class.java)
-                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                                context.startActivity(intent)
-                                (context as? QuitActivity)?.finish()
+                            } else {
+                                // 3초 전에 손을 뗐음
+                                Log.d("QuitActivity", "3초 전에 손을 뗐음: ${duration}ms")
+                                Toast.makeText(context, "3초간 계속 눌러야 종료됩니다 (현재: ${String.format("%.1f", duration/1000f)}초)", Toast.LENGTH_SHORT).show()
                             }
                         }
                     },
                 shape = CircleShape,
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFE53935)
+                    containerColor = if (isPressed) Color(0xFFD32F2F) else Color(0xFFE53935)
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
@@ -769,6 +774,7 @@ fun ModernStatCardPreview() {
 @Preview(showBackground = true, name = "ModernControlButton Preview")
 @Composable
 fun ModernControlButtonPreview() {
+    val scope = rememberCoroutineScope()
     Row(
         modifier = Modifier.padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -776,12 +782,20 @@ fun ModernControlButtonPreview() {
         ModernControlButton(
             icon = Icons.Default.Close,
             backgroundColor = Color(0xFFE53935),
-            contentDescription = "중지"
+            contentDescription = "중지",
+            onClick = {
+                scope.launch {
+                    delay(3000)
+                    // 여기에 중지 동작을 넣으세요 (예: Log, Toast 등)
+                    println("중지 버튼 동작 실행됨")
+                }
+            }
         )
         ModernControlButton(
             icon = Icons.Default.PlayArrow,
             backgroundColor = Color(0xFF4CAF50),
             contentDescription = "계속"
+            // onClick 필요시 추가
         )
     }
 }
