@@ -2,32 +2,33 @@ package com.example.alcoholictimer
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.alcoholictimer.LevelDefinitions
-import com.example.alcoholictimer.utils.SobrietyRecord
+import com.example.alcoholictimer.utils.Constants
 
 class LevelActivity : BaseActivity() {
 
@@ -44,135 +45,318 @@ class LevelActivity : BaseActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun LevelScreen(
-        currentDays: Int = 0, // 기본값을 0으로 변경
-        onBack: (() -> Unit)? = null
-    ) {
+    private fun LevelScreen() {
         val context = LocalContext.current
-        // 기록 불러오기
-        val records = remember {
-            try {
-                val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
-                val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
-                SobrietyRecord.fromJsonArray(recordsJson)
-            } catch (e: Exception) {
-                // Preview 환경에서는 빈 리스트 반환
-                emptyList()
-            }
-        }
-        // 전체 달성 일수 계산 - 모든 기록의 actualDays를 합산
-        val totalDays = records.sumOf { it.actualDays }
 
-        // 현재 레벨 인덱스 계산 (안전한 방식)
-        val currentLevelIndex = remember(totalDays) {
-            levels.indexOfFirst { totalDays in it.start..it.end }.coerceAtLeast(0)
-        }
+        // SharedPreferences에서 현재 진행 상황 가져오기
+        val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
+        val startTime = sharedPref.getLong("start_time", 0L)
+        val currentTime = System.currentTimeMillis()
+        val elapsedTime = if (startTime > 0) currentTime - startTime else 0L
 
-        // 레벨 산정 예시 (단순화)
-        val currentLevel = levels[currentLevelIndex]
-        val nextLevel = levels.getOrNull(currentLevelIndex + 1)
-        val daysToNext = nextLevel?.start?.minus(totalDays) ?: 0
-        val progress = when {
-            totalDays < currentLevel.start -> 0f
-            totalDays > currentLevel.end -> 1f
-            else -> (totalDays - currentLevel.start).toFloat() / (currentLevel.end - currentLevel.start + 1)
-        }
+        // 레벨 계산용 일수 (테스트 모드 적용)
+        val levelDays = Constants.calculateLevelDays(elapsedTime)
+        val currentLevel = getCurrentLevel(levelDays)
+
+        // 모던한 그라데이션 배경 (StartActivity와 동일)
+        val backgroundBrush = Brush.linearGradient(
+            colors = listOf(
+                Color(0xFFF8F9FA),
+                Color(0xFFE3F2FD),
+                Color(0xFFF1F8E9)
+            ),
+            start = Offset(0f, 0f),
+            end = Offset(1000f, 1000f)
+        )
 
         Column(
-            modifier = Modifier.fillMaxSize().background(Color.White)
+            modifier = Modifier
+                .fillMaxSize()
+                .background(backgroundBrush)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 현재 레벨 영역 (상단 1/3)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.33f)
-                    .background(Color.White), // 배경을 흰색으로 변경
-                contentAlignment = Alignment.Center
+            // 현재 레벨 카드
+            CurrentLevelCard(currentLevel = currentLevel, currentDays = levelDays)
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 전체 레벨 목록
+            LevelListCard(currentLevel = currentLevel, currentDays = levelDays)
+
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+    }
+
+    @Composable
+    private fun CurrentLevelCard(currentLevel: Level, currentDays: Int) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White.copy(alpha = 0.95f)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                // 레벨 아이콘
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Brush.radialGradient(
+                                colors = listOf(
+                                    currentLevel.color.copy(alpha = 0.8f),
+                                    currentLevel.color
+                                )
+                            )
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
                     CompositionLocalProvider(
                         LocalDensity provides Density(LocalDensity.current.density, 1f)
                     ) {
                         Text(
-                            text = currentLevel.name,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Black
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    LinearProgressIndicator(
-                        progress = { progress },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 22.dp)
-                            .height(10.dp)
-                            .clip(RoundedCornerShape(5.dp)), // 모서리 둥글게
-                        color = currentLevel.color, // 레벨별 색상
-                        trackColor = Color(0xFFE0E0E0) // 배경을 연한 회색으로 명확하게 지정
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    if (nextLevel != null) {
-                        Text(
-                            text = "다음 레벨까지 ${daysToNext}일 남음",
-                            fontSize = 16.sp,
-                            color = Color.Black
-                        )
-                    } else {
-                        Text(
-                            text = "최고 레벨 달성!",
-                            fontSize = 16.sp,
-                            color = Color.Black
+                            text = currentLevel.emoji,
+                            fontSize = 48.sp
                         )
                     }
                 }
-            }
-            // 구분선
-            HorizontalDivider(
-                modifier = Modifier.fillMaxWidth().height(2.dp).background(Color.LightGray)
-            )
-            // 전체 레벨 리스트 (하단 2/3)
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()).weight(1f)
-            ) {
-                Spacer(modifier = Modifier.height(16.dp)) // 첫 레벨 위에 여백 추가
-                levels.forEachIndexed { idx, level ->
-                    val isAchieved = idx <= currentLevelIndex
-                    LevelCard(
-                        level = level,
-                        currentDays = totalDays, // currentDays 대신 totalDays 사용
-                        enabled = isAchieved
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 현재 레벨 텍스트
+                Text(
+                    text = "현재 레벨",
+                    fontSize = 16.sp,
+                    color = Color(0xFF666666),
+                    fontWeight = FontWeight.Medium
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = currentLevel.name,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = currentLevel.color,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 진행 일수
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "$currentDays",
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1976D2)
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text(
+                        text = "일째",
+                        fontSize = 18.sp,
+                        color = Color(0xFF666666),
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 레벨 설명
+                Text(
+                    text = currentLevel.description,
+                    fontSize = 14.sp,
+                    color = Color(0xFF888888),
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp
+                )
+
+                // 다음 레벨까지의 진행률
+                val nextLevel = getNextLevel(currentLevel)
+                if (nextLevel != null) {
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    val progress = if (nextLevel.requiredDays > currentLevel.requiredDays) {
+                        val progressInLevel = currentDays - currentLevel.requiredDays
+                        val totalNeeded = nextLevel.requiredDays - currentLevel.requiredDays
+                        if (totalNeeded > 0) (progressInLevel.toFloat() / totalNeeded.toFloat()).coerceIn(0f, 1f) else 0f
+                    } else 0f
+
+                    ProgressToNextLevel(
+                        nextLevel = nextLevel,
+                        progress = progress,
+                        remainingDays = (nextLevel.requiredDays - currentDays).coerceAtLeast(0)
+                    )
                 }
             }
         }
     }
 
     @Composable
-    fun LevelCard(level: LevelDefinitions.LevelInfo, currentDays: Int, enabled: Boolean) {
-        val isCurrent = currentDays in level.start..level.end
-        val dateText = if (level.name == "절제의 레전드") "1년 이상" else "${level.start}~${level.end}일"
+    private fun ProgressToNextLevel(nextLevel: Level, progress: Float, remainingDays: Int) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "다음 레벨까지",
+                fontSize = 14.sp,
+                color = Color(0xFF666666),
+                fontWeight = FontWeight.Medium
+            )
 
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 진행률 바
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(Color(0xFFE0E0E0))
+            ) {
+                val animatedProgress by animateFloatAsState(
+                    targetValue = progress,
+                    animationSpec = tween(durationMillis = 1000)
+                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(animatedProgress)
+                        .background(
+                            Brush.horizontalGradient(
+                                colors = listOf(
+                                    nextLevel.color.copy(alpha = 0.7f),
+                                    nextLevel.color
+                                )
+                            )
+                        )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "${(progress * 100).toInt()}%",
+                    fontSize = 12.sp,
+                    color = Color(0xFF999999)
+                )
+
+                Text(
+                    text = "${remainingDays}일 남음",
+                    fontSize = 12.sp,
+                    color = Color(0xFF999999)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CompositionLocalProvider(
+                    LocalDensity provides Density(LocalDensity.current.density, 1f)
+                ) {
+                    Text(
+                        text = nextLevel.emoji,
+                        fontSize = 20.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    text = nextLevel.name,
+                    fontSize = 14.sp,
+                    color = nextLevel.color,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun LevelListCard(currentLevel: Level, currentDays: Int) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .shadow(
-                    elevation = if (isCurrent) 8.dp else 4.dp,
-                    shape = RoundedCornerShape(16.dp)
-                ),
+                .padding(vertical = 8.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White.copy(alpha = 0.95f)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp)
+            ) {
+                Text(
+                    text = "전체 레벨",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF333333),
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
+
+                levelDefinitions.forEach { level ->
+                    LevelItem(
+                        level = level,
+                        isCurrent = level == currentLevel,
+                        isAchieved = currentDays >= level.requiredDays,
+                        isNext = level == getNextLevel(currentLevel)
+                    )
+
+                    if (level != levelDefinitions.last()) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun LevelItem(
+        level: Level,
+        isCurrent: Boolean,
+        isAchieved: Boolean,
+        isNext: Boolean
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
-                containerColor = if (enabled) {
-                    Color.White
-                } else {
-                    Color(0xFFF8F9FA)
+                containerColor = when {
+                    isCurrent -> level.color.copy(alpha = 0.1f)
+                    isAchieved -> Color(0xFFF5F5F5)
+                    isNext -> Color(0xFFFFF8E1)
+                    else -> Color(0xFFFAFAFA)
                 }
             ),
             border = if (isCurrent) {
-                BorderStroke(2.dp, level.color)
-            } else null
+                androidx.compose.foundation.BorderStroke(2.dp, level.color)
+            } else null,
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = if (isCurrent) 4.dp else 2.dp
+            )
         ) {
             Row(
                 modifier = Modifier
@@ -186,26 +370,39 @@ class LevelActivity : BaseActivity() {
                         .size(48.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(
-                            if (enabled) level.color else Color(0xFFE0E0E0)
+                            if (isAchieved) {
+                                Brush.radialGradient(
+                                    colors = listOf(
+                                        level.color.copy(alpha = 0.8f),
+                                        level.color
+                                    )
+                                )
+                            } else {
+                                Brush.radialGradient(
+                                    colors = listOf(
+                                        Color(0xFFE0E0E0),
+                                        Color(0xFFBDBDBD)
+                                    )
+                                )
+                            }
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    CompositionLocalProvider(
-                        LocalDensity provides Density(LocalDensity.current.density, 1f)
-                    ) {
-                        if (isCurrent) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = "현재 레벨",
-                                tint = Color.White,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        } else {
+                    if (isCurrent) {
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = "현재 레벨",
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    } else {
+                        CompositionLocalProvider(
+                            LocalDensity provides Density(LocalDensity.current.density, 1f)
+                        ) {
                             Text(
-                                text = (levels.indexOf(level) + 1).toString(),
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (enabled) Color.White else Color.Gray
+                                text = level.emoji,
+                                fontSize = 24.sp,
+                                color = if (isAchieved) Color.White else Color(0xFF757575)
                             )
                         }
                     }
@@ -213,64 +410,577 @@ class LevelActivity : BaseActivity() {
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                // 텍스트 영역
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = level.name,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (enabled) Color.Black else Color.Gray
-                    )
+                // 레벨 정보
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = level.name,
+                            fontSize = 16.sp,
+                            fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isAchieved) level.color else Color(0xFF757575)
+                        )
+
+                        if (isCurrent) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = level.color
+                            ) {
+                                Text(
+                                    text = "현재",
+                                    fontSize = 12.sp,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                )
+                            }
+                        } else if (isNext) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color(0xFFFF9800)
+                            ) {
+                                Text(
+                                    text = "다음",
+                                    fontSize = 12.sp,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(4.dp))
+
                     Text(
-                        text = dateText,
+                        text = "${level.requiredDays}일 달성",
                         fontSize = 14.sp,
-                        color = if (enabled) Color(0xFF6B7280) else Color.Gray
+                        color = Color(0xFF666666)
                     )
 
-                    if (isCurrent) {
-                        Spacer(modifier = Modifier.height(4.dp))
+                    if (level.description.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = "현재 진행 중",
+                            text = level.description,
                             fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = level.color
+                            color = Color(0xFF888888),
+                            lineHeight = 16.sp
                         )
                     }
                 }
 
-                // 상태 아이콘
-                if (enabled && !isCurrent) {
-                    Box(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(Color(0xFF10B981)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CompositionLocalProvider(
-                            LocalDensity provides Density(LocalDensity.current.density, 1f)
-                        ) {
-                            Text(
-                                text = "✓",
-                                fontSize = 12.sp,
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
+                // 달성 상태 아이콘
+                if (isAchieved) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "달성 완료",
+                        tint = level.color,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = "미달성",
+                        tint = Color(0xFFBDBDBD),
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
             }
         }
     }
 
-    // 새로운 레벨 색상 적용
-    private val levels = LevelDefinitions.levels
+    // 레벨 데이터 클래스
+    data class Level(
+        val name: String,
+        val requiredDays: Int,
+        val emoji: String,
+        val color: Color,
+        val description: String
+    )
+
+    // 레벨 정의
+    private val levelDefinitions = listOf(
+        Level("새싹", 0, "🌱", Color(0xFF4CAF50), "금주 여행의 시작"),
+        Level("새잎", 1, "🍃", Color(0xFF66BB6A), "첫 걸음을 내딛었습니다"),
+        Level("꽃봉오리", 3, "🌿", Color(0xFF81C784), "조금씩 변화가 시작됩니다"),
+        Level("꽃", 7, "🌸", Color(0xFFE91E63), "일주일의 성취"),
+        Level("나무", 14, "🌳", Color(0xFF4CAF50), "2주간의 꾸준함"),
+        Level("열매", 21, "🍎", Color(0xFFFF5722), "3주간의 결실"),
+        Level("숲", 30, "🌲", Color(0xFF2E7D32), "한 달의 위대한 성취"),
+        Level("산", 60, "⛰️", Color(0xFF795548), "두 달의 굳건함"),
+        Level("바다", 90, "🌊", Color(0xFF2196F3), "세 달의 깊이"),
+        Level("구름", 120, "☁️", Color(0xFF607D8B), "네 달의 고요함"),
+        Level("별", 180, "⭐", Color(0xFFFFD700), "여섯 달의 빛남"),
+        Level("달", 270, "🌙", Color(0xFF9C27B0), "아홉 달의 완성"),
+        Level("태양", 365, "☀️", Color(0xFFFF9800), "일 년의 찬란함")
+    )
+
+    // 현재 레벨 계산
+    private fun getCurrentLevel(days: Int): Level {
+        return levelDefinitions.findLast { it.requiredDays <= days } ?: levelDefinitions.first()
+    }
+
+    // 다음 레벨 계산
+    private fun getNextLevel(currentLevel: Level): Level? {
+        val currentIndex = levelDefinitions.indexOf(currentLevel)
+        return if (currentIndex < levelDefinitions.size - 1) {
+            levelDefinitions[currentIndex + 1]
+        } else null
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 테스트 모드 설정 업데이트
+        val testModePrefs = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE)
+        val currentTestMode = testModePrefs.getInt(Constants.PREF_TEST_MODE, Constants.TEST_MODE_REAL)
+        Constants.updateTestMode(currentTestMode)
+    }
 }
 
-@Preview(showBackground = true, name = "FontScale 1.0", fontScale = 1.0f)
-@Preview(showBackground = true, name = "FontScale 2.0", fontScale = 2.0f)
+// Preview용 레벨 데이터 클래스 (클래스 외부에서 사용)
+data class PreviewLevel(
+    val name: String,
+    val requiredDays: Int,
+    val emoji: String,
+    val color: Color,
+    val description: String
+)
+
+// Preview 컴포넌트들
+@Preview(
+    showBackground = true,
+    name = "LevelScreen - 기본",
+    widthDp = 360,
+    heightDp = 800
+)
 @Composable
-fun PreviewLevelScreen() {
-    LevelActivity().LevelScreen(currentDays = 15)
+fun LevelScreenPreview() {
+    // Preview용 실제 컴포넌트 구현
+    val backgroundBrush = Brush.linearGradient(
+        colors = listOf(
+            Color(0xFFF8F9FA),
+            Color(0xFFE3F2FD),
+            Color(0xFFF1F8E9)
+        ),
+        start = Offset(0f, 0f),
+        end = Offset(1000f, 1000f)
+    )
+
+    // Preview용 레벨 데이터
+    val sampleLevel = PreviewLevel("꽃", 7, "🌸", Color(0xFFE91E63), "일주일의 성취")
+    val currentDays = 5
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundBrush)
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 현재 레벨 카드 Preview
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White.copy(alpha = 0.95f)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // 레벨 아이콘
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Brush.radialGradient(
+                                colors = listOf(
+                                    sampleLevel.color.copy(alpha = 0.8f),
+                                    sampleLevel.color
+                                )
+                            )
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = sampleLevel.emoji,
+                        fontSize = 48.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = "현재 레벨",
+                    fontSize = 16.sp,
+                    color = Color(0xFF666666),
+                    fontWeight = FontWeight.Medium
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = sampleLevel.name,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = sampleLevel.color,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "$currentDays",
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1976D2)
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text(
+                        text = "일째",
+                        fontSize = 18.sp,
+                        color = Color(0xFF666666),
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = sampleLevel.description,
+                    fontSize = 14.sp,
+                    color = Color(0xFF888888),
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 진행률 바 Preview
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "다음 레벨까지",
+                        fontSize = 14.sp,
+                        color = Color(0xFF666666),
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(Color(0xFFE0E0E0))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(0.7f)
+                                .background(
+                                    Brush.horizontalGradient(
+                                        colors = listOf(
+                                            Color(0xFF4CAF50).copy(alpha = 0.7f),
+                                            Color(0xFF4CAF50)
+                                        )
+                                    )
+                                )
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "70%",
+                            fontSize = 12.sp,
+                            color = Color(0xFF999999)
+                        )
+
+                        Text(
+                            text = "2일 남음",
+                            fontSize = 12.sp,
+                            color = Color(0xFF999999)
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // 전체 레벨 목록 Preview (축약 버전)
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White.copy(alpha = 0.95f)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp)
+            ) {
+                Text(
+                    text = "전체 레벨",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF333333),
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
+
+                // 샘플 레벨 아이템들
+                listOf(
+                    Triple(PreviewLevel("새싹", 0, "🌱", Color(0xFF4CAF50), "금주 여행의 시작"), true, false),
+                    Triple(PreviewLevel("새잎", 1, "🍃", Color(0xFF66BB6A), "첫 걸음을 내딛었습니다"), true, false),
+                    Triple(PreviewLevel("꽃봉오리", 3, "🌿", Color(0xFF81C784), "조금씩 변화가 시작됩니다"), true, false),
+                    Triple(PreviewLevel("꽃", 7, "🌸", Color(0xFFE91E63), "일주일의 성취"), true, true),
+                    Triple(PreviewLevel("나무", 14, "🌳", Color(0xFF4CAF50), "2주간의 꾸준함"), false, true)
+                ).forEach { (level, isAchieved, isCurrent) ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = when {
+                                isCurrent -> level.color.copy(alpha = 0.1f)
+                                isAchieved -> Color(0xFFF5F5F5)
+                                else -> Color(0xFFFAFAFA)
+                            }
+                        ),
+                        border = if (isCurrent) {
+                            androidx.compose.foundation.BorderStroke(2.dp, level.color)
+                        } else null,
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = if (isCurrent) 4.dp else 2.dp
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(
+                                        if (isAchieved) {
+                                            Brush.radialGradient(
+                                                colors = listOf(
+                                                    level.color.copy(alpha = 0.8f),
+                                                    level.color
+                                                )
+                                            )
+                                        } else {
+                                            Brush.radialGradient(
+                                                colors = listOf(
+                                                    Color(0xFFE0E0E0),
+                                                    Color(0xFFBDBDBD)
+                                                )
+                                            )
+                                        }
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (isCurrent) {
+                                    Icon(
+                                        imageVector = Icons.Default.Star,
+                                        contentDescription = "현재 레벨",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                } else {
+                                    Text(
+                                        text = level.emoji,
+                                        fontSize = 20.sp,
+                                        color = if (isAchieved) Color.White else Color(0xFF757575)
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Column(
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(
+                                    text = level.name,
+                                    fontSize = 16.sp,
+                                    fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (isAchieved) level.color else Color(0xFF757575)
+                                )
+                                Text(
+                                    text = "${level.requiredDays}일 달성",
+                                    fontSize = 12.sp,
+                                    color = Color(0xFF666666)
+                                )
+                            }
+
+                            if (isAchieved) {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = "달성 완료",
+                                    tint = level.color,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Lock,
+                                    contentDescription = "미달성",
+                                    tint = Color(0xFFBDBDBD),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    if (level.name != "나무") {
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Preview(
+    showBackground = true,
+    name = "LevelScreen - 다크 모드",
+    widthDp = 360,
+    heightDp = 800,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
+)
+@Composable
+fun LevelScreenDarkPreview() {
+    LevelScreenPreview()
+}
+
+@Preview(
+    showBackground = true,
+    name = "LevelItem Preview"
+)
+@Composable
+fun LevelItemPreview() {
+    val sampleLevels = listOf(
+        Triple(PreviewLevel("새싹", 0, "🌱", Color(0xFF4CAF50), "금주 여행의 시작"), true, false),
+        Triple(PreviewLevel("꽃", 7, "🌸", Color(0xFFE91E63), "일주일의 성취"), true, true),
+        Triple(PreviewLevel("나무", 14, "🌳", Color(0xFF4CAF50), "2주간의 꾸준함"), false, false)
+    )
+
+    Column(
+        modifier = Modifier
+            .background(Color(0xFFF5F5F5))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        sampleLevels.forEach { (level, isAchieved, isCurrent) ->
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = when {
+                        isCurrent -> level.color.copy(alpha = 0.1f)
+                        isAchieved -> Color.White
+                        else -> Color(0xFFFAFAFA)
+                    }
+                ),
+                border = if (isCurrent) {
+                    androidx.compose.foundation.BorderStroke(2.dp, level.color)
+                } else null
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(
+                                if (isAchieved) level.color else Color(0xFFE0E0E0)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (isCurrent) {
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = "현재 레벨",
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        } else {
+                            Text(
+                                text = level.emoji,
+                                fontSize = 20.sp,
+                                color = if (isAchieved) Color.White else Color(0xFF757575)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = level.name,
+                            fontSize = 16.sp,
+                            fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isAchieved) level.color else Color(0xFF757575)
+                        )
+                        Text(
+                            text = "${level.requiredDays}일 달성",
+                            fontSize = 12.sp,
+                            color = Color(0xFF666666)
+                        )
+                    }
+
+                    if (isAchieved) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = "달성 완료",
+                            tint = level.color,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = "미달성",
+                            tint = Color(0xFFBDBDBD),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
