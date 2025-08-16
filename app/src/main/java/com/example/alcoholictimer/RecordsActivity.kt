@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,17 +13,26 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -30,8 +41,6 @@ import com.example.alcoholictimer.components.MonthPickerBottomSheet
 import com.example.alcoholictimer.components.WeekPickerBottomSheet
 import com.example.alcoholictimer.components.YearPickerBottomSheet
 import com.example.alcoholictimer.utils.SobrietyRecord
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
@@ -68,6 +77,7 @@ class RecordsActivity : BaseActivity() {
 
     override fun getScreenTitle(): String = "금주 기록"
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun RecordsScreen(externalRefreshTrigger: Int) {
         val context = LocalContext.current
@@ -81,7 +91,6 @@ class RecordsActivity : BaseActivity() {
         var showWeekPicker by remember { mutableStateOf(false) }
         var showYearPicker by remember { mutableStateOf(false) }
         var isRefreshing by remember { mutableStateOf(false) }
-        val swipeRefreshState = rememberSwipeRefreshState(isRefreshing)
 
         // 테스트 기록 입력 다이얼로그 상태
         var showTestDialog by remember { mutableStateOf(false) }
@@ -97,12 +106,10 @@ class RecordsActivity : BaseActivity() {
         suspend fun loadRecords() {
             isRefreshing = true
             try {
-                // 약간의 지연을 추가하여 새로고침 애니메이션을 보여줌
                 records = loadSobrietyRecords(context)
                 Log.d(TAG, "========== 기록 로딩 디버깅 ==========")
                 Log.d(TAG, "새로고침: 로드된 기록: ${records.size}개")
 
-                // 디버깅: 각 기록의 상세 정보 출력
                 records.forEachIndexed { index, record ->
                     Log.d(TAG, "기록 $index: id=${record.id}")
                     Log.d(TAG, "  목표=${record.targetDays}일, 달성=${record.actualDays}일")
@@ -196,7 +203,63 @@ class RecordsActivity : BaseActivity() {
             records
         }
 
-        // MonthPickerBottomSheet
+        // 모던한 그라데이션 배경 (RunActivity와 동일)
+        val backgroundBrush = Brush.linearGradient(
+            colors = listOf(
+                Color(0xFFF8F9FA),
+                Color(0xFFE3F2FD),
+                Color(0xFFF1F8E9)
+            ),
+            start = Offset(0f, 0f),
+            end = Offset(1000f, 1000f)
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(backgroundBrush)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // 상단: 기간 선택 탭 섹션
+            PeriodSelectionSection(
+                selectedPeriod = selectedPeriod,
+                onPeriodSelected = {
+                    selectedPeriod = it
+                    selectedRange = when (it) {
+                        "주" -> "이번 주"
+                        "월" -> "${selectedYear}년 ${selectedMonth}월"
+                        "년" -> "${selectedYear}년"
+                        "전체" -> "전체"
+                        else -> "전체"
+                    }
+                }
+            )
+
+            // 중단: 통계 및 그래프 섹션
+            StatisticsCardsSection(
+                records = filteredRecords,
+                selectedPeriod = selectedPeriod,
+                selectedRange = selectedRange,
+                onRangeSelected = {
+                    selectedRange = it
+                    when (selectedPeriod) {
+                        "월" -> showMonthPicker = true
+                        "주" -> showWeekPicker = true
+                        "년" -> showYearPicker = true
+                    }
+                }
+            )
+
+            // 기록 리스트
+            ModernRecordsListSection(
+                records = filteredRecords,
+                onRecordClick = { record -> handleCardClick(record) },
+                onAddTestRecord = { showTestDialog = true }
+            )
+        }
+
+        // BottomSheet들
         MonthPickerBottomSheet(
             isVisible = showMonthPicker,
             onDismiss = { showMonthPicker = false },
@@ -210,7 +273,6 @@ class RecordsActivity : BaseActivity() {
             initialMonth = selectedMonth
         )
 
-        // WeekPickerBottomSheet
         WeekPickerBottomSheet(
             isVisible = showWeekPicker,
             onDismiss = { showWeekPicker = false },
@@ -221,7 +283,6 @@ class RecordsActivity : BaseActivity() {
             }
         )
 
-        // YearPickerBottomSheet
         YearPickerBottomSheet(
             isVisible = showYearPicker,
             onDismiss = { showYearPicker = false },
@@ -233,131 +294,7 @@ class RecordsActivity : BaseActivity() {
             initialYear = selectedYear
         )
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            SwipeRefresh(
-                state = swipeRefreshState,
-                onRefresh = {
-                    // Pull-to-Refresh 새로고침 실행
-                    coroutineScope.launch {
-                        loadRecords()
-                    }
-                }
-            ) {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    // 상단: 기간 선택 탭 섹션 (새로고침 버튼 제거)
-                    item {
-                        PeriodSelectionSection(
-                            selectedPeriod = selectedPeriod,
-                            onPeriodSelected = {
-                                selectedPeriod = it
-                                // 기간이 바뀌면 드롭다운 기본값도 변경
-                                selectedRange = when (it) {
-                                    "주" -> "이번 주"
-                                    "월" -> "${selectedYear}년 ${selectedMonth}월"
-                                    "년" -> "${selectedYear}년"
-                                    "전체" -> "전체"
-                                    else -> "전체"
-                                }
-                            }
-                        )
-                    }
-
-                    // 통계 카드들을 별도 아이템으로 빼내기
-                    item {
-                        StatisticsCardsSection(
-                            records = filteredRecords,
-                            selectedPeriod = selectedPeriod,
-                            selectedRange = selectedRange,
-                            onRangeSelected = {
-                                selectedRange = it
-                                // 선택된 기간에 따라 적절한 바텀시트를 표시
-                                when (selectedPeriod) {
-                                    "월" -> showMonthPicker = true
-                                    "주" -> showWeekPicker = true
-                                    "년" -> showYearPicker = true
-                                }
-                            }
-                        )
-                    }
-
-                    // 그래프 섹션을 별도 아이템으로 분리
-                    item {
-                        GraphSection(
-                            records = filteredRecords,
-                            selectedPeriod = selectedPeriod,
-                            selectedYear = selectedYear,
-                            selectedMonth = selectedMonth,
-                            selectedWeekStart = selectedWeekStart
-                        )
-                    }
-
-                    // 하단: 최근 활동 섹션 헤더
-                    item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "최근 활동",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-
-                            // 디버깅용 테스트 기록 추가 버튼
-                            Button(
-                                onClick = { showTestDialog = true },
-                                modifier = Modifier.padding(start = 8.dp)
-                            ) {
-                                Text("테스트 기록 추가")
-                            }
-                        }
-                    }
-
-                    if (filteredRecords.isEmpty()) {
-                        // 기록이 없을 때
-                        item {
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(32.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "아직 금주 기록이 없습니다.\n첫 번째 금주를 시작해보세요!",
-                                        fontSize = 16.sp,
-                                        color = Color.Gray,
-                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                                    )
-                                }
-                            }
-                        }
-                    } else {
-                        // 기록이 있을 때 각 카드를 개별 아이템으로 표시
-                        items(filteredRecords) { record ->
-                            SobrietyRecordCard(
-                                record = record,
-                                onClick = { handleCardClick(record) }
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        // 테스트 기록 입력 다이얼로그 - LazyColumn 밖으로 이동
+        // 테스트 기록 입력 다이얼로그
         if (showTestDialog) {
             AlertDialog(
                 onDismissRequest = { showTestDialog = false },
@@ -762,7 +699,7 @@ fun StatisticsCardsSection(
     }
 }
 
-// 그래프 섹션을 별도 아이템으로 분���
+// 그래프 섹션을 별도 아이템으로 분리
 @Composable
 fun GraphSection(records: List<SobrietyRecord>, selectedPeriod: String, selectedYear: Int, selectedMonth: Int, selectedWeekStart: Long?) {
     // 실제 그래프 표시
@@ -943,7 +880,7 @@ fun MiniBarChart(
     }
 }
 
-// 최근 7일간의 ���래프 데이터 생성 함수
+// 최근 7일간의 그래프 데이터 생성 함수
 private fun generateWeeklyGraphData(records: List<SobrietyRecord>, weekStart: Long?): List<SimpleGraphData> {
     val calendar = Calendar.getInstance()
     val weekDays = listOf("월", "화", "수", "목", "금", "토", "일")
@@ -1505,98 +1442,26 @@ fun <T> DropdownSelector(label: String, options: List<T>, selected: T, onSelecte
     }
 }
 
-@Preview(showBackground = true, name = "fontScale 1.0")
-@Preview(showBackground = true, fontScale = 2.0f, name = "fontScale 2.0")
+// 모던한 기록 리스트 섹션
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PreviewSobrietyRecordCard() {
-    SobrietyRecordCard(
-        record = SobrietyRecord(
-            id = "test_1",
-            startTime = System.currentTimeMillis() - 3 * 24 * 60 * 60 * 1000,
-            endTime = System.currentTimeMillis(),
-            targetDays = 7,
-            actualDays = 3,
-            isCompleted = false,
-            status = "중지",
-            createdAt = System.currentTimeMillis(),
-            percentage = 43,
-            isTestRecord = true
-        )
-    )
-}
-
-@Preview(showBackground = true, name = "fontScale 1.0")
-@Preview(showBackground = true, fontScale = 2.0f, name = "fontScale 2.0")
-@Composable
-fun PreviewRecordsScreen() {
-    // 테스트용 샘플 데이터
-    val sampleRecords = listOf(
-        SobrietyRecord(
-            id = "test_1",
-            startTime = System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000,
-            endTime = System.currentTimeMillis() - 2 * 24 * 60 * 60 * 1000,
-            targetDays = 30,
-            actualDays = 5,
-            isCompleted = false,
-            status = "중지",
-            createdAt = System.currentTimeMillis() - 2 * 24 * 60 * 60 * 1000,
-            percentage = 17,
-            isTestRecord = true
+fun ModernRecordsListSection(
+    records: List<SobrietyRecord>,
+    onRecordClick: (SobrietyRecord) -> Unit,
+    onAddTestRecord: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.9f)
         ),
-        SobrietyRecord(
-            id = "test_2",
-            startTime = System.currentTimeMillis() - 45 * 24 * 60 * 60 * 1000,
-            endTime = System.currentTimeMillis() - 15 * 24 * 60 * 60 * 1000,
-            targetDays = 30,
-            actualDays = 30,
-            isCompleted = true,
-            status = "완료",
-            createdAt = System.currentTimeMillis() - 15 * 24 * 60 * 60 * 1000,
-            percentage = 100,
-            isTestRecord = false
-        )
-    )
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        // 기간 선택 탭
-        item {
-            PeriodSelectionSection(
-                selectedPeriod = "월",
-                onPeriodSelected = {}
-            )
-        }
-
-        // 통계 카드
-        item {
-            StatisticsCardsSection(
-                records = sampleRecords,
-                selectedPeriod = "월",
-                selectedRange = "2025년 1월",
-                onRangeSelected = {}
-            )
-        }
-
-        // 그래프 섹션
-        item {
-            MiniBarChart(
-                records = sampleRecords,
-                selectedPeriod = "월",
-                selectedYear = 2025,
-                selectedMonth = 1,
-                selectedWeekStart = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-            )
-        }
-
-        // 최근 활동 헤더
-        item {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            // 헤더
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -1604,21 +1469,280 @@ fun PreviewRecordsScreen() {
             ) {
                 Text(
                     text = "최근 활동",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF333333)
                 )
-                Button(onClick = {}) {
-                    Text("테스트 기록 추가")
+
+                // 테스트 기록 추가 버튼
+                Card(
+                    onClick = onAddTestRecord,
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFF1976D2)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "추가",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = "테스트 기록",
+                            fontSize = 12.sp,
+                            color = Color.White,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 기록 리스트
+            if (records.isEmpty()) {
+                // 빈 상태
+                ModernEmptyState()
+            } else {
+                LazyColumn(
+                    modifier = Modifier.height(400.dp), // 고정 높이로 스크롤 가능
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(records) { record ->
+                        ModernSobrietyRecordCard(
+                            record = record,
+                            onClick = { onRecordClick(record) }
+                        )
+                    }
                 }
             }
         }
+    }
+}
 
-        // 기록 카드들
-        items(sampleRecords) { record ->
-            SobrietyRecordCard(
-                record = record,
-                onClick = {}
+@Composable
+fun ModernEmptyState() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFF8F9FA)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "📝",
+                fontSize = 48.sp,
+                modifier = Modifier.padding(bottom = 16.dp)
             )
+            Text(
+                text = "아직 금주 기록이 없습니다",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF333333),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Text(
+                text = "첫 번째 금주를 시작해보세요!",
+                fontSize = 14.sp,
+                color = Color(0xFF666666),
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+// 모던한 기록 카드
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ModernSobrietyRecordCard(
+    record: SobrietyRecord,
+    onClick: () -> Unit = {}
+) {
+    val dateFormatter = SimpleDateFormat("MM.dd", Locale.getDefault()).apply {
+        timeZone = java.util.TimeZone.getDefault()
+    }
+    val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault()).apply {
+        timeZone = java.util.TimeZone.getDefault()
+    }
+
+    val startDate = dateFormatter.format(Date(record.startTime))
+    val endDate = dateFormatter.format(Date(record.endTime))
+    val startTime = timeFormatter.format(Date(record.startTime))
+    val endTime = timeFormatter.format(Date(record.endTime))
+
+    val duration = record.endTime - record.startTime
+    val actualDurationDays = (duration / (24 * 60 * 60 * 1000f)).toFloat()
+    val progressPercent = if (record.targetDays > 0) {
+        ((actualDurationDays / record.targetDays) * 100).coerceIn(0f, 100f).toInt()
+    } else {
+        record.percentage ?: 0
+    }
+
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (record.isCompleted) {
+                Color(0xFFF1F8E9)
+            } else {
+                Color(0xFFFFF8E1)
+            }
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            // 상단: 상태와 날짜
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // 상태 배지
+                    Surface(
+                        color = if (record.isCompleted) Color(0xFF4CAF50) else Color(0xFFFF9800),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = record.status,
+                            color = Color.White,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+
+                    // 테스트 기록 표시
+                    if (record.isTest) {
+                        Surface(
+                            color = Color(0xFF9C27B0),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(
+                                text = "테스트",
+                                color = Color.White,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+                }
+
+                Text(
+                    text = if (startDate == endDate) startDate else "$startDate~$endDate",
+                    fontSize = 12.sp,
+                    color = Color(0xFF666666),
+                    fontWeight = FontWeight.Medium
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 메인 정보
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // 달성 일수
+                Column {
+                    Text(
+                        text = "${actualDurationDays.toInt()}일",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1976D2)
+                    )
+                    Text(
+                        text = "달성",
+                        fontSize = 11.sp,
+                        color = Color(0xFF666666)
+                    )
+                }
+
+                // 진행률 표시
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // 원형 진행률
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.size(60.dp)
+                    ) {
+                        CircularProgressIndicator(
+                            progress = { progressPercent / 100f },
+                            modifier = Modifier.fillMaxSize(),
+                            color = if (record.isCompleted) Color(0xFF4CAF50) else Color(0xFFFF9800),
+                            strokeWidth = 4.dp,
+                            trackColor = Color(0xFFE0E0E0),
+                            strokeCap = StrokeCap.Round
+                        )
+                        Text(
+                            text = "${progressPercent}%",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (record.isCompleted) Color(0xFF4CAF50) else Color(0xFFFF9800)
+                        )
+                    }
+                }
+
+                // 목표 일수
+                Column(
+                    horizontalAlignment = Alignment.End
+                ) {
+                    Text(
+                        text = "${record.targetDays}일",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF666666)
+                    )
+                    Text(
+                        text = "목표",
+                        fontSize = 11.sp,
+                        color = Color(0xFF666666)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 하단: 시간 정보
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "시작 $startTime",
+                    fontSize = 11.sp,
+                    color = Color(0xFF999999)
+                )
+                Text(
+                    text = "종료 $endTime",
+                    fontSize = 11.sp,
+                    color = Color(0xFF999999)
+                )
+            }
         }
     }
 }
