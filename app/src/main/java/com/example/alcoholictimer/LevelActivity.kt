@@ -120,14 +120,10 @@ class LevelActivity : BaseActivity() {
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    CompositionLocalProvider(
-                        LocalDensity provides Density(LocalDensity.current.density, 1f)
-                    ) {
-                        Text(
-                            text = currentLevel.emoji,
-                            fontSize = 48.sp
-                        )
-                    }
+                    Text(
+                        text = currentLevel.emoji,
+                        fontSize = 48.sp
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -342,49 +338,30 @@ class LevelActivity : BaseActivity() {
     ) {
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(
                 containerColor = when {
                     isCurrent -> level.color.copy(alpha = 0.1f)
-                    isAchieved -> Color(0xFFF5F5F5)
-                    isNext -> Color(0xFFFFF8E1)
+                    isAchieved -> Color.White
                     else -> Color(0xFFFAFAFA)
                 }
             ),
             border = if (isCurrent) {
                 androidx.compose.foundation.BorderStroke(2.dp, level.color)
-            } else null,
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = if (isCurrent) 4.dp else 2.dp
-            )
+            } else null
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp),
+                    .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 레벨 인디케이터
                 Box(
                     modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(10.dp))
                         .background(
-                            if (isAchieved) {
-                                Brush.radialGradient(
-                                    colors = listOf(
-                                        level.color.copy(alpha = 0.8f),
-                                        level.color
-                                    )
-                                )
-                            } else {
-                                Brush.radialGradient(
-                                    colors = listOf(
-                                        Color(0xFFE0E0E0),
-                                        Color(0xFFBDBDBD)
-                                    )
-                                )
-                            }
+                            if (isAchieved) level.color else Color(0xFFE0E0E0)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -393,101 +370,48 @@ class LevelActivity : BaseActivity() {
                             imageVector = Icons.Default.Star,
                             contentDescription = "현재 레벨",
                             tint = Color.White,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                     } else {
-                        CompositionLocalProvider(
-                            LocalDensity provides Density(LocalDensity.current.density, 1f)
-                        ) {
-                            Text(
-                                text = level.emoji,
-                                fontSize = 24.sp,
-                                color = if (isAchieved) Color.White else Color(0xFF757575)
-                            )
-                        }
+                        Text(
+                            text = level.emoji,
+                            fontSize = 20.sp,
+                            color = if (isAchieved) Color.White else Color(0xFF757575)
+                        )
                     }
                 }
 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
-                // 레벨 정보
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = level.name,
-                            fontSize = 16.sp,
-                            fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
-                            color = if (isAchieved) level.color else Color(0xFF757575)
-                        )
-
-                        if (isCurrent) {
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = level.color
-                            ) {
-                                Text(
-                                    text = "현재",
-                                    fontSize = 12.sp,
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                                )
-                            }
-                        } else if (isNext) {
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = Color(0xFFFF9800)
-                            ) {
-                                Text(
-                                    text = "다음",
-                                    fontSize = 12.sp,
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
+                    Text(
+                        text = level.name,
+                        fontSize = 16.sp,
+                        fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
+                        color = if (isAchieved) level.color else Color(0xFF757575)
+                    )
                     Text(
                         text = "${level.requiredDays}일 달성",
-                        fontSize = 14.sp,
+                        fontSize = 12.sp,
                         color = Color(0xFF666666)
                     )
-
-                    if (level.description.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = level.description,
-                            fontSize = 12.sp,
-                            color = Color(0xFF888888),
-                            lineHeight = 16.sp
-                        )
-                    }
                 }
 
-                // 달성 상태 아이콘
                 if (isAchieved) {
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
                         contentDescription = "달성 완료",
                         tint = level.color,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 } else {
                     Icon(
                         imageVector = Icons.Default.Lock,
                         contentDescription = "미달성",
                         tint = Color(0xFFBDBDBD),
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
@@ -765,20 +689,17 @@ fun LevelScreenPreview() {
                 ).forEach { (level, isAchieved, isCurrent) ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = when {
                                 isCurrent -> level.color.copy(alpha = 0.1f)
-                                isAchieved -> Color(0xFFF5F5F5)
+                                isAchieved -> Color.White
                                 else -> Color(0xFFFAFAFA)
                             }
                         ),
                         border = if (isCurrent) {
                             androidx.compose.foundation.BorderStroke(2.dp, level.color)
-                        } else null,
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = if (isCurrent) 4.dp else 2.dp
-                        )
+                        } else null
                     ) {
                         Row(
                             modifier = Modifier
@@ -791,21 +712,7 @@ fun LevelScreenPreview() {
                                     .size(40.dp)
                                     .clip(RoundedCornerShape(10.dp))
                                     .background(
-                                        if (isAchieved) {
-                                            Brush.radialGradient(
-                                                colors = listOf(
-                                                    level.color.copy(alpha = 0.8f),
-                                                    level.color
-                                                )
-                                            )
-                                        } else {
-                                            Brush.radialGradient(
-                                                colors = listOf(
-                                                    Color(0xFFE0E0E0),
-                                                    Color(0xFFBDBDBD)
-                                                )
-                                            )
-                                        }
+                                        if (isAchieved) level.color else Color(0xFFE0E0E0)
                                     ),
                                 contentAlignment = Alignment.Center
                             ) {
