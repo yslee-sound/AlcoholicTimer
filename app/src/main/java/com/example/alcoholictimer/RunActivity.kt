@@ -645,17 +645,30 @@ fun MainIndicatorCard(
 
 @Composable
 fun ModernProgressIndicator(progress: Float) {
-    // 진행률 바만 표시 (퍼센트 텍스트 제거)
-    LinearProgressIndicator(
-        progress = { progress },
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(12.dp)
-            .clip(RoundedCornerShape(6.dp)),
-        color = Color(0xFF4CAF50),
-        trackColor = Color(0xFFE8F5E8),
-        strokeCap = StrokeCap.Round
-    )
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 퍼센트 텍스트
+        Text(
+            text = "${(progress * 100).toInt()}%",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF4CAF50),
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        // 진행률 바
+        LinearProgressIndicator(
+            progress = { progress },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(12.dp)
+                .clip(RoundedCornerShape(6.dp)),
+            color = Color(0xFF4CAF50),
+            trackColor = Color(0xFFE8F5E8),
+            strokeCap = StrokeCap.Round
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -742,7 +755,7 @@ private fun saveCompletedRecord(
     }
 }
 
-// 레벨명 함수 (기존 레벨 테이블 기준)
+// 레벨명 함수 (기존 ���벨 테이블 기준)
 private fun getLevelName(days: Int): String {
     return LevelDefinitions.getLevelName(days)
 }
