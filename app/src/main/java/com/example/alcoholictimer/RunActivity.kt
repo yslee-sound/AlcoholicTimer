@@ -295,7 +295,7 @@ fun RunScreen() {
                     .padding(vertical = 6.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White.copy(alpha = 0.9f)
+                    containerColor = Color.White.copy(alpha = 0.95f)
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
@@ -370,7 +370,7 @@ fun RunScreen() {
                     .padding(vertical = 4.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White.copy(alpha = 0.9f)
+                    containerColor = Color.White.copy(alpha = 0.95f)
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
             ) {
@@ -412,7 +412,7 @@ fun StatCard(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .padding(horizontal = 4.dp)
-            .width(80.dp) // 카드 너비 통일
+            .width(100.dp) // 카드 너비 통일
     ) {
         // 값 텍스트 - 고정 높이 Box 사용
         val density = LocalDensity.current
@@ -420,13 +420,13 @@ fun StatCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(28.dp), // 모든 카드 동일한 높이
+                    .height(30.dp), // 모든 카드 동일한 높이
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = value,
-                    fontSize = 18.sp, // 모든 카드 동일한 크기
-                    lineHeight = 18.sp,
+                    fontSize = 20.sp, // 모든 카드 동일한 크기
+                    lineHeight = 20.sp,
                     fontWeight = FontWeight.Bold, // 모든 카드 동일한 굵기
                     color = color,
                     textAlign = TextAlign.Center,
@@ -435,19 +435,19 @@ fun StatCard(
             }
         }
 
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         // 라벨 - 고정 높이 Box 사용
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(20.dp), // 라벨 높이도 고정
+                .height(30.dp), // 라벨 높이도 고정
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = label,
-                fontSize = 13.sp,
-                lineHeight = 13.sp,
+                fontSize = 20.sp,
+                lineHeight = 20.sp,
                 fontWeight = FontWeight.Medium,
                 color = Color(0xFF757575),
                 textAlign = TextAlign.Center,
