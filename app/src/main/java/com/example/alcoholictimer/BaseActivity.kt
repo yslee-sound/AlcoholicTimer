@@ -16,6 +16,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -61,15 +63,32 @@ abstract class BaseActivity : ComponentActivity() {
         val scope = rememberCoroutineScope()
         val currentNickname by nicknameState
 
+        // 모던한 그라데이션 배경 색상
+        val gradientBackground = Brush.linearGradient(
+            colors = listOf(
+                Color(0xFFF8F9FA),
+                Color(0xFFE9ECEF)
+            ),
+            start = Offset(0f, 0f),
+            end = Offset.Infinite
+        )
+
         ModalNavigationDrawer(
             drawerState = drawerState,
             drawerContent = {
                 ModalDrawerSheet(
                     modifier = Modifier
-                        .fillMaxWidth(0.75f) // 화면 가로의 3/4만 차지
-                        .background(Color.White),
-                    drawerContainerColor = Color.White,
-                    drawerShape = RoundedCornerShape(0.dp) // 라운딩 제거 (직각 모서리)
+                        .fillMaxWidth(0.8f) // 조금 더 넓게
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    Color.White,
+                                    Color(0xFFF8F9FA)
+                                )
+                            )
+                        ),
+                    drawerContainerColor = Color.Transparent,
+                    drawerShape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
                 ) {
                     DrawerMenu(
                         nickname = currentNickname,
@@ -88,48 +107,65 @@ abstract class BaseActivity : ComponentActivity() {
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 topBar = {
-                    Column {
-                        TopAppBar(
-                            title = {
-                                CompositionLocalProvider(
-                                    LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)
-                                ) {
-                                    Text(getScreenTitle(), color = Color.Black)
-                                }
-                            },
-                            colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = Color.White,
-                                titleContentColor = Color.Black,
-                                navigationIconContentColor = Color.Black,
-                                actionIconContentColor = Color.Black
-                            ),
-                            navigationIcon = {
-                                IconButton(
-                                    onClick = {
-                                        scope.launch {
-                                            drawerState.open()
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shadowElevation = 4.dp,
+                        color = Color.White
+                    ) {
+                        Column {
+                            TopAppBar(
+                                title = {
+                                    CompositionLocalProvider(
+                                        LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)
+                                    ) {
+                                        Text(
+                                            text = getScreenTitle(),
+                                            color = Color(0xFF2C3E50),
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = 20.sp
+                                        )
+                                    }
+                                },
+                                colors = TopAppBarDefaults.topAppBarColors(
+                                    containerColor = Color.Transparent,
+                                    titleContentColor = Color(0xFF2C3E50),
+                                    navigationIconContentColor = Color(0xFF2C3E50),
+                                    actionIconContentColor = Color(0xFF2C3E50)
+                                ),
+                                navigationIcon = {
+                                    Surface(
+                                        modifier = Modifier
+                                            .padding(8.dp)
+                                            .size(40.dp),
+                                        shape = CircleShape,
+                                        color = Color(0xFFF8F9FA),
+                                        shadowElevation = 2.dp
+                                    ) {
+                                        IconButton(
+                                            onClick = {
+                                                scope.launch {
+                                                    drawerState.open()
+                                                }
+                                            }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Menu,
+                                                contentDescription = "메뉴",
+                                                tint = Color(0xFF2C3E50),
+                                                modifier = Modifier.size(20.dp)
+                                            )
                                         }
                                     }
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Menu,
-                                        contentDescription = "메뉴",
-                                        tint = Color.Black
-                                    )
                                 }
-                            }
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier.fillMaxWidth().height(1.dp),
-                            color = Color.LightGray
-                        )
+                            )
+                        }
                     }
                 }
             ) { paddingValues ->
-                Column(
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.White)
+                        .background(brush = gradientBackground)
                         .padding(paddingValues)
                 ) {
                     content()
@@ -225,92 +261,163 @@ fun DrawerMenu(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(20.dp),
         horizontalAlignment = Alignment.Start
     ) {
-        Box(
+        // 프로필 섹션을 카드 스타일로 업데이트
+        Surface(
             modifier = Modifier
-                .width(80.dp)
-                .height(72.dp)
-                .align(Alignment.Start)
-                .padding(start = 8.dp)
+                .fillMaxWidth()
+                .clickable { onNicknameClick() },
+            shape = RoundedCornerShape(16.dp),
+            color = Color.White,
+            shadowElevation = 4.dp
         ) {
-            Surface(
-                shape = CircleShape,
-                color = Color(0xFF888888),
-                modifier = Modifier.fillMaxSize()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                Surface(
+                    shape = CircleShape,
+                    color = Color(0xFF6C5CE7),
+                    modifier = Modifier.size(56.dp),
+                    shadowElevation = 2.dp
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "아바타",
-                        tint = Color.White,
-                        modifier = Modifier.fillMaxSize(0.9f) // 원의 70% 크기로 설정
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "아바타",
+                            tint = Color.White,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
+                    CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)) {
+                        Text(
+                            text = nickname,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF2C3E50)
+                        )
+                        Text(
+                            text = "프로필 편집",
+                            fontSize = 12.sp,
+                            color = Color(0xFF74B9FF)
+                        )
+                    }
                 }
             }
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        // 닉네임(로고 역할) fontScale 고정
-        CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)) {
-            Text(
-                text = nickname,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .align(Alignment.Start)
-                    .padding(start = 8.dp)
-                    .clickable { onNicknameClick() }
-            )
-        }
-        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // 메인 메뉴 섹션
+        Text(
+            text = "메뉴",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF74B9FF),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
+        )
+
         menuItems.forEach { (title, icon) ->
-            Row(
+            Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onItemSelected(title) }
-                    .padding(vertical = 12.dp, horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(vertical = 4.dp)
+                    .clickable { onItemSelected(title) },
+                shape = RoundedCornerShape(12.dp),
+                color = Color.White.copy(alpha = 0.7f)
             ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = title,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                // 버튼/아이콘 라벨 fontScale 고정
-                CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)) {
-                    Text(
-                        text = title,
-                        fontSize = 16.sp
-                    )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = Color(0xFF74B9FF).copy(alpha = 0.1f),
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = title,
+                            tint = Color(0xFF74B9FF),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(8.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)) {
+                        Text(
+                            text = title,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF2C3E50)
+                        )
+                    }
                 }
             }
         }
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 설정 섹션
+        Text(
+            text = "설정",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF74B9FF),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
+        )
+
         settingsItems.forEach { (title, icon) ->
-            Row(
+            Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onItemSelected(title) }
-                    .padding(vertical = 12.dp, horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(vertical = 4.dp)
+                    .clickable { onItemSelected(title) },
+                shape = RoundedCornerShape(12.dp),
+                color = Color.White.copy(alpha = 0.7f)
             ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = title,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                // 버튼/아이콘 라벨 fontScale 고정
-                CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)) {
-                    Text(
-                        text = title,
-                        fontSize = 16.sp
-                    )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = Color(0xFF636E72).copy(alpha = 0.1f),
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = title,
+                            tint = Color(0xFF636E72),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(8.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)) {
+                        Text(
+                            text = title,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF2C3E50)
+                        )
+                    }
                 }
             }
         }
