@@ -11,10 +11,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -44,6 +51,7 @@ class QuitActivity : BaseActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuitScreen() {
     val context = LocalContext.current
@@ -93,125 +101,104 @@ fun QuitScreen() {
     val savedHours = (weeks * freqVal * (drinkHoursVal + hangoverHoursVal)).roundToInt()
     val lifeGainDays = ((elapsedDays / 30.0) * 1.0).roundToInt()
 
-    // 레벨에 따른 배경색
-    val backgroundColor = when {
-        elapsedDays < 7 -> Color(0xFFF5F5F5)
-        elapsedDays < 30 -> Color(0xFFFFF3CD)
-        elapsedDays < 90 -> Color(0xFFE7F3FF)
-        elapsedDays < 365 -> Color(0xFFE8F5E8)
-        else -> Color(0xFFFFF0DC)
-    }
-
-    // 계속 버튼 색상 (레벨에 따라)
-    val continueButtonColor = when {
-        elapsedDays < 7 -> Color(0xFF888888)
-        elapsedDays < 30 -> Color(0xFFFFB74D)
-        elapsedDays < 90 -> Color(0xFF42A5F5)
-        elapsedDays < 365 -> Color(0xFF66BB6A)
-        else -> Color(0xFFFFB74D)
-    }
+    // 모던한 그라데이션 배경 (RunActivity와 동일)
+    val backgroundBrush = Brush.linearGradient(
+        colors = listOf(
+            Color(0xFFF8F9FA),
+            Color(0xFFE3F2FD),
+            Color(0xFFF1F8E9)
+        ),
+        start = Offset(0f, 0f),
+        end = Offset(1000f, 1000f)
+    )
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(backgroundColor)
-            .windowInsetsPadding(WindowInsets.safeDrawing) // 안전 영역 패딩 추가
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(backgroundBrush)
+            .windowInsetsPadding(WindowInsets.safeDrawing)
+            .padding(horizontal = 16.dp, vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Spacer(modifier = Modifier.height(40.dp))
-
-        // 상단 배경 영역 (아이콘)
-        val baseDensity = LocalDensity.current
-        CompositionLocalProvider(LocalDensity provides Density(baseDensity.density, fontScale = 1f)) {
-            Text(
-                text = "🍃",
-                fontSize = 120.sp,
-                modifier = Modifier.padding(bottom = 40.dp)
-            )
-        }
-
-        // 금주 기록 요약 영역
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = Color.White
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.weight(1f)
         ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // 상단 메시지 카드
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White.copy(alpha = 0.95f)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
             ) {
-                // 상단 행 (3개)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                Column(
+                    modifier = Modifier.padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    StatisticItem(
-                        value = "${elapsedDays}",
-                        label = "금주 일수",
-                        modifier = Modifier.weight(1f)
-                    )
-                    StatisticItem(
-                        value = getLevelName(elapsedDays),
-                        label = "레벨명",
-                        modifier = Modifier.weight(1f)
-                    )
-                    StatisticItem(
-                        value = String.format(Locale.getDefault(), "%02d:%02d", elapsedHours, elapsedMinutes),
-                        label = "경과 시간",
-                        modifier = Modifier.weight(1f)
-                    )
-                }
+                    // 이모지 아이콘
+                    CompositionLocalProvider(
+                        LocalDensity provides Density(LocalDensity.current.density, 1f)
+                    ) {
+                        Text(
+                            text = "🤔",
+                            fontSize = 60.sp,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                    }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                    Text(
+                        text = "정말 멈추시겠어요?",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF333333),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
 
-                // 하단 행 (3개)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    StatisticItem(
-                        value = String.format(Locale.getDefault(), "%,d", savedMoney),
-                        label = "절약 금액",
-                        modifier = Modifier.weight(1f)
-                    )
-                    StatisticItem(
-                        value = "${savedHours}",
-                        label = "절약 시간",
-                        modifier = Modifier.weight(1f)
-                    )
-                    StatisticItem(
-                        value = "+${lifeGainDays}일",
-                        label = "기대 수명",
-                        modifier = Modifier.weight(1f)
+                    Text(
+                        text = "지금까지 잘 해오셨는데...",
+                        fontSize = 16.sp,
+                        color = Color(0xFF666666),
+                        textAlign = TextAlign.Center
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 통계 카드들
+            StatisticsCardsSection(
+                elapsedDays = elapsedDays,
+                elapsedHours = elapsedHours,
+                elapsedMinutes = elapsedMinutes,
+                savedMoney = savedMoney,
+                savedHours = savedHours,
+                lifeGainDays = lifeGainDays
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // 구분선
-        HorizontalDivider(
-            modifier = Modifier.fillMaxWidth(),
-            thickness = 1.dp,
-            color = Color.LightGray
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // 버튼들을 하단에 고정하기 위한 가변 Spacer
-        Spacer(modifier = Modifier.weight(1f))
-
-        // 컨트롤 버튼 영역 (하단 고정)
+        // 버튼 영역 (하단 고정)
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 32.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             // 중지 버튼
-            ControlButton(
-                backgroundColor = Color.Black,
-                contentColor = Color.White,
-                content = "■",
+            ModernControlButton(
+                icon = Icons.Default.Close,
+                backgroundColor = Color(0xFFE53935),
+                contentDescription = "중지",
                 onClick = {
                     // 금주 중지 로직
                     saveCompletedRecord(
@@ -228,73 +215,146 @@ fun QuitScreen() {
                         putBoolean("timer_completed", true)
                     }
 
-                    // StartActivity로 이동 (금주 설정 화면으로 한번만 이동)
+                    // StartActivity로 이동
                     val intent = Intent(context, StartActivity::class.java)
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                     context.startActivity(intent)
-                    // QuitActivity만 종료 (전환효과 없이 바로 이동)
                     (context as? QuitActivity)?.overridePendingTransition(0, 0)
                     (context as? QuitActivity)?.finish()
                 }
             )
 
-            // 계속 버튼 (Play)
-            ControlButton(
-                backgroundColor = Color(0xFF8ABF33), // 시작버튼 색상 #8ABF33으로 변경
-                contentColor = Color.White,
-                content = "▶",
+            Spacer(modifier = Modifier.width(48.dp))
+
+            // 계속 버튼
+            ModernControlButton(
+                icon = Icons.Default.PlayArrow,
+                backgroundColor = Color(0xFF4CAF50),
+                contentDescription = "계속",
                 onClick = {
-                    // QuitActivity만 종료하여 RunActivity로 자연스럽게 돌아가도록 변경
                     (context as? QuitActivity)?.finish()
                 }
             )
         }
-        Spacer(modifier = Modifier.height(64.dp))
+
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
 @Composable
-fun StatisticItem(
-    value: String,
-    label: String,
-    modifier: Modifier = Modifier
+fun StatisticsCardsSection(
+    elapsedDays: Int,
+    elapsedHours: Int,
+    elapsedMinutes: Int,
+    savedMoney: Int,
+    savedHours: Int,
+    lifeGainDays: Int
 ) {
     Column(
-        modifier = modifier
-            .padding(horizontal = 4.dp)
-            .width(100.dp), // 고정 너비로 정렬 보장
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(64.dp), // 고정 높이로 숫자 영역 통일
-            contentAlignment = Alignment.Center
+        // 첫 번째 행
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            val baseDensity = LocalDensity.current
-            CompositionLocalProvider(LocalDensity provides Density(baseDensity.density, fontScale = 1f)) {
+            ModernStatCard(
+                value = "${elapsedDays}일",
+                label = "금주 일수",
+                color = Color(0xFF1976D2),
+                modifier = Modifier.weight(1f)
+            )
+            ModernStatCard(
+                value = getLevelName(elapsedDays),
+                label = "레벨",
+                color = LevelDefinitions.getLevelInfo(elapsedDays).color,
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        // 두 번째 행
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            ModernStatCard(
+                value = String.format(Locale.getDefault(), "%02d:%02d", elapsedHours, elapsedMinutes),
+                label = "경과 시간",
+                color = Color(0xFF388E3C),
+                modifier = Modifier.weight(1f)
+            )
+            ModernStatCard(
+                value = String.format(Locale.getDefault(), "%,d원", savedMoney),
+                label = "절약 금액",
+                color = Color(0xFFE91E63),
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        // 세 번째 행
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            ModernStatCard(
+                value = "${savedHours}시간",
+                label = "절약 시간",
+                color = Color(0xFFFF9800),
+                modifier = Modifier.weight(1f)
+            )
+            ModernStatCard(
+                value = "+${lifeGainDays}일",
+                label = "기대 수명",
+                color = Color(0xFF9C27B0),
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+fun ModernStatCard(
+    value: String,
+    label: String,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.height(80.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White.copy(alpha = 0.9f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            CompositionLocalProvider(
+                LocalDensity provides Density(LocalDensity.current.density, 1f)
+            ) {
                 Text(
                     text = value,
-                    fontSize = 24.sp, // 크기 조절하여 일관성 확보
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
+                    color = color,
                     textAlign = TextAlign.Center,
-                    color = Color.Black,
-                    lineHeight = 26.sp,
-                    maxLines = 2 // 긴 텍스트 처리
+                    maxLines = 1
                 )
             }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(20.dp), // 고정 높이로 라벨 영역 통일
-            contentAlignment = Alignment.Center
-        ) {
+
+            Spacer(modifier = Modifier.height(4.dp))
+
             Text(
                 text = label,
-                fontSize = 14.sp,
-                color = Color.Gray,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF666666),
                 textAlign = TextAlign.Center,
                 maxLines = 1
             )
@@ -302,29 +362,33 @@ fun StatisticItem(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ControlButton(
+fun ModernControlButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
     backgroundColor: Color,
-    contentColor: Color,
-    content: String,
-    onClick: () -> Unit
+    contentDescription: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .size(100.dp) // 버튼 크기 통일
-            .shadow(8.dp, CircleShape) // 그림자 효과 추가
-            .background(backgroundColor, CircleShape)
-            .clickable { onClick() }
+    Card(
+        onClick = onClick,
+        modifier = modifier.size(80.dp),
+        shape = CircleShape,
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
-        val baseDensity = LocalDensity.current
-        CompositionLocalProvider(LocalDensity provides Density(baseDensity.density, fontScale = 1f)) {
-            Text(
-                text = content,
-                fontSize = 40.sp, // 아이콘 크기 통일
-                color = contentColor,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = contentDescription,
+                tint = Color.White,
+                modifier = Modifier.size(32.dp)
             )
         }
     }
@@ -412,18 +476,230 @@ private fun saveCompletedRecord(
 
 // 레벨명 함수
 private fun getLevelName(days: Int): String {
-    return when {
-        days < 7 -> "시작"
-        days < 30 -> "작심 7일"
-        days < 90 -> "한 달 클리어"
-        days < 365 -> "3개월 클리어"
-        else -> "절제의 레전드"
-    }
+    return LevelDefinitions.getLevelName(days)
 }
 
 @Preview(showBackground = true, name = "QuitScreen fontScale 1.0", fontScale = 1.0f)
 @Preview(showBackground = true, name = "QuitScreen fontScale 2.0", fontScale = 2.0f)
 @Composable
 fun PreviewQuitScreen() {
-    QuitScreen()
+    QuitScreenPreview()
+}
+
+// Preview 전용 컴포넌트들
+@Composable
+fun QuitScreenPreview() {
+    // 가짜 데이터로 프리뷰
+    val elapsedDays = 15
+    val elapsedHours = 12
+    val elapsedMinutes = 30
+    val savedMoney = 600000
+    val savedHours = 135
+    val lifeGainDays = 0
+
+    // 모던한 그라데이션 배경
+    val backgroundBrush = Brush.linearGradient(
+        colors = listOf(
+            Color(0xFFF8F9FA),
+            Color(0xFFE3F2FD),
+            Color(0xFFF1F8E9)
+        ),
+        start = Offset(0f, 0f),
+        end = Offset(1000f, 1000f)
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundBrush)
+            .padding(horizontal = 16.dp, vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.weight(1f)
+        ) {
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // 상단 메시지 카드
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White.copy(alpha = 0.95f)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "🤔",
+                        fontSize = 60.sp,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    Text(
+                        text = "정말 멈추시겠어요?",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF333333),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    Text(
+                        text = "지금까지 잘 해오셨는데...",
+                        fontSize = 16.sp,
+                        color = Color(0xFF666666),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 통계 카드들
+            StatisticsCardsSection(
+                elapsedDays = elapsedDays,
+                elapsedHours = elapsedHours,
+                elapsedMinutes = elapsedMinutes,
+                savedMoney = savedMoney,
+                savedHours = savedHours,
+                lifeGainDays = lifeGainDays
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+        }
+
+        // 버튼 영역
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 32.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // 중지 버튼
+            ModernControlButton(
+                icon = Icons.Default.Close,
+                backgroundColor = Color(0xFFE53935),
+                contentDescription = "중지",
+                onClick = { }
+            )
+
+            Spacer(modifier = Modifier.width(48.dp))
+
+            // 계속 버튼
+            ModernControlButton(
+                icon = Icons.Default.PlayArrow,
+                backgroundColor = Color(0xFF4CAF50),
+                contentDescription = "계속",
+                onClick = { }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+    }
+}
+
+@Preview(
+    showBackground = true,
+    name = "QuitScreen - 시작 단계",
+    widthDp = 360,
+    heightDp = 800
+)
+@Composable
+fun QuitScreenStartPreview() {
+    QuitScreenPreview()
+}
+
+@Preview(
+    showBackground = true,
+    name = "QuitScreen - 다크 모드",
+    widthDp = 360,
+    heightDp = 800,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
+)
+@Composable
+fun QuitScreenDarkPreview() {
+    QuitScreenPreview()
+}
+
+@Preview(
+    showBackground = true,
+    name = "QuitScreen - 큰 폰트",
+    widthDp = 360,
+    heightDp = 800,
+    fontScale = 1.5f
+)
+@Composable
+fun QuitScreenLargeFontPreview() {
+    QuitScreenPreview()
+}
+
+@Preview(showBackground = true, name = "StatisticsCardsSection Preview")
+@Composable
+fun StatisticsCardsSectionPreview() {
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        StatisticsCardsSection(
+            elapsedDays = 15,
+            elapsedHours = 12,
+            elapsedMinutes = 30,
+            savedMoney = 600000,
+            savedHours = 135,
+            lifeGainDays = 0
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "ModernStatCard Preview")
+@Composable
+fun ModernStatCardPreview() {
+    Row(
+        modifier = Modifier.padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        ModernStatCard(
+            value = "15일",
+            label = "금주 일수",
+            color = Color(0xFF1976D2),
+            modifier = Modifier.weight(1f)
+        )
+        ModernStatCard(
+            value = "새싹",
+            label = "레벨",
+            color = Color(0xFF4CAF50),
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "ModernControlButton Preview")
+@Composable
+fun ModernControlButtonPreview() {
+    Row(
+        modifier = Modifier.padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        ModernControlButton(
+            icon = Icons.Default.Close,
+            backgroundColor = Color(0xFFE53935),
+            contentDescription = "중지",
+            onClick = { }
+        )
+        ModernControlButton(
+            icon = Icons.Default.PlayArrow,
+            backgroundColor = Color(0xFF4CAF50),
+            contentDescription = "계속",
+            onClick = { }
+        )
+    }
 }
