@@ -7,10 +7,10 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,11 +39,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.*
 import kotlin.math.roundToInt
-import androidx.compose.foundation.indication
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
-import androidx.compose.material3.ripple
-import androidx.compose.runtime.remember
 
 class QuitActivity : BaseActivity() {
 
@@ -203,80 +198,98 @@ fun QuitScreen() {
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 중지 버튼용 InteractionSource
-            val stopButtonInteractionSource = remember { MutableInteractionSource() }
+            // 중지 버튼 (RunActivity와 완전히 동일한 구조)
+            var isLongPressing by remember { mutableStateOf(false) }
 
-            // 중지 버튼
-            ModernControlButton(
-                icon = Icons.Default.Close,
-                backgroundColor = Color(0xFFE53935),
-                contentDescription = "중지",
-                interactionSource = stopButtonInteractionSource,
-                modifier = Modifier.customLongPress(
-                    durationMillis = 3000L, // 3초
-                    onClick = {
+            Card(
+                onClick = {
+                    if (!isLongPressing) {
                         Toast.makeText(context, "중지하려면 길게 누르세요", Toast.LENGTH_SHORT).show()
-                    },
-                    onLongPress = {
-                        // 금주 중지 로직
-                        saveCompletedRecord(
-                            context = context,
-                            startTime = startTime,
-                            endTime = System.currentTimeMillis(),
-                            targetDays = targetDays,
-                            actualDays = elapsedDays
-                        )
+                    }
+                },
+                modifier = Modifier
+                    .size(80.dp)
+                    .pointerInput(Unit) {
+                        awaitEachGesture {
+                            val down = awaitFirstDown()
+                            isLongPressing = false
 
-                        // SharedPreferences 초기화
-                        sharedPref.edit {
-                            remove("start_time")
-                            putBoolean("timer_completed", true)
+                            val longPressResult = withTimeoutOrNull(1000L) { // 1초 롱프레스
+                                waitForUpOrCancellation()
+                            }
+
+                            if (longPressResult == null) {
+                                // 롱프레스 성공
+                                isLongPressing = true
+
+                                // 금주 중지 로직
+                                saveCompletedRecord(
+                                    context = context,
+                                    startTime = startTime,
+                                    endTime = System.currentTimeMillis(),
+                                    targetDays = targetDays,
+                                    actualDays = elapsedDays
+                                )
+
+                                // SharedPreferences 초기화
+                                sharedPref.edit {
+                                    remove("start_time")
+                                    putBoolean("timer_completed", true)
+                                }
+
+                                // StartActivity로 이동
+                                val intent = Intent(context, StartActivity::class.java)
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                                context.startActivity(intent)
+                                (context as? QuitActivity)?.finish()
+                            }
                         }
-
-                        // StartActivity로 이동
-                        val intent = Intent(context, StartActivity::class.java)
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                        context.startActivity(intent)
-                        (context as? QuitActivity)?.overridePendingTransition(0, 0)
-                        (context as? QuitActivity)?.finish()
                     },
-                    interactionSource = stopButtonInteractionSource
-                )
-            )
+                shape = CircleShape,
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFFE53935)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "중지",
+                        tint = Color.White,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.width(48.dp))
 
-            // 계속 버튼용 InteractionSource
-            val continueButtonInteractionSource = remember { MutableInteractionSource() }
-
-            // 계속 버튼
-            ModernControlButton(
-                icon = Icons.Default.PlayArrow,
-                backgroundColor = Color(0xFF4CAF50),
-                contentDescription = "계속",
-                interactionSource = continueButtonInteractionSource,
-                modifier = Modifier.pointerInput(Unit) {
-                    awaitEachGesture {
-                        val down = awaitFirstDown()
-
-                        // Press interaction 시작
-                        val pressInteraction = PressInteraction.Press(down.position)
-                        continueButtonInteractionSource.tryEmit(pressInteraction)
-
-                        val upOrCancel = waitForUpOrCancellation()
-
-                        // Press interaction 종료
-                        continueButtonInteractionSource.tryEmit(
-                            PressInteraction.Release(pressInteraction)
-                        )
-
-                        // 클릭 처��
-                        if (upOrCancel != null) {
-                            (context as? QuitActivity)?.finish()
-                        }
-                    }
+            // 계속 버튼 (RunActivity와 동일한 방식)
+            Card(
+                onClick = {
+                    (context as? QuitActivity)?.finish()
+                },
+                modifier = Modifier.size(80.dp),
+                shape = CircleShape,
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFF4CAF50)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = "계속",
+                        tint = Color.White,
+                        modifier = Modifier.size(32.dp)
+                    )
                 }
-            )
+            }
         }
 
         Spacer(modifier = Modifier.height(100.dp))
@@ -334,7 +347,7 @@ fun StatisticsCardsSection(
             )
         }
 
-        // ��� ���째 행
+        // 세 번째 행
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -411,35 +424,52 @@ fun ModernControlButton(
     backgroundColor: Color,
     contentDescription: String,
     modifier: Modifier = Modifier,
-    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
+    onClick: (() -> Unit)? = null
 ) {
-    Card(
-        modifier = modifier
-            .size(80.dp)
-            .indication(
-                interactionSource = interactionSource,
-                indication = ripple(
-                    bounded = true,
-                    radius = 40.dp,
-                    color = Color.White.copy(alpha = 0.3f)
-                )
+    if (onClick != null) {
+        // onClick이 있는 경우 RunActivity와 동일한 방식 사용
+        Card(
+            onClick = onClick,
+            modifier = modifier.size(80.dp),
+            shape = CircleShape,
+            colors = CardDefaults.cardColors(
+                containerColor = backgroundColor
             ),
-        shape = CircleShape,
-        colors = CardDefaults.cardColors(
-            containerColor = backgroundColor
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.fillMaxSize()
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = contentDescription,
-                tint = Color.White,
-                modifier = Modifier.size(32.dp)
-            )
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = contentDescription,
+                    tint = Color.White,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+        }
+    } else {
+        // onClick이 없는 경우 (Preview용) 기존 방식 사용
+        Card(
+            modifier = modifier.size(80.dp),
+            shape = CircleShape,
+            colors = CardDefaults.cardColors(
+                containerColor = backgroundColor
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = contentDescription,
+                    tint = Color.White,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
         }
     }
 }
@@ -475,7 +505,7 @@ private fun saveCompletedRecord(
         val isCompleted = achievementRate >= 100f
         val status = if (isCompleted) "완료" else "중지"
 
-        Log.d("QuitActivity", "달성����: ${achievementRate}%, 완료 여부: $isCompleted, 상태: $status")
+        Log.d("QuitActivity", "달성������: ${achievementRate}%, 완료 여부: $isCompleted, 상태: $status")
 
         val record = JSONObject().apply {
             put("id", recordId)
@@ -488,7 +518,7 @@ private fun saveCompletedRecord(
             put("createdAt", System.currentTimeMillis())
         }
 
-        Log.d("QuitActivity", "생성된 기록 JSON: $record")
+        Log.d("QuitActivity", "생성된 기�� JSON: $record")
 
         val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
         Log.d("QuitActivity", "����� 기록들: $recordsJson")
@@ -609,7 +639,7 @@ fun QuitScreenPreview() {
                     )
 
                     Text(
-                        text = "지금까지 ��� 해오셨는데...",
+                        text = "지금까지 ��� ��오셨는데...",
                         fontSize = 16.sp,
                         color = Color(0xFF666666),
                         textAlign = TextAlign.Center
@@ -755,38 +785,3 @@ fun ModernControlButtonPreview() {
         )
     }
 }
-
-// 롱프레스 Modifier 확장 함수 - 시각적 피드백 포함
-fun Modifier.customLongPress(
-    durationMillis: Long = 3000L,
-    onLongPress: () -> Unit,
-    onClick: () -> Unit = {},
-    interactionSource: MutableInteractionSource? = null
-): Modifier = this.then(
-    Modifier.pointerInput(durationMillis, interactionSource) {
-        awaitEachGesture {
-            val down = awaitFirstDown()
-
-            // Press interaction 시작 - 시각적 피드백을 위해
-            val pressInteraction = PressInteraction.Press(down.position)
-            interactionSource?.tryEmit(pressInteraction)
-
-            val longPressResult = withTimeoutOrNull(durationMillis) {
-                waitForUpOrCancellation()
-            }
-
-            // Press interaction 종료
-            interactionSource?.tryEmit(
-                PressInteraction.Release(pressInteraction)
-            )
-
-            if (longPressResult == null) {
-                // 롱프레스 성공
-                onLongPress()
-            } else {
-                // 일반 클릭
-                onClick()
-            }
-        }
-    }
-)
