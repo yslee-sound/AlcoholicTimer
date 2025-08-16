@@ -5,10 +5,12 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,24 +21,29 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
+import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.*
 import kotlin.math.roundToInt
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Density
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.material3.ripple
+import androidx.compose.runtime.remember
 
 class QuitActivity : BaseActivity() {
 
@@ -62,7 +69,7 @@ fun QuitScreen() {
     val targetDays = sharedPref.getFloat("target_days", 30f)
 
     // 설정값 가져오기
-    val selectedCost = sharedPref.getString("selected_cost", "중") ?: "중"
+    val selectedCost = sharedPref.getString("selected_cost", "�����") ?: "중"
     val selectedFrequency = sharedPref.getString("selected_frequency", "주 2~3회") ?: "주 2~3회"
     val selectedDuration = sharedPref.getString("selected_duration", "보통") ?: "보통"
 
@@ -201,40 +208,68 @@ fun QuitScreen() {
                 icon = Icons.Default.Close,
                 backgroundColor = Color(0xFFE53935),
                 contentDescription = "중지",
-                onClick = {
-                    // 금주 중지 로직
-                    saveCompletedRecord(
-                        context = context,
-                        startTime = startTime,
-                        endTime = System.currentTimeMillis(),
-                        targetDays = targetDays,
-                        actualDays = elapsedDays
-                    )
+                modifier = Modifier.customLongPress(
+                    durationMillis = 3000L, // 3초
+                    onClick = {
+                        Toast.makeText(context, "중지하려면 길게 누르세요", Toast.LENGTH_SHORT).show()
+                    },
+                    onLongPress = {
+                        // 금주 중지 로직
+                        saveCompletedRecord(
+                            context = context,
+                            startTime = startTime,
+                            endTime = System.currentTimeMillis(),
+                            targetDays = targetDays,
+                            actualDays = elapsedDays
+                        )
 
-                    // SharedPreferences 초기화
-                    sharedPref.edit {
-                        remove("start_time")
-                        putBoolean("timer_completed", true)
+                        // SharedPreferences 초기화
+                        sharedPref.edit {
+                            remove("start_time")
+                            putBoolean("timer_completed", true)
+                        }
+
+                        // StartActivity로 이동
+                        val intent = Intent(context, StartActivity::class.java)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                        context.startActivity(intent)
+                        (context as? QuitActivity)?.overridePendingTransition(0, 0)
+                        (context as? QuitActivity)?.finish()
                     }
-
-                    // StartActivity로 이동
-                    val intent = Intent(context, StartActivity::class.java)
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                    context.startActivity(intent)
-                    (context as? QuitActivity)?.overridePendingTransition(0, 0)
-                    (context as? QuitActivity)?.finish()
-                }
+                )
             )
 
             Spacer(modifier = Modifier.width(48.dp))
+
+            // 계속 버튼용 InteractionSource
+            val continueButtonInteractionSource = remember { MutableInteractionSource() }
 
             // 계속 버튼
             ModernControlButton(
                 icon = Icons.Default.PlayArrow,
                 backgroundColor = Color(0xFF4CAF50),
                 contentDescription = "계속",
-                onClick = {
-                    (context as? QuitActivity)?.finish()
+                interactionSource = continueButtonInteractionSource,
+                modifier = Modifier.pointerInput(Unit) {
+                    awaitEachGesture {
+                        val down = awaitFirstDown()
+
+                        // Press interaction 시작
+                        val pressInteraction = PressInteraction.Press(down.position)
+                        continueButtonInteractionSource.tryEmit(pressInteraction)
+
+                        val upOrCancel = waitForUpOrCancellation()
+
+                        // Press interaction 종료
+                        continueButtonInteractionSource.tryEmit(
+                            PressInteraction.Release(pressInteraction)
+                        )
+
+                        // 클릭 처리
+                        if (upOrCancel != null) {
+                            (context as? QuitActivity)?.finish()
+                        }
+                    }
                 }
             )
         }
@@ -294,7 +329,7 @@ fun StatisticsCardsSection(
             )
         }
 
-        // 세 번째 행
+        // ��� ���째 행
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -370,12 +405,20 @@ fun ModernControlButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     backgroundColor: Color,
     contentDescription: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
 ) {
     Card(
-        onClick = onClick,
-        modifier = modifier.size(80.dp),
+        modifier = modifier
+            .size(80.dp)
+            .indication(
+                interactionSource = interactionSource,
+                indication = ripple(
+                    bounded = true,
+                    radius = 40.dp,
+                    color = Color.White.copy(alpha = 0.3f)
+                )
+            ),
         shape = CircleShape,
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor
@@ -405,7 +448,7 @@ private fun saveCompletedRecord(
     actualDays: Int
 ) {
     try {
-        Log.d("QuitActivity", "========== 기록 저장 시작 ==========")
+        Log.d("QuitActivity", "========== 기록 저��� 시작 ==========")
         Log.d("QuitActivity", "startTime: $startTime")
         Log.d("QuitActivity", "endTime: $endTime")
         Log.d("QuitActivity", "targetDays: $targetDays")
@@ -414,7 +457,7 @@ private fun saveCompletedRecord(
         val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
 
         val recordId = System.currentTimeMillis().toString()
-        Log.d("QuitActivity", "생성된 기록 ID: $recordId")
+        Log.d("QuitActivity", "생성된 ����록 ID: $recordId")
 
         // 목표 달성률 계산
         val achievementRate = if (targetDays > 0) {
@@ -427,7 +470,7 @@ private fun saveCompletedRecord(
         val isCompleted = achievementRate >= 100f
         val status = if (isCompleted) "완료" else "중지"
 
-        Log.d("QuitActivity", "달성률: ${achievementRate}%, 완료 여부: $isCompleted, 상태: $status")
+        Log.d("QuitActivity", "달성����: ${achievementRate}%, 완료 여부: $isCompleted, 상태: $status")
 
         val record = JSONObject().apply {
             put("id", recordId)
@@ -443,7 +486,7 @@ private fun saveCompletedRecord(
         Log.d("QuitActivity", "생성된 기록 JSON: $record")
 
         val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
-        Log.d("QuitActivity", "기존 기록들: $recordsJson")
+        Log.d("QuitActivity", "����� 기록들: $recordsJson")
 
         val recordsList = try {
             JSONArray(recordsJson)
@@ -465,7 +508,7 @@ private fun saveCompletedRecord(
         Log.d("QuitActivity", "저장 확인 - 저장된 데이터: $savedJson")
         Log.d("QuitActivity", "========== 기록 저장 완료 ==========")
 
-        val message = "금주 기록이 저장되었습니다."
+        val message = "금주 ���록이 저장되었습니다."
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 
     } catch (e: Exception) {
@@ -530,7 +573,7 @@ fun QuitScreenPreview() {
         ) {
             Spacer(modifier = Modifier.height(20.dp))
 
-            // 상단 메시지 카드
+            // 상����� ��시��� 카드
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -584,7 +627,7 @@ fun QuitScreenPreview() {
             Spacer(modifier = Modifier.weight(1f))
         }
 
-        // 버튼 영역
+        // 버튼 영���
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -596,18 +639,16 @@ fun QuitScreenPreview() {
             ModernControlButton(
                 icon = Icons.Default.Close,
                 backgroundColor = Color(0xFFE53935),
-                contentDescription = "중지",
-                onClick = { }
+                contentDescription = "중지"
             )
 
             Spacer(modifier = Modifier.width(48.dp))
 
-            // 계속 버튼
+            // 계속 버튼 (Preview용 - 클릭 이벤트 없음)
             ModernControlButton(
                 icon = Icons.Default.PlayArrow,
                 backgroundColor = Color(0xFF4CAF50),
-                contentDescription = "계속",
-                onClick = { }
+                contentDescription = "계속"
             )
         }
 
@@ -700,14 +741,47 @@ fun ModernControlButtonPreview() {
         ModernControlButton(
             icon = Icons.Default.Close,
             backgroundColor = Color(0xFFE53935),
-            contentDescription = "중지",
-            onClick = { }
+            contentDescription = "중지"
         )
         ModernControlButton(
             icon = Icons.Default.PlayArrow,
             backgroundColor = Color(0xFF4CAF50),
-            contentDescription = "계속",
-            onClick = { }
+            contentDescription = "계속"
         )
     }
 }
+
+// 롱프레스 Modifier 확장 함수 - 시각적 피드백 포함
+fun Modifier.customLongPress(
+    durationMillis: Long = 3000L,
+    onLongPress: () -> Unit,
+    onClick: () -> Unit = {},
+    interactionSource: MutableInteractionSource? = null
+): Modifier = this.then(
+    Modifier.pointerInput(durationMillis, interactionSource) {
+        awaitEachGesture {
+            val down = awaitFirstDown()
+
+            // Press interaction 시작 - 시각적 피드백을 위해
+            val pressInteraction = PressInteraction.Press(down.position)
+            interactionSource?.tryEmit(pressInteraction)
+
+            val longPressResult = withTimeoutOrNull(durationMillis) {
+                waitForUpOrCancellation()
+            }
+
+            // Press interaction 종료
+            interactionSource?.tryEmit(
+                PressInteraction.Release(pressInteraction)
+            )
+
+            if (longPressResult == null) {
+                // 롱프레스 성공
+                onLongPress()
+            } else {
+                // 일반 클릭
+                onClick()
+            }
+        }
+    }
+)
