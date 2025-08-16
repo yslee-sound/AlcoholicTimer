@@ -123,53 +123,7 @@ class StartActivity : BaseActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.weight(1f)
             ) {
-                Spacer(modifier = Modifier.height(40.dp))
-
-                // 환영 메시지 카드
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color.White.copy(alpha = 0.95f)
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(32.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        // 이모지 아이콘
-                        CompositionLocalProvider(
-                            LocalDensity provides Density(LocalDensity.current.density, 1f)
-                        ) {
-                            Text(
-                                text = "🌿",
-                                fontSize = 80.sp,
-                                modifier = Modifier.padding(bottom = 16.dp)
-                            )
-                        }
-
-                        Text(
-                            text = "새로운 시작",
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF2E7D32),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-
-                        Text(
-                            text = "건강한 변화를 위한 첫걸음",
-                            fontSize = 16.sp,
-                            color = Color(0xFF666666),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(0.dp))
 
                 // 목표 설정 카드
                 Card(
@@ -182,8 +136,11 @@ class StartActivity : BaseActivity() {
                     ),
                     elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
                 ) {
+                    // 중앙 정렬을 위해 Column에 fillMaxWidth와 horizontalAlignment 추가
                     Column(
-                        modifier = Modifier.padding(32.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(32.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
@@ -191,14 +148,18 @@ class StartActivity : BaseActivity() {
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF333333),
-                            modifier = Modifier.padding(bottom = 32.dp)
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(bottom = 32.dp)
                         )
 
                         // 입력 필드 영역
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.padding(bottom = 24.dp)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 24.dp)
                         ) {
                             // 커스텀 입력 필드
                             Card(
@@ -287,7 +248,8 @@ class StartActivity : BaseActivity() {
                             text = "금주할 목표 기간을 입력해주세요",
                             fontSize = 14.sp,
                             color = Color(0xFF999999),
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
                         )
                     }
                 }
@@ -319,7 +281,7 @@ class StartActivity : BaseActivity() {
                 }
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(100.dp))
         }
     }
 
@@ -408,48 +370,7 @@ fun StartScreenPreview() {
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.weight(1f)
         ) {
-            Spacer(modifier = Modifier.height(40.dp))
-
-            // 환영 메시지 카드
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White.copy(alpha = 0.95f)
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "🌿",
-                        fontSize = 80.sp,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-
-                    Text(
-                        text = "새로운 시작",
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF2E7D32),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-
-                    Text(
-                        text = "건강한 변화를 위한 첫걸음",
-                        fontSize = 16.sp,
-                        color = Color(0xFF666666),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(0.dp))
 
             // 목표 설정 카드
             Card(
@@ -462,23 +383,30 @@ fun StartScreenPreview() {
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
             ) {
+                // 중앙 정렬을 위해 Column에 fillMaxWidth와 horizontalAlignment 추가
                 Column(
-                    modifier = Modifier.padding(32.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "목표 기간 설정",
+                        text = "목표 기간 ���정",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF333333),
-                        modifier = Modifier.padding(bottom = 32.dp)
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(bottom = 32.dp)
                     )
 
                     // 입력 필드 영역
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.padding(bottom = 24.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 24.dp)
                     ) {
                         // 커스텀 입력 필드
                         Card(
@@ -547,7 +475,7 @@ fun StartScreenPreview() {
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(100.dp))
     }
 }
 
