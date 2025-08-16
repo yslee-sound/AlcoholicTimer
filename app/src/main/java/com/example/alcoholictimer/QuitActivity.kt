@@ -203,11 +203,15 @@ fun QuitScreen() {
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // 중지 버튼용 InteractionSource
+            val stopButtonInteractionSource = remember { MutableInteractionSource() }
+
             // 중지 버튼
             ModernControlButton(
                 icon = Icons.Default.Close,
                 backgroundColor = Color(0xFFE53935),
                 contentDescription = "중지",
+                interactionSource = stopButtonInteractionSource,
                 modifier = Modifier.customLongPress(
                     durationMillis = 3000L, // 3초
                     onClick = {
@@ -235,7 +239,8 @@ fun QuitScreen() {
                         context.startActivity(intent)
                         (context as? QuitActivity)?.overridePendingTransition(0, 0)
                         (context as? QuitActivity)?.finish()
-                    }
+                    },
+                    interactionSource = stopButtonInteractionSource
                 )
             )
 
@@ -265,7 +270,7 @@ fun QuitScreen() {
                             PressInteraction.Release(pressInteraction)
                         )
 
-                        // 클릭 처리
+                        // 클릭 처��
                         if (upOrCancel != null) {
                             (context as? QuitActivity)?.finish()
                         }
@@ -457,7 +462,7 @@ private fun saveCompletedRecord(
         val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
 
         val recordId = System.currentTimeMillis().toString()
-        Log.d("QuitActivity", "생성된 ����록 ID: $recordId")
+        Log.d("QuitActivity", "생성된 ������록 ID: $recordId")
 
         // 목표 달성률 계산
         val achievementRate = if (targetDays > 0) {
@@ -604,7 +609,7 @@ fun QuitScreenPreview() {
                     )
 
                     Text(
-                        text = "지금까지 잘 해오셨는데...",
+                        text = "지금까지 ��� 해오셨는데...",
                         fontSize = 16.sp,
                         color = Color(0xFF666666),
                         textAlign = TextAlign.Center
