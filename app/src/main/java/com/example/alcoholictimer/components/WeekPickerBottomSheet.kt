@@ -77,12 +77,6 @@ internal fun WeekPickerContent(
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF2C3E50),
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-        Text(
-            text = "최근 4주 중에서 선택하세요",
-            fontSize = 14.sp,
-            color = Color(0xFF636E72),
             modifier = Modifier.padding(bottom = 16.dp)
         )
 

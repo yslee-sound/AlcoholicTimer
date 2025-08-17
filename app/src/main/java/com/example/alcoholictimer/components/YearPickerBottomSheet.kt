@@ -73,21 +73,18 @@ internal fun YearPickerContent(
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF2C3E50),
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-        Text(
-            text = "2000~2030년 중에서 선택하세요",
-            fontSize = 14.sp,
-            color = Color(0xFF636E72),
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
         // 가운데: 연도 선택 NumberPicker
+        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+        val yearList = ((currentYear - 3)..currentYear).toList()
+        val yearRange = (currentYear - 3)..currentYear
         NumberPicker(
             value = selectedYear,
             onValueChange = { selectedYear = it },
-            range = 2000..2030,
-            displayValues = (2000..2030).map { "${it}년" },
+            range = yearRange,
+            displayValues = yearList.map { "${it}년" },
             modifier = Modifier.width(160.dp)
         )
 

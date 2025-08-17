@@ -191,30 +191,22 @@ fun RecordsScreen(
                     // "모든 기록" 버튼 (기록이 5개 이상일 때만 표시)
                     if (filteredRecords.size > 5) {
                         item {
-                            Card(
+                            Button(
                                 onClick = onNavigateToAllRecords,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 8.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = Color(0xFF1976D2).copy(alpha = 0.1f)
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF74B9FF), // 기존 하늘색과 통일
+                                    contentColor = Color.White
                                 ),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                                shape = RoundedCornerShape(8.dp)
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "모든 기록 보기 (${filteredRecords.size}개)",
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        color = Color(0xFF1976D2)
-                                    )
-                                }
+                                Text(
+                                    text = "모든 기록 보기 (${filteredRecords.size}개)",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
                             }
                         }
                     }

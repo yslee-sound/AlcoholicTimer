@@ -61,7 +61,11 @@ internal fun MonthPickerContent(
     val monthOptions = remember {
         generateMonthOptions()
     }
-    var selectedMonthIndex by remember { mutableStateOf(0) }
+    // 기본 선택값: 현재 월이 리스트의 마지막이 아니라 마지막(오름차순) 인덱스가 되도록 계산
+    val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+    val currentMonth = Calendar.getInstance().get(Calendar.MONTH) + 1
+    val defaultIndex = monthOptions.indexOfFirst { it.year == currentYear && it.month == currentMonth }.coerceAtLeast(0)
+    var selectedMonthIndex by remember { mutableStateOf(defaultIndex) }
 
     Column(
         modifier = Modifier
@@ -75,12 +79,6 @@ internal fun MonthPickerContent(
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF2C3E50),
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-        Text(
-            text = "최근 4개월 중에서 선택하세요",
-            fontSize = 14.sp,
-            color = Color(0xFF636E72),
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
@@ -143,8 +141,8 @@ private fun generateMonthOptions(): List<MonthOption> {
         calendar.add(Calendar.MONTH, -1)
     }
 
-    // 현재에서 과거 순으로 반환 (현재 월이 첫 번째)
-    return options
+    // 오름차순(과거→현재)으로 반환
+    return options.reversed()
 }
 
 @Preview(showBackground = true)
