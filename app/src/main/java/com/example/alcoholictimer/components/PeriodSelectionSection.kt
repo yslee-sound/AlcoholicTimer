@@ -72,7 +72,9 @@ fun PeriodSelectionSection(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onPeriodClick(selectedPeriod) },
+                .then(
+                    if (selectedPeriod == "전체") Modifier else Modifier.clickable { onPeriodClick(selectedPeriod) }
+                ),
             shape = RoundedCornerShape(8.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
@@ -90,13 +92,14 @@ fun PeriodSelectionSection(
                     fontWeight = FontWeight.Medium,
                     color = Color(0xFF2C3E50)
                 )
-
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = "세부 기간 선택",
-                    tint = Color(0xFF74B9FF),
-                    modifier = Modifier.size(20.dp)
-                )
+                if (selectedPeriod != "전체") {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = "세부 기간 선택",
+                        tint = Color(0xFF74B9FF),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
         }
     }
