@@ -1,7 +1,7 @@
 package com.example.alcoholictimer.components
 
 import android.app.DatePickerDialog
-import android.content.Intent
+import android.app.TimePickerDialog
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -15,7 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.utils.RecordsDataLoader
@@ -87,15 +88,42 @@ fun AddTestRecordScreen(
     onCancel: () -> Unit
 ) {
     val context = LocalContext.current
-    var targetDays by remember { mutableStateOf("30") }
-    var actualDays by remember { mutableStateOf("25") }
+    var targetDays by remember { mutableStateOf("30.0") }
     var startDate by remember { mutableStateOf(System.currentTimeMillis() - (30 * 24 * 60 * 60 * 1000L)) }
     var endDate by remember { mutableStateOf(System.currentTimeMillis() - (5 * 24 * 60 * 60 * 1000L)) }
-    var isCompleted by remember { mutableStateOf(false) }
-    var status by remember { mutableStateOf("실패") }
+    var startTime by remember { mutableStateOf(Pair(9, 0)) } // 시, 분
+    var endTime by remember { mutableStateOf(Pair(18, 0)) } // 시, 분
 
     // 날짜 포맷터
     val dateFormat = SimpleDateFormat("yyyy년 MM월 dd일", Locale.getDefault())
+
+    // 실제 기간 계산 및 완료 상태 계산
+    val (actualDays, isCompleted, status) = remember(startDate, endDate, startTime, endTime, targetDays) {
+        val startCalendar = Calendar.getInstance().apply {
+            timeInMillis = startDate
+            set(Calendar.HOUR_OF_DAY, startTime.first)
+            set(Calendar.MINUTE, startTime.second)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+
+        val endCalendar = Calendar.getInstance().apply {
+            timeInMillis = endDate
+            set(Calendar.HOUR_OF_DAY, endTime.first)
+            set(Calendar.MINUTE, endTime.second)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+
+        val durationMillis = endCalendar.timeInMillis - startCalendar.timeInMillis
+        val actualDaysFloat = durationMillis / (24 * 60 * 60 * 1000.0)
+        val targetDaysFloat = targetDays.toDoubleOrNull() ?: 0.0
+
+        val completed = actualDaysFloat >= targetDaysFloat
+        val statusText = if (completed) "성공" else "실패"
+
+        Triple(actualDaysFloat, completed, statusText)
+    }
 
     // 배경 그라데이션
     val gradientBackground = Brush.linearGradient(
@@ -123,7 +151,7 @@ fun AddTestRecordScreen(
             navigationIcon = {
                 IconButton(onClick = onCancel) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "뒤로가기"
                     )
                 }
@@ -214,6 +242,55 @@ fun AddTestRecordScreen(
                         }
                     }
 
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // 시작 시간 선택
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "시작 시간",
+                            fontSize = 14.sp,
+                            color = Color(0xFF636E72)
+                        )
+
+                        Surface(
+                            modifier = Modifier.clickable {
+                                TimePickerDialog(
+                                    context,
+                                    { _, hourOfDay, minute ->
+                                        startTime = Pair(hourOfDay, minute)
+                                    },
+                                    startTime.first,
+                                    startTime.second,
+                                    true
+                                ).show()
+                            },
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFF74B9FF).copy(alpha = 0.1f)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.DateRange,
+                                    contentDescription = "시간 선택",
+                                    tint = Color(0xFF74B9FF),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = String.format(Locale.getDefault(), "%02d:%02d", startTime.first, startTime.second),
+                                    fontSize = 14.sp,
+                                    color = Color(0xFF74B9FF)
+                                )
+                            }
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(12.dp))
 
                     // 종료일 선택
@@ -266,10 +343,59 @@ fun AddTestRecordScreen(
                             }
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // 종료 시간 선택
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "종료 시간",
+                            fontSize = 14.sp,
+                            color = Color(0xFF636E72)
+                        )
+
+                        Surface(
+                            modifier = Modifier.clickable {
+                                TimePickerDialog(
+                                    context,
+                                    { _, hourOfDay, minute ->
+                                        endTime = Pair(hourOfDay, minute)
+                                    },
+                                    endTime.first,
+                                    endTime.second,
+                                    true
+                                ).show()
+                            },
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFF74B9FF).copy(alpha = 0.1f)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.DateRange,
+                                    contentDescription = "시간 선택",
+                                    tint = Color(0xFF74B9FF),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = String.format(Locale.getDefault(), "%02d:%02d", endTime.first, endTime.second),
+                                    fontSize = 14.sp,
+                                    color = Color(0xFF74B9FF)
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
-            // 목표 및 달성 일수 설정 카드
+            // 목표 일수 설정 카드
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -282,7 +408,7 @@ fun AddTestRecordScreen(
                         .padding(20.dp)
                 ) {
                     Text(
-                        text = "목표 및 달성 일수",
+                        text = "목표 일수",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF2C3E50)
@@ -290,37 +416,33 @@ fun AddTestRecordScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // 목표 일수
+                    // 목표 일수 (소수점 지원)
                     OutlinedTextField(
                         value = targetDays,
-                        onValueChange = { targetDays = it },
-                        label = { Text("목표 일수") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        onValueChange = { newValue ->
+                            // 숫자와 소수점만 허용
+                            if (newValue.isEmpty() || newValue.matches(Regex("^\\d*\\.?\\d*$"))) {
+                                targetDays = newValue
+                            }
+                        },
+                        label = { Text("목표 일수 (소수점 가능, 예: 0.1일)") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFF74B9FF),
                             focusedLabelColor = Color(0xFF74B9FF)
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // 달성 일수
-                    OutlinedTextField(
-                        value = actualDays,
-                        onValueChange = { actualDays = it },
-                        label = { Text("달성 일수") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF74B9FF),
-                            focusedLabelColor = Color(0xFF74B9FF)
-                        )
+                        ),
+                        supportingText = {
+                            Text(
+                                text = "실제 기간: ${String.format(Locale.getDefault(), "%.2f", actualDays)}일",
+                                color = if (isCompleted) Color(0xFF00B894) else Color(0xFFE17055)
+                            )
+                        }
                     )
                 }
             }
 
-            // 완료 상태 설정 카드
+            // 완료 상태 표시 카드
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -332,50 +454,37 @@ fun AddTestRecordScreen(
                         .fillMaxWidth()
                         .padding(20.dp)
                 ) {
-                    Text(
-                        text = "완료 상태",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF2C3E50)
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // 완료 여부 체크박스
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Checkbox(
-                            checked = isCompleted,
-                            onCheckedChange = {
-                                isCompleted = it
-                                status = if (it) "성공" else "실패"
-                            },
-                            colors = CheckboxDefaults.colors(
-                                checkedColor = Color(0xFF00B894)
-                            )
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "목표 달성 완료",
-                            fontSize = 14.sp,
-                            color = Color(0xFF636E72)
+                            text = "완료 상태",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF2C3E50)
+                        )
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        Text(
+                            text = status,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isCompleted) Color(0xFF00B894) else Color(0xFFE17055)
                         )
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // 상태 텍스트 입력
-                    OutlinedTextField(
-                        value = status,
-                        onValueChange = { status = it },
-                        label = { Text("상태") },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF74B9FF),
-                            focusedLabelColor = Color(0xFF74B9FF)
-                        )
+                    Text(
+                        text = if (isCompleted) {
+                            "목표 일수를 달성했습니다! 🎉"
+                        } else {
+                            "목표 일수에 도달하지 못했습니다."
+                        },
+                        fontSize = 14.sp,
+                        color = Color(0xFF636E72)
                     )
                 }
             }
@@ -401,15 +510,31 @@ fun AddTestRecordScreen(
                 Button(
                     onClick = {
                         try {
-                            val targetDaysInt = targetDays.toIntOrNull() ?: 30
-                            val actualDaysInt = actualDays.toIntOrNull() ?: 0
+                            val targetDaysDouble = targetDays.toDoubleOrNull() ?: 0.0
+
+                            // 시작 시간과 종료 시간을 포함한 정확한 타임스탬프 계산
+                            val startCalendar = Calendar.getInstance().apply {
+                                timeInMillis = startDate
+                                set(Calendar.HOUR_OF_DAY, startTime.first)
+                                set(Calendar.MINUTE, startTime.second)
+                                set(Calendar.SECOND, 0)
+                                set(Calendar.MILLISECOND, 0)
+                            }
+
+                            val endCalendar = Calendar.getInstance().apply {
+                                timeInMillis = endDate
+                                set(Calendar.HOUR_OF_DAY, endTime.first)
+                                set(Calendar.MINUTE, endTime.second)
+                                set(Calendar.SECOND, 0)
+                                set(Calendar.MILLISECOND, 0)
+                            }
 
                             val record = SobrietyRecord(
                                 id = "test_${System.currentTimeMillis()}",
-                                startTime = startDate,
-                                endTime = endDate,
-                                targetDays = targetDaysInt,
-                                actualDays = actualDaysInt,
+                                startTime = startCalendar.timeInMillis,
+                                endTime = endCalendar.timeInMillis,
+                                targetDays = targetDaysDouble.toInt(), // 기존 호환성을 위해 Int로 변환
+                                actualDays = actualDays.toInt(), // 계산된 실제 일수
                                 isCompleted = isCompleted,
                                 status = status,
                                 createdAt = System.currentTimeMillis()
@@ -434,5 +559,39 @@ fun AddTestRecordScreen(
             // 하단 여백
             Spacer(modifier = Modifier.height(16.dp))
         }
+    }
+}
+
+// Preview 함수들
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun AddTestRecordScreenPreview() {
+    MaterialTheme {
+        AddTestRecordScreen(
+            onSave = { },
+            onCancel = { }
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 320, heightDp = 640)
+@Composable
+fun AddTestRecordScreenCompactPreview() {
+    MaterialTheme {
+        AddTestRecordScreen(
+            onSave = { },
+            onCancel = { }
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 600, heightDp = 800)
+@Composable
+fun AddTestRecordScreenTabletPreview() {
+    MaterialTheme {
+        AddTestRecordScreen(
+            onSave = { },
+            onCancel = { }
+        )
     }
 }
