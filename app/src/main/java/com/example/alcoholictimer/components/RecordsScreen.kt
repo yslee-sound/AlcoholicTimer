@@ -141,6 +141,16 @@ fun RecordsScreen(
             )
         }
 
+        // 해당 기간에 대한 정보를 보여주는 섹션
+        if (!isLoading && filteredRecords.isNotEmpty()) {
+            PeriodStatisticsSection(
+                records = filteredRecords,
+                selectedPeriod = selectedPeriod,
+                selectedDetailPeriod = selectedDetailPeriod,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+        }
+
         // 기록 목록 영역
         Box(
             modifier = Modifier
@@ -448,6 +458,164 @@ private fun RecordCard(
     }
 }
 
+@Composable
+private fun PeriodStatisticsSection(
+    records: List<SobrietyRecord>,
+    selectedPeriod: String,
+    selectedDetailPeriod: String,
+    modifier: Modifier = Modifier
+) {
+    // 통계 계산
+    val totalRecords = records.size
+    val completedRecords = records.count { it.isCompleted }
+    val successRate = if (totalRecords > 0) {
+        (completedRecords.toFloat() / totalRecords * 100).toInt()
+    } else 0
+
+    val totalDays = records.sumOf { it.actualDays }
+    val averageDays = if (totalRecords > 0) {
+        totalDays / totalRecords
+    } else 0
+
+    val maxDays = records.maxOfOrNull { it.actualDays } ?: 0
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            // 헤더
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = if (selectedDetailPeriod.isNotEmpty()) {
+                        "$selectedDetailPeriod 통계"
+                    } else {
+                        "$selectedPeriod 통계"
+                    },
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF2C3E50)
+                )
+
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF74B9FF).copy(alpha = 0.1f)
+                ) {
+                    Text(
+                        text = "${totalRecords}개 기록",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF74B9FF),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 통계 그리드
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // 성공률
+                StatisticItem(
+                    title = "성공률",
+                    value = "$successRate%",
+                    color = Color(0xFF00B894),
+                    modifier = Modifier.weight(1f)
+                )
+
+                // 평균 지속일
+                StatisticItem(
+                    title = "평균 지속일",
+                    value = "${averageDays}일",
+                    color = Color(0xFF74B9FF),
+                    modifier = Modifier.weight(1f)
+                )
+
+                // 최대 지속일
+                StatisticItem(
+                    title = "최대 지속일",
+                    value = "${maxDays}일",
+                    color = Color(0xFFE17055),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 총 누적 일수
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "총 누적 금주일",
+                    fontSize = 14.sp,
+                    color = Color(0xFF636E72)
+                )
+                Text(
+                    text = "${totalDays}일",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF2C3E50)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatisticItem(
+    title: String,
+    value: String,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        color = color.copy(alpha = 0.1f)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = value,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = color
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = title,
+                fontSize = 12.sp,
+                color = Color(0xFF636E72),
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
 @Preview(showBackground = true, name = "금주 기록 화면 - 빈 상태")
 @Preview(showBackground = true, name = "금주 기록 화면 - 데이터 있음", fontScale = 1.2f)
 @Composable
@@ -485,6 +653,40 @@ fun PreviewRecordCard() {
                 createdAt = System.currentTimeMillis()
             ),
             onClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "기간 통계 섹션")
+@Composable
+fun PreviewPeriodStatisticsSection() {
+    MaterialTheme {
+        PeriodStatisticsSection(
+            records = listOf(
+                SobrietyRecord(
+                    id = "1",
+                    startTime = System.currentTimeMillis() - (30 * 24 * 60 * 60 * 1000L),
+                    endTime = System.currentTimeMillis() - (20 * 24 * 60 * 60 * 1000L),
+                    targetDays = 30,
+                    actualDays = 10,
+                    isCompleted = false,
+                    status = "실패",
+                    createdAt = System.currentTimeMillis()
+                ),
+                SobrietyRecord(
+                    id = "2",
+                    startTime = System.currentTimeMillis() - (60 * 24 * 60 * 60 * 1000L),
+                    endTime = System.currentTimeMillis() - (30 * 24 * 60 * 60 * 1000L),
+                    targetDays = 30,
+                    actualDays = 30,
+                    isCompleted = true,
+                    status = "성공",
+                    createdAt = System.currentTimeMillis()
+                )
+            ),
+            selectedPeriod = "월",
+            selectedDetailPeriod = "2024년 8월",
+            modifier = Modifier.padding(16.dp)
         )
     }
 }
