@@ -298,9 +298,19 @@ fun DetailScreen(
                 Column(
                     modifier = Modifier.padding(24.dp)
                 ) {
-                    // 날짜 및 시간
+                    // 시작 날짜 및 시간
                     Text(
-                        text = displayDateTime,
+                        text = "시작: $displayDateTime",
+                        fontSize = 14.sp,
+                        color = Color(0xFF718096),
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // 종료 날짜 및 시간
+                    Text(
+                        text = "종료: ${dateTimeFormat.format(Date(endTime))}",
                         fontSize = 14.sp,
                         color = Color(0xFF718096),
                         fontWeight = FontWeight.Medium

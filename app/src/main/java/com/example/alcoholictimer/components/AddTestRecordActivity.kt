@@ -49,7 +49,7 @@ class AddTestRecordActivity : ComponentActivity() {
                             setResult(RESULT_OK)
                             finish()
                         } else {
-                            Toast.makeText(this, "기록 저장에 실패했습니다", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, "선택한 시간이 기존 기록과 중복됩니다", Toast.LENGTH_LONG).show()
                         }
                     },
                     onCancel = {
@@ -63,7 +63,29 @@ class AddTestRecordActivity : ComponentActivity() {
     private fun saveTestRecord(record: SobrietyRecord): Boolean {
         return try {
             val currentRecords = RecordsDataLoader.loadSobrietyRecords(this).toMutableList()
+
+            // 시간 중복 체크
+            val hasTimeConflict = currentRecords.any { existingRecord ->
+                // 새 기록의 시간 범위와 기존 기록의 시간 범위가 겹치는지 확인
+                val newStart = record.startTime
+                val newEnd = record.endTime
+                val existingStart = existingRecord.startTime
+                val existingEnd = existingRecord.endTime
+
+                // 시간 범위 겹침 체크: 새 기록이 기존 기록과 겹치는 경우
+                (newStart < existingEnd && newEnd > existingStart)
+            }
+
+            if (hasTimeConflict) {
+                Log.w("AddTestRecord", "시간이 중복되는 기록이 이미 존재합니다")
+                return false
+            }
+
+            // 새 기록 추가
             currentRecords.add(record)
+
+            // 완료 시간(endTime) 기준으로 내림차순 정렬 (최신이 위로)
+            currentRecords.sortByDescending { it.endTime }
 
             val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
             val jsonString = SobrietyRecord.toJsonArray(currentRecords)
