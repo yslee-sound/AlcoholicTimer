@@ -31,14 +31,14 @@ fun WeekPickerBottomSheet(
             onDismissRequest = onDismiss,
             sheetState = bottomSheetState,
             containerColor = Color.White,
-            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
             dragHandle = {
                 Box(
                     modifier = Modifier
                         .width(40.dp)
                         .height(4.dp)
                         .background(
-                            Color.Gray.copy(alpha = 0.4f),
+                            Color(0xFF636E72).copy(alpha = 0.2f),
                             RoundedCornerShape(2.dp)
                         )
                 )
@@ -68,57 +68,32 @@ internal fun WeekPickerContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(24.dp),
+            .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 상단: 이전주 표시와 안내
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 이전주 표시
-            Text(
-                text = "지난 주",
-                fontSize = 16.sp,
-                color = Color.Gray,
-                fontWeight = FontWeight.Normal
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // 안내 텍스트
-            Text(
-                text = "주 선택",
-                fontSize = 14.sp,
-                color = Color.Gray
-            )
-        }
+        // 상단: 안내
+        Text(
+            text = "주 선택",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF2C3E50),
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        Text(
+            text = "최근 4주 중에서 선택하세요",
+            fontSize = 14.sp,
+            color = Color(0xFF636E72),
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
 
         // 가운데: 주 선택 NumberPicker
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "주 선택",
-                fontSize = 14.sp,
-                color = Color.Gray,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            NumberPicker(
-                value = selectedWeekIndex,
-                onValueChange = { selectedWeekIndex = it },
-                range = 0 until weekOptions.size,
-                displayValues = weekOptions.map { it.displayText },
-                modifier = Modifier.width(200.dp)
-            )
-        }
+        NumberPicker(
+            value = selectedWeekIndex,
+            onValueChange = { selectedWeekIndex = it },
+            range = 0 until weekOptions.size,
+            displayValues = weekOptions.map { it.displayText },
+            modifier = Modifier.width(220.dp)
+        )
 
         // 하단: 선택 버튼
         Button(
@@ -130,21 +105,20 @@ internal fun WeekPickerContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
-                .padding(top = 16.dp),
+                .padding(top = 12.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Black,
+                containerColor = Color(0xFF74B9FF),
                 contentColor = Color.White
             ),
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(12.dp)
         ) {
             Text(
                 text = "선택",
-                fontSize = 18.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )
         }
 
-        // 하단 여백
         Spacer(modifier = Modifier.height(16.dp))
     }
 }

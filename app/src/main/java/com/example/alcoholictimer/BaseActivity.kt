@@ -28,6 +28,15 @@ import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import kotlinx.coroutines.launch
 
+// Activity imports
+import com.example.alcoholictimer.RecordsActivity
+import com.example.alcoholictimer.RunActivity
+import com.example.alcoholictimer.StartActivity
+import com.example.alcoholictimer.LevelActivity
+import com.example.alcoholictimer.SettingsActivity
+import com.example.alcoholictimer.TestActivity
+import com.example.alcoholictimer.NicknameEditActivity
+
 /**
  * 모든 액티비티의 베이스 클래스
  * 공통된 햄버거 메뉴와 네비게이션 기능을 제공합니다.
