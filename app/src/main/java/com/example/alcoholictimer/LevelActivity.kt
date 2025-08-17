@@ -277,30 +277,31 @@ class LevelActivity : BaseActivity() {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 다음 레벨 아이콘
-                Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clip(CircleShape)
-                        .background(nextLevel.color.copy(alpha = 0.8f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = nextLevel.name.take(1),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
+                // 다음 레벨 아이콘 및 레벨명 제거
+                // Box(
+                //     modifier = Modifier
+                //         .size(24.dp)
+                //         .clip(CircleShape)
+                //         .background(nextLevel.color.copy(alpha = 0.8f)),
+                //     contentAlignment = Alignment.Center
+                // ) {
+                //     Text(
+                //         text = nextLevel.name.take(1),
+                //         fontSize = 12.sp,
+                //         fontWeight = FontWeight.Bold,
+                //         color = Color.White
+                //     )
+                // }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                // Spacer(modifier = Modifier.width(8.dp))
 
-                Text(
-                    text = nextLevel.name,
-                    fontSize = 14.sp,
-                    color = nextLevel.color,
-                    fontWeight = FontWeight.Bold
-                )
+                // nextLevel.name 텍스트(레벨명) 제거
+                // Text(
+                //     text = nextLevel.name,
+                //     fontSize = 14.sp,
+                //     color = nextLevel.color,
+                //     fontWeight = FontWeight.Bold
+                // )
             }
         }
     }

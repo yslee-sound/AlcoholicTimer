@@ -24,7 +24,8 @@ class RecordsActivity : BaseActivity() {
             BaseScreen {
                 RecordsScreen(
                     externalRefreshTrigger = refreshTrigger,
-                    onNavigateToDetail = { record -> handleCardClick(record) }
+                    onNavigateToDetail = { record -> handleCardClick(record) },
+                    onNavigateToAllRecords = { navigateToAllRecords() }
                 )
             }
         }
@@ -76,5 +77,11 @@ class RecordsActivity : BaseActivity() {
             Log.e(TAG, "CardDetail 화면 이동 중 오류", e)
             Log.e(TAG, "오류 스택트레이스: ${e.stackTraceToString()}")
         }
+    }
+
+    private fun navigateToAllRecords() {
+        Log.d(TAG, "모든 기록 화면으로 이동")
+        val intent = Intent(this@RecordsActivity, AllRecordsActivity::class.java)
+        startActivity(intent)
     }
 }

@@ -28,6 +28,12 @@
             android:exported="false"
             android:theme="@style/Theme.Material3.DayNight" />
 
+        <!-- 모든 기록 화면 -->
+        <activity
+            android:name=".AllRecordsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Material3.DayNight" />
+
         <!-- 레벨 화면 -->
         <activity
             android:name=".LevelActivity"

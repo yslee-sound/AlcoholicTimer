@@ -34,7 +34,8 @@ import java.util.*
 @Composable
 fun RecordsScreen(
     externalRefreshTrigger: Int,
-    onNavigateToDetail: (SobrietyRecord) -> Unit = {}
+    onNavigateToDetail: (SobrietyRecord) -> Unit = {},
+    onNavigateToAllRecords: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var records by remember { mutableStateOf<List<SobrietyRecord>>(emptyList()) }
@@ -171,18 +172,51 @@ fun RecordsScreen(
                 // 빈 상태
                 EmptyRecordsState(selectedPeriod, selectedDetailPeriod)
             } else {
-                // 기록 목록
+                // 기록 목록 (최대 5개만 표시)
+                val displayRecords = filteredRecords.take(5)
+
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(filteredRecords) { record ->
+                    items(displayRecords) { record ->
                         RecordCard(
                             record = record,
                             onClick = { onNavigateToDetail(record) }
                         )
+                    }
+
+                    // "모든 기록" 버튼 (기록이 5개 이상일 때만 표시)
+                    if (filteredRecords.size > 5) {
+                        item {
+                            Card(
+                                onClick = onNavigateToAllRecords,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color(0xFF1976D2).copy(alpha = 0.1f)
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "모든 기록 보기 (${filteredRecords.size}개)",
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = Color(0xFF1976D2)
+                                    )
+                                }
+                            }
+                        }
                     }
 
                     // 마지막 아이템 아래 여백
@@ -387,7 +421,7 @@ private fun RecordCard(
                     )
                     Text(
                         text = "${record.actualDays}일",
-                        fontSize = 20.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF2C3E50)
                     )
