@@ -351,6 +351,64 @@ fun DetailScreen(
                             )
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // 목표 달성률 프로그레스바
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "목표 달성률",
+                                fontSize = 14.sp,
+                                color = Color(0xFF718096),
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = String.format(Locale.getDefault(), "%.1f%%", achievementRate),
+                                fontSize = 14.sp,
+                                color = if (isCompleted) Color(0xFF48BB78) else Color(0xFF4299E1),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // 프로그레스바
+                        LinearProgressIndicator(
+                            progress = { (achievementRate / 100.0).toFloat().coerceIn(0f, 1f) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(4.dp)),
+                            color = if (isCompleted) Color(0xFF48BB78) else Color(0xFF4299E1),
+                            trackColor = Color(0xFFE2E8F0)
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // 목표일 정보
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "진행: ${String.format(Locale.getDefault(), "%.1f", totalDays)}일",
+                                fontSize = 12.sp,
+                                color = Color(0xFF718096)
+                            )
+                            Text(
+                                text = "목표: ${targetDays.toInt()}일",
+                                fontSize = 12.sp,
+                                color = Color(0xFF718096)
+                            )
+                        }
+                    }
                 }
             }
 

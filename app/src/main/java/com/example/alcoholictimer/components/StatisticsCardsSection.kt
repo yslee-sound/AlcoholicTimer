@@ -12,6 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.utils.SobrietyRecord
+import kotlin.math.roundToInt
 
 @Composable
 fun StatisticsCardsSection(
@@ -20,10 +21,27 @@ fun StatisticsCardsSection(
     selectedRange: String,
     onRangeSelected: (String) -> Unit
 ) {
-    val totalDays = records.sumOf { it.actualDays }
-    val completedCount = records.count { it.isCompleted }
+    // 실제 시간 기반으로 정확한 통계 계산
+    val totalDays = records.sumOf { record ->
+        val duration = record.endTime - record.startTime
+        (duration / (24 * 60 * 60 * 1000f)).roundToInt()
+    }
+
     val totalAttempts = records.size
-    val successRate = if (totalAttempts > 0) (completedCount * 100) / totalAttempts else 0
+
+    // 각 기록의 실제 달성률을 평균으로 계산
+    val successRate = if (totalAttempts > 0) {
+        val totalProgressPercent = records.sumOf { record ->
+            val actualDurationDays = (record.endTime - record.startTime) / (24 * 60 * 60 * 1000f)
+            val progressPercent = if (record.targetDays > 0) {
+                ((actualDurationDays / record.targetDays) * 100).coerceIn(0f, 100f)
+            } else {
+                record.percentage?.toFloat() ?: 0f
+            }
+            progressPercent.toDouble()
+        }
+        (totalProgressPercent / totalAttempts).toInt()
+    } else 0
 
     Column(
         modifier = Modifier

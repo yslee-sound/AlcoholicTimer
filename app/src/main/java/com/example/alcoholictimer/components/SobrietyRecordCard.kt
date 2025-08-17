@@ -39,12 +39,13 @@ fun SobrietyRecordCard(
     val durationHours = ((duration % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)).toInt()
     val durationMinutes = ((duration % (60 * 60 * 1000)) / (60 * 1000)).toInt()
 
-    // 실제 시간 차이를 기반으로 달성률 계산
+    // 실제 시간 차이를 기반으로 달성률 계산 (수정된 로직)
     val actualDurationDays = (duration / (24 * 60 * 60 * 1000f)).toFloat()
     val progressPercent = if (record.targetDays > 0) {
+        // 목표일이 설정되어 있으면 실제 진행률 계산
         ((actualDurationDays / record.targetDays) * 100).coerceIn(0f, 100f).toInt()
     } else {
-        // 기존 percentage 값이 있으면 사용, 없으면 0
+        // 목표일이 없으면 기존 percentage 값 사용하거나 0
         record.percentage ?: 0
     }
 

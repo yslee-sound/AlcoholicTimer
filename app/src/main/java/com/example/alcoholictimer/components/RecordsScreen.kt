@@ -513,19 +513,44 @@ private fun PeriodStatisticsSection(
     modifier: Modifier = Modifier,
     onAddTestRecord: () -> Unit = {}
 ) {
-    // 통계 계산
+    // 통계 계산 - 수정된 로직
     val totalRecords = records.size
-    val completedRecords = records.count { it.isCompleted }
+
+    // 각 기록의 실제 달성률을 평균으로 계산
     val successRate = if (totalRecords > 0) {
-        (completedRecords.toFloat() / totalRecords * 100).toInt()
+        val totalProgressPercent = records.sumOf { record ->
+            val actualDurationDays = (record.endTime - record.startTime) / (24 * 60 * 60 * 1000f)
+            val progressPercent = if (record.targetDays > 0) {
+                ((actualDurationDays / record.targetDays) * 100).coerceIn(0f, 100f)
+            } else {
+                record.percentage?.toFloat() ?: 0f
+            }
+            progressPercent.toDouble()
+        }
+        (totalProgressPercent / totalRecords).toInt()
     } else 0
 
-    val totalDays = records.sumOf { it.actualDays }
+    // 실제 시간 기반으로 총 일수 계산
+    val totalDays = records.sumOf { record ->
+        val duration = record.endTime - record.startTime
+        (duration / (24 * 60 * 60 * 1000.0)).toInt()
+    }
+
+    // 실제 시간 기반으로 평균 지속일 계산
     val averageDays = if (totalRecords > 0) {
-        totalDays / totalRecords
+        val avgDuration = records.map { record ->
+            (record.endTime - record.startTime) / (24 * 60 * 60 * 1000.0)
+        }.average()
+        avgDuration.toInt()
     } else 0
 
-    val maxDays = records.maxOfOrNull { it.actualDays } ?: 0
+    // 실제 시간 기반으로 최대 지속일 계산
+    val maxDays = if (records.isNotEmpty()) {
+        records.maxOf { record ->
+            val duration = record.endTime - record.startTime
+            (duration / (24 * 60 * 60 * 1000.0)).toInt()
+        }
+    } else 0
 
     Card(
         modifier = modifier.fillMaxWidth(),
