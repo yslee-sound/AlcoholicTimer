@@ -41,6 +41,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.*
 import kotlin.math.roundToInt
+import com.example.alcoholictimer.components.StatisticsCardsSection as WeeklyStatisticsCardsSection
 
 class QuitActivity : BaseActivity() {
 
@@ -68,7 +69,7 @@ fun QuitScreen() {
     // 설정값 가져오기
     val selectedCost = sharedPref.getString("selected_cost", "�����") ?: "중"
     val selectedFrequency = sharedPref.getString("selected_frequency", "주 2~3회") ?: "주 2~3회"
-    val selectedDuration = sharedPref.getString("selected_duration", "보통") ?: "보통"
+    val selectedDuration = sharedPref.getString("selected_duration", "보��") ?: "보통"
 
     // 현재 시간과 경과 시간 계산
     val currentTime = System.currentTimeMillis()
@@ -116,6 +117,47 @@ fun QuitScreen() {
         end = Offset(1000f, 1000f)
     )
 
+    // --- 주간 통계용 상태 QuitScreen 내부로 이동 ---
+    val records = remember {
+        listOf(
+            com.example.alcoholictimer.utils.SobrietyRecord(
+                id = "1",
+                startTime = 1722447600000, // 2024-08-01 00:00:00
+                endTime = 1722706800000,   // 2024-08-04 00:00:00
+                targetDays = 5,
+                actualDays = 3,
+                percentage = 80,
+                isCompleted = false,
+                status = "진행중",
+                createdAt = 1722447600000
+            ),
+            com.example.alcoholictimer.utils.SobrietyRecord(
+                id = "2",
+                startTime = 1722534000000, // 2024-08-02 00:00:00
+                endTime = 1722793200000,   // 2024-08-05 00:00:00
+                targetDays = 4,
+                actualDays = 3,
+                percentage = 100,
+                isCompleted = true,
+                status = "완료",
+                createdAt = 1722534000000
+            ),
+            com.example.alcoholictimer.utils.SobrietyRecord(
+                id = "3",
+                startTime = 1722706800000, // 2024-08-04 00:00:00
+                endTime = 1723225200000,   // 2024-08-10 00:00:00
+                targetDays = 7,
+                actualDays = 6,
+                percentage = 90,
+                isCompleted = false,
+                status = "진행중",
+                createdAt = 1722706800000
+            )
+        )
+    }
+    var selectedRange by remember { mutableStateOf("8-04 ~ 8-10") } // 기본값: 지난 주
+    var selectedPeriod by remember { mutableStateOf("주간") }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -125,6 +167,14 @@ fun QuitScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
+        // --- 주간 통계 카드 추가 ---
+        WeeklyStatisticsCardsSection(
+            records = records,
+            selectedPeriod = selectedPeriod,
+            selectedRange = selectedRange,
+            onRangeSelected = { selectedRange = it }
+        )
+
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.weight(1f)
@@ -160,7 +210,7 @@ fun QuitScreen() {
                     }
 
                     Text(
-                        text = "정말 멈추시겠어요?",
+                        text = "정말 멈추���겠어요?",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF333333),
@@ -795,7 +845,7 @@ fun ModernControlButtonPreview() {
             icon = Icons.Default.PlayArrow,
             backgroundColor = Color(0xFF4CAF50),
             contentDescription = "계속"
-            // onClick 필요시 추가
+            // onClick 필���시 추가
         )
     }
 }

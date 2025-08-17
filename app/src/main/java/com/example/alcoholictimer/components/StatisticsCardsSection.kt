@@ -56,14 +56,41 @@ fun StatisticsCardsSection(
         return null
     }
 
+    // 월간 범위 파싱 함수 (예: "2024-07" 또는 "7월")
+    fun parseMonthRange(range: String): Pair<Int, Int>? {
+        // "2024-07" 또는 "2024년 7월" 또는 "7월" 등 지원
+        val yearMonthRegex = Regex("(\\d{4})[.-]?(\\d{1,2})")
+        val onlyMonthRegex = Regex("(\\d{1,2})월")
+        yearMonthRegex.find(range)?.let {
+            val (year, month) = it.destructured
+            return year.toInt() to month.toInt()
+        }
+        onlyMonthRegex.find(range)?.let {
+            val (month) = it.destructured
+            val year = Calendar.getInstance().get(Calendar.YEAR)
+            return year to month.toInt()
+        }
+        return null
+    }
+
     val weekRange = parseWeekRange(selectedRange)
     val (weekStart, weekEnd) = weekRange ?: (null to null)
 
-    // 실제 시간 기반으로 정확한 통계 계산 (주간 범위에 맞게)
-    val filteredRecords = if (weekStart != null && weekEnd != null) {
-        records.filter { it.endTime >= weekStart && it.startTime <= weekEnd }
-    } else {
-        records
+    val monthRange = parseMonthRange(selectedRange)
+    val (selectedYear, selectedMonth) = monthRange ?: (null to null)
+
+    // 실제 시간 기반으로 정확한 통계 계산 (주간/월간 범위에 맞게)
+    val filteredRecords = when {
+        selectedPeriod == "월간" && selectedYear != null && selectedMonth != null -> {
+            records.filter { record ->
+                val cal = Calendar.getInstance().apply { timeInMillis = record.startTime }
+                cal.get(Calendar.YEAR) == selectedYear && (cal.get(Calendar.MONTH) + 1) == selectedMonth
+            }
+        }
+        weekStart != null && weekEnd != null -> {
+            records.filter { it.endTime >= weekStart && it.startTime <= weekEnd }
+        }
+        else -> records
     }
 
     val totalDays = filteredRecords.sumOf { record ->
