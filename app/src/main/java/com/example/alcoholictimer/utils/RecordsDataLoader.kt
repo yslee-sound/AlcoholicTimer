@@ -41,4 +41,52 @@ object RecordsDataLoader {
             emptyList()
         }
     }
+
+    fun addTestRecord(context: Context): Boolean {
+        return try {
+            // 현재 기록들을 먼저 로드
+            val currentRecords = loadSobrietyRecords(context).toMutableList()
+
+            // 랜덤한 테스트 기록 생성
+            val random = kotlin.random.Random
+            val targetDays = listOf(7, 14, 21, 30).random()
+            val actualDays = random.nextInt(1, targetDays + 1)
+            val isCompleted = actualDays >= targetDays
+
+            // 랜덤한 과거 날짜 생성 (최근 30일 이내)
+            val daysAgo = random.nextInt(1, 30)
+            val endTime = System.currentTimeMillis() - (daysAgo * 24 * 60 * 60 * 1000L)
+            val startTime = endTime - (actualDays * 24 * 60 * 60 * 1000L)
+
+            val testRecord = SobrietyRecord(
+                id = "test_${System.currentTimeMillis()}",
+                startTime = startTime,
+                endTime = endTime,
+                targetDays = targetDays,
+                actualDays = actualDays,
+                isCompleted = isCompleted,
+                status = if (isCompleted) "성공" else "실패",
+                createdAt = System.currentTimeMillis()
+            )
+
+            // 새 기록을 목록에 추가
+            currentRecords.add(testRecord)
+
+            // 저장
+            val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
+            val jsonString = SobrietyRecord.toJsonArray(currentRecords)
+
+            sharedPref.edit()
+                .putString("sobriety_records", jsonString)
+                .apply()
+
+            Log.d(TAG, "테스트 기록 추가 완료: ${testRecord.id}")
+            Log.d(TAG, "목표: ${targetDays}일, 달성: ${actualDays}일, 완료: ${isCompleted}")
+
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "테스트 기록 추가 중 오류 발생", e)
+            false
+        }
+    }
 }

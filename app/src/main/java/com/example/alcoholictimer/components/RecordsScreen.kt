@@ -1,6 +1,10 @@
 package com.example.alcoholictimer.components
 
+import android.app.Activity
+import android.content.Intent
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -55,6 +59,16 @@ fun RecordsScreen(
             Log.e("RecordsScreen", "기록 로딩 실패", e)
         } finally {
             isLoading = false
+        }
+    }
+
+    // Activity Result Launcher for AddTestRecordActivity
+    val addTestRecordLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            // 새 기록이 추가되었으므로 목록을 새로고침
+            loadRecords()
         }
     }
 
@@ -143,12 +157,17 @@ fun RecordsScreen(
         }
 
         // 해당 기간에 대한 정보를 보여주는 섹션
-        if (!isLoading && filteredRecords.isNotEmpty()) {
+        if (!isLoading) {
             PeriodStatisticsSection(
                 records = filteredRecords,
                 selectedPeriod = selectedPeriod,
                 selectedDetailPeriod = selectedDetailPeriod,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                onAddTestRecord = {
+                    // AddTestRecordActivity로 이동
+                    val intent = Intent(context, AddTestRecordActivity::class.java)
+                    addTestRecordLauncher.launch(intent)
+                }
             )
         }
 
@@ -328,7 +347,9 @@ private fun RecordCard(
     val startDate = dateFormat.format(Date(record.startTime))
     val endDate = dateFormat.format(Date(record.endTime))
 
-    val successRate = if (record.targetDays > 0) {
+    val successRate = if (record.isCompleted) {
+        100f
+    } else if (record.targetDays > 0) {
         (record.actualDays.toFloat() / record.targetDays * 100).coerceAtMost(100f)
     } else {
         0f
@@ -489,7 +510,8 @@ private fun PeriodStatisticsSection(
     records: List<SobrietyRecord>,
     selectedPeriod: String,
     selectedDetailPeriod: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onAddTestRecord: () -> Unit = {}
 ) {
     // 통계 계산
     val totalRecords = records.size
@@ -537,16 +559,20 @@ private fun PeriodStatisticsSection(
                     color = Color(0xFF2C3E50)
                 )
 
-                Surface(
+                Button(
+                    onClick = onAddTestRecord,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF74B9FF),
+                        contentColor = Color.White
+                    ),
                     shape = RoundedCornerShape(8.dp),
-                    color = Color(0xFF74B9FF).copy(alpha = 0.1f)
+                    modifier = Modifier.height(32.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        text = "${totalRecords}개 기록",
+                        text = "테스트 기록 추가",
                         fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color(0xFF74B9FF),
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        fontWeight = FontWeight.Medium
                     )
                 }
             }
