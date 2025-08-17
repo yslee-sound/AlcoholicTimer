@@ -56,7 +56,7 @@ class LevelActivity : BaseActivity() {
 
         // 레벨 계산용 일수 (테스트 모드 적용)
         val levelDays = Constants.calculateLevelDays(elapsedTime)
-        val currentLevel = getCurrentLevel(levelDays)
+        val currentLevel = LevelDefinitions.getLevelInfo(levelDays)
 
         // 모던한 그라데이션 배경 (StartActivity와 동일)
         val backgroundBrush = Brush.linearGradient(
@@ -90,7 +90,7 @@ class LevelActivity : BaseActivity() {
     }
 
     @Composable
-    private fun CurrentLevelCard(currentLevel: Level, currentDays: Int) {
+    private fun CurrentLevelCard(currentLevel: LevelDefinitions.LevelInfo, currentDays: Int) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -105,7 +105,7 @@ class LevelActivity : BaseActivity() {
                 modifier = Modifier.padding(32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // 레벨 아이콘
+                // 레벨 아이콘 - 이모지 대신 레벨명의 첫 글자 사용
                 Box(
                     modifier = Modifier
                         .size(100.dp)
@@ -121,8 +121,10 @@ class LevelActivity : BaseActivity() {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = currentLevel.emoji,
-                        fontSize = 48.sp
+                        text = currentLevel.name.take(2), // 레벨명의 첫 2글자 표시
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
                     )
                 }
 
@@ -172,9 +174,15 @@ class LevelActivity : BaseActivity() {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 레벨 설명
+                // 레벨 범위 설명
+                val rangeText = if (currentLevel.end == Int.MAX_VALUE) {
+                    "${currentLevel.start}일 이상"
+                } else {
+                    "${currentLevel.start}~${currentLevel.end}일"
+                }
+
                 Text(
-                    text = currentLevel.description,
+                    text = rangeText,
                     fontSize = 14.sp,
                     color = Color(0xFF888888),
                     textAlign = TextAlign.Center,
@@ -186,16 +194,16 @@ class LevelActivity : BaseActivity() {
                 if (nextLevel != null) {
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    val progress = if (nextLevel.requiredDays > currentLevel.requiredDays) {
-                        val progressInLevel = currentDays - currentLevel.requiredDays
-                        val totalNeeded = nextLevel.requiredDays - currentLevel.requiredDays
+                    val progress = if (nextLevel.start > currentLevel.start) {
+                        val progressInLevel = currentDays - currentLevel.start
+                        val totalNeeded = nextLevel.start - currentLevel.start
                         if (totalNeeded > 0) (progressInLevel.toFloat() / totalNeeded.toFloat()).coerceIn(0f, 1f) else 0f
                     } else 0f
 
                     ProgressToNextLevel(
                         nextLevel = nextLevel,
                         progress = progress,
-                        remainingDays = (nextLevel.requiredDays - currentDays).coerceAtLeast(0)
+                        remainingDays = (nextLevel.start - currentDays).coerceAtLeast(0)
                     )
                 }
             }
@@ -203,7 +211,7 @@ class LevelActivity : BaseActivity() {
     }
 
     @Composable
-    private fun ProgressToNextLevel(nextLevel: Level, progress: Float, remainingDays: Int) {
+    private fun ProgressToNextLevel(nextLevel: LevelDefinitions.LevelInfo, progress: Float, remainingDays: Int) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -269,12 +277,19 @@ class LevelActivity : BaseActivity() {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                CompositionLocalProvider(
-                    LocalDensity provides Density(LocalDensity.current.density, 1f)
+                // 다음 레벨 아이콘
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .background(nextLevel.color.copy(alpha = 0.8f)),
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = nextLevel.emoji,
-                        fontSize = 20.sp
+                        text = nextLevel.name.take(1),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
                     )
                 }
 
@@ -291,7 +306,7 @@ class LevelActivity : BaseActivity() {
     }
 
     @Composable
-    private fun LevelListCard(currentLevel: Level, currentDays: Int) {
+    private fun LevelListCard(currentLevel: LevelDefinitions.LevelInfo, currentDays: Int) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -313,15 +328,15 @@ class LevelActivity : BaseActivity() {
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
 
-                levelDefinitions.forEach { level ->
+                LevelDefinitions.levels.forEach { level ->
                     LevelItem(
                         level = level,
                         isCurrent = level == currentLevel,
-                        isAchieved = currentDays >= level.requiredDays,
+                        isAchieved = currentDays >= level.start,
                         isNext = level == getNextLevel(currentLevel)
                     )
 
-                    if (level != levelDefinitions.last()) {
+                    if (level != LevelDefinitions.levels.last()) {
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
@@ -331,7 +346,7 @@ class LevelActivity : BaseActivity() {
 
     @Composable
     private fun LevelItem(
-        level: Level,
+        level: LevelDefinitions.LevelInfo,
         isCurrent: Boolean,
         isAchieved: Boolean,
         isNext: Boolean
@@ -374,8 +389,9 @@ class LevelActivity : BaseActivity() {
                         )
                     } else {
                         Text(
-                            text = level.emoji,
-                            fontSize = 20.sp,
+                            text = level.name.take(1),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
                             color = if (isAchieved) Color.White else Color(0xFF757575)
                         )
                     }
@@ -392,8 +408,15 @@ class LevelActivity : BaseActivity() {
                         fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
                         color = if (isAchieved) level.color else Color(0xFF757575)
                     )
+
+                    val rangeText = if (level.end == Int.MAX_VALUE) {
+                        "${level.start}일 이상"
+                    } else {
+                        "${level.start}~${level.end}일"
+                    }
+
                     Text(
-                        text = "${level.requiredDays}일 달성",
+                        text = rangeText,
                         fontSize = 12.sp,
                         color = Color(0xFF666666)
                     )
@@ -418,42 +441,11 @@ class LevelActivity : BaseActivity() {
         }
     }
 
-    // 레벨 데이터 클래스
-    data class Level(
-        val name: String,
-        val requiredDays: Int,
-        val emoji: String,
-        val color: Color,
-        val description: String
-    )
-
-    // 레벨 정의
-    private val levelDefinitions = listOf(
-        Level("새싹", 0, "🌱", Color(0xFF4CAF50), "금주 여행의 시작"),
-        Level("새잎", 1, "🍃", Color(0xFF66BB6A), "첫 걸음을 내딛었습니다"),
-        Level("꽃봉오리", 3, "🌿", Color(0xFF81C784), "조금씩 변화가 시작됩니다"),
-        Level("꽃", 7, "🌸", Color(0xFFE91E63), "일주일의 성취"),
-        Level("나무", 14, "🌳", Color(0xFF4CAF50), "2주간의 꾸준함"),
-        Level("열매", 21, "🍎", Color(0xFFFF5722), "3주간의 결실"),
-        Level("숲", 30, "🌲", Color(0xFF2E7D32), "한 달의 위대한 성취"),
-        Level("산", 60, "⛰️", Color(0xFF795548), "두 달의 굳건함"),
-        Level("바다", 90, "🌊", Color(0xFF2196F3), "세 달의 깊이"),
-        Level("구름", 120, "☁️", Color(0xFF607D8B), "네 달의 고요함"),
-        Level("별", 180, "⭐", Color(0xFFFFD700), "여섯 달의 빛남"),
-        Level("달", 270, "🌙", Color(0xFF9C27B0), "아홉 달의 완성"),
-        Level("태양", 365, "☀️", Color(0xFFFF9800), "일 년의 찬란함")
-    )
-
-    // 현재 레벨 계산
-    private fun getCurrentLevel(days: Int): Level {
-        return levelDefinitions.findLast { it.requiredDays <= days } ?: levelDefinitions.first()
-    }
-
     // 다음 레벨 계산
-    private fun getNextLevel(currentLevel: Level): Level? {
-        val currentIndex = levelDefinitions.indexOf(currentLevel)
-        return if (currentIndex < levelDefinitions.size - 1) {
-            levelDefinitions[currentIndex + 1]
+    private fun getNextLevel(currentLevel: LevelDefinitions.LevelInfo): LevelDefinitions.LevelInfo? {
+        val currentIndex = LevelDefinitions.levels.indexOf(currentLevel)
+        return if (currentIndex < LevelDefinitions.levels.size - 1) {
+            LevelDefinitions.levels[currentIndex + 1]
         } else null
     }
 
@@ -465,15 +457,6 @@ class LevelActivity : BaseActivity() {
         Constants.updateTestMode(currentTestMode)
     }
 }
-
-// Preview용 레벨 데이터 클래스 (클래스 외부에서 사용)
-data class PreviewLevel(
-    val name: String,
-    val requiredDays: Int,
-    val emoji: String,
-    val color: Color,
-    val description: String
-)
 
 // Preview 컴포넌트들
 @Preview(
@@ -495,8 +478,8 @@ fun LevelScreenPreview() {
         end = Offset(1000f, 1000f)
     )
 
-    // Preview용 레벨 데이터
-    val sampleLevel = PreviewLevel("꽃", 7, "🌸", Color(0xFFE91E63), "일주일의 성취")
+    // Preview용 레벨 데이터 - LevelDefinitions의 실제 데이터 사용
+    val sampleLevel = LevelDefinitions.getLevelInfo(5) // 5일차 레벨
     val currentDays = 5
 
     Column(
@@ -538,8 +521,10 @@ fun LevelScreenPreview() {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = sampleLevel.emoji,
-                        fontSize = 48.sp
+                        text = sampleLevel.name.take(2),
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
                     )
                 }
 
@@ -587,8 +572,14 @@ fun LevelScreenPreview() {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                val rangeText = if (sampleLevel.end == Int.MAX_VALUE) {
+                    "${sampleLevel.start}일 이상"
+                } else {
+                    "${sampleLevel.start}~${sampleLevel.end}일"
+                }
+
                 Text(
-                    text = sampleLevel.description,
+                    text = rangeText,
                     fontSize = 14.sp,
                     color = Color(0xFF888888),
                     textAlign = TextAlign.Center,
@@ -624,8 +615,8 @@ fun LevelScreenPreview() {
                                 .background(
                                     Brush.horizontalGradient(
                                         colors = listOf(
-                                            Color(0xFF4CAF50).copy(alpha = 0.7f),
-                                            Color(0xFF4CAF50)
+                                            Color(0xFF00ACC1).copy(alpha = 0.7f),
+                                            Color(0xFF00ACC1)
                                         )
                                     )
                                 )
@@ -657,7 +648,7 @@ fun LevelScreenPreview() {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 전체 레벨 목록 Preview (축약 버전)
+        // 전체 레벨 목록 Preview
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -679,14 +670,11 @@ fun LevelScreenPreview() {
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
 
-                // 샘플 레벨 아이템들
-                listOf(
-                    Triple(PreviewLevel("새싹", 0, "🌱", Color(0xFF4CAF50), "금주 여행의 시작"), true, false),
-                    Triple(PreviewLevel("새잎", 1, "🍃", Color(0xFF66BB6A), "첫 걸음을 내딛었습니다"), true, false),
-                    Triple(PreviewLevel("꽃봉오리", 3, "🌿", Color(0xFF81C784), "조금씩 변화가 시작됩니다"), true, false),
-                    Triple(PreviewLevel("꽃", 7, "🌸", Color(0xFFE91E63), "일주일의 성취"), true, true),
-                    Triple(PreviewLevel("나무", 14, "🌳", Color(0xFF4CAF50), "2주간의 꾸준함"), false, true)
-                ).forEach { (level, isAchieved, isCurrent) ->
+                // 처음 5개 레벨만 프리뷰에 표시
+                LevelDefinitions.levels.take(5).forEach { level ->
+                    val isAchieved = currentDays >= level.start
+                    val isCurrent = level == sampleLevel
+
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
@@ -725,8 +713,9 @@ fun LevelScreenPreview() {
                                     )
                                 } else {
                                     Text(
-                                        text = level.emoji,
-                                        fontSize = 20.sp,
+                                        text = level.name.take(1),
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
                                         color = if (isAchieved) Color.White else Color(0xFF757575)
                                     )
                                 }
@@ -743,8 +732,15 @@ fun LevelScreenPreview() {
                                     fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
                                     color = if (isAchieved) level.color else Color(0xFF757575)
                                 )
+
+                                val rangeText = if (level.end == Int.MAX_VALUE) {
+                                    "${level.start}일 이상"
+                                } else {
+                                    "${level.start}~${level.end}일"
+                                }
+
                                 Text(
-                                    text = "${level.requiredDays}일 달성",
+                                    text = rangeText,
                                     fontSize = 12.sp,
                                     color = Color(0xFF666666)
                                 )
@@ -768,7 +764,7 @@ fun LevelScreenPreview() {
                         }
                     }
 
-                    if (level.name != "나무") {
+                    if (level != LevelDefinitions.levels.take(5).last()) {
                         Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
@@ -795,19 +791,20 @@ fun LevelScreenDarkPreview() {
 )
 @Composable
 fun LevelItemPreview() {
-    val sampleLevels = listOf(
-        Triple(PreviewLevel("새싹", 0, "🌱", Color(0xFF4CAF50), "금주 여행의 시작"), true, false),
-        Triple(PreviewLevel("꽃", 7, "🌸", Color(0xFFE91E63), "일주일의 성취"), true, true),
-        Triple(PreviewLevel("나무", 14, "🌳", Color(0xFF4CAF50), "2주간의 꾸준함"), false, false)
-    )
-
     Column(
         modifier = Modifier
             .background(Color(0xFFF5F5F5))
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        sampleLevels.forEach { (level, isAchieved, isCurrent) ->
+        // 처음 3개 레벨로 다양한 상태 표시
+        val sampleData = listOf(
+            Triple(LevelDefinitions.levels[0], true, false),   // 달성됨, 현재 아님
+            Triple(LevelDefinitions.levels[1], true, true),    // 달성됨, 현재임
+            Triple(LevelDefinitions.levels[2], false, false)   // 미달성
+        )
+
+        sampleData.forEach { (level, isAchieved, isCurrent) ->
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -846,8 +843,9 @@ fun LevelItemPreview() {
                             )
                         } else {
                             Text(
-                                text = level.emoji,
-                                fontSize = 20.sp,
+                                text = level.name.take(1),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
                                 color = if (isAchieved) Color.White else Color(0xFF757575)
                             )
                         }
@@ -864,8 +862,15 @@ fun LevelItemPreview() {
                             fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
                             color = if (isAchieved) level.color else Color(0xFF757575)
                         )
+
+                        val rangeText = if (level.end == Int.MAX_VALUE) {
+                            "${level.start}일 이상"
+                        } else {
+                            "${level.start}~${level.end}일"
+                        }
+
                         Text(
-                            text = "${level.requiredDays}일 달성",
+                            text = rangeText,
                             fontSize = 12.sp,
                             color = Color(0xFF666666)
                         )
