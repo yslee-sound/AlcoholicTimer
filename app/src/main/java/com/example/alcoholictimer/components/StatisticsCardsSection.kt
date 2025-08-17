@@ -12,6 +12,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.utils.SobrietyRecord
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 @Composable
@@ -21,18 +25,74 @@ fun StatisticsCardsSection(
     selectedRange: String,
     onRangeSelected: (String) -> Unit
 ) {
-    // 실제 시간 기반으로 정확한 통계 계산
-    val totalDays = records.sumOf { record ->
-        val duration = record.endTime - record.startTime
-        (duration / (24 * 60 * 60 * 1000f)).roundToInt()
+    // 주간 범위 파싱 함수
+    fun parseWeekRange(range: String): Pair<Long, Long>? {
+        // 예: "7-28 ~ 08-03"
+        val regex = Regex("(\\d{1,2})-(\\d{1,2}) ~ (\\d{1,2})-(\\d{1,2})")
+        val match = regex.find(range)
+        if (match != null) {
+            val (startMonth, startDay, endMonth, endDay) = match.destructured
+            val year = Calendar.getInstance().get(Calendar.YEAR)
+            val startCal = Calendar.getInstance().apply {
+                set(Calendar.YEAR, year)
+                set(Calendar.MONTH, startMonth.toInt() - 1)
+                set(Calendar.DAY_OF_MONTH, startDay.toInt())
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            val endCal = Calendar.getInstance().apply {
+                set(Calendar.YEAR, year)
+                set(Calendar.MONTH, endMonth.toInt() - 1)
+                set(Calendar.DAY_OF_MONTH, endDay.toInt())
+                set(Calendar.HOUR_OF_DAY, 23)
+                set(Calendar.MINUTE, 59)
+                set(Calendar.SECOND, 59)
+                set(Calendar.MILLISECOND, 999)
+            }
+            return startCal.timeInMillis to endCal.timeInMillis
+        }
+        return null
     }
 
-    val totalAttempts = records.size
+    val weekRange = parseWeekRange(selectedRange)
+    val (weekStart, weekEnd) = weekRange ?: (null to null)
 
-    // 각 기록의 실제 달성률을 평균으로 계산
+    // 실제 시간 기반으로 정확한 통계 계산 (주간 범위에 맞게)
+    val filteredRecords = if (weekStart != null && weekEnd != null) {
+        records.filter { it.endTime >= weekStart && it.startTime <= weekEnd }
+    } else {
+        records
+    }
+
+    val totalDays = filteredRecords.sumOf { record ->
+        if (weekStart != null && weekEnd != null) {
+            val overlapStart = max(record.startTime, weekStart)
+            val overlapEnd = min(record.endTime, weekEnd)
+            if (overlapStart < overlapEnd) {
+                ((overlapEnd - overlapStart) / (24 * 60 * 60 * 1000f)).roundToInt()
+            } else 0
+        } else {
+            val duration = record.endTime - record.startTime
+            (duration / (24 * 60 * 60 * 1000f)).roundToInt()
+        }
+    }
+
+    val totalAttempts = filteredRecords.count { record ->
+        if (weekStart != null && weekEnd != null) {
+            val overlapStart = max(record.startTime, weekStart)
+            val overlapEnd = min(record.endTime, weekEnd)
+            overlapStart < overlapEnd
+        } else true
+    }
+
+    // 각 기록의 실제 달성률을 평균으로 계산 (주간 범위에 맞게)
     val successRate = if (totalAttempts > 0) {
-        val totalProgressPercent = records.sumOf { record ->
-            val actualDurationDays = (record.endTime - record.startTime) / (24 * 60 * 60 * 1000f)
+        val totalProgressPercent = filteredRecords.sumOf { record ->
+            val overlapStart = if (weekStart != null) max(record.startTime, weekStart) else record.startTime
+            val overlapEnd = if (weekEnd != null) min(record.endTime, weekEnd) else record.endTime
+            val actualDurationDays = if (overlapStart < overlapEnd) (overlapEnd - overlapStart) / (24 * 60 * 60 * 1000f) else 0f
             val progressPercent = if (record.targetDays > 0) {
                 ((actualDurationDays / record.targetDays) * 100).coerceIn(0f, 100f)
             } else {

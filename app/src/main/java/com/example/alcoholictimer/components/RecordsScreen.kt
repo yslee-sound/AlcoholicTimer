@@ -81,7 +81,7 @@ fun RecordsScreen(
                     val weekIndex = selectedDetailPeriod.substringAfter("week_").toIntOrNull() ?: 0
                     val weeksAgo = System.currentTimeMillis() - (weekIndex * 7 * 24 * 60 * 60 * 1000L)
                     val weeksAgoEnd = weeksAgo + (7 * 24 * 60 * 60 * 1000L)
-                    records.filter { it.endTime >= weeksAgo && it.endTime < weeksAgoEnd }
+                    records.filter { it.startTime < weeksAgoEnd && it.endTime >= weeksAgo }
                 } else {
                     // 전체 주간 데이터
                     val oneWeekAgo = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L)
