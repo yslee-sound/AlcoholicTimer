@@ -172,22 +172,7 @@ class LevelActivity : BaseActivity() {
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // 레벨 범위 설명
-                val rangeText = if (currentLevel.end == Int.MAX_VALUE) {
-                    "${currentLevel.start}일 이상"
-                } else {
-                    "${currentLevel.start}~${currentLevel.end}일"
-                }
-
-                Text(
-                    text = rangeText,
-                    fontSize = 14.sp,
-                    color = Color(0xFF888888),
-                    textAlign = TextAlign.Center,
-                    lineHeight = 20.sp
-                )
+                // 레벨 범위 및 관련 공백(Spacer) 완전 삭제
 
                 // 다음 레벨까지의 진행률
                 val nextLevel = getNextLevel(currentLevel)
@@ -571,21 +556,6 @@ fun LevelScreenPreview() {
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                val rangeText = if (sampleLevel.end == Int.MAX_VALUE) {
-                    "${sampleLevel.start}일 이상"
-                } else {
-                    "${sampleLevel.start}~${sampleLevel.end}일"
-                }
-
-                Text(
-                    text = rangeText,
-                    fontSize = 14.sp,
-                    color = Color(0xFF888888),
-                    textAlign = TextAlign.Center,
-                    lineHeight = 20.sp
-                )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
