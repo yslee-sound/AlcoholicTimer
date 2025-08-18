@@ -16,8 +16,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -300,35 +298,37 @@ fun RunScreen() {
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp), // 패딩 약간 증가
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp)
                 ) {
-                    // StatCard들을 균등하게 배치
+                    // 통계 그리드
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.Top // 상단 정렬로 변경
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // 목표일 카드
-                        StatCard(
-                            value = "$targetDays",
-                            label = "목표일",
-                            color = Color(0xFF2196F3)
+                        // 목표일
+                        RunStatisticItem(
+                            title = "목표일",
+                            value = "${targetDays.toInt()}일",
+                            color = Color(0xFF74B9FF),
+                            modifier = Modifier.weight(1f)
                         )
 
-                        // 레벨 카드
-                        StatCard(
-                            value = getLevelName(elapsedDays),
-                            label = "Level",
-                            color = LevelDefinitions.getLevelInfo(elapsedDays).color,
-                            isLevel = true
+                        // 레벨
+                        RunStatisticItem(
+                            title = "Level",
+                            value = getLevelName(levelDays),
+                            color = LevelDefinitions.getLevelInfo(levelDays).color,
+                            modifier = Modifier.weight(1f)
                         )
 
-                        // 진행 시간 카드
-                        StatCard(
+                        // 진행 시간
+                        RunStatisticItem(
+                            title = "진행 시간",
                             value = progressTimeText,
-                            label = "시간",
-                            color = Color(0xFF4CAF50)
+                            color = Color(0xFF00B894),
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
@@ -398,6 +398,44 @@ fun RunScreen() {
             }
         )
         Spacer(modifier = Modifier.height(100.dp))
+    }
+}
+
+@Composable
+private fun RunStatisticItem(
+    title: String,
+    value: String,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        color = color.copy(alpha = 0.1f)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = value,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = color,
+                textAlign = TextAlign.Center,
+                maxLines = 1
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = title,
+                fontSize = 12.sp,
+                color = Color(0xFF636E72),
+                textAlign = TextAlign.Center,
+                maxLines = 1
+            )
+        }
     }
 }
 
@@ -646,17 +684,54 @@ fun MainIndicatorCard(
 
 @Composable
 fun ModernProgressIndicator(progress: Float) {
+    // 깜박임 애니메이션을 위한 상태
+    var isVisible by remember { mutableStateOf(true) }
+
+    // 2초마다 깜박이는 효과
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(2000) // 2초 대기
+            isVisible = !isVisible
+        }
+    }
+
+    // 투명도 애니메이션
+    val alpha by animateFloatAsState(
+        targetValue = if (isVisible) 1f else 0.3f,
+        animationSpec = tween(
+            durationMillis = 500,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        ),
+        label = "indicator_blink"
+    )
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 퍼센트 텍스트
-        Text(
-            text = "${(progress * 100).toInt()}%",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF4CAF50),
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+        // 퍼센트 텍스트와 인디케이터
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "${(progress * 100).toInt()}%",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF4CAF50)
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // 깜박이는 인디케이터 점
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF4CAF50).copy(alpha = alpha))
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         // 진행률 바
         LinearProgressIndicator(
