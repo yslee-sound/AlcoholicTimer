@@ -135,8 +135,8 @@ fun RunScreen() {
     val elapsedMinutes = ((elapsedTime % (60 * 60 * 1000)) / (60 * 1000)).toInt()
     val elapsedSeconds = ((elapsedTime % (60 * 1000)) / 1000).toInt()
 
-    // 진행 중인 시간 포맷 (HH:MM:SS)
-    val progressTimeText = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds)
+    // 진행 중인 시간 포맷 (MM:SS)
+    val progressTimeText = String.format(Locale.getDefault(), "%02d:%02d", elapsedMinutes, elapsedSeconds)
 
     // 디버깅 로그
     Log.d("RunActivity", "실제 경과일수: $elapsedDays, 레벨용 일수: $levelDays, 테스트모드: ${Constants.currentTestMode}")
@@ -325,7 +325,7 @@ fun RunScreen() {
 
                         // 진행 시간
                         RunStatisticItem(
-                            title = "진행 시간",
+                            title = "시간",
                             value = progressTimeText,
                             color = Color(0xFF00B894),
                             modifier = Modifier.weight(1f)
@@ -370,7 +370,7 @@ fun RunScreen() {
                     .padding(vertical = 4.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White.copy(alpha = 0.95f)
+                    containerColor = Color.White.copy(alpha = 0.9f)
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
             ) {
@@ -378,13 +378,6 @@ fun RunScreen() {
                     modifier = Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        text = "진행률",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color(0xFF666666),
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    )
                     ModernProgressIndicator(progress = progress)
                 }
             }
@@ -539,7 +532,7 @@ fun MainIndicatorCard(
         Text(
             text = when (currentIndicator) {
                 0 -> "금주 일수"
-                1 -> "진행 시간"
+                1 -> "시간"
                 2 -> "절약한 금액"
                 3 -> "절약한 시간"
                 4 -> "기대 수명+"
@@ -614,7 +607,7 @@ fun MainIndicatorCard(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds),
+                                    text = String.format(Locale.getDefault(), "%02d:%02d", elapsedMinutes, elapsedSeconds),
                                     fontSize = 42.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF388E3C),
@@ -972,13 +965,6 @@ fun RunScreenPreview(
                     modifier = Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        text = "진행률",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color(0xFF666666),
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    )
                     ModernProgressIndicator(progress = progress)
                 }
             }
