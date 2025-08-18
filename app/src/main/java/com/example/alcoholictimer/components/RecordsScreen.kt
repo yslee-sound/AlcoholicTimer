@@ -72,50 +72,104 @@ fun RecordsScreen(
         }
     }
 
-    // 기간에 따른 기록 필터링
+    // 기간에 따른 기록 필터링 (통계용)
     val filteredRecords = remember(records, selectedPeriod, selectedDetailPeriod) {
         when (selectedPeriod) {
             "주" -> {
                 if (selectedDetailPeriod.isNotEmpty()) {
-                    // 특정 주 필터링 로직
-                    val weekIndex = selectedDetailPeriod.substringAfter("week_").toIntOrNull() ?: 0
-                    val weeksAgo = System.currentTimeMillis() - (weekIndex * 7 * 24 * 60 * 60 * 1000L)
-                    val weeksAgoEnd = weeksAgo + (7 * 24 * 60 * 60 * 1000L)
-                    records.filter { it.startTime < weeksAgoEnd && it.endTime >= weeksAgo }
+                    // 특정 주 필터링 로직 (예: "2025-08-10 ~ 2025-08-16")
+                    val parts = selectedDetailPeriod.split("~").map { it.trim() }
+                    if (parts.size == 2) {
+                        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                        val weekStart = try { sdf.parse(parts[0])?.time ?: 0L } catch (e: Exception) { 0L }
+                        val weekEnd = try { sdf.parse(parts[1])?.time?.plus(24*60*60*1000L-1) ?: Long.MAX_VALUE } catch (e: Exception) { Long.MAX_VALUE }
+                        records.filter { it.startTime in weekStart..weekEnd }
+                    } else records
                 } else {
-                    // 전체 주간 데이터
-                    val oneWeekAgo = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L)
-                    records.filter { it.endTime >= oneWeekAgo }
+                    // 이번 주(일요일~토요일) 시작~끝
+                    val cal = Calendar.getInstance()
+                    cal.set(Calendar.HOUR_OF_DAY, 0)
+                    cal.set(Calendar.MINUTE, 0)
+                    cal.set(Calendar.SECOND, 0)
+                    cal.set(Calendar.MILLISECOND, 0)
+                    cal.set(Calendar.DAY_OF_WEEK, cal.firstDayOfWeek)
+                    val weekStart = cal.timeInMillis
+                    cal.add(Calendar.DAY_OF_WEEK, 6)
+                    val weekEnd = cal.timeInMillis + (24*60*60*1000L-1)
+                    records.filter { it.startTime in weekStart..weekEnd }
                 }
             }
             "월" -> {
                 if (selectedDetailPeriod.isNotEmpty()) {
-                    // 특정 월 필터링 로직
-                    val monthIndex = selectedDetailPeriod.substringAfter("month_").toIntOrNull() ?: 0
-                    val monthsAgo = System.currentTimeMillis() - (monthIndex * 30 * 24 * 60 * 60 * 1000L)
-                    val monthsAgoEnd = monthsAgo + (30 * 24 * 60 * 60 * 1000L)
-                    records.filter { it.endTime >= monthsAgo && it.endTime < monthsAgoEnd }
+                    // 특정 월 필터링 로직 (예: "2025년 8월")
+                    val regex = Regex("(\\d{4})년 (\\d{1,2})월")
+                    val match = regex.find(selectedDetailPeriod)
+                    if (match != null) {
+                        val year = match.groupValues[1].toInt()
+                        val month = match.groupValues[2].toInt() - 1 // Calendar.MONTH는 0부터 시작
+                        val cal = Calendar.getInstance()
+                        cal.set(year, month, 1, 0, 0, 0)
+                        cal.set(Calendar.MILLISECOND, 0)
+                        val monthStart = cal.timeInMillis
+                        cal.add(Calendar.MONTH, 1)
+                        cal.add(Calendar.MILLISECOND, -1)
+                        val monthEnd = cal.timeInMillis
+                        records.filter { it.startTime in monthStart..monthEnd }
+                    } else records
                 } else {
-                    // 전체 월간 데이터
-                    val oneMonthAgo = System.currentTimeMillis() - (30 * 24 * 60 * 60 * 1000L)
-                    records.filter { it.endTime >= oneMonthAgo }
+                    // 이번 달 1일~말일
+                    val cal = Calendar.getInstance()
+                    cal.set(Calendar.DAY_OF_MONTH, 1)
+                    cal.set(Calendar.HOUR_OF_DAY, 0)
+                    cal.set(Calendar.MINUTE, 0)
+                    cal.set(Calendar.SECOND, 0)
+                    cal.set(Calendar.MILLISECOND, 0)
+                    val monthStart = cal.timeInMillis
+                    cal.add(Calendar.MONTH, 1)
+                    cal.add(Calendar.MILLISECOND, -1)
+                    val monthEnd = cal.timeInMillis
+                    records.filter { it.startTime in monthStart..monthEnd }
                 }
             }
             "년" -> {
                 if (selectedDetailPeriod.isNotEmpty()) {
-                    // 특정 년 필터링 로직
-                    val yearIndex = selectedDetailPeriod.substringAfter("year_").toIntOrNull() ?: 0
-                    val yearsAgo = System.currentTimeMillis() - (yearIndex * 365 * 24 * 60 * 60 * 1000L)
-                    val yearsAgoEnd = yearsAgo + (365 * 24 * 60 * 60 * 1000L)
-                    records.filter { it.endTime >= yearsAgo && it.endTime < yearsAgoEnd }
+                    // 특정 년 필터링 로직 (예: "2025년")
+                    val regex = Regex("(\\d{4})년")
+                    val match = regex.find(selectedDetailPeriod)
+                    if (match != null) {
+                        val year = match.groupValues[1].toInt()
+                        val cal = Calendar.getInstance()
+                        cal.set(year, 0, 1, 0, 0, 0)
+                        cal.set(Calendar.MILLISECOND, 0)
+                        val yearStart = cal.timeInMillis
+                        cal.add(Calendar.YEAR, 1)
+                        cal.add(Calendar.MILLISECOND, -1)
+                        val yearEnd = cal.timeInMillis
+                        records.filter { it.startTime in yearStart..yearEnd }
+                    } else records
                 } else {
-                    // 전체 연간 데이터
-                    val oneYearAgo = System.currentTimeMillis() - (365 * 24 * 60 * 60 * 1000L)
-                    records.filter { it.endTime >= oneYearAgo }
+                    // 올해 1월 1일~12월 31일
+                    val cal = Calendar.getInstance()
+                    cal.set(Calendar.MONTH, 0)
+                    cal.set(Calendar.DAY_OF_MONTH, 1)
+                    cal.set(Calendar.HOUR_OF_DAY, 0)
+                    cal.set(Calendar.MINUTE, 0)
+                    cal.set(Calendar.SECOND, 0)
+                    cal.set(Calendar.MILLISECOND, 0)
+                    val yearStart = cal.timeInMillis
+                    cal.add(Calendar.YEAR, 1)
+                    cal.add(Calendar.MILLISECOND, -1)
+                    val yearEnd = cal.timeInMillis
+                    records.filter { it.startTime in yearStart..yearEnd }
                 }
             }
             else -> records // "전체"
         }
+    }
+
+    // 카드 영역: 최신 5개만 별도로 추출
+    val latestRecords = remember(records) {
+        records.sortedByDescending { it.endTime }.take(5)
     }
 
     // 초기 로딩 및 외부 트리거에 따른 새로고침
@@ -133,54 +187,53 @@ fun RecordsScreen(
         end = Offset.Infinite
     )
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(brush = gradientBackground)
+            .background(brush = gradientBackground),
+        contentPadding = PaddingValues(bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
-        // 기간 선택 탭 섹션
-        Box(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            PeriodSelectionSection(
-                selectedPeriod = selectedPeriod,
-                onPeriodSelected = { period: String ->
-                    selectedPeriod = period
-                    selectedDetailPeriod = "" // 기간이 변경되면 세부 기간 초기화
-                },
-                onPeriodClick = { period: String ->
-                    // 세부 기간 텍스트 클릭 시 바텀시트 표시
-                    showBottomSheet = true
-                },
-                selectedDetailPeriod = selectedDetailPeriod
-            )
+        item {
+            // 기간 선택 탭 섹션
+            Box(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                PeriodSelectionSection(
+                    selectedPeriod = selectedPeriod,
+                    onPeriodSelected = { period: String ->
+                        selectedPeriod = period
+                        selectedDetailPeriod = "" // 기간이 변경되면 세부 기간 초기화
+                    },
+                    onPeriodClick = { period: String ->
+                        // 세부 기간 텍스트 클릭 시 바텀시트 표시
+                        showBottomSheet = true
+                    },
+                    selectedDetailPeriod = selectedDetailPeriod
+                )
+            }
         }
-
-        // 해당 기간에 대한 정보를 보여주는 섹션
-        if (!isLoading) {
-            PeriodStatisticsSection(
-                records = filteredRecords,
-                selectedPeriod = selectedPeriod,
-                selectedDetailPeriod = selectedDetailPeriod,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                onAddTestRecord = {
-                    // AddTestRecordActivity로 이동
-                    val intent = Intent(context, AddTestRecordActivity::class.java)
-                    addTestRecordLauncher.launch(intent)
-                }
-            )
+        item {
+            // 해당 기간에 대한 정보를 보여주는 섹션
+            if (!isLoading) {
+                PeriodStatisticsSection(
+                    records = filteredRecords,
+                    selectedPeriod = selectedPeriod,
+                    selectedDetailPeriod = selectedDetailPeriod,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    onAddTestRecord = {
+                        // AddTestRecordActivity로 이동
+                        val intent = Intent(context, AddTestRecordActivity::class.java)
+                        addTestRecordLauncher.launch(intent)
+                    }
+                )
+            }
         }
-
-        // 기록 목록 영역
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .weight(1f)
-        ) {
+        item {
+            // 로딩/빈 상태/기록 목록
             if (isLoading) {
-                // 로딩 상태
                 Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxWidth().height(200.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(
@@ -188,53 +241,49 @@ fun RecordsScreen(
                     )
                 }
             } else if (filteredRecords.isEmpty()) {
-                // 빈 상태
                 EmptyRecordsState(selectedPeriod, selectedDetailPeriod)
-            } else {
-                // 기록 목록 (최대 5개만 표시)
-                val displayRecords = filteredRecords.take(5)
-
-                LazyColumn(
+            }
+        }
+        if (!isLoading && latestRecords.isNotEmpty()) {
+            items(latestRecords) { record ->
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp) // 카드 좌우/상하 여백
                 ) {
-                    items(displayRecords) { record ->
-                        RecordCard(
-                            record = record,
-                            onClick = { onNavigateToDetail(record) }
-                        )
-                    }
-
-                    // "모든 기록" 버튼 (기록이 5개 이상일 때만 표시)
-                    if (filteredRecords.size > 5) {
-                        item {
-                            Button(
-                                onClick = onNavigateToAllRecords,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF74B9FF), // 기존 하늘색과 통일
-                                    contentColor = Color.White
-                                ),
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Text(
-                                    text = "모든 기록 보기 (${filteredRecords.size}개)",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
+                    RecordCard(
+                        record = record,
+                        onClick = { onNavigateToDetail(record) }
+                    )
+                }
+            }
+            if (records.size > 5) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Button(
+                            onClick = onNavigateToAllRecords,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF74B9FF),
+                                contentColor = Color.White
+                            ),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                text = "모든 기록 보기 (${records.size}개)",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium
+                            )
                         }
                     }
-
-                    // 마지막 아이템 아래 여백
-                    item {
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
                 }
+            }
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
