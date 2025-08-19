@@ -44,7 +44,7 @@ fun RecordsScreen(
     val context = LocalContext.current
     var records by remember { mutableStateOf<List<SobrietyRecord>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
-    var selectedPeriod by remember { mutableStateOf("월") }
+    var selectedPeriod by remember { mutableStateOf("전체") } // "월"에서 "전체"로 변경
     var showBottomSheet by remember { mutableStateOf(false) }
     var selectedDetailPeriod by remember { mutableStateOf("") }
 
@@ -240,7 +240,7 @@ fun RecordsScreen(
                         color = Color(0xFF74B9FF)
                     )
                 }
-            } else if (filteredRecords.isEmpty()) {
+            } else if (records.isEmpty()) { // filteredRecords 대신 전체 records로 변경
                 EmptyRecordsState(selectedPeriod, selectedDetailPeriod)
             }
         }

@@ -21,14 +21,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.utils.Constants
+import com.example.alcoholictimer.utils.RecordsDataLoader
 
 class LevelActivity : BaseActivity() {
 
@@ -52,10 +51,22 @@ class LevelActivity : BaseActivity() {
         val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
         val startTime = sharedPref.getLong("start_time", 0L)
         val currentTime = System.currentTimeMillis()
-        val elapsedTime = if (startTime > 0) currentTime - startTime else 0L
 
-        // 레벨 계산용 일수 (테스트 모드 적용)
-        val levelDays = Constants.calculateLevelDays(elapsedTime)
+        // 현재 진행 중인 금주 시간
+        val currentElapsedTime = if (startTime > 0) currentTime - startTime else 0L
+
+        // 과거 금주 기록들의 누적 시간 계산
+        val pastRecords = RecordsDataLoader.loadSobrietyRecords(context)
+        val totalPastDuration = pastRecords.sumOf { record ->
+            // 완료된 기록과 미완료 기록 모두 실제 진행한 시간만큼 반영
+            record.endTime - record.startTime
+        }
+
+        // 총 누적 금주 시간 = 과거 기록들의 누적 시간 + 현재 진행 중인 시간
+        val totalElapsedTime = totalPastDuration + currentElapsedTime
+
+        // 레벨 계산용 일수 (테스트 모드 적용, 누적 시간 기반)
+        val levelDays = Constants.calculateLevelDays(totalElapsedTime)
         val currentLevel = LevelDefinitions.getLevelInfo(levelDays)
 
         // 모던한 그라데이션 배경 (StartActivity와 동일)
@@ -91,6 +102,8 @@ class LevelActivity : BaseActivity() {
 
     @Composable
     private fun CurrentLevelCard(currentLevel: LevelDefinitions.LevelInfo, currentDays: Int) {
+        val context = LocalContext.current
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -150,7 +163,7 @@ class LevelActivity : BaseActivity() {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 진행 일수
+                // 누적 금주 일수 표시 (수정)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
@@ -165,14 +178,25 @@ class LevelActivity : BaseActivity() {
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Text(
-                        text = "일째",
+                        text = "일째 (누적)",
                         fontSize = 18.sp,
                         color = Color(0xFF666666),
                         fontWeight = FontWeight.Medium
                     )
                 }
 
-                // 레벨 범위 및 관련 공백(Spacer) 완전 삭제
+                // 과거 기록 정보 추가 표시
+                val pastRecords = RecordsDataLoader.loadSobrietyRecords(context)
+                if (pastRecords.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "과거 기록 ${pastRecords.size}회 포함",
+                        fontSize = 12.sp,
+                        color = Color(0xFF999999),
+                        fontWeight = FontWeight.Normal
+                    )
+                }
 
                 // 다음 레벨까지의 진행률
                 val nextLevel = getNextLevel(currentLevel)
@@ -535,6 +559,7 @@ fun LevelScreenPreview() {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // 누적 금주 일수 표시 (수정)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
@@ -549,7 +574,7 @@ fun LevelScreenPreview() {
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Text(
-                        text = "일째",
+                        text = "일째 (누적)",
                         fontSize = 18.sp,
                         color = Color(0xFF666666),
                         fontWeight = FontWeight.Medium
