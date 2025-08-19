@@ -340,7 +340,7 @@ fun RunScreen() {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(260.dp)
+                    .heightIn(max = 180.dp)
                     .wrapContentSize(Alignment.Center),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(
@@ -524,154 +524,161 @@ fun MainIndicatorCard(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 12.dp), // 패딩 축소
+            .padding(horizontal = 24.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center // 중앙 정렬로 변경
+        verticalArrangement = Arrangement.Center
     ) {
-        // 지표 제목
-        Text(
-            text = when (currentIndicator) {
-                0 -> "금주 일수"
-                1 -> "시간"
-                2 -> "절약한 금액"
-                3 -> "절약한 시간"
-                4 -> "기대 수명+"
-                else -> "금주 일수"
-            },
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color(0xFF666666),
-            modifier = Modifier.padding(bottom = 0.dp)
-        )
-        // 메인 값 (애니메이션 적용) - 제목 바로 아래로 이동
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(120.dp)
-                .scale(animatedScale)
-                .clickable(
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ) {
-                    if (!isAnimating) {
-                        isAnimating = true
-                    }
-                },
-            contentAlignment = Alignment.Center
+        // 중앙 정렬을 위해 세 요소를 한 Column에 배치
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            AnimatedContent(
-                targetState = currentIndicator,
-                transitionSpec = {
-                    slideInVertically(
-                        animationSpec = tween(300),
-                        initialOffsetY = { height -> height }
-                    ).togetherWith(
-                        slideOutVertically(
-                            animationSpec = tween(300),
-                            targetOffsetY = { height -> -height }
-                        )
-                    ).using(
-                        SizeTransform(clip = true)
-                    )
+            Text(
+                text = when (currentIndicator) {
+                    0 -> "금주 일수"
+                    1 -> "시간"
+                    2 -> "절약한 금액"
+                    3 -> "절약한 시간"
+                    4 -> "기대 수명+"
+                    else -> "금주 일수"
                 },
-                label = "indicator_animation"
-            ) { indicator ->
-                val density = LocalDensity.current
-                CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
-                    when (indicator) {
-                        0 -> {
-                            val displayText = if (elapsedDays >= 365) {
-                                val years = elapsedDays / 365
-                                val remainingDays = elapsedDays % 365
-                                "${years}년 ${remainingDays}일"
-                            } else {
-                                "${elapsedDays}일"
-                            }
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = displayText,
-                                    fontSize = 42.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF1976D2),
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            }
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF666666),
+                modifier = Modifier.padding(bottom = 0.dp)
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            // 메인 값 (애니메이션 적용)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp)
+                    .scale(animatedScale)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        if (!isAnimating) {
+                            isAnimating = true
                         }
-                        1 -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = String.format(Locale.getDefault(), "%02d:%02d", elapsedMinutes, elapsedSeconds),
-                                    fontSize = 42.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF388E3C),
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                AnimatedContent(
+                    targetState = currentIndicator,
+                    transitionSpec = {
+                        slideInVertically(
+                            animationSpec = tween(300),
+                            initialOffsetY = { height -> height }
+                        ).togetherWith(
+                            slideOutVertically(
+                                animationSpec = tween(300),
+                                targetOffsetY = { height -> -height }
+                            )
+                        ).using(
+                            SizeTransform(clip = true)
+                        )
+                    },
+                    label = "indicator_animation"
+                ) { indicator ->
+                    val density = LocalDensity.current
+                    CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
+                        when (indicator) {
+                            0 -> {
+                                val displayText = if (elapsedDays >= 365) {
+                                    val years = elapsedDays / 365
+                                    val remainingDays = elapsedDays % 365
+                                    "${years}년 ${remainingDays}일"
+                                } else {
+                                    "${elapsedDays}일"
+                                }
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = displayText,
+                                        fontSize = 36.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF1976D2),
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
                             }
-                        }
-                        2 -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = String.format(Locale.getDefault(), "%,d원", savedMoney),
-                                    fontSize = 42.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFE91E63),
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
+                            1 -> {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds),
+                                        fontSize = 36.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF388E3C),
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
                             }
-                        }
-                        3 -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "${savedHours}시간",
-                                    fontSize = 42.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFFF9800),
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
+                            2 -> {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = String.format(Locale.getDefault(), "%,d원", savedMoney),
+                                        fontSize = 36.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFFE91E63),
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
                             }
-                        }
-                        4 -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "${lifeGainDays}일",
-                                    fontSize = 42.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF9C27B0),
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
+                            3 -> {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "${savedHours}시간",
+                                        fontSize = 36.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFFFF9800),
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
+                            4 -> {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "${lifeGainDays}일",
+                                        fontSize = 36.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF9C27B0),
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = "탭하여 다른 지표 보기",
+                fontSize = 12.sp,
+                color = Color(0xFF999999),
+                modifier = Modifier.padding(top = 0.dp, bottom = 0.dp)
+            )
         }
-        // 터치 안내
-        Text(
-            text = "탭하여 다른 지표 보기",
-            fontSize = 12.sp,
-            color = Color(0xFF999999),
-            modifier = Modifier.padding(top = 8.dp, bottom = 0.dp) // 불필요한 ��백 제거
-        )
     }
 }
 
@@ -683,7 +690,7 @@ fun ModernProgressIndicator(progress: Float) {
     // 2초마다 깜박이는 효과
     LaunchedEffect(Unit) {
         while (true) {
-            delay(2000) // 2초 대기
+            delay(1000) // 2초 대기
             isVisible = !isVisible
         }
     }
@@ -851,7 +858,7 @@ fun RunScreenPreview(
     val lifeGainDays = 0 // 7일이므로 아직 0
 
     var currentIndicator by remember { mutableStateOf(0) }
-    val progressTimeText = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds)
+    val progressTimeText = String.format(Locale.getDefault(), "%02d:%02d", elapsedMinutes, elapsedSeconds)
 
     // 모던한 그라데이션 배경
     val backgroundBrush = Brush.linearGradient(
@@ -927,7 +934,7 @@ fun RunScreenPreview(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(260.dp)
+                    .heightIn(max = 180.dp)
                     .wrapContentSize(Alignment.Center),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(
@@ -973,185 +980,6 @@ fun RunScreenPreview(
         // 모던한 중지 버튼 (하단 고정)
         ModernStopButton(
             onStop = { /* Preview에서는 동작 안함 */ }
-        )
-    }
-}
-
-@Preview(
-    showBackground = true,
-    name = "RunScreen - 시작 단계",
-    widthDp = 360,
-    heightDp = 800
-)
-@Composable
-fun RunScreenStartPreview() {
-    RunScreenPreview(
-        targetDays = 30f,
-        elapsedDays = 1,
-        elapsedHours = 8,
-        elapsedMinutes = 30,
-        elapsedSeconds = 15,
-        progress = 0.03f
-    )
-}
-
-@Preview(
-    showBackground = true,
-    name = "RunScreen - 진행 중",
-    widthDp = 360,
-    heightDp = 800
-)
-@Composable
-fun RunScreenProgressPreview() {
-    RunScreenPreview(
-        targetDays = 30f,
-        elapsedDays = 15,
-        elapsedHours = 12,
-        elapsedMinutes = 45,
-        elapsedSeconds = 30,
-        progress = 0.5f
-    )
-}
-
-@Preview(
-    showBackground = true,
-    name = "RunScreen - 거의 완료",
-    widthDp = 360,
-    heightDp = 800
-)
-@Composable
-fun RunScreenNearCompletePreview() {
-    RunScreenPreview(
-        targetDays = 30f,
-        elapsedDays = 28,
-        elapsedHours = 6,
-        elapsedMinutes = 20,
-        elapsedSeconds = 45,
-        progress = 0.93f
-    )
-}
-
-@Preview(
-    showBackground = true,
-    name = "RunScreen - 다크 모드",
-    widthDp = 360,
-    heightDp = 800,
-    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
-)
-@Composable
-fun RunScreenDarkPreview() {
-    RunScreenPreview(
-        targetDays = 30f,
-        elapsedDays = 7,
-        elapsedHours = 15,
-        elapsedMinutes = 30,
-        elapsedSeconds = 45,
-        progress = 0.23f
-    )
-}
-
-@Preview(
-    showBackground = true,
-    name = "RunScreen - 큰 폰트",
-    widthDp = 360,
-    heightDp = 800,
-    fontScale = 1.5f
-)
-@Composable
-fun RunScreenLargeFontPreview() {
-    RunScreenPreview(
-        targetDays = 30f,
-        elapsedDays = 7,
-        elapsedHours = 15,
-        elapsedMinutes = 30,
-        elapsedSeconds = 45,
-        progress = 0.23f
-    )
-}
-
-// 개별 컴포넌트 Preview들
-@Preview(showBackground = true, name = "StatCard Preview")
-@Composable
-fun StatCardPreview() {
-    Row(
-        modifier = Modifier.padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly // SpaceEvenly로 변경
-    ) {
-        StatCard(
-            value = "30.0",
-            label = "목표일",
-            color = Color(0xFF2196F3)
-        )
-        StatCard(
-            value = "새싹",
-            label = "Level",
-            color = Color(0xFF4CAF50),
-            isLevel = true
-        )
-        StatCard(
-            value = "15:30:45",
-            label = "시간",
-            color = Color(0xFF4CAF50)
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "ModernProgressIndicator Preview")
-@Composable
-fun ModernProgressIndicatorPreview() {
-    Column(
-        modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        ModernProgressIndicator(progress = 0.0f)
-        ModernProgressIndicator(progress = 0.25f)
-        ModernProgressIndicator(progress = 0.5f)
-        ModernProgressIndicator(progress = 0.75f)
-        ModernProgressIndicator(progress = 1.0f)
-    }
-}
-
-@Preview(showBackground = true, name = "ModernStopButton Preview")
-@Composable
-fun ModernStopButtonPreview() {
-    Row(
-        modifier = Modifier.padding(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        ModernStopButton(onStop = {})
-    }
-}
-
-@Preview(
-    showBackground = true,
-    name = "MainIndicatorCard Preview",
-    widthDp = 360,
-    heightDp = 300
-)
-@Composable
-fun MainIndicatorCardPreview() {
-    var currentIndicator by remember { mutableStateOf(0) }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(300.dp),
-        shape = RoundedCornerShape(32.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.95f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
-    ) {
-        MainIndicatorCard(
-            currentIndicator = currentIndicator,
-            elapsedDays = 15,
-            elapsedHours = 12,
-            elapsedMinutes = 30,
-            elapsedSeconds = 45,
-            savedMoney = 600000,
-            savedHours = 135,
-            lifeGainDays = 0,
-            onIndicatorChange = { newIndicator -> currentIndicator = newIndicator }
         )
     }
 }
