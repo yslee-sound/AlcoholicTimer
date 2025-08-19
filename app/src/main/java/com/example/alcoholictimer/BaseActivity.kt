@@ -235,6 +235,7 @@ abstract class BaseActivity : ComponentActivity() {
     private fun navigateToActivity(activityClass: Class<*>) {
         val intent = Intent(this, activityClass)
         startActivity(intent)
+        overridePendingTransition(0, 0)
     }
 
     /**
@@ -243,6 +244,7 @@ abstract class BaseActivity : ComponentActivity() {
     private fun navigateToNicknameEdit() {
         val intent = Intent(this, NicknameEditActivity::class.java)
         startActivity(intent)
+        overridePendingTransition(0, 0)
     }
 
     /**
