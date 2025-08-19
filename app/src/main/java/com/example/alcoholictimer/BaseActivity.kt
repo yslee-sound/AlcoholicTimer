@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,6 +18,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -72,6 +75,13 @@ abstract class BaseActivity : ComponentActivity() {
         val scope = rememberCoroutineScope()
         val currentNickname by nicknameState
 
+        // 드로어 상태에 따른 블러 효과 애니메이션
+        val blurRadius by animateFloatAsState(
+            targetValue = if (drawerState.targetValue == DrawerValue.Open) 8f else 0f,
+            animationSpec = tween(durationMillis = 300),
+            label = "blur"
+        )
+
         // 모던한 그라데이션 배경 색상
         val gradientBackground = Brush.linearGradient(
             colors = listOf(
@@ -102,12 +112,30 @@ abstract class BaseActivity : ComponentActivity() {
                     DrawerMenu(
                         nickname = currentNickname,
                         onNicknameClick = {
-                            scope.launch { drawerState.close() }
-                            navigateToNicknameEdit()
+                            scope.launch {
+                                drawerState.close()
+                                // 드로어가 완전히 닫힐 때까지 대기
+                                snapshotFlow { drawerState.isAnimationRunning }
+                                    .collect { isAnimating ->
+                                        if (!isAnimating && drawerState.currentValue == DrawerValue.Closed) {
+                                            navigateToNicknameEdit()
+                                            return@collect
+                                        }
+                                    }
+                            }
                         },
                         onItemSelected = { menuItem ->
-                            scope.launch { drawerState.close() }
-                            handleMenuSelection(menuItem)
+                            scope.launch {
+                                drawerState.close()
+                                // 드로어가 완전히 닫힐 때까지 대기
+                                snapshotFlow { drawerState.isAnimationRunning }
+                                    .collect { isAnimating ->
+                                        if (!isAnimating && drawerState.currentValue == DrawerValue.Closed) {
+                                            handleMenuSelection(menuItem)
+                                            return@collect
+                                        }
+                                    }
+                            }
                         }
                     )
                 }
@@ -176,6 +204,7 @@ abstract class BaseActivity : ComponentActivity() {
                         .fillMaxSize()
                         .background(brush = gradientBackground)
                         .padding(paddingValues)
+                        .blur(radius = blurRadius.dp) // 블러 효과 적용
                 ) {
                     content()
                 }
