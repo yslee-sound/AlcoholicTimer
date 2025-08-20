@@ -401,7 +401,18 @@ fun RunScreen() {
         // 모던한 중지 버튼 (하단 고정)
         ModernStopButton(
             onStop = {
-                val intent = Intent(context, QuitActivity::class.java)
+                val intent = Intent(context, QuitActivity::class.java).apply {
+                    // 현재 시점의 데이터를 QuitActivity로 전달
+                    putExtra("elapsed_days", elapsedDays)
+                    putExtra("elapsed_hours", elapsedHours)
+                    putExtra("elapsed_minutes", elapsedMinutes)
+                    putExtra("saved_money", savedMoney.toDouble())
+                    putExtra("saved_hours", savedHours.toDouble())
+                    putExtra("life_gain_days", lifeGainDays.toDouble())
+                    putExtra("level_name", currentLevelName)
+                    putExtra("level_color", currentLevelInfo.color.value.toLong())
+                    putExtra("quit_timestamp", System.currentTimeMillis()) // 중지 버튼을 누른 시점
+                }
                 context.startActivity(intent)
             }
         )

@@ -60,39 +60,49 @@ class QuitActivity : BaseActivity() {
 fun QuitScreen() {
     val context = LocalContext.current
 
-    // SharedPreferences에서 데이터 가져오기
+    // Intent에서 RunActivity로부터 전달받은 데이터 가져오기
+    val activity = context as? QuitActivity
+    val intent = activity?.intent
+
+    // RunActivity에서 전달받은 중지 시점의 데이터 사용
+    val elapsedDays = intent?.getIntExtra("elapsed_days", 0) ?: 0
+    val elapsedHours = intent?.getIntExtra("elapsed_hours", 0) ?: 0
+    val elapsedMinutes = intent?.getIntExtra("elapsed_minutes", 0) ?: 0
+    val savedMoney = intent?.getDoubleExtra("saved_money", 0.0) ?: 0.0
+    val savedHours = intent?.getDoubleExtra("saved_hours", 0.0) ?: 0.0
+    val lifeGainDays = intent?.getDoubleExtra("life_gain_days", 0.0) ?: 0.0
+    val levelName = intent?.getStringExtra("level_name") ?: "새싹"
+    val levelColorValue = intent?.getLongExtra("level_color", 0L) ?: 0L
+    val quitTimestamp = intent?.getLongExtra("quit_timestamp", System.currentTimeMillis()) ?: System.currentTimeMillis()
+
+    // 레벨 색상 복원
+    val levelColor = if (levelColorValue != 0L) {
+        Color(levelColorValue.toULong())
+    } else {
+        Color(0xFF4CAF50) // 기본값
+    }
+
+    // SharedPreferences에서 기본 설정만 가져오기 (실시간 계산하지 않음)
     val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
     val startTime = sharedPref.getLong("start_time", 0L)
     val targetDays = sharedPref.getFloat("target_days", 30f)
 
-    // 설정값 가져오기
-    val selectedCost = sharedPref.getString("selected_cost", "중") ?: "중"
-    val selectedFrequency = sharedPref.getString("selected_frequency", "주 2~3회") ?: "주 2~3회"
-    val selectedDuration = sharedPref.getString("selected_duration", "보통") ?: "보통"
-
-    // 현재 시간과 경과 시간 계산
-    val currentTime = System.currentTimeMillis()
-    val elapsedTime = if (startTime > 0) currentTime - startTime else 0L
-    val elapsedDays = (elapsedTime / (24 * 60 * 60 * 1000)).toInt()
-    val elapsedHours = ((elapsedTime % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)).toInt()
-    val elapsedMinutes = ((elapsedTime % (60 * 60 * 1000)) / (60 * 1000)).toInt()
-
     // 계산된 값들
-    val costVal = when(selectedCost) {
+    val costVal = when(sharedPref.getString("selected_cost", "중") ?: "중") {
         "저" -> 10000
         "중" -> 40000
         "고" -> 70000
         else -> 40000
     }
 
-    val freqVal = when(selectedFrequency) {
+    val freqVal = when(sharedPref.getString("selected_frequency", "주 2~3회") ?: "주 2~3회") {
         "주 1회 이하" -> 1.0
         "주 2~3회" -> 2.5
         "주 4회 이상" -> 5.0
         else -> 2.5
     }
 
-    val drinkHoursVal = when(selectedDuration) {
+    val drinkHoursVal = when(sharedPref.getString("selected_duration", "보통") ?: "보통") {
         "짧음" -> 2
         "보통" -> 4
         "김" -> 6
@@ -101,9 +111,9 @@ fun QuitScreen() {
 
     val hangoverHoursVal = 5
     val weeks = elapsedDays / 7.0
-    val savedMoney = (weeks * freqVal * costVal)
-    val savedHours = (weeks * freqVal * (drinkHoursVal + hangoverHoursVal))
-    val lifeGainDays = ((elapsedDays / 30.0) * 1.0)
+    val savedMoneyCalc = (weeks * freqVal * costVal)
+    val savedHoursCalc = (weeks * freqVal * (drinkHoursVal + hangoverHoursVal))
+    val lifeGainDaysCalc = ((elapsedDays / 30.0) * 1.0)
 
     // 모던한 그라데이션 배경 (RunActivity와 동일)
     val backgroundBrush = Brush.linearGradient(
@@ -179,14 +189,16 @@ fun QuitScreen() {
 
             Spacer(modifier = Modifier.height(16.dp)) // 24dp에서 16dp로 줄임
 
-            // 통계 카드들
+            // 통계 카드들 - RunActivity에서 전달받은 데이터 사용
             StatisticsCardsSection(
                 elapsedDays = elapsedDays,
                 elapsedHours = elapsedHours,
                 elapsedMinutes = elapsedMinutes,
-                savedMoney = savedMoney,
-                savedHours = savedHours,
-                lifeGainDays = lifeGainDays
+                savedMoney = savedMoney, // RunActivity에서 전달받은 값 사용
+                savedHours = savedHours, // RunActivity에서 전달받은 값 사용
+                lifeGainDays = lifeGainDays, // RunActivity에서 전달받은 값 사용
+                levelName = levelName, // RunActivity에서 전달받은 레벨명 사용
+                levelColor = levelColor // RunActivity에서 전달받은 레벨 색상 사용
             )
         }
 
@@ -353,7 +365,9 @@ fun StatisticsCardsSection(
     elapsedMinutes: Int,
     savedMoney: Double,
     savedHours: Double,
-    lifeGainDays: Double
+    lifeGainDays: Double,
+    levelName: String, // 추가: 레벨명
+    levelColor: Color // 추가: 레벨 색상
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -371,9 +385,9 @@ fun StatisticsCardsSection(
                 modifier = Modifier.weight(1f)
             )
             ModernStatCard(
-                value = getLevelName(elapsedDays),
+                value = levelName, // 전달받은 레벨명 사용
                 label = "레벨",
-                color = LevelDefinitions.getLevelInfo(elapsedDays).color,
+                color = levelColor, // 전달받은 레벨 색상 사용
                 modifier = Modifier.weight(1f)
             )
         }
@@ -427,9 +441,9 @@ fun ModernStatCard(
 ) {
     Card(
         modifier = modifier.height(80.dp),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(15.dp), //15
         colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.9f)
+            containerColor = Color.White.copy(alpha = 0.95f)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -632,6 +646,8 @@ fun QuitScreenPreview() {
     val savedMoney = 600000.0
     val savedHours = 135.0
     val lifeGainDays = 0.5
+    val levelName = "새싹"
+    val levelColor = Color(0xFF4CAF50)
 
     // 모던한 그라데이션 배경
     val backgroundBrush = Brush.linearGradient(
@@ -665,7 +681,7 @@ fun QuitScreenPreview() {
                     .padding(vertical = 8.dp),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White.copy(alpha = 0.95f)
+                    containerColor = Color.White.copy(alpha = 0.95f) //0.95f
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
             ) {
@@ -706,7 +722,9 @@ fun QuitScreenPreview() {
                 elapsedMinutes = elapsedMinutes,
                 savedMoney = savedMoney,
                 savedHours = savedHours,
-                lifeGainDays = lifeGainDays
+                lifeGainDays = lifeGainDays,
+                levelName = levelName,
+                levelColor = levelColor
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -789,7 +807,9 @@ fun StatisticsCardsSectionPreview() {
             elapsedMinutes = 30,
             savedMoney = 600000.0,
             savedHours = 135.5,
-            lifeGainDays = 0.5
+            lifeGainDays = 0.5,
+            levelName = "새싹",
+            levelColor = Color(0xFF4CAF50)
         )
     }
 }
