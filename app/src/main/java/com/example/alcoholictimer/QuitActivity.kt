@@ -202,70 +202,114 @@ fun QuitScreen() {
         ) {
             // 중지 버튼
             var isPressed by remember { mutableStateOf(false) }
+            var progress by remember { mutableFloatStateOf(0f) }
             val coroutineScope = rememberCoroutineScope()
 
-            Card(
-                modifier = Modifier
-                    .size(80.dp)
-                    .pointerInput(Unit) {
-                        awaitEachGesture {
-                            val down = awaitFirstDown()
-                            isPressed = true
-                            val downTime = System.currentTimeMillis()
-                            Log.d("QuitActivity", "터치 시작: $downTime")
-
-                            // 3초 동안 기다리면서, 손을 떼면 중단, 3초가 지나면 자동 실행
-                            val result = withTimeoutOrNull(3000L) {
-                                waitForUpOrCancellation()
-                            }
-
-                            isPressed = false
-                            val upTime = System.currentTimeMillis()
-                            val duration = upTime - downTime
-
-                            if (result == null) {
-                                // 3초가 지났음 (타임아웃 발생) - 자동으로 중지 처리
-                                Log.d("QuitActivity", "3초 지났음 - 자동 중지 처리 시작")
-                                coroutineScope.launch {
-                                    saveCompletedRecord(
-                                        context = context,
-                                        startTime = startTime,
-                                        endTime = System.currentTimeMillis(),
-                                        targetDays = targetDays,
-                                        actualDays = elapsedDays
-                                    )
-                                    sharedPref.edit {
-                                        remove("start_time")
-                                        putBoolean("timer_completed", true)
-                                    }
-                                    val intent = Intent(context, StartActivity::class.java)
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                                    context.startActivity(intent)
-                                    (context as? QuitActivity)?.finish()
-                                }
-                            } else {
-                                // 3초 전에 손을 뗐음
-                                Log.d("QuitActivity", "3초 전에 손을 뗐음: ${duration}ms")
-                                Toast.makeText(context, "3초간 계속 눌러야 종료됩니다 (현재: ${String.format("%.1f", duration/1000f)}초)", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    },
-                shape = CircleShape,
-                colors = CardDefaults.cardColors(
-                    containerColor = if (isPressed) Color(0xFFD32F2F) else Color(0xFFE53935)
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.size(80.dp)
             ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "중지",
-                        tint = Color.White,
-                        modifier = Modifier.size(32.dp)
+                // 배경 원형 진행 바
+                CircularProgressIndicator(
+                    progress = { 1f },
+                    modifier = Modifier.size(80.dp),
+                    color = Color(0xFFE0E0E0),
+                    strokeWidth = 4.dp,
+                    trackColor = Color.Transparent
+                )
+
+                // 진행 상태 원형 진행 바
+                if (isPressed) {
+                    CircularProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier.size(80.dp),
+                        color = Color(0xFFD32F2F),
+                        strokeWidth = 4.dp,
+                        trackColor = Color.Transparent
                     )
+                }
+
+                Card(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .pointerInput(Unit) {
+                            awaitEachGesture {
+                                val down = awaitFirstDown()
+                                isPressed = true
+                                progress = 0f
+                                Log.d("QuitActivity", "터치 시작")
+
+                                // 1.5초 동안 진행 바 채우기
+                                val progressJob = coroutineScope.launch {
+                                    val duration = 1500L // 1.5초
+                                    val startTime = System.currentTimeMillis()
+
+                                    while (progress < 1f && isPressed) {
+                                        val elapsed = System.currentTimeMillis() - startTime
+                                        progress = (elapsed.toFloat() / duration).coerceAtMost(1f)
+                                        delay(16) // 60fps
+                                    }
+
+                                    if (progress >= 1f && isPressed) {
+                                        // 진행 바가 완전히 채워짐 - 중지 처리
+                                        Log.d("QuitActivity", "진행 바 완료 - 중지 처리 시작")
+                                        saveCompletedRecord(
+                                            context = context,
+                                            startTime = startTime,
+                                            endTime = System.currentTimeMillis(),
+                                            targetDays = targetDays,
+                                            actualDays = elapsedDays
+                                        )
+                                        sharedPref.edit {
+                                            remove("start_time")
+                                            putBoolean("timer_completed", true)
+                                        }
+                                        val intent = Intent(context, StartActivity::class.java)
+                                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                                        context.startActivity(intent)
+                                        (context as? QuitActivity)?.finish()
+                                    }
+                                }
+
+                                // 터치 해제 대기
+                                val result = waitForUpOrCancellation()
+
+                                // 터치가 해제되면 진행 바 리셋
+                                isPressed = false
+                                progressJob.cancel()
+
+                                if (result != null && progress < 1f) {
+                                    // 진행 바가 완료되기 전에 손을 뗐음
+                                    Log.d("QuitActivity", "진행 바 미완료로 취소됨: ${String.format("%.1f", progress * 100)}%")
+                                    Toast.makeText(context, "길게 눌러서 진행 바를 채워주세요 (${String.format("%.0f", progress * 100)}%)", Toast.LENGTH_SHORT).show()
+                                }
+
+                                // 진행 바 리셋 애니메이션
+                                coroutineScope.launch {
+                                    while (progress > 0f) {
+                                        progress = (progress - 0.1f).coerceAtLeast(0f)
+                                        delay(16)
+                                    }
+                                }
+                            }
+                        },
+                    shape = CircleShape,
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isPressed) Color(0xFFD32F2F) else Color(0xFFE53935)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "중지",
+                            tint = Color.White,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
                 }
             }
 
