@@ -120,15 +120,30 @@ fun RunScreen() {
         }
     }
 
-    // 경과 시간 계산 (항상 ���제 시간 사용)
-    val elapsedTime = if (actualStartTime > 0) currentTime - actualStartTime else 0L
+    // 경과 시간 계산 (항상 실제 시간 사용)
+    val elapsedTime = remember(currentTime, actualStartTime) {
+        if (actualStartTime > 0) currentTime - actualStartTime else 0L
+    }
 
     // 금주 진행은 항상 실제 시간으로 계산 (소수점 지원)
-    val elapsedDaysFloat = (elapsedTime / Constants.DAY_IN_MILLIS.toFloat())
+    val elapsedDaysFloat = remember(elapsedTime) {
+        (elapsedTime / Constants.DAY_IN_MILLIS.toFloat())
+    }
     val elapsedDays = elapsedDaysFloat.toInt()
 
-    // 레벨 계산용 일수 (테스트 모드 적용)
-    val levelDays = Constants.calculateLevelDays(elapsedTime)
+    // 레벨 계산용 일수 (테스트 모드 적용) - 과거 기록 + 현재 진행 시간 총합
+    val levelDays = remember(elapsedTime) {
+        calculateTotalLevelDays(context, elapsedTime)
+    }
+
+    // 레벨 정보를 실시간으로 계산
+    val currentLevelInfo = remember(levelDays) {
+        LevelDefinitions.getLevelInfo(levelDays)
+    }
+
+    val currentLevelName = remember(levelDays) {
+        LevelDefinitions.getLevelName(levelDays)
+    }
 
     // 실�� 경과 시간 계산 (시:분:초 ���시용)
     val elapsedHours = ((elapsedTime % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)).toInt()
@@ -318,8 +333,8 @@ fun RunScreen() {
                         // 레벨
                         RunStatisticItem(
                             title = "Level",
-                            value = getLevelName(levelDays),
-                            color = LevelDefinitions.getLevelInfo(levelDays).color,
+                            value = currentLevelName.take(2), // 앞글자 2개만 표시
+                            color = currentLevelInfo.color,
                             modifier = Modifier.weight(1f)
                         )
 
@@ -834,6 +849,63 @@ private fun saveCompletedRecord(
 // 레벨명 함수 (기존 ���벨 테이블 기준)
 private fun getLevelName(days: Int): String {
     return LevelDefinitions.getLevelName(days)
+}
+
+// 과거 기록 + 현재 진행 시간을 모두 포함한 총 레벨 계산 함수
+private fun calculateTotalLevelDays(context: Context, currentElapsedTime: Long): Int {
+    try {
+        val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
+
+        // 과거 완료된 기록들의 총 시간 계산
+        val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
+        val recordsList = try {
+            JSONArray(recordsJson)
+        } catch (e: Exception) {
+            Log.e("RunActivity", "Error parsing records for level calculation", e)
+            JSONArray()
+        }
+
+        var totalPastTime = 0L
+
+        // 모든 과거 기록들의 실제 지속 시간을 합산
+        for (i in 0 until recordsList.length()) {
+            try {
+                val record = recordsList.getJSONObject(i)
+                val startTime = record.getLong("startTime")
+                val endTime = record.getLong("endTime")
+                val duration = endTime - startTime
+
+                if (duration > 0) {
+                    totalPastTime += duration
+                }
+
+                Log.d("RunActivity", "과거 기록 $i: ${duration}ms 추가, 누적: ${totalPastTime}ms")
+            } catch (e: Exception) {
+                Log.e("RunActivity", "Error processing record $i for level calculation", e)
+            }
+        }
+
+        // 과거 기록 총합 + 현재 진행 시간 = 전체 누적 시간
+        val totalTime = totalPastTime + currentElapsedTime
+
+        // 테스트 모드를 적용하여 레벨 계산
+        val levelDays = Constants.calculateLevelDays(totalTime)
+
+        Log.d("RunActivity", "=== 레벨 계산 상세 ===")
+        Log.d("RunActivity", "과거 기록 총 시간: ${totalPastTime}ms (${totalPastTime / Constants.DAY_IN_MILLIS.toFloat()}일)")
+        Log.d("RunActivity", "현재 진행 시간: ${currentElapsedTime}ms (${currentElapsedTime / Constants.DAY_IN_MILLIS.toFloat()}일)")
+        Log.d("RunActivity", "전체 누적 시간: ${totalTime}ms (${totalTime / Constants.DAY_IN_MILLIS.toFloat()}일)")
+        Log.d("RunActivity", "테스트 모드 적용 레벨용 일수: $levelDays")
+        Log.d("RunActivity", "최종 레벨: ${LevelDefinitions.getLevelName(levelDays)}")
+        Log.d("RunActivity", "=====================")
+
+        return levelDays
+
+    } catch (e: Exception) {
+        Log.e("RunActivity", "Error calculating total level days", e)
+        // 오류 발생 시 현재 진행 시간만으로 계산
+        return Constants.calculateLevelDays(currentElapsedTime)
+    }
 }
 
 @Preview(showBackground = true)

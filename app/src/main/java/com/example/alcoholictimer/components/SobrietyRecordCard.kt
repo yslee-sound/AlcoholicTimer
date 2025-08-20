@@ -143,3 +143,60 @@ fun SobrietyRecordCard(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "${progressPercent}%",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (record.isCompleted) Color(0xFF4CAF50) else Color(0xFFFF9800)
+                    )
+                    Text(
+                        text = "목표 달성률",
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                }
+
+                // 오른쪽: 목표 일수
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "${record.targetDays}일",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+                    Text(
+                        text = "목표",
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 하단: 상세 정보
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "시작: $startTime",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+                Text(
+                    text = "종료: $endTime",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+            }
+
+            if (durationDays > 0 || durationHours > 0 || durationMinutes > 0) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "지속 시간: ${durationDays}일 ${durationHours}시간 ${durationMinutes}분",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+            }
+        }
+    }
+}
