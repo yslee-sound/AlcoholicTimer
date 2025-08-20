@@ -88,7 +88,7 @@ fun SettingsScreen() {
             CompositionLocalProvider(LocalDensity provides fixedDensity) {
                 Text(
                     text = "설정",
-                    fontSize = 32.sp,
+                    fontSize = 20.sp, // 기존 32.sp → 20.sp로 조정
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF1976D2),
                     modifier = Modifier
@@ -207,7 +207,7 @@ fun SettingsCard(
         ) {
             Text(
                 text = title,
-                fontSize = 20.sp,
+                fontSize = 16.sp, // 기존 20.sp → 16.sp로 조정
                 fontWeight = FontWeight.Bold,
                 color = titleColor,
                 modifier = Modifier.padding(bottom = 16.dp)

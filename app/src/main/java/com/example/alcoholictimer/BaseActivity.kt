@@ -407,7 +407,7 @@ fun DrawerMenu(
                     CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)) {
                         Text(
                             text = title,
-                            fontSize = 16.sp,
+                            fontSize = 18.sp, // 기존 16.sp에서 18.sp로 증가
                             fontWeight = FontWeight.Medium,
                             color = Color(0xFF2C3E50)
                         )
@@ -451,13 +451,13 @@ fun DrawerMenu(
                 ) {
                     Surface(
                         shape = CircleShape,
-                        color = Color(0xFF636E72).copy(alpha = 0.1f),
+                        color = Color(0xFF74B9FF).copy(alpha = 0.1f),
                         modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
                             imageVector = icon,
                             contentDescription = title,
-                            tint = Color(0xFF636E72),
+                            tint = Color(0xFF74B9FF),
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(8.dp)
@@ -467,7 +467,7 @@ fun DrawerMenu(
                     CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)) {
                         Text(
                             text = title,
-                            fontSize = 16.sp,
+                            fontSize = 18.sp, // 기존 16.sp에서 18.sp로 증가
                             fontWeight = FontWeight.Medium,
                             color = Color(0xFF2C3E50)
                         )
