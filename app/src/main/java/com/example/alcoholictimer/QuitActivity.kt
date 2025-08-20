@@ -121,15 +121,15 @@ fun QuitScreen() {
             .fillMaxSize()
             .background(backgroundBrush)
             .windowInsetsPadding(WindowInsets.safeDrawing)
-            .padding(horizontal = 16.dp, vertical = 24.dp),
+            .padding(horizontal = 16.dp, vertical = 16.dp), // 상하 패딩 줄임
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f, fill = false) // fill = false로 변경하여 필요한 만큼만 공간 사용
         ) {
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(12.dp)) // 줄임
 
             // 상단 메시지 카드
             Card(
@@ -145,7 +145,7 @@ fun QuitScreen() {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(32.dp),
+                        .padding(20.dp), // 32dp에서 20dp로 줄임
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     // 이모지 아이콘
@@ -154,30 +154,30 @@ fun QuitScreen() {
                     ) {
                         Text(
                             text = "🤔",
-                            fontSize = 60.sp,
-                            modifier = Modifier.padding(bottom = 16.dp)
+                            fontSize = 48.sp, // 60sp에서 48sp로 줄임
+                            modifier = Modifier.padding(bottom = 12.dp) // 16dp에서 12dp로 줄임
                         )
                     }
 
                     Text(
                         text = "정말 멈추시겠어요?",
-                        fontSize = 24.sp,
+                        fontSize = 22.sp, // 24sp에서 22sp로 약간 줄임
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF333333),
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        modifier = Modifier.padding(bottom = 6.dp) // 8dp에서 6dp로 줄임
                     )
 
                     Text(
                         text = "지금까지 잘 해오셨는데...",
-                        fontSize = 16.sp,
+                        fontSize = 14.sp, // 16sp에서 14sp로 줄임
                         color = Color(0xFF666666),
                         textAlign = TextAlign.Center
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp)) // 24dp에서 16dp로 줄임
 
             // 통계 카드들
             StatisticsCardsSection(
@@ -188,9 +188,10 @@ fun QuitScreen() {
                 savedHours = savedHours,
                 lifeGainDays = lifeGainDays
             )
-
-            Spacer(modifier = Modifier.weight(1f))
         }
+
+        // 버튼 영역과 상단 콘텐츠 사이의 최소 간격 보장
+        Spacer(modifier = Modifier.height(16.dp))
 
         // 버튼 영역 (하단 고정)
         Row(
@@ -341,7 +342,7 @@ fun QuitScreen() {
             }
         }
 
-        Spacer(modifier = Modifier.height(100.dp))
+        Spacer(modifier = Modifier.height(24.dp)) // 100dp에서 24dp로 대폭 줄임
     }
 }
 
@@ -647,7 +648,7 @@ fun QuitScreenPreview() {
         modifier = Modifier
             .fillMaxSize()
             .background(backgroundBrush)
-            .padding(horizontal = 16.dp, vertical = 24.dp),
+            .padding(horizontal = 16.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
