@@ -354,9 +354,9 @@ fun RunScreen() {
                     elapsedHours = elapsedHours,
                     elapsedMinutes = elapsedMinutes,
                     elapsedSeconds = elapsedSeconds,
-                    savedMoney = savedMoney,
-                    savedHours = savedHours,
-                    lifeGainDays = lifeGainDays,
+                    savedMoney = savedMoney.toDouble(),
+                    savedHours = savedHours.toDouble(),
+                    lifeGainDays = lifeGainDays.toDouble(),
                     onIndicatorChange = { newIndicator -> currentIndicator = newIndicator }
                 )
             }
@@ -495,9 +495,9 @@ fun MainIndicatorCard(
     elapsedHours: Int,
     elapsedMinutes: Int,
     elapsedSeconds: Int,
-    savedMoney: Int,
-    savedHours: Int,
-    lifeGainDays: Int,
+    savedMoney: Double,
+    savedHours: Double,
+    lifeGainDays: Double,
     onIndicatorChange: (Int) -> Unit
 ) {
     var scale by remember { mutableStateOf(1f) }
@@ -589,9 +589,9 @@ fun MainIndicatorCard(
                                 val displayText = if (elapsedDays >= 365) {
                                     val years = elapsedDays / 365
                                     val remainingDays = elapsedDays % 365
-                                    "${years}년 ${remainingDays}일"
+                                    "${years} ${remainingDays}"
                                 } else {
-                                    "${elapsedDays}일"
+                                    "${elapsedDays}"
                                 }
                                 Box(
                                     modifier = Modifier.fillMaxSize(),
@@ -628,7 +628,7 @@ fun MainIndicatorCard(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = String.format(Locale.getDefault(), "%,d원", savedMoney),
+                                        text = String.format(Locale.getDefault(), "%,.1f", savedMoney),
                                         fontSize = 36.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFFE91E63),
@@ -643,7 +643,7 @@ fun MainIndicatorCard(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = "${savedHours}시간",
+                                        text = String.format(Locale.getDefault(), "%.1f", savedHours),
                                         fontSize = 36.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFFFF9800),
@@ -658,7 +658,7 @@ fun MainIndicatorCard(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = "${lifeGainDays}일",
+                                        text = String.format(Locale.getDefault(), "%.1f", lifeGainDays),
                                         fontSize = 36.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFF9C27B0),
@@ -948,9 +948,9 @@ fun RunScreenPreview(
                     elapsedHours = elapsedHours,
                     elapsedMinutes = elapsedMinutes,
                     elapsedSeconds = elapsedSeconds,
-                    savedMoney = savedMoney,
-                    savedHours = savedHours,
-                    lifeGainDays = lifeGainDays,
+                    savedMoney = savedMoney.toDouble(),
+                    savedHours = savedHours.toDouble(),
+                    lifeGainDays = lifeGainDays.toDouble(),
                     onIndicatorChange = { newIndicator -> currentIndicator = newIndicator }
                 )
             }
