@@ -59,7 +59,7 @@ class LevelActivity : BaseActivity() {
         val pastRecords = RecordsDataLoader.loadSobrietyRecords(context)
         val totalPastDuration = pastRecords.sumOf { record ->
             // 완료된 기록과 미완료 기록 모두 실제 진행한 시간만큼 반영
-            record.endTime - record.startTime
+            (record.endTime - record.startTime).toLong()
         }
 
         // 총 누적 금주 시간 = 과거 기록들의 누적 시간 + 현재 진행 중인 시간
@@ -178,7 +178,7 @@ class LevelActivity : BaseActivity() {
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Text(
-                        text = "일째 (누적)",
+                        text = "일차",
                         fontSize = 18.sp,
                         color = Color(0xFF666666),
                         fontWeight = FontWeight.Medium
@@ -367,13 +367,15 @@ class LevelActivity : BaseActivity() {
             colors = CardDefaults.cardColors(
                 containerColor = when {
                     isCurrent -> level.color.copy(alpha = 0.1f)
-                    isAchieved -> Color.White
+                    isAchieved -> level.color.copy(alpha = 0.1f) // 완료된 레벨도 색상 배경 적용
                     else -> Color(0xFFFAFAFA)
                 }
             ),
-            border = if (isCurrent) {
-                androidx.compose.foundation.BorderStroke(2.dp, level.color)
-            } else null
+            border = when {
+                isCurrent -> androidx.compose.foundation.BorderStroke(2.dp, level.color)
+                isAchieved -> androidx.compose.foundation.BorderStroke(1.dp, level.color.copy(alpha = 0.5f)) // 완료된 레벨도 테두리 적용
+                else -> null
+            }
         ) {
             Row(
                 modifier = Modifier
@@ -390,21 +392,13 @@ class LevelActivity : BaseActivity() {
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (isCurrent) {
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = "현재 레벨",
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    } else {
-                        Text(
-                            text = level.name.take(1),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (isAchieved) Color.White else Color(0xFF757575)
-                        )
-                    }
+                    // 현재 진행중이든 완료된 레벨이든 모두 첫글자 표시
+                    Text(
+                        text = level.name.take(1), // 레벨명의 첫 1글자 표시
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isAchieved) Color.White else Color(0xFF757575)
+                    )
                 }
 
                 Spacer(modifier = Modifier.width(12.dp))
@@ -432,7 +426,15 @@ class LevelActivity : BaseActivity() {
                     )
                 }
 
-                if (isAchieved) {
+                if (isCurrent) {
+                    // 현재 진행중 표시
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = "현재 레벨",
+                        tint = level.color,
+                        modifier = Modifier.size(20.dp)
+                    )
+                } else if (isAchieved) {
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
                         contentDescription = "달성 완료",
@@ -574,7 +576,7 @@ fun LevelScreenPreview() {
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Text(
-                        text = "일째 (누적)",
+                        text = "일차",
                         fontSize = 18.sp,
                         color = Color(0xFF666666),
                         fontWeight = FontWeight.Medium
@@ -677,13 +679,15 @@ fun LevelScreenPreview() {
                         colors = CardDefaults.cardColors(
                             containerColor = when {
                                 isCurrent -> level.color.copy(alpha = 0.1f)
-                                isAchieved -> Color.White
+                                isAchieved -> level.color.copy(alpha = 0.1f) // 완료된 레벨도 색상 배경 적용
                                 else -> Color(0xFFFAFAFA)
                             }
                         ),
-                        border = if (isCurrent) {
-                            androidx.compose.foundation.BorderStroke(2.dp, level.color)
-                        } else null
+                        border = when {
+                            isCurrent -> androidx.compose.foundation.BorderStroke(2.dp, level.color)
+                            isAchieved -> androidx.compose.foundation.BorderStroke(1.dp, level.color.copy(alpha = 0.5f)) // 완료된 레벨도 테두리 적용
+                            else -> null
+                        }
                     ) {
                         Row(
                             modifier = Modifier
@@ -700,21 +704,13 @@ fun LevelScreenPreview() {
                                     ),
                                 contentAlignment = Alignment.Center
                             ) {
-                                if (isCurrent) {
-                                    Icon(
-                                        imageVector = Icons.Default.Star,
-                                        contentDescription = "현재 레벨",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                } else {
-                                    Text(
-                                        text = level.name.take(1),
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (isAchieved) Color.White else Color(0xFF757575)
-                                    )
-                                }
+                                // 현재 진행중이든 완료된 레벨이든 모두 첫글자 표시
+                                Text(
+                                    text = level.name.take(1), // 레벨명의 첫 1글자 표시
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isAchieved) Color.White else Color(0xFF757575)
+                                )
                             }
 
                             Spacer(modifier = Modifier.width(12.dp))

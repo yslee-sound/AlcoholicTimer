@@ -233,13 +233,12 @@ fun DetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp)
+                .padding(16.dp)
+                .statusBarsPadding()  // 상태표시줄 높이만큼 패딩 추가
         ) {
             // 헤더 영역
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 24.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -286,7 +285,7 @@ fun DetailScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // 메인 정보 카드
             Card(
@@ -316,17 +315,7 @@ fun DetailScreen(
                         fontWeight = FontWeight.Medium
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // 기록 제목
-                    Text(
-                        text = recordTitle,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF2D3748)
-                    )
-
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
                     // 대형 숫자 표시
                     Row(
