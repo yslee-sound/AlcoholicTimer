@@ -41,7 +41,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.*
 import kotlin.math.roundToInt
-import com.example.alcoholictimer.components.StatisticsCardsSection as WeeklyStatisticsCardsSection
 
 class QuitActivity : BaseActivity() {
 
@@ -67,9 +66,9 @@ fun QuitScreen() {
     val targetDays = sharedPref.getFloat("target_days", 30f)
 
     // 설정값 가져오기
-    val selectedCost = sharedPref.getString("selected_cost", "�����") ?: "중"
+    val selectedCost = sharedPref.getString("selected_cost", "중") ?: "중"
     val selectedFrequency = sharedPref.getString("selected_frequency", "주 2~3회") ?: "주 2~3회"
-    val selectedDuration = sharedPref.getString("selected_duration", "보��") ?: "보통"
+    val selectedDuration = sharedPref.getString("selected_duration", "보통") ?: "보통"
 
     // 현재 시간과 경과 시간 계산
     val currentTime = System.currentTimeMillis()
@@ -117,47 +116,6 @@ fun QuitScreen() {
         end = Offset(1000f, 1000f)
     )
 
-    // --- 주간 통계용 상태 QuitScreen 내부로 이동 ---
-    val records = remember {
-        listOf(
-            com.example.alcoholictimer.utils.SobrietyRecord(
-                id = "1",
-                startTime = 1722447600000, // 2024-08-01 00:00:00
-                endTime = 1722706800000,   // 2024-08-04 00:00:00
-                targetDays = 5,
-                actualDays = 3,
-                percentage = 80,
-                isCompleted = false,
-                status = "진행중",
-                createdAt = 1722447600000
-            ),
-            com.example.alcoholictimer.utils.SobrietyRecord(
-                id = "2",
-                startTime = 1722534000000, // 2024-08-02 00:00:00
-                endTime = 1722793200000,   // 2024-08-05 00:00:00
-                targetDays = 4,
-                actualDays = 3,
-                percentage = 100,
-                isCompleted = true,
-                status = "완료",
-                createdAt = 1722534000000
-            ),
-            com.example.alcoholictimer.utils.SobrietyRecord(
-                id = "3",
-                startTime = 1722706800000, // 2024-08-04 00:00:00
-                endTime = 1723225200000,   // 2024-08-10 00:00:00
-                targetDays = 7,
-                actualDays = 6,
-                percentage = 90,
-                isCompleted = false,
-                status = "진행중",
-                createdAt = 1722706800000
-            )
-        )
-    }
-    var selectedRange by remember { mutableStateOf("8-04 ~ 8-10") } // 기본값: 지난 주
-    var selectedPeriod by remember { mutableStateOf("주간") }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -167,14 +125,6 @@ fun QuitScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // --- 주간 통계 카드 추가 ---
-        WeeklyStatisticsCardsSection(
-            records = records,
-            selectedPeriod = selectedPeriod,
-            selectedRange = selectedRange,
-            onRangeSelected = { selectedRange = it }
-        )
-
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.weight(1f)
@@ -210,7 +160,7 @@ fun QuitScreen() {
                     }
 
                     Text(
-                        text = "정말 멈추���겠어요?",
+                        text = "정말 멈추시겠어요?",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF333333),
@@ -538,7 +488,7 @@ private fun saveCompletedRecord(
     actualDays: Int
 ) {
     try {
-        Log.d("QuitActivity", "========== 기록 저��� 시작 ==========")
+        Log.d("QuitActivity", "========== 기록 저장 시작 ==========")
         Log.d("QuitActivity", "startTime: $startTime")
         Log.d("QuitActivity", "endTime: $endTime")
         Log.d("QuitActivity", "targetDays: $targetDays")
@@ -547,7 +497,7 @@ private fun saveCompletedRecord(
         val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
 
         val recordId = System.currentTimeMillis().toString()
-        Log.d("QuitActivity", "생성된 ������록 ID: $recordId")
+        Log.d("QuitActivity", "생성된 기록 ID: $recordId")
 
         // 목표 달성률 계산
         val achievementRate = if (targetDays > 0) {
@@ -560,7 +510,7 @@ private fun saveCompletedRecord(
         val isCompleted = achievementRate >= 100f
         val status = if (isCompleted) "완료" else "중지"
 
-        Log.d("QuitActivity", "달성������: ${achievementRate}%, 완료 여부: $isCompleted, 상태: $status")
+        Log.d("QuitActivity", "달성률: ${achievementRate}%, 완료 여부: $isCompleted, 상태: $status")
 
         val record = JSONObject().apply {
             put("id", recordId)
@@ -573,10 +523,10 @@ private fun saveCompletedRecord(
             put("createdAt", System.currentTimeMillis())
         }
 
-        Log.d("QuitActivity", "생성된 기�� JSON: $record")
+        Log.d("QuitActivity", "생성된 기록 JSON: $record")
 
         val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
-        Log.d("QuitActivity", "����� 기록들: $recordsJson")
+        Log.d("QuitActivity", "기존 기록들: $recordsJson")
 
         val recordsList = try {
             JSONArray(recordsJson)
@@ -598,7 +548,7 @@ private fun saveCompletedRecord(
         Log.d("QuitActivity", "저장 확인 - 저장된 데이터: $savedJson")
         Log.d("QuitActivity", "========== 기록 저장 완료 ==========")
 
-        val message = "금주 ���록이 저장되었습니다."
+        val message = "금주 기록이 저장되었습니다."
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 
     } catch (e: Exception) {
@@ -663,7 +613,7 @@ fun QuitScreenPreview() {
         ) {
             Spacer(modifier = Modifier.height(20.dp))
 
-            // 상����� ��시��� 카드
+            // 상단 메시지 카드
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -694,7 +644,7 @@ fun QuitScreenPreview() {
                     )
 
                     Text(
-                        text = "지금까지 ��� ��오셨는데...",
+                        text = "지금까지 잘 해오셨는데...",
                         fontSize = 16.sp,
                         color = Color(0xFF666666),
                         textAlign = TextAlign.Center
@@ -717,7 +667,7 @@ fun QuitScreenPreview() {
             Spacer(modifier = Modifier.weight(1f))
         }
 
-        // 버튼 영���
+        // 버튼 영역 (하단 고정)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
