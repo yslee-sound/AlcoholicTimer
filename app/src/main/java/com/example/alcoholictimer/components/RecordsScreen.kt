@@ -396,10 +396,14 @@ private fun RecordCard(
     val startDate = dateFormat.format(Date(record.startTime))
     val endDate = dateFormat.format(Date(record.endTime))
 
-    val successRate = if (record.isCompleted) {
-        100f
-    } else if (record.targetDays > 0) {
-        (record.actualDays.toFloat() / record.targetDays * 100).coerceAtMost(100f)
+    // 실제 시간 차이를 기반으로 달성률 계산 (DetailActivity와 동일한 방식)
+    val totalDurationMillis = record.endTime - record.startTime
+    val totalDays = totalDurationMillis / (24.0 * 60 * 60 * 1000.0)
+
+    val successRate = if (record.targetDays > 0) {
+        ((totalDays / record.targetDays) * 100.0).let { rate ->
+            if (rate > 100) 100.0 else rate
+        }.toFloat()
     } else {
         0f
     }
@@ -482,7 +486,7 @@ private fun RecordCard(
                         color = Color(0xFF636E72)
                     )
                     Text(
-                        text = "${record.actualDays}일",
+                        text = String.format(Locale.getDefault(), "%.1f일", totalDays),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF2C3E50)
@@ -520,7 +524,7 @@ private fun RecordCard(
                         color = Color(0xFF636E72)
                     )
                     Text(
-                        text = "${successRate.toInt()}%",
+                        text = String.format(Locale.getDefault(), "%.1f%%", successRate),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (record.isCompleted) Color(0xFF00B894) else Color(0xFF74B9FF)

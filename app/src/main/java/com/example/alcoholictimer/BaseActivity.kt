@@ -114,10 +114,11 @@ abstract class BaseActivity : ComponentActivity() {
                         onNicknameClick = {
                             scope.launch {
                                 drawerState.close()
-                                // 드로어가 완전히 닫힐 때까지 대기
+                                var isNicknameEditNavigated = false
                                 snapshotFlow { drawerState.isAnimationRunning }
                                     .collect { isAnimating ->
-                                        if (!isAnimating && drawerState.currentValue == DrawerValue.Closed) {
+                                        if (!isAnimating && drawerState.currentValue == DrawerValue.Closed && !isNicknameEditNavigated) {
+                                            isNicknameEditNavigated = true
                                             navigateToNicknameEdit()
                                             return@collect
                                         }
