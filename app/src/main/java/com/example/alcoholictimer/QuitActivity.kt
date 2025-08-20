@@ -101,9 +101,9 @@ fun QuitScreen() {
 
     val hangoverHoursVal = 5
     val weeks = elapsedDays / 7.0
-    val savedMoney = (weeks * freqVal * costVal).roundToInt()
-    val savedHours = (weeks * freqVal * (drinkHoursVal + hangoverHoursVal)).roundToInt()
-    val lifeGainDays = ((elapsedDays / 30.0) * 1.0).roundToInt()
+    val savedMoney = (weeks * freqVal * costVal)
+    val savedHours = (weeks * freqVal * (drinkHoursVal + hangoverHoursVal))
+    val lifeGainDays = ((elapsedDays / 30.0) * 1.0)
 
     // 모던한 그라데이션 배경 (RunActivity와 동일)
     val backgroundBrush = Brush.linearGradient(
@@ -350,9 +350,9 @@ fun StatisticsCardsSection(
     elapsedDays: Int,
     elapsedHours: Int,
     elapsedMinutes: Int,
-    savedMoney: Int,
-    savedHours: Int,
-    lifeGainDays: Int
+    savedMoney: Double,
+    savedHours: Double,
+    lifeGainDays: Double
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -364,7 +364,7 @@ fun StatisticsCardsSection(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             ModernStatCard(
-                value = "${elapsedDays}일",
+                value = "${elapsedDays}",
                 label = "금주 일수",
                 color = Color(0xFF1976D2),
                 modifier = Modifier.weight(1f)
@@ -389,7 +389,7 @@ fun StatisticsCardsSection(
                 modifier = Modifier.weight(1f)
             )
             ModernStatCard(
-                value = String.format(Locale.getDefault(), "%,d원", savedMoney),
+                value = String.format(Locale.getDefault(), "%.1f", savedMoney / 10000),
                 label = "절약 금액",
                 color = Color(0xFFE91E63),
                 modifier = Modifier.weight(1f)
@@ -402,13 +402,13 @@ fun StatisticsCardsSection(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             ModernStatCard(
-                value = "${savedHours}시간",
+                value = String.format(Locale.getDefault(), "%.1f", savedHours),
                 label = "절약 시간",
                 color = Color(0xFFFF9800),
                 modifier = Modifier.weight(1f)
             )
             ModernStatCard(
-                value = "${lifeGainDays}일",
+                value = String.format(Locale.getDefault(), "%.1f", lifeGainDays),
                 label = "기대 수명+",
                 color = Color(0xFF9C27B0),
                 modifier = Modifier.weight(1f)
@@ -628,9 +628,9 @@ fun QuitScreenPreview() {
     val elapsedDays = 15
     val elapsedHours = 12
     val elapsedMinutes = 30
-    val savedMoney = 600000
-    val savedHours = 135
-    val lifeGainDays = 0
+    val savedMoney = 600000.0
+    val savedHours = 135.0
+    val lifeGainDays = 0.5
 
     // 모던한 그라데이션 배경
     val backgroundBrush = Brush.linearGradient(
@@ -786,9 +786,9 @@ fun StatisticsCardsSectionPreview() {
             elapsedDays = 15,
             elapsedHours = 12,
             elapsedMinutes = 30,
-            savedMoney = 600000,
-            savedHours = 135,
-            lifeGainDays = 0
+            savedMoney = 600000.0,
+            savedHours = 135.5,
+            lifeGainDays = 0.5
         )
     }
 }
