@@ -45,13 +45,13 @@ fun SettingsScreen() {
 
     // SharedPreferences에서 저장된 값 불러오기
     var selectedCost by remember {
-        mutableStateOf(sharedPref.getString("selected_cost", "중") ?: "중")
+        mutableStateOf(sharedPref.getString("selected_cost", "저") ?: "저")
     }
     var selectedFrequency by remember {
-        mutableStateOf(sharedPref.getString("selected_frequency", "주 2~3회") ?: "주 2~3회")
+        mutableStateOf(sharedPref.getString("selected_frequency", "주 1회 이하") ?: "주 1회 이하")
     }
     var selectedDuration by remember {
-        mutableStateOf(sharedPref.getString("selected_duration", "보통") ?: "보통")
+        mutableStateOf(sharedPref.getString("selected_duration", "짧음") ?: "짧음")
     }
 
     // 모던한 그라데이션 배경 (RunActivity와 동일)
@@ -178,13 +178,15 @@ fun SettingsScreen() {
                     textColor = Color(0xFFE53935),
                     borderColor = Color(0xFFE53935),
                     onClick = {
-                        selectedCost = "중"
-                        selectedFrequency = "주 2~3회"
-                        selectedDuration = "보통"
+                        selectedCost = "저"
+                        selectedFrequency = "주 1회 이하"
+                        selectedDuration = "짧음"
                     }
                 )
             }
         }
+        // 버튼 카드 아래에 하단 여백 추가
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
