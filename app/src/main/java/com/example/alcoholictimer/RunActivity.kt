@@ -779,7 +779,7 @@ fun ModernStopButton(onStop: () -> Unit, modifier: Modifier = Modifier) {
     Card(
         onClick = onStop,
         modifier = modifier
-            .size(100.dp),
+            .size(96.dp),
         shape = CircleShape,
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFFE53935)
@@ -794,7 +794,7 @@ fun ModernStopButton(onStop: () -> Unit, modifier: Modifier = Modifier) {
                 imageVector = Icons.Default.Close,
                 contentDescription = "정지",
                 tint = Color.White,
-                modifier = Modifier.size(50.dp)
+                modifier = Modifier.size(48.dp)
             )
         }
     }

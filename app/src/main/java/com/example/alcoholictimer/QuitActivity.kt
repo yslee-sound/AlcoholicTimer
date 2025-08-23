@@ -221,12 +221,12 @@ fun QuitScreen() {
 
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.size(100.dp)
+                modifier = Modifier.size(106.dp)
             ) {
                 // 배경 원형 진행 바
                 CircularProgressIndicator(
                     progress = { 1f },
-                    modifier = Modifier.size(100.dp),
+                    modifier = Modifier.size(106.dp),
                     color = Color(0xFFE0E0E0),
                     strokeWidth = 4.dp,
                     trackColor = Color.Transparent
@@ -236,7 +236,7 @@ fun QuitScreen() {
                 if (isPressed) {
                     CircularProgressIndicator(
                         progress = progress,
-                        modifier = Modifier.size(100.dp),
+                        modifier = Modifier.size(106.dp),
                         color = Color(0xFFD32F2F),
                         strokeWidth = 4.dp,
                         trackColor = Color.Transparent
@@ -245,7 +245,7 @@ fun QuitScreen() {
 
                 Card(
                     modifier = Modifier
-                        .size(90.dp)
+                        .size(96.dp)
                         .pointerInput(Unit) {
                             awaitEachGesture {
                                 val down = awaitFirstDown()
@@ -321,7 +321,7 @@ fun QuitScreen() {
                             imageVector = Icons.Default.Close,
                             contentDescription = "중지",
                             tint = Color.White,
-                            modifier = Modifier.size(50.dp)
+                            modifier = Modifier.size(48.dp)
                         )
                     }
                 }
@@ -334,7 +334,7 @@ fun QuitScreen() {
                 onClick = {
                     (context as? QuitActivity)?.finish()
                 },
-                modifier = Modifier.size(100.dp),
+                modifier = Modifier.size(96.dp),
                 shape = CircleShape,
                 colors = CardDefaults.cardColors(
                     containerColor = Color(0xFF4CAF50)
@@ -349,7 +349,7 @@ fun QuitScreen() {
                         imageVector = Icons.Default.PlayArrow,
                         contentDescription = "계속",
                         tint = Color.White,
-                        modifier = Modifier.size(50.dp)
+                        modifier = Modifier.size(48.dp)
                     )
                 }
             }

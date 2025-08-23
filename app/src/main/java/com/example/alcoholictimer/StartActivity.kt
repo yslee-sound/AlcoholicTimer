@@ -313,7 +313,7 @@ fun ModernStartButton(
 ) {
     Card(
         onClick = { if (isEnabled) onStart() },
-        modifier = modifier.size(100.dp),
+        modifier = modifier.size(96.dp),
         shape = CircleShape,
         colors = CardDefaults.cardColors(
             containerColor = if (isEnabled) Color(0xFF4CAF50) else Color(0xFFCCCCCC)
@@ -330,7 +330,7 @@ fun ModernStartButton(
                 imageVector = Icons.Default.PlayArrow,
                 contentDescription = "시작",
                 tint = Color.White,
-                modifier = Modifier.size(50.dp)
+                modifier = Modifier.size(48.dp)
             )
         }
     }
