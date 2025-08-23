@@ -627,10 +627,11 @@ private fun PeriodStatisticsSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = if (selectedDetailPeriod.isNotEmpty()) {
-                        "$selectedDetailPeriod 통계"
-                    } else {
-                        "$selectedPeriod 통계"
+                    text = when (selectedPeriod) {
+                        "주" -> "주 통계"
+                        "월" -> "월 통계"
+                        "년" -> "년 통계"
+                        else -> "전체 통계"
                     },
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
