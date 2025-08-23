@@ -53,7 +53,7 @@ class StartActivity : BaseActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    // private 을 삭제함 - 영석
+
     private fun StartScreen() {
         val context = LocalContext.current
         // SharedPreferences에서 금주 진행 여부 확인
@@ -294,7 +294,7 @@ class StartActivity : BaseActivity() {
     ) {
         Card(
             onClick = { if (isEnabled) onStart() },
-            modifier = modifier.size(80.dp),
+            modifier = modifier.size(100.dp),
             shape = CircleShape,
             colors = CardDefaults.cardColors(
                 containerColor = if (isEnabled) Color(0xFF4CAF50) else Color(0xFFCCCCCC)
@@ -337,6 +337,12 @@ class StartActivity : BaseActivity() {
 }
 
 // Preview 컴포넌트들
+
+@Preview(showBackground = true)
+@Composable
+fun RunScreenAuto() {
+    RunScreen()
+}
 
 @Composable
 fun StartScreenPreview() {
@@ -481,45 +487,13 @@ fun StartScreenPreview() {
     }
 }
 
-@Preview(
-    showBackground = true,
-    name = "StartScreen - 기본",
-    widthDp = 360,
-    heightDp = 800
-)
+
 @Composable
 fun StartScreenDefaultPreview() {
     StartScreenPreview()
 }
 
-@Preview(
-    showBackground = true,
-    name = "StartScreen - 다크 모드",
-    widthDp = 360,
-    heightDp = 800,
-    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
-)
-@Composable
-fun StartScreenDarkPreview() {
-    StartScreenPreview()
-}
 
-@Preview(
-    showBackground = true,
-    name = "StartScreen - 큰 폰트",
-    widthDp = 360,
-    heightDp = 800,
-    fontScale = 1.5f
-)
-@Composable
-fun StartScreenLargeFontPreview() {
-    StartScreenPreview()
-}
-
-@Preview(
-    showBackground = true,
-    name = "ModernStartButton Preview"
-)
 @Composable
 fun ModernStartButtonPreview() {
     Row(

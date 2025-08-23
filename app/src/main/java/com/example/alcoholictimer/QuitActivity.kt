@@ -220,7 +220,7 @@ fun QuitScreen() {
 
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.size(80.dp)
+                modifier = Modifier.size(100.dp)
             ) {
                 // 배경 원형 진행 바
                 CircularProgressIndicator(
@@ -244,7 +244,7 @@ fun QuitScreen() {
 
                 Card(
                     modifier = Modifier
-                        .size(72.dp)
+                        .size(100.dp)
                         .pointerInput(Unit) {
                             awaitEachGesture {
                                 val down = awaitFirstDown()
@@ -333,7 +333,7 @@ fun QuitScreen() {
                 onClick = {
                     (context as? QuitActivity)?.finish()
                 },
-                modifier = Modifier.size(80.dp),
+                modifier = Modifier.size(100.dp),
                 shape = CircleShape,
                 colors = CardDefaults.cardColors(
                     containerColor = Color(0xFF4CAF50)
