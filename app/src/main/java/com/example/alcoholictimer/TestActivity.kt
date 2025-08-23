@@ -154,6 +154,52 @@ fun TestScreen() {
                 }
             )
         }
+        // "모든 설정 초기화" 다이얼로그
+        var showSettingsDialog by remember { mutableStateOf(false) }
+        Spacer(modifier = Modifier.height(10.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start
+        ) {
+            OutlinedButton(
+                onClick = {
+                    showSettingsDialog = true
+                },
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = Color.Black
+                )
+            ) {
+                val density = LocalDensity.current
+                CompositionLocalProvider(LocalDensity provides Density(density.density, 1f)) {
+                    Text("모든 설정 초기화")
+                }
+            }
+        }
+        if (showSettingsDialog) {
+            AlertDialog(
+                onDismissRequest = { showSettingsDialog = false },
+                title = { Text("모든 설정 초기화") },
+                text = { Text("앱을 설치한 초기 상태로 모든 설정을 되돌리시겠습니까?\n(기록 포함 모든 데이터가 삭제됩니다)") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        // 모든 SharedPreferences 삭제
+                        val prefsDir = context.filesDir.parentFile?.resolve("shared_prefs")
+                        prefsDir?.listFiles()?.forEach { it.delete() }
+                        Toast.makeText(context, "모든 설정이 초기화되었습니다", Toast.LENGTH_SHORT).show()
+                        showSettingsDialog = false
+                    }) {
+                        Text("확인")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showSettingsDialog = false }) {
+                        Text("취소")
+                    }
+                }
+            )
+        }
 
         // 버튼들
         Row(

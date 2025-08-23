@@ -1,5 +1,6 @@
 package com.example.alcoholictimer
 
+import android.R.attr.strokeWidth
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -225,7 +226,7 @@ fun QuitScreen() {
                 // 배경 원형 진행 바
                 CircularProgressIndicator(
                     progress = { 1f },
-                    modifier = Modifier.size(80.dp),
+                    modifier = Modifier.size(100.dp),
                     color = Color(0xFFE0E0E0),
                     strokeWidth = 4.dp,
                     trackColor = Color.Transparent
@@ -234,8 +235,8 @@ fun QuitScreen() {
                 // 진행 상태 원형 진행 바
                 if (isPressed) {
                     CircularProgressIndicator(
-                        progress = { progress },
-                        modifier = Modifier.size(80.dp),
+                        progress = progress,
+                        modifier = Modifier.size(100.dp),
                         color = Color(0xFFD32F2F),
                         strokeWidth = 4.dp,
                         trackColor = Color.Transparent
@@ -244,7 +245,7 @@ fun QuitScreen() {
 
                 Card(
                     modifier = Modifier
-                        .size(100.dp)
+                        .size(90.dp)
                         .pointerInput(Unit) {
                             awaitEachGesture {
                                 val down = awaitFirstDown()
@@ -320,7 +321,7 @@ fun QuitScreen() {
                             imageVector = Icons.Default.Close,
                             contentDescription = "중지",
                             tint = Color.White,
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(50.dp)
                         )
                     }
                 }
@@ -348,7 +349,7 @@ fun QuitScreen() {
                         imageVector = Icons.Default.PlayArrow,
                         contentDescription = "계속",
                         tint = Color.White,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(50.dp)
                     )
                 }
             }
@@ -494,7 +495,7 @@ fun ModernControlButton(
         // onClick이 있는 경우 RunActivity와 동일한 방식 사용
         Card(
             onClick = onClick,
-            modifier = modifier.size(80.dp),
+            modifier = modifier.size(90.dp),
             shape = CircleShape,
             colors = CardDefaults.cardColors(
                 containerColor = backgroundColor
@@ -509,14 +510,14 @@ fun ModernControlButton(
                     imageVector = icon,
                     contentDescription = contentDescription,
                     tint = Color.White,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(45.dp)
                 )
             }
         }
     } else {
         // onClick이 없는 경우 (Preview용) 기존 방식 사용
         Card(
-            modifier = modifier.size(80.dp),
+            modifier = modifier.size(90.dp),
             shape = CircleShape,
             colors = CardDefaults.cardColors(
                 containerColor = backgroundColor
@@ -531,7 +532,7 @@ fun ModernControlButton(
                     imageVector = icon,
                     contentDescription = contentDescription,
                     tint = Color.White,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(45.dp)
                 )
             }
         }
@@ -627,240 +628,4 @@ private fun getLevelName(days: Int): String {
 @Composable
 fun QuitScreenAuto() {
     QuitScreen()
-}
-
-@Preview(showBackground = true, name = "QuitScreen fontScale 1.0", fontScale = 1.0f)
-@Preview(showBackground = true, name = "QuitScreen fontScale 2.0", fontScale = 2.0f)
-@Composable
-fun PreviewQuitScreen() {
-    QuitScreenPreview()
-}
-
-// Preview 전용 컴포넌트들
-@Composable
-fun QuitScreenPreview() {
-    // 가짜 데이터로 프리뷰
-    val elapsedDays = 15
-    val elapsedHours = 12
-    val elapsedMinutes = 30
-    val savedMoney = 600000.0
-    val savedHours = 135.0
-    val lifeGainDays = 0.5
-    val levelName = "새싹"
-    val levelColor = Color(0xFF4CAF50)
-
-    // 모던한 그라데이션 배경
-    val backgroundBrush = Brush.linearGradient(
-        colors = listOf(
-            Color(0xFFF8F9FA),
-            Color(0xFFE3F2FD),
-            Color(0xFFF1F8E9)
-        ),
-        start = Offset(0f, 0f),
-        end = Offset(1000f, 1000f)
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundBrush)
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.weight(1f)
-        ) {
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // 상단 메시지 카드
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White.copy(alpha = 0.95f) //0.95f
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "🤔",
-                        fontSize = 60.sp,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-
-                    Text(
-                        text = "정말 멈추시겠어요?",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF333333),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-
-                    Text(
-                        text = "지금까지 잘 해오셨는데...",
-                        fontSize = 16.sp,
-                        color = Color(0xFF666666),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // 통계 카드들
-            StatisticsCardsSection(
-                elapsedDays = elapsedDays,
-                elapsedHours = elapsedHours,
-                elapsedMinutes = elapsedMinutes,
-                savedMoney = savedMoney,
-                savedHours = savedHours,
-                lifeGainDays = lifeGainDays,
-                levelName = levelName,
-                levelColor = levelColor
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-        }
-
-        // 버튼 영역 (하단 고정)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 32.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 중지 버튼
-            ModernControlButton(
-                icon = Icons.Default.Close,
-                backgroundColor = Color(0xFFE53935),
-                contentDescription = "중지"
-            )
-
-            Spacer(modifier = Modifier.width(48.dp))
-
-            // 계속 버튼 (Preview용 - 클릭 이벤트 없음)
-            ModernControlButton(
-                icon = Icons.Default.PlayArrow,
-                backgroundColor = Color(0xFF4CAF50),
-                contentDescription = "계속"
-            )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-    }
-}
-
-@Preview(
-    showBackground = true,
-    name = "QuitScreen - 시작 단계",
-    widthDp = 360,
-    heightDp = 800
-)
-@Composable
-fun QuitScreenStartPreview() {
-    QuitScreenPreview()
-}
-
-@Preview(
-    showBackground = true,
-    name = "QuitScreen - 다크 모드",
-    widthDp = 360,
-    heightDp = 800,
-    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
-)
-@Composable
-fun QuitScreenDarkPreview() {
-    QuitScreenPreview()
-}
-
-@Preview(
-    showBackground = true,
-    name = "QuitScreen - 큰 폰트",
-    widthDp = 360,
-    heightDp = 800,
-    fontScale = 1.5f
-)
-@Composable
-fun QuitScreenLargeFontPreview() {
-    QuitScreenPreview()
-}
-
-@Preview(showBackground = true, name = "StatisticsCardsSection Preview")
-@Composable
-fun StatisticsCardsSectionPreview() {
-    Column(
-        modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        StatisticsCardsSection(
-            elapsedDays = 15,
-            elapsedHours = 12,
-            elapsedMinutes = 30,
-            savedMoney = 600000.0,
-            savedHours = 135.5,
-            lifeGainDays = 0.5,
-            levelName = "새싹",
-            levelColor = Color(0xFF4CAF50)
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "ModernStatCard Preview")
-@Composable
-fun ModernStatCardPreview() {
-    Row(
-        modifier = Modifier.padding(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        ModernStatCard(
-            value = "15일",
-            label = "금주 일수",
-            color = Color(0xFF1976D2),
-            modifier = Modifier.weight(1f)
-        )
-        ModernStatCard(
-            value = "새싹",
-            label = "레벨",
-            color = Color(0xFF4CAF50),
-            modifier = Modifier.weight(1f)
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "ModernControlButton Preview")
-@Composable
-fun ModernControlButtonPreview() {
-    val scope = rememberCoroutineScope()
-    Row(
-        modifier = Modifier.padding(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        ModernControlButton(
-            icon = Icons.Default.Close,
-            backgroundColor = Color(0xFFE53935),
-            contentDescription = "중지",
-            onClick = {
-                scope.launch {
-                    delay(3000)
-                    // 여기에 중지 동작을 넣으세요 (예: Log, Toast 등)
-                    println("중지 버튼 동작 실행됨")
-                }
-            }
-        )
-        ModernControlButton(
-            icon = Icons.Default.PlayArrow,
-            backgroundColor = Color(0xFF4CAF50),
-            contentDescription = "계속"
-            // onClick 필���시 추가
-        )
-    }
 }

@@ -794,7 +794,7 @@ fun ModernStopButton(onStop: () -> Unit, modifier: Modifier = Modifier) {
                 imageVector = Icons.Default.Close,
                 contentDescription = "정지",
                 tint = Color.White,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(50.dp)
             )
         }
     }
