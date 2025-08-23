@@ -15,6 +15,7 @@
         <activity
             android:name=".StartActivity"
             android:exported="true"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.Material3.DayNight">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,60 +27,70 @@
         <activity
             android:name=".RecordsActivity"
             android:exported="false"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.Material3.DayNight" />
 
         <!-- 모든 기록 화면 -->
         <activity
             android:name=".AllRecordsActivity"
             android:exported="false"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.Material3.DayNight" />
 
         <!-- 레벨 화면 -->
         <activity
             android:name=".LevelActivity"
             android:exported="false"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.Material3.DayNight" />
 
         <!-- 설정 화면 -->
         <activity
             android:name=".SettingsActivity"
             android:exported="false"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.Material3.DayNight" />
 
         <!-- 금주 진행 화면 -->
         <activity
             android:name=".RunActivity"
             android:exported="false"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.Material3.DayNight" />
 
         <!-- 금주 종료 확인 화면 -->
         <activity
             android:name=".QuitActivity"
             android:exported="false"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.Material3.DayNight" />
 
         <!-- 설정/테스트 화면 -->
         <activity
             android:name=".TestActivity"
             android:exported="false"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.Material3.DayNight" />
 
         <!-- 세부 기록 화면 -->
         <activity
             android:name=".DetailActivity"
             android:exported="false"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.Material3.DayNight" />
 
         <!-- 별명 편집 화면 -->
         <activity
             android:name=".NicknameEditActivity"
             android:exported="false"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.Material3.DayNight" />
 
         <!-- 테스트 기록 추가 화면 -->
         <activity
             android:name=".components.AddTestRecordActivity"
             android:exported="false"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.Material3.DayNight" />
 
     </application>
