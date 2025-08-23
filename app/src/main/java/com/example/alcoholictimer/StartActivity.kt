@@ -301,7 +301,7 @@ fun StartScreen() {
             }
         )
 
-        Spacer(modifier = Modifier.height(100.dp))
+        Spacer(modifier = Modifier.height(50.dp))
     }
 }
 

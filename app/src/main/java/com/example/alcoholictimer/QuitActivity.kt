@@ -355,7 +355,7 @@ fun QuitScreen() {
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp)) // 100dp에서 24dp로 대폭 줄임
+        Spacer(modifier = Modifier.height(50.dp)) // 100dp에서 24dp로 대폭 줄임
     }
 }
 
