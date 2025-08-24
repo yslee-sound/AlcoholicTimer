@@ -80,7 +80,7 @@ fun LevelScreen() {
     val pastRecords = RecordsDataLoader.loadSobrietyRecords(context)
     val totalPastDuration = pastRecords.sumOf { record ->
         // 완료된 기록과 미완료 기록 모두 실제 진행한 시간만큼 반영
-        record.endTime - record.startTime
+        (record.endTime - record.startTime).toLong()
     }
 
     // 총 누적 금주 시간 = 과거 기록들의 누적 시간 + 현재 진행 중인 시간
@@ -239,15 +239,52 @@ private fun CurrentLevelCard(currentLevel: LevelDefinitions.LevelInfo, currentDa
 
 @Composable
 private fun ProgressToNextLevel(nextLevel: LevelDefinitions.LevelInfo, progress: Float, remainingDays: Int) {
+    // 깜박임 애니메이션을 위한 상태
+    var isVisible by remember { mutableStateOf(true) }
+
+    // 2초마다 깜박이는 효과
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(1000) // 1초 대기
+            isVisible = !isVisible
+        }
+    }
+
+    // 투명도 애니메이션
+    val alpha by animateFloatAsState(
+        targetValue = if (isVisible) 1f else 0.3f,
+        animationSpec = tween(
+            durationMillis = 500,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        ),
+        label = "indicator_blink"
+    )
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "다음 레벨까지",
-            fontSize = 14.sp,
-            color = Color(0xFF666666),
-            fontWeight = FontWeight.Medium
-        )
+        // "다음 레벨까지" 텍스트와 깜박이는 인디케이터
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "다음 레벨까지",
+                fontSize = 14.sp,
+                color = Color(0xFF666666),
+                fontWeight = FontWeight.Medium
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // 깜박이는 인디케이터 점
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .clip(CircleShape)
+                    .background(nextLevel.color.copy(alpha = alpha))
+            )
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
