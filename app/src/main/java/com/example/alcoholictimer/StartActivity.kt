@@ -121,7 +121,7 @@ fun StartScreen() {
     if (activity != null) {
         activity.StandardScreenLayout(
             topContent = {
-                Spacer(modifier = Modifier.height(0.dp))
+                Spacer(modifier = Modifier.height(8.dp)) // 다른 화면들과 동일한 상단 여백
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -135,7 +135,7 @@ fun StartScreen() {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(32.dp),
+                            .padding(24.dp), // 32dp에서 24dp로 줄임
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
@@ -145,7 +145,7 @@ fun StartScreen() {
                             color = Color(0xFF333333),
                             modifier = Modifier
                                 .align(Alignment.CenterHorizontally)
-                                .padding(bottom = 32.dp)
+                                .padding(bottom = 24.dp) // 32dp에서 24dp로 줄임
                         )
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -270,7 +270,7 @@ fun StartScreen() {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Spacer(modifier = Modifier.height(0.dp))
+                    Spacer(modifier = Modifier.height(8.dp)) // 프리뷰에서도 동일한 상단 여백
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -284,7 +284,7 @@ fun StartScreen() {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(32.dp),
+                                .padding(24.dp), // 프리뷰에서도 동일한 패딩
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
@@ -294,7 +294,7 @@ fun StartScreen() {
                                 color = Color(0xFF333333),
                                 modifier = Modifier
                                     .align(Alignment.CenterHorizontally)
-                                    .padding(bottom = 32.dp)
+                                    .padding(bottom = 24.dp) // 프리뷰에서도 동일한 패딩
                             )
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -389,7 +389,11 @@ fun StartScreen() {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 24.dp, end = 24.dp, bottom = 32.dp),
+                    .padding(
+                        start = BaseActivity.STANDARD_BUTTON_HORIZONTAL_PADDING,
+                        end = BaseActivity.STANDARD_BUTTON_HORIZONTAL_PADDING,
+                        bottom = BaseActivity.STANDARD_BUTTON_BOTTOM_PADDING
+                    ),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
