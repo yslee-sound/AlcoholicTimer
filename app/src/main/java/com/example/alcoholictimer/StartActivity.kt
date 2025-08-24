@@ -94,17 +94,12 @@ fun StartScreen() {
         )
     }
     val isValid = textFieldValue.text.toFloatOrNull()?.let { it > 0 } ?: false
-
-    // 텍스트가 선택된 상태인지 추적
     var isTextSelected by remember { mutableStateOf(true) }
-
-    // 포커스 상태 추적
     var isFocused by remember { mutableStateOf(false) }
 
-    // 포커스가 변경될 때 텍스트 선택 처리
     LaunchedEffect(isFocused) {
         if (isFocused) {
-            kotlinx.coroutines.delay(50) // 약간의 지연 후 선택
+            kotlinx.coroutines.delay(50)
             textFieldValue = textFieldValue.copy(
                 selection = TextRange(0, textFieldValue.text.length)
             )
@@ -112,7 +107,6 @@ fun StartScreen() {
         }
     }
 
-    // 모던한 그라데이션 배경 (RunActivity와 동일)
     val backgroundBrush = Brush.linearGradient(
         colors = listOf(
             Color(0xFFF8F9FA),
@@ -123,19 +117,11 @@ fun StartScreen() {
         end = Offset(1000f, 1000f)
     )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundBrush)
-            .windowInsetsPadding(WindowInsets.safeDrawing) // 추가
-            .padding(horizontal = 16.dp, vertical = 16.dp), // 통일된 패딩
-    ) {
-        // 표준 레이아웃 사용
-        activity?.StandardScreenLayout(
+    // activity가 null이면 BaseActivity 인스턴스를 생성해서 StandardScreenLayout을 호출
+    if (activity != null) {
+        activity.StandardScreenLayout(
             topContent = {
                 Spacer(modifier = Modifier.height(0.dp))
-
-                // 목표 설정 카드
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -146,7 +132,6 @@ fun StartScreen() {
                     ),
                     elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
                 ) {
-                    // 중앙 정렬을 위해 Column에 fillMaxWidth와 horizontalAlignment 추가
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -162,8 +147,6 @@ fun StartScreen() {
                                 .align(Alignment.CenterHorizontally)
                                 .padding(bottom = 32.dp)
                         )
-
-                        // 입력 필드 영역
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center,
@@ -171,9 +154,8 @@ fun StartScreen() {
                                 .fillMaxWidth()
                                 .padding(bottom = 24.dp)
                         ) {
-                            // 커스텀 입력 필드
                             Card(
-                                modifier = Modifier.width(100.dp), // 120dp에서 100dp로 축소
+                                modifier = Modifier.width(100.dp),
                                 shape = RoundedCornerShape(12.dp),
                                 colors = CardDefaults.cardColors(
                                     containerColor = Color(0xFFF5F5F5)
@@ -183,21 +165,16 @@ fun StartScreen() {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(12.dp), // 16dp에서 12dp로 축소
+                                        .padding(12.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     BasicTextField(
                                         value = textFieldValue,
                                         onValueChange = { newValue ->
-                                            // 소수점 입력을 허용하는 필터링
                                             val filteredValue = newValue.text.filter { it.isDigit() || it == '.' }
-
-                                            // 소수점이 여러 개 있는지 검사
                                             val dotCount = filteredValue.count { it == '.' }
                                             val finalFilteredValue = if (dotCount <= 1) filteredValue else textFieldValue.text
-
                                             if (isTextSelected && finalFilteredValue.isNotEmpty()) {
-                                                // 전체 선택 상태에서 새 숫자 입력 시 완전 교체
                                                 val finalText = if (finalFilteredValue.length > 1 && finalFilteredValue.startsWith("0") && !finalFilteredValue.startsWith("0.")) {
                                                     finalFilteredValue.substring(1)
                                                 } else {
@@ -209,7 +186,6 @@ fun StartScreen() {
                                                 )
                                                 isTextSelected = false
                                             } else {
-                                                // 일반적인 편집
                                                 val finalText = if (finalFilteredValue.isEmpty()) {
                                                     "0"
                                                 } else if (finalFilteredValue.length > 1 && finalFilteredValue.startsWith("0") && !finalFilteredValue.startsWith("0.")) {
@@ -241,10 +217,7 @@ fun StartScreen() {
                                     )
                                 }
                             }
-
                             Spacer(modifier = Modifier.width(16.dp))
-
-                            // 단위 표시
                             Text(
                                 text = "일",
                                 fontSize = 24.sp,
@@ -252,8 +225,6 @@ fun StartScreen() {
                                 color = Color(0xFF666666)
                             )
                         }
-
-                        // 안내 메시지
                         Text(
                             text = "금주할 목표 기간을 입력해주세요",
                             fontSize = 14.sp,
@@ -278,7 +249,6 @@ fun StartScreen() {
                                 putBoolean("timer_completed", false)
                                 apply()
                             }
-
                             val intent = Intent(context, RunActivity::class.java)
                             context.startActivity(intent)
                             (context as StartActivity).finish()
@@ -287,6 +257,148 @@ fun StartScreen() {
                 )
             }
         )
+    } else {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // 상단 콘텐츠 (가변 크기)
+            Box(
+                modifier = Modifier.weight(1f)
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Spacer(modifier = Modifier.height(0.dp))
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color.White.copy(alpha = 0.95f)
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "목표 기간 설정",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF333333),
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(bottom = 32.dp)
+                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 24.dp)
+                            ) {
+                                Card(
+                                    modifier = Modifier.width(100.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = Color(0xFFF5F5F5)
+                                    ),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(12.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        BasicTextField(
+                                            value = textFieldValue,
+                                            onValueChange = { newValue ->
+                                                val filteredValue = newValue.text.filter { it.isDigit() || it == '.' }
+                                                val dotCount = filteredValue.count { it == '.' }
+                                                val finalFilteredValue = if (dotCount <= 1) filteredValue else textFieldValue.text
+                                                if (isTextSelected && finalFilteredValue.isNotEmpty()) {
+                                                    val finalText = if (finalFilteredValue.length > 1 && finalFilteredValue.startsWith("0") && !finalFilteredValue.startsWith("0.")) {
+                                                        finalFilteredValue.substring(1)
+                                                    } else {
+                                                        finalFilteredValue
+                                                    }
+                                                    textFieldValue = TextFieldValue(
+                                                        text = finalText,
+                                                        selection = TextRange(finalText.length)
+                                                    )
+                                                    isTextSelected = false
+                                                } else {
+                                                    val finalText = if (finalFilteredValue.isEmpty()) {
+                                                        "0"
+                                                    } else if (finalFilteredValue.length > 1 && finalFilteredValue.startsWith("0") && !finalFilteredValue.startsWith("0.")) {
+                                                        finalFilteredValue.substring(1)
+                                                    } else {
+                                                        finalFilteredValue
+                                                    }
+                                                    textFieldValue = TextFieldValue(
+                                                        text = finalText,
+                                                        selection = TextRange(finalText.length)
+                                                    )
+                                                    isTextSelected = false
+                                                }
+                                            },
+                                            textStyle = TextStyle(
+                                                fontSize = 32.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                textAlign = TextAlign.Center,
+                                                color = Color(0xFF1976D2)
+                                            ),
+                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                            singleLine = true,
+                                            cursorBrush = SolidColor(Color(0xFF1976D2)),
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .onFocusChanged { focusState ->
+                                                    isFocused = focusState.isFocused
+                                                }
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text(
+                                    text = "일",
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color(0xFF666666)
+                                )
+                            }
+                            Text(
+                                text = "금주할 목표 기간을 입력해주세요",
+                                fontSize = 14.sp,
+                                color = Color(0xFF999999),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                            )
+                        }
+                    }
+                }
+            }
+            // 하단 버튼 영역 (StandardBottomButtonArea 대체)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 24.dp, end = 24.dp, bottom = 32.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ModernStartButton(
+                    isEnabled = isValid,
+                    onStart = { /* 프리뷰에서는 동작 없음 */ }
+                )
+            }
+        }
     }
 }
 
@@ -326,124 +438,5 @@ fun ModernStartButton(
 @Preview(showBackground = true)
 @Composable
 fun StartScreenPreview() {
-    val context = LocalContext.current
-
-    var textFieldValue by remember {
-        mutableStateOf(
-            TextFieldValue(
-                text = "30",
-                selection = TextRange(0, 2)
-            )
-        )
-    }
-    val isValid = textFieldValue.text.toFloatOrNull()?.let { it > 0 } ?: false
-
-    // 모던한 그라데이션 배경
-    val backgroundBrush = Brush.linearGradient(
-        colors = listOf(
-            Color(0xFFF8F9FA),
-            Color(0xFFE3F2FD),
-            Color(0xFFF1F8E9)
-        ),
-        start = Offset(0f, 0f),
-        end = Offset(1000f, 1000f)
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundBrush)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.SpaceBetween
-    ) {
-        // 상단 여백
-        Spacer(modifier = Modifier.height(40.dp))
-
-        // 메인 카드
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.White.copy(alpha = 0.95f)
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "목표 기간 설정",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF333333),
-                    modifier = Modifier.padding(bottom = 32.dp)
-                )
-
-                // 입력 필드
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 24.dp)
-                ) {
-                    Card(
-                        modifier = Modifier.width(100.dp), // 120dp에서 100dp로 변경
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFFF5F5F5)
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp), // 16dp에서 12dp로 변경
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "30",
-                                style = TextStyle(
-                                    fontSize = 32.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    textAlign = TextAlign.Center,
-                                    color = Color(0xFF1976D2)
-                                )
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    Text(
-                        text = "일",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color(0xFF666666)
-                    )
-                }
-
-                Text(
-                    text = "금주할 목표 기간을 입력해주세요",
-                    fontSize = 14.sp,
-                    color = Color(0xFF999999),
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-
-        // 하단 버튼
-        ModernStartButton(
-            isEnabled = true,
-            onStart = { /* Preview용 빈 함수 */ }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-    }
+    StartScreen()
 }
