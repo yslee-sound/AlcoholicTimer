@@ -49,6 +49,12 @@ abstract class BaseActivity : ComponentActivity() {
     // 별명 상태를 관리하는 mutable state
     private var nicknameState = mutableStateOf("")
 
+    // 공통 버튼 위치 상수
+    companion object {
+        val STANDARD_BUTTON_BOTTOM_PADDING = 16.dp
+        val STANDARD_BUTTON_HORIZONTAL_PADDING = 32.dp
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -204,7 +210,7 @@ abstract class BaseActivity : ComponentActivity() {
                     modifier = Modifier
                         .fillMaxSize()
                         .background(brush = gradientBackground)
-                        .padding(paddingValues)
+                        .padding(top = paddingValues.calculateTopPadding()) // TopAppBar 높이만큼만 상단 패딩 적용
                         .blur(radius = blurRadius.dp) // 블러 효과 적용
                 ) {
                     content()
@@ -281,6 +287,58 @@ abstract class BaseActivity : ComponentActivity() {
      * 각 액티비티에서 구현해야 할 화면 제목
      */
     protected abstract fun getScreenTitle(): String
+
+    /**
+     * 표준화된 하단 버튼 영역을 생성하는 공통 컴포넌트
+     * 모든 화면에서 동일한 위치에 버튼이 배치되도록 보장합니다.
+     */
+    @Composable
+    fun StandardBottomButtonArea(
+        content: @Composable RowScope.() -> Unit
+    ) {
+        // 하단 버튼 (표준 위치)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = STANDARD_BUTTON_HORIZONTAL_PADDING,
+                    end = STANDARD_BUTTON_HORIZONTAL_PADDING,
+                    bottom = STANDARD_BUTTON_BOTTOM_PADDING
+                ),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            content = content
+        )
+    }
+
+    /**
+     * 표준화된 화면 레이아웃 구조
+     * 상단 콘텐츠와 하단 버튼 영역을 분리하여 일관된 레이아웃을 제공합니다.
+     */
+    @Composable
+    fun StandardScreenLayout(
+        topContent: @Composable ColumnScope.() -> Unit,
+        bottomButtons: @Composable RowScope.() -> Unit
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // 상단 콘텐츠 (가변 크기)
+            Box(
+                modifier = Modifier.weight(1f)
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth(),
+                    content = topContent
+                )
+            }
+
+            // 표준 하단 버튼 영역
+            StandardBottomButtonArea(content = bottomButtons)
+        }
+    }
 }
 
 @Composable
