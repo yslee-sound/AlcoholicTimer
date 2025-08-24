@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
 /**
  * 모든 Activity에서 사용할 표준 화면 레이아웃
@@ -39,6 +40,7 @@ fun StandardScreen(
 
 /**
  * 하단 버튼이 있는 화면용 레이아웃
+ * 하단 버튼이 잘리지 않도록 적절한 패딩과 안전 영역을 제공
  */
 @Composable
 fun StandardScreenWithBottomButton(
@@ -56,36 +58,39 @@ fun StandardScreenWithBottomButton(
         end = Offset(1000f, 1000f)
     )
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(backgroundBrush)
-            .padding(LayoutConstants.SCREEN_HORIZONTAL_PADDING),
-        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 상단 콘텐츠 (가변 크기)
-        Box(
-            modifier = Modifier.weight(1f)
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(LayoutConstants.CARD_SPACING),
-                content = topContent
-            )
-        }
-
-        // 하단 버튼
-        Row(
+        // 상단 콘텐츠 영역 - 하단 버튼 공간을 훨씬 더 넉넉하게 확보
+        Column(
             modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    start = LayoutConstants.SCREEN_HORIZONTAL_PADDING,
+                    end = LayoutConstants.SCREEN_HORIZONTAL_PADDING,
+                    top = LayoutConstants.SCREEN_HORIZONTAL_PADDING,
+                    // 하단은 버튼 높이(120dp) + 여유 공간(120dp) = 240dp 확보
+                    bottom = 240.dp
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(LayoutConstants.CARD_SPACING),
+            content = topContent
+        )
+
+        // 하단 버튼 - 화면 하단에서 훨씬 더 위쪽에 고정 배치
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .padding(
                     start = LayoutConstants.BOTTOM_BUTTON_HORIZONTAL_PADDING,
                     end = LayoutConstants.BOTTOM_BUTTON_HORIZONTAL_PADDING,
-                    bottom = LayoutConstants.BOTTOM_BUTTON_VERTICAL_PADDING
+                    // 하단 패딩을 훨씬 더 넉넉하게 설정 (80dp)
+                    bottom = 80.dp
                 ),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+            contentAlignment = Alignment.Center
         ) {
             bottomButton()
         }

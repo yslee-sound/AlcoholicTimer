@@ -120,95 +120,103 @@ fun QuitScreen() {
             )
         },
         bottomButton = {
-            // QuitActivity는 버튼이 2개이므로 특별한 처리
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(48.dp, Alignment.CenterHorizontally),
-                verticalAlignment = Alignment.CenterVertically
+            // QuitActivity는 버튼이 2개이므로 특별한 처리 - 안전한 레이아웃으로 수정
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp), // 충분한 높이 확보
+                contentAlignment = Alignment.Center
             ) {
-                // 중지 버튼 그룹
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(106.dp)) {
-                    CircularProgressIndicator(
-                        progress = { 1f },
-                        modifier = Modifier.size(106.dp),
-                        color = Color(0xFFE0E0E0),
-                        strokeWidth = 4.dp,
-                        trackColor = Color.Transparent
-                    )
-                    if (isPressed) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(48.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // 중지 버튼 그룹
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(106.dp)) {
                         CircularProgressIndicator(
-                            progress = { progress },
+                            progress = { 1f },
                             modifier = Modifier.size(106.dp),
-                            color = Color(0xFFD32F2F),
+                            color = Color(0xFFE0E0E0),
                             strokeWidth = 4.dp,
                             trackColor = Color.Transparent
                         )
+                        if (isPressed) {
+                            CircularProgressIndicator(
+                                progress = { progress },
+                                modifier = Modifier.size(106.dp),
+                                color = Color(0xFFD32F2F),
+                                strokeWidth = 4.dp,
+                                trackColor = Color.Transparent
+                            )
+                        }
+                        Card(
+                            modifier = Modifier
+                                .size(96.dp)
+                                .pointerInput(Unit) {
+                                    awaitEachGesture {
+                                        awaitFirstDown()
+                                        isPressed = true
+                                        progress = 0f
+                                        val job = coroutineScope.launch {
+                                            val duration = 1500L
+                                            val startMs = System.currentTimeMillis()
+                                            while (progress < 1f && isPressed) {
+                                                val elapsed = System.currentTimeMillis() - startMs
+                                                progress = (elapsed.toFloat() / duration).coerceAtMost(1f)
+                                                delay(16)
+                                            }
+                                            if (progress >= 1f && isPressed) {
+                                                saveCompletedRecord(
+                                                    context = context,
+                                                    startTime = System.currentTimeMillis() - (elapsedDays * 24L * 60 * 60 * 1000),
+                                                    endTime = System.currentTimeMillis(),
+                                                    targetDays = targetDays,
+                                                    actualDays = elapsedDays
+                                                )
+                                                sharedPref.edit {
+                                                    remove("start_time")
+                                                    putBoolean("timer_completed", true)
+                                                }
+                                                val intent = Intent(context, StartActivity::class.java).apply {
+                                                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                                                }
+                                                context.startActivity(intent)
+                                                (context as? QuitActivity)?.overridePendingTransition(0, 0)
+                                                (context as? QuitActivity)?.finish()
+                                            }
+                                        }
+                                        val up = waitForUpOrCancellation()
+                                        isPressed = false
+                                        job.cancel()
+                                        coroutineScope.launch {
+                                            while (progress > 0f) {
+                                                progress = (progress - 0.1f).coerceAtLeast(0f)
+                                                delay(16)
+                                            }
+                                        }
+                                    }
+                                },
+                            shape = CircleShape,
+                            colors = CardDefaults.cardColors(containerColor = if (isPressed) Color(0xFFD32F2F) else Color(0xFFE53935)),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                        ) {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Icon(Icons.Default.Close, contentDescription = "중지", tint = Color.White, modifier = Modifier.size(48.dp))
+                            }
+                        }
                     }
+                    // 계속 버튼
                     Card(
-                        modifier = Modifier
-                            .size(96.dp)
-                            .pointerInput(Unit) {
-                                awaitEachGesture {
-                                    awaitFirstDown()
-                                    isPressed = true
-                                    progress = 0f
-                                    val job = coroutineScope.launch {
-                                        val duration = 1500L
-                                        val startMs = System.currentTimeMillis()
-                                        while (progress < 1f && isPressed) {
-                                            val elapsed = System.currentTimeMillis() - startMs
-                                            progress = (elapsed.toFloat() / duration).coerceAtMost(1f)
-                                            delay(16)
-                                        }
-                                        if (progress >= 1f && isPressed) {
-                                            saveCompletedRecord(
-                                                context = context,
-                                                startTime = System.currentTimeMillis() - (elapsedDays * 24L * 60 * 60 * 1000),
-                                                endTime = System.currentTimeMillis(),
-                                                targetDays = targetDays,
-                                                actualDays = elapsedDays
-                                            )
-                                            sharedPref.edit {
-                                                remove("start_time")
-                                                putBoolean("timer_completed", true)
-                                            }
-                                            val intent = Intent(context, StartActivity::class.java).apply {
-                                                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                                            }
-                                            context.startActivity(intent)
-                                            (context as? QuitActivity)?.overridePendingTransition(0, 0)
-                                            (context as? QuitActivity)?.finish()
-                                        }
-                                    }
-                                    val up = waitForUpOrCancellation()
-                                    isPressed = false
-                                    job.cancel()
-                                    coroutineScope.launch {
-                                        while (progress > 0f) {
-                                            progress = (progress - 0.1f).coerceAtLeast(0f)
-                                            delay(16)
-                                        }
-                                    }
-                                }
-                            },
+                        onClick = { (context as? QuitActivity)?.finish() },
+                        modifier = Modifier.size(96.dp),
                         shape = CircleShape,
-                        colors = CardDefaults.cardColors(containerColor = if (isPressed) Color(0xFFD32F2F) else Color(0xFFE53935)),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF4CAF50)),
                         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                     ) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.Close, contentDescription = "중지", tint = Color.White, modifier = Modifier.size(48.dp))
+                            Icon(Icons.Default.PlayArrow, contentDescription = "계속", tint = Color.White, modifier = Modifier.size(48.dp))
                         }
-                    }
-                }
-                // 계속 버튼
-                Card(
-                    onClick = { (context as? QuitActivity)?.finish() },
-                    modifier = Modifier.size(96.dp),
-                    shape = CircleShape,
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF4CAF50)),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-                ) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.PlayArrow, contentDescription = "계속", tint = Color.White, modifier = Modifier.size(48.dp))
                     }
                 }
             }

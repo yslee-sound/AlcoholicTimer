@@ -428,22 +428,30 @@ fun RunScreen() {
             }
         },
         bottomButton = {
-            ModernStopButton(
-                onStop = {
-                    val intent = Intent(context, QuitActivity::class.java).apply {
-                        putExtra("elapsed_days", elapsedDays)
-                        putExtra("elapsed_hours", elapsedHours)
-                        putExtra("elapsed_minutes", elapsedMinutes)
-                        putExtra("saved_money", savedMoney.toDouble())
-                        putExtra("saved_hours", savedHours.toDouble())
-                        putExtra("life_gain_days", lifeGainDays.toDouble())
-                        putExtra("level_name", currentLevelName)
-                        putExtra("level_color", currentLevelInfo.color.value.toLong())
-                        putExtra("quit_timestamp", System.currentTimeMillis())
+            // 하단 버튼 영역 - 안전한 크기와 패딩으로 수정
+            Box(
+                modifier = Modifier
+                    .size(96.dp)
+                    .wrapContentSize(Alignment.Center),
+                contentAlignment = Alignment.Center
+            ) {
+                ModernStopButton(
+                    onStop = {
+                        val intent = Intent(context, QuitActivity::class.java).apply {
+                            putExtra("elapsed_days", elapsedDays)
+                            putExtra("elapsed_hours", elapsedHours)
+                            putExtra("elapsed_minutes", elapsedMinutes)
+                            putExtra("saved_money", savedMoney.toDouble())
+                            putExtra("saved_hours", savedHours.toDouble())
+                            putExtra("life_gain_days", lifeGainDays.toDouble())
+                            putExtra("level_name", currentLevelName)
+                            putExtra("level_color", currentLevelInfo.color.value.toLong())
+                            putExtra("quit_timestamp", System.currentTimeMillis())
+                        }
+                        context.startActivity(intent)
                     }
-                    context.startActivity(intent)
-                }
-            )
+                )
+            }
         }
     )
 }

@@ -235,25 +235,33 @@ fun StartScreen() {
             }
         },
         bottomButton = {
-            ModernStartButton(
-                isEnabled = isValid,
-                onStart = {
-                    val targetTime = textFieldValue.text.toFloatOrNull() ?: 0f
-                    if (targetTime > 0) {
-                        val formattedTargetTime = String.format(Locale.US, "%.6f", targetTime).toFloat()
-                        val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
-                        sharedPref.edit().apply {
-                            putFloat("target_days", formattedTargetTime)
-                            putLong("start_time", System.currentTimeMillis())
-                            putBoolean("timer_completed", false)
-                            apply()
+            // 하단 버튼 영역 - 안전한 크기와 패딩으로 수정
+            Box(
+                modifier = Modifier
+                    .size(96.dp)
+                    .wrapContentSize(Alignment.Center),
+                contentAlignment = Alignment.Center
+            ) {
+                ModernStartButton(
+                    isEnabled = isValid,
+                    onStart = {
+                        val targetTime = textFieldValue.text.toFloatOrNull() ?: 0f
+                        if (targetTime > 0) {
+                            val formattedTargetTime = String.format(Locale.US, "%.6f", targetTime).toFloat()
+                            val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
+                            sharedPref.edit().apply {
+                                putFloat("target_days", formattedTargetTime)
+                                putLong("start_time", System.currentTimeMillis())
+                                putBoolean("timer_completed", false)
+                                apply()
+                            }
+                            val intent = Intent(context, RunActivity::class.java)
+                            context.startActivity(intent)
+                            (context as StartActivity).finish()
                         }
-                        val intent = Intent(context, RunActivity::class.java)
-                        context.startActivity(intent)
-                        (context as StartActivity).finish()
                     }
-                }
-            )
+                )
+            }
         }
     )
 }
