@@ -5,8 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,15 +16,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
@@ -34,10 +29,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.utils.Constants
+import java.util.Locale
 
 class StartActivity : BaseActivity() {
 
@@ -65,9 +60,6 @@ class StartActivity : BaseActivity() {
 
         // Constants의 현재 테스트 모드를 업데이트 (레벨 계산용)
         Constants.updateTestMode(currentTestMode)
-
-        // 목표 입력은 항상 일수로 표시 (금주 진행은 실제 시간 기준)
-        val timeUnitText = "금주 목표 일수"
     }
 }
 
@@ -88,9 +80,7 @@ fun StartScreen() {
             val intent = Intent(context, RunActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
             context.startActivity(intent)
-            if (context is StartActivity) {
-                context.finish()
-            }
+            (context as StartActivity).finish()
         }
         return
     }
@@ -183,7 +173,7 @@ fun StartScreen() {
                         ) {
                             // 커스텀 입력 필드
                             Card(
-                                modifier = Modifier.width(120.dp),
+                                modifier = Modifier.width(100.dp), // 120dp에서 100dp로 축소
                                 shape = RoundedCornerShape(12.dp),
                                 colors = CardDefaults.cardColors(
                                     containerColor = Color(0xFFF5F5F5)
@@ -193,7 +183,7 @@ fun StartScreen() {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(16.dp),
+                                        .padding(12.dp), // 16dp에서 12dp로 축소
                                     contentAlignment = Alignment.Center
                                 ) {
                                     BasicTextField(
@@ -280,7 +270,7 @@ fun StartScreen() {
                     onStart = {
                         val targetTime = textFieldValue.text.toFloatOrNull() ?: 0f
                         if (targetTime > 0) {
-                            val formattedTargetTime = String.format("%.6f", targetTime).toFloat()
+                            val formattedTargetTime = String.format(Locale.US, "%.6f", targetTime).toFloat()
                             val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
                             sharedPref.edit().apply {
                                 putFloat("target_days", formattedTargetTime)
@@ -291,7 +281,7 @@ fun StartScreen() {
 
                             val intent = Intent(context, RunActivity::class.java)
                             context.startActivity(intent)
-                            (context as? StartActivity)?.finish()
+                            (context as StartActivity).finish()
                         }
                     }
                 )
@@ -336,5 +326,124 @@ fun ModernStartButton(
 @Preview(showBackground = true)
 @Composable
 fun StartScreenPreview() {
-    StartScreen()
+    val context = LocalContext.current
+
+    var textFieldValue by remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = "30",
+                selection = TextRange(0, 2)
+            )
+        )
+    }
+    val isValid = textFieldValue.text.toFloatOrNull()?.let { it > 0 } ?: false
+
+    // 모던한 그라데이션 배경
+    val backgroundBrush = Brush.linearGradient(
+        colors = listOf(
+            Color(0xFFF8F9FA),
+            Color(0xFFE3F2FD),
+            Color(0xFFF1F8E9)
+        ),
+        start = Offset(0f, 0f),
+        end = Offset(1000f, 1000f)
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundBrush)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        // 상단 여백
+        Spacer(modifier = Modifier.height(40.dp))
+
+        // 메인 카드
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White.copy(alpha = 0.95f)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "목표 기간 설정",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF333333),
+                    modifier = Modifier.padding(bottom = 32.dp)
+                )
+
+                // 입력 필드
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 24.dp)
+                ) {
+                    Card(
+                        modifier = Modifier.width(100.dp), // 120dp에서 100dp로 변경
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFFF5F5F5)
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp), // 16dp에서 12dp로 변경
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "30",
+                                style = TextStyle(
+                                    fontSize = 32.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center,
+                                    color = Color(0xFF1976D2)
+                                )
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Text(
+                        text = "일",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF666666)
+                    )
+                }
+
+                Text(
+                    text = "금주할 목표 기간을 입력해주세요",
+                    fontSize = 14.sp,
+                    color = Color(0xFF999999),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+
+        // 하단 버튼
+        ModernStartButton(
+            isEnabled = true,
+            onStart = { /* Preview용 빈 함수 */ }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+    }
 }

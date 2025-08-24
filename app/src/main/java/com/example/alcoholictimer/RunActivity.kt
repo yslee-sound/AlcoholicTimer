@@ -90,12 +90,14 @@ fun RunScreen() {
     // 시작 시간이 0인 경우 강제로 현재 시간으로 설정 (임시 해결책)
     val actualStartTime = if (startTime == 0L) {
         val currentTimeMillis = System.currentTimeMillis()
-        // SharedPreferences에 저장
-        sharedPref.edit().apply {
-            putLong("start_time", currentTimeMillis)
-            apply()
+        // 프리뷰가 아닐 때만 SharedPreferences에 저장
+        if (!isPreview) {
+            sharedPref.edit().apply {
+                putLong("start_time", currentTimeMillis)
+                apply()
+            }
+            Log.w("RunActivity", "startTime이 0이어서 현재 시간으로 설정: $currentTimeMillis")
         }
-        Log.w("RunActivity", "startTime이 0이어서 현재 시간으로 강����������������������� 설정: $currentTimeMillis")
         currentTimeMillis
     } else {
         startTime
@@ -299,127 +301,257 @@ fun RunScreen() {
             .padding(horizontal = 16.dp, vertical = 8.dp), // QuitActivity와 동일한 패딩
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 표준 레이아웃 사용 (추가 Spacer 제거)
-        activity?.StandardScreenLayout(
-            topContent = {
-                Spacer(modifier = Modifier.height(8.dp)) // QuitActivity와 동일한 상단 여백
-
-                // 상단 정보 카드
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 0.dp, bottom = 6.dp), // 상단 패딩만 제거하고 하단 패딩은 유지
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color.White.copy(alpha = 0.95f)
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        // 프리뷰에서는 직접 레이아웃 구성, 실제 앱에서는 StandardScreenLayout 사용
+        if (isPreview) {
+            // 프리뷰용 직접 레이아웃
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // 상단 콘텐츠 (가변 크기)
+                Box(
+                    modifier = Modifier.weight(1f)
                 ) {
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(20.dp)
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        // 통계 그리드
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // 상단 정보 카드
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 0.dp, bottom = 6.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color.White.copy(alpha = 0.95f)
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
-                            // 목표일
-                            RunStatisticItem(
-                                title = "목표일",
-                                value = "${targetDays.toInt()}일",
-                                color = Color(0xFF74B9FF),
-                                modifier = Modifier.weight(1f)
-                            )
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(20.dp)
+                            ) {
+                                // 통계 그리드
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    // 목표일
+                                    RunStatisticItem(
+                                        title = "목표일",
+                                        value = "${targetDays.toInt()}일",
+                                        color = Color(0xFF74B9FF),
+                                        modifier = Modifier.weight(1f)
+                                    )
 
-                            // 레벨
-                            RunStatisticItem(
-                                title = "Level",
-                                value = currentLevelName.take(2), // 앞글자 2개만 표시
-                                color = currentLevelInfo.color,
-                                modifier = Modifier.weight(1f)
-                            )
+                                    // 레벨
+                                    RunStatisticItem(
+                                        title = "Level",
+                                        value = currentLevelName.take(2), // 앞글자 2개만 표시
+                                        color = currentLevelInfo.color,
+                                        modifier = Modifier.weight(1f)
+                                    )
 
-                            // 진행 시간
-                            RunStatisticItem(
-                                title = "시간",
-                                value = progressTimeText,
-                                color = Color(0xFF00B894),
-                                modifier = Modifier.weight(1f)
+                                    // 진행 시간
+                                    RunStatisticItem(
+                                        title = "시간",
+                                        value = progressTimeText,
+                                        color = Color(0xFF00B894),
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // 메인 지표 카드
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 180.dp)
+                                .wrapContentSize(Alignment.Center),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color.White.copy(alpha = 0.95f)
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                        ) {
+                            MainIndicatorCard(
+                                currentIndicator = currentIndicator,
+                                elapsedDays = elapsedDays,
+                                elapsedHours = elapsedHours,
+                                elapsedMinutes = elapsedMinutes,
+                                elapsedSeconds = elapsedSeconds,
+                                savedMoney = savedMoney.toDouble(),
+                                savedHours = savedHours.toDouble(),
+                                lifeGainDays = lifeGainDays.toDouble(),
+                                onIndicatorChange = { newIndicator -> currentIndicator = newIndicator }
                             )
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // 진행률 카드
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color.White.copy(alpha = 0.9f)
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                ModernProgressIndicator(progress = progress)
+                            }
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // 메인 지표 카드
-                Card(
+                // 하단 버튼 (프리뷰용)
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(max = 180.dp)
-                        .wrapContentSize(Alignment.Center),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color.White.copy(alpha = 0.95f)
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                        .padding(start = 32.dp, end = 32.dp, bottom = 16.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    MainIndicatorCard(
-                        currentIndicator = currentIndicator,
-                        elapsedDays = elapsedDays,
-                        elapsedHours = elapsedHours,
-                        elapsedMinutes = elapsedMinutes,
-                        elapsedSeconds = elapsedSeconds,
-                        savedMoney = savedMoney.toDouble(),
-                        savedHours = savedHours.toDouble(),
-                        lifeGainDays = lifeGainDays.toDouble(),
-                        onIndicatorChange = { newIndicator -> currentIndicator = newIndicator }
+                    ModernStopButton(
+                        onStop = { /* 프리뷰에서는 아무것도 하지 않음 */ }
                     )
                 }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // 진행률 카드
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color.White.copy(alpha = 0.9f)
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        ModernProgressIndicator(progress = progress)
-                    }
-                }
-            },
-            bottomButtons = {
-                ModernStopButton(
-                    onStop = {
-                        val intent = Intent(context, QuitActivity::class.java).apply {
-                            // 현재 시점의 데이터를 QuitActivity로 전달
-                            putExtra("elapsed_days", elapsedDays)
-                            putExtra("elapsed_hours", elapsedHours)
-                            putExtra("elapsed_minutes", elapsedMinutes)
-                            putExtra("saved_money", savedMoney.toDouble())
-                            putExtra("saved_hours", savedHours.toDouble())
-                            putExtra("life_gain_days", lifeGainDays.toDouble())
-                            putExtra("level_name", currentLevelName)
-                            putExtra("level_color", currentLevelInfo.color.value.toLong())
-                            putExtra("quit_timestamp", System.currentTimeMillis()) // 중지 버튼을 누른 시점
-                        }
-                        context.startActivity(intent)
-                    }
-                )
             }
-        )
+        } else {
+            // 실제 앱에서는 표준 레이아웃 사용
+            activity?.StandardScreenLayout(
+                topContent = {
+                    Spacer(modifier = Modifier.height(8.dp)) // QuitActivity와 동일한 상단 여백
+
+                    // 상단 정보 카드
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 0.dp, bottom = 6.dp), // 상단 패딩만 제거하고 하단 패딩은 유지
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color.White.copy(alpha = 0.95f)
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp)
+                        ) {
+                            // 통계 그리드
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                // 목표일
+                                RunStatisticItem(
+                                    title = "목표일",
+                                    value = "${targetDays.toInt()}일",
+                                    color = Color(0xFF74B9FF),
+                                    modifier = Modifier.weight(1f)
+                                )
+
+                                // 레벨
+                                RunStatisticItem(
+                                    title = "Level",
+                                    value = currentLevelName.take(2), // 앞글자 2개만 표시
+                                    color = currentLevelInfo.color,
+                                    modifier = Modifier.weight(1f)
+                                )
+
+                                // 진행 시간
+                                RunStatisticItem(
+                                    title = "시간",
+                                    value = progressTimeText,
+                                    color = Color(0xFF00B894),
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // 메인 지표 카드
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 180.dp)
+                            .wrapContentSize(Alignment.Center),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color.White.copy(alpha = 0.95f)
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                    ) {
+                        MainIndicatorCard(
+                            currentIndicator = currentIndicator,
+                            elapsedDays = elapsedDays,
+                            elapsedHours = elapsedHours,
+                            elapsedMinutes = elapsedMinutes,
+                            elapsedSeconds = elapsedSeconds,
+                            savedMoney = savedMoney.toDouble(),
+                            savedHours = savedHours.toDouble(),
+                            lifeGainDays = lifeGainDays.toDouble(),
+                            onIndicatorChange = { newIndicator -> currentIndicator = newIndicator }
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // 진행률 카드
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color.White.copy(alpha = 0.9f)
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            ModernProgressIndicator(progress = progress)
+                        }
+                    }
+                },
+                bottomButtons = {
+                    ModernStopButton(
+                        onStop = {
+                            val intent = Intent(context, QuitActivity::class.java).apply {
+                                // 현재 시점의 데이터를 QuitActivity로 전달
+                                putExtra("elapsed_days", elapsedDays)
+                                putExtra("elapsed_hours", elapsedHours)
+                                putExtra("elapsed_minutes", elapsedMinutes)
+                                putExtra("saved_money", savedMoney.toDouble())
+                                putExtra("saved_hours", savedHours.toDouble())
+                                putExtra("life_gain_days", lifeGainDays.toDouble())
+                                putExtra("level_name", currentLevelName)
+                                putExtra("level_color", currentLevelInfo.color.value.toLong())
+                                putExtra("quit_timestamp", System.currentTimeMillis()) // 중지 버튼을 누른 시점
+                            }
+                            context.startActivity(intent)
+                        }
+                    )
+                }
+            )
+        }
     }
 }
 
@@ -925,5 +1057,11 @@ private fun calculateTotalLevelDays(context: Context, currentElapsedTime: Long):
 @Preview(showBackground = true)
 @Composable
 fun RunPreviewAuto() {
-    RunScreen()
+    // 프리뷰용 간단한 래핑
+    MaterialTheme {
+        // LocalInspectionMode를 true로 설정하여 프리뷰 모드임을 알려줌
+        CompositionLocalProvider(LocalInspectionMode provides true) {
+            RunScreen()
+        }
+    }
 }
