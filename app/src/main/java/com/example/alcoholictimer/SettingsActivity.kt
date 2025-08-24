@@ -17,10 +17,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -73,32 +71,6 @@ fun SettingsScreen() {
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // 상단 타이틀 카드
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.White.copy(alpha = 0.9f)
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            // fontScale 고정 타이틀
-            val density = LocalDensity.current
-            val fixedDensity = Density(density.density, 1f)
-            CompositionLocalProvider(LocalDensity provides fixedDensity) {
-                Text(
-                    text = "설정",
-                    fontSize = 20.sp, // 기존 32.sp → 20.sp로 조정
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1976D2),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
-            }
-        }
-
         // 음주 비용 설정 카드
         SettingsCard(
             title = "음주 비용",
@@ -108,7 +80,11 @@ fun SettingsScreen() {
                 selectedOption = selectedCost,
                 options = listOf("저", "중", "고"),
                 labels = listOf("저 (1만원 이하)", "중 (1~5만원)", "고 (5만원 이상)"),
-                onOptionSelected = { selectedCost = it }
+                onOptionSelected = { newValue ->
+                    selectedCost = newValue
+                    // 즉시 저장
+                    sharedPref.edit().putString("selected_cost", newValue).apply()
+                }
             )
         }
 
@@ -121,7 +97,11 @@ fun SettingsScreen() {
                 selectedOption = selectedFrequency,
                 options = listOf("주 1회 이하", "주 2~3회", "주 4회 이상"),
                 labels = listOf("주 1회 이하", "주 2~3회", "주 4회 이상"),
-                onOptionSelected = { selectedFrequency = it }
+                onOptionSelected = { newValue ->
+                    selectedFrequency = newValue
+                    // 즉시 저장
+                    sharedPref.edit().putString("selected_frequency", newValue).apply()
+                }
             )
         }
 
@@ -134,59 +114,16 @@ fun SettingsScreen() {
                 selectedOption = selectedDuration,
                 options = listOf("짧음", "보통", "김"),
                 labels = listOf("짧음 (2시간 이하)", "보통 (3~5시간)", "김 (6시간 이상)"),
-                onOptionSelected = { selectedDuration = it }
+                onOptionSelected = { newValue ->
+                    selectedDuration = newValue
+                    // 즉시 저장
+                    sharedPref.edit().putString("selected_duration", newValue).apply()
+                }
             )
         }
 
-        // 버튼 카드
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.White.copy(alpha = 0.9f)
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally)
-            ) {
-                // 저장 버튼
-                ModernButton(
-                    text = "저장",
-                    backgroundColor = Color(0xFF4CAF50),
-                    textColor = Color.White,
-                    onClick = {
-                        // SharedPreferences에 설정값 저장
-                        sharedPref.edit().apply {
-                            putString("selected_cost", selectedCost)
-                            putString("selected_frequency", selectedFrequency)
-                            putString("selected_duration", selectedDuration)
-                            apply()
-                        }
-                        // Toast 메시지 표시
-                        android.widget.Toast.makeText(context, "설정이 저장되었습니다", android.widget.Toast.LENGTH_SHORT).show()
-                    }
-                )
-
-                // 리셋 버튼
-                ModernButton(
-                    text = "리셋",
-                    backgroundColor = Color.Transparent,
-                    textColor = Color(0xFFE53935),
-                    borderColor = Color(0xFFE53935),
-                    onClick = {
-                        selectedCost = "저"
-                        selectedFrequency = "주 1회 이하"
-                        selectedDuration = "짧음"
-                    }
-                )
-            }
-        }
-        // 버튼 카드 아래에 하단 여백 추가
-        Spacer(modifier = Modifier.height(24.dp))
+        // 하단 여백 추가
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
@@ -284,41 +221,7 @@ fun SettingsOptionItem(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ModernButton(
-    text: String,
-    backgroundColor: Color,
-    textColor: Color,
-    borderColor: Color? = null,
-    onClick: () -> Unit
-) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier.height(48.dp),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        border = borderColor?.let { BorderStroke(2.dp, it) },
-        elevation = CardDefaults.cardElevation(defaultElevation = if (backgroundColor == Color.Transparent) 0.dp else 4.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = text,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = textColor
-            )
-        }
-    }
-}
-
-@Preview(name = "fontScale 1.0", fontScale = 1.0f, showBackground = true)
-@Preview(name = "fontScale 2.0", fontScale = 2.0f, showBackground = true)
+@Preview(showBackground = true)
 @Composable
 fun SettingsScreenPreview() {
     SettingsScreen()

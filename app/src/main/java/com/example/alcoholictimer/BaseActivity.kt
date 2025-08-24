@@ -76,7 +76,7 @@ abstract class BaseActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    protected fun BaseScreen(content: @Composable () -> Unit) {
+    public fun BaseScreen(content: @Composable () -> Unit) {
         val drawerState = rememberDrawerState(DrawerValue.Closed)
         val scope = rememberCoroutineScope()
         val currentNickname by nicknameState

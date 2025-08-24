@@ -156,9 +156,6 @@ fun RunScreen() {
     // 진행 중인 시간 포맷 (HH:MM) - 시간:분 단위로 변경
     val progressTimeText = String.format(Locale.getDefault(), "%02d:%02d", elapsedHours, elapsedMinutes)
 
-    // 디버깅 로그
-    Log.d("RunActivity", "실제 경과일수: $elapsedDays, 레벨용 일수: $levelDays, 테스트모드: ${Constants.currentTestMode}")
-
     // 중앙 지표 순환 상태 (0: 일수, 1: 진���시���, 2: 레벨, 3: 금액, 4: 절약시간, 5: 수명) - 명세서 준수
     var currentIndicator by remember { mutableStateOf(0) }
 
@@ -190,19 +187,36 @@ fun RunScreen() {
     val savedMoney = remember(elapsedTime) {
         val elapsedDaysFloat = (elapsedTime / Constants.DAY_IN_MILLIS.toFloat())
         val weeks = elapsedDaysFloat / 7.0
-        (weeks * freqVal * costVal).roundToInt()
+        (weeks * freqVal * costVal)
     }
 
     val savedHours = remember(elapsedTime) {
         val elapsedDaysFloat = (elapsedTime / Constants.DAY_IN_MILLIS.toFloat())
         val weeks = elapsedDaysFloat / 7.0
-        (weeks * freqVal * (drinkHoursVal + hangoverHoursVal)).roundToInt()
+        (weeks * freqVal * (drinkHoursVal + hangoverHoursVal))
     }
 
     val lifeGainDays = remember(elapsedTime) {
         val elapsedDaysFloat = (elapsedTime / Constants.DAY_IN_MILLIS.toFloat())
-        ((elapsedDaysFloat / 30.0) * 1.0).roundToInt() // 30일→+1일 규칙
+        ((elapsedDaysFloat / 30.0) * 1.0) // 30일→+1일 규칙, 소수점 유지
     }
+
+    // 디버깅 로그
+    Log.d("RunActivity", "실제 경과일수: $elapsedDays, 레벨용 일수: $levelDays, 테스트모드: ${Constants.currentTestMode}")
+
+    // 절약한 시간/금액 디버깅 로그 추가
+    Log.d("RunActivity", "=== 절약한 시간/금액 계산 ===")
+    Log.d("RunActivity", "elapsedTime: ${elapsedTime}ms")
+    Log.d("RunActivity", "elapsedDaysFloat: $elapsedDaysFloat")
+    Log.d("RunActivity", "weeks: ${elapsedDaysFloat / 7.0}")
+    Log.d("RunActivity", "freqVal: $freqVal")
+    Log.d("RunActivity", "costVal: $costVal")
+    Log.d("RunActivity", "drinkHoursVal: $drinkHoursVal")
+    Log.d("RunActivity", "hangoverHoursVal: $hangoverHoursVal")
+    Log.d("RunActivity", "savedMoney: $savedMoney")
+    Log.d("RunActivity", "savedHours: $savedHours")
+    Log.d("RunActivity", "lifeGainDays: $lifeGainDays")
+    Log.d("RunActivity", "===============================")
 
     // 목표 달성 감지 및 자동 저장을 위한 상태 변수들 (먼저 선언)
     var hasCompleted by remember { mutableStateOf(false) }
