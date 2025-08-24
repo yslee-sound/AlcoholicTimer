@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
@@ -20,8 +19,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -31,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.utils.RecordsDataLoader
 import com.example.alcoholictimer.utils.SobrietyRecord
+import com.example.alcoholictimer.ui.StandardScreen
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -81,8 +79,8 @@ fun RecordsScreen(
                     val parts = selectedDetailPeriod.split("~").map { it.trim() }
                     if (parts.size == 2) {
                         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                        val weekStart = try { sdf.parse(parts[0])?.time ?: 0L } catch (e: Exception) { 0L }
-                        val weekEnd = try { sdf.parse(parts[1])?.time?.plus(24*60*60*1000L-1) ?: Long.MAX_VALUE } catch (e: Exception) { Long.MAX_VALUE }
+                        val weekStart = try { sdf.parse(parts[0])?.time ?: 0L } catch (_: Exception) { 0L }
+                        val weekEnd = try { sdf.parse(parts[1])?.time?.plus(24*60*60*1000L-1) ?: Long.MAX_VALUE } catch (_: Exception) { Long.MAX_VALUE }
                         records.filter { it.startTime in weekStart..weekEnd }
                     } else records
                 } else {
@@ -177,28 +175,14 @@ fun RecordsScreen(
         loadRecords()
     }
 
-    // 배경 그라데이션
-    val gradientBackground = Brush.linearGradient(
-        colors = listOf(
-            Color(0xFFF8F9FA),
-            Color(0xFFE9ECEF)
-        ),
-        start = Offset(0f, 0f),
-        end = Offset.Infinite
-    )
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(brush = gradientBackground),
-        contentPadding = PaddingValues(bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(0.dp)
-    ) {
-        item {
-            // 기간 선택 탭 섹션
-            Box(
-                modifier = Modifier.padding(16.dp)
-            ) {
+    StandardScreen {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
+            item {
+                // 기간 선택 탭 섹션
                 PeriodSelectionSection(
                     selectedPeriod = selectedPeriod,
                     onPeriodSelected = { period: String ->
@@ -212,61 +196,57 @@ fun RecordsScreen(
                     selectedDetailPeriod = selectedDetailPeriod
                 )
             }
-        }
-        item {
-            // 해당 기간에 대한 정보를 보여주는 섹션
-            if (!isLoading) {
-                PeriodStatisticsSection(
-                    records = filteredRecords,
-                    selectedPeriod = selectedPeriod,
-                    selectedDetailPeriod = selectedDetailPeriod,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    onAddTestRecord = {
-                        // AddTestRecordActivity로 이동
-                        val intent = Intent(context, AddTestRecordActivity::class.java)
-                        addTestRecordLauncher.launch(intent)
+            item {
+                // 해당 기간에 대한 정보를 보여주는 섹션
+                if (!isLoading) {
+                    PeriodStatisticsSection(
+                        records = filteredRecords,
+                        selectedPeriod = selectedPeriod,
+                        selectedDetailPeriod = selectedDetailPeriod,
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        onAddTestRecord = {
+                            // AddTestRecordActivity로 이동
+                            val intent = Intent(context, AddTestRecordActivity::class.java)
+                            addTestRecordLauncher.launch(intent)
+                        }
+                    )
+                }
+            }
+            item {
+                // 로딩/빈 상태/기록 목록
+                if (isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().height(200.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            color = Color(0xFF74B9FF)
+                        )
                     }
-                )
-            }
-        }
-        item {
-            // 로딩/빈 상태/기록 목록
-            if (isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxWidth().height(200.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(
-                        color = Color(0xFF74B9FF)
-                    )
-                }
-            } else if (records.isEmpty()) { // filteredRecords 대신 전체 records로 변경
-                EmptyRecordsState(selectedPeriod, selectedDetailPeriod)
-            }
-        }
-        if (!isLoading && latestRecords.isNotEmpty()) {
-            items(latestRecords) { record ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp) // 카드 좌우/상하 여백
-                ) {
-                    RecordCard(
-                        record = record,
-                        onClick = { onNavigateToDetail(record) }
-                    )
+                } else if (records.isEmpty()) { // filteredRecords 대신 전체 records로 변경
+                    EmptyRecordsState(selectedPeriod, selectedDetailPeriod)
                 }
             }
-            if (records.size > 5) {
-                item {
+            if (!isLoading && latestRecords.isNotEmpty()) {
+                items(latestRecords) { record ->
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .padding(vertical = 4.dp) // 카드 상하 여백만 유지
                     ) {
+                        RecordCard(
+                            record = record,
+                            onClick = { onNavigateToDetail(record) }
+                        )
+                    }
+                }
+                if (records.size > 5) {
+                    item {
                         Button(
                             onClick = onNavigateToAllRecords,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xFF74B9FF),
                                 contentColor = Color.White
@@ -281,9 +261,9 @@ fun RecordsScreen(
                         }
                     }
                 }
-            }
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
             }
         }
     }
@@ -326,7 +306,7 @@ fun RecordsScreen(
 }
 
 @Composable
-private fun EmptyRecordsState(selectedPeriod: String, selectedSubPeriod: String) {
+private fun EmptyRecordsState(selectedPeriod: String, @Suppress("UNUSED_PARAMETER") selectedSubPeriod: String) {
     Column(
         modifier = Modifier
             .fillMaxSize()
