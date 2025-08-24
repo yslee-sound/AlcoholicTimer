@@ -38,6 +38,10 @@ class StartActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 앱 시작 시 사용자 설정값 초기화
+        Constants.initializeUserSettings(this)
+
         setContent {
             BaseScreen {
                 StartScreen()

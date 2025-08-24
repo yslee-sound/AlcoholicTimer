@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.alcoholictimer.utils.Constants
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
@@ -173,11 +174,8 @@ fun DetailScreen(
         }
     }
 
-    // 설정값 가져오기 (절약 금액/시간 계산용)
-    val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
-    val selectedCost = sharedPref.getString("selected_cost", "중") ?: "중"
-    val selectedFrequency = sharedPref.getString("selected_frequency", "주 2~3회") ?: "주 2~3회"
-    val selectedDuration = sharedPref.getString("selected_duration", "보통") ?: "보통"
+    // 설정값 가져오기 (절약 금액/시간 계산용) - Constants를 통해 안전하게 가져오기
+    val (selectedCost, selectedFrequency, selectedDuration) = Constants.getUserSettings(context)
 
     // 절약 금액/시간 계산 (정확한 시간 기반)
     val costVal = when(selectedCost) {

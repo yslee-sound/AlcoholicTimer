@@ -5,11 +5,23 @@ import android.content.Context
 object Constants {
     // SharedPreferences 관련 상수
     const val PREFS_NAME = "AlcoholicTimerPrefs"
+    const val USER_SETTINGS_PREFS = "user_settings"  // 사용자 설정용 SharedPreferences
     const val PREF_KEY_TEST_MODE = "test_mode"
     const val PREF_TEST_MODE = "test_mode"  // 호환성을 위해 추가
     const val PREF_START_TIME = "start_time"
     const val PREF_TARGET_DAYS = "target_days"
     const val PREF_RECORDS = "records"
+
+    // 사용자 설정 키
+    const val PREF_SELECTED_COST = "selected_cost"
+    const val PREF_SELECTED_FREQUENCY = "selected_frequency"
+    const val PREF_SELECTED_DURATION = "selected_duration"
+    const val PREF_SETTINGS_INITIALIZED = "settings_initialized"
+
+    // 설정 기본값
+    const val DEFAULT_COST = "저"
+    const val DEFAULT_FREQUENCY = "주 1회 이하"
+    const val DEFAULT_DURATION = "짧음"
 
     // 테스트 모드 상수 (레벨 계산용)
     const val TEST_MODE_REAL = 0    // 실제 모드 (레벨 계산: 1일 = 24시간)
@@ -87,5 +99,37 @@ object Constants {
             TEST_MODE_SECOND, TEST_MODE_MINUTE, TEST_MODE_REAL -> mode
             else -> TEST_MODE_REAL // 잘못된 값이면 기본값으로 설정
         }
+    }
+
+    /**
+     * 사용자 설정값을 초기화하는 함수
+     * 앱 최초 실행 시 한 번만 호출되어 기본값을 설정합니다.
+     */
+    fun initializeUserSettings(context: Context) {
+        val sharedPref = context.getSharedPreferences(USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
+        val isInitialized = sharedPref.getBoolean(PREF_SETTINGS_INITIALIZED, false)
+
+        if (!isInitialized) {
+            // 최초 실행 시에만 기본값으로 초기화
+            sharedPref.edit().apply {
+                putString(PREF_SELECTED_COST, DEFAULT_COST)
+                putString(PREF_SELECTED_FREQUENCY, DEFAULT_FREQUENCY)
+                putString(PREF_SELECTED_DURATION, DEFAULT_DURATION)
+                putBoolean(PREF_SETTINGS_INITIALIZED, true)
+                apply()
+            }
+        }
+    }
+
+    /**
+     * 사용자 설정값을 가져오는 함수
+     * 항상 저장된 값을 반환하며, 초기화되지 않은 경우 기본값을 반환합니다.
+     */
+    fun getUserSettings(context: Context): Triple<String, String, String> {
+        val sharedPref = context.getSharedPreferences(USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
+        val cost = sharedPref.getString(PREF_SELECTED_COST, DEFAULT_COST) ?: DEFAULT_COST
+        val frequency = sharedPref.getString(PREF_SELECTED_FREQUENCY, DEFAULT_FREQUENCY) ?: DEFAULT_FREQUENCY
+        val duration = sharedPref.getString(PREF_SELECTED_DURATION, DEFAULT_DURATION) ?: DEFAULT_DURATION
+        return Triple(cost, frequency, duration)
     }
 }

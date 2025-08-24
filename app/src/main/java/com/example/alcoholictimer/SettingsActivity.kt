@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.alcoholictimer.utils.Constants
 
 class SettingsActivity : BaseActivity() {
 
@@ -39,18 +40,17 @@ class SettingsActivity : BaseActivity() {
 @Composable
 fun SettingsScreen() {
     val context = LocalContext.current
-    val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
 
-    // SharedPreferences에서 저장된 값 불러오기
-    var selectedCost by remember {
-        mutableStateOf(sharedPref.getString("selected_cost", "저") ?: "저")
-    }
-    var selectedFrequency by remember {
-        mutableStateOf(sharedPref.getString("selected_frequency", "주 1회 이하") ?: "주 1회 이하")
-    }
-    var selectedDuration by remember {
-        mutableStateOf(sharedPref.getString("selected_duration", "짧음") ?: "짧음")
-    }
+    // Constants를 통해 설정값 가져오기 (항상 저장된 값 사용)
+    val (initialCost, initialFrequency, initialDuration) = Constants.getUserSettings(context)
+
+    // SharedPreferences 참조 (즉시 저장용)
+    val sharedPref = context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
+
+    // 상태 관리 (초기값은 저장된 값으로 설정)
+    var selectedCost by remember { mutableStateOf(initialCost) }
+    var selectedFrequency by remember { mutableStateOf(initialFrequency) }
+    var selectedDuration by remember { mutableStateOf(initialDuration) }
 
     // 모던한 그라데이션 배경 (RunActivity와 동일)
     val backgroundBrush = Brush.linearGradient(
@@ -69,7 +69,7 @@ fun SettingsScreen() {
             .background(backgroundBrush)
             .padding(16.dp)
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp) // 16.dp → 12.dp로 축소
     ) {
         // 음주 비용 설정 카드
         SettingsCard(
@@ -142,14 +142,14 @@ fun SettingsCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
-            modifier = Modifier.padding(20.dp)
+            modifier = Modifier.padding(16.dp) // 20.dp → 16.dp로 축소
         ) {
             Text(
                 text = title,
-                fontSize = 16.sp, // 기존 20.sp → 16.sp로 조정
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = titleColor,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 12.dp) // 16.dp → 12.dp로 축소
             )
             content()
         }
@@ -163,7 +163,7 @@ fun SettingsOptionGroup(
     labels: List<String>,
     onOptionSelected: (String) -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { // 12.dp → 8.dp로 축소
         options.forEachIndexed { index, option ->
             SettingsOptionItem(
                 isSelected = selectedOption == option,
@@ -199,7 +199,7 @@ fun SettingsOptionItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(12.dp), // 16.dp → 12.dp로 축소
             verticalAlignment = Alignment.CenterVertically
         ) {
             RadioButton(
@@ -210,10 +210,10 @@ fun SettingsOptionItem(
                     unselectedColor = Color(0xFF757575)
                 )
             )
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(8.dp)) // 12.dp → 8.dp로 축소
             Text(
                 text = label,
-                fontSize = 16.sp,
+                fontSize = 15.sp, // 16.sp → 15.sp로 축소
                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                 color = if (isSelected) Color(0xFF1976D2) else Color(0xFF424242)
             )

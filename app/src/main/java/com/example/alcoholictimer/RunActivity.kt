@@ -103,10 +103,8 @@ fun RunScreen() {
         startTime
     }
 
-    // ���정��� 가져오기 (범주형 설정���)
-    val selectedCost = sharedPref.getString("selected_cost", "중") ?: "중"
-    val selectedFrequency = sharedPref.getString("selected_frequency", "주 2~3회") ?: "주 2~3회"
-    val selectedDuration = sharedPref.getString("selected_duration", "보통") ?: "보통"
+    // 설정값 가져오기 (Constants를 통해 안전하게 가져오기)
+    val (selectedCost, selectedFrequency, selectedDuration) = Constants.getUserSettings(context)
 
     // 테스트 모드 설정 로드 및 적용 (레벨 ��산용)
     val testModePrefs = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
@@ -156,8 +154,19 @@ fun RunScreen() {
     // 진행 중인 시간 포맷 (HH:MM) - 시간:분 단위로 변경
     val progressTimeText = String.format(Locale.getDefault(), "%02d:%02d", elapsedHours, elapsedMinutes)
 
-    // 중앙 지표 순환 상태 (0: 일수, 1: 진���시���, 2: 레벨, 3: 금액, 4: 절약시간, 5: 수명) - 명세서 준수
-    var currentIndicator by remember { mutableStateOf(0) }
+    // 중앙 지표 순환 상태 (0: 일수, 1: 진행시간, 2: 레벨, 3: 금액, 4: 절약시간, 5: 수명) - 명세서 준수
+    // 앱 진행 중에는 사용자가 마지막으로 본 지표를 유지, 앱 재시작 시에는 항상 0(금주 일수)부터 시작
+    var currentIndicator by remember {
+        mutableStateOf(
+            if (!isPreview) {
+                // 실제 앱에서는 진행 중인 세션의 마지막 선택 지표를 복원
+                sharedPref.getInt("current_indicator_${actualStartTime}", 0)
+            } else {
+                // 프리뷰에서는 항상 0부터 시작
+                0
+            }
+        )
+    }
 
     // 내부 매핑값 계산 (명��서 기준)
     val costVal = when(selectedCost) {
@@ -415,7 +424,13 @@ fun RunScreen() {
                                 savedMoney = savedMoney.toDouble(),
                                 savedHours = savedHours.toDouble(),
                                 lifeGainDays = lifeGainDays.toDouble(),
-                                onIndicatorChange = { newIndicator -> currentIndicator = newIndicator }
+                                onIndicatorChange = { newIndicator ->
+                                    currentIndicator = newIndicator
+                                    // 진행 중인 세션의 중앙지표 선택을 저장 (세션별로 구분)
+                                    if (!isPreview) {
+                                        sharedPref.edit().putInt("current_indicator_${actualStartTime}", newIndicator).apply()
+                                    }
+                                }
                             )
                         }
 
@@ -532,7 +547,11 @@ fun RunScreen() {
                             savedMoney = savedMoney.toDouble(),
                             savedHours = savedHours.toDouble(),
                             lifeGainDays = lifeGainDays.toDouble(),
-                            onIndicatorChange = { newIndicator -> currentIndicator = newIndicator }
+                            onIndicatorChange = { newIndicator ->
+                                currentIndicator = newIndicator
+                                // 진행 중인 세션의 중앙지표 선택을 저장 (세션별로 구분)
+                                sharedPref.edit().putInt("current_indicator_${actualStartTime}", newIndicator).apply()
+                            }
                         )
                     }
 
