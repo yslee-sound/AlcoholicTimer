@@ -32,7 +32,8 @@ fun StandardScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(backgroundBrush)
-            .padding(LayoutConstants.SCREEN_HORIZONTAL_PADDING),
+            .padding(LayoutConstants.SCREEN_HORIZONTAL_PADDING)
+            .imePadding(), // 키패드 대응 추가
         verticalArrangement = Arrangement.spacedBy(LayoutConstants.CARD_SPACING),
         content = content
     )
@@ -41,6 +42,7 @@ fun StandardScreen(
 /**
  * 하단 버튼이 있는 화면용 레이아웃
  * 하단 버튼이 잘리지 않도록 적절한 패딩과 안전 영역을 제공
+ * 키패드가 나타나면 자동으로 버튼이 위로 올라감
  */
 @Composable
 fun StandardScreenWithBottomButton(
@@ -62,6 +64,7 @@ fun StandardScreenWithBottomButton(
         modifier = Modifier
             .fillMaxSize()
             .background(backgroundBrush)
+            .imePadding() // 키패드 대응 추가
     ) {
         // 상단 콘텐츠 영역 - 하단 버튼 공간을 훨씬 더 넉넉하게 확보
         Column(
@@ -80,6 +83,7 @@ fun StandardScreenWithBottomButton(
         )
 
         // 하단 버튼 - 화면 하단에서 훨씬 더 위쪽에 고정 배치
+        // imePadding()으로 키패드가 나타나면 자동으로 위로 올라감
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)

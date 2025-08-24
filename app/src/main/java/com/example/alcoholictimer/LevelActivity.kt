@@ -153,12 +153,12 @@ private fun CurrentLevelCard(currentLevel: LevelDefinitions.LevelInfo, currentDa
             Spacer(modifier = Modifier.height(24.dp))
 
             // 현재 레벨 텍스트
-            Text(
-                text = "현재 레벨",
-                fontSize = 16.sp,
-                color = Color(0xFF666666),
-                fontWeight = FontWeight.Medium
-            )
+//            Text(
+//                text = "현재 레벨",
+//                fontSize = 16.sp,
+//                color = Color(0xFF666666),
+//                fontWeight = FontWeight.Medium
+//            )
 
             Spacer(modifier = Modifier.height(8.dp))
 
