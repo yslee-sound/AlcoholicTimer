@@ -42,9 +42,15 @@ fun RecordsScreen(
     val context = LocalContext.current
     var records by remember { mutableStateOf<List<SobrietyRecord>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
-    var selectedPeriod by remember { mutableStateOf("전체") } // "월"에서 "전체"로 변경
+
+    // 현재 월을 기본값으로 설정
+    val currentDate = Calendar.getInstance()
+    val currentYear = currentDate.get(Calendar.YEAR)
+    val currentMonth = currentDate.get(Calendar.MONTH) + 1 // Calendar.MONTH는 0부터 시작하므로 +1
+
+    var selectedPeriod by remember { mutableStateOf("월") } // "전체"에서 "월"로 변경
     var showBottomSheet by remember { mutableStateOf(false) }
-    var selectedDetailPeriod by remember { mutableStateOf("") }
+    var selectedDetailPeriod by remember { mutableStateOf("${currentYear}년 ${currentMonth}월") } // 현재 월로 기본값 설정
 
     // 데이터 로딩 함수
     val loadRecords = {
@@ -187,7 +193,26 @@ fun RecordsScreen(
                     selectedPeriod = selectedPeriod,
                     onPeriodSelected = { period: String ->
                         selectedPeriod = period
-                        selectedDetailPeriod = "" // 기간이 변경되면 세부 기간 초기화
+                        // 기간이 변경되면 각 기간에 맞는 기본값으로 설정
+                        selectedDetailPeriod = when (period) {
+                            "주" -> {
+                                // 이번 주 기본값 (예: "2025-08-18 ~ 2025-08-24")
+                                val cal = Calendar.getInstance()
+                                cal.set(Calendar.HOUR_OF_DAY, 0)
+                                cal.set(Calendar.MINUTE, 0)
+                                cal.set(Calendar.SECOND, 0)
+                                cal.set(Calendar.MILLISECOND, 0)
+                                cal.set(Calendar.DAY_OF_WEEK, cal.firstDayOfWeek)
+                                val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                                val weekStart = sdf.format(Date(cal.timeInMillis))
+                                cal.add(Calendar.DAY_OF_WEEK, 6)
+                                val weekEnd = sdf.format(Date(cal.timeInMillis))
+                                "$weekStart ~ $weekEnd"
+                            }
+                            "월" -> "${currentYear}년 ${currentMonth}월"
+                            "년" -> "${currentYear}년"
+                            else -> "" // "전체"의 경우
+                        }
                     },
                     onPeriodClick = { period: String ->
                         // 세부 기간 텍스트 클릭 시 바텀시트 표시
