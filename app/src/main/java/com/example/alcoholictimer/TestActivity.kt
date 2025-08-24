@@ -184,11 +184,69 @@ fun TestScreen() {
                 text = { Text("앱을 설치한 초기 상태로 모든 설정을 되돌리시겠습니까?\n(기록 포함 모든 데이터가 삭제됩니다)") },
                 confirmButton = {
                     TextButton(onClick = {
-                        // 모든 SharedPreferences 삭제
-                        val prefsDir = context.filesDir.parentFile?.resolve("shared_prefs")
-                        prefsDir?.listFiles()?.forEach { it.delete() }
-                        Toast.makeText(context, "모든 설정이 초기화되었습니다", Toast.LENGTH_SHORT).show()
-                        showSettingsDialog = false
+                        try {
+                            // 1. 모든 SharedPreferences 데이터 완전 삭제
+                            val sharedPrefNames = listOf(
+                                "user_settings",
+                                "test_settings",
+                                "app_preferences",
+                                "sobriety_records"
+                            )
+
+                            // 각 SharedPreferences 파일의 내용을 완전히 삭제
+                            sharedPrefNames.forEach { prefName ->
+                                val prefs = context.getSharedPreferences(prefName, android.content.Context.MODE_PRIVATE)
+                                prefs.edit().clear().apply()
+                            }
+
+                            // 2. SharedPreferences 파일 자체를 물리적으로 삭제
+                            val prefsDir = context.filesDir.parentFile?.resolve("shared_prefs")
+                            prefsDir?.listFiles()?.forEach { file ->
+                                try {
+                                    file.delete()
+                                } catch (e: Exception) {
+                                    // 파일 삭제 실패 시 로그만 남기고 계속 진행
+                                }
+                            }
+
+                            // 3. 앱 내부 저장소의 모든 파일 삭제
+                            context.filesDir.listFiles()?.forEach { file ->
+                                try {
+                                    if (file.isDirectory) {
+                                        file.deleteRecursively()
+                                    } else {
+                                        file.delete()
+                                    }
+                                } catch (e: Exception) {
+                                    // 파일 삭제 실패 시 로그만 남기고 계속 진행
+                                }
+                            }
+
+                            // 4. 캐시 디렉토리 삭제
+                            context.cacheDir.listFiles()?.forEach { file ->
+                                try {
+                                    if (file.isDirectory) {
+                                        file.deleteRecursively()
+                                    } else {
+                                        file.delete()
+                                    }
+                                } catch (e: Exception) {
+                                    // 파일 삭제 실패 시 로그만 남기고 계속 진행
+                                }
+                            }
+
+                            Toast.makeText(context, "모든 설정과 기록이 완전히 초기화되었습니다.\n앱을 재시작해주세요.", Toast.LENGTH_LONG).show()
+                            showSettingsDialog = false
+
+                            // 5. 앱 종료 (사용자가 수동으로 재시작하도록)
+                            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                                (context as? android.app.Activity)?.finishAffinity()
+                                android.os.Process.killProcess(android.os.Process.myPid())
+                            }, 2000) // 2초 후 앱 종료
+
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "초기화 중 오류가 발생했습니다: ${e.message}", Toast.LENGTH_LONG).show()
+                        }
                     }) {
                         Text("확인")
                     }
@@ -255,8 +313,7 @@ private fun getModeText(mode: Int): String {
     }
 }
 
-@Preview(showBackground = true, name = "fontScale 1.0", fontScale = 1.0f)
-@Preview(showBackground = true, name = "fontScale 2.0", fontScale = 2.0f)
+@Preview(showBackground = true)
 @Composable
 fun PreviewTestScreen() {
     TestScreen()

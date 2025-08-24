@@ -170,22 +170,19 @@ fun QuitScreen() {
                                         remove("start_time")
                                         putBoolean("timer_completed", true)
                                     }
-                                    context.startActivity(Intent(context, StartActivity::class.java).apply {
+                                    val intent = Intent(context, StartActivity::class.java).apply {
                                         addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                                    })
+                                    }
+                                    context.startActivity(intent)
+                                    // 애니메이션 비활성화하여 바로 전환되도록 함
+                                    (context as? QuitActivity)?.overridePendingTransition(0, 0)
                                     (context as? QuitActivity)?.finish()
                                 }
                             }
                             val up = waitForUpOrCancellation()
                             isPressed = false
                             job.cancel()
-                            if (up != null && progress < 1f) {
-                                Toast.makeText(
-                                    context,
-                                    "길게 눌러 완료하세요 (${String.format(Locale.getDefault(),"%d", (progress * 100).toInt())}%)",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
+                            // 토스트 메시지 제거 - 더 이상 "길게 눌러 완료하세요" 메시지를 표시하지 않음
                             coroutineScope.launch {
                                 while (progress > 0f) {
                                     progress = (progress - 0.1f).coerceAtLeast(0f)
@@ -226,7 +223,36 @@ fun QuitScreen() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (activity != null) {
-            activity.StandardScreenLayout(topContent = topContent, bottomButtons = bottomButtons)
+            // QuitActivity는 버튼이 2개이므로 StandardScreenLayout 구조를 직접 구현
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // 상단 콘텐츠 (가변 크기)
+                Box(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth(),
+                        content = topContent
+                    )
+                }
+
+                // 하단 버튼 영역 - 프리뷰와 동일한 간격 적용
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            start = BaseActivity.STANDARD_BUTTON_HORIZONTAL_PADDING,
+                            end = BaseActivity.STANDARD_BUTTON_HORIZONTAL_PADDING,
+                            bottom = BaseActivity.STANDARD_BUTTON_BOTTOM_PADDING
+                        ),
+                    horizontalArrangement = Arrangement.spacedBy(48.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically,
+                    content = bottomButtons
+                )
+            }
         } else {
             // Preview fallback: 동일 구성 (임시 데이터 생성 없음)
             Column(Modifier.fillMaxSize()) {

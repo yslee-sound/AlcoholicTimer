@@ -343,7 +343,7 @@ fun RunScreen() {
                                     RunStatisticItem(
                                         title = "목표일",
                                         value = "${targetDays.toInt()}일",
-                                        color = Color(0xFF74B9FF),
+                                        color = Color(0xFF8D6E63), // 갈색 계열로 변경 (레벨 색상과 겹치지 않음)
                                         modifier = Modifier.weight(1f)
                                     )
 
@@ -359,7 +359,7 @@ fun RunScreen() {
                                     RunStatisticItem(
                                         title = "시간",
                                         value = progressTimeText,
-                                        color = Color(0xFF00B894),
+                                        color = Color(0xFFE74C3C), // 빨간색으로 변경하여 구분성 향상
                                         modifier = Modifier.weight(1f)
                                     )
                                 }
@@ -460,7 +460,7 @@ fun RunScreen() {
                                 RunStatisticItem(
                                     title = "목표일",
                                     value = "${targetDays.toInt()}일",
-                                    color = Color(0xFF74B9FF),
+                                    color = Color(0xFF8D6E63), // 갈색 계열로 변경 (레벨 색상과 겹치지 않음)
                                     modifier = Modifier.weight(1f)
                                 )
 
@@ -476,7 +476,7 @@ fun RunScreen() {
                                 RunStatisticItem(
                                     title = "시간",
                                     value = progressTimeText,
-                                    color = Color(0xFF00B894),
+                                    color = Color(0xFFE74C3C), // 빨간색으로 변경하여 구분성 향상
                                     modifier = Modifier.weight(1f)
                                 )
                             }
