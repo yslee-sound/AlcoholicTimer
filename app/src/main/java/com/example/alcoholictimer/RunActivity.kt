@@ -139,7 +139,7 @@ fun RunScreen() {
         calculateTotalLevelDays(context, elapsedTime)
     }
 
-    // 레벨 정보를 실시간으로 계산
+    // 레벨 정보를 실시간로 계산
     val currentLevelInfo = remember(levelDays) {
         LevelDefinitions.getLevelInfo(levelDays)
     }
@@ -153,8 +153,8 @@ fun RunScreen() {
     val elapsedMinutes = ((elapsedTime % (60 * 60 * 1000)) / (60 * 1000)).toInt()
     val elapsedSeconds = ((elapsedTime % (60 * 1000)) / 1000).toInt()
 
-    // 진행 중인 시간 포맷 (MM:SS)
-    val progressTimeText = String.format(Locale.getDefault(), "%02d:%02d", elapsedMinutes, elapsedSeconds)
+    // 진행 중인 시간 포맷 (HH:MM) - 시간:분 단위로 변경
+    val progressTimeText = String.format(Locale.getDefault(), "%02d:%02d", elapsedHours, elapsedMinutes)
 
     // 디버깅 로그
     Log.d("RunActivity", "실제 경과일수: $elapsedDays, 레벨용 일수: $levelDays, 테스트모드: ${Constants.currentTestMode}")
@@ -186,11 +186,23 @@ fun RunScreen() {
 
     val hangoverHoursVal = 5 // 기본 숙취 시간
 
-    // 계산된 값들 (명세서 공식 적용)
-    val weeks = elapsedDays / 7.0
-    val savedMoney = (weeks * freqVal * costVal).roundToInt()
-    val savedHours = (weeks * freqVal * (drinkHoursVal + hangoverHoursVal)).roundToInt()
-    val lifeGainDays = ((elapsedDays / 30.0) * 1.0).roundToInt() // 30일→+1일 규칙
+    // 계산된 값들 (명세서 공식 적용) - 실시간 업데이트를 위해 remember로 감싸기
+    val savedMoney = remember(elapsedTime) {
+        val elapsedDaysFloat = (elapsedTime / Constants.DAY_IN_MILLIS.toFloat())
+        val weeks = elapsedDaysFloat / 7.0
+        (weeks * freqVal * costVal).roundToInt()
+    }
+
+    val savedHours = remember(elapsedTime) {
+        val elapsedDaysFloat = (elapsedTime / Constants.DAY_IN_MILLIS.toFloat())
+        val weeks = elapsedDaysFloat / 7.0
+        (weeks * freqVal * (drinkHoursVal + hangoverHoursVal)).roundToInt()
+    }
+
+    val lifeGainDays = remember(elapsedTime) {
+        val elapsedDaysFloat = (elapsedTime / Constants.DAY_IN_MILLIS.toFloat())
+        ((elapsedDaysFloat / 30.0) * 1.0).roundToInt() // 30일→+1일 규칙
+    }
 
     // 목표 달성 감지 및 자동 저장을 위한 상태 변수들 (먼저 선언)
     var hasCompleted by remember { mutableStateOf(false) }
