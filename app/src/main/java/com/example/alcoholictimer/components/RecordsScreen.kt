@@ -193,26 +193,8 @@ fun RecordsScreen(
                     selectedPeriod = selectedPeriod,
                     onPeriodSelected = { period: String ->
                         selectedPeriod = period
-                        // 기간이 변경되면 각 기간에 맞는 기본값으로 설정
-                        selectedDetailPeriod = when (period) {
-                            "주" -> {
-                                // 이번 주 기본값 (예: "2025-08-18 ~ 2025-08-24")
-                                val cal = Calendar.getInstance()
-                                cal.set(Calendar.HOUR_OF_DAY, 0)
-                                cal.set(Calendar.MINUTE, 0)
-                                cal.set(Calendar.SECOND, 0)
-                                cal.set(Calendar.MILLISECOND, 0)
-                                cal.set(Calendar.DAY_OF_WEEK, cal.firstDayOfWeek)
-                                val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                                val weekStart = sdf.format(Date(cal.timeInMillis))
-                                cal.add(Calendar.DAY_OF_WEEK, 6)
-                                val weekEnd = sdf.format(Date(cal.timeInMillis))
-                                "$weekStart ~ $weekEnd"
-                            }
-                            "월" -> "${currentYear}년 ${currentMonth}월"
-                            "년" -> "${currentYear}년"
-                            else -> "" // "전체"의 경우
-                        }
+                        // 기간이 변경되면 세부 기간만 초기화 (기본값으로 리셋하지 않음)
+                        selectedDetailPeriod = ""
                     },
                     onPeriodClick = { period: String ->
                         // 세부 기간 텍스트 클릭 시 바텀시트 표시
