@@ -6,8 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.alcoholictimer.ui.StandardScreen
 import com.example.alcoholictimer.utils.Constants
 
 class SettingsActivity : BaseActivity() {
@@ -52,25 +51,7 @@ fun SettingsScreen() {
     var selectedFrequency by remember { mutableStateOf(initialFrequency) }
     var selectedDuration by remember { mutableStateOf(initialDuration) }
 
-    // 모던한 그라데이션 배경 (RunActivity와 동일)
-    val backgroundBrush = Brush.linearGradient(
-        colors = listOf(
-            Color(0xFFF8F9FA),
-            Color(0xFFE3F2FD),
-            Color(0xFFF1F8E9)
-        ),
-        start = Offset(0f, 0f),
-        end = Offset(1000f, 1000f)
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundBrush)
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(12.dp) // 16.dp → 12.dp로 축소
-    ) {
+    StandardScreen {
         // 음주 비용 설정 카드
         SettingsCard(
             title = "음주 비용",
