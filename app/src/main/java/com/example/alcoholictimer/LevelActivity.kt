@@ -1,7 +1,6 @@
 package com.example.alcoholictimer
 
 import android.content.Context
-import android.content.Context.MODE_PRIVATE
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.animateFloatAsState
@@ -30,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.utils.Constants
 import com.example.alcoholictimer.utils.RecordsDataLoader
-import com.example.alcoholictimer.ui.StandardScreen
+import kotlinx.coroutines.delay
 
 class LevelActivity : BaseActivity() {
 
@@ -59,19 +58,29 @@ class LevelActivity : BaseActivity() {
 fun LevelScreen() {
     val context = LocalContext.current
 
+    // 실시간 업데이트를 위한 State
+    var currentTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
+
+    // 1초마다 현재 시간 업데이트
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(1000) // 1초 대기
+            currentTime = System.currentTimeMillis()
+        }
+    }
+
     // SharedPreferences에서 현재 진행 상황 가져오기
     val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
     val startTime = sharedPref.getLong("start_time", 0L)
-    val currentTime = System.currentTimeMillis()
 
-    // 현재 진행 중인 금주 시간
+    // 현재 진행 중인 금주 시간 (실시간 업데이트)
     val currentElapsedTime = if (startTime > 0) currentTime - startTime else 0L
 
     // 과거 금주 기록들의 누적 시간 계산
     val pastRecords = RecordsDataLoader.loadSobrietyRecords(context)
     val totalPastDuration = pastRecords.sumOf { record ->
         // 완료된 기록과 미완료 기록 모두 실제 진행한 시간만큼 반영
-        (record.endTime - record.startTime).toLong()
+        record.endTime - record.startTime
     }
 
     // 총 누적 금주 시간 = 과거 기록들의 누적 시간 + 현재 진행 중인 시간
@@ -454,7 +463,9 @@ private fun getNextLevel(currentLevel: LevelDefinitions.LevelInfo): LevelDefinit
 @Composable
 fun LevelScreenPreview() {
     // Preview에서는 BaseScreen을 직접 참조할 수 없으므로, Scaffold 등으로 대체
-    Scaffold {
-        LevelScreen()
+    Scaffold { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues)) {
+            LevelScreen()
+        }
     }
 }
