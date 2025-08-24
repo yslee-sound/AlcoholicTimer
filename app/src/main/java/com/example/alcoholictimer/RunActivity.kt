@@ -598,11 +598,12 @@ fun StatCard(
     value: String,
     label: String,
     color: Color,
+    modifier: Modifier = Modifier, // modifier 파라미터 추가
     isLevel: Boolean = false
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
+        modifier = modifier // 기존 Modifier 대신 파라미터로 받은 modifier 사용
             .padding(horizontal = 4.dp)
             .width(100.dp) // 카드 너비 통일
     ) {
@@ -1056,12 +1057,6 @@ private fun calculateTotalLevelDays(context: Context, currentElapsedTime: Long):
 
 @Preview(showBackground = true)
 @Composable
-fun RunPreviewAuto() {
-    // 프리뷰용 간단한 래핑
-    MaterialTheme {
-        // LocalInspectionMode를 true로 설정하여 프리뷰 모드임을 알려줌
-        CompositionLocalProvider(LocalInspectionMode provides true) {
-            RunScreen()
-        }
-    }
+fun RunScreenPreview() {
+    RunScreen()
 }
