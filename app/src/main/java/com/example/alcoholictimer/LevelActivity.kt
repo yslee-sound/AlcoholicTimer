@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.utils.Constants
 import com.example.alcoholictimer.utils.RecordsDataLoader
+import com.example.alcoholictimer.ui.StandardScreen
 
 class LevelActivity : BaseActivity() {
 
@@ -80,33 +81,14 @@ fun LevelScreen() {
     val levelDays = Constants.calculateLevelDays(totalElapsedTime)
     val currentLevel = LevelDefinitions.getLevelInfo(levelDays)
 
-    // 모던한 그라데이션 배경 (StartActivity와 동일)
-    val backgroundBrush = Brush.linearGradient(
-        colors = listOf(
-            Color(0xFFF8F9FA),
-            Color(0xFFE3F2FD),
-            Color(0xFFF1F8E9)
-        ),
-        start = Offset(0f, 0f),
-        end = Offset(1000f, 1000f)
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundBrush)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    StandardScreen {
         // 현재 레벨 카드
         CurrentLevelCard(currentLevel = currentLevel, currentDays = levelDays)
-
-        Spacer(modifier = Modifier.height(24.dp))
 
         // 전체 레벨 목록
         LevelListCard(currentLevel = currentLevel, currentDays = levelDays)
 
+        // 하단 여백 추가
         Spacer(modifier = Modifier.height(32.dp))
     }
 }
@@ -116,9 +98,7 @@ private fun CurrentLevelCard(currentLevel: LevelDefinitions.LevelInfo, currentDa
     val context = LocalContext.current
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White.copy(alpha = 0.95f)
@@ -305,9 +285,7 @@ private fun ProgressToNextLevel(nextLevel: LevelDefinitions.LevelInfo, progress:
 @Composable
 private fun LevelListCard(currentLevel: LevelDefinitions.LevelInfo, currentDays: Int) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White.copy(alpha = 0.95f)
