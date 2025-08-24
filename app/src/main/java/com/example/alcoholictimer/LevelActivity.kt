@@ -228,6 +228,7 @@ private fun CurrentLevelCard(currentLevel: LevelDefinitions.LevelInfo, currentDa
                 } else 0f
 
                 ProgressToNextLevel(
+                    currentLevel = currentLevel,
                     nextLevel = nextLevel,
                     progress = progress,
                     remainingDays = (nextLevel.start - currentDays).coerceAtLeast(0)
@@ -238,7 +239,7 @@ private fun CurrentLevelCard(currentLevel: LevelDefinitions.LevelInfo, currentDa
 }
 
 @Composable
-private fun ProgressToNextLevel(nextLevel: LevelDefinitions.LevelInfo, progress: Float, remainingDays: Int) {
+private fun ProgressToNextLevel(currentLevel: LevelDefinitions.LevelInfo, nextLevel: LevelDefinitions.LevelInfo, progress: Float, remainingDays: Int) {
     // 깜박임 애니메이션을 위한 상태
     var isVisible by remember { mutableStateOf(true) }
 
@@ -277,12 +278,12 @@ private fun ProgressToNextLevel(nextLevel: LevelDefinitions.LevelInfo, progress:
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // 깜박이는 인디케이터 점
+            // 깜박이는 인디케이터 점 - 현재 레벨 색상 적용
             Box(
                 modifier = Modifier
                     .size(6.dp)
                     .clip(CircleShape)
-                    .background(nextLevel.color.copy(alpha = alpha))
+                    .background(currentLevel.color.copy(alpha = alpha))
             )
         }
 
