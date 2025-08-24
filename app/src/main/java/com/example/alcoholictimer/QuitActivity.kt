@@ -38,6 +38,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Locale
+import com.example.alcoholictimer.ui.StandardScreenWithBottomButton
 
 class QuitActivity : BaseActivity() {
 
@@ -46,8 +47,9 @@ class QuitActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            // BaseScreen을 사용하지 않고 직접 UI 구성 (햄버거 메뉴 제거하되 동일한 여백 확보)
-            QuitScreen()
+            BaseScreen {
+                QuitScreen()
+            }
         }
     }
 }
@@ -70,203 +72,148 @@ fun QuitScreen() {
     val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
     val targetDays = sharedPref.getFloat("target_days", 30f)
 
-    val backgroundBrush = Brush.linearGradient(
-        colors = listOf(Color(0xFFF8F9FA), Color(0xFFE3F2FD), Color(0xFFF1F8E9)),
-        start = Offset(0f, 0f), end = Offset(1000f, 1000f)
-    )
+    var isPressed by remember { mutableStateOf(false) }
+    var progress by remember { mutableFloatStateOf(0f) }
+    val coroutineScope = rememberCoroutineScope()
 
-    val topContent: @Composable ColumnScope.() -> Unit = {
-        Spacer(Modifier.height(8.dp))
-        Card(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f)),
-            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, 1f)) {
-                    Text("🤔", fontSize = 48.sp, modifier = Modifier.padding(bottom = 12.dp))
-                }
-                Text(
-                    text = "정말 멈추시겠어요?",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF333333),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(bottom = 6.dp)
-                )
-                Text(
-                    text = "지금까지 잘 해오셨는데...",
-                    fontSize = 14.sp,
-                    color = Color(0xFF666666),
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-        Spacer(Modifier.height(16.dp))
-        StatisticsCardsSection(
-            elapsedDays = elapsedDays,
-            elapsedHours = elapsedHours,
-            elapsedMinutes = elapsedMinutes,
-            savedMoney = savedMoney,
-            savedHours = savedHours,
-            lifeGainDays = lifeGainDays,
-            levelName = levelName,
-            levelColor = levelColor
-        )
-    }
-
-    val bottomButtons: @Composable RowScope.() -> Unit = {
-        var isPressed by remember { mutableStateOf(false) }
-        var progress by remember { mutableFloatStateOf(0f) }
-        val coroutineScope = rememberCoroutineScope()
-
-        // 중지 버튼 그룹
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(106.dp)) {
-            CircularProgressIndicator(
-                progress = { 1f },
-                modifier = Modifier.size(106.dp),
-                color = Color(0xFFE0E0E0),
-                strokeWidth = 4.dp,
-                trackColor = Color.Transparent
-            )
-            if (isPressed) {
-                CircularProgressIndicator(
-                    progress = { progress },
-                    modifier = Modifier.size(106.dp),
-                    color = Color(0xFFD32F2F),
-                    strokeWidth = 4.dp,
-                    trackColor = Color.Transparent
-                )
-            }
+    StandardScreenWithBottomButton(
+        topContent = {
             Card(
-                modifier = Modifier
-                    .size(96.dp)
-                    .pointerInput(Unit) {
-                        awaitEachGesture {
-                            awaitFirstDown()
-                            isPressed = true
-                            progress = 0f
-                            val job = coroutineScope.launch {
-                                val duration = 1500L
-                                val startMs = System.currentTimeMillis()
-                                while (progress < 1f && isPressed) {
-                                    val elapsed = System.currentTimeMillis() - startMs
-                                    progress = (elapsed.toFloat() / duration).coerceAtMost(1f)
-                                    delay(16)
-                                }
-                                if (progress >= 1f && isPressed) {
-                                    saveCompletedRecord(
-                                        context = context,
-                                        startTime = System.currentTimeMillis() - (elapsedDays * 24L * 60 * 60 * 1000),
-                                        endTime = System.currentTimeMillis(),
-                                        targetDays = targetDays,
-                                        actualDays = elapsedDays
-                                    )
-                                    sharedPref.edit {
-                                        remove("start_time")
-                                        putBoolean("timer_completed", true)
-                                    }
-                                    val intent = Intent(context, StartActivity::class.java).apply {
-                                        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                                    }
-                                    context.startActivity(intent)
-                                    // 애니메이션 비활성화하여 바로 전환되도록 함
-                                    (context as? QuitActivity)?.overridePendingTransition(0, 0)
-                                    (context as? QuitActivity)?.finish()
-                                }
-                            }
-                            val up = waitForUpOrCancellation()
-                            isPressed = false
-                            job.cancel()
-                            // 토스트 메시지 제거 - 더 이상 "길게 눌러 완료하세요" 메시지를 표시하지 않음
-                            coroutineScope.launch {
-                                while (progress > 0f) {
-                                    progress = (progress - 0.1f).coerceAtLeast(0f)
-                                    delay(16)
-                                }
-                            }
-                        }
-                    },
-                shape = CircleShape,
-                colors = CardDefaults.cardColors(containerColor = if (isPressed) Color(0xFFD32F2F) else Color(0xFFE53935)),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
             ) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.Close, contentDescription = "중지", tint = Color.White, modifier = Modifier.size(48.dp))
-                }
-            }
-        }
-        // 계속 버튼
-        Card(
-            onClick = { (context as? QuitActivity)?.finish() },
-            modifier = Modifier.size(96.dp),
-            shape = CircleShape,
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF4CAF50)),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-        ) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Icon(Icons.Default.PlayArrow, contentDescription = "계속", tint = Color.White, modifier = Modifier.size(48.dp))
-            }
-        }
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundBrush)
-            .windowInsetsPadding(WindowInsets.safeDrawing)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        if (activity != null) {
-            // QuitActivity는 버튼이 2개이므로 StandardScreenLayout 구조를 직접 구현
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // 상단 콘텐츠 (가변 크기)
-                Box(
-                    modifier = Modifier.weight(1f)
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.fillMaxWidth(),
-                        content = topContent
+                    CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, 1f)) {
+                        Text("🤔", fontSize = 48.sp, modifier = Modifier.padding(bottom = 12.dp))
+                    }
+                    Text(
+                        text = "정말 멈추시겠어요?",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF333333),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(bottom = 6.dp)
+                    )
+                    Text(
+                        text = "지금까지 잘 해오셨는데...",
+                        fontSize = 14.sp,
+                        color = Color(0xFF666666),
+                        textAlign = TextAlign.Center
                     )
                 }
-
-                // 하단 버튼 영역 - 프리뷰와 동일한 간격 적용
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            start = BaseActivity.STANDARD_BUTTON_HORIZONTAL_PADDING,
-                            end = BaseActivity.STANDARD_BUTTON_HORIZONTAL_PADDING,
-                            bottom = BaseActivity.STANDARD_BUTTON_BOTTOM_PADDING
-                        ),
-                    horizontalArrangement = Arrangement.spacedBy(48.dp, Alignment.CenterHorizontally),
-                    verticalAlignment = Alignment.CenterVertically,
-                    content = bottomButtons
-                )
             }
-        } else {
-            // Preview fallback: 동일 구성 (임시 데이터 생성 없음)
-            Column(Modifier.fillMaxSize()) {
-                Column(Modifier.weight(1f).fillMaxWidth()) { topContent() }
-                Row(
-                    modifier = Modifier
-                        .padding(vertical = 8.dp)
-                        .align(Alignment.CenterHorizontally),
-                    horizontalArrangement = Arrangement.spacedBy(48.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) { bottomButtons() }
+
+            StatisticsCardsSection(
+                elapsedDays = elapsedDays,
+                elapsedHours = elapsedHours,
+                elapsedMinutes = elapsedMinutes,
+                savedMoney = savedMoney,
+                savedHours = savedHours,
+                lifeGainDays = lifeGainDays,
+                levelName = levelName,
+                levelColor = levelColor
+            )
+        },
+        bottomButton = {
+            // QuitActivity는 버튼이 2개이므로 특별한 처리
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(48.dp, Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // 중지 버튼 그룹
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(106.dp)) {
+                    CircularProgressIndicator(
+                        progress = { 1f },
+                        modifier = Modifier.size(106.dp),
+                        color = Color(0xFFE0E0E0),
+                        strokeWidth = 4.dp,
+                        trackColor = Color.Transparent
+                    )
+                    if (isPressed) {
+                        CircularProgressIndicator(
+                            progress = { progress },
+                            modifier = Modifier.size(106.dp),
+                            color = Color(0xFFD32F2F),
+                            strokeWidth = 4.dp,
+                            trackColor = Color.Transparent
+                        )
+                    }
+                    Card(
+                        modifier = Modifier
+                            .size(96.dp)
+                            .pointerInput(Unit) {
+                                awaitEachGesture {
+                                    awaitFirstDown()
+                                    isPressed = true
+                                    progress = 0f
+                                    val job = coroutineScope.launch {
+                                        val duration = 1500L
+                                        val startMs = System.currentTimeMillis()
+                                        while (progress < 1f && isPressed) {
+                                            val elapsed = System.currentTimeMillis() - startMs
+                                            progress = (elapsed.toFloat() / duration).coerceAtMost(1f)
+                                            delay(16)
+                                        }
+                                        if (progress >= 1f && isPressed) {
+                                            saveCompletedRecord(
+                                                context = context,
+                                                startTime = System.currentTimeMillis() - (elapsedDays * 24L * 60 * 60 * 1000),
+                                                endTime = System.currentTimeMillis(),
+                                                targetDays = targetDays,
+                                                actualDays = elapsedDays
+                                            )
+                                            sharedPref.edit {
+                                                remove("start_time")
+                                                putBoolean("timer_completed", true)
+                                            }
+                                            val intent = Intent(context, StartActivity::class.java).apply {
+                                                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                                            }
+                                            context.startActivity(intent)
+                                            (context as? QuitActivity)?.overridePendingTransition(0, 0)
+                                            (context as? QuitActivity)?.finish()
+                                        }
+                                    }
+                                    val up = waitForUpOrCancellation()
+                                    isPressed = false
+                                    job.cancel()
+                                    coroutineScope.launch {
+                                        while (progress > 0f) {
+                                            progress = (progress - 0.1f).coerceAtLeast(0f)
+                                            delay(16)
+                                        }
+                                    }
+                                }
+                            },
+                        shape = CircleShape,
+                        colors = CardDefaults.cardColors(containerColor = if (isPressed) Color(0xFFD32F2F) else Color(0xFFE53935)),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                    ) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.Close, contentDescription = "중지", tint = Color.White, modifier = Modifier.size(48.dp))
+                        }
+                    }
+                }
+                // 계속 버튼
+                Card(
+                    onClick = { (context as? QuitActivity)?.finish() },
+                    modifier = Modifier.size(96.dp),
+                    shape = CircleShape,
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF4CAF50)),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                ) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.PlayArrow, contentDescription = "계속", tint = Color.White, modifier = Modifier.size(48.dp))
+                    }
+                }
             }
         }
-    }
+    )
 }
 
 @Composable
@@ -522,9 +469,7 @@ private fun saveCompletedRecord(
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 
     } catch (e: Exception) {
-        Log.e("QuitActivity", "기록 저장 중 오류 발생", e)
-        Log.e("QuitActivity", "오류 상세: ${e.message}")
-        Log.e("QuitActivity", "스택 트레이스: ${e.stackTraceToString()}")
+        Log.e("QuitActivity", "기록 저장 중 오류 발생: ${e.message}", e)
         Toast.makeText(context, "기록 저장 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
     }
 }
