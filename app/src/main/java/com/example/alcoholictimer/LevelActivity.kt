@@ -81,7 +81,25 @@ fun LevelScreen() {
     val levelDays = Constants.calculateLevelDays(totalElapsedTime)
     val currentLevel = LevelDefinitions.getLevelInfo(levelDays)
 
-    StandardScreen {
+    // 모던한 그라데이션 배경
+    val backgroundBrush = Brush.linearGradient(
+        colors = listOf(
+            Color(0xFFF8F9FA),
+            Color(0xFFE3F2FD),
+            Color(0xFFF1F8E9)
+        ),
+        start = Offset(0f, 0f),
+        end = Offset(1000f, 1000f)
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundBrush)
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         // 현재 레벨 카드
         CurrentLevelCard(currentLevel = currentLevel, currentDays = levelDays)
 
