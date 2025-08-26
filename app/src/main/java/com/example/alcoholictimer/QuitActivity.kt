@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
+// import android.widget.Toast // Toast import 삭제
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -473,12 +473,12 @@ private fun saveCompletedRecord(
         Log.d("QuitActivity", "저장 확인 - 저장된 데이터: $savedJson")
         Log.d("QuitActivity", "========== 기록 저장 완료 ==========")
 
-        val message = "금주 기록이 저장되었습니다."
-        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        // val message = "금주 기록이 저장되었습니다." // Toast 메시지 삭제
+        // Toast.makeText(context, message, Toast.LENGTH_SHORT).show() // Toast 메시지 삭제
 
     } catch (e: Exception) {
         Log.e("QuitActivity", "기록 저장 중 오류 발생: ${e.message}", e)
-        Toast.makeText(context, "기록 저장 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+        // Toast.makeText(context, "기록 저장 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show() // Toast 메시지 삭제
     }
 }
 
