@@ -203,19 +203,6 @@ private fun CurrentLevelCard(currentLevel: LevelDefinitions.LevelInfo, currentDa
                 )
             }
 
-            // 과거 기록 정보 추가 표시
-            val pastRecords = RecordsDataLoader.loadSobrietyRecords(context)
-            if (pastRecords.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "과거 기록 ${pastRecords.size}회 포함",
-                    fontSize = 12.sp,
-                    color = Color(0xFF999999),
-                    fontWeight = FontWeight.Normal
-                )
-            }
-
             // 다음 레벨까지의 진행률
             val nextLevel = getNextLevel(currentLevel)
             if (nextLevel != null) {
@@ -325,7 +312,7 @@ private fun ProgressToNextLevel(currentLevel: LevelDefinitions.LevelInfo, nextLe
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "${(progress * 100).toInt()}%",
+                text = String.format("%.1f%%", progress * 100),
                 fontSize = 12.sp,
                 color = Color(0xFF999999)
             )

@@ -537,8 +537,7 @@ fun DrawerMenu(
     }
 }
 
-@Preview(showBackground = true, name = "fontScale 1.0", fontScale = 1.0f)
-@Preview(showBackground = true, name = "fontScale 2.0", fontScale = 2.0f)
+@Preview(showBackground = true)
 @Composable
 fun PreviewDrawerMenu() {
     MaterialTheme {

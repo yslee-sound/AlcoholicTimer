@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.util.Log
 // import android.widget.Toast // Toast import 삭제
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
@@ -20,8 +19,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -179,11 +176,10 @@ fun QuitScreen() {
                                                     putBoolean("timer_completed", true)
                                                 }
                                                 val intent = Intent(context, StartActivity::class.java).apply {
-                                                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                                                 }
                                                 context.startActivity(intent)
-                                                (context as? QuitActivity)?.overridePendingTransition(0, 0)
-                                                (context as? QuitActivity)?.finish()
+                                                // finish() 호출 불필요 (스택이 완전히 정리됨)
                                             }
                                         }
                                         val up = waitForUpOrCancellation()

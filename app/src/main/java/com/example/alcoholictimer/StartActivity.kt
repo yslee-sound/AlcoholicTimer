@@ -4,7 +4,6 @@ import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -81,10 +80,11 @@ fun StartScreen() {
     // 이미 금주가 진행 중이면 RunActivity로 이동
     if (startTime != 0L && !timerCompleted) {
         LaunchedEffect(Unit) {
-            val intent = Intent(context, RunActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            val intent = Intent(context, RunActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
             context.startActivity(intent)
-            (context as StartActivity).finish()
+            // finish() 호출 불필요 (스택이 완전히 정리됨)
         }
         return
     }
