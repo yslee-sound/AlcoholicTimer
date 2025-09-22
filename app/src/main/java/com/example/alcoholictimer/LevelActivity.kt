@@ -110,7 +110,11 @@ fun LevelScreen() {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // 현재 레벨 카드
-        CurrentLevelCard(currentLevel = currentLevel, currentDays = levelDays)
+        CurrentLevelCard(
+            currentLevel = currentLevel,
+            currentDays = levelDays,
+            startTime = startTime
+        )
 
         // 전체 레벨 목록
         LevelListCard(currentLevel = currentLevel, currentDays = levelDays)
@@ -121,7 +125,11 @@ fun LevelScreen() {
 }
 
 @Composable
-private fun CurrentLevelCard(currentLevel: LevelDefinitions.LevelInfo, currentDays: Int) {
+private fun CurrentLevelCard(
+    currentLevel: LevelDefinitions.LevelInfo,
+    currentDays: Int,
+    startTime: Long
+) {
     val context = LocalContext.current
 
     Card(
@@ -218,7 +226,8 @@ private fun CurrentLevelCard(currentLevel: LevelDefinitions.LevelInfo, currentDa
                     currentLevel = currentLevel,
                     nextLevel = nextLevel,
                     progress = progress,
-                    remainingDays = (nextLevel.start - currentDays).coerceAtLeast(0)
+                    remainingDays = (nextLevel.start - currentDays).coerceAtLeast(0),
+                    isSobrietyActive = startTime > 0 // 현재 진행 중인 금주가 있는지 확인
                 )
             }
         }
@@ -226,15 +235,25 @@ private fun CurrentLevelCard(currentLevel: LevelDefinitions.LevelInfo, currentDa
 }
 
 @Composable
-private fun ProgressToNextLevel(currentLevel: LevelDefinitions.LevelInfo, nextLevel: LevelDefinitions.LevelInfo, progress: Float, remainingDays: Int) {
+private fun ProgressToNextLevel(
+    currentLevel: LevelDefinitions.LevelInfo,
+    nextLevel: LevelDefinitions.LevelInfo,
+    progress: Float,
+    remainingDays: Int,
+    isSobrietyActive: Boolean
+) {
     // 깜박임 애니메이션을 위한 상태
     var isVisible by remember { mutableStateOf(true) }
 
-    // 2초마다 깜박이는 효과
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(1000) // 1초 대기
-            isVisible = !isVisible
+    // 금주 진행 중일 때만 깜박임 애니메이션 동작
+    LaunchedEffect(remainingDays, isSobrietyActive) {
+        if (remainingDays > 0 && isSobrietyActive) {
+            while (true) {
+                delay(1000) // 1초 대기
+                isVisible = !isVisible
+            }
+        } else {
+            isVisible = true // 깜박임 없이 항상 표시
         }
     }
 
@@ -265,12 +284,17 @@ private fun ProgressToNextLevel(currentLevel: LevelDefinitions.LevelInfo, nextLe
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // 깜박이는 인디케이터 점 - 현재 레벨 색상 적용
+            // 깜박이는 인디케이터 점 - 금주 진행 중이 아닐 때는 회색으로 표시
             Box(
                 modifier = Modifier
                     .size(6.dp)
                     .clip(CircleShape)
-                    .background(currentLevel.color.copy(alpha = alpha))
+                    .background(
+                        if (remainingDays > 0 && isSobrietyActive)
+                            currentLevel.color.copy(alpha = alpha)
+                        else
+                            Color(0xFF999999) // 회색
+                    )
             )
         }
 

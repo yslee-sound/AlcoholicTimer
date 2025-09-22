@@ -2,8 +2,6 @@ package com.example.alcoholictimer.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,8 +33,7 @@ fun StandardScreen(
             .fillMaxSize()
             .background(backgroundBrush)
             .padding(LayoutConstants.SCREEN_HORIZONTAL_PADDING)
-            .imePadding() // 키패드 대응 추가
-            .verticalScroll(rememberScrollState()), // 스크롤 기능 추가
+            .imePadding(), // 키패드 대응 추가
         verticalArrangement = Arrangement.spacedBy(LayoutConstants.CARD_SPACING),
         content = content
     )
@@ -79,8 +76,7 @@ fun StandardScreenWithBottomButton(
                     top = LayoutConstants.SCREEN_HORIZONTAL_PADDING,
                     // 하단은 버튼 높이(120dp) + 여유 공간(120dp) = 240dp 확보
                     bottom = 240.dp
-                )
-                .verticalScroll(rememberScrollState()), // 스크롤 기능 추가
+                ),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(LayoutConstants.CARD_SPACING),
             content = topContent
