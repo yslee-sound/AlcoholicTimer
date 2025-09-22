@@ -6,7 +6,9 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -51,7 +53,13 @@ fun SettingsScreen() {
     var selectedFrequency by remember { mutableStateOf(initialFrequency) }
     var selectedDuration by remember { mutableStateOf(initialDuration) }
 
-    StandardScreen {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
         // 음주 비용 설정 카드
         SettingsCard(
             title = "음주 비용",
