@@ -22,13 +22,23 @@ fun RecordSummaryCard(
     record: SobrietyRecord,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
-    containerColor: Color = Color.White,
+    containerColor: Color? = null,
     showTimeRow: Boolean = false,
     datePattern: String = "yyyy.MM.dd",
-    numberColor: Color = Color(0xFF2C3E50),
-    rateColorCompleted: Color = Color(0xFF00B894),
-    rateColorInProgress: Color = Color(0xFF74B9FF)
+    numberColor: Color? = null,
+    rateColorCompleted: Color? = null,
+    rateColorInProgress: Color? = null,
+    labelColor: Color? = null
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
+    val resolvedContainer = containerColor ?: colorScheme.surface
+    val resolvedNumber = numberColor ?: colorScheme.onSurface
+    val resolvedRateCompleted = rateColorCompleted ?: colorScheme.primary
+    val resolvedRateInProgress = rateColorInProgress ?: colorScheme.secondary
+    val resolvedLabel = labelColor ?: colorScheme.onSurfaceVariant
+    val statusIncomplete = colorScheme.error
+
     val dateFormat = SimpleDateFormat(datePattern, Locale.getDefault())
     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
 
@@ -53,7 +63,7 @@ fun RecordSummaryCard(
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor),
+        colors = CardDefaults.cardColors(containerColor = resolvedContainer),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
@@ -71,28 +81,25 @@ fun RecordSummaryCard(
                     Text(
                         text = "$startDate ~ $endDate",
                         fontSize = 16.sp,
-                        color = numberColor
+                        color = resolvedNumber
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = record.status,
                         fontSize = 12.sp,
-                        color = if (record.isCompleted) rateColorCompleted else Color(0xFFE17055)
+                        color = if (record.isCompleted) resolvedRateCompleted else statusIncomplete
                     )
                 }
 
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = if (record.isCompleted)
-                        rateColorCompleted.copy(alpha = 0.1f)
-                    else
-                        Color(0xFFE17055).copy(alpha = 0.1f),
+                    color = (if (record.isCompleted) resolvedRateCompleted else statusIncomplete).copy(alpha = 0.1f),
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
                         imageVector = if (record.isCompleted) Icons.Filled.CheckCircle else Icons.Filled.Warning,
                         contentDescription = if (record.isCompleted) "완료" else "미완료",
-                        tint = if (record.isCompleted) rateColorCompleted else Color(0xFFE17055),
+                        tint = if (record.isCompleted) resolvedRateCompleted else statusIncomplete,
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(6.dp)
@@ -113,9 +120,9 @@ fun RecordSummaryCard(
                     Text(
                         text = String.format(Locale.getDefault(), "%.1f일", totalDays),
                         fontSize = 28.sp,
-                        color = numberColor
+                        color = resolvedNumber
                     )
-                    Text(text = "달성 일수", fontSize = 12.sp, color = Color(0xFF636E72))
+                    Text(text = "달성 일수", fontSize = 12.sp, color = resolvedLabel)
                 }
 
                 // 목표 일수
@@ -123,9 +130,9 @@ fun RecordSummaryCard(
                     Text(
                         text = "${record.targetDays}일",
                         fontSize = 28.sp,
-                        color = numberColor
+                        color = resolvedNumber
                     )
-                    Text(text = "목표 일수", fontSize = 12.sp, color = Color(0xFF636E72))
+                    Text(text = "목표 일수", fontSize = 12.sp, color = resolvedLabel)
                 }
 
                 // 달성률
@@ -133,9 +140,9 @@ fun RecordSummaryCard(
                     Text(
                         text = String.format(Locale.getDefault(), "%.1f%%", successRate),
                         fontSize = 26.sp,
-                        color = if (record.isCompleted) rateColorCompleted else rateColorInProgress
+                        color = if (record.isCompleted) resolvedRateCompleted else resolvedRateInProgress
                     )
-                    Text(text = "달성률", fontSize = 12.sp, color = Color(0xFF636E72))
+                    Text(text = "달성률", fontSize = 12.sp, color = resolvedLabel)
                 }
             }
 
@@ -145,11 +152,10 @@ fun RecordSummaryCard(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = "시작: $startTime", fontSize = 12.sp, color = Color(0xFF999999))
-                    Text(text = "종료: $endTime", fontSize = 12.sp, color = Color(0xFF999999))
+                    Text(text = "시작: $startTime", fontSize = 12.sp, color = resolvedLabel)
+                    Text(text = "종료: $endTime", fontSize = 12.sp, color = resolvedLabel)
                 }
             }
         }
     }
 }
-

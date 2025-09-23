@@ -29,7 +29,7 @@ fun ModernRecordsListSection(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.9f)
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -46,7 +46,7 @@ fun ModernRecordsListSection(
                     text = "최근 활동",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF333333)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 // 테스트 기록 추가 버튼
@@ -54,7 +54,7 @@ fun ModernRecordsListSection(
                     onClick = onAddTestRecord,
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFF1976D2)
+                        containerColor = MaterialTheme.colorScheme.primary
                     ),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
@@ -66,13 +66,13 @@ fun ModernRecordsListSection(
                         Icon(
                             imageVector = Icons.Default.Add,
                             contentDescription = "추가",
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
                             text = "테스트 기록",
                             fontSize = 12.sp,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onPrimary,
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -108,7 +108,7 @@ fun ModernEmptyState() {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFF8F9FA)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -127,14 +127,14 @@ fun ModernEmptyState() {
                 text = "아직 금주 기록이 없습니다",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color(0xFF333333),
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             Text(
                 text = "첫 번째 금주를 시작해보세요!",
                 fontSize = 14.sp,
-                color = Color(0xFF666666),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
         }
@@ -150,11 +150,8 @@ fun ModernSobrietyRecordCard(
     RecordSummaryCard(
         record = record,
         onClick = onClick,
-        containerColor = if (record.isCompleted) Color(0xFFF1F8E9) else Color(0xFFFFF8E1),
+        containerColor = if (record.isCompleted) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant,
         showTimeRow = false,
-        datePattern = "MM.dd",
-        numberColor = Color(0xFF1976D2),
-        rateColorCompleted = Color(0xFF4CAF50),
-        rateColorInProgress = Color(0xFFFF9800)
+        datePattern = "MM.dd"
     )
 }

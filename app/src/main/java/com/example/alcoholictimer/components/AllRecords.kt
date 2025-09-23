@@ -163,7 +163,7 @@ fun AllRecordsScreen(
                             RecordSummaryCard(
                                 record = record,
                                 onClick = { onNavigateToDetail(record) },
-                                containerColor = if (record.isCompleted) Color(0xFFF1F8E9) else Color(0xFFFFF8E1),
+                                containerColor = if (record.isCompleted) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant,
                                 showTimeRow = true
                             )
                         }

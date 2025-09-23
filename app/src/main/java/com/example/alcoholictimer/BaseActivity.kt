@@ -39,6 +39,7 @@ import com.example.alcoholictimer.LevelActivity
 import com.example.alcoholictimer.SettingsActivity
 import com.example.alcoholictimer.TestActivity
 import com.example.alcoholictimer.NicknameEditActivity
+import com.example.alcoholictimer.ui.theme.AlcoholicTimerTheme
 
 /**
  * 모든 액티비티의 베이스 클래스
@@ -77,143 +78,145 @@ abstract class BaseActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     public fun BaseScreen(content: @Composable () -> Unit) {
-        val drawerState = rememberDrawerState(DrawerValue.Closed)
-        val scope = rememberCoroutineScope()
-        val currentNickname by nicknameState
+        AlcoholicTimerTheme {
+            val drawerState = rememberDrawerState(DrawerValue.Closed)
+            val scope = rememberCoroutineScope()
+            val currentNickname by nicknameState
 
-        // 드로어 상태에 따른 블러 효과 애니메이션
-        val blurRadius by animateFloatAsState(
-            targetValue = if (drawerState.targetValue == DrawerValue.Open) 8f else 0f,
-            animationSpec = tween(durationMillis = 300),
-            label = "blur"
-        )
+            // 드로어 상태에 따른 블러 효과 애니메이션
+            val blurRadius by animateFloatAsState(
+                targetValue = if (drawerState.targetValue == DrawerValue.Open) 8f else 0f,
+                animationSpec = tween(durationMillis = 300),
+                label = "blur"
+            )
 
-        // 모던한 그라데이션 배경 색상
-        val gradientBackground = Brush.linearGradient(
-            colors = listOf(
-                Color(0xFFF8F9FA),
-                Color(0xFFE9ECEF)
-            ),
-            start = Offset(0f, 0f),
-            end = Offset.Infinite
-        )
+            // 모던한 그라데이션 배경 색상
+            val gradientBackground = Brush.linearGradient(
+                colors = listOf(
+                    Color(0xFFF8F9FA),
+                    Color(0xFFE9ECEF)
+                ),
+                start = Offset(0f, 0f),
+                end = Offset.Infinite
+            )
 
-        ModalNavigationDrawer(
-            drawerState = drawerState,
-            drawerContent = {
-                ModalDrawerSheet(
-                    modifier = Modifier
-                        .fillMaxWidth(0.8f) // 조금 더 넓게
-                        .background(
-                            brush = Brush.linearGradient(
-                                colors = listOf(
-                                    Color.White,
-                                    Color(0xFFF8F9FA)
+            ModalNavigationDrawer(
+                drawerState = drawerState,
+                drawerContent = {
+                    ModalDrawerSheet(
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f) // 조금 더 넓게
+                            .background(
+                                brush = Brush.linearGradient(
+                                    colors = listOf(
+                                        Color.White,
+                                        Color(0xFFF8F9FA)
+                                    )
                                 )
-                            )
-                        ),
-                    drawerContainerColor = Color.Transparent,
-                    drawerShape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
-                ) {
-                    DrawerMenu(
-                        nickname = currentNickname,
-                        onNicknameClick = {
-                            scope.launch {
-                                drawerState.close()
-                                var isNicknameEditNavigated = false
-                                snapshotFlow { drawerState.isAnimationRunning }
-                                    .collect { isAnimating ->
-                                        if (!isAnimating && drawerState.currentValue == DrawerValue.Closed && !isNicknameEditNavigated) {
-                                            isNicknameEditNavigated = true
-                                            navigateToNicknameEdit()
-                                            return@collect
-                                        }
-                                    }
-                            }
-                        },
-                        onItemSelected = { menuItem ->
-                            scope.launch {
-                                drawerState.close()
-                                // 드로어가 완전히 닫힐 때까지 대기
-                                snapshotFlow { drawerState.isAnimationRunning }
-                                    .collect { isAnimating ->
-                                        if (!isAnimating && drawerState.currentValue == DrawerValue.Closed) {
-                                            handleMenuSelection(menuItem)
-                                            return@collect
-                                        }
-                                    }
-                            }
-                        }
-                    )
-                }
-            }
-        ) {
-            Scaffold(
-                modifier = Modifier.fillMaxSize(),
-                topBar = {
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        shadowElevation = 4.dp,
-                        color = Color.White
+                            ),
+                        drawerContainerColor = Color.Transparent,
+                        drawerShape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
                     ) {
-                        Column {
-                            TopAppBar(
-                                title = {
-                                    CompositionLocalProvider(
-                                        LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)
-                                    ) {
-                                        Text(
-                                            text = getScreenTitle(),
-                                            color = Color(0xFF2C3E50),
-                                            fontWeight = FontWeight.SemiBold,
-                                            fontSize = 20.sp
-                                        )
-                                    }
-                                },
-                                colors = TopAppBarDefaults.topAppBarColors(
-                                    containerColor = Color.Transparent,
-                                    titleContentColor = Color(0xFF2C3E50),
-                                    navigationIconContentColor = Color(0xFF2C3E50),
-                                    actionIconContentColor = Color(0xFF2C3E50)
-                                ),
-                                navigationIcon = {
-                                    Surface(
-                                        modifier = Modifier
-                                            .padding(8.dp)
-                                            .size(40.dp),
-                                        shape = CircleShape,
-                                        color = Color(0xFFF8F9FA),
-                                        shadowElevation = 2.dp
-                                    ) {
-                                        IconButton(
-                                            onClick = {
-                                                scope.launch {
-                                                    drawerState.open()
-                                                }
+                        DrawerMenu(
+                            nickname = currentNickname,
+                            onNicknameClick = {
+                                scope.launch {
+                                    drawerState.close()
+                                    var isNicknameEditNavigated = false
+                                    snapshotFlow { drawerState.isAnimationRunning }
+                                        .collect { isAnimating ->
+                                            if (!isAnimating && drawerState.currentValue == DrawerValue.Closed && !isNicknameEditNavigated) {
+                                                isNicknameEditNavigated = true
+                                                navigateToNicknameEdit()
+                                                return@collect
                                             }
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Menu,
-                                                contentDescription = "메뉴",
-                                                tint = Color(0xFF2C3E50),
-                                                modifier = Modifier.size(20.dp)
-                                            )
                                         }
-                                    }
                                 }
-                            )
-                        }
+                            },
+                            onItemSelected = { menuItem ->
+                                scope.launch {
+                                    drawerState.close()
+                                    // 드로어가 완전히 닫힐 때까지 대기
+                                    snapshotFlow { drawerState.isAnimationRunning }
+                                        .collect { isAnimating ->
+                                            if (!isAnimating && drawerState.currentValue == DrawerValue.Closed) {
+                                                handleMenuSelection(menuItem)
+                                                return@collect
+                                            }
+                                        }
+                                }
+                            }
+                        )
                     }
                 }
-            ) { paddingValues ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(brush = gradientBackground)
-                        .padding(top = paddingValues.calculateTopPadding()) // TopAppBar 높이만큼만 상단 패딩 적용
-                        .blur(radius = blurRadius.dp) // 블러 효과 적용
-                ) {
-                    content()
+            ) {
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    topBar = {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shadowElevation = 4.dp,
+                            color = Color.White
+                        ) {
+                            Column {
+                                TopAppBar(
+                                    title = {
+                                        CompositionLocalProvider(
+                                            LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)
+                                        ) {
+                                            Text(
+                                                text = getScreenTitle(),
+                                                color = Color(0xFF2C3E50),
+                                                fontWeight = FontWeight.SemiBold,
+                                                fontSize = 20.sp
+                                            )
+                                        }
+                                    },
+                                    colors = TopAppBarDefaults.topAppBarColors(
+                                        containerColor = Color.Transparent,
+                                        titleContentColor = Color(0xFF2C3E50),
+                                        navigationIconContentColor = Color(0xFF2C3E50),
+                                        actionIconContentColor = Color(0xFF2C3E50)
+                                    ),
+                                    navigationIcon = {
+                                        Surface(
+                                            modifier = Modifier
+                                                .padding(8.dp)
+                                                .size(40.dp),
+                                            shape = CircleShape,
+                                            color = Color(0xFFF8F9FA),
+                                            shadowElevation = 2.dp
+                                        ) {
+                                            IconButton(
+                                                onClick = {
+                                                    scope.launch {
+                                                        drawerState.open()
+                                                    }
+                                                }
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Menu,
+                                                    contentDescription = "메뉴",
+                                                    tint = Color(0xFF2C3E50),
+                                                    modifier = Modifier.size(20.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                ) { paddingValues ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(brush = gradientBackground)
+                            .padding(top = paddingValues.calculateTopPadding()) // TopAppBar 높이만큼만 상단 패딩 적용
+                            .blur(radius = blurRadius.dp) // 블러 효과 적용
+                    ) {
+                        content()
+                    }
                 }
             }
         }
@@ -369,7 +372,7 @@ fun DrawerMenu(
                 .fillMaxWidth()
                 .clickable { onNicknameClick() },
             shape = RoundedCornerShape(16.dp),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.surface,
             shadowElevation = 4.dp
         ) {
             Row(
@@ -380,7 +383,7 @@ fun DrawerMenu(
             ) {
                 Surface(
                     shape = CircleShape,
-                    color = Color(0xFF6C5CE7),
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(56.dp),
                     shadowElevation = 2.dp
                 ) {
@@ -391,7 +394,7 @@ fun DrawerMenu(
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = "아바타",
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(32.dp)
                         )
                     }
@@ -403,12 +406,12 @@ fun DrawerMenu(
                             text = nickname,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF2C3E50)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "프로필 편집",
                             fontSize = 12.sp,
-                            color = Color(0xFF74B9FF)
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -420,7 +423,7 @@ fun DrawerMenu(
         // 메뉴 위 Divider
         Divider(
             modifier = Modifier.fillMaxWidth(),
-            color = Color(0xFFE0E0E0),
+            color = MaterialTheme.colorScheme.surfaceVariant,
             thickness = 1.dp
         )
 
@@ -429,7 +432,7 @@ fun DrawerMenu(
             text = "메뉴",
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color(0xFF74B9FF),
+            color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
         )
 
@@ -440,7 +443,7 @@ fun DrawerMenu(
                     .padding(vertical = 4.dp)
                     .clickable { onItemSelected(title) },
                 shape = RoundedCornerShape(12.dp),
-                color = Color.White.copy(alpha = 0.7f)
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
             ) {
                 Row(
                     modifier = Modifier
@@ -450,13 +453,13 @@ fun DrawerMenu(
                 ) {
                     Surface(
                         shape = CircleShape,
-                        color = Color(0xFF74B9FF).copy(alpha = 0.1f),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                         modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
                             imageVector = icon,
                             contentDescription = title,
-                            tint = Color(0xFF74B9FF),
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(8.dp)
@@ -466,9 +469,9 @@ fun DrawerMenu(
                     CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)) {
                         Text(
                             text = title,
-                            fontSize = 18.sp, // 기존 16.sp에서 18.sp로 증가
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color(0xFF2C3E50)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -480,7 +483,7 @@ fun DrawerMenu(
         // 설정 위 Divider
         Divider(
             modifier = Modifier.fillMaxWidth(),
-            color = Color(0xFFE0E0E0),
+            color = MaterialTheme.colorScheme.surfaceVariant,
             thickness = 1.dp
         )
 
@@ -489,7 +492,7 @@ fun DrawerMenu(
             text = "설정",
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color(0xFF74B9FF),
+            color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
         )
 
@@ -500,7 +503,7 @@ fun DrawerMenu(
                     .padding(vertical = 4.dp)
                     .clickable { onItemSelected(title) },
                 shape = RoundedCornerShape(12.dp),
-                color = Color.White.copy(alpha = 0.7f)
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
             ) {
                 Row(
                     modifier = Modifier
@@ -510,13 +513,13 @@ fun DrawerMenu(
                 ) {
                     Surface(
                         shape = CircleShape,
-                        color = Color(0xFF74B9FF).copy(alpha = 0.1f),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                         modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
                             imageVector = icon,
                             contentDescription = title,
-                            tint = Color(0xFF74B9FF),
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(8.dp)
@@ -526,9 +529,9 @@ fun DrawerMenu(
                     CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)) {
                         Text(
                             text = title,
-                            fontSize = 18.sp, // 기존 16.sp에서 18.sp로 증가
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color(0xFF2C3E50)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }

@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.alcoholictimer.ui.theme.AlcoholicTimerTheme
 import com.example.alcoholictimer.utils.RecordsDataLoader
 import com.example.alcoholictimer.utils.SobrietyRecord
 import com.example.alcoholictimer.ui.StandardScreen
@@ -225,7 +226,7 @@ fun RecordsScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator(
-                            color = Color(0xFF74B9FF)
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 } else if (records.isEmpty()) { // filteredRecords 대신 전체 records로 변경
@@ -241,13 +242,7 @@ fun RecordsScreen(
                     ) {
                         RecordSummaryCard(
                             record = record,
-                            onClick = { onNavigateToDetail(record) },
-                            containerColor = Color.White,
-                            showTimeRow = false,
-                            datePattern = "yyyy.MM.dd",
-                            numberColor = Color(0xFF2C3E50),
-                            rateColorCompleted = Color(0xFF00B894),
-                            rateColorInProgress = Color(0xFF74B9FF)
+                            onClick = { onNavigateToDetail(record) }
                         )
                     }
                 }
@@ -259,8 +254,8 @@ fun RecordsScreen(
                                 .fillMaxWidth()
                                 .padding(vertical = 8.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF74B9FF),
-                                contentColor = Color.White
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
                             ),
                             shape = RoundedCornerShape(8.dp)
                         ) {
@@ -327,7 +322,7 @@ private fun EmptyRecordsState(selectedPeriod: String, @Suppress("UNUSED_PARAMETE
     ) {
         Surface(
             shape = RoundedCornerShape(24.dp),
-            color = Color(0xFF74B9FF).copy(alpha = 0.1f),
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
             modifier = Modifier.size(80.dp)
         ) {
             Box(
@@ -337,7 +332,7 @@ private fun EmptyRecordsState(selectedPeriod: String, @Suppress("UNUSED_PARAMETE
                 Icon(
                     imageVector = Icons.Default.Warning,
                     contentDescription = "빈 상태",
-                    tint = Color(0xFF74B9FF),
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(40.dp)
                 )
             }
@@ -349,7 +344,7 @@ private fun EmptyRecordsState(selectedPeriod: String, @Suppress("UNUSED_PARAMETE
             text = "아직 금주 기록이 없습니다",
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF2C3E50),
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center
         )
 
@@ -358,7 +353,7 @@ private fun EmptyRecordsState(selectedPeriod: String, @Suppress("UNUSED_PARAMETE
         Text(
             text = "금주를 시작하고 완료하면\n기록이 여기에 표시됩니다",
             fontSize = 14.sp,
-            color = Color(0xFF636E72),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             lineHeight = 20.sp
         )
@@ -371,7 +366,7 @@ private fun EmptyRecordsState(selectedPeriod: String, @Suppress("UNUSED_PARAMETE
                 text = "선택한 기간: $selectedPeriod",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color(0xFF2C3E50),
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
             )
         }
@@ -385,13 +380,7 @@ private fun RecordCard(
 ) {
     RecordSummaryCard(
         record = record,
-        onClick = onClick,
-        containerColor = Color.White,
-        showTimeRow = false,
-        datePattern = "yyyy.MM.dd",
-        numberColor = Color(0xFF2C3E50),
-        rateColorCompleted = Color(0xFF00B894),
-        rateColorInProgress = Color(0xFF74B9FF)
+        onClick = onClick
     )
 }
 
@@ -447,7 +436,7 @@ private fun PeriodStatisticsSection(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 4.dp
@@ -473,14 +462,14 @@ private fun PeriodStatisticsSection(
                     },
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF2C3E50)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Button(
                     onClick = onAddTestRecord,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF74B9FF),
-                        contentColor = Color.White
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
                     ),
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.height(32.dp),
@@ -505,7 +494,7 @@ private fun PeriodStatisticsSection(
                 StatisticItem(
                     title = "성공률",
                     value = "$successRate%",
-                    color = Color(0xFF00B894),
+                    color = MaterialTheme.colorScheme.tertiary,
                     modifier = Modifier.weight(1f)
                 )
 
@@ -513,7 +502,7 @@ private fun PeriodStatisticsSection(
                 StatisticItem(
                     title = "평균 지속일",
                     value = "${averageDays}일",
-                    color = Color(0xFF74B9FF),
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f)
                 )
 
@@ -521,7 +510,7 @@ private fun PeriodStatisticsSection(
                 StatisticItem(
                     title = "최대 지속일",
                     value = "${maxDays}일",
-                    color = Color(0xFFE17055),
+                    color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -537,13 +526,13 @@ private fun PeriodStatisticsSection(
                 Text(
                     text = "총 누적 금주일",
                     fontSize = 14.sp,
-                    color = Color(0xFF636E72)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = "${totalDays}일",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF2C3E50)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -578,7 +567,7 @@ private fun StatisticItem(
             Text(
                 text = title,
                 fontSize = 12.sp,
-                color = Color(0xFF636E72),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
         }
@@ -589,8 +578,7 @@ private fun StatisticItem(
 @Preview(showBackground = true, name = "금주 기록 화면 - 데이터 있음", fontScale = 1.2f)
 @Composable
 fun PreviewRecordsScreen() {
-    MaterialTheme {
-        // 샘플 데이터로 프리뷰
+    AlcoholicTimerTheme {
         RecordsScreen(
             externalRefreshTrigger = 0,
             onNavigateToDetail = {}
@@ -601,7 +589,7 @@ fun PreviewRecordsScreen() {
 @Preview(showBackground = true, name = "빈 상태")
 @Composable
 fun PreviewEmptyRecordsState() {
-    MaterialTheme {
+    AlcoholicTimerTheme {
         EmptyRecordsState("전체", "")
     }
 }
@@ -609,7 +597,7 @@ fun PreviewEmptyRecordsState() {
 @Preview(showBackground = true, name = "기록 카드")
 @Composable
 fun PreviewRecordCard() {
-    MaterialTheme {
+    AlcoholicTimerTheme {
         RecordCard(
             record = SobrietyRecord(
                 id = "sample",
@@ -629,7 +617,7 @@ fun PreviewRecordCard() {
 @Preview(showBackground = true, name = "기간 통계 섹션")
 @Composable
 fun PreviewPeriodStatisticsSection() {
-    MaterialTheme {
+    AlcoholicTimerTheme {
         PeriodStatisticsSection(
             records = listOf(
                 SobrietyRecord(
