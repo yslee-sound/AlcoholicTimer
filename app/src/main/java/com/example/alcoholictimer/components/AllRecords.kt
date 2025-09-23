@@ -160,9 +160,11 @@ fun AllRecordsScreen(
                             items = records,
                             key = { it.id }
                         ) { record ->
-                            SobrietyRecordCard(
+                            RecordSummaryCard(
                                 record = record,
-                                onClick = { onNavigateToDetail(record) }
+                                onClick = { onNavigateToDetail(record) },
+                                containerColor = if (record.isCompleted) Color(0xFFF1F8E9) else Color(0xFFFFF8E1),
+                                showTimeRow = true
                             )
                         }
                     }

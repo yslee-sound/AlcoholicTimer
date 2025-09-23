@@ -239,9 +239,15 @@ fun RecordsScreen(
                             .fillMaxWidth()
                             .padding(vertical = 4.dp) // 카드 상하 여백만 유지
                     ) {
-                        RecordCard(
+                        RecordSummaryCard(
                             record = record,
-                            onClick = { onNavigateToDetail(record) }
+                            onClick = { onNavigateToDetail(record) },
+                            containerColor = Color.White,
+                            showTimeRow = false,
+                            datePattern = "yyyy.MM.dd",
+                            numberColor = Color(0xFF2C3E50),
+                            rateColorCompleted = Color(0xFF00B894),
+                            rateColorInProgress = Color(0xFF74B9FF)
                         )
                     }
                 }
@@ -377,142 +383,16 @@ private fun RecordCard(
     record: SobrietyRecord,
     onClick: () -> Unit
 ) {
-    val dateFormat = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault())
-    val startDate = dateFormat.format(Date(record.startTime))
-    val endDate = dateFormat.format(Date(record.endTime))
-
-    // 실제 시간 차이를 기반으로 달성률 계산 (DetailActivity와 동일한 방식)
-    val totalDurationMillis = record.endTime - record.startTime
-    val totalDays = totalDurationMillis / (24.0 * 60 * 60 * 1000.0)
-
-    val successRate = if (record.targetDays > 0) {
-        ((totalDays / record.targetDays) * 100.0).let { rate ->
-            if (rate > 100) 100.0 else rate
-        }.toFloat()
-    } else {
-        0f
-    }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp,
-            pressedElevation = 8.dp
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp)
-        ) {
-            // 헤더 섹션
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = "$startDate ~ $endDate",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF2C3E50)
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = record.status,
-                        fontSize = 12.sp,
-                        color = if (record.isCompleted) Color(0xFF00B894) else Color(0xFFE17055)
-                    )
-                }
-
-                // 완료 아이콘
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = if (record.isCompleted)
-                        Color(0xFF00B894).copy(alpha = 0.1f)
-                    else
-                        Color(0xFFE17055).copy(alpha = 0.1f),
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        imageVector = if (record.isCompleted) Icons.Default.CheckCircle else Icons.Default.Warning,
-                        contentDescription = if (record.isCompleted) "완료" else "미완료",
-                        tint = if (record.isCompleted) Color(0xFF00B894) else Color(0xFFE17055),
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(6.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 메인 정보 - 숫자 3열: 달성 일수, 목표 일수, 달성률
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // 달성 일수
-                Column {
-                    Text(
-                        text = String.format(Locale.getDefault(), "%.1f일", totalDays),
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF2C3E50)
-                    )
-                    Text(
-                        text = "달성 일수",
-                        fontSize = 12.sp,
-                        color = Color(0xFF636E72)
-                    )
-                }
-
-                // 목표 일수
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "${record.targetDays}일",
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF2C3E50)
-                    )
-                    Text(
-                        text = "목표 일수",
-                        fontSize = 12.sp,
-                        color = Color(0xFF636E72)
-                    )
-                }
-
-                // 달성률
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = String.format(Locale.getDefault(), "%.1f%%", successRate),
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (record.isCompleted) Color(0xFF00B894) else Color(0xFF74B9FF)
-                    )
-                    Text(
-                        text = "달성률",
-                        fontSize = 12.sp,
-                        color = Color(0xFF636E72)
-                    )
-                }
-            }
-
-            // 진행률 바 제거됨 (요청 사항)
-        }
-    }
+    RecordSummaryCard(
+        record = record,
+        onClick = onClick,
+        containerColor = Color.White,
+        showTimeRow = false,
+        datePattern = "yyyy.MM.dd",
+        numberColor = Color(0xFF2C3E50),
+        rateColorCompleted = Color(0xFF00B894),
+        rateColorInProgress = Color(0xFF74B9FF)
+    )
 }
 
 @Suppress("UNUSED_PARAMETER")
