@@ -6,7 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.utils.RecordsDataLoader
 import com.example.alcoholictimer.utils.SobrietyRecord
+import androidx.compose.ui.geometry.Offset
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,22 +39,26 @@ fun AllRecordsScreen(
             val loadedRecords = RecordsDataLoader.loadSobrietyRecords(context)
             records = loadedRecords.sortedByDescending { it.createdAt }
             isLoading = false
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             isLoading = false
         }
     }
+
+    // 다른 화면들과 일관된 연한 회색 계열 그라데이션 (BaseActivity와 동일 톤)
+    val gradientBackground = Brush.linearGradient(
+        colors = listOf(
+            Color(0xFFF8F9FA),
+            Color(0xFFE9ECEF)
+        ),
+        start = Offset(0f, 0f),
+        end = Offset.Infinite
+    )
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF1976D2),
-                        Color(0xFF42A5F5),
-                        Color(0xFF90CAF9)
-                    )
-                )
+                brush = gradientBackground
             )
     ) {
         Column(
@@ -72,7 +77,7 @@ fun AllRecordsScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "뒤로가기",
                             tint = Color.White
                         )
