@@ -64,29 +64,38 @@ fun AllRecordsScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // 상단 바 (뒤로가기 버튼)
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "모든 기록",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "뒤로가기",
-                            tint = Color.White
+            // 상단 바 (뒤로가기 버튼) - 공통 톤으로 통일
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shadowElevation = 4.dp,
+                color = Color.White
+            ) {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = "모든 기록",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF2C3E50)
                         )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "뒤로가기",
+                                tint = Color(0xFF2C3E50)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = Color(0xFF2C3E50),
+                        navigationIconContentColor = Color(0xFF2C3E50),
+                        actionIconContentColor = Color(0xFF2C3E50)
+                    )
                 )
-            )
+            }
 
             // 콘텐츠 영역
             if (isLoading) {
