@@ -22,6 +22,10 @@ import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.utils.RecordsDataLoader
 import com.example.alcoholictimer.utils.SobrietyRecord
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import com.example.alcoholictimer.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,15 +36,20 @@ fun AllRecordsScreen(
     val context = LocalContext.current
     var records by remember { mutableStateOf<List<SobrietyRecord>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+    var loadError by remember { mutableStateOf<String?>(null) }
+    var retryTrigger by remember { mutableStateOf(0) }
 
-    // 데이터 로딩
-    LaunchedEffect(Unit) {
+    // 데이터 로딩 (재시도 트리거에 반응)
+    LaunchedEffect(retryTrigger) {
+        isLoading = true
+        loadError = null
         try {
             val loadedRecords = RecordsDataLoader.loadSobrietyRecords(context)
             records = loadedRecords.sortedByDescending { it.createdAt }
             isLoading = false
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             isLoading = false
+            loadError = e.message ?: "unknown"
         }
     }
 
@@ -57,70 +66,100 @@ fun AllRecordsScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = gradientBackground
-            )
+            .background(brush = gradientBackground)
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            // 상단 바 (뒤로가기 버튼) - 공통 톤으로 통일
+        Column(modifier = Modifier.fillMaxSize()) {
+            // 상단 바 (뒤로가기 버튼) - 공통 톤으로 통일 + 문자열 리소스/토큰 적용
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shadowElevation = 4.dp,
-                color = Color.White
+                color = MaterialTheme.colorScheme.surface
             ) {
                 TopAppBar(
                     title = {
                         Text(
-                            text = "모든 기록",
+                            text = stringResource(id = R.string.all_records_title),
                             fontSize = 20.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF2C3E50)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "뒤로가기",
-                                tint = Color(0xFF2C3E50)
+                                contentDescription = stringResource(id = R.string.cd_navigate_back),
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
-                        titleContentColor = Color(0xFF2C3E50),
-                        navigationIconContentColor = Color(0xFF2C3E50),
-                        actionIconContentColor = Color(0xFF2C3E50)
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                        actionIconContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
 
             // 콘텐츠 영역
-            if (isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(
-                        color = Color.White
-                    )
+            when {
+                isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(bottom = 16.dp)
-                ) {
-                    if (records.isEmpty()) {
-                        item {
-                            EmptyRecordsState()
+
+                loadError != null -> {
+                    // 에러 상태 UI + 재시도 버튼
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.error_loading_records),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(onClick = { retryTrigger++ }) {
+                            Text(text = stringResource(id = R.string.retry))
                         }
-                    } else {
-                        items(records) { record ->
+                    }
+                }
+
+                records.isEmpty() -> {
+                    // 빈 상태
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        EmptyRecordsState()
+                    }
+                }
+
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(bottom = 16.dp)
+                    ) {
+                        // key 추가로 안정성/퍼포먼스 향상
+                        items(
+                            items = records,
+                            key = { it.id }
+                        ) { record ->
                             SobrietyRecordCard(
                                 record = record,
                                 onClick = { onNavigateToDetail(record) }
@@ -135,13 +174,17 @@ fun AllRecordsScreen(
 
 @Composable
 private fun EmptyRecordsState() {
+    // semantics 블록 밖에서 리소스 문자열을 먼저 가져옵니다.
+    val emptyCd = stringResource(id = R.string.empty_records_cd)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 32.dp),
+            .padding(vertical = 32.dp)
+            .semantics { contentDescription = emptyCd },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.9f)
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -151,6 +194,7 @@ private fun EmptyRecordsState() {
                 .padding(48.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // 이모지는 장식용이라 별도 contentDescription을 부여하지 않음
             Text(
                 text = "📝",
                 fontSize = 48.sp,
@@ -160,19 +204,19 @@ private fun EmptyRecordsState() {
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "기록이 없습니다",
+                text = stringResource(id = R.string.empty_records_title),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF333333),
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "첫 번째 금주 기록을 시작해보세요!",
+                text = stringResource(id = R.string.empty_records_subtitle),
                 fontSize = 14.sp,
-                color = Color(0xFF666666),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
         }
