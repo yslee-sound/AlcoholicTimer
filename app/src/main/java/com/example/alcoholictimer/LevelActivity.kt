@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.utils.Constants
 import com.example.alcoholictimer.utils.RecordsDataLoader
 import kotlinx.coroutines.delay
+import java.util.Locale
 
 class LevelActivity : BaseActivity() {
 
@@ -80,7 +81,7 @@ fun LevelScreen() {
     val pastRecords = RecordsDataLoader.loadSobrietyRecords(context)
     val totalPastDuration = pastRecords.sumOf { record ->
         // 완료된 기록과 미완료 기록 모두 실제 진행한 시간만큼 반영
-        (record.endTime - record.startTime).toLong()
+        (record.endTime - record.startTime)
     }
 
     // 총 누적 금주 시간 = 과거 기록들의 누적 시간 + 현재 진행 중인 시간
@@ -130,8 +131,6 @@ private fun CurrentLevelCard(
     currentDays: Int,
     startTime: Long
 ) {
-    val context = LocalContext.current
-
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -336,7 +335,7 @@ private fun ProgressToNextLevel(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = String.format("%.1f%%", progress * 100),
+                text = String.format(Locale.getDefault(), "%.1f%%", progress * 100),
                 fontSize = 12.sp,
                 color = Color(0xFF999999)
             )
@@ -396,6 +395,7 @@ private fun LevelListCard(currentLevel: LevelDefinitions.LevelInfo, currentDays:
 }
 
 @Composable
+@Suppress("UNUSED_PARAMETER")
 private fun LevelItem(
     level: LevelDefinitions.LevelInfo,
     isCurrent: Boolean,

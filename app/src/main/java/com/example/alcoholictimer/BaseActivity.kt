@@ -30,15 +30,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import kotlinx.coroutines.launch
-
-// Activity imports
-import com.example.alcoholictimer.RecordsActivity
-import com.example.alcoholictimer.RunActivity
-import com.example.alcoholictimer.StartActivity
-import com.example.alcoholictimer.LevelActivity
-import com.example.alcoholictimer.SettingsActivity
-import com.example.alcoholictimer.TestActivity
-import com.example.alcoholictimer.NicknameEditActivity
 import com.example.alcoholictimer.ui.theme.AlcoholicTimerTheme
 
 /**
@@ -49,12 +40,6 @@ abstract class BaseActivity : ComponentActivity() {
 
     // 별명 상태를 관리하는 mutable state
     private var nicknameState = mutableStateOf("")
-
-    // 공통 버튼 위치 상수
-    companion object {
-        val STANDARD_BUTTON_BOTTOM_PADDING = 16.dp
-        val STANDARD_BUTTON_HORIZONTAL_PADDING = 32.dp
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,7 +62,7 @@ abstract class BaseActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    public fun BaseScreen(content: @Composable () -> Unit) {
+    fun BaseScreen(content: @Composable () -> Unit) {
         AlcoholicTimerTheme {
             val drawerState = rememberDrawerState(DrawerValue.Closed)
             val scope = rememberCoroutineScope()
@@ -271,6 +256,7 @@ abstract class BaseActivity : ComponentActivity() {
     /**
      * 효과 없이 액티비티 전환
      */
+    @Suppress("DEPRECATION")
     private fun navigateToActivity(activityClass: Class<*>) {
         val intent = Intent(this, activityClass)
         startActivity(intent)
@@ -280,6 +266,7 @@ abstract class BaseActivity : ComponentActivity() {
     /**
      * 별명 편집 화면으로 네비게이션
      */
+    @Suppress("DEPRECATION")
     private fun navigateToNicknameEdit() {
         val intent = Intent(this, NicknameEditActivity::class.java)
         startActivity(intent)
@@ -290,58 +277,6 @@ abstract class BaseActivity : ComponentActivity() {
      * 각 액티비티에서 구현해야 할 화면 제목
      */
     protected abstract fun getScreenTitle(): String
-
-    /**
-     * 표준화된 하단 버튼 영역을 생성하는 공통 컴포넌트
-     * 모든 화면에서 동일한 위치에 버튼이 배치되도록 보장합니다.
-     */
-    @Composable
-    fun StandardBottomButtonArea(
-        content: @Composable RowScope.() -> Unit
-    ) {
-        // 하단 버튼 (표준 위치)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    start = STANDARD_BUTTON_HORIZONTAL_PADDING,
-                    end = STANDARD_BUTTON_HORIZONTAL_PADDING,
-                    bottom = STANDARD_BUTTON_BOTTOM_PADDING
-                ),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-            content = content
-        )
-    }
-
-    /**
-     * 표준화된 화면 레이아웃 구조
-     * 상단 콘텐츠와 하단 버튼 영역을 분리하여 일관된 레이아웃을 제공합니다.
-     */
-    @Composable
-    fun StandardScreenLayout(
-        topContent: @Composable ColumnScope.() -> Unit,
-        bottomButtons: @Composable RowScope.() -> Unit
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // 상단 콘텐츠 (가변 크기)
-            Box(
-                modifier = Modifier.weight(1f)
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth(),
-                    content = topContent
-                )
-            }
-
-            // 표준 하단 버튼 영역
-            StandardBottomButtonArea(content = bottomButtons)
-        }
-    }
 }
 
 @Composable
@@ -420,8 +355,8 @@ fun DrawerMenu(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 메뉴 위 Divider
-        Divider(
+        // 메뉴 위 Divider → HorizontalDivider로 변경
+        HorizontalDivider(
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.surfaceVariant,
             thickness = 1.dp
@@ -480,8 +415,8 @@ fun DrawerMenu(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 설정 위 Divider
-        Divider(
+        // 설정 위 Divider → HorizontalDivider로 변경
+        HorizontalDivider(
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.surfaceVariant,
             thickness = 1.dp
