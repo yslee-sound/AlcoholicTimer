@@ -5,7 +5,6 @@ import android.content.Intent
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,7 +17,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -460,91 +458,64 @@ private fun RecordCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 진행률 섹션
+            // 메인 정보 - 숫자 3열: 달성 일수, 목표 일수, 달성률
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // 달성 일수
                 Column {
+                    Text(
+                        text = String.format(Locale.getDefault(), "%.1f일", totalDays),
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF2C3E50)
+                    )
                     Text(
                         text = "달성 일수",
                         fontSize = 12.sp,
                         color = Color(0xFF636E72)
                     )
+                }
+
+                // 목표 일수
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = String.format(Locale.getDefault(), "%.1f일", totalDays),
-                        fontSize = 16.sp,
+                        text = "${record.targetDays}일",
+                        fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF2C3E50)
                     )
-                }
-
-                Column(
-                    horizontalAlignment = Alignment.End
-                ) {
                     Text(
                         text = "목표 일수",
                         fontSize = 12.sp,
                         color = Color(0xFF636E72)
                     )
-                    Text(
-                        text = "${record.targetDays}일",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color(0xFF636E72)
-                    )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // 진행률 바
-            Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+                // 달성률
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = String.format(Locale.getDefault(), "%.1f%%", successRate),
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (record.isCompleted) Color(0xFF00B894) else Color(0xFF74B9FF)
+                    )
                     Text(
                         text = "달성률",
                         fontSize = 12.sp,
                         color = Color(0xFF636E72)
                     )
-                    Text(
-                        text = String.format(Locale.getDefault(), "%.1f%%", successRate),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (record.isCompleted) Color(0xFF00B894) else Color(0xFF74B9FF)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(8.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(Color(0xFFE9ECEF))
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(successRate / 100f)
-                            .height(8.dp)
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(
-                                if (record.isCompleted)
-                                    Color(0xFF00B894)
-                                else
-                                    Color(0xFF74B9FF)
-                            )
-                    )
                 }
             }
+
+            // 진행률 바 제거됨 (요청 사항)
         }
     }
 }
 
+@Suppress("UNUSED_PARAMETER")
 @Composable
 private fun PeriodStatisticsSection(
     records: List<SobrietyRecord>,

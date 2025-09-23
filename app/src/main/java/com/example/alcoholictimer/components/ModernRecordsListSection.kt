@@ -11,7 +11,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -149,10 +148,10 @@ fun ModernSobrietyRecordCard(
     onClick: () -> Unit = {}
 ) {
     val dateFormatter = SimpleDateFormat("MM.dd", Locale.getDefault()).apply {
-        timeZone = java.util.TimeZone.getDefault()
+        timeZone = TimeZone.getDefault()
     }
     val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault()).apply {
-        timeZone = java.util.TimeZone.getDefault()
+        timeZone = TimeZone.getDefault()
     }
 
     val startDate = dateFormatter.format(Date(record.startTime))
@@ -161,7 +160,7 @@ fun ModernSobrietyRecordCard(
     val endTime = timeFormatter.format(Date(record.endTime))
 
     val duration = record.endTime - record.startTime
-    val actualDurationDays = (duration / (24 * 60 * 60 * 1000f)).toFloat()
+    val actualDurationDays = (duration / (24 * 60 * 60 * 1000f))
     val progressPercent = if (record.targetDays > 0) {
         ((actualDurationDays / record.targetDays) * 100).coerceIn(0f, 100f).toInt()
     } else {
@@ -235,7 +234,7 @@ fun ModernSobrietyRecordCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 메인 정보
+            // 메인 정보 - 숫자 3열: 달성 일수, 목표 일수, 달성률
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -244,57 +243,44 @@ fun ModernSobrietyRecordCard(
                 // 달성 일수
                 Column {
                     Text(
-                        text = "${actualDurationDays.toInt()}일",
-                        fontSize = 24.sp,
+                        text = String.format(Locale.getDefault(), "%.1f일", actualDurationDays),
+                        fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF1976D2)
                     )
                     Text(
-                        text = "달성",
-                        fontSize = 11.sp,
+                        text = "달성 일수",
+                        fontSize = 12.sp,
                         color = Color(0xFF666666)
                     )
                 }
 
-                // 진행률 표시
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    // 원형 진행률
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.size(60.dp)
-                    ) {
-                        CircularProgressIndicator(
-                            progress = { progressPercent / 100f },
-                            modifier = Modifier.fillMaxSize(),
-                            color = if (record.isCompleted) Color(0xFF4CAF50) else Color(0xFFFF9800),
-                            strokeWidth = 4.dp,
-                            trackColor = Color(0xFFE0E0E0),
-                            strokeCap = StrokeCap.Round
-                        )
-                        Text(
-                            text = "${progressPercent}%",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (record.isCompleted) Color(0xFF4CAF50) else Color(0xFFFF9800)
-                        )
-                    }
-                }
-
                 // 목표 일수
-                Column(
-                    horizontalAlignment = Alignment.End
-                ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "${record.targetDays}일",
-                        fontSize = 24.sp,
+                        fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF666666)
                     )
                     Text(
-                        text = "목표",
-                        fontSize = 11.sp,
+                        text = "목표 일수",
+                        fontSize = 12.sp,
+                        color = Color(0xFF666666)
+                    )
+                }
+
+                // 달성률
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "${progressPercent}%",
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (record.isCompleted) Color(0xFF4CAF50) else Color(0xFFFF9800)
+                    )
+                    Text(
+                        text = "달성률",
+                        fontSize = 12.sp,
                         color = Color(0xFF666666)
                     )
                 }

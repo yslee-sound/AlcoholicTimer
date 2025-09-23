@@ -23,10 +23,10 @@ fun SobrietyRecordCard(
     onClick: () -> Unit = {}
 ) {
     val dateFormatter = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault()).apply {
-        timeZone = java.util.TimeZone.getDefault()
+        timeZone = TimeZone.getDefault()
     }
     val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault()).apply {
-        timeZone = java.util.TimeZone.getDefault()
+        timeZone = TimeZone.getDefault()
     }
 
     val startDate = dateFormatter.format(Date(record.startTime))
@@ -128,43 +128,43 @@ fun SobrietyRecordCard(
                 Column {
                     Text(
                         text = String.format(Locale.getDefault(), "%.1f일", totalDays),
-                        fontSize = 24.sp,
+                        fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
                     )
                     Text(
-                        text = "달성",
-                        fontSize = 12.sp,
+                        text = "달성 일수",
+                        fontSize = 14.sp,
                         color = Color.Gray
                     )
                 }
 
-                // 중앙: 목표 대비 진행률 (실시간 계산)
+                // 중앙: 목표 일수
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
+                        text = "${record.targetDays}일",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+                    Text(
+                        text = "목표 일수",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+                }
+
+                // 오른쪽: 달성률
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
                         text = "${progressPercent}%",
-                        fontSize = 20.sp,
+                        fontSize = 26.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (record.isCompleted) Color(0xFF4CAF50) else Color(0xFFFF9800)
                     )
                     Text(
-                        text = "목표 달성률",
-                        fontSize = 12.sp,
-                        color = Color.Gray
-                    )
-                }
-
-                // 오른쪽: 목표 일수
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = "${record.targetDays}일",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
-                    Text(
-                        text = "목표",
-                        fontSize = 12.sp,
+                        text = "달성률",
+                        fontSize = 14.sp,
                         color = Color.Gray
                     )
                 }
