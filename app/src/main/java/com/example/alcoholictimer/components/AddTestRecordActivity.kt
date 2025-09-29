@@ -551,15 +551,26 @@ fun AddTestRecordScreen(
                                 set(Calendar.MILLISECOND, 0)
                             }
 
+                            val actualDurationDays = ((endCalendar.timeInMillis - startCalendar.timeInMillis) / (24.0 * 60 * 60 * 1000)).coerceAtLeast(0.0)
+                            val defaultGoalDays = 30.0
+                            val computedPercentage = if (targetDaysDouble > 0.0) {
+                                com.example.alcoholictimer.utils.PercentUtils.roundPercent((actualDurationDays / targetDaysDouble) * 100.0)
+                            } else {
+                                // 목표가 0일인 경우 기본 목표(30일) 대비 진행률로 계산
+                                com.example.alcoholictimer.utils.PercentUtils.roundPercent((actualDurationDays / defaultGoalDays) * 100.0)
+                            }
+
                             val record = SobrietyRecord(
                                 id = "test_${System.currentTimeMillis()}",
                                 startTime = startCalendar.timeInMillis,
                                 endTime = endCalendar.timeInMillis,
-                                targetDays = targetDaysDouble.toInt(), // 기존 호환성을 위해 Int로 변환
+                                targetDays = targetDaysDouble.toInt(), // 기존 호환성을 위해 Int로 변환(소수는 절삭)
                                 actualDays = actualDays.toInt(), // 계산된 실제 일수
                                 isCompleted = isCompleted,
                                 status = status,
-                                createdAt = System.currentTimeMillis()
+                                createdAt = System.currentTimeMillis(),
+                                percentage = computedPercentage,
+                                isTestRecord = true
                             )
 
                             onSave(record)

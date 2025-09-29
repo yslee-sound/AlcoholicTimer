@@ -57,12 +57,13 @@ fun RecordSummaryCard(
     // 실제 시간 차이를 기반으로 값 계산
     val totalDurationMillis = record.endTime - record.startTime
     val totalDays = totalDurationMillis / (24.0 * 60 * 60 * 1000.0)
-    val successRate = if (record.targetDays > 0) {
-        ((totalDays / record.targetDays) * 100.0).let { rate ->
-            if (rate > 100) 100.0 else rate
-        }.toFloat()
-    } else {
-        record.percentage?.toFloat() ?: 0f
+    val successRate = run {
+        val pctFromTarget = if (record.targetDays > 0) {
+            ((totalDays / record.targetDays) * 100.0).coerceIn(0.0, 100.0)
+        } else null
+        val pctFromRecord = record.percentage?.toDouble()
+        val pctFallbackDefault = ((totalDays / 30.0) * 100.0).coerceIn(0.0, 100.0)
+        (pctFromTarget ?: pctFromRecord ?: pctFallbackDefault).toFloat()
     }
 
     // 컴팩트/일반 모드별 타이포/여백 프리셋

@@ -100,7 +100,8 @@ fun RecordsScreen(
                     val weekEndInclusive = cal.timeInMillis + (24 * 60 * 60 * 1000L - 1)
                     weekStart to weekEndInclusive
                 }
-                records.filter { it.startTime in range.first..range.second }
+                // 주간 겹침 판정으로 필터링
+                records.filter { it.endTime >= range.first && it.startTime <= range.second }
             }
             "월" -> {
                 if (selectedDetailPeriod.isNotEmpty()) {
@@ -215,7 +216,8 @@ fun RecordsScreen(
                                 // AddTestRecordActivity로 이동
                                 val intent = Intent(context, AddTestRecordActivity::class.java)
                                 addTestRecordLauncher.launch(intent)
-                            }
+                            },
+                            weekRange = selectedWeekRange // 주간 범위 전달
                         )
                     }
                 }
@@ -396,7 +398,8 @@ private fun PeriodStatisticsSection(
     selectedPeriod: String,
     selectedDetailPeriod: String,
     modifier: Modifier = Modifier,
-    onAddTestRecord: () -> Unit = {}
+    onAddTestRecord: () -> Unit = {},
+    weekRange: Pair<Long, Long>? = null
 ) {
     // 통계 계산 - 수정된 로직
     val totalRecords = records.size
@@ -404,37 +407,67 @@ private fun PeriodStatisticsSection(
     // 각 기록의 실제 달성률을 평균으로 계산
     val successRate = if (totalRecords > 0) {
         val totalProgressPercent = records.sumOf { record ->
-            val actualDurationDays = (record.endTime - record.startTime) / (24 * 60 * 60 * 1000f)
+            val actualDurationDays = if (selectedPeriod == "주" && weekRange != null) {
+                val overlapStart = maxOf(record.startTime, weekRange.first)
+                val overlapEnd = minOf(record.endTime, weekRange.second)
+                val overlapMs = (overlapEnd - overlapStart).coerceAtLeast(0)
+                overlapMs / (24f * 60 * 60 * 1000f)
+            } else {
+                (record.endTime - record.startTime) / (24 * 60 * 60 * 1000f)
+            }
             val progressPercent = if (record.targetDays > 0) {
                 ((actualDurationDays / record.targetDays) * 100).coerceIn(0f, 100f)
             } else {
-                record.percentage?.toFloat() ?: 0f
+                // 목표 0일 기록: 저장된 percentage 우선, 없으면 기본 목표 30일 대비 계산
+                record.percentage?.toFloat() ?: ((actualDurationDays / 30f) * 100f).coerceIn(0f, 100f)
             }
             progressPercent.toDouble()
         }
         com.example.alcoholictimer.utils.PercentUtils.roundPercent(totalProgressPercent / totalRecords)
     } else 0
 
-    // 실제 시간 기반으로 총 일수 계산
+    // 실제 시간 기반으로 총 일수 계산 (주간은 겹치는 구간만)
     val totalDays = records.sumOf { record ->
-        val duration = record.endTime - record.startTime
-        (duration / (24 * 60 * 60 * 1000.0)).toInt()
+        val days = if (selectedPeriod == "주" && weekRange != null) {
+            val overlapStart = maxOf(record.startTime, weekRange.first)
+            val overlapEnd = minOf(record.endTime, weekRange.second)
+            val overlapMs = (overlapEnd - overlapStart).coerceAtLeast(0)
+            overlapMs / (24 * 60 * 60 * 1000.0)
+        } else {
+            val duration = record.endTime - record.startTime
+            duration / (24 * 60 * 60 * 1000.0)
+        }
+        days.toInt()
     }
 
-    // 실제 시간 기반으로 평균 지속일 계산
+    // 실제 시간 기반으로 평균 지속일 계산 (주간은 겹치는 구간만)
     val averageDays = if (totalRecords > 0) {
         val avgDuration = records.map { record ->
-            (record.endTime - record.startTime) / (24 * 60 * 60 * 1000.0)
+            if (selectedPeriod == "주" && weekRange != null) {
+                val overlapStart = maxOf(record.startTime, weekRange.first)
+                val overlapEnd = minOf(record.endTime, weekRange.second)
+                val overlapMs = (overlapEnd - overlapStart).coerceAtLeast(0)
+                overlapMs / (24 * 60 * 60 * 1000.0)
+            } else {
+                (record.endTime - record.startTime) / (24 * 60 * 60 * 1000.0)
+            }
         }.average()
         avgDuration.toInt()
     } else 0
 
-    // 실제 시간 기반으로 최대 지속일 계산
+    // 실제 시간 기반으로 최대 지속일 계산 (주간은 겹치는 구간만)
     val maxDays = if (records.isNotEmpty()) {
         records.maxOf { record ->
-            val duration = record.endTime - record.startTime
-            (duration / (24 * 60 * 60 * 1000.0)).toInt()
-        }
+            val days = if (selectedPeriod == "주" && weekRange != null) {
+                val overlapStart = maxOf(record.startTime, weekRange.first)
+                val overlapEnd = minOf(record.endTime, weekRange.second)
+                val overlapMs = (overlapEnd - overlapStart).coerceAtLeast(0)
+                overlapMs / (24 * 60 * 60 * 1000.0)
+            } else {
+                (record.endTime - record.startTime) / (24 * 60 * 60 * 1000.0)
+            }
+            days
+        }.toInt()
     } else 0
 
     Card(
