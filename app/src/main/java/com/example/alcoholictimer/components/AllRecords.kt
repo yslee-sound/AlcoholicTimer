@@ -30,6 +30,7 @@ import com.example.alcoholictimer.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AllRecordsScreen(
+    externalRefreshTrigger: Int = 0,
     onNavigateBack: () -> Unit = {},
     onNavigateToDetail: (SobrietyRecord) -> Unit = {}
 ) {
@@ -39,19 +40,27 @@ fun AllRecordsScreen(
     var loadError by remember { mutableStateOf<String?>(null) }
     var retryTrigger by remember { mutableStateOf(0) }
 
-    // 데이터 로딩 (재시도 트리거에 반응)
-    LaunchedEffect(retryTrigger) {
-        isLoading = true
-        loadError = null
-        try {
-            val loadedRecords = RecordsDataLoader.loadSobrietyRecords(context)
-            records = loadedRecords.sortedByDescending { it.createdAt }
-            isLoading = false
-        } catch (e: Exception) {
-            isLoading = false
-            loadError = e.message ?: "unknown"
+    // 공통 로딩 함수
+    val loadRecords: () -> Unit = remember {
+        {
+            isLoading = true
+            loadError = null
+            try {
+                val loadedRecords = RecordsDataLoader.loadSobrietyRecords(context)
+                records = loadedRecords.sortedByDescending { it.createdAt }
+                isLoading = false
+            } catch (e: Exception) {
+                isLoading = false
+                loadError = e.message ?: "unknown"
+            }
         }
     }
+
+    // 최초 및 재시도 트리거 시 로딩
+    LaunchedEffect(retryTrigger) { loadRecords() }
+
+    // 외부 새로고침 트리거(externalRefreshTrigger) 변화 시에도 로딩
+    LaunchedEffect(externalRefreshTrigger) { loadRecords() }
 
     // 다른 화면들과 일관된 연한 회색 계열 그라데이션 (BaseActivity와 동일 톤)
     val gradientBackground = Brush.linearGradient(

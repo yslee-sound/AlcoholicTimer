@@ -1,5 +1,6 @@
 package com.example.alcoholictimer
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -483,7 +484,9 @@ fun DetailScreen(
                             } catch (e: Exception) {
                                 Log.e("DetailActivity", "삭제 중 오류", e)
                             }
-                            (context as? DetailActivity)?.finish()
+                            val activity = (context as? DetailActivity)
+                            activity?.setResult(Activity.RESULT_OK)
+                            activity?.finish()
                         }
                     ) {
                         Text("삭제", color = Color(0xFFE53E3E), fontWeight = FontWeight.Bold)
