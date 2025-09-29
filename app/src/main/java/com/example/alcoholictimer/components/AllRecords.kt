@@ -152,7 +152,7 @@ fun AllRecordsScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                         contentPadding = PaddingValues(bottom = 16.dp)
                     ) {
                         // key 추가로 안정성/퍼포먼스 향상
@@ -163,8 +163,9 @@ fun AllRecordsScreen(
                             RecordSummaryCard(
                                 record = record,
                                 onClick = { onNavigateToDetail(record) },
-                                containerColor = if (record.isCompleted) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                                showTimeRow = true
+                                compact = false,
+                                headerIconSizeDp = 56.dp,
+                                showTimeRow = false
                             )
                         }
                     }

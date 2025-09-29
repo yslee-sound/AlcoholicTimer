@@ -544,7 +544,7 @@ private fun PeriodStatisticsSection(
             ) {
                 // 성공률
                 StatisticItem(
-                    title = "성공률\n없음",
+                    title = "성공률\n ",
                     value = "$successRate%",
                     color = MaterialTheme.colorScheme.tertiary,
                     modifier = Modifier.weight(1f)
