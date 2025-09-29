@@ -90,7 +90,7 @@ fun RecordSummaryCard(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top
             ) {
                 Surface(
                     shape = RoundedCornerShape(10.dp),
