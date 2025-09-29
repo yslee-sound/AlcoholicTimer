@@ -251,7 +251,7 @@ fun RecordsScreen(
                             )
                         }
                     }
-                    if (records.size > 5) {
+                    if (records.isNotEmpty()) {
                         item {
                             Button(
                                 onClick = onNavigateToAllRecords,
@@ -301,17 +301,30 @@ fun RecordsScreen(
                     onMonthPicked = { year, month ->
                         selectedDetailPeriod = "${year}년 ${month}월" // 읽기 좋은 형태로 저장
                         showBottomSheet = false
+                    },
+                    records = records,
+                    onYearPicked = { year ->
+                        selectedPeriod = "년"
+                        selectedDetailPeriod = "${year}년"
+                        showBottomSheet = false
                     }
                 )
             }
             "년" -> {
+                // 선택된 상세 기간에서 연도 추출(있으면), 없으면 현재 연도
+                val initialYearForPicker =
+                    Regex("(\\d{4})년").find(selectedDetailPeriod)?.groupValues?.getOrNull(1)?.toIntOrNull()
+                        ?: Calendar.getInstance().get(Calendar.YEAR)
+
                 YearPickerBottomSheet(
                     isVisible = true,
                     onDismiss = { showBottomSheet = false },
                     onYearPicked = { year ->
                         selectedDetailPeriod = "${year}년" // 읽기 좋은 형태로 저장
                         showBottomSheet = false
-                    }
+                    },
+                    records = records,
+                    initialYear = initialYearForPicker
                 )
             }
         }
