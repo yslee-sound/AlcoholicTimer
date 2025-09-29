@@ -82,7 +82,9 @@ fun TestRecordInputDialogContent(
     val actualDurationMs = inputEndTime - inputStartTime
     val actualDurationDays = (actualDurationMs / (24 * 60 * 60 * 1000f)).toFloat()
     val achievedPercentage = if (inputTargetDays > 0) {
-        ((actualDurationDays / inputTargetDays) * 100).coerceIn(0f, 100f).toInt()
+        com.example.alcoholictimer.utils.PercentUtils.roundPercent(
+            ((actualDurationDays / inputTargetDays) * 100).coerceIn(0f, 100f).toDouble()
+        )
     } else 0
 
     // 종료일시 선택 옵션을 시작일시 이후로 제한하는 함수들

@@ -777,7 +777,7 @@ fun ModernProgressIndicator(progress: Float) {
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "${(progress * 100).toInt()}%",
+                text = "${com.example.alcoholictimer.utils.PercentUtils.roundPercentFromRatio(progress.toDouble())}%", // 수정된 부분
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF4CAF50)
@@ -790,7 +790,7 @@ fun ModernProgressIndicator(progress: Float) {
                 modifier = Modifier
                     .size(6.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF4CAF50).copy(alpha = alpha))
+                    .background(Color(0xFF4CAF50).copy(alpha))
             )
         }
 

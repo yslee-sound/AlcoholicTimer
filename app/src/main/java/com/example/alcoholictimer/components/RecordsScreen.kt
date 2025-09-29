@@ -19,9 +19,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.ui.theme.AlcoholicTimerTheme
@@ -36,7 +38,8 @@ import java.util.*
 fun RecordsScreen(
     externalRefreshTrigger: Int,
     onNavigateToDetail: (SobrietyRecord) -> Unit = {},
-    onNavigateToAllRecords: () -> Unit = {}
+    onNavigateToAllRecords: () -> Unit = {},
+    fontScale: Float = 1.06f
 ) {
     val context = LocalContext.current
     var records by remember { mutableStateOf<List<SobrietyRecord>>(emptyList()) }
@@ -50,6 +53,8 @@ fun RecordsScreen(
     var selectedPeriod by remember { mutableStateOf("월") } // "전체"에서 "월"로 변경
     var showBottomSheet by remember { mutableStateOf(false) }
     var selectedDetailPeriod by remember { mutableStateOf("${currentYear}년 ${currentMonth}월") } // 현재 월로 기본값 설정
+    // 주 선택 시 실제 범위를 저장 (일요일 00:00 ~ 토요일 23:59:59.999)
+    var selectedWeekRange by remember { mutableStateOf<Pair<Long, Long>?>(null) }
 
     // 데이터 로딩 함수
     val loadRecords = {
@@ -76,31 +81,26 @@ fun RecordsScreen(
     }
 
     // 기간에 따른 기록 필터링 (통계용)
-    val filteredRecords = remember(records, selectedPeriod, selectedDetailPeriod) {
+    val filteredRecords = remember(records, selectedPeriod, selectedDetailPeriod, selectedWeekRange) {
         when (selectedPeriod) {
             "주" -> {
-                if (selectedDetailPeriod.isNotEmpty()) {
-                    // 특정 주 필터링 로직 (예: "2025-08-10 ~ 2025-08-16")
-                    val parts = selectedDetailPeriod.split("~").map { it.trim() }
-                    if (parts.size == 2) {
-                        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                        val weekStart = try { sdf.parse(parts[0])?.time ?: 0L } catch (_: Exception) { 0L }
-                        val weekEnd = try { sdf.parse(parts[1])?.time?.plus(24*60*60*1000L-1) ?: Long.MAX_VALUE } catch (_: Exception) { Long.MAX_VALUE }
-                        records.filter { it.startTime in weekStart..weekEnd }
-                    } else records
-                } else {
-                    // 이번 주(일요일~토요일) 시작~끝
-                    val cal = Calendar.getInstance()
-                    cal.set(Calendar.HOUR_OF_DAY, 0)
-                    cal.set(Calendar.MINUTE, 0)
-                    cal.set(Calendar.SECOND, 0)
-                    cal.set(Calendar.MILLISECOND, 0)
-                    cal.set(Calendar.DAY_OF_WEEK, cal.firstDayOfWeek)
+                // 선택된 주 범위가 있으면 그대로 사용
+                val range = selectedWeekRange ?: run {
+                    // 없으면 이번 주(일요일~토요일) 범위 계산
+                    val cal = Calendar.getInstance().apply {
+                        firstDayOfWeek = Calendar.SUNDAY
+                        set(Calendar.HOUR_OF_DAY, 0)
+                        set(Calendar.MINUTE, 0)
+                        set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
+                        set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
+                    }
                     val weekStart = cal.timeInMillis
                     cal.add(Calendar.DAY_OF_WEEK, 6)
-                    val weekEnd = cal.timeInMillis + (24*60*60*1000L-1)
-                    records.filter { it.startTime in weekStart..weekEnd }
+                    val weekEndInclusive = cal.timeInMillis + (24 * 60 * 60 * 1000L - 1)
+                    weekStart to weekEndInclusive
                 }
+                records.filter { it.startTime in range.first..range.second }
             }
             "월" -> {
                 if (selectedDetailPeriod.isNotEmpty()) {
@@ -181,94 +181,98 @@ fun RecordsScreen(
     }
 
     StandardScreen {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(0.dp)
-        ) {
-            item {
-                // 기간 선택 탭 섹션
-                PeriodSelectionSection(
-                    selectedPeriod = selectedPeriod,
-                    onPeriodSelected = { period: String ->
-                        selectedPeriod = period
-                        // 기간이 변경되면 세부 기간만 초기화 (기본값으로 리셋하지 않음)
-                        selectedDetailPeriod = ""
-                    },
-                    onPeriodClick = { period: String ->
-                        // 세부 기간 텍스트 클릭 시 바텀시트 표시
-                        showBottomSheet = true
-                    },
-                    selectedDetailPeriod = selectedDetailPeriod
-                )
-            }
-            item {
-                // 해당 기간에 대한 정보를 보여주는 섹션
-                if (!isLoading) {
-                    PeriodStatisticsSection(
-                        records = filteredRecords,
+        CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = LocalDensity.current.fontScale * fontScale)) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(0.dp)
+            ) {
+                item {
+                    // 기간 선택 탭 섹션
+                    PeriodSelectionSection(
                         selectedPeriod = selectedPeriod,
-                        selectedDetailPeriod = selectedDetailPeriod,
-                        modifier = Modifier.padding(vertical = 8.dp),
-                        onAddTestRecord = {
-                            // AddTestRecordActivity로 이동
-                            val intent = Intent(context, AddTestRecordActivity::class.java)
-                            addTestRecordLauncher.launch(intent)
-                        }
+                        onPeriodSelected = { period: String ->
+                            selectedPeriod = period
+                            // 기간이 변경되면 세부 기간만 초기화 (기본값으로 리셋하지 않음)
+                            selectedDetailPeriod = ""
+                        },
+                        onPeriodClick = { period: String ->
+                            // 세부 기간 텍스트 클릭 시 바텀시트 표시
+                            showBottomSheet = true
+                        },
+                        selectedDetailPeriod = selectedDetailPeriod
                     )
                 }
-            }
-            item {
-                // 로딩/빈 상태/기록 목록
-                if (isLoading) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().height(200.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(
-                            color = MaterialTheme.colorScheme.primary
+                item {
+                    // 해당 기간에 대한 정보를 보여주는 섹션
+                    if (!isLoading) {
+                        PeriodStatisticsSection(
+                            records = filteredRecords,
+                            selectedPeriod = selectedPeriod,
+                            selectedDetailPeriod = selectedDetailPeriod,
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            onAddTestRecord = {
+                                // AddTestRecordActivity로 이동
+                                val intent = Intent(context, AddTestRecordActivity::class.java)
+                                addTestRecordLauncher.launch(intent)
+                            }
                         )
-                    }
-                } else if (records.isEmpty()) { // filteredRecords 대신 전체 records로 변경
-                    EmptyRecordsState(selectedPeriod, selectedDetailPeriod)
-                }
-            }
-            if (!isLoading && latestRecords.isNotEmpty()) {
-                items(latestRecords) { record ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp) // 카드 상하 여백만 유지
-                    ) {
-                        RecordSummaryCard(
-                            record = record,
-                            onClick = { onNavigateToDetail(record) }
-                        )
-                    }
-                }
-                if (records.size > 5) {
-                    item {
-                        Button(
-                            onClick = onNavigateToAllRecords,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = MaterialTheme.colorScheme.onPrimary
-                            ),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text(
-                                text = "모든 기록 보기 (${records.size}개)",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
                     }
                 }
                 item {
-                    Spacer(modifier = Modifier.height(16.dp))
+                    // 로딩/빈 상태/기록 목록
+                    if (isLoading) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().height(200.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    } else if (records.isEmpty()) { // filteredRecords 대신 전체 records로 변경
+                        EmptyRecordsState(selectedPeriod, selectedDetailPeriod)
+                    }
+                }
+                if (!isLoading && latestRecords.isNotEmpty()) {
+                    items(latestRecords) { record ->
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp) // 카드 상하 여백만 유지
+                        ) {
+                            RecordSummaryCard(
+                                record = record,
+                                compact = false, // 더 큰 타이포 사용
+                                headerIconSizeDp = 56.dp,
+                                onClick = { onNavigateToDetail(record) }
+                            )
+                        }
+                    }
+                    if (records.size > 5) {
+                        item {
+                            Button(
+                                onClick = onNavigateToAllRecords,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                ),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text(
+                                    text = "모든 기록 보기 (${records.size}개)",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                    }
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
             }
         }
@@ -282,7 +286,8 @@ fun RecordsScreen(
                     isVisible = true,
                     onDismiss = { showBottomSheet = false },
                     onWeekPicked = { weekStart, weekEnd, displayText ->
-                        selectedDetailPeriod = displayText // 바텀시트에서 제공하는 displayText 사용
+                        selectedDetailPeriod = displayText // UX용 표시 텍스트
+                        selectedWeekRange = weekStart to weekEnd // 실제 필터 범위
                         showBottomSheet = false
                     }
                 )
@@ -407,7 +412,7 @@ private fun PeriodStatisticsSection(
             }
             progressPercent.toDouble()
         }
-        (totalProgressPercent / totalRecords).toInt()
+        com.example.alcoholictimer.utils.PercentUtils.roundPercent(totalProgressPercent / totalRecords)
     } else 0
 
     // 실제 시간 기반으로 총 일수 계산
@@ -487,12 +492,13 @@ private fun PeriodStatisticsSection(
 
             // 통계 그리드
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // 성공률
                 StatisticItem(
-                    title = "성공률",
+                    title = "성공률\n없음",
                     value = "$successRate%",
                     color = MaterialTheme.colorScheme.tertiary,
                     modifier = Modifier.weight(1f)
@@ -500,7 +506,7 @@ private fun PeriodStatisticsSection(
 
                 // 평균 지속일
                 StatisticItem(
-                    title = "평균 지속일",
+                    title = "평균\n지속일",
                     value = "${averageDays}일",
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f)
@@ -508,7 +514,7 @@ private fun PeriodStatisticsSection(
 
                 // 최대 지속일
                 StatisticItem(
-                    title = "최대 지속일",
+                    title = "최대\n지속일",
                     value = "${maxDays}일",
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.weight(1f)
@@ -547,26 +553,48 @@ private fun StatisticItem(
     modifier: Modifier = Modifier
 ) {
     Surface(
-        modifier = modifier,
+        modifier = modifier
+            .fillMaxWidth()
+            // Row 높이에 의존하지 않고, 각 카드의 최소 높이를 고정하여 균일하게 맞춤
+            .defaultMinSize(minHeight = 96.dp),
         shape = RoundedCornerShape(12.dp),
         color = color.copy(alpha = 0.1f)
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
         ) {
-            Text(
-                text = value,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = color
-            )
-            Spacer(modifier = Modifier.height(4.dp))
+            // 숫자 영역: 고정 높이 박스로 상단 정렬하여 타일 간 시작 위치 통일
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = value,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = color,
+                    textAlign = TextAlign.Center,
+                    style = androidx.compose.ui.text.TextStyle(
+                        platformStyle = androidx.compose.ui.text.PlatformTextStyle(
+                            includeFontPadding = false
+                        )
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            // 제목: 2줄 표시, 줄간격 고정해 균일화
             Text(
                 text = title,
                 fontSize = 12.sp,
+                lineHeight = 16.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )

@@ -39,11 +39,11 @@ data class SobrietyRecord(
 
     /**
      * 달성률 계산 (백분율)
-     * 저장된 percentage 값이 있으면 우선 사용, 없으면 계산
+     * 저장된 percentage 값이 있으면 우선 사용, 없으면 계산 (전역 반올림 규칙 적용)
      */
     val achievedPercentage: Int
         get() = percentage ?: if (targetDays > 0) {
-            ((actualDays.toFloat() / targetDays.toFloat()) * 100).toInt()
+            PercentUtils.roundPercent((actualDays.toDouble() / targetDays.toDouble()) * 100.0)
         } else {
             0
         }

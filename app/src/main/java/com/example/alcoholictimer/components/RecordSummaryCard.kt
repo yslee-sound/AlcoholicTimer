@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,7 +34,8 @@ fun RecordSummaryCard(
     labelColor: Color? = null,
     compact: Boolean = true,
     showProgressBar: Boolean = true,
-    headerIconSizeDp: Dp? = null
+    headerIconSizeDp: Dp? = null,
+    numberFontWeight: FontWeight = FontWeight.SemiBold
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
@@ -69,8 +71,8 @@ fun RecordSummaryCard(
     val baseHeaderIconSize = if (compact) 56.dp else 72.dp
     val headerIconSize = headerIconSizeDp ?: baseHeaderIconSize
     val sectionSpacing = if (compact) 12.dp else 16.dp
-    val valueSize = if (compact) 18.sp else 28.sp
-    val valueSizePercent = if (compact) 18.sp else 26.sp
+    val valueSize = if (compact) 18.sp else 24.sp
+    val valueSizePercent = if (compact) 18.sp else 22.sp
     val labelSize = if (compact) 11.sp else 12.sp
 
     Card(
@@ -137,7 +139,8 @@ fun RecordSummaryCard(
                     Text(
                         text = String.format(Locale.getDefault(), "%.1f일", totalDays),
                         fontSize = valueSize,
-                        color = resolvedNumber
+                        color = resolvedNumber,
+                        fontWeight = numberFontWeight
                     )
                     Text(text = "달성 일수", fontSize = labelSize, color = resolvedLabel)
                 }
@@ -147,7 +150,8 @@ fun RecordSummaryCard(
                     Text(
                         text = "${record.targetDays}일",
                         fontSize = valueSize,
-                        color = resolvedNumber
+                        color = resolvedNumber,
+                        fontWeight = numberFontWeight
                     )
                     Text(text = "목표 일수", fontSize = labelSize, color = resolvedLabel)
                 }
@@ -157,7 +161,8 @@ fun RecordSummaryCard(
                     Text(
                         text = String.format(Locale.getDefault(), "%.1f%%", successRate),
                         fontSize = valueSizePercent,
-                        color = if (record.isCompleted) resolvedRateCompleted else resolvedRateInProgress
+                        color = if (record.isCompleted) resolvedRateCompleted else resolvedRateInProgress,
+                        fontWeight = numberFontWeight
                     )
                     Text(text = "달성률", fontSize = labelSize, color = resolvedLabel)
                 }

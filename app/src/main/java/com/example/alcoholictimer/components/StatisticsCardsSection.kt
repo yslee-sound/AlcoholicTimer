@@ -127,7 +127,7 @@ fun StatisticsCardsSection(
             }
             progressPercent.toDouble()
         }
-        (totalProgressPercent / totalAttempts).toInt()
+        com.example.alcoholictimer.utils.PercentUtils.roundPercent(totalProgressPercent / totalAttempts)
     } else 0
 
     Column(

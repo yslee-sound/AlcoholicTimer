@@ -124,27 +124,31 @@ data class WeekOption(
 )
 
 private fun generateWeekOptions(): List<WeekOption> {
-    val calendar = Calendar.getInstance()
     val dateFormat = SimpleDateFormat("MM-dd", Locale.getDefault()).apply {
-        timeZone = java.util.TimeZone.getDefault()
+        timeZone = TimeZone.getDefault()
     }
     val options = mutableListOf<WeekOption>()
 
-    // 이번 주부터 시작해서 과거로 거슬러 올라가면서 데이터 생성
-    calendar.firstDayOfWeek = Calendar.MONDAY
-    calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
-    calendar.set(Calendar.HOUR_OF_DAY, 0)
-    calendar.set(Calendar.MINUTE, 0)
-    calendar.set(Calendar.SECOND, 0)
-    calendar.set(Calendar.MILLISECOND, 0)
+    // 기준: 이번 주 일요일 00:00
+    val cal = Calendar.getInstance().apply {
+        firstDayOfWeek = Calendar.SUNDAY
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+        set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
+    }
 
-    for (i in 0 until 4) { // 최근 4주로 제한
-        val weekStart = calendar.timeInMillis
-        calendar.add(Calendar.DAY_OF_WEEK, 6) // 일요일로 이동
-        val weekEnd = calendar.timeInMillis
+    for (i in 0 until 4) { // 최근 4주
+        val weekStart = cal.timeInMillis
+
+        // 토요일 23:59:59.999까지 포함
+        val calEnd = cal.clone() as Calendar
+        calEnd.add(Calendar.DAY_OF_WEEK, 6)
+        val weekEndInclusive = calEnd.timeInMillis + (24 * 60 * 60 * 1000L - 1)
 
         val startDate = dateFormat.format(Date(weekStart))
-        val endDate = dateFormat.format(Date(weekEnd))
+        val endDate = dateFormat.format(Date(calEnd.timeInMillis))
 
         val displayText = when (i) {
             0 -> "이번 주"
@@ -152,10 +156,10 @@ private fun generateWeekOptions(): List<WeekOption> {
             else -> "$startDate ~ $endDate"
         }
 
-        options.add(WeekOption(weekStart, weekEnd, displayText))
+        options.add(WeekOption(weekStart, weekEndInclusive, displayText))
 
-        // 다음 주로 이동 (실제로는 이전 주)
-        calendar.add(Calendar.DAY_OF_WEEK, -13) // 일요일에서 이전 주 월요일로
+        // 이전 주 일요일로 이동
+        cal.add(Calendar.DAY_OF_YEAR, -7)
     }
 
     // 과거에서 현재 순으로 정렬 (reverse)
