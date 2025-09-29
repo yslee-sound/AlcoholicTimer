@@ -47,7 +47,8 @@ fun AllRecordsScreen(
             loadError = null
             try {
                 val loadedRecords = RecordsDataLoader.loadSobrietyRecords(context)
-                records = loadedRecords.sortedByDescending { it.createdAt }
+                // 정렬: 시작 시간 기준 최신순 (startTime 내림차순)
+                records = loadedRecords.sortedByDescending { it.startTime }
                 isLoading = false
             } catch (e: Exception) {
                 isLoading = false
