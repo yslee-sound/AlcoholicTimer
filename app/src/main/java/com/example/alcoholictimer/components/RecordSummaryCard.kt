@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,7 +29,9 @@ fun RecordSummaryCard(
     numberColor: Color? = null,
     rateColorCompleted: Color? = null,
     rateColorInProgress: Color? = null,
-    labelColor: Color? = null
+    labelColor: Color? = null,
+    compact: Boolean = true,
+    showProgressBar: Boolean = true
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
@@ -58,6 +61,15 @@ fun RecordSummaryCard(
         record.percentage?.toFloat() ?: 0f
     }
 
+    // 컴팩트/일반 모드별 타이포/여백 프리셋
+    val cardPadding = if (compact) 14.dp else 20.dp
+    val headerDateSize = if (compact) 14.sp else 16.sp
+    val headerIconSize = if (compact) 36.dp else 44.dp // 아이콘을 더 크게
+    val sectionSpacing = if (compact) 12.dp else 16.dp
+    val valueSize = if (compact) 18.sp else 28.sp
+    val valueSizePercent = if (compact) 18.sp else 26.sp
+    val labelSize = if (compact) 11.sp else 12.sp
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -69,32 +81,18 @@ fun RecordSummaryCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp)
+                .padding(cardPadding)
         ) {
-            // 헤더: 날짜/상태
+            // 헤더: 아이콘(왼쪽) + 날짜(오른쪽)
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "$startDate ~ $endDate",
-                        fontSize = 16.sp,
-                        color = resolvedNumber
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = record.status,
-                        fontSize = 12.sp,
-                        color = if (record.isCompleted) resolvedRateCompleted else statusIncomplete
-                    )
-                }
-
                 Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = (if (record.isCompleted) resolvedRateCompleted else statusIncomplete).copy(alpha = 0.1f),
-                    modifier = Modifier.size(32.dp)
+                    shape = RoundedCornerShape(10.dp),
+                    color = (if (record.isCompleted) resolvedRateCompleted else statusIncomplete).copy(alpha = 0.12f),
+                    modifier = Modifier.size(headerIconSize)
                 ) {
                     Icon(
                         imageVector = if (record.isCompleted) Icons.Filled.CheckCircle else Icons.Filled.Warning,
@@ -102,14 +100,24 @@ fun RecordSummaryCard(
                         tint = if (record.isCompleted) resolvedRateCompleted else statusIncomplete,
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(6.dp)
+                            .padding(if (compact) 6.dp else 8.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(if (compact) 10.dp else 12.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "$startDate ~ $endDate",
+                        fontSize = headerDateSize,
+                        color = resolvedNumber
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(sectionSpacing))
 
-            // 메인 정보 - 숫자 3열
+            // 메인 정보 - 숫자 3열 (컴팩트 타이포)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -119,41 +127,55 @@ fun RecordSummaryCard(
                 Column {
                     Text(
                         text = String.format(Locale.getDefault(), "%.1f일", totalDays),
-                        fontSize = 28.sp,
+                        fontSize = valueSize,
                         color = resolvedNumber
                     )
-                    Text(text = "달성 일수", fontSize = 12.sp, color = resolvedLabel)
+                    Text(text = "달성 일수", fontSize = labelSize, color = resolvedLabel)
                 }
 
                 // 목표 일수
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "${record.targetDays}일",
-                        fontSize = 28.sp,
+                        fontSize = valueSize,
                         color = resolvedNumber
                     )
-                    Text(text = "목표 일수", fontSize = 12.sp, color = resolvedLabel)
+                    Text(text = "목표 일수", fontSize = labelSize, color = resolvedLabel)
                 }
 
                 // 달성률
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = String.format(Locale.getDefault(), "%.1f%%", successRate),
-                        fontSize = 26.sp,
+                        fontSize = valueSizePercent,
                         color = if (record.isCompleted) resolvedRateCompleted else resolvedRateInProgress
                     )
-                    Text(text = "달성률", fontSize = 12.sp, color = resolvedLabel)
+                    Text(text = "달성률", fontSize = labelSize, color = resolvedLabel)
                 }
             }
 
+            if (showProgressBar) {
+                Spacer(modifier = Modifier.height(if (compact) 8.dp else 12.dp))
+                LinearProgressIndicator(
+                    progress = { (successRate / 100f).coerceIn(0f, 1f) },
+                    color = if (record.isCompleted) resolvedRateCompleted else resolvedRateInProgress,
+                    trackColor = resolvedLabel.copy(alpha = 0.2f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                )
+            }
+
             if (showTimeRow) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(if (compact) 8.dp else 12.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(text = "시작: $startTime", fontSize = 12.sp, color = resolvedLabel)
-                    Text(text = "종료: $endTime", fontSize = 12.sp, color = resolvedLabel)
+                    val timeTextColor = resolvedLabel
+                    Text(text = "시작: $startTime", fontSize = labelSize, color = timeTextColor)
+                    Text(text = "종료: $endTime", fontSize = labelSize, color = timeTextColor)
                 }
             }
         }
