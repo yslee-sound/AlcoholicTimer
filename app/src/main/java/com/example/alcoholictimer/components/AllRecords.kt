@@ -151,22 +151,28 @@ fun AllRecordsScreen(
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(bottom = 16.dp)
+                            .padding(horizontal = 16.dp)
+                            .navigationBarsPadding(),
+                        verticalArrangement = Arrangement.spacedBy(0.dp),
+                        contentPadding = PaddingValues(top = 12.dp, bottom = 24.dp)
                     ) {
                         // key 추가로 안정성/퍼포먼스 향상
                         items(
                             items = records,
                             key = { it.id }
                         ) { record ->
-                            RecordSummaryCard(
-                                record = record,
-                                onClick = { onNavigateToDetail(record) },
-                                compact = false,
-                                headerIconSizeDp = 56.dp,
-                                showTimeRow = false
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                            ) {
+                                RecordSummaryCard(
+                                    record = record,
+                                    onClick = { onNavigateToDetail(record) },
+                                    compact = false,
+                                    headerIconSizeDp = 56.dp
+                                )
+                            }
                         }
                     }
                 }
