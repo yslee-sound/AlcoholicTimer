@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.utils.SobrietyRecord
@@ -31,7 +32,8 @@ fun RecordSummaryCard(
     rateColorInProgress: Color? = null,
     labelColor: Color? = null,
     compact: Boolean = true,
-    showProgressBar: Boolean = true
+    showProgressBar: Boolean = true,
+    headerIconSizeDp: Dp? = null
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
@@ -64,7 +66,8 @@ fun RecordSummaryCard(
     // 컴팩트/일반 모드별 타이포/여백 프리셋
     val cardPadding = if (compact) 14.dp else 20.dp
     val headerDateSize = if (compact) 14.sp else 16.sp
-    val headerIconSize = if (compact) 36.dp else 44.dp // 아이콘을 더 크게
+    val baseHeaderIconSize = if (compact) 56.dp else 72.dp
+    val headerIconSize = headerIconSizeDp ?: baseHeaderIconSize
     val sectionSpacing = if (compact) 12.dp else 16.dp
     val valueSize = if (compact) 18.sp else 28.sp
     val valueSizePercent = if (compact) 18.sp else 26.sp
@@ -100,7 +103,7 @@ fun RecordSummaryCard(
                         tint = if (record.isCompleted) resolvedRateCompleted else statusIncomplete,
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(if (compact) 6.dp else 8.dp)
+                            .padding(if (compact) 10.dp else 12.dp)
                     )
                 }
 
@@ -108,9 +111,15 @@ fun RecordSummaryCard(
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "$startDate ~ $endDate",
+                        text = "$startDate ~",
                         fontSize = headerDateSize,
                         color = resolvedNumber
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = endDate,
+                        fontSize = headerDateSize,
+                        color = resolvedLabel
                     )
                 }
             }
