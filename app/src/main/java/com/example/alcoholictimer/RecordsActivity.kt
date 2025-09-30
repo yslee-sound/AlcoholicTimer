@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import com.example.alcoholictimer.components.RecordsScreen
 import com.example.alcoholictimer.utils.SobrietyRecord
 
@@ -21,12 +23,15 @@ class RecordsActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            BaseScreen {
-                RecordsScreen(
-                    externalRefreshTrigger = refreshTrigger,
-                    onNavigateToDetail = { record -> handleCardClick(record) },
-                    onNavigateToAllRecords = { navigateToAllRecords() }
-                )
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = density.fontScale * 0.9f)) {
+                BaseScreen {
+                    RecordsScreen(
+                        externalRefreshTrigger = refreshTrigger,
+                        onNavigateToDetail = { record -> handleCardClick(record) },
+                        onNavigateToAllRecords = { navigateToAllRecords() }
+                    )
+                }
             }
         }
     }
