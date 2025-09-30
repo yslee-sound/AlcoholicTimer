@@ -28,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import com.example.alcoholictimer.R
+import androidx.compose.runtime.mutableIntStateOf
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,7 +42,7 @@ fun AllRecordsScreen(
     var records by remember { mutableStateOf<List<SobrietyRecord>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var loadError by remember { mutableStateOf<String?>(null) }
-    var retryTrigger by remember { mutableStateOf(0) }
+    var retryTrigger by remember { mutableIntStateOf(0) }
 
     // 공통 로딩 함수
     val loadRecords: () -> Unit = remember {

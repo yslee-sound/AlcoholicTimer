@@ -8,7 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -23,7 +23,7 @@ class AllRecordsActivity : ComponentActivity() {
     }
 
     // 상세 화면에서의 삭제 완료 등을 반영하기 위한 외부 새로고침 트리거
-    private var externalRefreshTriggerState by mutableStateOf(0)
+    private var externalRefreshTriggerState by mutableIntStateOf(0)
 
     private val detailLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()

@@ -78,7 +78,7 @@ internal fun YearPickerContent(
     val defaultIndex = remember(yearOptions, initialYear) {
         yearOptions.indexOf(initialYear).let { if (it >= 0) it else (yearOptions.size - 1).coerceAtLeast(0) }
     }
-    var selectedIndex by remember(yearOptions) { mutableStateOf(defaultIndex) }
+    var selectedIndex by remember(yearOptions) { mutableIntStateOf(defaultIndex) }
 
     Column(
         modifier = Modifier

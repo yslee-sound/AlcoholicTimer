@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.example.alcoholictimer.utils.Constants
 import com.example.alcoholictimer.ui.StandardScreenWithBottomButton
 import java.util.Locale
+import androidx.core.content.edit
 
 class StartActivity : BaseActivity() {
 
@@ -230,11 +231,10 @@ fun StartScreen() {
                         if (targetTime > 0) {
                             val formattedTargetTime = String.format(Locale.US, "%.6f", targetTime).toFloat()
                             val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
-                            sharedPref.edit().apply {
+                            sharedPref.edit {
                                 putFloat("target_days", formattedTargetTime)
                                 putLong("start_time", System.currentTimeMillis())
                                 putBoolean("timer_completed", false)
-                                apply()
                             }
                             val intent = Intent(context, RunActivity::class.java)
                             context.startActivity(intent)

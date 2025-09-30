@@ -2,6 +2,7 @@ package com.example.alcoholictimer.utils
 
 import android.content.Context
 import android.util.Log
+import androidx.core.content.edit
 
 object RecordsDataLoader {
     private const val TAG = "RecordsDataLoader"
@@ -76,9 +77,7 @@ object RecordsDataLoader {
             val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
             val jsonString = SobrietyRecord.toJsonArray(currentRecords)
 
-            sharedPref.edit()
-                .putString("sobriety_records", jsonString)
-                .apply()
+            sharedPref.edit { putString("sobriety_records", jsonString) }
 
             Log.d(TAG, "테스트 기록 추가 완료: ${testRecord.id}")
             Log.d(TAG, "목표: ${targetDays}일, 달성: ${actualDays}일, 완료: ${isCompleted}")

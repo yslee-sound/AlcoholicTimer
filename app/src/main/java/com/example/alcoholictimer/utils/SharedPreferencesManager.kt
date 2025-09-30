@@ -2,6 +2,7 @@ package com.example.alcoholictimer.utils
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 
 class SharedPreferencesManager private constructor(context: Context) {
 
@@ -24,7 +25,7 @@ class SharedPreferencesManager private constructor(context: Context) {
     }
 
     fun setBoolean(key: String, value: Boolean) {
-        sharedPreferences.edit().putBoolean(key, value).apply()
+        sharedPreferences.edit { putBoolean(key, value) }
     }
 
     fun getLong(key: String, defaultValue: Long): Long {
@@ -32,7 +33,7 @@ class SharedPreferencesManager private constructor(context: Context) {
     }
 
     fun setLong(key: String, value: Long) {
-        sharedPreferences.edit().putLong(key, value).apply()
+        sharedPreferences.edit { putLong(key, value) }
     }
 
     fun getString(key: String, defaultValue: String?): String? {
@@ -40,7 +41,7 @@ class SharedPreferencesManager private constructor(context: Context) {
     }
 
     fun setString(key: String, value: String) {
-        sharedPreferences.edit().putString(key, value).apply()
+        sharedPreferences.edit { putString(key, value) }
     }
 
     fun getInt(key: String, defaultValue: Int): Int {
@@ -48,7 +49,7 @@ class SharedPreferencesManager private constructor(context: Context) {
     }
 
     fun setInt(key: String, value: Int) {
-        sharedPreferences.edit().putInt(key, value).apply()
+        sharedPreferences.edit { putInt(key, value) }
     }
 
     fun contains(key: String): Boolean {
@@ -56,10 +57,10 @@ class SharedPreferencesManager private constructor(context: Context) {
     }
 
     fun remove(key: String) {
-        sharedPreferences.edit().remove(key).apply()
+        sharedPreferences.edit { remove(key) }
     }
 
     fun clear() {
-        sharedPreferences.edit().clear().apply()
+        sharedPreferences.edit { clear() }
     }
 }

@@ -34,6 +34,7 @@ import com.example.alcoholictimer.utils.RecordsDataLoader
 import com.example.alcoholictimer.utils.SobrietyRecord
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.core.content.edit
 
 class AddTestRecordActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -90,9 +91,7 @@ class AddTestRecordActivity : ComponentActivity() {
             val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
             val jsonString = SobrietyRecord.toJsonArray(currentRecords)
 
-            sharedPref.edit()
-                .putString("sobriety_records", jsonString)
-                .apply()
+            sharedPref.edit { putString("sobriety_records", jsonString) }
 
             Log.d("AddTestRecord", "테스트 기록 저장 완료: ${record.id}")
             true

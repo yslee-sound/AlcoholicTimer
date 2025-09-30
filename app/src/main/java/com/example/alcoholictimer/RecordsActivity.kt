@@ -15,8 +15,8 @@ class RecordsActivity : BaseActivity() {
         private const val TAG = "RecordsActivity"
     }
 
-    // refreshTrigger를 Activity 레벨로 이동
-    private var refreshTrigger by mutableStateOf(0)
+    // refreshTrigger를 Activity 레벨 primitive state로 전환
+    private var refreshTrigger by mutableIntStateOf(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

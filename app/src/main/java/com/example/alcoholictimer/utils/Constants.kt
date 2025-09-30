@@ -1,6 +1,7 @@
 package com.example.alcoholictimer.utils
 
 import android.content.Context
+import androidx.core.content.edit
 
 object Constants {
     // SharedPreferences 관련 상수
@@ -110,13 +111,11 @@ object Constants {
         val isInitialized = sharedPref.getBoolean(PREF_SETTINGS_INITIALIZED, false)
 
         if (!isInitialized) {
-            // 최초 실행 시에만 기본값으로 초기화
-            sharedPref.edit().apply {
+            sharedPref.edit {
                 putString(PREF_SELECTED_COST, DEFAULT_COST)
                 putString(PREF_SELECTED_FREQUENCY, DEFAULT_FREQUENCY)
                 putString(PREF_SELECTED_DURATION, DEFAULT_DURATION)
                 putBoolean(PREF_SETTINGS_INITIALIZED, true)
-                apply()
             }
         }
     }

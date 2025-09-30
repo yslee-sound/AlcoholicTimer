@@ -6,8 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.edit
 
 class NicknameEditActivity : BaseActivity() {
 
@@ -144,9 +143,6 @@ class NicknameEditActivity : BaseActivity() {
 
     private fun saveNickname(nickname: String) {
         val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
-        with(sharedPref.edit()) {
-            putString("nickname", nickname)
-            apply()
-        }
+        sharedPref.edit { putString("nickname", nickname) }
     }
 }
