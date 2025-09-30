@@ -669,7 +669,7 @@ fun MainIndicatorCard(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = String.format(Locale.getDefault(), "%,.1f", savedMoney),
+                                        text = String.format(Locale.getDefault(), "%.0f", savedMoney),
                                         fontSize = 36.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFFE91E63),
