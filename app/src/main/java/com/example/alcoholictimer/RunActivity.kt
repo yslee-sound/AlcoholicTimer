@@ -33,7 +33,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -118,7 +117,7 @@ fun RunScreen() {
     }
     val elapsedDays = elapsedDaysFloat.toInt()
 
-    val levelDays = remember(elapsedTime) {
+    val levelDays: Int = remember(elapsedTime) {
         calculateTotalLevelDays(context, elapsedTime)
     }
 
@@ -619,7 +618,7 @@ fun MainIndicatorCard(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = String.format(Locale.getDefault(), "%.1f", lifeGainDays),
+                                        text = String.format(Locale.getDefault(), "%.2f", lifeGainDays),
                                         fontSize = 36.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFF9C27B0),
@@ -670,7 +669,7 @@ fun ModernProgressIndicator(progress: Float) {
             horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "${com.example.alcoholictimer.utils.PercentUtils.roundPercentFromRatio(progress.toDouble())}%",
+                text = com.example.alcoholictimer.utils.PercentUtils.roundPercentFromRatio(progress.toDouble()).toString() + "%",
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, color = Color(0xFF4CAF50))
             )
 
@@ -680,7 +679,7 @@ fun ModernProgressIndicator(progress: Float) {
                 modifier = Modifier
                     .size(6.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF4CAF50).copy(alpha))
+                    .background(Color(0xFF4CAF50).copy(alpha = alpha))
             )
         }
 
@@ -758,7 +757,6 @@ private fun saveCompletedRecord(
         val recordsList = try {
             JSONArray(recordsJson)
         } catch (e: Exception) {
-            // Log the exception for debugging purposes
             Log.e("RunActivity", "Error parsing recordsJson", e)
             JSONArray()
         }
@@ -774,7 +772,6 @@ private fun saveCompletedRecord(
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 
     } catch (e: Exception) {
-        // Log the exception for debugging purposes
         Log.e("RunActivity", "Error saving record", e)
         Toast.makeText(context, "기록 저장 중 오류가 발생했습니다: ${e.message}", Toast.LENGTH_SHORT).show()
     }
@@ -782,10 +779,8 @@ private fun saveCompletedRecord(
 
 // 과거 기록 + 현재 진행 시간을 모두 포함한 총 레벨 계산 함수
 private fun calculateTotalLevelDays(context: Context, currentElapsedTime: Long): Int {
-    try {
+    return try {
         val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
-
-        // 과거 완료된 기록들의 총 시간 계산
         val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
         val recordsList = try {
             JSONArray(recordsJson)
@@ -795,50 +790,20 @@ private fun calculateTotalLevelDays(context: Context, currentElapsedTime: Long):
         }
 
         var totalPastTime = 0L
-
-        // 모든 과거 기록들의 실제 지속 시간을 합산
         for (i in 0 until recordsList.length()) {
             try {
-                val record = recordsList.getJSONObject(i)
-                val startTime = record.getLong("startTime")
-                val endTime = record.getLong("endTime")
-                val duration = endTime - startTime
-
-                if (duration > 0) {
-                    totalPastTime += duration
+                val obj = recordsList.getJSONObject(i)
+                val s = obj.optLong("startTime", -1L)
+                val e = obj.optLong("endTime", -1L)
+                if (s > 0 && e > s) {
+                    totalPastTime += (e - s)
                 }
-
-                Log.d("RunActivity", "과거 기록 $i: ${duration}ms 추가, 누적: ${totalPastTime}ms")
-            } catch (e: Exception) {
-                Log.e("RunActivity", "Error processing record $i for level calculation", e)
+            } catch (_: Exception) {
             }
         }
-
-        // 과거 기록 총합 + 현재 진행 시간 = 전체 누적 시간
-        val totalTime = totalPastTime + currentElapsedTime
-
-        // 테스트 모드를 적용하여 레벨 계산
-        val levelDays = Constants.calculateLevelDays(totalTime)
-
-        Log.d("RunActivity", "=== 레벨 계산 상세 ===")
-        Log.d("RunActivity", "과거 기록 총 시간: ${totalPastTime}ms (${totalPastTime / Constants.DAY_IN_MILLIS.toFloat()}일)")
-        Log.d("RunActivity", "현재 진행 시간: ${currentElapsedTime}ms (${currentElapsedTime / Constants.DAY_IN_MILLIS.toFloat()}일)")
-        Log.d("RunActivity", "전체 누적 시간: ${totalTime}ms (${totalTime / Constants.DAY_IN_MILLIS.toFloat()}일)")
-        Log.d("RunActivity", "레벨용 일수: $levelDays")
-        Log.d("RunActivity", "최종 레벨: ${LevelDefinitions.getLevelName(levelDays)}")
-        Log.d("RunActivity", "=====================")
-
-        return levelDays
-
-    } catch (e: Exception) {
-        Log.e("RunActivity", "Error calculating total level days", e)
-        // 오류 발생 시 현재 진행 시간만으로 계산
-        return Constants.calculateLevelDays(currentElapsedTime)
+        val totalMillis = totalPastTime + currentElapsedTime
+        (totalMillis / Constants.DAY_IN_MILLIS).toInt()
+    } catch (_: Exception) {
+        (currentElapsedTime / Constants.DAY_IN_MILLIS).toInt()
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun RunScreenPreview() {
-    RunScreen()
 }

@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Density
@@ -251,34 +252,44 @@ fun DetailScreen(
                 // 헤더 영역
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // 뒤로가기 버튼
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(CircleShape)
-                            .background(Color.White)
-                            .clickable { onBack() }
+                    // 좌측: 뒤로가기 + 제목
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = "뒤로가기",
-                            tint = Color(0xFF2D3748),
-                            modifier = Modifier.size(24.dp)
-                        )
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(Color.White)
+                                .clickable { onBack() }
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                                contentDescription = "뒤로가기",
+                                tint = Color(0xFF2D3748),
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
+                        // 제목: 부모의 0.9배 스케일 영향 제거 + 명시적으로 1.5배 확대
+                        CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1f)) {
+                            val base = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                            val scaled = base.copy(fontSize = (base.fontSize.value * 1.3f).sp)
+                            Text(
+                                text = "금주 기록 상세",
+                                style = scaled,
+                                color = Color(0xFF2D3748),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
 
-                    // 타이틀
-                    Text(
-                        text = "금주 기록 상세",
-                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                        color = Color(0xFF2D3748)
-                    )
-
-                    // 삭제 버튼
+                    // 우측: 삭제 버튼
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
@@ -436,7 +447,7 @@ fun DetailScreen(
                         modifier = Modifier.weight(1f)
                     )
                     DetailStatCard(
-                        value = String.format(Locale.getDefault(), "%.1f일", lifeExpectancyIncrease),
+                        value = String.format(Locale.getDefault(), "%.2f일", lifeExpectancyIncrease),
                         label = "기대 수명 증가",
                         modifier = Modifier.weight(1f)
                     )

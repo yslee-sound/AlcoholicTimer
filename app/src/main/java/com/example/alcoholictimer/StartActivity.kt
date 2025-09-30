@@ -139,7 +139,9 @@ fun StartScreen() {
                             .padding(bottom = 24.dp)
                     ) {
                         Card(
-                            modifier = Modifier.width(100.dp),
+                            modifier = Modifier
+                                .width(100.dp)
+                                .height(56.dp), // 고정 높이로 입력 박스 크기 유지
                             shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(
                                 containerColor = Color(0xFFF5F5F5)
@@ -148,7 +150,7 @@ fun StartScreen() {
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .fillMaxWidth()
+                                    .fillMaxSize()
                                     .padding(12.dp),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -243,7 +245,8 @@ fun StartScreen() {
                     }
                 )
             }
-        }
+        },
+        imePaddingEnabled = false // 키보드가 올라와도 레이아웃 리사이즈 방지
     )
 }
 

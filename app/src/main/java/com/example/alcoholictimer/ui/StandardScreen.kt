@@ -47,7 +47,8 @@ fun StandardScreen(
 @Composable
 fun StandardScreenWithBottomButton(
     topContent: @Composable ColumnScope.() -> Unit,
-    bottomButton: @Composable () -> Unit
+    bottomButton: @Composable () -> Unit,
+    imePaddingEnabled: Boolean = true
 ) {
     // 모던한 그라데이션 배경
     val backgroundBrush = Brush.linearGradient(
@@ -60,11 +61,13 @@ fun StandardScreenWithBottomButton(
         end = Offset(1000f, 1000f)
     )
 
+    val rootModifier = Modifier
+        .fillMaxSize()
+        .background(backgroundBrush)
+        .then(if (imePaddingEnabled) Modifier.imePadding() else Modifier)
+
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundBrush)
-            .imePadding() // 키패드 대응 추가
+        modifier = rootModifier
     ) {
         // 상단 콘텐츠 영역 - 하단 버튼 공간을 훨씬 더 넉넉하게 확보
         Column(

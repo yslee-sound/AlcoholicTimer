@@ -157,7 +157,8 @@ abstract class BaseActivity : ComponentActivity() {
                                 TopAppBar(
                                     title = {
                                         CompositionLocalProvider(
-                                            LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)
+                                            // 폰트 스케일을 1.2배로 적용하여 타이틀 가독성 향상
+                                            LocalDensity provides Density(LocalDensity.current.density, fontScale = 1.2f)
                                         ) {
                                             Text(
                                                 text = getScreenTitle(),
@@ -177,7 +178,7 @@ abstract class BaseActivity : ComponentActivity() {
                                         Surface(
                                             modifier = Modifier
                                                 .padding(8.dp)
-                                                .size(40.dp),
+                                                .size(48.dp), // 40dp → 48dp (1.2배)
                                             shape = CircleShape,
                                             color = Color(0xFFF8F9FA),
                                             shadowElevation = 2.dp
@@ -193,7 +194,7 @@ abstract class BaseActivity : ComponentActivity() {
                                                     imageVector = Icons.Filled.Menu,
                                                     contentDescription = "메뉴",
                                                     tint = Color(0xFF2C3E50),
-                                                    modifier = Modifier.size(20.dp)
+                                                    modifier = Modifier.size(24.dp) // 20dp → 24dp (1.2배)
                                                 )
                                             }
                                         }

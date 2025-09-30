@@ -16,7 +16,8 @@
             android:name=".StartActivity"
             android:exported="true"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.Material3.DayNight">
+            android:theme="@style/Theme.Material3.DayNight"
+            android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

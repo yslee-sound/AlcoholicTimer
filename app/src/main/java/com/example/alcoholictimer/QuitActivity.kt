@@ -284,7 +284,7 @@ fun StatisticsCardsSection(
                 modifier = Modifier.weight(1f)
             )
             ModernStatCard(
-                value = String.format(Locale.getDefault(), "%.1f", lifeGainDays),
+                value = String.format(Locale.getDefault(), "%.2f", lifeGainDays),
                 label = "기대 수명+",
                 color = Color(0xFF9C27B0),
                 modifier = Modifier.weight(1f)
