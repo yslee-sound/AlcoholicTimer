@@ -266,7 +266,7 @@ fun StatisticsCardsSection(
                 modifier = Modifier.weight(1f)
             )
             ModernStatCard(
-                value = String.format(Locale.getDefault(), "%.1f", savedMoney / 10000),
+                value = String.format(Locale.getDefault(), "%,.0f원", savedMoney),
                 label = "절약 금액",
                 color = Color(0xFFE91E63),
                 modifier = Modifier.weight(1f)

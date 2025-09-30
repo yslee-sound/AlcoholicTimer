@@ -405,7 +405,7 @@ fun DetailScreen(
                     modifier = Modifier.weight(1f)
                 )
                 DetailStatCard(
-                    value = String.format(Locale.getDefault(), "%,d원", savedMoney),
+                    value = String.format(Locale.getDefault(), "%,.0f원", savedMoney.toDouble()),
                     label = "절약한 금액",
                     modifier = Modifier.weight(1f)
                 )
