@@ -153,7 +153,7 @@ abstract class BaseActivity : ComponentActivity() {
                                                 text = getScreenTitle(),
                                                 color = Color(0xFF2C3E50),
                                                 fontWeight = FontWeight.SemiBold,
-                                                fontSize = 20.sp
+                                                style = MaterialTheme.typography.titleMedium
                                             )
                                         }
                                     },
@@ -339,13 +339,12 @@ fun DrawerMenu(
                     CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)) {
                         Text(
                             text = nickname,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "프로필 편집",
-                            fontSize = 12.sp,
+                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -365,8 +364,7 @@ fun DrawerMenu(
         // 메인 메뉴 섹션
         Text(
             text = "메뉴",
-            fontSize = 14.sp,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
         )
@@ -404,8 +402,7 @@ fun DrawerMenu(
                     CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)) {
                         Text(
                             text = title,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Medium,
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -425,8 +422,7 @@ fun DrawerMenu(
         // 설정 섹션
         Text(
             text = "설정",
-            fontSize = 14.sp,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
         )
@@ -464,8 +460,7 @@ fun DrawerMenu(
                     CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)) {
                         Text(
                             text = title,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Medium,
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }

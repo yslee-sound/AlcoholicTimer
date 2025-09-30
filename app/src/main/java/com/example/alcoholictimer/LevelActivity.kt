@@ -160,9 +160,7 @@ private fun CurrentLevelCard(
             ) {
                 Text(
                     text = currentLevel.name.take(2), // 레벨명의 첫 2글자 표시
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    style = MaterialTheme.typography.titleLarge.copy(color = Color.White)
                 )
             }
 
@@ -180,9 +178,7 @@ private fun CurrentLevelCard(
 
             Text(
                 text = currentLevel.name,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = currentLevel.color,
+                style = MaterialTheme.typography.headlineLarge.copy(color = currentLevel.color),
                 textAlign = TextAlign.Center
             )
 
@@ -195,18 +191,14 @@ private fun CurrentLevelCard(
             ) {
                 Text(
                     text = "$currentDays",
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1976D2)
+                    style = MaterialTheme.typography.headlineLarge.copy(color = Color(0xFF1976D2))
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Text(
                     text = "일차",
-                    fontSize = 18.sp,
-                    color = Color(0xFF666666),
-                    fontWeight = FontWeight.Medium
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium, color = Color(0xFF666666))
                 )
             }
 
@@ -276,9 +268,7 @@ private fun ProgressToNextLevel(
         ) {
             Text(
                 text = "다음 레벨까지",
-                fontSize = 14.sp,
-                color = Color(0xFF666666),
-                fontWeight = FontWeight.Medium
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium, color = Color(0xFF666666))
             )
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -336,14 +326,12 @@ private fun ProgressToNextLevel(
         ) {
             Text(
                 text = String.format(Locale.getDefault(), "%.1f%%", progress * 100),
-                fontSize = 12.sp,
-                color = Color(0xFF999999)
+                style = MaterialTheme.typography.labelMedium.copy(color = Color(0xFF999999))
             )
 
             Text(
                 text = "${remainingDays}일 남음",
-                fontSize = 12.sp,
-                color = Color(0xFF999999)
+                style = MaterialTheme.typography.labelMedium.copy(color = Color(0xFF999999))
             )
         }
 
@@ -372,9 +360,7 @@ private fun LevelListCard(currentLevel: LevelDefinitions.LevelInfo, currentDays:
         ) {
             Text(
                 text = "전체 레벨",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF333333),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color(0xFF333333)),
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
@@ -436,9 +422,7 @@ private fun LevelItem(
                 // 현재 진행중이든 완료된 레벨이든 모두 첫글자 표시
                 Text(
                     text = level.name.take(1), // 레벨명의 첫 1글자 표시
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isAchieved) Color.White else Color(0xFF757575)
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = if (isAchieved) Color.White else Color(0xFF757575))
                 )
             }
 
@@ -449,9 +433,7 @@ private fun LevelItem(
             ) {
                 Text(
                     text = level.name,
-                    fontSize = 16.sp,
-                    fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Medium,
-                    color = if (isAchieved) level.color else Color(0xFF757575)
+                    style = (if (isCurrent) MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold) else MaterialTheme.typography.titleMedium).copy(color = if (isAchieved) level.color else Color(0xFF757575))
                 )
 
                 val rangeText = if (level.end == Int.MAX_VALUE) {
@@ -462,8 +444,7 @@ private fun LevelItem(
 
                 Text(
                     text = rangeText,
-                    fontSize = 12.sp,
-                    color = Color(0xFF666666)
+                    style = MaterialTheme.typography.labelMedium.copy(color = Color(0xFF666666))
                 )
             }
 

@@ -17,7 +17,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.utils.Constants
 
 class TestActivity : BaseActivity() {
@@ -54,11 +53,15 @@ fun TestScreen() {
         // 레벨 테스트 모드 설정 (금주 진행에는 영향 없음)
         val density = LocalDensity.current
         CompositionLocalProvider(LocalDensity provides Density(density.density, 1f)) {
-            Text("레벨 테스트 모드", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = "레벨 테스트 모드",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
         }
         Text(
             text = "※ 이 설정은 레벨 계산에만 영향을 미치며, 실제 금주 진행 시간은 변경되지 않습니다.",
-            fontSize = 14.sp,
+            style = MaterialTheme.typography.bodyMedium,
             color = Color.Gray,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -70,8 +73,15 @@ fun TestScreen() {
                     onClick = { selectedMode = Constants.TEST_MODE_REAL }
                 )
                 Column {
-                    Text("실제 시간 모드", fontSize = 16.sp)
-                    Text("레벨 계산: 1일 = 24시간", fontSize = 12.sp, color = Color.Gray)
+                    Text(
+                        text = "실제 시간 모드",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "레벨 계산: 1일 = 24시간",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -80,8 +90,15 @@ fun TestScreen() {
                     onClick = { selectedMode = Constants.TEST_MODE_MINUTE }
                 )
                 Column {
-                    Text("분 단위 레벨 테스트", fontSize = 16.sp)
-                    Text("레벨 계산: 1분 = 1일 (테스트용)", fontSize = 12.sp, color = Color.Gray)
+                    Text(
+                        text = "분 단위 레벨 테스트",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "레벨 계산: 1분 = 1일 (테스트용)",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -90,8 +107,15 @@ fun TestScreen() {
                     onClick = { selectedMode = Constants.TEST_MODE_SECOND }
                 )
                 Column {
-                    Text("초 단위 레벨 테스트", fontSize = 16.sp)
-                    Text("레벨 계산: 1초 = 1일 (테스트용)", fontSize = 12.sp, color = Color.Gray)
+                    Text(
+                        text = "초 단위 레벨 테스트",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "레벨 계산: 1초 = 1일 (테스트용)",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
                 }
             }
         }
@@ -280,7 +304,10 @@ fun TestScreen() {
                     contentColor = Color.Black
                 )
             ) {
-                Text("적용", fontSize = 16.sp)
+                Text(
+                    text = "적용",
+                    style = MaterialTheme.typography.bodyLarge
+                )
             }
         }
     }
@@ -300,7 +327,10 @@ private fun ModeButton(label: String, selected: Boolean, onClick: () -> Unit) {
         ),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text(label, fontSize = 16.sp)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge
+        )
     }
 }
 

@@ -20,7 +20,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.ui.StandardScreen
 import com.example.alcoholictimer.utils.Constants
 
@@ -135,8 +134,7 @@ fun SettingsCard(
         ) {
             Text(
                 text = title,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 color = titleColor,
                 modifier = Modifier.padding(bottom = 12.dp) // 16.dp → 12.dp로 축소
             )
@@ -202,8 +200,8 @@ fun SettingsOptionItem(
             Spacer(modifier = Modifier.width(8.dp)) // 12.dp → 8.dp로 축소
             Text(
                 text = label,
-                fontSize = 15.sp, // 16.sp → 15.sp로 축소
-                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                style = if (isSelected) MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
+                        else MaterialTheme.typography.bodyLarge,
                 color = if (isSelected) Color(0xFF1976D2) else Color(0xFF424242)
             )
         }

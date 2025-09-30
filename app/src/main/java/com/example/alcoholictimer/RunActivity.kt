@@ -43,7 +43,6 @@ import com.example.alcoholictimer.utils.Constants
 import com.example.alcoholictimer.ui.StandardScreenWithBottomButton
 import kotlinx.coroutines.delay
 import java.util.*
-import kotlin.math.roundToInt
 import org.json.JSONArray
 import org.json.JSONObject
 import androidx.compose.animation.SizeTransform
@@ -66,7 +65,6 @@ class RunActivity : BaseActivity() {
 @Composable
 fun RunScreen() {
     val context = LocalContext.current
-    val activity = context as? RunActivity
 
     // SharedPreferences에서 데이터 가져오기
     val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
@@ -318,17 +316,6 @@ fun RunScreen() {
         }
     }
 
-    // 모던한 그라데이�� 배경
-    val backgroundBrush = Brush.linearGradient(
-        colors = listOf(
-            Color(0xFFF8F9FA),
-            Color(0xFFE3F2FD),
-            Color(0xFFF1F8E9)
-        ),
-        start = Offset(0f, 0f),
-        end = Offset(1000f, 1000f)
-    )
-
     // StandardScreenWithBottomButton 사용
     StandardScreenWithBottomButton(
         topContent = {
@@ -396,9 +383,9 @@ fun RunScreen() {
                     elapsedHours = elapsedHours,
                     elapsedMinutes = elapsedMinutes,
                     elapsedSeconds = elapsedSeconds,
-                    savedMoney = savedMoney.toDouble(),
-                    savedHours = savedHours.toDouble(),
-                    lifeGainDays = lifeGainDays.toDouble(),
+                    savedMoney = savedMoney,
+                    savedHours = savedHours,
+                    lifeGainDays = lifeGainDays,
                     onIndicatorChange = { newIndicator ->
                         currentIndicator = newIndicator
                         if (!isPreview) {
@@ -441,9 +428,9 @@ fun RunScreen() {
                             putExtra("elapsed_days", elapsedDays)
                             putExtra("elapsed_hours", elapsedHours)
                             putExtra("elapsed_minutes", elapsedMinutes)
-                            putExtra("saved_money", savedMoney.toDouble())
-                            putExtra("saved_hours", savedHours.toDouble())
-                            putExtra("life_gain_days", lifeGainDays.toDouble())
+                            putExtra("saved_money", savedMoney)
+                            putExtra("saved_hours", savedHours)
+                            putExtra("life_gain_days", lifeGainDays)
                             putExtra("level_name", currentLevelName)
                             putExtra("level_color", currentLevelInfo.color.value.toLong())
                             putExtra("quit_timestamp", System.currentTimeMillis())
@@ -476,8 +463,7 @@ private fun RunStatisticItem(
         ) {
             Text(
                 text = value,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 color = color,
                 textAlign = TextAlign.Center,
                 maxLines = 1
@@ -485,7 +471,7 @@ private fun RunStatisticItem(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = title,
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.labelMedium,
                 color = Color(0xFF636E72),
                 textAlign = TextAlign.Center,
                 maxLines = 1
@@ -519,10 +505,7 @@ fun StatCard(
             ) {
                 Text(
                     text = value,
-                    fontSize = 20.sp, // 모든 카드 동일한 크기
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight.Bold, // 모든 카드 동일한 굵기
-                    color = color,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = color),
                     textAlign = TextAlign.Center,
                     maxLines = 1
                 )
@@ -540,10 +523,7 @@ fun StatCard(
         ) {
             Text(
                 text = label,
-                fontSize = 20.sp,
-                lineHeight = 20.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color(0xFF757575),
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium, color = Color(0xFF757575)),
                 textAlign = TextAlign.Center,
                 maxLines = 1
             )
@@ -606,9 +586,7 @@ fun MainIndicatorCard(
                     4 -> "기대 수명+"
                     else -> "금주 일수"
                 },
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color(0xFF666666),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium, color = Color(0xFF666666)),
                 modifier = Modifier.padding(bottom = 0.dp)
             )
             Spacer(modifier = Modifier.height(2.dp))
@@ -737,8 +715,7 @@ fun MainIndicatorCard(
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = "탭하여 다른 지표 보기",
-                fontSize = 12.sp,
-                color = Color(0xFF999999),
+                style = MaterialTheme.typography.labelMedium.copy(color = Color(0xFF999999)),
                 modifier = Modifier.padding(top = 0.dp, bottom = 0.dp)
             )
         }
@@ -778,9 +755,7 @@ fun ModernProgressIndicator(progress: Float) {
         ) {
             Text(
                 text = "${com.example.alcoholictimer.utils.PercentUtils.roundPercentFromRatio(progress.toDouble())}%", // 수정된 부분
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF4CAF50)
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, color = Color(0xFF4CAF50))
             )
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -892,11 +867,6 @@ private fun saveCompletedRecord(
         Log.e("RunActivity", "Error saving record", e)
         Toast.makeText(context, "기록 저장 중 오류가 발생했습니다: ${e.message}", Toast.LENGTH_SHORT).show()
     }
-}
-
-// 레벨명 함수 (기존 ���벨 테이블 기준)
-private fun getLevelName(days: Int): String {
-    return LevelDefinitions.getLevelName(days)
 }
 
 // 과거 기록 + 현재 진행 시간을 모두 포함한 총 레벨 계산 함수

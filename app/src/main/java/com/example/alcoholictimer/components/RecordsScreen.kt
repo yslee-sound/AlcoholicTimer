@@ -5,13 +5,11 @@ import android.content.Intent
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,12 +23,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.ui.theme.AlcoholicTimerTheme
 import com.example.alcoholictimer.utils.RecordsDataLoader
 import com.example.alcoholictimer.utils.SobrietyRecord
 import com.example.alcoholictimer.ui.StandardScreen
-import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -232,8 +228,8 @@ fun RecordsScreen(
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
-                    } else if (records.isEmpty()) { // filteredRecords 대신 전체 records로 변경
-                        EmptyRecordsState(selectedPeriod, selectedDetailPeriod)
+                    } else if (records.isEmpty()) {
+                        EmptyRecordsState()
                     }
                 }
                 if (!isLoading && latestRecords.isNotEmpty()) {
@@ -245,7 +241,7 @@ fun RecordsScreen(
                         ) {
                             RecordSummaryCard(
                                 record = record,
-                                compact = false, // 더 큰 타이포 사용
+                                compact = false, // 더 큰 타입오 사용
                                 headerIconSizeDp = 56.dp,
                                 onClick = { onNavigateToDetail(record) }
                             )
@@ -266,8 +262,7 @@ fun RecordsScreen(
                             ) {
                                 Text(
                                     text = "모든 기록 보기 (${records.size}개)",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Medium
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
                                 )
                             }
                         }
@@ -332,7 +327,7 @@ fun RecordsScreen(
 }
 
 @Composable
-private fun EmptyRecordsState(selectedPeriod: String, @Suppress("UNUSED_PARAMETER") selectedSubPeriod: String) {
+private fun EmptyRecordsState() {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -362,34 +357,10 @@ private fun EmptyRecordsState(selectedPeriod: String, @Suppress("UNUSED_PARAMETE
 
         Text(
             text = "아직 금주 기록이 없습니다",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center
         )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "금주를 시작하고 완료하면\n기록이 여기에 표시됩니다",
-            fontSize = 14.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            lineHeight = 20.sp
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 선택된 기간에 대한 안내 문구
-        if (selectedPeriod != "전체") {
-            Text(
-                text = "선택한 기간: $selectedPeriod",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center
-            )
-        }
     }
 }
 
@@ -511,8 +482,7 @@ private fun PeriodStatisticsSection(
                         "년" -> "년 통계"
                         else -> "전체 통계"
                     },
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
@@ -528,8 +498,7 @@ private fun PeriodStatisticsSection(
                 ) {
                     Text(
                         text = "테스트 기록 추가",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium)
                     )
                 }
             }
@@ -577,13 +546,12 @@ private fun PeriodStatisticsSection(
             ) {
                 Text(
                     text = "총 누적 금주일",
-                    fontSize = 14.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = "${totalDays}일",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -622,15 +590,17 @@ private fun StatisticItem(
             ) {
                 Text(
                     text = value,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium
+                        .copy(fontWeight = FontWeight.Bold)
+                        .merge(
+                            androidx.compose.ui.text.TextStyle(
+                                platformStyle = androidx.compose.ui.text.PlatformTextStyle(
+                                    includeFontPadding = false
+                                )
+                            )
+                        ),
                     color = color,
-                    textAlign = TextAlign.Center,
-                    style = androidx.compose.ui.text.TextStyle(
-                        platformStyle = androidx.compose.ui.text.PlatformTextStyle(
-                            includeFontPadding = false
-                        )
-                    )
+                    textAlign = TextAlign.Center
                 )
             }
 
@@ -639,8 +609,7 @@ private fun StatisticItem(
             // 제목: 2줄 표시, 줄간격 고정해 균일화
             Text(
                 text = title,
-                fontSize = 12.sp,
-                lineHeight = 16.sp,
+                style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
@@ -664,7 +633,7 @@ fun PreviewRecordsScreen() {
 @Composable
 fun PreviewEmptyRecordsState() {
     AlcoholicTimerTheme {
-        EmptyRecordsState("전체", "")
+        EmptyRecordsState()
     }
 }
 

@@ -139,8 +139,7 @@ fun StartScreen() {
                 ) {
                     Text(
                         text = "목표 기간 설정",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleLarge,
                         color = Color(0xFF333333),
                         modifier = Modifier
                             .align(Alignment.CenterHorizontally)
@@ -199,11 +198,9 @@ fun StartScreen() {
                                             isTextSelected = false
                                         }
                                     },
-                                    textStyle = TextStyle(
-                                        fontSize = 32.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        textAlign = TextAlign.Center,
-                                        color = Color(0xFF1976D2)
+                                    textStyle = MaterialTheme.typography.headlineLarge.copy(
+                                        color = Color(0xFF1976D2),
+                                        textAlign = TextAlign.Center
                                     ),
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                     singleLine = true,
@@ -219,14 +216,13 @@ fun StartScreen() {
                         Spacer(modifier = Modifier.width(16.dp))
                         Text(
                             text = "일",
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Medium,
+                            style = MaterialTheme.typography.titleLarge,
                             color = Color(0xFF666666)
                         )
                     }
                     Text(
                         text = "금주할 목표 기간을 입력해주세요",
-                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = Color(0xFF999999),
                         textAlign = TextAlign.Center,
                         modifier = Modifier.align(Alignment.CenterHorizontally)

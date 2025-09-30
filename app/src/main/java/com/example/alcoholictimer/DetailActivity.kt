@@ -261,8 +261,7 @@ fun DetailScreen(
                 // 타이틀
                 Text(
                     text = "금주 기록 상세",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleLarge,
                     color = Color(0xFF2D3748)
                 )
 
@@ -299,9 +298,8 @@ fun DetailScreen(
                     // 시작 날짜 및 시간
                     Text(
                         text = "시작: $displayDateTime",
-                        fontSize = 14.sp,
-                        color = Color(0xFF718096),
-                        fontWeight = FontWeight.Medium
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color(0xFF718096)
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
@@ -309,9 +307,8 @@ fun DetailScreen(
                     // 종료 날짜 및 시간
                     Text(
                         text = "종료: ${dateTimeFormat.format(Date(endTime))}",
-                        fontSize = 14.sp,
-                        color = Color(0xFF718096),
-                        fontWeight = FontWeight.Medium
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color(0xFF718096)
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -326,16 +323,13 @@ fun DetailScreen(
                         ) {
                             Text(
                                 text = actualDays.toString(),
-                                fontSize = 64.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = Color(0xFF4299E1),
-                                lineHeight = 64.sp
+                                style = MaterialTheme.typography.displayLarge,
+                                color = Color(0xFF4299E1)
                             )
                             Text(
                                 text = "일",
-                                fontSize = 18.sp,
-                                color = Color(0xFF718096),
-                                fontWeight = FontWeight.Medium
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color(0xFF718096)
                             )
                         }
                     }
@@ -353,15 +347,13 @@ fun DetailScreen(
                         ) {
                             Text(
                                 text = "목표 달성률",
-                                fontSize = 14.sp,
-                                color = Color(0xFF718096),
-                                fontWeight = FontWeight.Medium
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color(0xFF718096)
                             )
                             Text(
                                 text = String.format(Locale.getDefault(), "%.1f%%", achievementRate),
-                                fontSize = 14.sp,
-                                color = if (isCompleted) Color(0xFF48BB78) else Color(0xFF4299E1),
-                                fontWeight = FontWeight.Bold
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (isCompleted) Color(0xFF48BB78) else Color(0xFF4299E1)
                             )
                         }
 
@@ -387,12 +379,12 @@ fun DetailScreen(
                         ) {
                             Text(
                                 text = "진행: ${String.format(Locale.getDefault(), "%.1f", totalDays)}일",
-                                fontSize = 12.sp,
+                                style = MaterialTheme.typography.bodySmall,
                                 color = Color(0xFF718096)
                             )
                             Text(
                                 text = "목표: ${targetDays.toInt()}일",
-                                fontSize = 12.sp,
+                                style = MaterialTheme.typography.bodySmall,
                                 color = Color(0xFF718096)
                             )
                         }
@@ -522,18 +514,16 @@ fun DetailStatCard(
         ) {
             Text(
                 text = value,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.bodyLarge,
                 color = Color(0xFF2D3748),
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = label,
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.labelMedium,
                 color = Color(0xFF718096),
-                textAlign = TextAlign.Center,
-                lineHeight = 14.sp
+                textAlign = TextAlign.Center
             )
         }
     }

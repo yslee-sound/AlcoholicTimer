@@ -12,7 +12,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.utils.SobrietyRecord
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min
@@ -141,7 +140,7 @@ fun StatisticsCardsSection(
                 .clickable(
                     enabled = selectedPeriod != "전체",
                     interactionSource = remember { MutableInteractionSource() },
-                    indication = null // Material3에서는 기본 ripple을 사용하거나 null로 설정
+                    indication = null // Material3에서 기본 ripple을 사용하거나 null로 설정
                 ) {
                     if (selectedPeriod != "전체") {
                         onRangeSelected(selectedRange)
@@ -152,14 +151,13 @@ fun StatisticsCardsSection(
         ) {
             Text(
                 text = selectedRange,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
             )
             if (selectedPeriod != "전체") {
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "▼",
-                    fontSize = 12.sp,
+                    text = "\u25bc",
+                    style = MaterialTheme.typography.labelMedium,
                     color = Color.Gray
                 )
             }
@@ -203,13 +201,12 @@ fun StatCard(
     ) {
         Text(
             text = value,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = Color.Black
         )
         Text(
             text = title,
-            fontSize = 12.sp,
+            style = MaterialTheme.typography.labelMedium,
             color = Color.Gray
         )
     }
