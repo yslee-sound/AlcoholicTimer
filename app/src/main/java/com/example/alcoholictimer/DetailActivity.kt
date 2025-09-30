@@ -6,7 +6,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,7 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,7 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.core.content.edit
 import com.example.alcoholictimer.utils.Constants
 import java.text.SimpleDateFormat
 import java.util.*
@@ -63,9 +65,17 @@ class DetailActivity : ComponentActivity() {  // BaseActivity에서 ComponentAct
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 상태표시줄 표시 설정
-        window.statusBarColor = android.graphics.Color.WHITE
-        window.decorView.systemUiVisibility = android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+        // 상태표시줄/내비게이션바 설정 - 표준 API 사용
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(
+                android.graphics.Color.WHITE,
+                android.graphics.Color.WHITE
+            ),
+            navigationBarStyle = SystemBarStyle.light(
+                android.graphics.Color.WHITE,
+                android.graphics.Color.WHITE
+            )
+        )
 
         Log.d(TAG, "===== DetailActivity onCreate 시작 =====")
 
@@ -137,13 +147,6 @@ fun DetailScreen(
         "오늘 - ${SimpleDateFormat("a h:mm", Locale.getDefault()).apply {
             timeZone = TimeZone.getDefault()
         }.format(Date())}"
-    }
-
-    // 기록 제목 자동 생성
-    val recordTitle = if (isCompleted) {
-        "금주 ${actualDays}일 달성 기록"
-    } else {
-        "금주 ${actualDays}일차 중단 기록"
     }
 
     // 정확한 금주 기간 계산 (시간 단위까지)
@@ -251,7 +254,7 @@ fun DetailScreen(
                         .clickable { onBack() }
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                         contentDescription = "뒤로가기",
                         tint = Color(0xFF2D3748),
                         modifier = Modifier.size(24.dp)
@@ -581,7 +584,9 @@ private fun deleteRecord(context: Context, startTime: Long, endTime: Long) {
         }
 
         if (deleted) {
-            sharedPref.edit().putString("sobriety_records", newArray.toString()).apply()
+            sharedPref.edit {
+                putString("sobriety_records", newArray.toString())
+            }
             Log.d("DetailActivity", "삭제 완료. 남은 기록 수: ${newArray.length()}")
         } else {
             Log.w("DetailActivity", "삭제할 기록을 찾지 못함: startTime=$startTime, endTime=$endTime")

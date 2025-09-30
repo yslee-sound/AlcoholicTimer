@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-// import android.widget.Toast // Toast import 삭제
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -182,7 +181,7 @@ fun QuitScreen() {
                                                 // finish() 호출 불필요 (스택이 완전히 정리됨)
                                             }
                                         }
-                                        val up = waitForUpOrCancellation()
+                                        waitForUpOrCancellation()
                                         isPressed = false
                                         job.cancel()
                                         coroutineScope.launch {
@@ -343,63 +342,6 @@ fun ModernStatCard(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ModernControlButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    backgroundColor: Color,
-    contentDescription: String,
-    modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null
-) {
-    if (onClick != null) {
-        // onClick이 있는 경우 RunActivity와 동일한 방식 사용
-        Card(
-            onClick = onClick,
-            modifier = modifier.size(90.dp),
-            shape = CircleShape,
-            colors = CardDefaults.cardColors(
-                containerColor = backgroundColor
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-        ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = contentDescription,
-                    tint = Color.White,
-                    modifier = Modifier.size(45.dp)
-                )
-            }
-        }
-    } else {
-        // onClick이 없는 경우 (Preview용) 기존 방식 사용
-        Card(
-            modifier = modifier.size(90.dp),
-            shape = CircleShape,
-            colors = CardDefaults.cardColors(
-                containerColor = backgroundColor
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-        ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = contentDescription,
-                    tint = Color.White,
-                    modifier = Modifier.size(45.dp)
-                )
-            }
-        }
-    }
-}
-
 // 기록 저장 함수
 private fun saveCompletedRecord(
     context: Context,
@@ -476,11 +418,6 @@ private fun saveCompletedRecord(
         Log.e("QuitActivity", "기록 저장 중 오류 발생: ${e.message}", e)
         // Toast.makeText(context, "기록 저장 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show() // Toast 메시지 삭제
     }
-}
-
-// 레벨명 함수
-private fun getLevelName(days: Int): String {
-    return LevelDefinitions.getLevelName(days)
 }
 
 // Preview 함수 추가

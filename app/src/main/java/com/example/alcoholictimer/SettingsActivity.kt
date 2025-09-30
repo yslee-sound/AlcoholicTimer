@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.edit
 import com.example.alcoholictimer.ui.StandardScreen
 import com.example.alcoholictimer.utils.Constants
 
@@ -70,8 +71,8 @@ fun SettingsScreen() {
                 labels = listOf("저 (1만원 이하)", "중 (1~5만원)", "고 (5만원 이상)"),
                 onOptionSelected = { newValue ->
                     selectedCost = newValue
-                    // 즉시 저장
-                    sharedPref.edit().putString("selected_cost", newValue).apply()
+                    // 즉시 저장 (KTX 확장)
+                    sharedPref.edit { putString("selected_cost", newValue) }
                 }
             )
         }
@@ -87,8 +88,8 @@ fun SettingsScreen() {
                 labels = listOf("주 1회 이하", "주 2~3회", "주 4회 이상"),
                 onOptionSelected = { newValue ->
                     selectedFrequency = newValue
-                    // 즉시 저장
-                    sharedPref.edit().putString("selected_frequency", newValue).apply()
+                    // 즉시 저장 (KTX 확장)
+                    sharedPref.edit { putString("selected_frequency", newValue) }
                 }
             )
         }
@@ -104,8 +105,8 @@ fun SettingsScreen() {
                 labels = listOf("짧음 (2시간 이하)", "보통 (3~5시간)", "김 (6시간 이상)"),
                 onOptionSelected = { newValue ->
                     selectedDuration = newValue
-                    // 즉시 저장
-                    sharedPref.edit().putString("selected_duration", newValue).apply()
+                    // 즉시 저장 (KTX 확장)
+                    sharedPref.edit { putString("selected_duration", newValue) }
                 }
             )
         }

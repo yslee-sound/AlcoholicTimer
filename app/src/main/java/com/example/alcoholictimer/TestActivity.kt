@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import androidx.core.content.edit
 import com.example.alcoholictimer.utils.Constants
 
 class TestActivity : BaseActivity() {
@@ -32,7 +33,8 @@ class TestActivity : BaseActivity() {
                 }
             }
         } catch (e: Exception) {
-            // 예외 발생 시 앱 종료 방지
+            // 예외 발생 시 로그 남기고 앱 종료 방지
+            android.util.Log.e("TestActivity", "초기화 중 오류", e)
             finish()
         }
     }
@@ -157,12 +159,13 @@ fun TestScreen() {
                 confirmButton = {
                     TextButton(onClick = {
                         val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
-                        val editor = sharedPref.edit()
                         val beforeRecords = sharedPref.getString("sobriety_records", "[]")
                         android.util.Log.d("TestActivity", "초기화 전 기록: $beforeRecords")
-                        editor.clear()
-                        editor.remove("sobriety_records")
-                        editor.apply()
+                        // KTX 확장 사용
+                        sharedPref.edit {
+                            clear()
+                            remove("sobriety_records")
+                        }
                         val afterRecords = sharedPref.getString("sobriety_records", "[]")
                         android.util.Log.d("TestActivity", "초기화 후 기록: $afterRecords")
                         Toast.makeText(context, "모든 기록이 초기화되었습니다", Toast.LENGTH_SHORT).show()
@@ -220,7 +223,7 @@ fun TestScreen() {
                             // 각 SharedPreferences 파일의 내용을 완전히 삭제
                             sharedPrefNames.forEach { prefName ->
                                 val prefs = context.getSharedPreferences(prefName, android.content.Context.MODE_PRIVATE)
-                                prefs.edit().clear().apply()
+                                prefs.edit { clear() }
                             }
 
                             // 2. SharedPreferences 파일 자체를 물리적으로 삭제
@@ -229,7 +232,7 @@ fun TestScreen() {
                                 try {
                                     file.delete()
                                 } catch (e: Exception) {
-                                    // 파일 삭제 실패 시 로그만 남기고 계속 진행
+                                    android.util.Log.w("TestActivity", "공유 설정 파일 삭제 실패: ${file.name}", e)
                                 }
                             }
 
@@ -242,7 +245,7 @@ fun TestScreen() {
                                         file.delete()
                                     }
                                 } catch (e: Exception) {
-                                    // 파일 삭제 실패 시 로그만 남기고 계속 진행
+                                    android.util.Log.w("TestActivity", "내부 파일 삭제 실패: ${file.name}", e)
                                 }
                             }
 
@@ -255,7 +258,7 @@ fun TestScreen() {
                                         file.delete()
                                     }
                                 } catch (e: Exception) {
-                                    // 파일 삭제 실패 시 로그만 남기고 계속 진행
+                                    android.util.Log.w("TestActivity", "캐시 파일 삭제 실패: ${file.name}", e)
                                 }
                             }
 
@@ -292,10 +295,7 @@ fun TestScreen() {
             OutlinedButton(
                 onClick = {
                     val sharedPref = context.getSharedPreferences("test_settings", android.content.Context.MODE_PRIVATE)
-                    with(sharedPref.edit()) {
-                        putInt("test_mode", selectedMode)
-                        apply()
-                    }
+                    sharedPref.edit { putInt("test_mode", selectedMode) }
                     Toast.makeText(context, "설정이 적용되었습니다", Toast.LENGTH_SHORT).show()
                 },
                 border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black),
@@ -310,36 +310,6 @@ fun TestScreen() {
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun ModeButton(label: String, selected: Boolean, onClick: () -> Unit) {
-    OutlinedButton(
-        onClick = onClick,
-        border = androidx.compose.foundation.BorderStroke(
-            width = if (selected) 2.dp else 1.dp,
-            color = Color.Black
-        ),
-        colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = if (selected) Color.Black else Color.Transparent,
-            contentColor = if (selected) Color.White else Color.Black
-        ),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge
-        )
-    }
-}
-
-private fun getModeText(mode: Int): String {
-    return when (mode) {
-        Constants.TEST_MODE_REAL -> "실제 시간"
-        Constants.TEST_MODE_MINUTE -> "분 단위 테스트"
-        Constants.TEST_MODE_SECOND -> "초 단위 테스트"
-        else -> "알 수 없음"
     }
 }
 

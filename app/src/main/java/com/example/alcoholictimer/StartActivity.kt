@@ -16,20 +16,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.utils.Constants
 import com.example.alcoholictimer.ui.StandardScreenWithBottomButton
 import java.util.Locale
@@ -110,16 +105,6 @@ fun StartScreen() {
             isTextSelected = true
         }
     }
-
-    val backgroundBrush = Brush.linearGradient(
-        colors = listOf(
-            Color(0xFFF8F9FA),
-            Color(0xFFE3F2FD),
-            Color(0xFFF1F8E9)
-        ),
-        start = Offset(0f, 0f),
-        end = Offset(1000f, 1000f)
-    )
 
     StandardScreenWithBottomButton(
         topContent = {

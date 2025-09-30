@@ -3,6 +3,7 @@ package com.example.alcoholictimer
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -13,7 +14,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,8 +33,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.core.view.WindowCompat
 import kotlinx.coroutines.launch
 import com.example.alcoholictimer.ui.theme.AlcoholicTimerTheme
 
@@ -44,11 +48,17 @@ abstract class BaseActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Edge-to-edge 활성화 (상태 바가 표시되도록)
-        enableEdgeToEdge()
-
-        // 상태 바와 내비게이션 바 색상 조정
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        // Edge-to-edge 및 시스템 바 스타일 표준 API로 설정
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(
+                android.graphics.Color.WHITE,
+                android.graphics.Color.WHITE
+            ),
+            navigationBarStyle = SystemBarStyle.light(
+                android.graphics.Color.WHITE,
+                android.graphics.Color.WHITE
+            )
+        )
 
         // 초기 별명 로드
         nicknameState.value = getNickname()
@@ -180,7 +190,7 @@ abstract class BaseActivity : ComponentActivity() {
                                                 }
                                             ) {
                                                 Icon(
-                                                    imageVector = Icons.Default.Menu,
+                                                    imageVector = Icons.Filled.Menu,
                                                     contentDescription = "메뉴",
                                                     tint = Color(0xFF2C3E50),
                                                     modifier = Modifier.size(20.dp)
@@ -286,13 +296,14 @@ fun DrawerMenu(
     onItemSelected: (String) -> Unit
 ) {
     val menuItems = listOf(
-        "금주" to Icons.Default.PlayArrow,
+        // 변경: List는 RTL 대응을 위해 AutoMirrored 아이콘 사용
+        "금주" to Icons.Filled.PlayArrow,
         "기록" to Icons.AutoMirrored.Filled.List,
-        "레벨" to Icons.Default.Star
+        "레벨" to Icons.Filled.Star
     )
     val settingsItems = listOf(
-        "설정" to Icons.Default.Settings,
-        "테스트" to Icons.Default.Build
+        "설정" to Icons.Filled.Settings,
+        "테스트" to Icons.Filled.Build
     )
 
     Column(
@@ -327,7 +338,7 @@ fun DrawerMenu(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Person,
+                            imageVector = Icons.Filled.Person,
                             contentDescription = "아바타",
                             tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(32.dp)
