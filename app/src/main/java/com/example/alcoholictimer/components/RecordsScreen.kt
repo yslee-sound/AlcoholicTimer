@@ -511,12 +511,17 @@ private fun PeriodStatisticsSection(
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                // 모든 기간에서 동일하게 1.3배 확대 적용
+                val statsScale = 1.3f
+
                 // 성공률
                 StatisticItem(
                     title = "성공률\n ",
                     value = "$successRate%",
                     color = MaterialTheme.colorScheme.tertiary,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    titleScale = statsScale,
+                    valueScale = statsScale
                 )
 
                 // 평균 지속일
@@ -524,7 +529,9 @@ private fun PeriodStatisticsSection(
                     title = "평균\n지속일",
                     value = "${averageDays}일",
                     color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    titleScale = statsScale,
+                    valueScale = statsScale
                 )
 
                 // 최대 지속일
@@ -532,7 +539,9 @@ private fun PeriodStatisticsSection(
                     title = "최대\n지속일",
                     value = "${maxDays}일",
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    titleScale = statsScale,
+                    valueScale = statsScale
                 )
             }
 
@@ -564,7 +573,10 @@ private fun StatisticItem(
     title: String,
     value: String,
     color: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    // 글꼴 확장 비율 (기본 1.0f). 월 통계에서만 1.3f로 전달
+    titleScale: Float = 1.0f,
+    valueScale: Float = 1.0f
 ) {
     Surface(
         modifier = modifier
@@ -581,24 +593,30 @@ private fun StatisticItem(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            // 숫자 영역: 고정 높이 박스로 상단 정렬하여 타일 간 시작 위치 통일
+            // 숫자 영역: 고정 높이 박스를 스케일에 맞춰 증가
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(32.dp),
+                    .height(32.dp * valueScale),
                 contentAlignment = Alignment.Center
             ) {
+                val baseTitleMedium = MaterialTheme.typography.titleMedium
+                val scaledValueTextStyle = baseTitleMedium
+                    .copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = baseTitleMedium.fontSize * valueScale
+                    )
+                    .merge(
+                        androidx.compose.ui.text.TextStyle(
+                            platformStyle = androidx.compose.ui.text.PlatformTextStyle(
+                                includeFontPadding = false
+                            )
+                        )
+                    )
+
                 Text(
                     text = value,
-                    style = MaterialTheme.typography.titleMedium
-                        .copy(fontWeight = FontWeight.Bold)
-                        .merge(
-                            androidx.compose.ui.text.TextStyle(
-                                platformStyle = androidx.compose.ui.text.PlatformTextStyle(
-                                    includeFontPadding = false
-                                )
-                            )
-                        ),
+                    style = scaledValueTextStyle,
                     color = color,
                     textAlign = TextAlign.Center
                 )
@@ -606,13 +624,21 @@ private fun StatisticItem(
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            // 제목: 2줄 표시, 줄간격 고정해 균일화
-            Text(
-                text = title,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
+            // 제목: 2줄 표시, 줄간격을 더 띄우기 위해 lineHeight를 폰트 크기의 1.3배로 설정
+            run {
+                val baseLabel = MaterialTheme.typography.labelMedium
+                val scaledLabelFontSize = baseLabel.fontSize * titleScale
+                val scaledLabelStyle = baseLabel.copy(
+                    fontSize = scaledLabelFontSize,
+                    lineHeight = scaledLabelFontSize * 1.3f
+                )
+                Text(
+                    text = title,
+                    style = scaledLabelStyle,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }
