@@ -27,10 +27,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Density
 import androidx.core.content.edit
 import com.example.alcoholictimer.utils.Constants
 import java.text.SimpleDateFormat
@@ -218,283 +220,287 @@ fun DetailScreen(
     // 기대 수명 증가 계산 (소수점 표기)
     val lifeExpectancyIncrease = totalDays / 30.0
 
-    // 모던한 그라데이션 배경
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFFF8F9FA),
-                        Color(0xFFE9ECEF)
-                    )
-                )
-            )
-    ) {
-        Column(
+    // 전체 텍스트를 약 15% 확대하여 가독성 향상
+    val density = LocalDensity.current
+    CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = density.fontScale * 1.15f)) {
+        // 모던한 그라데이션 배경
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
-                .statusBarsPadding()  // 상태표시줄 높이만큼 패딩 추가
-        ) {
-            // 헤더 영역
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // 뒤로가기 버튼
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(Color.White)
-                        .clickable { onBack() }
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                        contentDescription = "뒤로가기",
-                        tint = Color(0xFF2D3748),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-
-                // 타이틀
-                Text(
-                    text = "금주 기록 상세",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color(0xFF2D3748)
-                )
-
-                // 삭제 버튼
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(Color.White)
-                        .clickable { showDeleteDialog = true }
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Delete,
-                        contentDescription = "기록 삭제",
-                        tint = Color(0xFFE53E3E),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // 메인 정보 카드
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(24.dp)
-                ) {
-                    // 시작 날짜 및 시간
-                    Text(
-                        text = "시작: $displayDateTime",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF718096)
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    // 종료 날짜 및 시간
-                    Text(
-                        text = "종료: ${dateTimeFormat.format(Date(endTime))}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF718096)
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // 대형 숫자 표시
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = actualDays.toString(),
-                                style = MaterialTheme.typography.displayLarge,
-                                color = Color(0xFF4299E1)
-                            )
-                            Text(
-                                text = "일",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = Color(0xFF718096)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // 목표 달성률 프로그레스바
-                    Column(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "목표 달성률",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color(0xFF718096)
-                            )
-                            Text(
-                                text = String.format(Locale.getDefault(), "%.1f%%", achievementRate),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = if (isCompleted) Color(0xFF48BB78) else Color(0xFF4299E1)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // 프로그레스바
-                        LinearProgressIndicator(
-                            progress = { (achievementRate / 100.0).toFloat().coerceIn(0f, 1f) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(8.dp)
-                                .clip(RoundedCornerShape(4.dp)),
-                            color = if (isCompleted) Color(0xFF48BB78) else Color(0xFF4299E1),
-                            trackColor = Color(0xFFE2E8F0)
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFFF8F9FA),
+                            Color(0xFFE9ECEF)
                         )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // 목표일 정보
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = "진행: ${String.format(Locale.getDefault(), "%.1f", totalDays)}일",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF718096)
-                            )
-                            Text(
-                                text = "목표: ${targetDays.toInt()}일",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF718096)
-                            )
-                        }
+                    )
+                )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+                    .statusBarsPadding()  // 상태표시줄 높이만큼 패딩 추가
+            ) {
+                // 헤더 영역
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // 뒤로가기 버튼
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(Color.White)
+                            .clickable { onBack() }
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                            contentDescription = "뒤로가기",
+                            tint = Color(0xFF2D3748),
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
-                }
-            }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // 통계 카드들
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                DetailStatCard(
-                    value = durationDisplay,
-                    label = "총 금주 기간",
-                    modifier = Modifier.weight(1f)
-                )
-                DetailStatCard(
-                    value = String.format(Locale.getDefault(), "%,.0f원", savedMoney.toDouble()),
-                    label = "절약한 금액",
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                DetailStatCard(
-                    value = "${savedHours}시간",
-                    label = "절약한 시간",
-                    modifier = Modifier.weight(1f)
-                )
-                DetailStatCard(
-                    value = String.format(Locale.getDefault(), "%.1f%%", achievementRate),
-                    label = "목표 달성률",
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                DetailStatCard(
-                    value = getLevelName(actualDays),
-                    label = "달성 레벨",
-                    modifier = Modifier.weight(1f)
-                )
-                DetailStatCard(
-                    value = String.format(Locale.getDefault(), "%.1f일", lifeExpectancyIncrease),
-                    label = "기대 수명 증가",
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-        }
-
-        // 삭제 경고 다이얼로그
-        if (showDeleteDialog) {
-            AlertDialog(
-                onDismissRequest = { showDeleteDialog = false },
-                title = {
+                    // 타이틀
                     Text(
-                        "기록 삭제",
-                        fontWeight = FontWeight.Bold,
+                        text = "금주 기록 상세",
+                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                         color = Color(0xFF2D3748)
                     )
-                },
-                text = {
-                    Text(
-                        "정말로 이 금주 기록을 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.",
-                        color = Color(0xFF4A5568)
-                    )
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            showDeleteDialog = false
-                            try {
-                                deleteRecord(context, startTime, endTime)
-                            } catch (e: Exception) {
-                                Log.e("DetailActivity", "삭제 중 오류", e)
-                            }
-                            val activity = (context as? DetailActivity)
-                            activity?.setResult(Activity.RESULT_OK)
-                            activity?.finish()
-                        }
+
+                    // 삭제 버튼
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(Color.White)
+                            .clickable { showDeleteDialog = true }
                     ) {
-                        Text("삭제", color = Color(0xFFE53E3E), fontWeight = FontWeight.Bold)
+                        Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = "기록 삭제",
+                            tint = Color(0xFFE53E3E),
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDeleteDialog = false }) {
-                        Text("취소", color = Color(0xFF718096))
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 메인 정보 카드
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(24.dp)
+                    ) {
+                        // 시작 날짜 및 시간
+                        Text(
+                            text = "시작: $displayDateTime",
+                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                            color = Color(0xFF718096)
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        // 종료 날짜 및 시간
+                        Text(
+                            text = "종료: ${dateTimeFormat.format(Date(endTime))}",
+                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                            color = Color(0xFF718096)
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // 대형 숫자 표시
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = actualDays.toString(),
+                                    style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.ExtraBold),
+                                    color = Color(0xFF4299E1)
+                                )
+                                Text(
+                                    text = "일",
+                                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                                    color = Color(0xFF718096)
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // 목표 달성률 프로그레스바
+                        Column(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "목표 달성률",
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                                    color = Color(0xFF718096)
+                                )
+                                Text(
+                                    text = String.format(Locale.getDefault(), "%.1f%%", achievementRate),
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = if (isCompleted) Color(0xFF48BB78) else Color(0xFF4299E1)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // 프로그레스바
+                            LinearProgressIndicator(
+                                progress = { (achievementRate / 100.0).toFloat().coerceIn(0f, 1f) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(8.dp)
+                                    .clip(RoundedCornerShape(4.dp)),
+                                color = if (isCompleted) Color(0xFF48BB78) else Color(0xFF4299E1),
+                                trackColor = Color(0xFFE2E8F0)
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // 목표일 정보
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "진행: ${String.format(Locale.getDefault(), "%.1f", totalDays)}일",
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                                    color = Color(0xFF718096)
+                                )
+                                Text(
+                                    text = "목표: ${targetDays.toInt()}일",
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                                    color = Color(0xFF718096)
+                                )
+                            }
+                        }
                     }
-                },
-                containerColor = Color.White,
-                shape = RoundedCornerShape(16.dp)
-            )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 통계 카드들
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    DetailStatCard(
+                        value = durationDisplay,
+                        label = "총 금주 기간",
+                        modifier = Modifier.weight(1f)
+                    )
+                    DetailStatCard(
+                        value = String.format(Locale.getDefault(), "%,.0f원", savedMoney.toDouble()),
+                        label = "절약한 금액",
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    DetailStatCard(
+                        value = "${savedHours}시간",
+                        label = "절약한 시간",
+                        modifier = Modifier.weight(1f)
+                    )
+                    DetailStatCard(
+                        value = String.format(Locale.getDefault(), "%.1f%%", achievementRate),
+                        label = "목표 달성률",
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    DetailStatCard(
+                        value = getLevelName(actualDays),
+                        label = "달성 레벨",
+                        modifier = Modifier.weight(1f)
+                    )
+                    DetailStatCard(
+                        value = String.format(Locale.getDefault(), "%.1f일", lifeExpectancyIncrease),
+                        label = "기대 수명 증가",
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+            }
+
+            // 삭제 경고 다이얼로그
+            if (showDeleteDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDeleteDialog = false },
+                    title = {
+                        Text(
+                            "기록 삭제",
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF2D3748)
+                        )
+                    },
+                    text = {
+                        Text(
+                            "정말로 이 금주 기록을 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.",
+                            color = Color(0xFF4A5568)
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showDeleteDialog = false
+                                try {
+                                    deleteRecord(context, startTime, endTime)
+                                } catch (e: Exception) {
+                                    Log.e("DetailActivity", "삭제 중 오류", e)
+                                }
+                                val activity = (context as? DetailActivity)
+                                activity?.setResult(Activity.RESULT_OK)
+                                activity?.finish()
+                            }
+                        ) {
+                            Text("삭제", color = Color(0xFFE53E3E), fontWeight = FontWeight.Bold)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDeleteDialog = false }) {
+                            Text("취소", color = Color(0xFF718096))
+                        }
+                    },
+                    containerColor = Color.White,
+                    shape = RoundedCornerShape(16.dp)
+                )
+            }
         }
     }
 }
@@ -517,14 +523,14 @@ fun DetailStatCard(
         ) {
             Text(
                 text = value,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                 color = Color(0xFF2D3748),
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = label,
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                 color = Color(0xFF718096),
                 textAlign = TextAlign.Center
             )
