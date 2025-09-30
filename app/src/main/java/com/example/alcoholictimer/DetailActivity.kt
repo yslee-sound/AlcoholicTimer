@@ -33,8 +33,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import com.example.alcoholictimer.utils.Constants
+import com.example.alcoholictimer.ui.theme.BluePrimaryLight
+import com.example.alcoholictimer.ui.theme.AmberSecondaryLight
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
@@ -138,6 +141,8 @@ fun DetailScreen(
 ) {
     val context = LocalContext.current
     var showDeleteDialog by remember { mutableStateOf(false) }
+    // 성공/실패 상태에 따른 포인트 컬러
+    val accentColor = if (isCompleted) BluePrimaryLight else AmberSecondaryLight
 
     // 날짜/시간 포맷
     val dateTimeFormat = SimpleDateFormat("yyyy-MM-dd - a h:mm", Locale.getDefault()).apply {
@@ -220,9 +225,9 @@ fun DetailScreen(
     // 기대 수명 증가 계산 (소수점 표기)
     val lifeExpectancyIncrease = totalDays / 30.0
 
-    // 전체 텍스트를 약 15% 확대하여 가독성 향상
+    // 전체 텍스트를 10% 축소 (fontScale 0.9배)
     val density = LocalDensity.current
-    CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = density.fontScale * 1.15f)) {
+    CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = density.fontScale * 0.9f)) {
         // 모던한 그라데이션 배경
         Box(
             modifier = Modifier
@@ -332,7 +337,7 @@ fun DetailScreen(
                                 Text(
                                     text = actualDays.toString(),
                                     style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.ExtraBold),
-                                    color = Color(0xFF4299E1)
+                                    color = accentColor
                                 )
                                 Text(
                                     text = "일",
@@ -361,7 +366,7 @@ fun DetailScreen(
                                 Text(
                                     text = String.format(Locale.getDefault(), "%.1f%%", achievementRate),
                                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = if (isCompleted) Color(0xFF48BB78) else Color(0xFF4299E1)
+                                    color = accentColor
                                 )
                             }
 
@@ -374,7 +379,7 @@ fun DetailScreen(
                                     .fillMaxWidth()
                                     .height(8.dp)
                                     .clip(RoundedCornerShape(4.dp)),
-                                color = if (isCompleted) Color(0xFF48BB78) else Color(0xFF4299E1),
+                                color = accentColor,
                                 trackColor = Color(0xFFE2E8F0)
                             )
 
@@ -428,24 +433,6 @@ fun DetailScreen(
                     DetailStatCard(
                         value = "${savedHours}시간",
                         label = "절약한 시간",
-                        modifier = Modifier.weight(1f)
-                    )
-                    DetailStatCard(
-                        value = String.format(Locale.getDefault(), "%.1f%%", achievementRate),
-                        label = "목표 달성률",
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    DetailStatCard(
-                        value = getLevelName(actualDays),
-                        label = "달성 레벨",
                         modifier = Modifier.weight(1f)
                     )
                     DetailStatCard(
@@ -509,7 +496,8 @@ fun DetailScreen(
 fun DetailStatCard(
     value: String,
     label: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    valueColor: Color = Color.Unspecified
 ) {
     Card(
         modifier = modifier,
@@ -521,10 +509,12 @@ fun DetailStatCard(
             modifier = Modifier.padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            val resolvedValueColor = if (valueColor != Color.Unspecified) valueColor else MaterialTheme.colorScheme.onSurface
             Text(
                 text = value,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = Color(0xFF2D3748),
+                color = resolvedValueColor,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(4.dp))
