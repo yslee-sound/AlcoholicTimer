@@ -70,7 +70,8 @@ fun RunScreen() {
     val timerCompleted = sharedPref.getBoolean("timer_completed", false)
 
     val isPreview = LocalInspectionMode.current
-    if (!isPreview && (timerCompleted || (startTime == 0L && !timerCompleted))) {
+    // 단순화: timerCompleted || (startTime == 0L && !timerCompleted) -> timerCompleted || startTime == 0L
+    if (!isPreview && (timerCompleted || startTime == 0L)) {
         LaunchedEffect(Unit) {
             val intent = Intent(context, StartActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -84,10 +85,7 @@ fun RunScreen() {
 
     val actualStartTime = if (startTime == 0L) {
         val currentTimeMillis = System.currentTimeMillis()
-        if (!isPreview) {
-            sharedPref.edit { putLong("start_time", currentTimeMillis) }
-            Log.w("RunActivity", "startTime이 0이어서 현재 시간으로 설정: $currentTimeMillis")
-        }
+        // preview에서만 도달 가능한 경로이므로 저장 사이드이펙트 제거
         currentTimeMillis
     } else {
         startTime
@@ -210,14 +208,13 @@ fun RunScreen() {
             hasCompleted = true
 
             try {
-                val isCompleted = elapsedDaysFloat >= targetDays && targetDays > 0 && actualStartTime > 0
+                // 블록 내부에서 항상 true가 되는 조건들을 제거하고 명시적으로 완료 처리
                 saveCompletedRecord(
                     context = context,
                     startTime = actualStartTime,
                     endTime = System.currentTimeMillis(),
                     targetDays = targetDays.toInt(),
-                    actualDays = elapsedDays,
-                    isCompleted = isCompleted
+                    actualDays = elapsedDays
                 )
 
                 val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
@@ -396,55 +393,6 @@ private fun RunStatisticItem(
                 text = title,
                 style = MaterialTheme.typography.labelMedium,
                 color = Color(0xFF636E72),
-                textAlign = TextAlign.Center,
-                maxLines = 1
-            )
-        }
-    }
-}
-
-@Composable
-fun StatCard(
-    value: String,
-    label: String,
-    color: Color,
-    modifier: Modifier = Modifier,
-    isLevel: Boolean = false
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
-            .padding(horizontal = 4.dp)
-            .width(100.dp)
-    ) {
-        val density = LocalDensity.current
-        CompositionLocalProvider(LocalDensity provides Density(density = density.density, fontScale = 1f)) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(30.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = value,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = color),
-                    textAlign = TextAlign.Center,
-                    maxLines = 1
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(30.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium, color = Color(0xFF757575)),
                 textAlign = TextAlign.Center,
                 maxLines = 1
             )
@@ -731,8 +679,7 @@ private fun saveCompletedRecord(
     startTime: Long,
     endTime: Long,
     targetDays: Int,
-    actualDays: Int,
-    isCompleted: Boolean
+    actualDays: Int
 ) {
     try {
         val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
@@ -747,8 +694,8 @@ private fun saveCompletedRecord(
             put("endTime", endTime)
             put("targetDays", targetDays)
             put("actualDays", actualDays)
-            put("isCompleted", isCompleted)
-            put("status", if (isCompleted) "완료" else "중지")
+            put("isCompleted", true)
+            put("status", "완료")
             put("createdAt", System.currentTimeMillis())
         }
 
@@ -768,7 +715,7 @@ private fun saveCompletedRecord(
         sharedPref.edit { putString("sobriety_records", recordsList.toString()) }
 
         // 사용자에게 알림
-        val message = if (isCompleted) "금주 목표를 달성했습니다!" else "금주 기록이 저장되었습니다."
+        val message = "금주 목표를 달성했습니다!"
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 
     } catch (e: Exception) {
