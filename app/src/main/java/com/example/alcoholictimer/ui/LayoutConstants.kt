@@ -12,6 +12,13 @@ object LayoutConstants {
     // 카드 간격
     val CARD_SPACING = 16.dp
 
+    // 통계 행 간격(Detail/Quit 공용)
+    val STAT_ROW_SPACING = 12.dp
+
+    // 카드 공통 스타일
+    val CARD_CORNER_RADIUS = 20.dp
+    val CARD_PADDING = 20.dp
+
     // 하단 버튼 가로 패딩 (화면 가장자리에서 떨어진 거리)
     val BOTTOM_BUTTON_HORIZONTAL_PADDING = 32.dp
 

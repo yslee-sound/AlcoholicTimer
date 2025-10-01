@@ -10,6 +10,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
@@ -227,7 +229,7 @@ private fun RunScreen() {
                     contentAlignment = Alignment.Center
                 ) {
                     val labelBoxH = 24.dp
-                    val valueBoxH = 44.dp
+                    val valueBoxH = 66.dp // 44.dp -> 66.dp (1.5배로 증가)
                     val hintBoxH = 20.dp
                     val gapSmall = 6.dp
                     val gapMedium = 8.dp
@@ -285,12 +287,20 @@ private fun RunScreen() {
                                 .height(valueBoxH),
                             contentAlignment = Alignment.Center
                         ) {
+                            val baseStyle = MaterialTheme.typography.headlineMedium
                             Text(
                                 text = valueText,
-                                style = MaterialTheme.typography.headlineMedium
-                                    .copy(fontWeight = FontWeight.Bold, color = valueColor)
+                                style = baseStyle
+                                    .copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = valueColor,
+                                        // 중앙 숫자만 1.5배 크게
+                                        fontSize = (baseStyle.fontSize.value * 1.5f).sp
+                                    )
                                     .merge(noPad),
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                         Spacer(modifier = Modifier.height(gapMedium))
@@ -354,18 +364,33 @@ private fun ModernProgressIndicatorSimple(progress: Float) {
     }
     val alpha by animateFloatAsState(
         targetValue = if (blink) 1f else 0.3f,
-        animationSpec = tween(500),
+        animationSpec = tween(
+            durationMillis = 500,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        ),
         label = "blink"
     )
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = (progress * 100).toInt().coerceIn(0, 100).toString() + "%",
-            style = MaterialTheme.typography.titleLarge.copy(
-                fontWeight = FontWeight.Bold,
-                color = colorResource(id = R.color.color_progress_primary)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = (progress * 100).toInt().coerceIn(0, 100).toString() + "%",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = colorResource(id = R.color.color_progress_primary)
+                )
             )
-        )
+            Spacer(modifier = Modifier.width(8.dp))
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .clip(CircleShape)
+                    .background(colorResource(id = R.color.color_progress_primary).copy(alpha = alpha))
+            )
+        }
         Spacer(modifier = Modifier.height(8.dp))
         LinearProgressIndicator(
             progress = { progress },
@@ -374,13 +399,6 @@ private fun ModernProgressIndicatorSimple(progress: Float) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(8.dp),
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = stringResource(id = R.string.tap_to_switch_indicator),
-            style = MaterialTheme.typography.labelMedium.copy(color = colorResource(id = R.color.color_hint_gray)),
-            fontSize = 12.sp,
-            textAlign = TextAlign.Center
         )
     }
 }

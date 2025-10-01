@@ -23,6 +23,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,12 +37,13 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Locale
 import com.example.alcoholictimer.ui.StandardScreenWithBottomButton
+import com.example.alcoholictimer.ui.LayoutConstants
 import com.example.alcoholictimer.utils.FormatUtils
 import com.example.alcoholictimer.components.DetailStatCard
 
 class QuitActivity : BaseActivity() {
 
-    override fun getScreenTitle(): String = "금주 종료"
+    override fun getScreenTitle(): String = getString(R.string.quit_title)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,19 +78,19 @@ fun QuitScreen() {
         topContent = {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
+                shape = RoundedCornerShape(LayoutConstants.CARD_CORNER_RADIUS),
                 colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(20.dp),
+                    modifier = Modifier.fillMaxWidth().padding(LayoutConstants.CARD_PADDING),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, 1f)) {
                         Text("🤔", fontSize = 48.sp, modifier = Modifier.padding(bottom = 12.dp))
                     }
                     Text(
-                        text = "정말 멈추시겠어요?",
+                        text = stringResource(id = R.string.quit_confirm_title),
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF333333),
@@ -96,7 +98,7 @@ fun QuitScreen() {
                         modifier = Modifier.padding(bottom = 6.dp)
                     )
                     Text(
-                        text = "지금까지 잘 해오셨는데...",
+                        text = stringResource(id = R.string.quit_confirm_subtitle),
                         fontSize = 14.sp,
                         color = Color(0xFF666666),
                         textAlign = TextAlign.Center
@@ -195,7 +197,7 @@ fun QuitScreen() {
                             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                         ) {
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.Close, contentDescription = "중지", tint = Color.White, modifier = Modifier.size(48.dp))
+                                Icon(Icons.Default.Close, contentDescription = stringResource(id = R.string.cd_stop), tint = Color.White, modifier = Modifier.size(48.dp))
                             }
                         }
                     }
@@ -208,7 +210,7 @@ fun QuitScreen() {
                         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                     ) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.PlayArrow, contentDescription = "계속", tint = Color.White, modifier = Modifier.size(48.dp))
+                            Icon(Icons.Default.PlayArrow, contentDescription = stringResource(id = R.string.cd_continue), tint = Color.White, modifier = Modifier.size(48.dp))
                         }
                     }
                 }
@@ -228,7 +230,7 @@ fun StatisticsCardsSection(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
     ) {
         // 소수 1자리의 금주 일수 계산
         val totalDaysDecimal = elapsedDays.toDouble() + (elapsedHours.toDouble() / 24.0) + (elapsedMinutes.toDouble() / (24.0 * 60.0))
@@ -236,17 +238,17 @@ fun StatisticsCardsSection(
         // 첫 번째 행: 총 금주 일수, 절약한 금액
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
         ) {
             DetailStatCard(
                 value = String.format(Locale.getDefault(), "%.1f일", totalDaysDecimal),
-                label = "총 금주 일수",
+                label = stringResource(id = R.string.stat_total_days),
                 modifier = Modifier.weight(1f),
                 valueColor = colorResource(id = R.color.color_indicator_days)
             )
             DetailStatCard(
                 value = String.format(Locale.getDefault(), "%,.0f원", savedMoney),
-                label = "절약한 금액",
+                label = stringResource(id = R.string.stat_saved_money_short),
                 modifier = Modifier.weight(1f),
                 valueColor = colorResource(id = R.color.color_indicator_money)
             )
@@ -255,17 +257,17 @@ fun StatisticsCardsSection(
         // 두 번째 행: 절약한 시간, 기대 수명+
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
         ) {
             DetailStatCard(
                 value = String.format(Locale.getDefault(), "%.1f시간", savedHours),
-                label = "절약한 시간",
+                label = stringResource(id = R.string.stat_saved_hours_short),
                 modifier = Modifier.weight(1f),
                 valueColor = colorResource(id = R.color.color_indicator_hours)
             )
             DetailStatCard(
                 value = FormatUtils.daysToDayHourString(lifeGainDays, 2),
-                label = "기대 수명+",
+                label = stringResource(id = R.string.indicator_title_life_gain),
                 modifier = Modifier.weight(1f),
                 valueColor = colorResource(id = R.color.color_indicator_life)
             )

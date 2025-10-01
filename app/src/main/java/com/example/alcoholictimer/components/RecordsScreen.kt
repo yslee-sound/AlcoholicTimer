@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -561,6 +562,7 @@ private fun PeriodStatisticsSection(
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
+                // 모든 기간에서 + 아이콘만 표시 - 32dp로 되돌림
                 Button(
                     onClick = onAddTestRecord,
                     colors = ButtonDefaults.buttonColors(
@@ -568,12 +570,13 @@ private fun PeriodStatisticsSection(
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     ),
                     shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.height(32.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
+                    modifier = Modifier.size(32.dp),
+                    contentPadding = PaddingValues(0.dp)
                 ) {
-                    Text(
-                        text = "테스트 기록 추가",
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium)
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = "테스트 기록 추가",
+                        tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
             }

@@ -29,14 +29,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
+import com.example.alcoholictimer.ui.LayoutConstants
 import com.example.alcoholictimer.utils.Constants
 import com.example.alcoholictimer.utils.FormatUtils
 import com.example.alcoholictimer.ui.theme.BluePrimaryLight
@@ -146,18 +147,19 @@ fun DetailScreen(
     val context = LocalContext.current
     var showDeleteDialog by remember { mutableStateOf(false) }
     // 성공/실패 상태에 따른 포인트 컬러
-    val accentColor = if (isCompleted) BluePrimaryLight else AmberSecondaryLight
+    val accentColor = if (isCompleted) com.example.alcoholictimer.ui.theme.BluePrimaryLight else com.example.alcoholictimer.ui.theme.AmberSecondaryLight
 
     // 날짜/시간 포맷
-    val dateTimeFormat = SimpleDateFormat("yyyy-MM-dd - a h:mm", Locale.getDefault()).apply {
-        timeZone = TimeZone.getDefault()
+    val dateTimeFormat = java.text.SimpleDateFormat("yyyy-MM-dd - a h:mm", java.util.Locale.getDefault()).apply {
+        timeZone = java.util.TimeZone.getDefault()
     }
     val displayDateTime = if (startTime > 0) {
-        dateTimeFormat.format(Date(startTime))
+        dateTimeFormat.format(java.util.Date(startTime))
     } else {
-        "오늘 - ${SimpleDateFormat("a h:mm", Locale.getDefault()).apply {
-            timeZone = TimeZone.getDefault()
-        }.format(Date())}"
+        val nowFormatted = java.text.SimpleDateFormat("a h:mm", java.util.Locale.getDefault()).apply {
+            timeZone = java.util.TimeZone.getDefault()
+        }.format(java.util.Date())
+        stringResource(id = R.string.detail_today_time, nowFormatted)
     }
 
     // 정확한 금주 기간 계산 (시간 단위까지)
@@ -250,7 +252,7 @@ fun DetailScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp)
-                    .statusBarsPadding()  // 상태표시줄 높이만큼 패딩 추가
+                    .statusBarsPadding()
             ) {
                 // 헤더 영역
                 Row(
@@ -272,18 +274,17 @@ fun DetailScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                                contentDescription = "뒤로가기",
+                                contentDescription = stringResource(id = R.string.cd_navigate_back),
                                 tint = Color(0xFF2D3748),
                                 modifier = Modifier.size(24.dp)
                             )
                         }
                         Spacer(modifier = Modifier.width(4.dp))
-                        // 제목: 부모의 0.9배 스케일 영향 제거 + 명시적으로 1.5배 확대
                         CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1f)) {
                             val base = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                             val scaled = base.copy(fontSize = (base.fontSize.value * 1.3f).sp)
                             Text(
-                                text = "금주 기록 상세",
+                                text = stringResource(id = R.string.detail_title),
                                 style = scaled,
                                 color = Color(0xFF2D3748),
                                 maxLines = 1,
@@ -303,7 +304,7 @@ fun DetailScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Delete,
-                            contentDescription = "기록 삭제",
+                            contentDescription = stringResource(id = R.string.dialog_delete_title),
                             tint = Color(0xFFE53E3E),
                             modifier = Modifier.size(24.dp)
                         )
@@ -315,16 +316,16 @@ fun DetailScreen(
                 // 메인 정보 카드
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
+                    shape = RoundedCornerShape(LayoutConstants.CARD_CORNER_RADIUS),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
                     elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                 ) {
                     Column(
-                        modifier = Modifier.padding(24.dp)
+                        modifier = Modifier.padding(LayoutConstants.CARD_PADDING)
                     ) {
                         // 시작 날짜 및 시간
                         Text(
-                            text = "시작: $displayDateTime",
+                            text = "${stringResource(id = R.string.detail_start_label)} $displayDateTime",
                             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                             color = Color(0xFF718096)
                         )
@@ -333,7 +334,7 @@ fun DetailScreen(
 
                         // 종료 날짜 및 시간
                         Text(
-                            text = "종료: ${dateTimeFormat.format(Date(endTime))}",
+                            text = "${stringResource(id = R.string.detail_end_label)} ${dateTimeFormat.format(Date(endTime))}",
                             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                             color = Color(0xFF718096)
                         )
@@ -349,12 +350,12 @@ fun DetailScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
-                                    text = String.format(Locale.getDefault(), "%.1f", totalDays),
+                                    text = String.format(java.util.Locale.getDefault(), "%.1f", totalDays),
                                     style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.ExtraBold),
                                     color = accentColor
                                 )
                                 Text(
-                                    text = "일",
+                                    text = stringResource(id = R.string.unit_day),
                                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
                                     color = Color(0xFF718096)
                                 )
@@ -373,7 +374,7 @@ fun DetailScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "목표 달성률",
+                                    text = stringResource(id = R.string.detail_progress_rate),
                                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                                     color = Color(0xFF718096)
                                 )
@@ -405,12 +406,12 @@ fun DetailScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(
-                                    text = "진행: ${String.format(Locale.getDefault(), "%.1f", totalDays)}일",
+                                    text = stringResource(id = R.string.detail_progress_current, String.format(Locale.getDefault(), "%.1f", totalDays)),
                                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                                     color = Color(0xFF718096)
                                 )
                                 Text(
-                                    text = "목표: ${targetDays.toInt()}일",
+                                    text = stringResource(id = R.string.detail_progress_target, targetDays.toInt()),
                                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                                     color = Color(0xFF718096)
                                 )
@@ -424,17 +425,17 @@ fun DetailScreen(
                 // 통계 카드들
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
                 ) {
                     DetailStatCard(
                         value = String.format(Locale.getDefault(), "%.1f일", totalDays),
-                        label = "총 금주 일수",
+                        label = stringResource(id = R.string.stat_total_days),
                         modifier = Modifier.weight(1f),
                         valueColor = colorResource(id = R.color.color_indicator_days)
                     )
                     DetailStatCard(
                         value = String.format(Locale.getDefault(), "%,.0f원", savedMoney.toDouble()),
-                        label = "절약한 금액",
+                        label = stringResource(id = R.string.stat_saved_money_short),
                         modifier = Modifier.weight(1f),
                         valueColor = colorResource(id = R.color.color_indicator_money)
                     )
@@ -444,17 +445,17 @@ fun DetailScreen(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
                 ) {
                     DetailStatCard(
                         value = String.format(Locale.getDefault(), "%.1f시간", savedHoursExact),
-                        label = "절약한 시간",
+                        label = stringResource(id = R.string.stat_saved_hours_short),
                         modifier = Modifier.weight(1f),
                         valueColor = colorResource(id = R.color.color_indicator_hours)
                     )
                     DetailStatCard(
                         value = FormatUtils.daysToDayHourString(lifeExpectancyIncrease, 2),
-                        label = "기대 수명+",
+                        label = stringResource(id = R.string.indicator_title_life_gain),
                         modifier = Modifier.weight(1f),
                         valueColor = colorResource(id = R.color.color_indicator_life)
                     )
@@ -469,14 +470,14 @@ fun DetailScreen(
                     onDismissRequest = { showDeleteDialog = false },
                     title = {
                         Text(
-                            "기록 삭제",
+                            stringResource(id = R.string.dialog_delete_title),
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF2D3748)
                         )
                     },
                     text = {
                         Text(
-                            "정말로 이 금주 기록을 삭제하시겠습니까?\n삭제 후 복구할 수 없습니다.",
+                            stringResource(id = R.string.dialog_delete_message),
                             color = Color(0xFF4A5568)
                         )
                     },
@@ -494,12 +495,12 @@ fun DetailScreen(
                                 activity?.finish()
                             }
                         ) {
-                            Text("삭제", color = Color(0xFFE53E3E), fontWeight = FontWeight.Bold)
+                            Text(stringResource(id = R.string.dialog_delete_confirm), color = Color(0xFFE53E3E), fontWeight = FontWeight.Bold)
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { showDeleteDialog = false }) {
-                            Text("취소", color = Color(0xFF718096))
+                            Text(stringResource(id = R.string.dialog_cancel), color = Color(0xFF718096))
                         }
                     },
                     containerColor = Color.White,
