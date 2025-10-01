@@ -77,8 +77,8 @@ internal fun MonthPickerContent(
         yearOptions.indexOf(initialYear).let { if (it >= 0) it else (yearOptions.size - 1).coerceAtLeast(0) }
     }
 
-    // yearOptions가 변경되면 선택 인덱스를 기본값으로 재초기화
-    var selectedYearIndex by remember(yearOptions) { mutableStateOf(defaultYearIndex) }
+    // yearOptions가 변경되면 선택 인덱스를 기본값으로 재초기화 (primitive state 사용)
+    var selectedYearIndex by remember(yearOptions) { mutableIntStateOf(defaultYearIndex) }
 
     // 선택된 연도에 맞는 월 목록 계산
     fun monthsFor(year: Int): List<Int> {
@@ -107,9 +107,9 @@ internal fun MonthPickerContent(
     val selectedYear = yearOptions.getOrNull(selectedYearIndex) ?: Calendar.getInstance().get(Calendar.YEAR)
     var monthOptions by remember { mutableStateOf(monthsFor(selectedYear)) }
 
-    // 기본 선택 월 인덱스: initialMonth가 월 목록에 없으면 마지막 인덱스
+    // 기본 선택 월 인덱스: initialMonth가 월 목록에 없으면 마지막 인덱스 (primitive state 사용)
     var selectedMonthIndex by remember {
-        mutableStateOf(
+        mutableIntStateOf(
             monthOptions.indexOf(initialMonth).let { if (it >= 0) it else (monthOptions.size - 1).coerceAtLeast(0) }
         )
     }
@@ -152,7 +152,10 @@ internal fun MonthPickerContent(
                 Box(modifier = Modifier.weight(1f)) {
                     NumberPicker(
                         value = selectedYearIndex,
-                        onValueChange = { selectedYearIndex = it },
+                        onValueChange = { newIndex ->
+                            selectedYearIndex = newIndex
+                            yearOptions.getOrNull(newIndex)?.let { y -> onYearPicked(y) }
+                        },
                         range = 0 until yearOptions.size,
                         displayValues = yearOptions.map { "${it}년" },
                         modifier = Modifier.fillMaxWidth()

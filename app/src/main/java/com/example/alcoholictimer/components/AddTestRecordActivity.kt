@@ -110,8 +110,8 @@ fun AddTestRecordScreen(
 ) {
     val context = LocalContext.current
     var targetDays by remember { mutableStateOf("30.0") }
-    var startDate by remember { mutableStateOf(System.currentTimeMillis() - (30 * 24 * 60 * 60 * 1000L)) }
-    var endDate by remember { mutableStateOf(System.currentTimeMillis() - (5 * 24 * 60 * 60 * 1000L)) }
+    var startDate by remember { mutableLongStateOf(System.currentTimeMillis() - (30 * 24 * 60 * 60 * 1000L)) }
+    var endDate by remember { mutableLongStateOf(System.currentTimeMillis() - (5 * 24 * 60 * 60 * 1000L)) }
     var startTime by remember { mutableStateOf(Pair(9, 0)) } // 시, 분
     var endTime by remember { mutableStateOf(Pair(18, 0)) } // 시, 분
 
@@ -183,7 +183,7 @@ fun AddTestRecordScreen(
             )
         )
 
-        // 스크롤 가능한 컨텐츠
+        // 스크롤 가능한 콘텐츠
         Column(
             modifier = Modifier
                 .fillMaxSize()

@@ -8,10 +8,14 @@ object Constants {
     const val PREFS_NAME = "AlcoholicTimerPrefs"
     const val USER_SETTINGS_PREFS = "user_settings"  // 사용자 설정용 SharedPreferences
     const val PREF_KEY_TEST_MODE = "test_mode"
-    const val PREF_TEST_MODE = "test_mode"  // 호환성을 위해 추가
+    const val PREF_TEST_MODE = "test_mode"  // 호환성 유지
     const val PREF_START_TIME = "start_time"
     const val PREF_TARGET_DAYS = "target_days"
     const val PREF_RECORDS = "records"
+
+    // 타이머 완료 여부 및 기록 리스트 키
+    const val PREF_TIMER_COMPLETED = "timer_completed"
+    const val PREF_SOBRIETY_RECORDS = "sobriety_records"
 
     // 사용자 설정 키
     const val PREF_SELECTED_COST = "selected_cost"
@@ -47,11 +51,10 @@ object Constants {
     const val MINUTE_IN_MILLIS = 1000L * 60         // 분 단위 (1분 = 60초)
     const val SECOND_IN_MILLIS = 1000L              // 초 단위
 
-    // UI 관련 상수
-    const val RESULT_SCREEN_DELAY = 2000             // 결과 화면 전환 지연 시간 (2초)
-
     // 기타 상수
-    const val DEFAULT_VALUE = 2000                   // 기본값 2000
+    const val RESULT_SCREEN_DELAY = 2000            // 결과 화면 전환 지연 시간 (2초)
+    const val DEFAULT_VALUE = 2000                  // 기본값 2000
+    const val DEFAULT_HANGOVER_HOURS = 5            // 기본 숙취 시간(시간)
 
     // 레벨 계산용 시간 단위 (테스트 모드에 따라 동적으로 결정)
     val LEVEL_TIME_UNIT_MILLIS: Long
@@ -68,6 +71,12 @@ object Constants {
             TEST_MODE_MINUTE -> "분"
             else -> "일"
         }
+
+    // 상태 문자열
+    const val STATUS_COMPLETED = "완료"
+
+    // current_indicator 키 생성 함수 (세션별 분리)
+    fun keyCurrentIndicator(startTime: Long): String = "current_indicator_${startTime}"
 
     /**
      * 레벨 계산용 일수 계산 함수
@@ -92,8 +101,7 @@ object Constants {
     }
 
     /**
-     * 테스트 모드를 업데이트하는 함수
-     * TestActivity에서 설정 저장 시 호출됩니다.
+     * 테스트 모드를 업데이트하는 함수 (TestActivity 등에서 호출)
      */
     fun updateTestMode(mode: Int) {
         currentTestMode = when (mode) {
@@ -103,8 +111,7 @@ object Constants {
     }
 
     /**
-     * 사용자 설정값을 초기화하는 함수
-     * 앱 최초 실행 시 한 번만 호출되어 기본값을 설정합니다.
+     * 사용자 설정값을 초기화하는 함수 (앱 최초 실행 시 1회)
      */
     fun initializeUserSettings(context: Context) {
         val sharedPref = context.getSharedPreferences(USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
@@ -122,7 +129,6 @@ object Constants {
 
     /**
      * 사용자 설정값을 가져오는 함수
-     * 항상 저장된 값을 반환하며, 초기화되지 않은 경우 기본값을 반환합니다.
      */
     fun getUserSettings(context: Context): Triple<String, String, String> {
         val sharedPref = context.getSharedPreferences(USER_SETTINGS_PREFS, Context.MODE_PRIVATE)

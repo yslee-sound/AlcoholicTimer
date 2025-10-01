@@ -268,11 +268,8 @@ fun TestScreen() {
                             // 5. 앱 종료 (사용자가 수동으로 재시작하도록)
                             android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
                                 val activity = context as? android.app.Activity
-                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-                                    activity?.finishAffinity()
-                                } else {
-                                    activity?.finish()
-                                }
+                                // minSdk 21 이상이므로 분기 없이 finishAffinity 사용
+                                activity?.finishAffinity()
                                 android.os.Process.killProcess(android.os.Process.myPid())
                             }, 2000) // 2초 후 앱 종료
 

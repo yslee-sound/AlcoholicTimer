@@ -19,6 +19,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -29,6 +30,7 @@ import com.example.alcoholictimer.utils.Constants
 import com.example.alcoholictimer.ui.StandardScreenWithBottomButton
 import java.util.Locale
 import androidx.core.content.edit
+import com.example.alcoholictimer.R
 
 class StartActivity : BaseActivity() {
 
@@ -89,7 +91,7 @@ fun StartScreen() {
         mutableStateOf(
             TextFieldValue(
                 text = "30",
-                selection = TextRange(0, 2) // 초기에 전체 선택
+                selection = TextRange(0, 2) // 초기엔 전체 선택
             )
         )
     }
@@ -113,7 +115,7 @@ fun StartScreen() {
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White.copy(alpha = 0.95f)
+                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
             ) {
@@ -126,7 +128,7 @@ fun StartScreen() {
                     Text(
                         text = "목표 기간 설정",
                         style = MaterialTheme.typography.titleLarge,
-                        color = Color(0xFF333333),
+                        color = colorResource(id = R.color.color_title_primary),
                         modifier = Modifier
                             .align(Alignment.CenterHorizontally)
                             .padding(bottom = 24.dp)
@@ -144,7 +146,7 @@ fun StartScreen() {
                                 .height(56.dp), // 고정 높이로 입력 박스 크기 유지
                             shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = Color(0xFFF5F5F5)
+                                containerColor = colorResource(id = R.color.color_bg_card_light)
                             ),
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                         ) {
@@ -187,12 +189,12 @@ fun StartScreen() {
                                         }
                                     },
                                     textStyle = MaterialTheme.typography.headlineLarge.copy(
-                                        color = Color(0xFF1976D2),
+                                        color = colorResource(id = R.color.color_indicator_days),
                                         textAlign = TextAlign.Center
                                     ),
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                     singleLine = true,
-                                    cursorBrush = SolidColor(Color(0xFF1976D2)),
+                                    cursorBrush = SolidColor(colorResource(id = R.color.color_indicator_days)),
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .onFocusChanged { focusState ->
@@ -205,13 +207,13 @@ fun StartScreen() {
                         Text(
                             text = "일",
                             style = MaterialTheme.typography.titleLarge,
-                            color = Color(0xFF666666)
+                            color = colorResource(id = R.color.color_indicator_label_gray)
                         )
                     }
                     Text(
                         text = "금주할 목표 기간을 입력해주세요",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF999999),
+                        color = colorResource(id = R.color.color_hint_gray),
                         textAlign = TextAlign.Center,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
@@ -261,7 +263,7 @@ fun ModernStartButton(
         modifier = modifier.size(96.dp),
         shape = CircleShape,
         colors = CardDefaults.cardColors(
-            containerColor = if (isEnabled) Color(0xFF4CAF50) else Color(0xFFCCCCCC)
+            containerColor = if (isEnabled) colorResource(id = R.color.color_progress_primary) else colorResource(id = R.color.color_button_disabled)
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = if (isEnabled) 8.dp else 2.dp

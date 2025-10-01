@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,15 +12,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
-import com.example.alcoholictimer.ui.StandardScreen
 import com.example.alcoholictimer.utils.Constants
 
 class SettingsActivity : BaseActivity() {
@@ -63,7 +60,7 @@ fun SettingsScreen() {
         // 음주 비용 설정 카드
         SettingsCard(
             title = "음주 비용",
-            titleColor = Color(0xFFE91E63)
+            titleColor = colorResource(id = R.color.color_indicator_money)
         ) {
             SettingsOptionGroup(
                 selectedOption = selectedCost,
@@ -80,7 +77,7 @@ fun SettingsScreen() {
         // 음주 빈도 설정 카드
         SettingsCard(
             title = "음주 빈도",
-            titleColor = Color(0xFF4CAF50)
+            titleColor = colorResource(id = R.color.color_progress_primary)
         ) {
             SettingsOptionGroup(
                 selectedOption = selectedFrequency,
@@ -97,7 +94,7 @@ fun SettingsScreen() {
         // 음주 시간 설정 카드
         SettingsCard(
             title = "음주 시간",
-            titleColor = Color(0xFFFF9800)
+            titleColor = colorResource(id = R.color.color_indicator_hours)
         ) {
             SettingsOptionGroup(
                 selectedOption = selectedDuration,
@@ -126,7 +123,7 @@ fun SettingsCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.9f)
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -144,24 +141,6 @@ fun SettingsCard(
     }
 }
 
-@Composable
-fun SettingsOptionGroup(
-    selectedOption: String,
-    options: List<String>,
-    labels: List<String>,
-    onOptionSelected: (String) -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { // 12.dp → 8.dp로 축소
-        options.forEachIndexed { index, option ->
-            SettingsOptionItem(
-                isSelected = selectedOption == option,
-                label = labels[index],
-                onSelected = { onOptionSelected(option) }
-            )
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsOptionItem(
@@ -175,14 +154,14 @@ fun SettingsOptionItem(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected)
-                Color(0xFF2196F3).copy(alpha = 0.1f)
+                colorResource(id = R.color.color_accent_blue).copy(alpha = 0.1f)
             else
-                Color(0xFFF5F5F5)
+                colorResource(id = R.color.color_bg_card_light)
         ),
         border = if (isSelected)
-            BorderStroke(2.dp, Color(0xFF2196F3))
+            BorderStroke(2.dp, colorResource(id = R.color.color_accent_blue))
         else
-            BorderStroke(1.dp, Color(0xFFE0E0E0))
+            BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
     ) {
         Row(
             modifier = Modifier
@@ -194,8 +173,8 @@ fun SettingsOptionItem(
                 selected = isSelected,
                 onClick = onSelected,
                 colors = RadioButtonDefaults.colors(
-                    selectedColor = Color(0xFF2196F3),
-                    unselectedColor = Color(0xFF757575)
+                    selectedColor = colorResource(id = R.color.color_accent_blue),
+                    unselectedColor = colorResource(id = R.color.color_radio_unselected)
                 )
             )
             Spacer(modifier = Modifier.width(8.dp)) // 12.dp → 8.dp로 축소
@@ -203,7 +182,25 @@ fun SettingsOptionItem(
                 text = label,
                 style = if (isSelected) MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
                         else MaterialTheme.typography.bodyLarge,
-                color = if (isSelected) Color(0xFF1976D2) else Color(0xFF424242)
+                color = if (isSelected) colorResource(id = R.color.color_indicator_days) else colorResource(id = R.color.color_text_primary_dark)
+            )
+        }
+    }
+}
+
+@Composable
+fun SettingsOptionGroup(
+    selectedOption: String,
+    options: List<String>,
+    labels: List<String>,
+    onOptionSelected: (String) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { // 12.dp → 8.dp로 축소
+        options.forEachIndexed { index, option ->
+            SettingsOptionItem(
+                isSelected = selectedOption == option,
+                label = labels[index],
+                onSelected = { onOptionSelected(option) }
             )
         }
     }

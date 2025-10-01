@@ -7,8 +7,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
+import com.example.alcoholictimer.R
 
 /**
  * 모든 Activity에서 사용할 표준 화면 레이아웃
@@ -20,9 +21,9 @@ fun StandardScreen(
     // 모던한 그라데이션 배경 (모든 화면 동일)
     val backgroundBrush = Brush.linearGradient(
         colors = listOf(
-            Color(0xFFF8F9FA),
-            Color(0xFFE3F2FD),
-            Color(0xFFF1F8E9)
+            colorResource(id = R.color.color_bg_gradient_start),
+            colorResource(id = R.color.color_bg_gradient_mid),
+            colorResource(id = R.color.color_bg_gradient_end)
         ),
         start = Offset(0f, 0f),
         end = Offset(1000f, 1000f)
@@ -53,9 +54,9 @@ fun StandardScreenWithBottomButton(
     // 모던한 그라데이션 배경
     val backgroundBrush = Brush.linearGradient(
         colors = listOf(
-            Color(0xFFF8F9FA),
-            Color(0xFFE3F2FD),
-            Color(0xFFF1F8E9)
+            colorResource(id = R.color.color_bg_gradient_start),
+            colorResource(id = R.color.color_bg_gradient_mid),
+            colorResource(id = R.color.color_bg_gradient_end)
         ),
         start = Offset(0f, 0f),
         end = Offset(1000f, 1000f)

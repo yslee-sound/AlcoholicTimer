@@ -62,8 +62,8 @@ internal fun WeekPickerContent(
         generateWeekOptions()
     }
 
-    // 기본값을 "이번 주"(마지막 인덱스)로 설정
-    var selectedWeekIndex by remember { mutableStateOf(weekOptions.size - 1) }
+    // 기본값을 "이번 주"(마지막 인덱스)로 설정 - primitive state 사용
+    var selectedWeekIndex by remember { mutableIntStateOf(weekOptions.size - 1) }
 
     Column(
         modifier = Modifier
