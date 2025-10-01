@@ -82,7 +82,6 @@ fun RecordsScreen(
             "주" -> {
                 // 선택된 주 범위가 있으면 그대로 사용
                 val range = selectedWeekRange ?: run {
-                    // 없으면 이번 주(일요일~토요일) 범위 계산
                     val cal = Calendar.getInstance().apply {
                         firstDayOfWeek = Calendar.SUNDAY
                         set(Calendar.HOUR_OF_DAY, 0)
@@ -100,8 +99,8 @@ fun RecordsScreen(
                 records.filter { it.endTime >= range.first && it.startTime <= range.second }
             }
             "월" -> {
-                if (selectedDetailPeriod.isNotEmpty()) {
-                    // 특정 월 필터링 로직 (예: "2025년 8월")
+                // 월 범위 계산 후, 해당 월과 겹치는 모든 기록 포함
+                val range: Pair<Long, Long> = if (selectedDetailPeriod.isNotEmpty()) {
                     val regex = Regex("(\\d{4})년 (\\d{1,2})월")
                     val match = regex.find(selectedDetailPeriod)
                     if (match != null) {
@@ -114,10 +113,21 @@ fun RecordsScreen(
                         cal.add(Calendar.MONTH, 1)
                         cal.add(Calendar.MILLISECOND, -1)
                         val monthEnd = cal.timeInMillis
-                        records.filter { it.startTime in monthStart..monthEnd }
-                    } else records
+                        monthStart to monthEnd
+                    } else {
+                        val cal = Calendar.getInstance()
+                        cal.set(Calendar.DAY_OF_MONTH, 1)
+                        cal.set(Calendar.HOUR_OF_DAY, 0)
+                        cal.set(Calendar.MINUTE, 0)
+                        cal.set(Calendar.SECOND, 0)
+                        cal.set(Calendar.MILLISECOND, 0)
+                        val monthStart = cal.timeInMillis
+                        cal.add(Calendar.MONTH, 1)
+                        cal.add(Calendar.MILLISECOND, -1)
+                        val monthEnd = cal.timeInMillis
+                        monthStart to monthEnd
+                    }
                 } else {
-                    // 이번 달 1일~말일
                     val cal = Calendar.getInstance()
                     cal.set(Calendar.DAY_OF_MONTH, 1)
                     cal.set(Calendar.HOUR_OF_DAY, 0)
@@ -128,12 +138,13 @@ fun RecordsScreen(
                     cal.add(Calendar.MONTH, 1)
                     cal.add(Calendar.MILLISECOND, -1)
                     val monthEnd = cal.timeInMillis
-                    records.filter { it.startTime in monthStart..monthEnd }
+                    monthStart to monthEnd
                 }
+                records.filter { it.endTime >= range.first && it.startTime <= range.second }
             }
             "년" -> {
-                if (selectedDetailPeriod.isNotEmpty()) {
-                    // 특정 년 필터링 로직 (예: "2025년")
+                // 년 범위 계산 후, 해당 년과 겹치는 모든 기록 포함
+                val range: Pair<Long, Long> = if (selectedDetailPeriod.isNotEmpty()) {
                     val regex = Regex("(\\d{4})년")
                     val match = regex.find(selectedDetailPeriod)
                     if (match != null) {
@@ -145,10 +156,22 @@ fun RecordsScreen(
                         cal.add(Calendar.YEAR, 1)
                         cal.add(Calendar.MILLISECOND, -1)
                         val yearEnd = cal.timeInMillis
-                        records.filter { it.startTime in yearStart..yearEnd }
-                    } else records
+                        yearStart to yearEnd
+                    } else {
+                        val cal = Calendar.getInstance()
+                        cal.set(Calendar.MONTH, 0)
+                        cal.set(Calendar.DAY_OF_MONTH, 1)
+                        cal.set(Calendar.HOUR_OF_DAY, 0)
+                        cal.set(Calendar.MINUTE, 0)
+                        cal.set(Calendar.SECOND, 0)
+                        cal.set(Calendar.MILLISECOND, 0)
+                        val yearStart = cal.timeInMillis
+                        cal.add(Calendar.YEAR, 1)
+                        cal.add(Calendar.MILLISECOND, -1)
+                        val yearEnd = cal.timeInMillis
+                        yearStart to yearEnd
+                    }
                 } else {
-                    // 올해 1월 1일~12월 31일
                     val cal = Calendar.getInstance()
                     cal.set(Calendar.MONTH, 0)
                     cal.set(Calendar.DAY_OF_MONTH, 1)
@@ -160,8 +183,9 @@ fun RecordsScreen(
                     cal.add(Calendar.YEAR, 1)
                     cal.add(Calendar.MILLISECOND, -1)
                     val yearEnd = cal.timeInMillis
-                    records.filter { it.startTime in yearStart..yearEnd }
+                    yearStart to yearEnd
                 }
+                records.filter { it.endTime >= range.first && it.startTime <= range.second }
             }
             else -> records // "전체"
         }
@@ -385,24 +409,108 @@ private fun PeriodStatisticsSection(
     onAddTestRecord: () -> Unit = {},
     weekRange: Pair<Long, Long>? = null
 ) {
-    // 통계 계산 - 수정된 로직
+    // 통계 계산 - 수정된 로직 (모든 기간에서 겹치는 구간만 합산)
     val totalRecords = records.size
 
-    // 각 기록의 실제 달성률을 평균으로 계산
+    // 현재 선택된 기간의 시간 범위 계산 (전체는 null)
+    val periodRange: Pair<Long, Long>? = remember(selectedPeriod, selectedDetailPeriod, weekRange) {
+        when (selectedPeriod) {
+            "주" -> {
+                // 주 범위가 전달되었으면 사용, 없으면 이번 주로 계산
+                weekRange ?: run {
+                    val cal = Calendar.getInstance().apply {
+                        firstDayOfWeek = Calendar.SUNDAY
+                        set(Calendar.HOUR_OF_DAY, 0)
+                        set(Calendar.MINUTE, 0)
+                        set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
+                        set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
+                    }
+                    val weekStart = cal.timeInMillis
+                    cal.add(Calendar.DAY_OF_WEEK, 6)
+                    val weekEndInclusive = cal.timeInMillis + (24 * 60 * 60 * 1000L - 1)
+                    weekStart to weekEndInclusive
+                }
+            }
+            "월" -> {
+                val regex = Regex("(\\d{4})년 (\\d{1,2})월")
+                val match = regex.find(selectedDetailPeriod)
+                if (match != null) {
+                    val year = match.groupValues[1].toInt()
+                    val month = match.groupValues[2].toInt() - 1
+                    val cal = Calendar.getInstance()
+                    cal.set(year, month, 1, 0, 0, 0)
+                    cal.set(Calendar.MILLISECOND, 0)
+                    val start = cal.timeInMillis
+                    cal.add(Calendar.MONTH, 1)
+                    cal.add(Calendar.MILLISECOND, -1)
+                    val end = cal.timeInMillis
+                    start to end
+                } else {
+                    val cal = Calendar.getInstance()
+                    cal.set(Calendar.DAY_OF_MONTH, 1)
+                    cal.set(Calendar.HOUR_OF_DAY, 0)
+                    cal.set(Calendar.MINUTE, 0)
+                    cal.set(Calendar.SECOND, 0)
+                    cal.set(Calendar.MILLISECOND, 0)
+                    val start = cal.timeInMillis
+                    cal.add(Calendar.MONTH, 1)
+                    cal.add(Calendar.MILLISECOND, -1)
+                    val end = cal.timeInMillis
+                    start to end
+                }
+            }
+            "년" -> {
+                val regex = Regex("(\\d{4})년")
+                val match = regex.find(selectedDetailPeriod)
+                if (match != null) {
+                    val year = match.groupValues[1].toInt()
+                    val cal = Calendar.getInstance()
+                    cal.set(year, 0, 1, 0, 0, 0)
+                    cal.set(Calendar.MILLISECOND, 0)
+                    val start = cal.timeInMillis
+                    cal.add(Calendar.YEAR, 1)
+                    cal.add(Calendar.MILLISECOND, -1)
+                    val end = cal.timeInMillis
+                    start to end
+                } else {
+                    val cal = Calendar.getInstance()
+                    cal.set(Calendar.MONTH, 0)
+                    cal.set(Calendar.DAY_OF_MONTH, 1)
+                    cal.set(Calendar.HOUR_OF_DAY, 0)
+                    cal.set(Calendar.MINUTE, 0)
+                    cal.set(Calendar.SECOND, 0)
+                    cal.set(Calendar.MILLISECOND, 0)
+                    val start = cal.timeInMillis
+                    cal.add(Calendar.YEAR, 1)
+                    cal.add(Calendar.MILLISECOND, -1)
+                    val end = cal.timeInMillis
+                    start to end
+                }
+            }
+            else -> null
+        }
+    }
+
+    // 지정된 기간과 겹치는 일수(일 단위)를 계산하는 함수
+    fun overlappedDays(record: SobrietyRecord): Double {
+        if (periodRange == null) {
+            val duration = (record.endTime - record.startTime).coerceAtLeast(0L)
+            return duration / (24.0 * 60 * 60 * 1000.0)
+        }
+        val overlapStart = maxOf(record.startTime, periodRange.first)
+        val overlapEnd = minOf(record.endTime, periodRange.second)
+        val overlapMs = (overlapEnd - overlapStart).coerceAtLeast(0)
+        return overlapMs / (24.0 * 60 * 60 * 1000.0)
+    }
+
+    // 각 기록의 실제 달성률을 평균으로 계산 (기간 겹침 반영)
     val successRate = if (totalRecords > 0) {
         val totalProgressPercent = records.sumOf { record ->
-            val actualDurationDays = if (selectedPeriod == "주" && weekRange != null) {
-                val overlapStart = maxOf(record.startTime, weekRange.first)
-                val overlapEnd = minOf(record.endTime, weekRange.second)
-                val overlapMs = (overlapEnd - overlapStart).coerceAtLeast(0)
-                overlapMs / (24f * 60 * 60 * 1000f)
-            } else {
-                (record.endTime - record.startTime) / (24 * 60 * 60 * 1000f)
-            }
+            val actualDurationDays = overlappedDays(record).toFloat()
             val progressPercent = if (record.targetDays > 0) {
                 ((actualDurationDays / record.targetDays) * 100).coerceIn(0f, 100f)
             } else {
-                // 목표 0일 기록: 저장된 percentage 우선, 없으면 기본 목표 30일 대비 계산
                 record.percentage?.toFloat() ?: ((actualDurationDays / 30f) * 100f).coerceIn(0f, 100f)
             }
             progressPercent.toDouble()
@@ -410,48 +518,17 @@ private fun PeriodStatisticsSection(
         com.example.alcoholictimer.utils.PercentUtils.roundPercent(totalProgressPercent / totalRecords)
     } else 0
 
-    // 실제 시간 기반으로 총 일수 계산 (주간은 겹치는 구간만)
-    val totalDays = records.sumOf { record ->
-        val days = if (selectedPeriod == "주" && weekRange != null) {
-            val overlapStart = maxOf(record.startTime, weekRange.first)
-            val overlapEnd = minOf(record.endTime, weekRange.second)
-            val overlapMs = (overlapEnd - overlapStart).coerceAtLeast(0)
-            overlapMs / (24 * 60 * 60 * 1000.0)
-        } else {
-            val duration = record.endTime - record.startTime
-            duration / (24 * 60 * 60 * 1000.0)
-        }
-        days.toInt()
-    }
+    // 총 누적 일수: 소수 1자리까지 표시 (겹치는 기간만 합산)
+    val totalDaysDouble = records.sumOf { record -> overlappedDays(record) }
+    val totalDaysDisplay = String.format(Locale.getDefault(), "%.1f", totalDaysDouble)
 
-    // 실제 시간 기반으로 평균 지속일 계산 (주간은 겹치는 구간만)
+    // 평균/최대 지속일 (UI는 정수 표기 유지, 겹치는 기간 기준)
     val averageDays = if (totalRecords > 0) {
-        val avgDuration = records.map { record ->
-            if (selectedPeriod == "주" && weekRange != null) {
-                val overlapStart = maxOf(record.startTime, weekRange.first)
-                val overlapEnd = minOf(record.endTime, weekRange.second)
-                val overlapMs = (overlapEnd - overlapStart).coerceAtLeast(0)
-                overlapMs / (24 * 60 * 60 * 1000.0)
-            } else {
-                (record.endTime - record.startTime) / (24 * 60 * 60 * 1000.0)
-            }
-        }.average()
-        avgDuration.toInt()
+        records.map { record -> overlappedDays(record) }.average().toInt()
     } else 0
 
-    // 실제 시간 기반으로 최대 지속일 계산 (주간은 겹치는 구간만)
     val maxDays = if (records.isNotEmpty()) {
-        records.maxOf { record ->
-            val days = if (selectedPeriod == "주" && weekRange != null) {
-                val overlapStart = maxOf(record.startTime, weekRange.first)
-                val overlapEnd = minOf(record.endTime, weekRange.second)
-                val overlapMs = (overlapEnd - overlapStart).coerceAtLeast(0)
-                overlapMs / (24 * 60 * 60 * 1000.0)
-            } else {
-                (record.endTime - record.startTime) / (24 * 60 * 60 * 1000.0)
-            }
-            days
-        }.toInt()
+        records.maxOf { record -> overlappedDays(record) }.toInt()
     } else 0
 
     Card(
@@ -559,7 +636,7 @@ private fun PeriodStatisticsSection(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "${totalDays}일",
+                    text = "${totalDaysDisplay}일",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
