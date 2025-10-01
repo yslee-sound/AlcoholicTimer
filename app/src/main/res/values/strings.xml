@@ -27,12 +27,4 @@
     <string name="cd_stop">정지</string>
 
     <string name="toast_goal_completed">금주 목표를 달성했습니다!</string>
-    <string name="error_saving_record">기록 저장 중 오류가 발생했습니다: %1$s</string>
-    <string name="error_processing_goal">목표 달성 처리 중 오류: %1$s</string>
-
-    <!-- Debug messages (로그 확인용) -->
-    <string name="debug_extreme_fraction_mode">=== 극소수점 테스트 모드 ===</string>
-    <string name="debug_target_seconds">목표 초수: %1$.0f초</string>
-    <string name="debug_elapsed_seconds">경과 초수: %1$.0f초</string>
-    <string name="debug_remaining_seconds">남은 초수: %1$.0f초</string>
 </resources>
