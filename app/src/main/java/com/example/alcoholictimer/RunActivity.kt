@@ -20,8 +20,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,6 +33,7 @@ import java.util.Locale
 import com.example.alcoholictimer.ui.StandardScreenWithBottomButton
 import com.example.alcoholictimer.utils.Constants
 import com.example.alcoholictimer.LevelDefinitions
+import com.example.alcoholictimer.utils.FormatUtils
 import kotlinx.coroutines.delay
 
 class RunActivity : BaseActivity() {
@@ -208,22 +212,30 @@ private fun RunScreen() {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // 메인 지표 카드 (탭하여 전환)
+            // 메인 지표 카드 (탭하여 전환) - 고정 높이
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .wrapContentHeight()
+                    .height(168.dp)
                     .clickable { toggleIndicator() },
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f))
             ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
                 ) {
+                    val labelBoxH = 24.dp
+                    val valueBoxH = 44.dp
+                    val hintBoxH = 20.dp
+                    val gapSmall = 6.dp
+                    val gapMedium = 8.dp
+
                     val (label, valueText, valueColor) = when (currentIndicator) {
                         0 -> Triple(
                             stringResource(id = R.string.indicator_title_days),
-                            elapsedDays.toString(),
+                            String.format(Locale.getDefault(), "%.1f", elapsedDaysFloat),
                             colorResource(id = R.color.color_indicator_days)
                         )
                         1 -> Triple(
@@ -233,7 +245,7 @@ private fun RunScreen() {
                         )
                         2 -> Triple(
                             stringResource(id = R.string.indicator_title_saved_money),
-                            String.format(Locale.getDefault(), "%,.0f원", savedMoney),
+                            String.format(Locale.getDefault(), "%,.0f원", savedMoney).replace(" ", ""),
                             colorResource(id = R.color.color_indicator_money)
                         )
                         3 -> Triple(
@@ -243,27 +255,60 @@ private fun RunScreen() {
                         )
                         else -> Triple(
                             stringResource(id = R.string.indicator_title_life_gain),
-                            String.format(Locale.getDefault(), "%.2f일", lifeGainDays),
+                            FormatUtils.daysToDayHourString(lifeGainDays, 2),
                             colorResource(id = R.color.color_indicator_life)
                         )
                     }
 
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.titleMedium.copy(color = colorResource(id = R.color.color_indicator_label_gray))
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = valueText,
-                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                        color = valueColor,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(id = R.string.tap_to_switch_indicator),
-                        style = MaterialTheme.typography.labelMedium.copy(color = colorResource(id = R.color.color_hint_gray))
-                    )
+                    val noPad = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
+
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        // 라벨 슬롯
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(labelBoxH),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.titleMedium
+                                    .copy(color = colorResource(id = R.color.color_indicator_label_gray))
+                                    .merge(noPad)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(gapSmall))
+                        // 값 슬롯
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(valueBoxH),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = valueText,
+                                style = MaterialTheme.typography.headlineMedium
+                                    .copy(fontWeight = FontWeight.Bold, color = valueColor)
+                                    .merge(noPad),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(gapMedium))
+                        // 힌트 슬롯
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(hintBoxH),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.tap_to_switch_indicator),
+                                style = MaterialTheme.typography.labelMedium
+                                    .copy(color = colorResource(id = R.color.color_hint_gray))
+                                    .merge(noPad)
+                            )
+                        }
+                    }
                 }
             }
 

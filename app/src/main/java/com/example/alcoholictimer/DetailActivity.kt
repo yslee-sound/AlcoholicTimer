@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -37,6 +38,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import com.example.alcoholictimer.utils.Constants
+import com.example.alcoholictimer.utils.FormatUtils
 import com.example.alcoholictimer.ui.theme.BluePrimaryLight
 import com.example.alcoholictimer.ui.theme.AmberSecondaryLight
 import java.text.SimpleDateFormat
@@ -216,7 +218,7 @@ fun DetailScreen(
     // 정확한 주 단위 계산 (시간 기반)
     val exactWeeks = totalHours / (24.0 * 7.0)
     val savedMoney = (exactWeeks * freqVal * costVal).roundToInt()
-    val savedHours = (exactWeeks * freqVal * (drinkHoursVal + hangoverHoursVal)).roundToInt()
+    val savedHoursExact = (exactWeeks * freqVal * (drinkHoursVal + hangoverHoursVal))
 
     // 정확한 목표 달성률 계산 (실제 금주 기간 기반)
     val achievementRate = ((totalDays / targetDays) * 100.0).let { rate ->
@@ -346,7 +348,7 @@ fun DetailScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
-                                    text = actualDays.toString(),
+                                    text = String.format(Locale.getDefault(), "%.1f", totalDays),
                                     style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.ExtraBold),
                                     color = accentColor
                                 )
@@ -424,14 +426,16 @@ fun DetailScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     DetailStatCard(
-                        value = durationDisplay,
-                        label = "총 금주 기간",
-                        modifier = Modifier.weight(1f)
+                        value = String.format(Locale.getDefault(), "%.1f일", totalDays),
+                        label = "총 금주 일수",
+                        modifier = Modifier.weight(1f),
+                        valueColor = colorResource(id = R.color.color_indicator_days)
                     )
                     DetailStatCard(
                         value = String.format(Locale.getDefault(), "%,.0f원", savedMoney.toDouble()),
                         label = "절약한 금액",
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        valueColor = colorResource(id = R.color.color_indicator_money)
                     )
                 }
 
@@ -442,14 +446,16 @@ fun DetailScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     DetailStatCard(
-                        value = "${savedHours}시간",
+                        value = String.format(Locale.getDefault(), "%.1f시간", savedHoursExact),
                         label = "절약한 시간",
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        valueColor = colorResource(id = R.color.color_indicator_hours)
                     )
                     DetailStatCard(
-                        value = String.format(Locale.getDefault(), "%.2f일", lifeExpectancyIncrease),
-                        label = "기대 수명 증가",
-                        modifier = Modifier.weight(1f)
+                        value = FormatUtils.daysToDayHourString(lifeExpectancyIncrease, 2),
+                        label = "기대 수명+",
+                        modifier = Modifier.weight(1f),
+                        valueColor = colorResource(id = R.color.color_indicator_life)
                     )
                 }
 

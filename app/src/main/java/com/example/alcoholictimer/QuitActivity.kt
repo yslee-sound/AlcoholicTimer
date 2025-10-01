@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,6 +36,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Locale
 import com.example.alcoholictimer.ui.StandardScreenWithBottomButton
+import com.example.alcoholictimer.utils.FormatUtils
 
 class QuitActivity : BaseActivity() {
 
@@ -234,15 +236,19 @@ fun StatisticsCardsSection(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // 소수 1자리의 금주 일수 계산
+        val totalDaysDecimal = elapsedDays.toDouble() + (elapsedHours.toDouble() / 24.0) + (elapsedMinutes.toDouble() / (24.0 * 60.0))
+        val totalDaysDisplay = String.format(Locale.getDefault(), "%.1f", totalDaysDecimal)
+
         // 첫 번째 행
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             ModernStatCard(
-                value = "${elapsedDays}",
+                value = totalDaysDisplay,
                 label = "금주 일수",
-                color = Color(0xFF1976D2),
+                color = colorResource(id = R.color.color_indicator_days),
                 modifier = Modifier.weight(1f)
             )
             ModernStatCard(
@@ -261,13 +267,13 @@ fun StatisticsCardsSection(
             ModernStatCard(
                 value = String.format(Locale.getDefault(), "%02d:%02d", elapsedHours, elapsedMinutes),
                 label = "경과 시간",
-                color = Color(0xFF388E3C),
+                color = colorResource(id = R.color.color_indicator_time),
                 modifier = Modifier.weight(1f)
             )
             ModernStatCard(
                 value = String.format(Locale.getDefault(), "%,.0f원", savedMoney),
                 label = "절약 금액",
-                color = Color(0xFFE91E63),
+                color = colorResource(id = R.color.color_indicator_money),
                 modifier = Modifier.weight(1f)
             )
         }
@@ -280,13 +286,13 @@ fun StatisticsCardsSection(
             ModernStatCard(
                 value = String.format(Locale.getDefault(), "%.1f", savedHours),
                 label = "절약 시간",
-                color = Color(0xFFFF9800),
+                color = colorResource(id = R.color.color_indicator_hours),
                 modifier = Modifier.weight(1f)
             )
             ModernStatCard(
-                value = String.format(Locale.getDefault(), "%.2f", lifeGainDays),
+                value = FormatUtils.daysToDayHourString(lifeGainDays, 2),
                 label = "기대 수명+",
-                color = Color(0xFF9C27B0),
+                color = colorResource(id = R.color.color_indicator_life),
                 modifier = Modifier.weight(1f)
             )
         }

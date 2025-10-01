@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.alcoholictimer.ui.theme.AlcoholicTimerTheme
+import com.example.alcoholictimer.utils.DateOverlapUtils
 import com.example.alcoholictimer.utils.RecordsDataLoader
 import com.example.alcoholictimer.utils.SobrietyRecord
 import com.example.alcoholictimer.ui.StandardScreen
@@ -494,14 +495,11 @@ private fun PeriodStatisticsSection(
 
     // 지정된 기간과 겹치는 일수(일 단위)를 계산하는 함수
     fun overlappedDays(record: SobrietyRecord): Double {
-        if (periodRange == null) {
-            val duration = (record.endTime - record.startTime).coerceAtLeast(0L)
-            return duration / (24.0 * 60 * 60 * 1000.0)
+        return if (periodRange == null) {
+            DateOverlapUtils.overlapDays(record.startTime, record.endTime, null, null)
+        } else {
+            DateOverlapUtils.overlapDays(record.startTime, record.endTime, periodRange.first, periodRange.second)
         }
-        val overlapStart = maxOf(record.startTime, periodRange.first)
-        val overlapEnd = minOf(record.endTime, periodRange.second)
-        val overlapMs = (overlapEnd - overlapStart).coerceAtLeast(0)
-        return overlapMs / (24.0 * 60 * 60 * 1000.0)
     }
 
     // 각 기록의 실제 달성률을 평균으로 계산 (기간 겹침 반영)
@@ -523,13 +521,13 @@ private fun PeriodStatisticsSection(
     val totalDaysDisplay = String.format(Locale.getDefault(), "%.1f", totalDaysDouble)
 
     // 평균/최대 지속일 (UI는 정수 표기 유지, 겹치는 기간 기준)
-    val averageDays = if (totalRecords > 0) {
-        records.map { record -> overlappedDays(record) }.average().toInt()
-    } else 0
+    val averageDaysDisplay = if (totalRecords > 0) {
+        String.format(Locale.getDefault(), "%.1f", records.map { record -> overlappedDays(record) }.average())
+    } else "0.0"
 
-    val maxDays = if (records.isNotEmpty()) {
-        records.maxOf { record -> overlappedDays(record) }.toInt()
-    } else 0
+    val maxDaysDisplay = if (records.isNotEmpty()) {
+        String.format(Locale.getDefault(), "%.1f", records.maxOf { record -> overlappedDays(record) })
+    } else "0.0"
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -604,7 +602,7 @@ private fun PeriodStatisticsSection(
                 // 평균 지속일
                 StatisticItem(
                     title = "평균\n지속일",
-                    value = "${averageDays}일",
+                    value = "${averageDaysDisplay}일",
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f),
                     titleScale = statsScale,
@@ -614,7 +612,7 @@ private fun PeriodStatisticsSection(
                 // 최대 지속일
                 StatisticItem(
                     title = "최대\n지속일",
-                    value = "${maxDays}일",
+                    value = "${maxDaysDisplay}일",
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.weight(1f),
                     titleScale = statsScale,
