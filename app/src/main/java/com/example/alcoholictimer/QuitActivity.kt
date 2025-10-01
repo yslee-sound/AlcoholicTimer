@@ -112,9 +112,7 @@ fun QuitScreen() {
                 elapsedMinutes = elapsedMinutes,
                 savedMoney = savedMoney,
                 savedHours = savedHours,
-                lifeGainDays = lifeGainDays,
-                levelName = levelName,
-                levelColor = levelColor
+                lifeGainDays = lifeGainDays
             )
         },
         bottomButton = {
@@ -228,72 +226,50 @@ fun StatisticsCardsSection(
     elapsedMinutes: Int,
     savedMoney: Double,
     savedHours: Double,
-    lifeGainDays: Double,
-    levelName: String, // 추가: 레벨명
-    levelColor: Color // 추가: 레벨 색상
+    lifeGainDays: Double
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // 소수 1자리의 금주 일수 계산
         val totalDaysDecimal = elapsedDays.toDouble() + (elapsedHours.toDouble() / 24.0) + (elapsedMinutes.toDouble() / (24.0 * 60.0))
-        val totalDaysDisplay = String.format(Locale.getDefault(), "%.1f", totalDaysDecimal)
 
-        // 첫 번째 행
+        // 첫 번째 행: 총 금주 일수, 절약한 금액
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            ModernStatCard(
-                value = totalDaysDisplay,
-                label = "금주 일수",
-                color = colorResource(id = R.color.color_indicator_days),
-                modifier = Modifier.weight(1f)
+            DetailStatCard(
+                value = String.format(Locale.getDefault(), "%.1f일", totalDaysDecimal),
+                label = "총 금주 일수",
+                modifier = Modifier.weight(1f),
+                valueColor = colorResource(id = R.color.color_indicator_days)
             )
-            ModernStatCard(
-                value = levelName, // 전달받은 레벨명 사용
-                label = "레벨",
-                color = levelColor, // 전달받은 레벨 색상 사용
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        // 두 번째 행
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            ModernStatCard(
-                value = String.format(Locale.getDefault(), "%02d:%02d", elapsedHours, elapsedMinutes),
-                label = "경과 시간",
-                color = colorResource(id = R.color.color_indicator_time),
-                modifier = Modifier.weight(1f)
-            )
-            ModernStatCard(
+            DetailStatCard(
                 value = String.format(Locale.getDefault(), "%,.0f원", savedMoney),
-                label = "절약 금액",
-                color = colorResource(id = R.color.color_indicator_money),
-                modifier = Modifier.weight(1f)
+                label = "절약한 금액",
+                modifier = Modifier.weight(1f),
+                valueColor = colorResource(id = R.color.color_indicator_money)
             )
         }
 
-        // 세 번째 행
+        // 두 번째 행: 절약한 시간, 기대 수명+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            ModernStatCard(
-                value = String.format(Locale.getDefault(), "%.1f", savedHours),
-                label = "절약 시간",
-                color = colorResource(id = R.color.color_indicator_hours),
-                modifier = Modifier.weight(1f)
+            DetailStatCard(
+                value = String.format(Locale.getDefault(), "%.1f시간", savedHours),
+                label = "절약한 시간",
+                modifier = Modifier.weight(1f),
+                valueColor = colorResource(id = R.color.color_indicator_hours)
             )
-            ModernStatCard(
+            DetailStatCard(
                 value = FormatUtils.daysToDayHourString(lifeGainDays, 2),
                 label = "기대 수명+",
-                color = colorResource(id = R.color.color_indicator_life),
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                valueColor = colorResource(id = R.color.color_indicator_life)
             )
         }
     }
