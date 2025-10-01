@@ -44,6 +44,7 @@ import com.example.alcoholictimer.ui.theme.AmberSecondaryLight
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
+import com.example.alcoholictimer.components.DetailStatCard
 
 class DetailActivity : ComponentActivity() {  // BaseActivity에서 ComponentActivity로 변경
 
@@ -506,56 +507,6 @@ fun DetailScreen(
                 )
             }
         }
-    }
-}
-
-@Composable
-fun DetailStatCard(
-    value: String,
-    label: String,
-    modifier: Modifier = Modifier,
-    valueColor: Color = Color.Unspecified
-) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            val resolvedValueColor = if (valueColor != Color.Unspecified) valueColor else MaterialTheme.colorScheme.onSurface
-            Text(
-                text = value,
-                color = resolvedValueColor,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                color = Color(0xFF718096),
-                textAlign = TextAlign.Center
-            )
-        }
-    }
-}
-
-// 레벨명 함수
-private fun getLevelName(days: Int): String {
-    return when {
-        days in 0..6 -> "작심 7일"
-        days in 7..13 -> "의지의 2주"
-        days in 14..29 -> "한달의 기적"
-        days in 30..59 -> "습관의 탄생"
-        days in 60..119 -> "계속되는 도전"
-        days in 120..239 -> "거의 1년"
-        days in 240..364 -> "금주 마스터"
-        else -> "절제의 레전드"
     }
 }
 

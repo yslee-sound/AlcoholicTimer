@@ -37,6 +37,7 @@ import org.json.JSONObject
 import java.util.Locale
 import com.example.alcoholictimer.ui.StandardScreenWithBottomButton
 import com.example.alcoholictimer.utils.FormatUtils
+import com.example.alcoholictimer.components.DetailStatCard
 
 class QuitActivity : BaseActivity() {
 
@@ -64,9 +65,6 @@ fun QuitScreen() {
     val savedMoney = intent?.getDoubleExtra("saved_money", 0.0) ?: 0.0
     val savedHours = intent?.getDoubleExtra("saved_hours", 0.0) ?: 0.0
     val lifeGainDays = intent?.getDoubleExtra("life_gain_days", 0.0) ?: 0.0
-    val levelName = intent?.getStringExtra("level_name") ?: "새싹"
-    val levelColorValue = intent?.getLongExtra("level_color", 0L) ?: 0L
-    val levelColor = if (levelColorValue != 0L) Color(levelColorValue.toULong()) else Color(0xFF4CAF50)
     val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
     val targetDays = sharedPref.getFloat("target_days", 30f)
 
@@ -270,55 +268,6 @@ fun StatisticsCardsSection(
                 label = "기대 수명+",
                 modifier = Modifier.weight(1f),
                 valueColor = colorResource(id = R.color.color_indicator_life)
-            )
-        }
-    }
-}
-
-@Composable
-fun ModernStatCard(
-    value: String,
-    label: String,
-    color: Color,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.height(80.dp),
-        shape = RoundedCornerShape(15.dp), //15
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.95f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            CompositionLocalProvider(
-                LocalDensity provides Density(LocalDensity.current.density, 1f)
-            ) {
-                Text(
-                    text = value,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = color,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1
-                )
-            }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = label,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color(0xFF666666),
-                textAlign = TextAlign.Center,
-                maxLines = 1
             )
         }
     }
