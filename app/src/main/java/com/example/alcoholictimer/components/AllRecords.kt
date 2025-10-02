@@ -29,6 +29,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import com.example.alcoholictimer.R
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.material.icons.outlined.Close
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +44,7 @@ fun AllRecordsScreen(
     var isLoading by remember { mutableStateOf(true) }
     var loadError by remember { mutableStateOf<String?>(null) }
     var retryTrigger by remember { mutableIntStateOf(0) }
+    var showDeleteAllDialog by remember { mutableStateOf(false) }
 
     // 공통 로딩 함수
     val loadRecords: () -> Unit = remember {
@@ -109,6 +111,19 @@ fun AllRecordsScreen(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                     contentDescription = stringResource(id = R.string.cd_navigate_back),
                                     tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        },
+                        actions = {
+                            // 제목 우측 끝 X 아이콘 - 모든 기록 삭제
+                            IconButton(
+                                onClick = { showDeleteAllDialog = true },
+                                enabled = !isLoading && records.isNotEmpty()
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Close,
+                                    contentDescription = stringResource(id = R.string.cd_delete_all_records),
+                                    tint = if (!isLoading && records.isNotEmpty()) Color(0xFFE53E3E) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                                 )
                             }
                         },
@@ -196,6 +211,54 @@ fun AllRecordsScreen(
                         }
                     }
                 }
+            }
+
+            // 삭제 확인 다이얼로그
+            if (showDeleteAllDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDeleteAllDialog = false },
+                    title = {
+                        Text(
+                            text = stringResource(id = R.string.all_records_delete_title),
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF2D3748)
+                        )
+                    },
+                    text = {
+                        Text(
+                            text = stringResource(id = R.string.all_records_delete_message),
+                            color = Color(0xFF4A5568)
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showDeleteAllDialog = false
+                                val success = RecordsDataLoader.clearAllRecords(context)
+                                if (success) {
+                                    // 삭제가 완료되면 '모든 기록' 화면을 닫고 이전 화면(금주 기록)으로 복귀
+                                    onNavigateBack()
+                                } else {
+                                    // 실패 시에는 화면에 머물며 사용자가 재시도할 수 있게 함
+                                    // 필요 시 스낵바/토스트 추가 가능
+                                }
+                            }
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.all_records_delete_confirm),
+                                color = Color(0xFFE53E3E),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDeleteAllDialog = false }) {
+                            Text(text = stringResource(id = R.string.dialog_cancel), color = Color(0xFF718096))
+                        }
+                    },
+                    containerColor = Color.White,
+                    shape = RoundedCornerShape(16.dp)
+                )
             }
         }
     }

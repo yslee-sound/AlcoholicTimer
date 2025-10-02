@@ -88,4 +88,18 @@ object RecordsDataLoader {
             false
         }
     }
+
+    // 모든 금주 기록 삭제: SharedPreferences의 "sobriety_records"를 빈 배열로 초기화
+    fun clearAllRecords(context: Context): Boolean {
+        return try {
+            val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
+            // 안전하게 빈 배열로 덮어쓰기 (다른 설정값 보존)
+            sharedPref.edit { putString("sobriety_records", "[]") }
+            Log.d(TAG, "모든 기록 삭제 완료: sobriety_records=[]")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "모든 기록 삭제 중 오류", e)
+            false
+        }
+    }
 }
