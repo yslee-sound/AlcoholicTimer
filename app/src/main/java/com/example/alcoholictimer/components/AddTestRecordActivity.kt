@@ -35,30 +35,13 @@ import com.example.alcoholictimer.utils.SobrietyRecord
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.content.edit
-import androidx.core.view.WindowInsetsControllerCompat
-import android.os.Build
 
 class AddTestRecordActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             AlcoholicTimerTheme {
-                // System navigation bar 색상/아이콘 톤을 테마에 맞춰 설정
-                val view = LocalView.current
-                val surfaceColor = MaterialTheme.colorScheme.surface
-                val useDarkIcons = surfaceColor.luminance() > 0.5f
-                SideEffect {
-                    val window = this@AddTestRecordActivity.window
-                    window.navigationBarColor = surfaceColor.toArgb()
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        window.isNavigationBarContrastEnforced = false
-                    }
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        window.navigationBarDividerColor = Color.Transparent.toArgb()
-                    }
-                    WindowInsetsControllerCompat(window, view).isAppearanceLightNavigationBars = useDarkIcons
-                }
-
+                // 전역 테마에서 시스템 바를 설정하므로, 여기서는 개별 설정을 하지 않습니다.
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
                     AddTestRecordScreen(
                         onSave = { record ->
