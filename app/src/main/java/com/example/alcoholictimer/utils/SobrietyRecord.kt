@@ -14,10 +14,11 @@ import java.util.*
  * @property targetDays 목표 기간 (일 단위)
  * @property actualDays 실제 달성한 기간 (일 단위)
  * @property isCompleted 목표를 완료했는지 여부 (true: 완료, false: 중도 포기)
- * @property status 상태 ("완료" 또는 "중지")
+ * @property status 상태 (예: "성공", "실패", "완료", "중지", "진행 중")
  * @property createdAt 기록 생성 시간 (밀리초 타임스탬프)
  * @property percentage 목표 달성률 (0-100, nullable)
  * @property isTestRecord 테스트 기록 여부 (기본값: false)
+ * @property memo 메모(옵션)
  */
 data class SobrietyRecord(
     val id: String,
@@ -29,7 +30,8 @@ data class SobrietyRecord(
     val status: String,
     val createdAt: Long,
     val percentage: Int? = null,
-    val isTestRecord: Boolean = false
+    val isTestRecord: Boolean = false,
+    val memo: String? = null
 ) {
     /**
      * 테스트 기록 여부 확인 (ID 기반 자동 판별)
@@ -104,6 +106,7 @@ data class SobrietyRecord(
         json.put("status", status)
         json.put("createdAt", createdAt)
         percentage?.let { json.put("percentage", it) }
+        memo?.let { json.put("memo", it) }
         return json
     }
 
@@ -121,7 +124,9 @@ data class SobrietyRecord(
                 isCompleted = json.getBoolean("isCompleted"),
                 status = json.getString("status"),
                 createdAt = json.getLong("createdAt"),
-                percentage = if (json.has("percentage")) json.getInt("percentage") else null
+                percentage = if (json.has("percentage")) json.getInt("percentage") else null,
+                isTestRecord = json.optBoolean("isTestRecord", false),
+                memo = if (json.has("memo")) json.getString("memo") else null
             )
         }
 

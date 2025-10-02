@@ -575,7 +575,7 @@ private fun PeriodStatisticsSection(
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Add,
-                        contentDescription = "테스트 기록 추가",
+                        contentDescription = "금주 기록 추가",
                         tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
