@@ -37,7 +37,7 @@
     <!-- Quit screen -->
     <string name="quit_title">금주 종료</string>
     <string name="quit_confirm_title">정말 멈추시겠어요?</string>
-    <string name="quit_confirm_subtitle">지금까지 잘 해오셨는데...</string>
+    <string name="quit_confirm_subtitle">지금까지 잘 해오셨는데&#8230;</string>
     <string name="stat_total_days">총 금주 일수</string>
     <string name="stat_saved_money_short">절약한 금액</string>
     <string name="stat_saved_hours_short">절약한 시간</string>

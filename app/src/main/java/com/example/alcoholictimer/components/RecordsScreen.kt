@@ -68,16 +68,6 @@ fun RecordsScreen(
         }
     }
 
-    // Activity Result Launcher for AddTestRecordActivity
-    val addTestRecordLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            // 새 기록이 추가되었으므로 목록을 새로고침
-            loadRecords()
-        }
-    }
-
     // 기간에 따른 기록 필터링 (통계용)
     val filteredRecords = remember(records, selectedPeriod, selectedDetailPeriod, selectedWeekRange) {
         when (selectedPeriod) {
@@ -203,6 +193,15 @@ fun RecordsScreen(
         loadRecords()
     }
 
+    // 사용자 기록 추가용 런처 (AddRecordActivity)
+    val addRecordLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            loadRecords()
+        }
+    }
+
     StandardScreen {
         CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = LocalDensity.current.fontScale * fontScale)) {
             LazyColumn(
@@ -219,7 +218,7 @@ fun RecordsScreen(
                             // 기간이 변경되면 세부 기간만 초기화 (기본값으로 리셋하지 않음)
                             selectedDetailPeriod = ""
                         },
-                        onPeriodClick = { period: String ->
+                        onPeriodClick = { _ ->
                             // 세부 기간 텍스트 클릭 시 바텀시트 표시
                             showBottomSheet = true
                         },
@@ -234,12 +233,12 @@ fun RecordsScreen(
                             selectedPeriod = selectedPeriod,
                             selectedDetailPeriod = selectedDetailPeriod,
                             modifier = Modifier.padding(vertical = 8.dp),
-                            onAddTestRecord = {
-                                // AddTestRecordActivity로 이동
-                                val intent = Intent(context, AddTestRecordActivity::class.java)
-                                addTestRecordLauncher.launch(intent)
-                            },
-                            weekRange = selectedWeekRange // 주간 범위 전달
+                            // onAddTestRecord 제거
+                            weekRange = selectedWeekRange, // 주간 범위 전달
+                            onAddRecord = {
+                                val intent = Intent(context, AddRecordActivity::class.java)
+                                addRecordLauncher.launch(intent)
+                            }
                         )
                     }
                 }
@@ -408,8 +407,9 @@ private fun PeriodStatisticsSection(
     selectedPeriod: String,
     selectedDetailPeriod: String,
     modifier: Modifier = Modifier,
-    onAddTestRecord: () -> Unit = {},
-    weekRange: Pair<Long, Long>? = null
+    // onAddTestRecord: () -> Unit = {}, // 제거
+    weekRange: Pair<Long, Long>? = null,
+    onAddRecord: () -> Unit = {}
 ) {
     // 통계 계산 - 수정된 로직 (모든 기간에서 겹치는 구간만 합산)
     val totalRecords = records.size
@@ -562,22 +562,24 @@ private fun PeriodStatisticsSection(
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
-                // 모든 기간에서 + 아이콘만 표시 - 32dp로 되돌림
-                Button(
-                    onClick = onAddTestRecord,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.size(32.dp),
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Add,
-                        contentDescription = "금주 기록 추가",
-                        tint = MaterialTheme.colorScheme.onPrimary
-                    )
+                // 월 탭에서만 + 버튼 노출 (사용자 기록 추가)
+                if (selectedPeriod == "월") {
+                    Button(
+                        onClick = onAddRecord,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.size(32.dp),
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = "금주 기록 추가",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
                 }
             }
 

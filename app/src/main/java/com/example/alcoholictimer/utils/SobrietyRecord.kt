@@ -17,7 +17,6 @@ import java.util.*
  * @property status 상태 (예: "성공", "실패", "완료", "중지", "진행 중")
  * @property createdAt 기록 생성 시간 (밀리초 타임스탬프)
  * @property percentage 목표 달성률 (0-100, nullable)
- * @property isTestRecord 테스트 기록 여부 (기본값: false)
  * @property memo 메모(옵션)
  */
 data class SobrietyRecord(
@@ -30,15 +29,8 @@ data class SobrietyRecord(
     val status: String,
     val createdAt: Long,
     val percentage: Int? = null,
-    val isTestRecord: Boolean = false,
     val memo: String? = null
 ) {
-    /**
-     * 테스트 기록 여부 확인 (ID 기반 자동 판별)
-     */
-    val isTest: Boolean
-        get() = isTestRecord || id.startsWith("test_")
-
     /**
      * 달성률 계산 (백분율)
      * 저장된 percentage 값이 있으면 우선 사용, 없으면 계산 (전역 반올림 규칙 적용)
@@ -125,7 +117,6 @@ data class SobrietyRecord(
                 status = json.getString("status"),
                 createdAt = json.getLong("createdAt"),
                 percentage = if (json.has("percentage")) json.getInt("percentage") else null,
-                isTestRecord = json.optBoolean("isTestRecord", false),
                 memo = if (json.has("memo")) json.getString("memo") else null
             )
         }

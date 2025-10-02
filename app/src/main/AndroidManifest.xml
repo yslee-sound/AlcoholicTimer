@@ -8,7 +8,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Material3.DayNight"
+        android:theme="@style/Theme.AlcoholicTimer"
         tools:targetApi="31">
 
         <!-- 메인 액티비티 (시작 화면) -->
@@ -16,7 +16,7 @@
             android:name=".StartActivity"
             android:exported="true"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.Material3.DayNight"
+            android:theme="@style/Theme.AlcoholicTimer"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -29,63 +29,63 @@
             android:name=".RecordsActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.Material3.DayNight" />
+            android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 모든 기록 화면 -->
         <activity
             android:name=".AllRecordsActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.Material3.DayNight" />
+            android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 레벨 화면 -->
         <activity
             android:name=".LevelActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.Material3.DayNight" />
+            android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 설정 화면 -->
         <activity
             android:name=".SettingsActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.Material3.DayNight" />
+            android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 금주 진행 화면 -->
         <activity
             android:name=".RunActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.Material3.DayNight" />
+            android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 금주 종료 확인 화면 -->
         <activity
             android:name=".QuitActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.Material3.DayNight" />
+            android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 세부 기록 화면 -->
         <activity
             android:name=".DetailActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.Material3.DayNight" />
+            android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 별명 편집 화면 -->
         <activity
             android:name=".NicknameEditActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.Material3.DayNight" />
+            android:theme="@style/Theme.AlcoholicTimer" />
 
-        <!-- 테스트 기록 추가 화면 -->
+        <!-- 사용자 기록 추가 화면 -->
         <activity
-            android:name=".components.AddTestRecordActivity"
+            android:name=".components.AddRecordActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.Material3.DayNight" />
+            android:theme="@style/Theme.AlcoholicTimer" />
 
     </application>
 
