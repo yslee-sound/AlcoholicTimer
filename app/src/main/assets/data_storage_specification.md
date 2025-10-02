@@ -4,6 +4,8 @@
 
 AlcoholicTimer 앱의 모든 데이터 저장 및 기록 관리에 대한 상세 사양을 정의합니다.
 
+> 참고: 2025-10-02 버전부터 "레벨 테스트 모드" 기능은 제거되었습니다. 아래 문서의 test_settings 및 test_mode 항목은 호환성 설명을 위한 Deprecated 항목입니다.
+
 ---
 
 ## 2. 데이터 저장 구조
@@ -15,10 +17,10 @@ AlcoholicTimer 앱의 모든 데이터 저장 및 기록 관리에 대한 상세
 - **모드**: `Context.MODE_PRIVATE`
 - **용도**: 금주 기록, 사용자 설정 저장
 
-#### B. 테스트 설정 저장소
-- **이름**: `"test_settings"` 
+#### B. 테스트 설정 저장소 (Deprecated)
+- **이름**: `"test_settings"`
 - **모드**: `Context.MODE_PRIVATE`
-- **용도**: 테스트 모드 설정 저장
+- **용도**: [Deprecated] 과거 테스트 모드 설정 저장. 현 버전에서는 사용하지 않으며, 존재하더라도 앱이 무시합니다.
 
 ### (2) 데이터 키 구조
 
@@ -40,11 +42,11 @@ AlcoholicTimer 앱의 모든 데이터 저장 및 기록 관리에 대한 상세
 설명: 목표 금주 기간 (일 단위)
 ```
 
-#### C. 테스트 모드 설정
+#### C. 테스트 모드 설정 (Deprecated)
 ```
 키 이름: "test_mode"
 데이터 타입: Int
-설명: 0=실제모드, 1=분단위, 2=초단위
+설명: [Deprecated] 0=실제모드, 1=분단위, 2=초단위. 현 버전에서는 읽더라도 적용되지 않으며 항상 실제 모드 기준으로 동작합니다.
 ```
 
 ---
@@ -136,7 +138,7 @@ fun setInt(key: String, value: Int)
 ### (2) 주요 상수
 ```kotlin
 const val PREFS_NAME = "AlcoholicTimerPrefs"
-const val PREF_KEY_TEST_MODE = "test_mode"
+const val PREF_KEY_TEST_MODE = "test_mode" // Deprecated - 현 버전에서 무시됨
 const val PREF_START_TIME = "start_time"
 const val PREF_TARGET_DAYS = "target_days"
 const val PREF_RECORDS = "records"
@@ -146,11 +148,11 @@ const val PREF_RECORDS = "records"
 
 ## 7. 데이터 일관성 확인사항
 
-### (1) 현재 문제점
+### (1) 현재 상태
 - **SharedPreferencesManager**: "user_settings" 사용
-- **Constants**: "AlcoholicTimerPrefs" 정의 (실제 미사용)
+- **Constants**: "AlcoholicTimerPrefs" 정의 (테스트 모드 관련은 무시됨)
 - **실제 저장/로드**: "user_settings" 사용
-- **일관성**: 모든 데이터 접근이 "user_settings"로 통일됨
+- **일관성**: 모든 주요 데이터 접근이 "user_settings"로 통일됨
 
 ### (2) 권장사항
 - 모든 데이터 접근을 SharedPreferencesManager를 통해 수행
@@ -209,6 +211,7 @@ const val PREF_RECORDS = "records"
 | 버전 | 날짜 | 변경사항 |
 |------|------|----------|
 | 1.0 | 2025-01-10 | 초기 문서 작성 |
+| 1.1 | 2025-10-02 | 테스트 모드(레벨 테스트 모드) 제거, 관련 항목 Deprecated 표시 |
 
 ---
 

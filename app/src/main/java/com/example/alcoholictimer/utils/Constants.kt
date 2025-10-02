@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package com.example.alcoholictimer.utils
 
 import android.content.Context
@@ -7,7 +9,9 @@ object Constants {
     // SharedPreferences 관련 상수
     const val PREFS_NAME = "AlcoholicTimerPrefs"
     const val USER_SETTINGS_PREFS = "user_settings"  // 사용자 설정용 SharedPreferences
+    @Deprecated("테스트 모드 제거됨(2025-10-02). 더 이상 사용하지 마세요.")
     const val PREF_KEY_TEST_MODE = "test_mode"
+    @Deprecated("테스트 모드 제거됨(2025-10-02). 더 이상 사용하지 마세요.")
     const val PREF_TEST_MODE = "test_mode"  // 호환성 유지
     const val PREF_START_TIME = "start_time"
     const val PREF_TARGET_DAYS = "target_days"
@@ -28,21 +32,25 @@ object Constants {
     const val DEFAULT_FREQUENCY = "주 1회 이하"
     const val DEFAULT_DURATION = "짧음"
 
-    // 테스트 모드 상수 (레벨 계산용)
+    // 테스트 모드 상수 (레거시 - 더 이상 UI에서 제공하지 않음)
     const val TEST_MODE_REAL = 0    // 실제 모드 (레벨 계산: 1일 = 24시간)
     const val TEST_MODE_MINUTE = 1  // 분 단위 테스트 모드 (레벨 계산: 1분 = 1일)
     const val TEST_MODE_SECOND = 2  // 초 단위 테스트 모드 (레벨 계산: 1초 = 1일)
 
     // 현재 선택된 테스트 모드 (기본값: 실제 모드)
+    @Deprecated("테스트 모드 제거됨(2025-10-02). 항상 REAL 고정입니다.")
     var currentTestMode = TEST_MODE_REAL
 
-    // 테스트 모드 상태 (런타임에 변경 가능)
+    // 테스트 모드 상태 (런타임에 변경 가능) - 현재는 항상 false가 되도록 REAL로 고정
+    @Deprecated("테스트 모드 제거됨(2025-10-02). 항상 false 입니다.")
     val isTestMode: Boolean
         get() = currentTestMode != TEST_MODE_REAL
 
+    @Deprecated("테스트 모드 제거됨(2025-10-02). 항상 false 입니다.")
     val isSecondTestMode: Boolean
         get() = currentTestMode == TEST_MODE_SECOND
 
+    @Deprecated("테스트 모드 제거됨(2025-10-02). 항상 false 입니다.")
     val isMinuteTestMode: Boolean
         get() = currentTestMode == TEST_MODE_MINUTE
 
@@ -56,21 +64,13 @@ object Constants {
     const val DEFAULT_VALUE = 2000                  // 기본값 2000
     const val DEFAULT_HANGOVER_HOURS = 5            // 기본 숙취 시간(시간)
 
-    // 레벨 계산용 시간 단위 (테스트 모드에 따라 동적으로 결정)
+    // 레벨 계산용 시간 단위 (현 버전에서는 항상 일 단위 사용)
     val LEVEL_TIME_UNIT_MILLIS: Long
-        get() = when (currentTestMode) {
-            TEST_MODE_SECOND -> SECOND_IN_MILLIS  // 초 단위 테스트 (1초 = 1일)
-            TEST_MODE_MINUTE -> MINUTE_IN_MILLIS  // 분 단위 테스트 (1분 = 1일)
-            else -> DAY_IN_MILLIS                 // 실제 일 단위 (1일 = 24시간)
-        }
+        get() = DAY_IN_MILLIS
 
-    // 레벨 계산용 시간 단위 텍스트 (테스트 모드에 따라 동적으로 결정)
+    // 레벨 계산용 시간 단위 텍스트 (항상 "일")
     val LEVEL_TIME_UNIT_TEXT: String
-        get() = when (currentTestMode) {
-            TEST_MODE_SECOND -> "초"
-            TEST_MODE_MINUTE -> "분"
-            else -> "일"
-        }
+        get() = "일"
 
     // 상태 문자열
     const val STATUS_COMPLETED = "완료"
@@ -80,34 +80,35 @@ object Constants {
 
     /**
      * 레벨 계산용 일수 계산 함수
-     * 테스트 모드에 따라 다른 시간 단위로 계산
+     * (테스트 모드 폐기: 항상 일 단위 계산)
      */
     fun calculateLevelDays(elapsedTimeMillis: Long): Int {
-        return (elapsedTimeMillis / LEVEL_TIME_UNIT_MILLIS).toInt()
+        return (elapsedTimeMillis / DAY_IN_MILLIS).toInt()
     }
 
     /**
      * 레벨 계산용 일수 계산 함수 (Float)
-     * 테스트 모드에 따라 다른 시간 단위로 계산
+     * (테스트 모드 폐기: 항상 일 단위 계산)
      */
     fun calculateLevelDaysFloat(elapsedTimeMillis: Long): Float {
-        return (elapsedTimeMillis / LEVEL_TIME_UNIT_MILLIS.toFloat())
+        return (elapsedTimeMillis / DAY_IN_MILLIS.toFloat())
     }
 
-    // 앱 시작 시 설정 불러오기
+    // 앱 시작 시 설정 불러오기 (레거시 test_mode 무시하고 REAL로 강제)
     fun init(context: Context) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        currentTestMode = prefs.getInt(PREF_KEY_TEST_MODE, TEST_MODE_REAL)
+        // 과거 저장값이 있더라도 무시하고 실제 모드로 고정
+        currentTestMode = TEST_MODE_REAL
+        // 필요시 과거 PREFS_NAME 내 test_mode 값을 정리하려면 여기에서 제거할 수 있음
+        // context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit { remove(PREF_KEY_TEST_MODE) }
     }
 
     /**
-     * 테스트 모드를 업데이트하는 함수 (TestActivity 등에서 호출)
+     * 테스트 모드를 업데이트하는 함수 (레거시 호환)
+     * 현재 버전에서는 항상 REAL로 강제합니다.
      */
+    @Deprecated("테스트 모드 제거됨(2025-10-02). 호출해도 동작하지 않습니다.")
     fun updateTestMode(mode: Int) {
-        currentTestMode = when (mode) {
-            TEST_MODE_SECOND, TEST_MODE_MINUTE, TEST_MODE_REAL -> mode
-            else -> TEST_MODE_REAL // 잘못된 값이면 기본값으로 설정
-        }
+        currentTestMode = TEST_MODE_REAL
     }
 
     /**

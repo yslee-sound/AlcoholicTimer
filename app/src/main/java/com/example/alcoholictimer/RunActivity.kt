@@ -72,13 +72,6 @@ private fun RunScreen() {
         }
     }
 
-    // 테스트 모드 반영 (레벨 계산용)
-    LaunchedEffect(Unit) {
-        val testModePrefs = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE)
-        val currentTestMode = testModePrefs.getInt(Constants.PREF_TEST_MODE, Constants.TEST_MODE_REAL)
-        Constants.updateTestMode(currentTestMode)
-    }
-
     // 진행 업데이트용 타이머
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) {
@@ -94,7 +87,7 @@ private fun RunScreen() {
     val elapsedDaysFloat = remember(elapsedMillis) { elapsedMillis / Constants.DAY_IN_MILLIS.toFloat() }
     val elapsedDays = remember(elapsedDaysFloat) { elapsedDaysFloat.toInt() }
 
-    // 레벨 계산(테스트 모드 고려)
+    // 레벨 계산(항상 일 단위)
     val levelDays = remember(elapsedMillis) { Constants.calculateLevelDays(elapsedMillis) }
     val levelInfo = remember(levelDays) { LevelDefinitions.getLevelInfo(levelDays) }
     val levelName = levelInfo.name

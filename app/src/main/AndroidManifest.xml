@@ -66,13 +66,6 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Material3.DayNight" />
 
-        <!-- 설정/테스트 화면 -->
-        <activity
-            android:name=".TestActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.Material3.DayNight" />
-
         <!-- 세부 기록 화면 -->
         <activity
             android:name=".DetailActivity"

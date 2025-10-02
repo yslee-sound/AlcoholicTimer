@@ -48,21 +48,6 @@ class StartActivity : BaseActivity() {
     }
 
     override fun getScreenTitle(): String = "금주 설정"
-
-    override fun onResume() {
-        super.onResume()
-        updateTimeModeDisplay()
-    }
-
-    private fun updateTimeModeDisplay() {
-        // 테스트 모드는 레벨에만 영향을 미치므로 항상 "일수"로 표시
-        // SharedPreferences에서 현재 테스트 모드를 읽어옴 (레벨 계산용으로만 사용)
-        val sharedPref = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE)
-        val currentTestMode = sharedPref.getInt(Constants.PREF_TEST_MODE, Constants.TEST_MODE_REAL)
-
-        // Constants의 현재 테스트 모드를 업데이트 (레벨 계산용)
-        Constants.updateTestMode(currentTestMode)
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

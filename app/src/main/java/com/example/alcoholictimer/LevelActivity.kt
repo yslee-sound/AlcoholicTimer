@@ -44,14 +44,6 @@ class LevelActivity : BaseActivity() {
     }
 
     override fun getScreenTitle(): String = "금주 레벨"
-
-    override fun onResume() {
-        super.onResume()
-        // 테스트 모드 설정 업데이트
-        val testModePrefs = getSharedPreferences(Constants.PREFS_NAME, MODE_PRIVATE)
-        val currentTestMode = testModePrefs.getInt(Constants.PREF_TEST_MODE, Constants.TEST_MODE_REAL)
-        Constants.updateTestMode(currentTestMode)
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -8,7 +8,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -18,8 +17,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
-import com.example.alcoholictimer.utils.Constants
 
+/**
+ * 개발자용 테스트 도구 화면.
+ * 2025-10-02 이후 버전부터 햄버거 메뉴에서 제거되었으며, 일반 사용자 UI에서는 접근할 수 없습니다.
+ */
+@Deprecated("개발자 도구 화면. 메뉴에서 제거됨(2025-10-02). 필요 시 직접 실행만 허용.")
 class TestActivity : BaseActivity() {
 
     override fun getScreenTitle(): String = "테스트"
@@ -42,7 +45,6 @@ class TestActivity : BaseActivity() {
 
 @Composable
 fun TestScreen() {
-    var selectedMode by remember { mutableIntStateOf(Constants.TEST_MODE_REAL) }
     val context = LocalContext.current
 
     Column(
@@ -52,76 +54,17 @@ fun TestScreen() {
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // 레벨 테스트 모드 설정 (금주 진행에는 영향 없음)
+        // 상단 제목 (테스트 화면 안내)
         val density = LocalDensity.current
         CompositionLocalProvider(LocalDensity provides Density(density.density, 1f)) {
             Text(
-                text = "레벨 테스트 모드",
+                text = "테스트 도구",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
         }
-        Text(
-            text = "※ 이 설정은 레벨 계산에만 영향을 미치며, 실제 금주 진행 시간은 변경되지 않습니다.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
 
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = selectedMode == Constants.TEST_MODE_REAL,
-                    onClick = { selectedMode = Constants.TEST_MODE_REAL }
-                )
-                Column {
-                    Text(
-                        text = "실제 시간 모드",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = "레벨 계산: 1일 = 24시간",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
-                    )
-                }
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = selectedMode == Constants.TEST_MODE_MINUTE,
-                    onClick = { selectedMode = Constants.TEST_MODE_MINUTE }
-                )
-                Column {
-                    Text(
-                        text = "분 단위 레벨 테스트",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = "레벨 계산: 1분 = 1일 (테스트용)",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
-                    )
-                }
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = selectedMode == Constants.TEST_MODE_SECOND,
-                    onClick = { selectedMode = Constants.TEST_MODE_SECOND }
-                )
-                Column {
-                    Text(
-                        text = "초 단위 레벨 테스트",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = "레벨 계산: 1초 = 1일 (테스트용)",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
-                    )
-                }
-            }
-        }
-
+        // 구분선
         HorizontalDivider(
             modifier = Modifier.padding(vertical = 8.dp),
             thickness = 1.dp,
@@ -288,30 +231,8 @@ fun TestScreen() {
             )
         }
 
-        // 버튼들
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            // 적용 버튼
-            OutlinedButton(
-                onClick = {
-                    val sharedPref = context.getSharedPreferences("test_settings", android.content.Context.MODE_PRIVATE)
-                    sharedPref.edit { putInt("test_mode", selectedMode) }
-                    Toast.makeText(context, "설정이 적용되었습니다", Toast.LENGTH_SHORT).show()
-                },
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color.Black),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = Color.Black
-                )
-            ) {
-                Text(
-                    text = "적용",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
-        }
+        // 하단 공간 확보
+        Spacer(modifier = Modifier.height(12.dp))
     }
 }
 

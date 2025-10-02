@@ -15,7 +15,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
@@ -256,11 +255,6 @@ abstract class BaseActivity : ComponentActivity() {
                     navigateToActivity(SettingsActivity::class.java)
                 }
             }
-            "테스트" -> {
-                if (this !is TestActivity) {
-                    navigateToActivity(TestActivity::class.java)
-                }
-            }
         }
     }
 
@@ -303,8 +297,7 @@ fun DrawerMenu(
         "레벨" to Icons.Filled.Star
     )
     val settingsItems = listOf(
-        "설정" to Icons.Filled.Settings,
-        "테스트" to Icons.Filled.Build
+        "설정" to Icons.Filled.Settings
     )
 
     Column(
