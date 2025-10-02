@@ -11,6 +11,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -18,8 +20,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.ui.theme.AlcoholicTimerTheme
@@ -85,15 +92,15 @@ private fun AddRecordScreen(
     onCancel: () -> Unit
 ) {
     val context = LocalContext.current
-    var targetDays by remember { mutableStateOf("30") }
+    var targetDays by remember { mutableStateOf("0") }
     var startDate by remember { mutableLongStateOf(System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L)) }
     var endDate by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var startTime by remember { mutableStateOf(Pair(9, 0)) }
     var endTime by remember { mutableStateOf(Pair(18, 0)) }
 
-    // 목표 일수 선택 다이얼로그 상태
-    var showTargetDaysDialog by remember { mutableStateOf(false) }
-    var tempTargetDays by remember(targetDays) { mutableIntStateOf(targetDays.toIntOrNull() ?: 30) }
+    // 목표 일수: 휠 피커 바텀시트 사용
+    var showTargetSheet by remember { mutableStateOf(false) }
+    var tempTarget by remember(targetDays) { mutableIntStateOf(targetDays.toIntOrNull()?.coerceIn(0, 999) ?: 0) }
 
     val dateFormat = SimpleDateFormat("yyyy년 MM월 dd일", Locale.getDefault())
 
@@ -126,7 +133,7 @@ private fun AddRecordScreen(
     val isRangeInvalid = endMillis <= startMillis
     val isOngoing = endMillis > nowMillis
     val targetDaysInt = targetDays.toIntOrNull() ?: 0
-    val isTargetValid = targetDays.isNotBlank() && targetDaysInt > 0
+    val isTargetValid = targetDays.isNotBlank() && targetDaysInt in 1..999
 
     // 실제 기간(일)과 완료 여부 계산
     val actualDays = remember(startMillis, endMillis) {
@@ -222,14 +229,14 @@ private fun AddRecordScreen(
 
             HorizontalDivider()
 
-            // 목표 일수 (행 형식으로 변경)
+            // 목표 일수 (행 형식 + 바텀시트 휠 피커)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 56.dp)
                     .clickable {
-                        tempTargetDays = targetDays.toIntOrNull() ?: 30
-                        showTargetDaysDialog = true
+                        tempTarget = targetDays.toIntOrNull()?.coerceIn(0, 999) ?: 0
+                        showTargetSheet = true
                     },
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -289,30 +296,54 @@ private fun AddRecordScreen(
         }
     }
 
-    // 목표 일수 선택 다이얼로그
-    if (showTargetDaysDialog) {
-        AlertDialog(
-            onDismissRequest = { showTargetDaysDialog = false },
-            title = { Text("목표 일수") },
-            text = {
-                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    NumberPicker(
-                        value = tempTargetDays.coerceIn(1, 365),
-                        onValueChange = { tempTargetDays = it },
-                        range = 1..365,
-                        label = "일"
-                    )
+    // 바텀시트: 목표 일수 선택
+    if (showTargetSheet) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(
+            onDismissRequest = { showTargetSheet = false },
+            sheetState = sheetState
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("목표 일수 선택", style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(8.dp))
+
+                // 가로 3휠(백/십/일의 자리)
+                TripleDigitNumberPicker(
+                    value = tempTarget,
+                    onValueChange = { v -> tempTarget = v.coerceIn(0, 999) },
+                    modifier = Modifier
+                        .padding(vertical = 8.dp)
+                ,
+                    unitLabel = "일"
+                )
+
+                Spacer(Modifier.height(8.dp))
+                Text("1~999일", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.height(16.dp))
+
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(onClick = { showTargetSheet = false }, modifier = Modifier.weight(1f)) {
+                        Text("취소")
+                    }
+                    Button(
+                        onClick = {
+                            targetDays = tempTarget.coerceIn(1, 999).toString()
+                            showTargetSheet = false
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) { Text("완료") }
                 }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    targetDays = tempTargetDays.coerceIn(1, 365).toString()
-                    showTargetDaysDialog = false
-                }) { Text("확인") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showTargetDaysDialog = false }) { Text("취소") }
             }
-        )
+        }
     }
 }
