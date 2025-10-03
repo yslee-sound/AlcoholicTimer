@@ -680,7 +680,9 @@ private fun StatisticItem(
             verticalArrangement = Arrangement.Top
         ) {
             val valueBoxH = 40.dp
-            val titleBoxH = 44.dp
+            // 두 줄(예: "평균\n지속일") 텍스트 하단 잘림 현상 대응: 고정 높이 여유 확보
+            // 기존 44.dp -> 56.dp (라인 높이 * 2 + 하강부 여유 패딩)
+            val minTitleHeight = 48.dp
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -739,15 +741,15 @@ private fun StatisticItem(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(titleBoxH),
+                    .heightIn(min = minTitleHeight),
                 contentAlignment = Alignment.Center
             ) {
                 val baseLabel = MaterialTheme.typography.labelMedium
                 val scaledLabelFontSize = baseLabel.fontSize * titleScale
                 val scaledLabelStyle = baseLabel.copy(
                     fontSize = scaledLabelFontSize,
-                    lineHeight = scaledLabelFontSize * 1.25f,
-                    platformStyle = PlatformTextStyle(includeFontPadding = true)
+                    lineHeight = scaledLabelFontSize * 1.28f,
+                    platformStyle = PlatformTextStyle(includeFontPadding = false)
                 )
                 Text(
                     text = title,

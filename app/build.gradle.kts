@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.gradle.api.tasks.Delete
 
 plugins {
     alias(libs.plugins.android.application)
@@ -34,34 +33,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    buildFeatures {
-        compose = true
-    }
-
-    sourceSets {
-        getByName("main") {
-            java {
-                // Legacy stub logical exclusion (물리 삭제 전 임시 조치)
-                exclude("com/example/alcoholictimer/BaseActivity.kt")
-                exclude("com/example/alcoholictimer/LevelActivity.kt")
-                exclude("com/example/alcoholictimer/LevelDefinitions.kt")
-                exclude("com/example/alcoholictimer/NicknameEditActivity.kt")
-                exclude("com/example/alcoholictimer/QuitActivity.kt")
-                exclude("com/example/alcoholictimer/RunActivity.kt")
-                exclude("com/example/alcoholictimer/SettingsActivity.kt")
-                exclude("com/example/alcoholictimer/StartActivity.kt")
-                exclude("com/example/alcoholictimer/components/**")
-                exclude("com/example/alcoholictimer/ui/**")
-                exclude("com/example/alcoholictimer/utils/**")
-            }
-        }
-    }
+    buildFeatures { compose = true }
 }
 
 kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_11)
-    }
+    compilerOptions { jvmTarget.set(JvmTarget.JVM_11) }
 }
 
 dependencies {
@@ -75,7 +51,6 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.compose.material.icons.extended)
 
-    // SplashScreen API
     implementation(libs.androidx.core.splashscreen)
 
     testImplementation(libs.junit)
@@ -86,26 +61,4 @@ dependencies {
 
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-}
-
-// --- Legacy stub removal task (manual run) ---
-// 안전 확인 후 물리적으로 남아있는 루트 스텁/legacy 디렉터리를 제거하기 위한 태스크.
-// 실행 방법: gradlew.bat :app:removeLegacyStubs
-// 필요 시 1회 실행 후 태스크 삭제 가능.
-tasks.register<Delete>("removeLegacyStubs") {
-    val legacyRoot = "src/main/java/com/example/alcoholictimer"
-    delete(
-        "$legacyRoot/BaseActivity.kt",
-        "$legacyRoot/LevelActivity.kt",
-        "$legacyRoot/LevelDefinitions.kt",
-        "$legacyRoot/NicknameEditActivity.kt",
-        "$legacyRoot/QuitActivity.kt",
-        "$legacyRoot/RunActivity.kt",
-        "$legacyRoot/SettingsActivity.kt",
-        "$legacyRoot/StartActivity.kt",
-        "$legacyRoot/components",
-        "$legacyRoot/ui",
-        "$legacyRoot/utils"
-    )
-    doLast { println("[removeLegacyStubs] Legacy stub files/directories deleted (if existed).") }
 }
