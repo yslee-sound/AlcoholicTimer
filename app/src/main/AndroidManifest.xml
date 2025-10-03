@@ -87,6 +87,13 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />
 
+        <!-- 앱 정보 화면 -->
+        <activity
+            android:name="com.example.alcoholictimer.feature.about.AboutActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AlcoholicTimer" />
+
     </application>
 
 </manifest>

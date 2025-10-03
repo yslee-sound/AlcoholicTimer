@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,7 +30,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -226,6 +226,7 @@ abstract class BaseActivity : ComponentActivity() {
             }
             "레벨" -> if (this !is LevelActivity) navigateToActivity(LevelActivity::class.java)
             "설정" -> if (this !is SettingsActivity) navigateToActivity(SettingsActivity::class.java)
+            "앱 정보" -> if (this !is com.example.alcoholictimer.feature.about.AboutActivity) navigateToActivity(com.example.alcoholictimer.feature.about.AboutActivity::class.java)
         }
     }
 
@@ -257,7 +258,10 @@ fun DrawerMenu(
         "기록" to Icons.AutoMirrored.Filled.List,
         "레벨" to Icons.Filled.Star
     )
-    val settingsItems = listOf("설정" to Icons.Filled.Settings)
+    val settingsItems = listOf(
+        "설정" to Icons.Filled.Settings,
+        "앱 정보" to Icons.Filled.Info
+    )
 
     Column(
         modifier = Modifier.fillMaxWidth().padding(20.dp),
@@ -397,4 +401,3 @@ fun DrawerMenu(
         }
     }
 }
-
