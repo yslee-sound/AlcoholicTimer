@@ -1,33 +1,5 @@
 package com.example.alcoholictimer.core.util
 
-import java.util.Locale
-import kotlin.math.floor
-import kotlin.math.pow
-import kotlin.math.round
-
-object FormatUtils {
-    /**
-     * day 단위를 "x일 x.xx시간"으로 포맷한다.
-     * - 소수부를 시간으로 변환하여 [decimals] 자리로 반올림
-     * - 반올림 결과가 24.00시간이면 1일 이월 처리
-     * - 0일인 경우 "x.xx시간"만 표시
-     */
-    @JvmStatic
-    fun daysToDayHourString(days: Double, decimals: Int = 2, locale: Locale = Locale.getDefault()): String {
-        val safeDays = if (days.isNaN() || days.isInfinite()) 0.0 else days.coerceAtLeast(0.0)
-        var dayInt = floor(safeDays).toInt()
-        val frac = safeDays - dayInt
-        val hoursRaw = frac * 24.0
-        val scale = 10.0.pow(decimals)
-        var hoursRounded = round(hoursRaw * scale) / scale
-        if (hoursRounded >= 24.0) {
-            dayInt += 1
-            hoursRounded = 0.0
-        }
-        return if (dayInt == 0) {
-            String.format(locale, "%.${decimals}f시간", hoursRounded)
-        } else {
-            String.format(locale, "%d일 %.${decimals}f시간", dayInt, hoursRounded)
-        }
-    }
-}
+// Moved to: com.example.alcoholictimer.core.util.FormatUtils
+// See: app/src/main/java/com/example/alcoholictimer/core/util/FormatUtils.kt
+// This file intentionally left blank after refactor.

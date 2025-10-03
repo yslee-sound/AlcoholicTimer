@@ -515,17 +515,21 @@ private fun PeriodStatisticsSection(
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
-                if (selectedPeriod == "월") {
-                    Button(
-                        onClick = onAddRecord,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        ),
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.size(32.dp),
-                        contentPadding = PaddingValues(0.dp)
-                    ) { Icon(imageVector = Icons.Filled.Add, contentDescription = "금주 기록 추가", tint = MaterialTheme.colorScheme.onPrimary) }
+                Button(
+                    onClick = onAddRecord,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.size(32.dp),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = "금주 기록 추가",
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
                 }
             }
 
