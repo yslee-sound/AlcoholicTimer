@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.components
+package com.example.alcoholictimer.feature.records.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -12,6 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.alcoholictimer.core.ui.components.NumberPicker
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -22,9 +23,7 @@ fun WeekPickerBottomSheet(
     onDismiss: () -> Unit,
     onWeekPicked: (weekStart: Long, weekEnd: Long, displayText: String) -> Unit
 ) {
-    val bottomSheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     if (isVisible) {
         ModalBottomSheet(
@@ -37,18 +36,10 @@ fun WeekPickerBottomSheet(
                     modifier = Modifier
                         .width(40.dp)
                         .height(4.dp)
-                        .background(
-                            Color(0xFF636E72).copy(alpha = 0.2f),
-                            RoundedCornerShape(2.dp)
-                        )
+                        .background(Color(0xFF636E72).copy(alpha = 0.2f), RoundedCornerShape(2.dp))
                 )
             }
-        ) {
-            WeekPickerContent(
-                onWeekPicked = onWeekPicked,
-                onDismiss = onDismiss
-            )
-        }
+        ) { WeekPickerContent(onWeekPicked = onWeekPicked, onDismiss = onDismiss) }
     }
 }
 
@@ -57,12 +48,7 @@ internal fun WeekPickerContent(
     onWeekPicked: (weekStart: Long, weekEnd: Long, displayText: String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    // 최근 8주간의 주 목록 생성
-    val weekOptions = remember {
-        generateWeekOptions()
-    }
-
-    // 기본값을 "이번 주"(마지막 인덱스)로 설정 - primitive state 사용
+    val weekOptions = remember { generateWeekOptions() }
     var selectedWeekIndex by remember { mutableIntStateOf(weekOptions.size - 1) }
 
     Column(
@@ -71,7 +57,6 @@ internal fun WeekPickerContent(
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 상단: 안내
         Text(
             text = "주 선택",
             fontSize = 18.sp,
@@ -80,7 +65,6 @@ internal fun WeekPickerContent(
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // 가운데: 주 선택 NumberPicker
         NumberPicker(
             value = selectedWeekIndex,
             onValueChange = { selectedWeekIndex = it },
@@ -89,7 +73,6 @@ internal fun WeekPickerContent(
             modifier = Modifier.width(220.dp)
         )
 
-        // 하단: 선택 버튼
         Button(
             onClick = {
                 val selectedWeek = weekOptions[selectedWeekIndex]
@@ -105,13 +88,7 @@ internal fun WeekPickerContent(
                 contentColor = Color.White
             ),
             shape = RoundedCornerShape(12.dp)
-        ) {
-            Text(
-                text = "선택",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
+        ) { Text(text = "선택", fontSize = 16.sp, fontWeight = FontWeight.Bold) }
 
         Spacer(modifier = Modifier.height(16.dp))
     }
@@ -124,12 +101,9 @@ data class WeekOption(
 )
 
 private fun generateWeekOptions(): List<WeekOption> {
-    val dateFormat = SimpleDateFormat("MM-dd", Locale.getDefault()).apply {
-        timeZone = TimeZone.getDefault()
-    }
+    val dateFormat = SimpleDateFormat("MM-dd", Locale.getDefault()).apply { timeZone = TimeZone.getDefault() }
     val options = mutableListOf<WeekOption>()
 
-    // 기준: 이번 주 일요일 00:00
     val cal = Calendar.getInstance().apply {
         firstDayOfWeek = Calendar.SUNDAY
         set(Calendar.HOUR_OF_DAY, 0)
@@ -139,57 +113,33 @@ private fun generateWeekOptions(): List<WeekOption> {
         set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
     }
 
-    for (i in 0 until 4) { // 최근 4주
+    for (i in 0 until 4) {
         val weekStart = cal.timeInMillis
-
-        // 토요일 23:59:59.999까지 포함
         val calEnd = cal.clone() as Calendar
         calEnd.add(Calendar.DAY_OF_WEEK, 6)
         val weekEndInclusive = calEnd.timeInMillis + (24 * 60 * 60 * 1000L - 1)
-
         val startDate = dateFormat.format(Date(weekStart))
         val endDate = dateFormat.format(Date(calEnd.timeInMillis))
-
-        val displayText = when (i) {
-            0 -> "이번 주"
-            1 -> "지난 주"
-            else -> "$startDate ~ $endDate"
-        }
-
+        val displayText = when (i) { 0 -> "이번 주"; 1 -> "지난 주"; else -> "$startDate ~ $endDate" }
         options.add(WeekOption(weekStart, weekEndInclusive, displayText))
-
-        // 이전 주 일요일로 이동
         cal.add(Calendar.DAY_OF_YEAR, -7)
     }
 
-    // 과거에서 현재 순으로 정렬 (reverse)
     return options.reversed()
 }
 
 @Preview(showBackground = true)
 @Composable
 fun WeekPickerBottomSheetPreview() {
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = Color.White
-    ) {
-        WeekPickerContent(
-            onWeekPicked = { _, _, _ -> },
-            onDismiss = { }
-        )
+    Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
+        WeekPickerContent(onWeekPicked = { _, _, _ -> }, onDismiss = { })
     }
 }
 
 @Preview(showBackground = true, name = "WeekPicker - Dark Mode")
 @Composable
 fun WeekPickerBottomSheetDarkPreview() {
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = Color.Black
-    ) {
-        WeekPickerContent(
-            onWeekPicked = { _, _, _ -> },
-            onDismiss = { }
-        )
+    Surface(modifier = Modifier.fillMaxSize(), color = Color.Black) {
+        WeekPickerContent(onWeekPicked = { _, _, _ -> }, onDismiss = { })
     }
 }

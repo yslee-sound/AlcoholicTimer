@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.utils
+package com.example.alcoholictimer.core.util
 
 import java.util.Calendar
 import java.util.TimeZone
@@ -61,4 +61,3 @@ object DateOverlapUtils {
         return cal.timeInMillis
     }
 }
-

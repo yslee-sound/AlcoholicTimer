@@ -1,4 +1,4 @@
-package com.example.alcoholictimer
+package com.example.alcoholictimer.core.ui
 
 import android.content.Intent
 import android.os.Bundle
@@ -33,7 +33,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import com.example.alcoholictimer.ui.theme.AlcoholicTimerTheme
+import com.example.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
+import com.example.alcoholictimer.feature.level.LevelActivity
+import com.example.alcoholictimer.feature.start.StartActivity
+import com.example.alcoholictimer.feature.run.RunActivity
+import com.example.alcoholictimer.feature.settings.SettingsActivity
+import com.example.alcoholictimer.feature.profile.NicknameEditActivity
 
 /**
  * 모든 액티비티의 베이스 클래스
@@ -241,8 +246,8 @@ abstract class BaseActivity : ComponentActivity() {
                 }
             }
             "기록" -> {
-                if (this !is RecordsActivity) {
-                    navigateToActivity(RecordsActivity::class.java)
+                if (this !is com.example.alcoholictimer.feature.records.RecordsActivity) {
+                    navigateToActivity(com.example.alcoholictimer.feature.records.RecordsActivity::class.java)
                 }
             }
             "레벨" -> {

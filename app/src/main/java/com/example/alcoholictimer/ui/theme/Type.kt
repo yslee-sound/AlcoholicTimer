@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.ui.theme
+package com.example.alcoholictimer.core.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
@@ -7,7 +7,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 // 앱 전역 타이포그래피: 화면별 하드코딩된 크기를 통일된 스케일로 정리
-val Typography = Typography(
+val AppTypography = Typography(
     // 큰 숫자(상세 화면 메인 값 등)
     displayLarge = TextStyle(
         fontFamily = FontFamily.Default,

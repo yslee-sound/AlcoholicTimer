@@ -23,9 +23,8 @@ gradlew.bat :app:lintDebug
 ## 문서
 - 전체 기획안: [./docs/APP_SPEC.md](./docs/APP_SPEC.md)
 - UX 흐름 명세: [./docs/UX_FLOW.md](./docs/UX_FLOW.md)
+- 패키지 리팩터링 실행 계획: [./docs/REFACTORING_PACKAGE_STRUCTURE.md](./docs/REFACTORING_PACKAGE_STRUCTURE.md)
 
 ## 모듈 구조
 - `app/` — 앱 본체(Activities, Compose UI, utils)
 - `docs/` — 제품/UX 사양 문서 및 부속 자료
-
-

@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.components
+package com.example.alcoholictimer.feature.records.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -12,7 +12,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.alcoholictimer.utils.SobrietyRecord
+import com.example.alcoholictimer.core.ui.components.NumberPicker
+import com.example.alcoholictimer.core.model.SobrietyRecord
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,9 +27,7 @@ fun MonthPickerBottomSheet(
     initialYear: Int = Calendar.getInstance().get(Calendar.YEAR),
     initialMonth: Int = Calendar.getInstance().get(Calendar.MONTH) + 1
 ) {
-    val bottomSheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     if (isVisible) {
         ModalBottomSheet(
@@ -41,10 +40,7 @@ fun MonthPickerBottomSheet(
                     modifier = Modifier
                         .width(40.dp)
                         .height(4.dp)
-                        .background(
-                            Color(0xFF636E72).copy(alpha = 0.2f),
-                            RoundedCornerShape(2.dp)
-                        )
+                        .background(Color(0xFF636E72).copy(alpha = 0.2f), RoundedCornerShape(2.dp))
                 )
             }
         ) {
@@ -69,58 +65,41 @@ internal fun MonthPickerContent(
     initialYear: Int = Calendar.getInstance().get(Calendar.YEAR),
     initialMonth: Int = Calendar.getInstance().get(Calendar.MONTH) + 1
 ) {
-    // 연도 목록: 첫 기록의 연도부터 현재 연도까지
     val yearOptions = remember(records) { generateYearOptionsFromRecords(records) }
 
-    // 기본 선택 연도 인덱스
     val defaultYearIndex = remember(yearOptions, initialYear) {
         yearOptions.indexOf(initialYear).let { if (it >= 0) it else (yearOptions.size - 1).coerceAtLeast(0) }
     }
 
-    // yearOptions가 변경되면 선택 인덱스를 기본값으로 재초기화 (primitive state 사용)
     var selectedYearIndex by remember(yearOptions) { mutableIntStateOf(defaultYearIndex) }
 
-    // 선택된 연도에 맞는 월 목록 계산
     fun monthsFor(year: Int): List<Int> {
-        // 기록이 전혀 없으면 월 리스트도 비움
         if (records.isEmpty()) return emptyList()
         val now = Calendar.getInstance()
         val nowYear = now.get(Calendar.YEAR)
         val nowMonth = now.get(Calendar.MONTH) + 1
-
         val first = records.minByOrNull { it.startTime }!!
         val firstCal = Calendar.getInstance().apply { timeInMillis = first.startTime }
         val firstYear = firstCal.get(Calendar.YEAR)
         val firstMonth = firstCal.get(Calendar.MONTH) + 1
-
-        val startMonth = when (year) {
-            firstYear -> firstMonth
-            else -> 1
-        }
-        val endMonth = when (year) {
-            nowYear -> nowMonth
-            else -> 12
-        }
+        val startMonth = if (year == firstYear) firstMonth else 1
+        val endMonth = if (year == nowYear) nowMonth else 12
         return if (year < firstYear || year > nowYear) emptyList() else (startMonth..endMonth).toList()
     }
 
     val selectedYear = yearOptions.getOrNull(selectedYearIndex) ?: Calendar.getInstance().get(Calendar.YEAR)
     var monthOptions by remember { mutableStateOf(monthsFor(selectedYear)) }
-
-    // 기본 선택 월 인덱스: initialMonth가 월 목록에 없으면 마지막 인덱스 (primitive state 사용)
     var selectedMonthIndex by remember {
         mutableIntStateOf(
             monthOptions.indexOf(initialMonth).let { if (it >= 0) it else (monthOptions.size - 1).coerceAtLeast(0) }
         )
     }
 
-    // 연도/옵션 변경 시 월 목록/선택 인덱스 갱신
     LaunchedEffect(yearOptions, selectedYearIndex) {
         val y = yearOptions.getOrNull(selectedYearIndex) ?: return@LaunchedEffect
         val newMonths = monthsFor(y)
         monthOptions = newMonths
         selectedMonthIndex = selectedMonthIndex.coerceIn(0, (newMonths.size - 1).coerceAtLeast(0))
-        // 사용자 명시 동작이 아닌 초기/스크롤 변화 시 상위 콜백을 호출하지 않습니다.
     }
 
     Column(
@@ -137,18 +116,15 @@ internal fun MonthPickerContent(
             modifier = Modifier.padding(bottom = 12.dp)
         )
 
-        // 빈 데이터일 때는 Picker를 렌더링하지 않음
         val canSelect = yearOptions.isNotEmpty() && monthOptions.isNotEmpty()
 
         if (canSelect) {
-            // 2열 선택 (왼쪽: 연, 오른쪽: 월)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 140.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // 연 선택
                 Box(modifier = Modifier.weight(1f)) {
                     NumberPicker(
                         value = selectedYearIndex,
@@ -161,7 +137,6 @@ internal fun MonthPickerContent(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
-                // 월 선택 (선택된 연도에 따라 동적)
                 Box(modifier = Modifier.weight(1f)) {
                     NumberPicker(
                         value = selectedMonthIndex,
@@ -173,19 +148,12 @@ internal fun MonthPickerContent(
                 }
             }
         } else {
-            // 비어있는 상태 안내
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 140.dp),
                 contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "표시할 항목이 없습니다",
-                    color = Color(0xFF636E72),
-                    fontSize = 14.sp
-                )
-            }
+            ) { Text(text = "표시할 항목이 없습니다", color = Color(0xFF636E72), fontSize = 14.sp) }
         }
 
         Button(
@@ -209,19 +177,12 @@ internal fun MonthPickerContent(
                 disabledContentColor = Color.White.copy(alpha = 0.7f)
             ),
             shape = RoundedCornerShape(12.dp)
-        ) {
-            Text(
-                text = "선택",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
+        ) { Text(text = "선택", fontSize = 16.sp, fontWeight = FontWeight.Bold) }
 
         Spacer(modifier = Modifier.height(8.dp))
     }
 }
 
-// 사용 가능하지만 현재 파일 내에서는 참조되지 않음
 @Suppress("unused")
 data class MonthOption(
     val year: Int,
@@ -236,7 +197,6 @@ private fun generateMonthOptionsFromRecords(records: List<SobrietyRecord>): List
     val nowMonth = cal.get(Calendar.MONTH) + 1
 
     if (records.isEmpty()) {
-        // 기록이 전혀 없는 경우: 현재 월만 노출
         return listOf(MonthOption(nowYear, nowMonth, "${nowYear}년 ${nowMonth}월"))
     }
 
@@ -245,11 +205,9 @@ private fun generateMonthOptionsFromRecords(records: List<SobrietyRecord>): List
     var y = firstCal.get(Calendar.YEAR)
     var m = firstCal.get(Calendar.MONTH) + 1
 
-    // firstMonth부터 현재 월까지 모두 추가
     val result = mutableListOf<MonthOption>()
     while (y < nowYear || (y == nowYear && m <= nowMonth)) {
         result.add(MonthOption(y, m, "${y}년 ${m}월"))
-        // 다음 달로 이동
         m += 1
         if (m > 12) { m = 1; y += 1 }
     }
@@ -258,7 +216,6 @@ private fun generateMonthOptionsFromRecords(records: List<SobrietyRecord>): List
 }
 
 private fun generateYearOptionsFromRecords(records: List<SobrietyRecord>): List<Int> {
-    // 기록이 전혀 없으면 연 리스트도 비움(요구사항: 기록이 있는 경우만 리스트 표시)
     if (records.isEmpty()) return emptyList()
     val nowYear = Calendar.getInstance().get(Calendar.YEAR)
     val startYear = records.minByOrNull { it.startTime }?.let {
@@ -274,31 +231,15 @@ private fun generateYearOptionsFromRecords(records: List<SobrietyRecord>): List<
 @Preview(showBackground = true)
 @Composable
 fun MonthPickerBottomSheetPreview() {
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = Color.White
-    ) {
-        MonthPickerContent(
-            onMonthPicked = { _, _ -> },
-            onYearPicked = {},
-            onDismiss = { },
-            records = emptyList()
-        )
+    Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
+        MonthPickerContent(onMonthPicked = { _, _ -> }, onYearPicked = {}, onDismiss = { }, records = emptyList())
     }
 }
 
 @Preview(showBackground = true, name = "MonthPicker - Dark Mode")
 @Composable
 fun MonthPickerBottomSheetDarkPreview() {
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = Color.Black
-    ) {
-        MonthPickerContent(
-            onMonthPicked = { _, _ -> },
-            onYearPicked = {},
-            onDismiss = { },
-            records = emptyList()
-        )
+    Surface(modifier = Modifier.fillMaxSize(), color = Color.Black) {
+        MonthPickerContent(onMonthPicked = { _, _ -> }, onYearPicked = {}, onDismiss = { }, records = emptyList())
     }
 }

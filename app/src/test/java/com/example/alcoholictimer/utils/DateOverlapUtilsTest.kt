@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.utils
+package com.example.alcoholictimer.core.util
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -61,4 +61,3 @@ class DateOverlapUtilsTest {
         assertEquals(0.0, d, 0.0)
     }
 }
-

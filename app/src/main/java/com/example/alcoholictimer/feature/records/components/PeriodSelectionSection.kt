@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.components
+package com.example.alcoholictimer.feature.records.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -26,10 +26,7 @@ fun PeriodSelectionSection(
 ) {
     val periods = listOf("주", "월", "년", "전체")
 
-    Column(
-        modifier = modifier.fillMaxWidth()
-    ) {
-        // 기간 선택 탭
+    Column(modifier = modifier.fillMaxWidth()) {
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
@@ -48,9 +45,7 @@ fun PeriodSelectionSection(
                         modifier = Modifier
                             .weight(1f)
                             .padding(horizontal = 4.dp)
-                            .clickable {
-                                onPeriodSelected(period)
-                            },
+                            .clickable { onPeriodSelected(period) },
                         shape = RoundedCornerShape(8.dp),
                         color = if (isSelected) Color(0xFF74B9FF) else Color.Transparent
                     ) {
@@ -67,14 +62,11 @@ fun PeriodSelectionSection(
             }
         }
 
-        // 세부 기간 표시: 항상 보이도록 조건문 제거
         Spacer(modifier = Modifier.height(8.dp))
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .then(
-                    if (selectedPeriod == "전체") Modifier else Modifier.clickable { onPeriodClick(selectedPeriod) }
-                ),
+                .then(if (selectedPeriod == "전체") Modifier else Modifier.clickable { onPeriodClick(selectedPeriod) }),
             shape = RoundedCornerShape(8.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
@@ -109,35 +101,9 @@ private fun getCurrentPeriodText(selectedPeriod: String, selectedDetailPeriod: S
     val calendar = Calendar.getInstance()
 
     return when (selectedPeriod) {
-        "주" -> {
-            if (selectedDetailPeriod.isNotEmpty()) {
-                // 바텀시트에서 선택된 주 정보 파싱
-                selectedDetailPeriod
-            } else {
-                // 기본값: 이번 주
-                "이번 주"
-            }
-        }
-        "월" -> {
-            if (selectedDetailPeriod.isNotEmpty()) {
-                // 바텀시트에서 선택된 월 정보 파싱
-                selectedDetailPeriod
-            } else {
-                // 기본값: 현재 월
-                val monthFormat = SimpleDateFormat("yyyy년 M월", Locale.getDefault())
-                monthFormat.format(calendar.time)
-            }
-        }
-        "년" -> {
-            if (selectedDetailPeriod.isNotEmpty()) {
-                // 바텀시트에서 선택된 년 정보 파싱
-                selectedDetailPeriod
-            } else {
-                // 기본값: 현재 년
-                val yearFormat = SimpleDateFormat("yyyy년", Locale.getDefault())
-                yearFormat.format(calendar.time)
-            }
-        }
+        "주" -> if (selectedDetailPeriod.isNotEmpty()) selectedDetailPeriod else "이번 주"
+        "월" -> if (selectedDetailPeriod.isNotEmpty()) selectedDetailPeriod else SimpleDateFormat("yyyy년 M월", Locale.getDefault()).format(calendar.time)
+        "년" -> if (selectedDetailPeriod.isNotEmpty()) selectedDetailPeriod else SimpleDateFormat("yyyy년", Locale.getDefault()).format(calendar.time)
         else -> "전체"
     }
 }

@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.ui
+package com.example.alcoholictimer.core.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*

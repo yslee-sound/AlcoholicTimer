@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.ui.theme
+package com.example.alcoholictimer.core.ui.theme
 
 import android.app.Activity
 import android.os.Build
@@ -69,7 +69,7 @@ fun AlcoholicTimerTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = AppTypography,
         content = content
     )
 

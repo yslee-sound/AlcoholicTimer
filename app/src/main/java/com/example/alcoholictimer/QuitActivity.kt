@@ -1,4 +1,4 @@
-package com.example.alcoholictimer
+package com.example.alcoholictimer.feature.run
 
 import android.content.Context
 import android.content.Intent
@@ -36,10 +36,12 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Locale
-import com.example.alcoholictimer.ui.StandardScreenWithBottomButton
-import com.example.alcoholictimer.ui.LayoutConstants
-import com.example.alcoholictimer.utils.FormatUtils
-import com.example.alcoholictimer.components.DetailStatCard
+import com.example.alcoholictimer.R
+import com.example.alcoholictimer.core.ui.BaseActivity
+import com.example.alcoholictimer.core.ui.StandardScreenWithBottomButton
+import com.example.alcoholictimer.core.ui.LayoutConstants
+import com.example.alcoholictimer.core.util.FormatUtils
+import com.example.alcoholictimer.feature.start.StartActivity
 
 class QuitActivity : BaseActivity() {
 
@@ -240,13 +242,13 @@ fun StatisticsCardsSection(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
         ) {
-            DetailStatCard(
+            com.example.alcoholictimer.feature.detail.components.DetailStatCard(
                 value = String.format(Locale.getDefault(), "%.1f일", totalDaysDecimal),
                 label = stringResource(id = R.string.stat_total_days),
                 modifier = Modifier.weight(1f),
                 valueColor = colorResource(id = R.color.color_indicator_days)
             )
-            DetailStatCard(
+            com.example.alcoholictimer.feature.detail.components.DetailStatCard(
                 value = String.format(Locale.getDefault(), "%,.0f원", savedMoney),
                 label = stringResource(id = R.string.stat_saved_money_short),
                 modifier = Modifier.weight(1f),
@@ -259,13 +261,13 @@ fun StatisticsCardsSection(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
         ) {
-            DetailStatCard(
+            com.example.alcoholictimer.feature.detail.components.DetailStatCard(
                 value = String.format(Locale.getDefault(), "%.1f시간", savedHours),
                 label = stringResource(id = R.string.stat_saved_hours_short),
                 modifier = Modifier.weight(1f),
                 valueColor = colorResource(id = R.color.color_indicator_hours)
             )
-            DetailStatCard(
+            com.example.alcoholictimer.feature.detail.components.DetailStatCard(
                 value = FormatUtils.daysToDayHourString(lifeGainDays, 2),
                 label = stringResource(id = R.string.indicator_title_life_gain),
                 modifier = Modifier.weight(1f),

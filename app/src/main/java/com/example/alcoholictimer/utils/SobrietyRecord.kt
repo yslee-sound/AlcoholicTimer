@@ -1,5 +1,6 @@
-package com.example.alcoholictimer.utils
+package com.example.alcoholictimer.core.model
 
+import com.example.alcoholictimer.core.util.PercentUtils
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.SimpleDateFormat

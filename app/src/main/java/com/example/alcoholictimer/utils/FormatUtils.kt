@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.utils
+package com.example.alcoholictimer.core.util
 
 import java.util.Locale
 import kotlin.math.floor

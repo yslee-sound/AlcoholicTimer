@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.components
+package com.example.alcoholictimer.feature.detail.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer

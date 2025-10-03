@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.components
+package com.example.alcoholictimer.feature.addrecord
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Text
+import com.example.alcoholictimer.core.ui.components.NumberPicker
 
 /**
  * 3개의 세로 휠을 가로로 배치해 0..999 범위를 구성하는 숫자 선택기.
@@ -66,4 +67,3 @@ fun TripleDigitNumberPicker(
         }
     }
 }
-

@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.components
+package com.example.alcoholictimer.feature.records.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -10,8 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.alcoholictimer.utils.SobrietyRecord
+import com.example.alcoholictimer.core.model.SobrietyRecord
+import com.example.alcoholictimer.core.util.PercentUtils
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min
@@ -24,9 +24,7 @@ fun StatisticsCardsSection(
     selectedRange: String,
     onRangeSelected: (String) -> Unit
 ) {
-    // 주간 범위 파싱 함수
     fun parseWeekRange(range: String): Pair<Long, Long>? {
-        // 예: "7-28 ~ 08-03"
         val regex = Regex("(\\d{1,2})-(\\d{1,2}) ~ (\\d{1,2})-(\\d{1,2})")
         val match = regex.find(range)
         if (match != null) {
@@ -55,9 +53,7 @@ fun StatisticsCardsSection(
         return null
     }
 
-    // 월간 범위 파싱 함수 (예: "2024-07" 또는 "7월")
     fun parseMonthRange(range: String): Pair<Int, Int>? {
-        // "2024-07" 또는 "2024년 7월" 또는 "7월" 등 지원
         val yearMonthRegex = Regex("(\\d{4})[.-]?(\\d{1,2})")
         val onlyMonthRegex = Regex("(\\d{1,2})월")
         yearMonthRegex.find(range)?.let {
@@ -74,11 +70,9 @@ fun StatisticsCardsSection(
 
     val weekRange = parseWeekRange(selectedRange)
     val (weekStart, weekEnd) = weekRange ?: (null to null)
-
     val monthRange = parseMonthRange(selectedRange)
     val (selectedYear, selectedMonth) = monthRange ?: (null to null)
 
-    // 실제 시간 기반으로 정확한 통계 계산 (주간/월간 범위에 맞게)
     val filteredRecords = when {
         selectedPeriod == "월간" && selectedYear != null && selectedMonth != null -> {
             records.filter { record ->
@@ -113,7 +107,6 @@ fun StatisticsCardsSection(
         } else true
     }
 
-    // 각 기록의 실제 달성률을 평균으로 계산 (주간 범위에 맞게)
     val successRate = if (totalAttempts > 0) {
         val totalProgressPercent = filteredRecords.sumOf { record ->
             val overlapStart = if (weekStart != null) max(record.startTime, weekStart) else record.startTime
@@ -126,7 +119,7 @@ fun StatisticsCardsSection(
             }
             progressPercent.toDouble()
         }
-        com.example.alcoholictimer.utils.PercentUtils.roundPercent(totalProgressPercent / totalAttempts)
+        PercentUtils.roundPercent(totalProgressPercent / totalAttempts)
     } else 0
 
     Column(
@@ -134,18 +127,13 @@ fun StatisticsCardsSection(
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        // 텍스트 클릭 영역 (왼쪽 정렬) - 개선된 클릭 감지
         Row(
             modifier = Modifier
                 .clickable(
                     enabled = selectedPeriod != "전체",
                     interactionSource = remember { MutableInteractionSource() },
-                    indication = null // Material3에서 기본 ripple을 사용하거나 null로 설정
-                ) {
-                    if (selectedPeriod != "전체") {
-                        onRangeSelected(selectedRange)
-                    }
-                }
+                    indication = null
+                ) { if (selectedPeriod != "전체") onRangeSelected(selectedRange) }
                 .padding(vertical = 8.dp, horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -155,36 +143,19 @@ fun StatisticsCardsSection(
             )
             if (selectedPeriod != "전체") {
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "\u25bc",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = Color.Gray
-                )
+                Text(text = "\u25bc", style = MaterialTheme.typography.labelMedium, color = Color.Gray)
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 상단 통계 카드들
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            StatCard(
-                title = "총 금주일",
-                value = "${totalDays}일",
-                modifier = Modifier.weight(1f)
-            )
-            StatCard(
-                title = "성공률",
-                value = "${successRate}%",
-                modifier = Modifier.weight(1f)
-            )
-            StatCard(
-                title = "시도 횟수",
-                value = "${totalAttempts}회",
-                modifier = Modifier.weight(1f)
-            )
+            StatCard(title = "총 금주일", value = "${totalDays}일", modifier = Modifier.weight(1f))
+            StatCard(title = "성공률", value = "${successRate}%", modifier = Modifier.weight(1f))
+            StatCard(title = "시도 횟수", value = "${totalAttempts}회", modifier = Modifier.weight(1f))
         }
     }
 }
@@ -195,19 +166,8 @@ fun StatCard(
     value: String,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier.padding(horizontal = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            color = Color.Black
-        )
-        Text(
-            text = title,
-            style = MaterialTheme.typography.labelMedium,
-            color = Color.Gray
-        )
+    Column(modifier = modifier.padding(horizontal = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text = value, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = Color.Black)
+        Text(text = title, style = MaterialTheme.typography.labelMedium, color = Color.Gray)
     }
 }

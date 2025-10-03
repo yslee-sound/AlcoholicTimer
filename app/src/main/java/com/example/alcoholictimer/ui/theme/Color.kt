@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.ui.theme
+package com.example.alcoholictimer.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

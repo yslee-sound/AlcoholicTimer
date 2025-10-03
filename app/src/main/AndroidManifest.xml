@@ -13,7 +13,7 @@
 
         <!-- 메인 액티비티 (시작 화면) -->
         <activity
-            android:name=".StartActivity"
+            android:name="com.example.alcoholictimer.feature.start.StartActivity"
             android:exported="true"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer"
@@ -26,63 +26,63 @@
 
         <!-- 기록 화면 -->
         <activity
-            android:name=".RecordsActivity"
+            android:name="com.example.alcoholictimer.feature.records.RecordsActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 모든 기록 화면 -->
         <activity
-            android:name=".AllRecordsActivity"
+            android:name="com.example.alcoholictimer.feature.records.AllRecordsActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 레벨 화면 -->
         <activity
-            android:name=".LevelActivity"
+            android:name="com.example.alcoholictimer.feature.level.LevelActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 설정 화면 -->
         <activity
-            android:name=".SettingsActivity"
+            android:name="com.example.alcoholictimer.feature.settings.SettingsActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 금주 진행 화면 -->
         <activity
-            android:name=".RunActivity"
+            android:name="com.example.alcoholictimer.feature.run.RunActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 금주 종료 확인 화면 -->
         <activity
-            android:name=".QuitActivity"
+            android:name="com.example.alcoholictimer.feature.run.QuitActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 세부 기록 화면 -->
         <activity
-            android:name=".DetailActivity"
+            android:name="com.example.alcoholictimer.feature.detail.DetailActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 별명 편집 화면 -->
         <activity
-            android:name=".NicknameEditActivity"
+            android:name="com.example.alcoholictimer.feature.profile.NicknameEditActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 사용자 기록 추가 화면 -->
         <activity
-            android:name=".components.AddRecordActivity"
+            android:name="com.example.alcoholictimer.feature.addrecord.AddRecordActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />

@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.components
+package com.example.alcoholictimer.feature.records.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -21,8 +21,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.alcoholictimer.utils.RecordsDataLoader
-import com.example.alcoholictimer.utils.SobrietyRecord
+import com.example.alcoholictimer.core.data.RecordsDataLoader
+import com.example.alcoholictimer.core.model.SobrietyRecord
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -46,14 +46,12 @@ fun AllRecordsScreen(
     var retryTrigger by remember { mutableIntStateOf(0) }
     var showDeleteAllDialog by remember { mutableStateOf(false) }
 
-    // 공통 로딩 함수
     val loadRecords: () -> Unit = remember {
         {
             isLoading = true
             loadError = null
             try {
                 val loadedRecords = RecordsDataLoader.loadSobrietyRecords(context)
-                // 정렬: 시작 시간 기준 최신순 (startTime 내림차순)
                 records = loadedRecords.sortedByDescending { it.startTime }
                 isLoading = false
             } catch (e: Exception) {
@@ -63,13 +61,9 @@ fun AllRecordsScreen(
         }
     }
 
-    // 최초 및 재시도 트리거 시 로딩
     LaunchedEffect(retryTrigger) { loadRecords() }
-
-    // 외부 새로고침 트리거(externalRefreshTrigger) 변화 시에도 로딩
     LaunchedEffect(externalRefreshTrigger) { loadRecords() }
 
-    // 다른 화면들과 일관된 연한 회색 계열 그라데이션 (BaseActivity와 동일 톤)
     val gradientBackground = Brush.linearGradient(
         colors = listOf(
             Color(0xFFF8F9FA),
@@ -91,7 +85,6 @@ fun AllRecordsScreen(
                 .background(brush = gradientBackground)
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                // 상단 바 (뒤로가기 버튼) - 공통 톤으로 통일 + 문자열 리소스/토큰 적용
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shadowElevation = 4.dp,
@@ -102,7 +95,7 @@ fun AllRecordsScreen(
                             Text(
                                 text = stringResource(id = R.string.all_records_title),
                                 style = MaterialTheme.typography.titleLarge,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                         },
                         navigationIcon = {
@@ -115,7 +108,6 @@ fun AllRecordsScreen(
                             }
                         },
                         actions = {
-                            // 제목 우측 끝 X 아이콘 - 모든 기록 삭제
                             IconButton(
                                 onClick = { showDeleteAllDialog = true },
                                 enabled = !isLoading && records.isNotEmpty()
@@ -136,7 +128,6 @@ fun AllRecordsScreen(
                     )
                 }
 
-                // 콘텐츠 영역
                 when {
                     isLoading -> {
                         Box(
@@ -150,7 +141,6 @@ fun AllRecordsScreen(
                     }
 
                     loadError != null -> {
-                        // 에러 상태 UI + 재시도 버튼
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -172,13 +162,10 @@ fun AllRecordsScreen(
                     }
 
                     records.isEmpty() -> {
-                        // 빈 상태
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
-                        ) {
-                            EmptyRecordsState()
-                        }
+                        ) { EmptyRecordsState() }
                     }
 
                     else -> {
@@ -190,7 +177,6 @@ fun AllRecordsScreen(
                             verticalArrangement = Arrangement.spacedBy(0.dp),
                             contentPadding = PaddingValues(top = 12.dp, bottom = 24.dp)
                         ) {
-                            // key 추가로 안정성/퍼포먼스 향상
                             items(
                                 items = records,
                                 key = { it.id }
@@ -213,7 +199,6 @@ fun AllRecordsScreen(
                 }
             }
 
-            // 삭제 확인 다이얼로그
             if (showDeleteAllDialog) {
                 AlertDialog(
                     onDismissRequest = { showDeleteAllDialog = false },
@@ -236,11 +221,9 @@ fun AllRecordsScreen(
                                 showDeleteAllDialog = false
                                 val success = RecordsDataLoader.clearAllRecords(context)
                                 if (success) {
-                                    // 삭제가 완료되면 '모든 기록' 화면을 닫고 이전 화면(금주 기록)으로 복귀
                                     onNavigateBack()
                                 } else {
-                                    // 실패 시에는 화면에 머물며 사용자가 재시도할 수 있게 함
-                                    // 필요 시 스낵바/토스트 추가 가능
+                                    // 실패 시 머무름
                                 }
                             }
                         ) {
@@ -266,7 +249,6 @@ fun AllRecordsScreen(
 
 @Composable
 private fun EmptyRecordsState() {
-    // semantics 블록 밖에서 리소스 문자열을 먼저 가져옵니다.
     val emptyCd = stringResource(id = R.string.empty_records_cd)
 
     Card(
@@ -286,15 +268,12 @@ private fun EmptyRecordsState() {
                 .padding(48.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 이모지는 장식용이라 별도 contentDescription을 부여하지 않음
             Text(
                 text = "📝",
                 fontSize = 48.sp,
                 textAlign = TextAlign.Center
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Text(
                 text = stringResource(id = R.string.empty_records_title),
                 fontSize = 18.sp,
@@ -302,9 +281,7 @@ private fun EmptyRecordsState() {
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
             )
-
             Spacer(modifier = Modifier.height(8.dp))
-
             Text(
                 text = stringResource(id = R.string.empty_records_subtitle),
                 fontSize = 14.sp,

@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.utils
+package com.example.alcoholictimer.core.util
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

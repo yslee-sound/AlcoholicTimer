@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.components
+package com.example.alcoholictimer.feature.records.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,7 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.alcoholictimer.utils.SobrietyRecord
+import com.example.alcoholictimer.core.model.SobrietyRecord
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -54,7 +54,6 @@ fun RecordSummaryCard(
     val startTime = timeFormat.format(Date(record.startTime))
     val endTime = timeFormat.format(Date(record.endTime))
 
-    // 실제 시간 차이를 기반으로 값 계산
     val totalDurationMillis = record.endTime - record.startTime
     val totalDays = totalDurationMillis / (24.0 * 60 * 60 * 1000.0)
     val successRate = run {
@@ -66,7 +65,6 @@ fun RecordSummaryCard(
         (pctFromTarget ?: pctFromRecord ?: pctFallbackDefault).toFloat()
     }
 
-    // 컴팩트/일반 모드별 타이포/여백 프리셋
     val cardPadding = if (compact) 14.dp else 20.dp
     val headerDateSize = if (compact) 14.sp else 16.sp
     val baseHeaderIconSize = if (compact) 56.dp else 72.dp
@@ -89,7 +87,6 @@ fun RecordSummaryCard(
                 .fillMaxWidth()
                 .padding(cardPadding)
         ) {
-            // 헤더: 아이콘(왼쪽) + 날짜(오른쪽)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start,
@@ -113,29 +110,19 @@ fun RecordSummaryCard(
                 Spacer(modifier = Modifier.width(if (compact) 10.dp else 12.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "$startDate ~",
-                        fontSize = headerDateSize,
-                        color = resolvedNumber
-                    )
+                    Text(text = "$startDate ~", fontSize = headerDateSize, color = resolvedNumber)
                     Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = endDate,
-                        fontSize = headerDateSize,
-                        color = resolvedLabel
-                    )
+                    Text(text = endDate, fontSize = headerDateSize, color = resolvedLabel)
                 }
             }
 
             Spacer(modifier = Modifier.height(sectionSpacing))
 
-            // 메인 정보 - 숫자 3열 (컴팩트 타이포)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 달성 일수
                 Column {
                     Text(
                         text = String.format(Locale.getDefault(), "%.1f일", totalDays),
@@ -146,7 +133,6 @@ fun RecordSummaryCard(
                     Text(text = "달성 일수", fontSize = labelSize, color = resolvedLabel)
                 }
 
-                // 목표 일수
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "${record.targetDays}일",
@@ -157,7 +143,6 @@ fun RecordSummaryCard(
                     Text(text = "목표 일수", fontSize = labelSize, color = resolvedLabel)
                 }
 
-                // 달성률
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = String.format(Locale.getDefault(), "%.1f%%", successRate),
