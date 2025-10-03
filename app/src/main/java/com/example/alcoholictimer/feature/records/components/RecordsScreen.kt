@@ -183,9 +183,14 @@ fun RecordsScreen(
 
     LaunchedEffect(externalRefreshTrigger) { loadRecords() }
 
+    // 다중 탭 방지: AddRecordActivity 런치 진행 상태
+    var isLaunchingAddRecord by remember { mutableStateOf(false) }
+
     val addRecordLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
+        // 결과 수신 시에는 무조건 재활성화
+        isLaunchingAddRecord = false
         if (result.resultCode == Activity.RESULT_OK) { loadRecords() }
     }
 
@@ -214,9 +219,13 @@ fun RecordsScreen(
                     PeriodHeaderRow(
                         selectedPeriod = selectedPeriod,
                         onAddRecord = {
-                            val intent = Intent(context, AddRecordActivity::class.java)
-                            addRecordLauncher.launch(intent)
-                        }
+                            if (!isLaunchingAddRecord) {
+                                isLaunchingAddRecord = true
+                                val intent = Intent(context, AddRecordActivity::class.java)
+                                addRecordLauncher.launch(intent)
+                            }
+                        },
+                        enabled = !isLaunchingAddRecord
                     )
                 }
                 item {
@@ -379,7 +388,8 @@ private fun RecordCard(
 @Composable
 private fun PeriodHeaderRow(
     selectedPeriod: String,
-    onAddRecord: () -> Unit
+    onAddRecord: () -> Unit,
+    enabled: Boolean
 ) {
     Row(
         modifier = Modifier
@@ -400,9 +410,12 @@ private fun PeriodHeaderRow(
         )
         Button(
             onClick = onAddRecord,
+            enabled = enabled,
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
             ),
             shape = RoundedCornerShape(8.dp),
             modifier = Modifier.size(32.dp),
