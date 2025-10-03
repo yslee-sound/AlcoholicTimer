@@ -209,6 +209,16 @@ fun RecordsScreen(
                         selectedDetailPeriod = selectedDetailPeriod
                     )
                 }
+                // 기간 헤더: 로딩 여부와 무관하게 항상 노출(제목 + +버튼)
+                item {
+                    PeriodHeaderRow(
+                        selectedPeriod = selectedPeriod,
+                        onAddRecord = {
+                            val intent = Intent(context, AddRecordActivity::class.java)
+                            addRecordLauncher.launch(intent)
+                        }
+                    )
+                }
                 item {
                     if (!isLoading) {
                         PeriodStatisticsSection(
@@ -366,6 +376,47 @@ private fun RecordCard(
     onClick: () -> Unit
 ) { RecordSummaryCard(record = record, onClick = onClick) }
 
+@Composable
+private fun PeriodHeaderRow(
+    selectedPeriod: String,
+    onAddRecord: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = when (selectedPeriod) {
+                "주" -> "주 통계"
+                "월" -> "월 통계"
+                "년" -> "년 통계"
+                else -> "전체 통계"
+            },
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Button(
+            onClick = onAddRecord,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.size(32.dp),
+            contentPadding = PaddingValues(0.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Add,
+                contentDescription = "금주 기록 추가",
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+    }
+}
+
 // ↓ 아래는 루트 파일의 하단 절반(PeriodStatisticsSection 등) 그대로 이식
 @Suppress("UNUSED_PARAMETER")
 @Composable
@@ -499,42 +550,8 @@ private fun PeriodStatisticsSection(
                 .fillMaxWidth()
                 .padding(20.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = when (selectedPeriod) {
-                        "주" -> "주 통계"
-                        "월" -> "월 통계"
-                        "년" -> "년 통계"
-                        else -> "전체 통계"
-                    },
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Button(
-                    onClick = onAddRecord,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.size(32.dp),
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Add,
-                        contentDescription = "금주 기록 추가",
-                        tint = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
-            }
-
+            // 헤더(Row + +버튼)는 PeriodHeaderRow로 이동하여 항상 노출되므로 여기서는 제거
             Spacer(modifier = Modifier.height(16.dp))
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)

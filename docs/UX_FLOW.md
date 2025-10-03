@@ -40,7 +40,7 @@
 
 ## 5. 접근성/일관성
 - Icon에는 의미 있는 contentDescription 제공
-- 터치 타겟: 최소 44dp
+- 터치 타겟: 최소 32dp
 - 텍스트 대비: Material3 기본 팔레트 기준 유지
 - Divider → HorizontalDivider 사용(신규 컴포넌트 우선)
 
@@ -58,3 +58,15 @@
 - 전체 기획안: `docs/APP_SPEC.md`
 - 관련 코드: `app/src/main/java/com/example/alcoholictimer/components/`
 
+## 9. 액션 위계/CTA 정책 (Records 화면)
+- 금주 기록 추가(AddRecordActivity 실행)
+  - 위계: Secondary Action (대표 액션 아님). FAB(부유 액션 버튼)으로 강조하지 않는다.
+  - 위치: 기간 헤더(주/월/년/전체) 우측의 + 아이콘 버튼으로 제공.
+  - 노출: 모든 기간(주/월/년/전체)에서 항상 노출하며, 로딩 중에도 노출 유지.
+  - 동작: 추가 완료(RESULT_OK) 시 목록/통계를 1회 새로고침하여 최신 상태 반영.
+  - 접근성: contentDescription="금주 기록 추가", 터치 타겟 ≥ 32dp, 테마 대비(onPrimary/primary) 유지.
+  - 예외: 비활성화는 특별한 사유(입력 불가 상태)가 있는 경우에 한해 일시적으로 적용.
+
+- FAB 사용 원칙(요약)
+  - 한 화면의 Primary Action(가장 핵심/우선 작업)에만 적용.
+  - Records 화면에서는 ‘금주 기록 추가’가 Primary가 아니므로 FAB를 사용하지 않음.
