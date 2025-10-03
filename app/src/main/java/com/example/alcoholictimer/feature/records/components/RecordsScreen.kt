@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -32,6 +33,9 @@ import com.example.alcoholictimer.core.ui.StandardScreen
 import java.util.*
 import com.example.alcoholictimer.feature.addrecord.AddRecordActivity
 import com.example.alcoholictimer.core.util.PercentUtils
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -619,6 +623,40 @@ private fun PeriodStatisticsSection(
 }
 
 @Composable
+private fun AutoResizeSingleLineText(
+    text: String,
+    baseStyle: TextStyle,
+    modifier: Modifier = Modifier,
+    minFontSizeSp: Float = 10f,
+    step: Float = 0.95f,
+    color: Color? = null,
+    textAlign: TextAlign? = null,
+) {
+    var style by remember(text) { mutableStateOf(baseStyle) }
+    var tried by remember(text) { mutableStateOf(0) }
+    Text(
+        text = text,
+        style = style,
+        color = color ?: style.color,
+        textAlign = textAlign,
+        maxLines = 1,
+        softWrap = false,
+        overflow = TextOverflow.Clip,
+        modifier = modifier,
+        onTextLayout = { result ->
+            if (result.hasVisualOverflow && tried < 20) {
+                val current = style.fontSize.value
+                val next = (current * step).coerceAtLeast(10f)
+                if (next < current - 0.1f) {
+                    style = style.copy(fontSize = next.sp, lineHeight = (next.sp * 1.1f))
+                    tried++
+                }
+            }
+        }
+    )
+}
+
+@Composable
 private fun StatisticItem(
     title: String,
     value: String,
@@ -630,7 +668,7 @@ private fun StatisticItem(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .defaultMinSize(minHeight = 96.dp),
+            .defaultMinSize(minHeight = 120.dp),
         shape = RoundedCornerShape(12.dp),
         color = color.copy(alpha = 0.1f)
     ) {
@@ -641,24 +679,83 @@ private fun StatisticItem(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
+            val valueBoxH = 40.dp
+            val titleBoxH = 44.dp
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(32.dp * valueScale),
+                    .height(valueBoxH),
                 contentAlignment = Alignment.Center
             ) {
-                val baseTitleMedium = MaterialTheme.typography.titleMedium
-                val scaledValueTextStyle = baseTitleMedium
-                    .copy(fontWeight = FontWeight.Bold, fontSize = baseTitleMedium.fontSize * valueScale)
-                    .merge(androidx.compose.ui.text.TextStyle(platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false)))
-                Text(text = value, style = scaledValueTextStyle, color = color, textAlign = TextAlign.Center)
+                val base = MaterialTheme.typography.titleMedium
+                val numSize = (base.fontSize * valueScale)
+                val numStyle = base.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = numSize,
+                    lineHeight = numSize * 1.1f,
+                    platformStyle = PlatformTextStyle(includeFontPadding = true),
+                    fontFeatureSettings = "tnum"
+                )
+                val unitStyle = base.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = base.fontSize * 0.9f,
+                    lineHeight = base.fontSize * 1.1f,
+                    platformStyle = PlatformTextStyle(includeFontPadding = true)
+                )
+                val regex = Regex("^\\s*([0-9]+(?:\\.[0-9]+)?)\\s*(.*)")
+                val m = regex.find(value)
+                if (m != null) {
+                    val num = m.groupValues[1]
+                    val unit = m.groupValues[2]
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                        AutoResizeSingleLineText(
+                            text = num,
+                            baseStyle = numStyle,
+                            color = color,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.alignByBaseline().wrapContentWidth()
+                        )
+                        if (unit.isNotBlank()) {
+                            Spacer(modifier = Modifier.width(2.dp))
+                            Text(
+                                text = unit,
+                                style = unitStyle,
+                                color = color,
+                                modifier = Modifier.alignByBaseline()
+                            )
+                        }
+                    }
+                } else {
+                    AutoResizeSingleLineText(
+                        text = value,
+                        baseStyle = numStyle,
+                        color = color,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(6.dp))
-            run {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(titleBoxH),
+                contentAlignment = Alignment.Center
+            ) {
                 val baseLabel = MaterialTheme.typography.labelMedium
                 val scaledLabelFontSize = baseLabel.fontSize * titleScale
-                val scaledLabelStyle = baseLabel.copy(fontSize = scaledLabelFontSize, lineHeight = scaledLabelFontSize * 1.3f)
-                Text(text = title, style = scaledLabelStyle, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+                val scaledLabelStyle = baseLabel.copy(
+                    fontSize = scaledLabelFontSize,
+                    lineHeight = scaledLabelFontSize * 1.25f,
+                    platformStyle = PlatformTextStyle(includeFontPadding = true)
+                )
+                Text(
+                    text = title,
+                    style = scaledLabelStyle,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2
+                )
             }
         }
     }
