@@ -39,11 +39,19 @@ import com.example.alcoholictimer.feature.start.StartActivity
 import com.example.alcoholictimer.feature.run.RunActivity
 import com.example.alcoholictimer.feature.settings.SettingsActivity
 import com.example.alcoholictimer.feature.profile.NicknameEditActivity
+import androidx.core.splashscreen.SplashScreen
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 
 abstract class BaseActivity : ComponentActivity() {
     private var nicknameState = mutableStateOf("")
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Install SplashScreen for Android 12+ and provide backport for older versions
+        val splashScreen: SplashScreen = installSplashScreen()
+        // Remove exit animation immediately to avoid icon/shape lingering
+        splashScreen.setOnExitAnimationListener { provider ->
+            provider.remove()
+        }
         super.onCreate(savedInstanceState)
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.light(

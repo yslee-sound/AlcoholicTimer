@@ -16,7 +16,7 @@
             android:name="com.example.alcoholictimer.feature.start.StartActivity"
             android:exported="true"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.AlcoholicTimer"
+            android:theme="@style/Theme.AlcoholicTimer.Splash"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
