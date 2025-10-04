@@ -1,14 +1,14 @@
 # AlcoholicTimer
 
-AlcoholicTimer는 금주(절주) 습관 형성을 돕는 Android 앱입니다.
-핵심 기능은 금주 타이머, 진행률/레벨 표시, 기록 관리(목록/상세/전체보기),
-간단한 통계 제공입니다. UI는 Jetpack Compose(Material3)로 구현되며,
-데이터는 로컬 저장(SharedPreferences/JSON) 방식을 사용합니다.
-가벼운 구조와 명확한 흐름을 목표로 하며, 향후 위젯/알림/백업 등
-확장 기능을 단계적으로 추가할 예정입니다.
+AlcoholicTimer는 금주(절주) 습관 형성을 돕는 Android 앱입니다. 핵심 기능: 금주 타이머, 목표 진행률/레벨, 기록 관리(목록/상세/전체보기), 기간별 통계(주/월/년/전체), 주간 성공률 시각화. UI는 Jetpack Compose(Material3) 기반이며 데이터는 로컬(SharedPreferences/JSON) 저장을 사용합니다.
 
-## 빠른 시작 (Windows, Gradle Wrapper)
+## 주요 기능
+- 금주 기록 생성 및 실시간 진행률 표시 (목표 일수 대비 % 및 레벨)
+- 주 / 월 / 년 / 전체 통계 (평균·최대 지속일, 누적 금주일)
+- 주간 성공률: 해당 주 7일 중 금주 유지일 비율 (중복 기록 병합 후 산출, 7일 모두 유지 시 100%)
+- Adaptive & Monochrome 런처 아이콘 (Android 13 테마 아이콘 대응)
 
+## 빠른 시작 (Windows / Gradle Wrapper)
 ```bat
 REM 클린 & 디버그 빌드
 gradlew.bat clean
@@ -17,36 +17,54 @@ gradlew.bat :app:assembleDebug
 REM Lint 검사
 gradlew.bat :app:lintDebug
 ```
-
-생성된 APK: `app/build/outputs/apk/debug/app-debug.apk`
+생성 APK: `app/build/outputs/apk/debug/app-debug.apk`
 
 ## 문서
-- 전체 기획안: [./docs/APP_SPEC.md](./docs/APP_SPEC.md)
-- UX 흐름 명세: [./docs/UX_FLOW.md](./docs/UX_FLOW.md)
-- 패키지 리팩터링 실행 계획: [./docs/REFACTORING_PACKAGE_STRUCTURE.md](./docs/REFACTORING_PACKAGE_STRUCTURE.md)
+- 기획 사양: [docs/APP_SPEC.md](./docs/APP_SPEC.md)
+- UX 흐름: [docs/UX_FLOW.md](./docs/UX_FLOW.md)
+- 패키지 구조 리팩터링 계획: [docs/REFACTORING_PACKAGE_STRUCTURE.md](./docs/REFACTORING_PACKAGE_STRUCTURE.md)
+- 아이콘 디자인 가이드(상세): [docs/ICON_DESIGN.md](./docs/ICON_DESIGN.md)
+- 출시 준비 & 배포 체크리스트: [docs/APP_RELEASE_PLAN.md](./docs/APP_RELEASE_PLAN.md)
 
-## 모듈 구조
-- `app/` — 앱 본체(Activities, Compose UI, utils)
-- `docs/` — 제품/UX 사양 문서 및 부속 자료
+## 디렉터리 구조 개요
+- `app/` : 애플리케이션 본체(Compose UI, Activity, 유틸)
+- `docs/` : 사양/UX/배포/디자인 문서
 
-## 런처 아이콘(Adaptive / Monochrome) 설계 및 변경 내역
-| 항목 | 결정 | 근거 |
-|------|------|------|
-| Adaptive 구조 | 배경 + foreground inset + monochrome 레이어 사용 | Android 8.0+ 가이드 준수, Android 13 테마 아이콘 대응 |
-| 안전 영역 | inset 18dp 적용 | 권장 여백(108dp 캔버스 대비 18dp) 확보로 마스크 다양성/가독성 개선 |
-| Foreground 스케일 | group scale 1.43 | 이전 1.55 → 과밀 문제 해소, breathing room 확보 |
-| 전경 색상 | `@color/icon_launcher_fg` (#C6283A) | 새 배경(#FFFFFF) 대비 명도/채도 대비 확보(약 5.3:1) 및 리소스화로 재사용성 확보 |
-| 배경 색상 | `@color/icon_launcher_bg` (#FFFFFF) | 심플/중립적, 브랜드 전경 강조, 다수 런처 배경과 충돌 최소화 |
-| Monochrome 아이콘 | 단순화된 hourglass 실루엣(path 1개) | 축소/테마 아이콘 모드에서 인지성 향상 및 렌더 비용 감소 |
-| Round 아이콘 리소스 | Manifest `android:roundIcon` 제거 및 관련 리소스 삭제 | Adaptive 마스크 공통 처리, 중복 유지보수 비용 절감 |
-| 백업 | `ic_launcher_monochrome_full.xml` 유지 | 원래 복잡한 path 회귀/리디자인 참고용 |
+## 주간 성공률 산식 (요약)
+```
+주간 성공률 = (해당 주 내 금주 유지 총 일수(중복 병합) / 7) * 100  (반올림, 최대 100)
+```
+- 여러 기록이 겹칠 경우 겹치는 구간은 한 번만 포함
+- 월/년/전체 화면의 "성공률"은 기존 시도별 목표진행률 평균 로직 유지
 
-### 후속 개선(옵션)
-- Monochrome 실루엣 추가 미세 정렬(픽셀 스냅) 검토
-- 다크 모드 전용 adaptive 배경 다이나믹 톤 실험(Material You 컬러 추출)
-- 브랜드 디자인 가이드 별도 문서화 (색상 팔레트, 아이콘 관리 표준)
+## 아이콘 (요약)
+| 항목 | 값 |
+|------|----|
+| Inset | 18dp (Adaptive 캔버스 108dp 기준) |
+| Foreground Scale | 1.43 (과밀 완화) |
+| Monochrome | 단일 path, 테마 아이콘 대비 확보 |
+| Colors | FG #C6283A / BG #FFFFFF |
+| Round Icon | 별도 리소스 제거 (Adaptive 단일 유지) |
 
-### 테스트 체크리스트
-- Android 13 기기: 테마 아이콘 활성화 시 실루엣 왜곡 없음
-- Launcher grid: 4x5 / 5x6 레이아웃에서 24~48dp 축소라도 식별 가능
-- APK 빌드 후 lint: 아이콘 레이어 누락 경고 없음
+자세한 변경 이력·QA 체크리스트는 [ICON_DESIGN.md](./docs/ICON_DESIGN.md) 참고.
+
+## 개발 / 품질 참고
+| 작업 | 명령 |
+|------|------|
+| Debug 빌드 | `gradlew.bat :app:assembleDebug` |
+| Release 번들 | `gradlew.bat clean :app:bundleRelease` |
+| Lint (중요) | `gradlew.bat lintVitalRelease` |
+| 유닛 테스트(있다면) | `gradlew.bat testDebug` |
+
+## 향후 확장 아이디어 (요약)
+- 알림/리마인더, 위젯, 클라우드 동기화/백업
+- Crash/Analytics 도입, In-App Review, 다국어 지원
+
+## 라이선스
+(추후 명시 예정)
+
+## 기여
+내부 프로젝트 기준이나 개선 아이디어(자동화, 분석, 접근성) 제안 환영. 문서/코드 변경 시 일관성 체크 후 PR 권장.
+
+---
+이 README는 모듈/아이콘 상세를 통합·요약한 최신 버전입니다. 세부 디자인/배포/작업 흐름은 docs 디렉터리를 참조하세요.

@@ -36,6 +36,8 @@ import com.example.alcoholictimer.core.util.PercentUtils
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
+import kotlin.math.max
+import kotlin.math.min
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -533,16 +535,46 @@ private fun PeriodStatisticsSection(
     }
 
     val successRate = if (totalRecords > 0) {
-        val totalProgressPercent = records.sumOf { record ->
-            val actualDurationDays = overlappedDays(record).toFloat()
-            val progressPercent = if (record.targetDays > 0) {
-                ((actualDurationDays / record.targetDays) * 100).coerceIn(0f, 100f)
-            } else {
-                record.percentage?.toFloat() ?: ((actualDurationDays / 30f) * 100f).coerceIn(0f, 100f)
+        if (selectedPeriod == "주" && periodRange != null) {
+            val (periodStart, periodEnd) = periodRange
+            val dayMillis = 24 * 60 * 60 * 1000.0
+            val intervals = records.mapNotNull { record ->
+                val s = max(record.startTime.toDouble(), periodStart.toDouble())
+                val e = min(record.endTime.toDouble(), periodEnd.toDouble())
+                if (s < e) s to e else null
+            }.sortedBy { it.first }
+            var mergedMs = 0.0
+            var curStart = Double.NaN
+            var curEnd = Double.NaN
+            for ((s, e) in intervals) {
+                if (curStart.isNaN()) {
+                    curStart = s; curEnd = e
+                } else if (s <= curEnd) {
+                    if (e > curEnd) curEnd = e
+                } else {
+                    mergedMs += (curEnd - curStart)
+                    curStart = s; curEnd = e
+                }
             }
-            progressPercent.toDouble()
+            if (!curStart.isNaN()) {
+                mergedMs += (curEnd - curStart)
+            }
+            val periodDays = ((periodEnd - periodStart + 1) / dayMillis)
+            val unionDays = (mergedMs / dayMillis).coerceAtMost(periodDays)
+            val ratio = if (periodDays > 0) (unionDays / periodDays).coerceIn(0.0, 1.0) else 0.0
+            PercentUtils.roundPercent(ratio * 100.0)
+        } else {
+            val totalProgressPercent = records.sumOf { record ->
+                val actualDurationDays = overlappedDays(record).toFloat()
+                val progressPercent = if (record.targetDays > 0) {
+                    ((actualDurationDays / record.targetDays) * 100).coerceIn(0f, 100f)
+                } else {
+                    record.percentage?.toFloat() ?: ((actualDurationDays / 30f) * 100f).coerceIn(0f, 100f)
+                }
+                progressPercent.toDouble()
+            }
+            PercentUtils.roundPercent(totalProgressPercent / totalRecords)
         }
-        PercentUtils.roundPercent(totalProgressPercent / totalRecords)
     } else 0
 
     val totalDaysDouble = records.sumOf { record -> overlappedDays(record) }

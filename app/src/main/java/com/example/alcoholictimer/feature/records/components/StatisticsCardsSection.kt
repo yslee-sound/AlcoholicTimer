@@ -107,7 +107,20 @@ fun StatisticsCardsSection(
         } else true
     }
 
-    val successRate = if (totalAttempts > 0) {
+    // 변경된 성공률 계산:
+    // 주간(weekStart/end 존재)일 때: (해당 주 금주 성공 일수 합 / 7일) * 100
+    //     - 금주 성공 일수: 주 범위와 기록 겹치는 일수 총합 (최대 7일로 cap)
+    // 그 외(월간 등): 기존 로직(시도별 목표 진행률 평균) 유지
+    val successRate = if (weekStart != null && weekEnd != null) {
+        val weeklySuccessDays = filteredRecords.sumOf { record ->
+            val overlapStart = max(record.startTime, weekStart)
+            val overlapEnd = min(record.endTime, weekEnd)
+            if (overlapStart < overlapEnd) {
+                (overlapEnd - overlapStart) / (24 * 60 * 60 * 1000.0)
+            } else 0.0
+        }.coerceAtMost(7.0)
+        PercentUtils.roundPercent((weeklySuccessDays / 7.0) * 100.0)
+    } else if (totalAttempts > 0) {
         val totalProgressPercent = filteredRecords.sumOf { record ->
             val overlapStart = if (weekStart != null) max(record.startTime, weekStart) else record.startTime
             val overlapEnd = if (weekEnd != null) min(record.endTime, weekEnd) else record.endTime
