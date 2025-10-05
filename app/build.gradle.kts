@@ -10,30 +10,70 @@ android {
     namespace = "com.example.alcoholictimer"
     compileSdk = 36
 
+    // 릴리스 계획(APP_RELEASE_PLAN.md) 2/3/4장 반영: 버전/빌드/서명 전략
+    val computedVersionCode = System.getenv("VERSION_CODE")?.toIntOrNull()
+        ?: 20251005 // YYYYMMDD (임시: 오늘 날짜, CI에서 VERSION_CODE 주입 권장)
+    val computedVersionName = System.getenv("VERSION_NAME") ?: "1.0.0" // Semantic Versioning
+
     defaultConfig {
         applicationId = "com.example.alcoholictimer"
         minSdk = 21
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.0"
+        versionCode = computedVersionCode
+        versionName = computedVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        // 환경변수 기반 release 서명 (키 미설정 시 경고만 출력 -> 로컬 debug 빌드 영향 X)
+        create("release") {
+            val ksPath = System.getenv("KEYSTORE_PATH")
+            if (!ksPath.isNullOrBlank()) {
+                storeFile = file(ksPath)
+            } else {
+                println("[WARN] Release keystore not configured - will build unsigned bundle. Set KEYSTORE_PATH before production release.")
+            }
+            storePassword = System.getenv("KEYSTORE_STORE_PW") ?: ""
+            keyAlias = System.getenv("KEY_ALIAS") ?: ""
+            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // 릴리스 번들 최적화: 코드/리소스 축소 (ProGuard/R8)
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            val hasKeystore = !System.getenv("KEYSTORE_PATH").isNullOrBlank()
+            if (hasKeystore) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                println("[INFO] Skipping signingConfig assignment for release (no KEYSTORE_PATH)")
+            }
         }
+        // debug 설정 변경 없음
     }
+
+    // Java/Kotlin 타깃 유지
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    buildFeatures { compose = true }
+    buildFeatures {
+        compose = true
+        // 필요시 buildConfig true (기본 true) / viewBinding 등 미사용
+    }
+
+    lint {
+        // 릴리스 치명적 이슈 CI fail fast
+        abortOnError = true
+        warningsAsErrors = false // 초기 온보딩: 경고는 유지, 필요시 true
+    }
 }
 
 kotlin {
@@ -50,10 +90,11 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.compose.material.icons.extended)
-
     implementation(libs.androidx.core.splashscreen)
 
     testImplementation(libs.junit)
+    // org.json (Android 내장) 를 JVM 유닛 테스트 환경에서 사용하기 위한 의존성
+    testImplementation("org.json:json:20240303")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

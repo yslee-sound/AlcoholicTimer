@@ -453,17 +453,26 @@ private fun deleteRecord(context: Context, startTime: Long, endTime: Long) {
     val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
     val jsonString = sharedPref.getString("sobriety_records", null) ?: return
     try {
-        val jsonArray = org.json.JSONArray(jsonString)
+        val originalArray = org.json.JSONArray(jsonString)
         val newArray = org.json.JSONArray()
-        for (i in 0 until jsonArray.length()) {
-            val obj = jsonArray.getJSONObject(i)
-            val s = obj.optLong("start_time", -1)
-            val e = obj.optLong("end_time", -1)
-            if (!(s == startTime && e == endTime)) {
+        var removedCount = 0
+        for (i in 0 until originalArray.length()) {
+            val obj = originalArray.getJSONObject(i)
+            // 저장 시 사용된 camelCase 우선, 혹시 남아있을 수 있는 snake_case fallback
+            val s = if (obj.has("startTime")) obj.optLong("startTime", -1) else obj.optLong("start_time", -1)
+            val e = if (obj.has("endTime")) obj.optLong("endTime", -1) else obj.optLong("end_time", -1)
+            if (s == startTime && e == endTime) {
+                removedCount++
+            } else {
                 newArray.put(obj)
             }
         }
-        sharedPref.edit { putString("sobriety_records", newArray.toString()) }
+        if (removedCount > 0) {
+            sharedPref.edit { putString("sobriety_records", newArray.toString()) }
+            Log.d("DetailActivity", "삭제 성공: ${removedCount}개 기록 제거 (start=$startTime, end=$endTime)")
+        } else {
+            Log.w("DetailActivity", "삭제 대상 기록을 찾지 못함 (start=$startTime, end=$endTime)")
+        }
     } catch (e: Exception) {
         Log.e("DetailActivity", "기록 삭제 중 오류", e)
     }

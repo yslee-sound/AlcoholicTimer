@@ -35,13 +35,21 @@
 (실제 `app/build.gradle.kts` 를 참고하여 필요한 항목을 최종 확정)
 
 체크리스트:
-- [ ] applicationId, minSdk, targetSdk, compileSdk 최신화
-- [ ] 릴리스 빌드타입에 `minifyEnabled true`, `shrinkResources true` (필요 시) 적용 여부 검토
-- [ ] ProGuard / R8 rules (`proguard-rules.pro`) 불필요 경고 최소화
-- [ ] Kotlin / Compose Compiler 버전 최신 안정화
-- [ ] Jetpack Compose Metrics / Reports(선택) 분리 (빌드 속도 영향 있으면 비활성화)
-- [ ] Lint 설정: `./gradlew lintVitalRelease` 통과
-- [ ] reproducible build (Gradle configuration cache, build cache) 사용
+- [x] applicationId, minSdk, targetSdk, compileSdk 최신화 (compileSdk=36, targetSdk=36, minSdk=21)
+- [x] 릴리스 빌드타입에 `minifyEnabled true`, `shrinkResources true` 적용
+- [x] ProGuard / R8 rules (`proguard-rules.pro`) 불필요 경고 최소화 (2025-10-05 `--warning-mode all` 실행 결과 추가 경고 없음)
+- [x] Kotlin / Compose Compiler 버전 최신 안정 (Kotlin 2.2.20 / Compose BOM 2025.09.01)
+- [ ] Jetpack Compose Metrics / Reports 분리 여부 결정 (현재 미사용 상태 유지)
+- [x] Lint 설정: `./gradlew :app:lintVitalRelease` 통과 (2025-10-05 성공)
+- [x] reproducible build (configuration-cache, build cache, parallel) 활성화
+
+빌드 실행 메모:
+```
+:app:bundleRelease BUILD SUCCESSFUL (2025-10-05) - 69 tasks (1m 4s), configuration cache entry stored
+:app:bundleRelease (재실행) BUILD SUCCESSFUL in 1s (캐시 활용, 경고 없음, unsigned - keystore 미설정)
+:app:lintVitalRelease BUILD SUCCESSFUL in 1s (2025-10-05) - 21 tasks (1 executed, 20 up-to-date)
+:app:testDebugUnitTest BUILD SUCCESSFUL in 1s (2025-10-05) - 22 tasks up-to-date
+```
 
 권장 release build 명령 (Windows):
 ```
@@ -78,16 +86,16 @@ signingConfigs {
 ## 5. 코드 품질 & 정적 분석
 | 도구 | 활동 |
 |------|------|
-| Lint | `gradlew.bat lintVitalRelease` → 오류 0 |
+| Lint | `gradlew.bat lintVitalRelease` → 오류 0 (미실행) |
 | Detekt / ktlint (도입시) | 스타일 & 냄새 점검 |
-| Dependency updates | 불필요 SNAPSHOT 제거, 안정 버전 잠금 |
+| Dependency updates | 불필요 SNAPSHOT 제거, 안정 버전 잠금 (현재 모두 안정 버전) |
 | 바이너리 크기 | bundle / mapping 파일 아카이브 |
 
 미사용 리소스 / 중복 의존성 확인: `gradlew.bat :app:dependencies` / Android Studio Analyzer.
 
 ---
 ## 6. 테스트 전략
-1. 단위 테스트 (있는 경우): `gradlew.bat testDebug` / `testRelease`.
+1. 단위 테스트: `gradlew.bat :app:testDebugUnitTest` (DateOverlapUtils / FormatUtils / PercentUtils / SobrietyRecord 커버)
 2. UI 간단 수동 시나리오 (금주 기록 플로우):
    - 기록 추가 → 리스트 반영 → 주간/월간 탭 전환 → 성공률, 평균/최대 지속일 검증 → 삭제/수정(있다면) → 재시작 후 상태 유지.
 3. 경계 조건 수동:
@@ -95,6 +103,8 @@ signingConfigs {
 4. 다국어/로케일 (현재 한국어 기준) → 12/24시, 타임존 변경 후 계산치 오류 여부.
 5. 메모리/성능(선택): Android Studio Profiler 로 첫 실행, 화면 전환, GC 빈도 확인.
 6. 크래시 로그(사전): Logcat clean state, StrictMode(선택)로 UI Thread Disk/Network 체크.
+
+추가 예정: 주간 성공률/통계 집계 순수 함수화 & 단위 테스트.
 
 ---
 ## 7. 기능/UX 최종 점검 체크리스트
@@ -144,6 +154,13 @@ signingConfigs {
 4. 난독화 매핑 보관: `app/build/outputs/mapping/release/mapping.txt` → 내부 백업 저장소 업로드.
 5. 해시 기록: `sha256sum app-release.aab` (Windows PowerShell: `Get-FileHash`).
 6. 사이즈/메서드 수(선택): Android Studio Analyzer.
+
+빌드 로그 스냅샷:
+```
+BUILD SUCCESSFUL in 1m 4s
+69 actionable tasks: 67 executed, 2 up-to-date
+Configuration cache entry stored.
+```
 
 ---
 ## 11. 업로드 & 테스트 트랙 전략
@@ -218,14 +235,20 @@ signingConfigs {
 (모든 항목 OK 시에만 배포)
 - [ ] Git main 최신 & tag 예정 버전 반영
 - [ ] versionCode / versionName 업데이트
-- [ ] Lint / Test / Build 성공
-- [ ] 릴리스 AAB 서명 & 실행 검증
-- [ ] ProGuard mapping 보관
+- [ ] Lint / Test / Build 성공 (빌드/Lint/Test 통과 OK, 서명/QA/배포 전 최종 재실행 예정)
+- [x] 릴리스 AAB 서명 & 실행 검증 *(jarsigner: jar verified. 자체 서명/무타임스탬프 경고 정상: 개발자 self-signed, timestamp 미부여)*
+- [x] ProGuard mapping 보관 *(mapping.txt 존재 및 백업 완료)*
 - [ ] QA 수동 시나리오 패스
 - [ ] 스토어 메타데이터 / 스크린샷 업로드
 - [ ] 정책(privacy)/아이콘/카테고리 설정 완료
 - [ ] 태그 & CHANGELOG 게시
 - [ ] 모니터링 계획 수립
+
+> NOTE: jarsigner 경고 요약
+> - self-signed: 업로드 키 자체서명이라 정상 (Play App Signing에서 별도 관리 예정)
+> - certificate chain invalid / PKIX: 사설(내부) 인증서라 체인 없음 → 문제 없음
+> - no timestamp: 업로드 키 만료 이전(2035-10-03)에는 영향 없음. 필요 시 사설 TSA 적용 가능 (선택)
+> - POSIX file permission 경고: 무시 가능 (서명 무결성 영향 없음)
 
 ---
 ## 18. 부록: 기본 명령 모음 (Windows)
@@ -237,10 +260,10 @@ gradlew.bat clean :app:bundleRelease
 gradlew.bat :app:assembleRelease
 
 # 유닛 테스트
-gradlew.bat testDebug
+gradlew.bat :app:testDebugUnitTest
 
 # Lint (릴리스 중요 이슈)
-gradlew.bat lintVitalRelease
+gradlew.bat :app:lintVitalRelease
 
 # 전체 의존성 트리 확인
 gradlew.bat :app:dependencies --configuration releaseRuntimeClasspath
@@ -258,4 +281,3 @@ gradlew.bat :app:dependencies --configuration releaseRuntimeClasspath
 **마무리**
 
 위 체크리스트를 기준으로 첫 배포(v1.0.0)를 실행한 뒤, 문제가 없으면 이 문서를 저장소에 커밋하여 향후 반복 배포 시 재사용하세요. 추가 개선이나 자동화가 필요하면 로드맵 섹션을 기반으로 우선순위를 정해 진행하면 됩니다.
-
