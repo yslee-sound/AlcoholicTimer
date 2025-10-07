@@ -14,7 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalClipboardManager // reverted
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -38,7 +38,7 @@ class AboutActivity : BaseActivity() {
 @Composable
 fun AboutScreen() {
     val context = LocalContext.current
-    val clipboardManager = LocalClipboardManager.current
+    val clipboardManager = LocalClipboardManager.current // reverted
     val ccByUrl = "https://creativecommons.org/licenses/by/4.0/"
     val sourceUrl = "https://www.figma.com/files/team/1555631729927297611/resources/community/file/1149764730850773390?fuid=1555631727933133748"
 
@@ -49,7 +49,6 @@ fun AboutScreen() {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // 앱 아이콘 저작권 표기 카드
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)),

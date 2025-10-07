@@ -39,26 +39,9 @@
 - [x] 릴리스 빌드타입에 `minifyEnabled true`, `shrinkResources true` 적용
 - [x] ProGuard / R8 rules (`proguard-rules.pro`) 불필요 경고 최소화 (2025-10-05 `--warning-mode all` 실행 결과 추가 경고 없음)
 - [x] Kotlin / Compose Compiler 버전 최신 안정 (Kotlin 2.2.20 / Compose BOM 2025.09.01)
-- [ ] Jetpack Compose Metrics / Reports 분리 여부 결정 (현재 미사용 상태 유지)
+- [x] Jetpack Compose Metrics / Reports 분리 여부 결정 (미사용 유지 결정 2025-10-05)
 - [x] Lint 설정: `./gradlew :app:lintVitalRelease` 통과 (2025-10-05 성공)
 - [x] reproducible build (configuration-cache, build cache, parallel) 활성화
-
-빌드 실행 메모:
-```
-:app:bundleRelease BUILD SUCCESSFUL (2025-10-05) - 69 tasks (1m 4s), configuration cache entry stored
-:app:bundleRelease (재실행) BUILD SUCCESSFUL in 1s (캐시 활용, 경고 없음, unsigned - keystore 미설정)
-:app:lintVitalRelease BUILD SUCCESSFUL in 1s (2025-10-05) - 21 tasks (1 executed, 20 up-to-date)
-:app:testDebugUnitTest BUILD SUCCESSFUL in 1s (2025-10-05) - 22 tasks up-to-date
-```
-
-권장 release build 명령 (Windows):
-```
-gradlew.bat clean :app:bundleRelease
-```
-APK (로컬 디바이스 테스트용) 생성:
-```
-gradlew.bat :app:assembleRelease
-```
 
 ---
 ## 4. 서명(KeyStore) & 보안
@@ -93,6 +76,10 @@ signingConfigs {
 
 미사용 리소스 / 중복 의존성 확인: `gradlew.bat :app:dependencies` / Android Studio Analyzer.
 
+> 2025-10-05 업데이트
+> - 시스템 바 처리: deprecated `statusBarColor`, `navigationBarColor`, contrastEnforced, dividerColor 직접 접근 제거 → `WindowCompat.setDecorFitsSystemWindows(false)` + `enableEdgeToEdge(SystemBarStyle.auto)` 로 대체.
+> - Clipboard: `LocalClipboardManager` 는 deprecate 경고 존재. 현재 Compose 버전에서 새 `LocalClipboard` API 사용 시 메서드 미해결 문제로 보류. 추후 Compose 업그레이드(신규 API 포함 버전) 후 교체 & deprecation suppress 제거 예정.
+
 ---
 ## 6. 테스트 전략
 1. 단위 테스트: `gradlew.bat :app:testDebugUnitTest` (DateOverlapUtils / FormatUtils / PercentUtils / SobrietyRecord 커버)
@@ -119,6 +106,15 @@ signingConfigs {
 | 접근성 | 터치 타겟 > 48dp, 텍스트 스케일 1.3배 레이아웃 깨짐 여부 |  |
 | 회전/프로세스 킬 | 상태 복원 허용 범위 내 정상 |  |
 | 에러 처리 | 예외 상황 LogCat 경고/크래시 없음 |  |
+
+### 7.1 QA 실행 결과 기록 (릴리스 직전 채움)
+| 항목 | 기기/환경 | 결과 | 메모 |
+|------|-----------|------|------|
+| 기본 플로우 (기록 추가~통계) | Pixel 6 / API 34 |  |  |
+| 타임존 변경 (UTC+0) | Emulator |  |  |
+| 회전/프로세스 킬 복원 | Pixel 6 |  |  |
+| 접근성 폰트 확대 1.3x | Emulator |  |  |
+| 성능 Cold Start <2.5s | 실제기기 |  |  |
 
 ---
 ## 8. 개인정보 / 정책 / 라이선스
@@ -229,26 +225,30 @@ Configuration cache entry stored.
 | 중간 | 접근성 (TalkBack 라벨, 콘트라스트) | 포용성, 스토어 품질 지표 향상 |
 | 낮음 | 다국어(영/일) 지원 | 사용자 폭 확대 |
 | 낮음 | In-App Review Flow | 리뷰 수 증가 |
+| 낮음 | Clipboard 신규 API(LocalClipboard) 도입 | Deprecated 경고 제거 & suspend 지원 |
 
 ---
 ## 17. 최종 릴리스 체크 요약 (CONDENSED)
 (모든 항목 OK 시에만 배포)
 - [ ] Git main 최신 & tag 예정 버전 반영
-- [ ] versionCode / versionName 업데이트
-- [ ] Lint / Test / Build 성공 (빌드/Lint/Test 통과 OK, 서명/QA/배포 전 최종 재실행 예정)
-- [x] 릴리스 AAB 서명 & 실행 검증 *(jarsigner: jar verified. 자체 서명/무타임스탬프 경고 정상: 개발자 self-signed, timestamp 미부여)*
-- [x] ProGuard mapping 보관 *(mapping.txt 존재 및 백업 완료)*
-- [ ] QA 수동 시나리오 패스
-- [ ] 스토어 메타데이터 / 스크린샷 업로드
-- [ ] 정책(privacy)/아이콘/카테고리 설정 완료
+- [x] versionCode / versionName 업데이트 (1.0.0 / 2025100502)
+- [x] Lint / Test / Build 성공 (서명 빌드 후 재확인 완료)  
+- [x] 릴리스 AAB 서명 & 실행 검증 *(jarsigner verified)*
+- [x] ProGuard mapping 보관 *(final mapping.txt 백업 완료)*
+- [ ] QA 수동 시나리오 패스 (기본 플로우 기기 확인 후 체크)
+- [x] 스토어 메타데이터 / 스크린샷 업로드 (사용자 보고 완료)
+- [x] 정책(privacy)/아이콘/카테고리 설정 완료 (사용자 보고 완료)
 - [ ] 태그 & CHANGELOG 게시
-- [ ] 모니터링 계획 수립
+- [ ] 모니터링 계획 수립 (v1.0.0 배포 직후 간단 관찰 계획 추가)
 
-> NOTE: jarsigner 경고 요약
-> - self-signed: 업로드 키 자체서명이라 정상 (Play App Signing에서 별도 관리 예정)
-> - certificate chain invalid / PKIX: 사설(내부) 인증서라 체인 없음 → 문제 없음
-> - no timestamp: 업로드 키 만료 이전(2035-10-03)에는 영향 없음. 필요 시 사설 TSA 적용 가능 (선택)
-> - POSIX file permission 경고: 무시 가능 (서명 무결성 영향 없음)
+> 최종 Signed AAB SHA256: `07f85c47e88ab216c48a6d721d94b2584dbbdbfc7b158a825958ef51abd751bf`  
+> versionCode 전략: yyyymmdd + 2자리 시퀀스 → 2025100502 (다음 재빌드 시 2025100503)
+
+### 내부 테스트 (Minimal)
+1. 서명된 AAB Internal Testing 업로드
+2. 설치 → 목표 설정 → 진행 화면 진입 OK
+3. 강제 종료 후 재실행(진행 상태 유지) 확인
+4. 크래시/에러 로그 없음
 
 ---
 ## 18. 부록: 기본 명령 모음 (Windows)

@@ -7,22 +7,27 @@ plugins {
 }
 
 android {
-    namespace = "com.example.alcoholictimer"
+    namespace = "com.example.alcoholictimer" // 코드 패키지 구조는 유지 (선택)
     compileSdk = 36
 
-    // 릴리스 계획(APP_RELEASE_PLAN.md) 2/3/4장 반영: 버전/빌드/서명 전략
-    val computedVersionCode = System.getenv("VERSION_CODE")?.toIntOrNull()
-        ?: 20251005 // YYYYMMDD (임시: 오늘 날짜, CI에서 VERSION_CODE 주입 권장)
-    val computedVersionName = System.getenv("VERSION_NAME") ?: "1.0.0" // Semantic Versioning
+    // 버전 코드 전략: yyyymmdd + 2자리 시퀀스 (NN)
+    // 증가: 2025100502 -> 2025100503
+    val releaseVersionCode = 2025100503
+    val releaseVersionName = "1.0.0"
 
     defaultConfig {
-        applicationId = "com.example.alcoholictimer"
+        applicationId = "kr.sweetapps.alcoholictimer" // 변경: Play Console에서 com.example.* 금지 대응
         minSdk = 21
         targetSdk = 36
-        versionCode = computedVersionCode
-        versionName = computedVersionName
+        versionCode = releaseVersionCode
+        versionName = releaseVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            // Play Console 경고 대응: 네이티브 심볼 업로드용 심볼 테이블 생성 (FULL 은 용량↑)
+            debugSymbolLevel = "SYMBOL_TABLE"
+        }
     }
 
     signingConfigs {

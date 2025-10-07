@@ -15,7 +15,11 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.SystemBarStyle
+import androidx.activity.ComponentActivity // added
 
 private val DarkColorScheme = darkColorScheme(
     primary = BluePrimaryDark,
@@ -75,15 +79,17 @@ fun AlcoholicTimerTheme(
                 val window = activity.window
                 val surface = colorScheme.surface
                 val useDarkIcons = surface.luminance() > 0.5f
-                window.statusBarColor = surface.toArgb()
-                window.navigationBarColor = surface.toArgb()
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    window.isStatusBarContrastEnforced = false
-                    window.isNavigationBarContrastEnforced = false
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    window.navigationBarDividerColor = Color.Transparent.toArgb()
-                }
+
+                WindowCompat.setDecorFitsSystemWindows(window, false)
+
+                val surfaceArgb = surface.toArgb()
+                val statusBarStyle = SystemBarStyle.auto(lightScrim = surfaceArgb, darkScrim = surfaceArgb)
+                val navigationBarStyle = SystemBarStyle.auto(lightScrim = surfaceArgb, darkScrim = surfaceArgb)
+                (activity as? ComponentActivity)?.enableEdgeToEdge(
+                    statusBarStyle = statusBarStyle,
+                    navigationBarStyle = navigationBarStyle
+                )
+
                 val controller = WindowInsetsControllerCompat(window, view)
                 controller.isAppearanceLightStatusBars = useDarkIcons
                 controller.isAppearanceLightNavigationBars = useDarkIcons
@@ -91,4 +97,3 @@ fun AlcoholicTimerTheme(
         }
     }
 }
-

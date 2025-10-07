@@ -25,7 +25,7 @@ REM Lint 검사 (Debug / Release Vital)
 gradlew.bat :app:lintDebug
 gradlew.bat :app:lintVitalRelease
 
-REM 유닛 테스트 (JVM)
+REM 유닛 테스트
 gradlew.bat :app:testDebugUnitTest
 
 REM 릴리스 번들 (환경변수 설정 후)
@@ -48,11 +48,27 @@ gradlew.bat clean :app:bundleRelease
 - 패키지 구조 리팩터링 계획: [docs/REFACTORING_PACKAGE_STRUCTURE.md](./docs/REFACTORING_PACKAGE_STRUCTURE.md)
 - 아이콘 디자인 가이드: [docs/ICON_DESIGN.md](./docs/ICON_DESIGN.md)
 - 출시 준비 & 배포 체크리스트: [docs/APP_RELEASE_PLAN.md](./docs/APP_RELEASE_PLAN.md)
+- MVP 초간단 릴리스 체크리스트 (1인 개발용): [docs/MVP_RELEASE_CHECKLIST.md](./docs/MVP_RELEASE_CHECKLIST.md)
+- 개인정보 처리방침: [docs/PRIVACY_POLICY.md](./docs/PRIVACY_POLICY.md)
+- 스토어 메타데이터 템플릿: [docs/PLAY_STORE_METADATA_TEMPLATE.md](./docs/PLAY_STORE_METADATA_TEMPLATE.md)
 - 변경 이력: [CHANGELOG.md](./CHANGELOG.md)
 
 ## 디렉터리 구조 개요
 - `app/` : 애플리케이션 본체(Compose UI, Activity, 유틸)
 - `docs/` : 사양/UX/배포/디자인 문서
+- `scripts/` : 릴리스 자동화/보조 스크립트 (버전 bump, 아카이브)
+
+## 스크립트 사용 (PowerShell)
+```powershell
+# 버전 증가 (build.gradle.kts fallback 값 치환)
+pwsh ./scripts/bump_version.ps1 -VersionName 1.0.1 -VersionCode 20251006
+
+# 릴리스 번들 빌드
+$env:VERSION_NAME="1.0.1"; $env:VERSION_CODE="20251006"; ./gradlew.bat clean :app:bundleRelease
+
+# 산출물 아카이브 (release/1.0.1_20251006/ 생성)
+pwsh ./scripts/archive_release.ps1 -VersionName 1.0.1 -VersionCode 20251006
+```
 
 ## 주간 성공률 산식 (요약)
 ```
@@ -92,7 +108,6 @@ gradlew.bat clean :app:bundleRelease
 - 목표 달성 상태(isCompleted) 파생 로직 분리 테스트
 
 ## CI (예시 워크플로 개요)
-GitHub Actions 예:
 ```yaml
 name: CI
 on: [push, pull_request]
