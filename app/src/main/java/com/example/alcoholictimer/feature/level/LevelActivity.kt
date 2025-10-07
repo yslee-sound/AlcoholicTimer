@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.alcoholictimer.core.ui.AppElevation
 import com.example.alcoholictimer.core.ui.BaseActivity
 import com.example.alcoholictimer.core.util.Constants
 import com.example.alcoholictimer.core.data.RecordsDataLoader
@@ -102,8 +103,8 @@ private fun CurrentLevelCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
     ) {
         Column(modifier = Modifier.padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Box(
@@ -232,8 +233,8 @@ private fun LevelListCard(currentLevel: LevelDefinitions.LevelInfo, currentDays:
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
             Text(

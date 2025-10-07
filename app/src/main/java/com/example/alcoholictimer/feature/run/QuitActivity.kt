@@ -42,6 +42,7 @@ import com.example.alcoholictimer.core.ui.StandardScreenWithBottomButton
 import com.example.alcoholictimer.core.ui.LayoutConstants
 import com.example.alcoholictimer.core.util.FormatUtils
 import com.example.alcoholictimer.feature.start.StartActivity
+import com.example.alcoholictimer.core.ui.AppElevation
 
 class QuitActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.quit_title)
@@ -75,8 +76,8 @@ fun QuitScreen() {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(LayoutConstants.CARD_CORNER_RADIUS),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f)),
-                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(LayoutConstants.CARD_PADDING),
@@ -169,7 +170,7 @@ fun QuitScreen() {
                             },
                             shape = CircleShape,
                             colors = CardDefaults.cardColors(containerColor = if (isPressed) Color(0xFFD32F2F) else Color(0xFFE53935)),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                            elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
                         ) { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Icon(Icons.Default.Close, contentDescription = stringResource(id = R.string.cd_stop), tint = Color.White, modifier = Modifier.size(48.dp))
                         } }
@@ -179,7 +180,7 @@ fun QuitScreen() {
                         modifier = Modifier.size(96.dp),
                         shape = CircleShape,
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF4CAF50)),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
                     ) { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Icon(Icons.Default.PlayArrow, contentDescription = stringResource(id = R.string.cd_continue), tint = Color.White, modifier = Modifier.size(48.dp))
                     } }
@@ -271,4 +272,3 @@ private fun saveCompletedRecord(
 @Preview(showBackground = true)
 @Composable
 fun QuitScreenPreview() { QuitScreen() }
-

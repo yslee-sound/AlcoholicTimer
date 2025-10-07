@@ -26,6 +26,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.alcoholictimer.core.ui.AppElevation
 import com.example.alcoholictimer.core.ui.BaseActivity
 import com.example.alcoholictimer.core.ui.StandardScreenWithBottomButton
 import com.example.alcoholictimer.core.util.Constants
@@ -102,9 +103,9 @@ fun StartScreen() {
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+                    containerColor = MaterialTheme.colorScheme.surface
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
             ) {
                 Column(
                     modifier = Modifier
@@ -135,7 +136,7 @@ fun StartScreen() {
                             colors = CardDefaults.cardColors(
                                 containerColor = colorResource(id = R.color.color_bg_card_light)
                             ),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD)
                         ) {
                             Box(
                                 modifier = Modifier
@@ -252,7 +253,7 @@ fun ModernStartButton(
             containerColor = if (isEnabled) colorResource(id = R.color.color_progress_primary) else colorResource(id = R.color.color_button_disabled)
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isEnabled) 8.dp else 2.dp
+            defaultElevation = if (isEnabled) AppElevation.CARD_HIGH else AppElevation.CARD
         )
     ) {
         Box(

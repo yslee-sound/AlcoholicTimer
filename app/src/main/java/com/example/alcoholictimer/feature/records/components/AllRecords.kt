@@ -30,6 +30,7 @@ import androidx.compose.ui.semantics.semantics
 import com.example.alcoholictimer.R
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.material.icons.outlined.Close
+import com.example.alcoholictimer.core.ui.AppElevation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -258,9 +259,9 @@ private fun EmptyRecordsState() {
             .semantics { contentDescription = emptyCd },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+            containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
     ) {
         Column(
             modifier = Modifier

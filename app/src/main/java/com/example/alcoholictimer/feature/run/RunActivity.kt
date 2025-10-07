@@ -41,6 +41,7 @@ import kotlinx.coroutines.delay
 import com.example.alcoholictimer.R
 import com.example.alcoholictimer.feature.start.StartActivity
 import com.example.alcoholictimer.feature.detail.DetailActivity
+import com.example.alcoholictimer.core.ui.AppElevation
 
 class RunActivity : BaseActivity() {
 
@@ -146,7 +147,7 @@ private fun RunScreen() {
 
     StandardScreenWithBottomButton(
         topContent = {
-            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f))) {
+            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                 Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         RunStatChip(title = stringResource(id = R.string.stat_goal_days), value = "${targetDays.toInt()}일", color = colorResource(id = R.color.color_stat_goal), modifier = Modifier.weight(1f))
@@ -160,7 +161,7 @@ private fun RunScreen() {
 
             Card(
                 modifier = Modifier.fillMaxWidth().height(168.dp).clickable { toggleIndicator() },
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f))
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
                     val labelBoxH = 36.dp; val valueBoxH = 66.dp; val hintBoxH = 20.dp; val gapSmall = 6.dp; val gapMedium = 8.dp
@@ -271,7 +272,7 @@ private fun RunScreen() {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))) {
+            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                 Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) { ModernProgressIndicatorSimple(progress = progress) }
             }
         },
@@ -314,7 +315,7 @@ private fun ModernProgressIndicatorSimple(progress: Float) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ModernStopButtonSimple(onStop: () -> Unit, modifier: Modifier = Modifier) {
-    Card(onClick = onStop, modifier = modifier.size(96.dp), shape = CircleShape, colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.color_stop_button)), elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)) {
+    Card(onClick = onStop, modifier = modifier.size(96.dp), shape = CircleShape, colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.color_stop_button)), elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(id = R.string.cd_stop), tint = Color.White, modifier = Modifier.size(48.dp))
         }

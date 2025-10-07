@@ -47,6 +47,7 @@ gradlew.bat clean :app:bundleRelease
 - UX 흐름: [docs/UX_FLOW.md](./docs/UX_FLOW.md)
 - 패키지 구조 리팩터링 계획: [docs/REFACTORING_PACKAGE_STRUCTURE.md](./docs/REFACTORING_PACKAGE_STRUCTURE.md)
 - 아이콘 디자인 가이드: [docs/ICON_DESIGN.md](./docs/ICON_DESIGN.md)
+- 디자인 토큰: [docs/DESIGN_TOKENS.md](./docs/DESIGN_TOKENS.md)
 - 출시 준비 & 배포 체크리스트: [docs/APP_RELEASE_PLAN.md](./docs/APP_RELEASE_PLAN.md)
 - MVP 초간단 릴리스 체크리스트 (1인 개발용): [docs/MVP_RELEASE_CHECKLIST.md](./docs/MVP_RELEASE_CHECKLIST.md)
 - 개인정보 처리방침: [docs/PRIVACY_POLICY.md](./docs/PRIVACY_POLICY.md)
@@ -92,10 +93,14 @@ pwsh ./scripts/archive_release.ps1 -VersionName 1.0.1 -VersionCode 20251006
 | 작업 | 명령 |
 |------|------|
 | Debug 빌드 | `gradlew.bat :app:assembleDebug` |
-| Release 번들 | `gradlew.bat clean :app:bundleRelease` |
+| Release 번들 | `gradlew.bat :app:bundleRelease` |
 | Lint (Debug) | `gradlew.bat :app:lintDebug` |
 | Lint Vital(Release) | `gradlew.bat :app:lintVitalRelease` |
 | 유닛 테스트 | `gradlew.bat :app:testDebugUnitTest` |
+| 디자인 토큰 검사 | `gradlew.bat :app:designTokenCheck` |
+
+### 디자인 토큰 정적 검사(designTokenCheck)
+`app/build.gradle.kts` 에 정의된 커스텀 태스크로 Alpha / Elevation 관련 금지 literal 을 substring 매칭하여 탐지합니다. `:app:check` 실행 시 자동 포함. 위반 시 GradleException 으로 실패하며 해결 방법 메시지를 출력합니다. 세부 패턴은 [DESIGN_TOKENS.md](./docs/DESIGN_TOKENS.md) 참고.
 
 ### 테스트 커버리지 확장 (현재 포함)
 - DateOverlapUtils (기간 겹침, 경계, 비겹침)

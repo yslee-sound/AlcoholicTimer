@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import com.example.alcoholictimer.R
+import com.example.alcoholictimer.core.ui.AppElevation
 import com.example.alcoholictimer.core.ui.LayoutConstants
 import com.example.alcoholictimer.core.ui.theme.BluePrimaryLight
 import com.example.alcoholictimer.core.ui.theme.AmberSecondaryLight
@@ -268,7 +269,7 @@ fun DetailScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(LayoutConstants.CARD_CORNER_RADIUS),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
                 ) {
                     Column(
                         modifier = Modifier.padding(LayoutConstants.CARD_PADDING)

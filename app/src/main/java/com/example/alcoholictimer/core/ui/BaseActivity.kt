@@ -333,7 +333,7 @@ fun DrawerMenu(
             Surface(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable { onItemSelected(title) },
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
+                color = AppColors.SurfaceOverlaySoft // was surfaceVariant
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
@@ -378,7 +378,7 @@ fun DrawerMenu(
             Surface(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable { onItemSelected(title) },
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
+                color = AppColors.SurfaceOverlaySoft // was surfaceVariant
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),

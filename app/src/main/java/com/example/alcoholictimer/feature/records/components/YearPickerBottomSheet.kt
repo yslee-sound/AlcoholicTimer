@@ -12,6 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.alcoholictimer.core.ui.AppAlphas
 import com.example.alcoholictimer.core.ui.components.NumberPicker
 import com.example.alcoholictimer.core.model.SobrietyRecord
 import java.util.*
@@ -38,7 +39,7 @@ fun YearPickerBottomSheet(
                     modifier = Modifier
                         .width(40.dp)
                         .height(4.dp)
-                        .background(Color(0xFF636E72).copy(alpha = 0.2f), RoundedCornerShape(2.dp))
+                        .background(Color(0xFF636E72).copy(alpha = AppAlphas.SurfaceTint), RoundedCornerShape(2.dp))
                 )
             }
         ) {

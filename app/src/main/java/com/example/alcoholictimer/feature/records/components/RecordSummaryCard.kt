@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.core.model.SobrietyRecord
+import com.example.alcoholictimer.core.ui.AppAlphas
+import com.example.alcoholictimer.core.ui.AppElevation
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -80,7 +82,7 @@ fun RecordSummaryCard(
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = resolvedContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
     ) {
         Column(
             modifier = Modifier
@@ -94,7 +96,7 @@ fun RecordSummaryCard(
             ) {
                 Surface(
                     shape = RoundedCornerShape(10.dp),
-                    color = (if (record.isCompleted) resolvedRateCompleted else statusIncomplete).copy(alpha = 0.12f),
+                    color = (if (record.isCompleted) resolvedRateCompleted else statusIncomplete).copy(alpha = AppAlphas.SurfaceTint),
                     modifier = Modifier.size(headerIconSize)
                 ) {
                     Icon(
@@ -159,7 +161,7 @@ fun RecordSummaryCard(
                 LinearProgressIndicator(
                     progress = { (successRate / 100f).coerceIn(0f, 1f) },
                     color = if (record.isCompleted) resolvedRateCompleted else resolvedRateInProgress,
-                    trackColor = resolvedLabel.copy(alpha = 0.2f),
+                    trackColor = resolvedLabel.copy(alpha = AppAlphas.SurfaceTint),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(4.dp)
