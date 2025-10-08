@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
@@ -77,7 +78,8 @@ fun QuitScreen() {
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(LayoutConstants.CARD_CORNER_RADIUS),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD) // lowered from CARD_HIGH
+                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD), // lowered from CARD_HIGH
+                border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light)) // added for depth after elevation reduction
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(LayoutConstants.CARD_PADDING),

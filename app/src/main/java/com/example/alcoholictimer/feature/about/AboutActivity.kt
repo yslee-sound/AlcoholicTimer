@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -14,8 +15,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager // reverted
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -39,7 +41,7 @@ class AboutActivity : BaseActivity() {
 @Composable
 fun AboutScreen() {
     val context = LocalContext.current
-    val clipboardManager = LocalClipboardManager.current // reverted
+    val clipboard = LocalClipboardManager.current // reverted due to API incompatibility
     val ccByUrl = "https://creativecommons.org/licenses/by/4.0/"
     val sourceUrl = "https://www.figma.com/files/team/1555631729927297611/resources/community/file/1149764730850773390?fuid=1555631727933133748"
 
@@ -53,7 +55,8 @@ fun AboutScreen() {
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD) // lowered from CARD_HIGH
+            elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD), // lowered from CARD_HIGH
+            border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light)) // added subtle border for depth after elevation reduction
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
@@ -75,7 +78,7 @@ fun AboutScreen() {
                         Text(
                             text = stringResource(R.string.action_copy),
                             modifier = Modifier.clickable {
-                                clipboardManager.setText(AnnotatedString(sourceUrl))
+                                clipboard.setText(AnnotatedString(sourceUrl))
                                 Toast.makeText(context, context.getString(R.string.toast_copied), Toast.LENGTH_SHORT).show()
                             },
                             style = MaterialTheme.typography.labelSmall,

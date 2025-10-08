@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun AppCard(
     modifier: Modifier = Modifier,
-    elevation: Dp = AppElevation.CARD_HIGH,
+    elevation: Dp = AppElevation.CARD, // default lowered from CARD_HIGH
     shape: Shape = RoundedCornerShape(16.dp),
     containerColor: Color = MaterialTheme.colorScheme.surface,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
@@ -53,4 +53,3 @@ fun AppCard(
         }
     }
 }
-

@@ -83,8 +83,9 @@ fun AlcoholicTimerTheme(
                 WindowCompat.setDecorFitsSystemWindows(window, false)
 
                 val surfaceArgb = surface.toArgb()
-                val statusBarStyle = SystemBarStyle.auto(lightScrim = surfaceArgb, darkScrim = surfaceArgb)
-                val navigationBarStyle = SystemBarStyle.auto(lightScrim = surfaceArgb, darkScrim = surfaceArgb)
+                // auto -> light 고정 (라이트 테마만 지원, 휴리스틱 제거하여 아이콘 톤 흔들림 방지)
+                val statusBarStyle = SystemBarStyle.light(surfaceArgb, surfaceArgb)
+                val navigationBarStyle = SystemBarStyle.light(surfaceArgb, surfaceArgb)
                 (activity as? ComponentActivity)?.enableEdgeToEdge(
                     statusBarStyle = statusBarStyle,
                     navigationBarStyle = navigationBarStyle

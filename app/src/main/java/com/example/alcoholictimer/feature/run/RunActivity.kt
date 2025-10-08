@@ -315,9 +315,20 @@ private fun ModernProgressIndicatorSimple(progress: Float) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ModernStopButtonSimple(onStop: () -> Unit, modifier: Modifier = Modifier) {
-    Card(onClick = onStop, modifier = modifier.size(96.dp), shape = CircleShape, colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.color_stop_button)), elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)) {
+    Card(
+        onClick = onStop,
+        modifier = modifier.size(96.dp),
+        shape = CircleShape,
+        colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.color_stop_button)),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
+    ) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(id = R.string.cd_stop), tint = Color.White, modifier = Modifier.size(48.dp))
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = stringResource(id = R.string.cd_stop),
+                tint = Color.White,
+                modifier = Modifier.size(48.dp)
+            )
         }
     }
 }

@@ -33,7 +33,8 @@ class AddRecordActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            AlcoholicTimerTheme {
+            // 앱은 라이트 모드 고정 정책: 다크 모드 진입 방지
+            AlcoholicTimerTheme(darkTheme = false) {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
                     AddRecordScreen(
                         onSave = { record ->

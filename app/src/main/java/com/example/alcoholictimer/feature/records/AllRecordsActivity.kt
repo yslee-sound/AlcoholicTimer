@@ -35,7 +35,7 @@ class AllRecordsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            AlcoholicTimerTheme {
+            AlcoholicTimerTheme(darkTheme = false) {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     com.example.alcoholictimer.feature.records.components.AllRecordsScreen(
                         externalRefreshTrigger = externalRefreshTriggerState,

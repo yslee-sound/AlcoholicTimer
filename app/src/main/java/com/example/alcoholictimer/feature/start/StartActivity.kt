@@ -4,6 +4,7 @@ import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,32 +28,23 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.edit
+import com.example.alcoholictimer.R
 import com.example.alcoholictimer.core.ui.AppElevation
 import com.example.alcoholictimer.core.ui.BaseActivity
 import com.example.alcoholictimer.core.ui.StandardScreenWithBottomButton
 import com.example.alcoholictimer.core.util.Constants
-import java.util.Locale
-import androidx.core.content.edit
-import com.example.alcoholictimer.R
 import com.example.alcoholictimer.feature.run.RunActivity
+import kotlinx.coroutines.delay
+import java.util.Locale
 
 class StartActivity : BaseActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // 앱 시작 시 사용자 설정값 초기화
         Constants.initializeUserSettings(this)
-        // 재설치(백업 복원) 여부 감지 후 금주 진행 상태 초기화
         Constants.ensureInstallMarkerAndResetIfReinstalled(this)
-
-        setContent {
-            BaseScreen(applyBottomInsets = false) {
-                StartScreen()
-            }
-        }
+        setContent { BaseScreen(applyBottomInsets = false) { StartScreen() } }
     }
-
     override fun getScreenTitle(): String = "금주 설정"
 }
 
@@ -60,42 +52,31 @@ class StartActivity : BaseActivity() {
 @Composable
 fun StartScreen() {
     val context = LocalContext.current
-
-    // SharedPreferences에서 금주 진행 여부 확인
     val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
     val startTime = sharedPref.getLong("start_time", 0L)
     val timerCompleted = sharedPref.getBoolean("timer_completed", false)
 
-    // 이미 금주가 진행 중이면 RunActivity로 이동
     if (startTime != 0L && !timerCompleted) {
         LaunchedEffect(Unit) {
-            val intent = Intent(context, RunActivity::class.java).apply {
+            context.startActivity(Intent(context, RunActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            }
-            context.startActivity(intent)
-            // finish() 호출 불필요 (스택이 완전히 정리됨)
+            })
         }
         return
     }
 
     var textFieldValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(
-            TextFieldValue(
-                text = "30",
-                selection = TextRange(0, 2) // 초기엔 전체 선택
-            )
-        )
+        mutableStateOf(TextFieldValue(text = "30", selection = TextRange(0, 2)))
     }
-    val isValid = textFieldValue.text.toFloatOrNull()?.let { it > 0 } ?: false
+    val isValid by remember { derivedStateOf { textFieldValue.text.toFloatOrNull()?.let { it > 0 } ?: false } }
     var isTextSelected by remember { mutableStateOf(true) }
     var isFocused by remember { mutableStateOf(false) }
 
     LaunchedEffect(isFocused) {
         if (isFocused) {
-            kotlinx.coroutines.delay(50)
-            textFieldValue = textFieldValue.copy(
-                selection = TextRange(0, textFieldValue.text.length)
-            )
+            delay(50)
+            val len = textFieldValue.text.length
+            textFieldValue = textFieldValue.copy(selection = TextRange(0, len))
             isTextSelected = true
         }
     }
@@ -105,79 +86,46 @@ fun StartScreen() {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD) // down from CARD_HIGH
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD), // down from CARD_HIGH
+                border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
+                    modifier = Modifier.fillMaxWidth().padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         text = "목표 기간 설정",
                         style = MaterialTheme.typography.titleLarge,
                         color = colorResource(id = R.color.color_title_primary),
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(bottom = 24.dp)
+                        modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 24.dp)
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 24.dp)
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                     ) {
                         Card(
-                            modifier = Modifier
-                                .width(100.dp)
-                                .height(56.dp),
+                            modifier = Modifier.width(100.dp).height(56.dp),
                             shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = colorResource(id = R.color.color_bg_card_light)
-                            ),
+                            colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.color_bg_card_light)),
                             elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD)
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(12.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
+                            Box(modifier = Modifier.fillMaxSize().padding(12.dp), contentAlignment = Alignment.Center) {
                                 BasicTextField(
                                     value = textFieldValue,
                                     onValueChange = { newValue ->
-                                        val filteredValue = newValue.text.filter { it.isDigit() || it == '.' }
-                                        val dotCount = filteredValue.count { it == '.' }
-                                        val finalFilteredValue = if (dotCount <= 1) filteredValue else textFieldValue.text
-                                        if (isTextSelected && finalFilteredValue.isNotEmpty()) {
-                                            val finalText = if (finalFilteredValue.length > 1 && finalFilteredValue.startsWith("0") && !finalFilteredValue.startsWith("0.")) {
-                                                finalFilteredValue.substring(1)
-                                            } else {
-                                                finalFilteredValue
-                                            }
-                                            textFieldValue = TextFieldValue(
-                                                text = finalText,
-                                                selection = TextRange(finalText.length)
-                                            )
-                                            isTextSelected = false
-                                        } else {
-                                            val finalText = if (finalFilteredValue.isEmpty()) {
-                                                "0"
-                                            } else if (finalFilteredValue.length > 1 && finalFilteredValue.startsWith("0") && !finalFilteredValue.startsWith("0.")) {
-                                                finalFilteredValue.substring(1)
-                                            } else {
-                                                finalFilteredValue
-                                            }
-                                            textFieldValue = TextFieldValue(
-                                                text = finalText,
-                                                selection = TextRange(finalText.length)
-                                            )
-                                            isTextSelected = false
+                                        val filtered = newValue.text.filter { it.isDigit() || it == '.' }
+                                        val dots = filtered.count { it == '.' }
+                                        val finalFiltered = if (dots <= 1) filtered else textFieldValue.text
+                                        val finalText = when {
+                                            finalFiltered.isEmpty() -> "0"
+                                            finalFiltered.length > 1 && finalFiltered.startsWith("0") && !finalFiltered.startsWith("0.") -> finalFiltered.substring(1)
+                                            else -> finalFiltered
                                         }
+                                        val selection = if (isTextSelected) TextRange(finalText.length) else TextRange(finalText.length)
+                                        textFieldValue = TextFieldValue(text = finalText, selection = selection)
+                                        isTextSelected = false
                                     },
                                     textStyle = MaterialTheme.typography.headlineLarge.copy(
                                         color = colorResource(id = R.color.color_indicator_days),
@@ -186,11 +134,7 @@ fun StartScreen() {
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                     singleLine = true,
                                     cursorBrush = SolidColor(colorResource(id = R.color.color_indicator_days)),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .onFocusChanged { focusState ->
-                                            isFocused = focusState.isFocused
-                                        }
+                                    modifier = Modifier.fillMaxWidth().onFocusChanged { isFocused = it.isFocused }
                                 )
                             }
                         }
@@ -212,27 +156,19 @@ fun StartScreen() {
             }
         },
         bottomButton = {
-            Box(
-                modifier = Modifier
-                    .size(96.dp)
-                    .wrapContentSize(Alignment.Center),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(modifier = Modifier.size(96.dp), contentAlignment = Alignment.Center) {
                 ModernStartButton(
                     isEnabled = isValid,
                     onStart = {
                         val targetTime = textFieldValue.text.toFloatOrNull() ?: 0f
-                        if (targetTime > 0) {
-                            val formattedTargetTime = String.format(Locale.US, "%.6f", targetTime).toFloat()
-                            val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
+                        if (targetTime > 0f) {
+                            val formatted = String.format(Locale.US, "%.6f", targetTime).toFloat()
                             sharedPref.edit {
-                                putFloat("target_days", formattedTargetTime)
+                                putFloat("target_days", formatted)
                                 putLong("start_time", System.currentTimeMillis())
                                 putBoolean("timer_completed", false)
                             }
-                            val intent = Intent(context, RunActivity::class.java)
-                            context.startActivity(intent)
-                            (context as StartActivity).finish()
+                            context.startActivity(Intent(context, RunActivity::class.java))
                         }
                     }
                 )
@@ -243,11 +179,7 @@ fun StartScreen() {
 }
 
 @Composable
-fun ModernStartButton(
-    isEnabled: Boolean,
-    onStart: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+fun ModernStartButton(isEnabled: Boolean, onStart: () -> Unit, modifier: Modifier = Modifier) {
     Card(
         onClick = { if (isEnabled) onStart() },
         modifier = modifier.size(96.dp),
@@ -255,26 +187,14 @@ fun ModernStartButton(
         colors = CardDefaults.cardColors(
             containerColor = if (isEnabled) colorResource(id = R.color.color_progress_primary) else colorResource(id = R.color.color_button_disabled)
         ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isEnabled) AppElevation.CARD_HIGH else AppElevation.CARD
-        )
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isEnabled) AppElevation.CARD_HIGH else AppElevation.CARD)
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Icon(
-                imageVector = Icons.Default.PlayArrow,
-                contentDescription = "시작",
-                tint = Color.White,
-                modifier = Modifier.size(48.dp)
-            )
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Icon(Icons.Default.PlayArrow, contentDescription = "시작", tint = Color.White, modifier = Modifier.size(48.dp))
         }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun StartScreenPreview() {
-    StartScreen()
-}
+fun StartScreenPreview() { StartScreen() }

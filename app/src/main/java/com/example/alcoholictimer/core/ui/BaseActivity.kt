@@ -3,8 +3,6 @@ package com.example.alcoholictimer.core.ui
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -55,16 +53,7 @@ abstract class BaseActivity : ComponentActivity() {
             provider.remove()
         }
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.light(
-                android.graphics.Color.WHITE,
-                android.graphics.Color.WHITE
-            ),
-            navigationBarStyle = SystemBarStyle.light(
-                android.graphics.Color.WHITE,
-                android.graphics.Color.WHITE
-            )
-        )
+        // 중복 system bar 설정 제거: Theme SideEffect에서만 처리 (AlcoholicTimerTheme)
         nicknameState.value = getNickname()
     }
 

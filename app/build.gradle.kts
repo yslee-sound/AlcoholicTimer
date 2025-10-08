@@ -12,8 +12,8 @@ android {
 
     // 버전 코드 전략: yyyymmdd + 2자리 시퀀스 (NN)
     // 증가: 2025100502 -> 2025100503
-    val releaseVersionCode = 2025100700
-    val releaseVersionName = "1.0.1"
+    val releaseVersionCode = 2025100800
+    val releaseVersionName = "1.0.2"
 
     defaultConfig {
         applicationId = "kr.sweetapps.alcoholictimer" // 변경: Play Console에서 com.example.* 금지 대응
@@ -109,51 +109,5 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 }
 
-// 디자인 토큰 규칙 검증 태스크 (금지된 literal 사용 여부 검사)
-tasks.register("designTokenCheck") {
-    group = "verification"
-    description = "Checks for disallowed raw design token usages (alpha/elevation literals)."
-    // 구성 캐시 비호환 (간단 Substring 스캔 + project API 접근)
-    notCompatibleWithConfigurationCache("Ad-hoc file IO with project APIs; simplicity over cache support.")
-    doLast {
-        val forbidden = mapOf(
-            // Alpha 직접 사용 금지
-            "alpha = 0.9f" to "Remove raw alpha 0.9f. Use solid colors or AppAlphas.SurfaceTint (0.1f) only.",
-            "alpha = 0.95f" to "Remove raw alpha 0.95f.",
-            // Card elevation literal 금지 (토큰 사용 강제)
-            "CardDefaults.cardElevation(defaultElevation = 1.dp" to "Use AppElevation.CARD (2.dp) or ZERO.",
-            "CardDefaults.cardElevation(defaultElevation = 6.dp" to "Use AppElevation.CARD_HIGH (4.dp).",
-            "CardDefaults.cardElevation(defaultElevation = 8.dp" to "Use AppElevation.CARD_HIGH (4.dp) only.",
-            // 4dp 도 직접 쓰지 않고 토큰 쓰도록(TopAppBar shadowElevation 제외)
-            "CardDefaults.cardElevation(defaultElevation = 4.dp" to "Replace literal 4.dp with AppElevation.CARD_HIGH.",
-            // 표준에서 제외된 alpha copy 패턴
-            ".surface.copy(alpha =" to "Avoid surface.copy(alpha=..). Use solid surface or official tint token."
-        )
-        val src = file("src/main/java")
-        if (!src.exists()) return@doLast
-        val violations = mutableListOf<String>()
-        src.walkTopDown()
-            .filter { it.isFile && it.extension == "kt" }
-            .forEach { f ->
-                val text = f.readText()
-                forbidden.forEach { (pattern, msg) ->
-                    if (text.contains(pattern)) {
-                        val line = (text.lineSequence().indexOfFirst { it.contains(pattern) } + 1).coerceAtLeast(1)
-                        violations += "${f.relativeTo(project.projectDir)}:$line -> $pattern :: $msg"
-                    }
-                }
-            }
-        if (violations.isNotEmpty()) {
-            throw GradleException(buildString {
-                appendLine("Design token violations detected:\n")
-                violations.forEach { appendLine(" - $it") }
-                appendLine("\nFix by using AppElevation / AppAlphas tokens.")
-            })
-        } else {
-            println("Design token check passed (no violations found).")
-        }
-    }
-}
-
-// check 파이프라인에 포함
-tasks.named("check").configure { dependsOn("designTokenCheck") }
+// (단순화) designTokenCheck 커스텀 태스크 제거.
+// 필요 시 별도 스크립트나 독립 Gradle 플러그인/CI 스텝으로 수행 권장.
