@@ -31,6 +31,9 @@ import com.example.alcoholictimer.R
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.material.icons.outlined.Close
 import com.example.alcoholictimer.core.ui.AppElevation
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.asPaddingValues
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,6 +76,8 @@ fun AllRecordsScreen(
         start = Offset(0f, 0f),
         end = Offset.Infinite
     )
+
+    val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
     CompositionLocalProvider(
         LocalDensity provides Density(
@@ -173,10 +178,9 @@ fun AllRecordsScreen(
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(horizontal = 16.dp)
-                                .navigationBarsPadding(),
+                                .padding(horizontal = 16.dp),
                             verticalArrangement = Arrangement.spacedBy(0.dp),
-                            contentPadding = PaddingValues(top = 12.dp, bottom = 24.dp)
+                            contentPadding = PaddingValues(top = 12.dp, bottom = navBarBottom + 8.dp)
                         ) {
                             items(
                                 items = records,
@@ -261,7 +265,7 @@ private fun EmptyRecordsState() {
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
+        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD) // lowered from CARD_HIGH
     ) {
         Column(
             modifier = Modifier

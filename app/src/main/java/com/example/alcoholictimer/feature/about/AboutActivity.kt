@@ -53,7 +53,7 @@ fun AboutScreen() {
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
+            elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD) // lowered from CARD_HIGH
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(

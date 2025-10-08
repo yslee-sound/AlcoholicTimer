@@ -269,7 +269,7 @@ fun DetailScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(LayoutConstants.CARD_CORNER_RADIUS),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
+                    elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD) // lowered
                 ) {
                     Column(
                         modifier = Modifier.padding(LayoutConstants.CARD_PADDING)
@@ -402,6 +402,8 @@ fun DetailScreen(
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
+                val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+                Spacer(modifier = Modifier.height(navBarBottom + 8.dp))
             }
 
             if (showDeleteDialog) {

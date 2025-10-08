@@ -27,7 +27,7 @@ fun DetailStatCard(
 ) {
     AppCard(
         modifier = modifier,
-        elevation = AppElevation.CARD_HIGH,
+        elevation = AppElevation.CARD, // lowered from CARD_HIGH
         contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp)
     ) {
         val resolvedValueColor = if (valueColor != Color.Unspecified) valueColor else MaterialTheme.colorScheme.onSurface

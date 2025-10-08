@@ -108,7 +108,7 @@ fun StartScreen() {
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
+                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD) // down from CARD_HIGH
             ) {
                 Column(
                     modifier = Modifier

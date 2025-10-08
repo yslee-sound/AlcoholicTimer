@@ -82,7 +82,7 @@ fun RecordSummaryCard(
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = resolvedContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
+        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD) // lowered from CARD_HIGH
     ) {
         Column(
             modifier = Modifier

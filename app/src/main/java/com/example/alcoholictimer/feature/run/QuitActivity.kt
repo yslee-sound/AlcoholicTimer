@@ -77,7 +77,7 @@ fun QuitScreen() {
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(LayoutConstants.CARD_CORNER_RADIUS),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
+                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD) // lowered from CARD_HIGH
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(LayoutConstants.CARD_PADDING),

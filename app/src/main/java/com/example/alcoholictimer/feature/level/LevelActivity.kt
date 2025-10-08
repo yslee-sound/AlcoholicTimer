@@ -101,7 +101,7 @@ private fun CurrentLevelCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
+        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD) // lowered
     ) {
         Column(modifier = Modifier.padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Box(
@@ -231,7 +231,7 @@ private fun LevelListCard(currentLevel: LevelDefinitions.LevelInfo, currentDays:
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
+        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD) // lowered
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
             Text(
