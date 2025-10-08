@@ -5,6 +5,7 @@ import android.content.Intent
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -29,7 +31,6 @@ import com.example.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
 import com.example.alcoholictimer.core.util.DateOverlapUtils
 import com.example.alcoholictimer.core.data.RecordsDataLoader
 import com.example.alcoholictimer.core.model.SobrietyRecord
-import com.example.alcoholictimer.core.ui.StandardScreen
 import java.util.*
 import com.example.alcoholictimer.feature.addrecord.AddRecordActivity
 import com.example.alcoholictimer.core.util.PercentUtils
@@ -39,6 +40,9 @@ import androidx.compose.ui.unit.sp
 import kotlin.math.max
 import kotlin.math.min
 import com.example.alcoholictimer.core.ui.AppElevation
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.asPaddingValues
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -201,11 +205,19 @@ fun RecordsScreen(
         if (result.resultCode == Activity.RESULT_OK) { loadRecords() }
     }
 
-    StandardScreen {
-        CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = LocalDensity.current.fontScale * fontScale)) {
+    val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+
+    CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = LocalDensity.current.fontScale * fontScale)) {
+        // StandardScreen 제거: BaseScreen이 이미 gradient 배경을 제공하므로 여기서는 투명 컨테이너만.
+        // 추가로 좌우 기본 패딩(16dp) 적용.
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+        ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 24.dp),
+                contentPadding = PaddingValues(bottom = navBarBottom + 4.dp),
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 item {
@@ -295,7 +307,6 @@ fun RecordsScreen(
                             }
                         }
                     }
-                    item { Spacer(modifier = Modifier.height(16.dp)) }
                 }
             }
         }

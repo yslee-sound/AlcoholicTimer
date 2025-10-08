@@ -29,6 +29,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.colorResource
+import com.example.alcoholictimer.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -73,8 +75,12 @@ abstract class BaseActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun BaseScreen(content: @Composable () -> Unit) {
-        AlcoholicTimerTheme {
+    fun BaseScreen(
+        applyBottomInsets: Boolean = true,
+        content: @Composable () -> Unit
+    ) {
+        // Force light theme regardless of system setting
+        AlcoholicTimerTheme(darkTheme = false) {
             val drawerState = rememberDrawerState(DrawerValue.Closed)
             val scope = rememberCoroutineScope()
             val currentNickname by nicknameState
@@ -87,11 +93,12 @@ abstract class BaseActivity : ComponentActivity() {
 
             val gradientBackground = Brush.linearGradient(
                 colors = listOf(
-                    Color(0xFFF8F9FA),
-                    Color(0xFFE9ECEF)
+                    colorResource(id = R.color.color_bg_gradient_start),
+                    colorResource(id = R.color.color_bg_gradient_mid),
+                    colorResource(id = R.color.color_bg_gradient_end)
                 ),
                 start = Offset(0f, 0f),
-                end = Offset.Infinite
+                end = Offset(1000f, 1000f)
             )
 
             ModalNavigationDrawer(
@@ -199,13 +206,33 @@ abstract class BaseActivity : ComponentActivity() {
                         }
                     }
                 ) { paddingValues ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(brush = gradientBackground)
-                            .padding(top = paddingValues.calculateTopPadding())
-                            .blur(radius = blurRadius.dp)
-                    ) { content() }
+                    // 배경 gradient를 인셋 패딩 적용 전후 구분하려고 두 개의 Box 레이어로 분리
+                    Box(Modifier.fillMaxSize()) {
+                        // 전체 화면(시스템 바 영역 포함)에 gradient 적용
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(brush = gradientBackground)
+                        )
+                        val insetModifier = if (applyBottomInsets) {
+                            Modifier.windowInsetsPadding(
+                                WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
+                            )
+                        } else {
+                            Modifier.windowInsetsPadding(
+                                // 하단 제외: 좌우만 적용
+                                WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
+                            )
+                        }
+                        // 실제 콘텐츠 레이어: 시스템 바 안전 패딩 + 스캐폴드 패딩 적용
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(paddingValues)
+                                .then(insetModifier)
+                                .blur(radius = blurRadius.dp)
+                        ) { content() }
+                    }
                 }
             }
         }

@@ -48,7 +48,7 @@ class QuitActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.quit_title)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { BaseScreen { QuitScreen() } }
+        setContent { BaseScreen(applyBottomInsets = false) { QuitScreen() } }
     }
 }
 

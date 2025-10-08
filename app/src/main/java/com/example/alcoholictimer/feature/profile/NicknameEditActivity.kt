@@ -25,7 +25,7 @@ class NicknameEditActivity : BaseActivity() {
     override fun getScreenTitle(): String = "별명 변경"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { MaterialTheme { BaseScreen { NicknameEditScreen() } } }
+        setContent { BaseScreen { NicknameEditScreen() } }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)

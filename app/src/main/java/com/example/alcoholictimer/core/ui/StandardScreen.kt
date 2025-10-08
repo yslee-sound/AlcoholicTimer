@@ -8,8 +8,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.alcoholictimer.R
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.ui.unit.min
+
+private val MaxContentWidth: Dp = 600.dp
 
 @Composable
 fun StandardScreen(
@@ -57,9 +64,17 @@ fun StandardScreenWithBottomButton(
         .background(backgroundBrush)
         .then(if (imePaddingEnabled) Modifier.imePadding() else Modifier)
 
+    val navBarPaddingValues = WindowInsets.navigationBars.asPaddingValues()
+    val navBarBottom = navBarPaddingValues.calculateBottomPadding()
+    val buttonSize = 96.dp
+    val extraGap = 32.dp
+    // 콘텐츠 영역이 버튼과 겹치지 않도록 버튼 반지름 + 추가 여백 + 시스템 바 높이만큼만 예약
+    val reservedBottom = (buttonSize / 2) + extraGap + navBarBottom
+
     Box(
         modifier = rootModifier
     ) {
+        // Centered column with max width constraint
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -67,13 +82,23 @@ fun StandardScreenWithBottomButton(
                     start = LayoutConstants.SCREEN_HORIZONTAL_PADDING,
                     end = LayoutConstants.SCREEN_HORIZONTAL_PADDING,
                     top = LayoutConstants.SCREEN_HORIZONTAL_PADDING,
-                    bottom = 240.dp
+                    bottom = reservedBottom
                 ),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(LayoutConstants.CARD_SPACING),
-            content = topContent
-        )
+            verticalArrangement = Arrangement.spacedBy(LayoutConstants.CARD_SPACING)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentWidth(Alignment.CenterHorizontally)
+                    .widthIn(max = MaxContentWidth),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(LayoutConstants.CARD_SPACING),
+                content = topContent
+            )
+        }
 
+        // 버튼: 시스템 바 높이 + 적당한 여백(24dp) 적용
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -81,12 +106,13 @@ fun StandardScreenWithBottomButton(
                 .padding(
                     start = LayoutConstants.BOTTOM_BUTTON_HORIZONTAL_PADDING,
                     end = LayoutConstants.BOTTOM_BUTTON_HORIZONTAL_PADDING,
-                    bottom = 80.dp
-                ),
+                    bottom = navBarBottom + 24.dp
+                )
+                .wrapContentWidth(Alignment.CenterHorizontally)
+                .widthIn(max = MaxContentWidth),
             contentAlignment = Alignment.Center
         ) {
             bottomButton()
         }
     }
 }
-

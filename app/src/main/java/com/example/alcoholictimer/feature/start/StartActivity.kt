@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
@@ -42,9 +43,11 @@ class StartActivity : BaseActivity() {
 
         // 앱 시작 시 사용자 설정값 초기화
         Constants.initializeUserSettings(this)
+        // 재설치(백업 복원) 여부 감지 후 금주 진행 상태 초기화
+        Constants.ensureInstallMarkerAndResetIfReinstalled(this)
 
         setContent {
-            BaseScreen {
+            BaseScreen(applyBottomInsets = false) {
                 StartScreen()
             }
         }
@@ -75,7 +78,7 @@ fun StartScreen() {
         return
     }
 
-    var textFieldValue by remember {
+    var textFieldValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(
             TextFieldValue(
                 text = "30",

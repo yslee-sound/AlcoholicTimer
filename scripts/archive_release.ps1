@@ -77,4 +77,3 @@ if(Test-Path $changelogPath){
 ) | Out-File (Join-Path $outDir 'meta.txt') -Encoding UTF8
 
 Write-Host "Archive complete." -ForegroundColor Yellow
-

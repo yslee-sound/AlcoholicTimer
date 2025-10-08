@@ -4,6 +4,8 @@
     <style name="Theme.AlcoholicTimer" parent="@android:style/Theme.DeviceDefault.NoActionBar">
         <!-- 필요 시 상태바/내비바 색 등 시스템 속성 커스터마이즈 가능 -->
         <item name="android:windowBackground">@android:color/white</item>
+        <!-- Force disable system dark theme auto inversion -->
+        <item name="android:forceDarkAllowed">false</item>
     </style>
 
     <!-- 스플래시 테마(Pre-Android 12 + backport용) -->
