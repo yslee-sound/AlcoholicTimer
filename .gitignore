@@ -19,6 +19,9 @@ local.properties
 *.keystore
 *.p12
 keystore-local/
+# Common folders if someone mistakenly creates them inside repo
+keystore/
+keys/
+signing/
 
 # Generated reports / coverage (향후 도입 시)
-

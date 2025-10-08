@@ -6,13 +6,20 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+// release 관련 태스크 실행 여부 (configuration 시점에 1회 계산)
+// bundleRelease / assembleRelease / publishRelease / 끝이 Release 인 태스크 포함
+val isReleaseTaskRequested: Boolean = gradle.startParameter.taskNames.any { name ->
+    val lower = name.lowercase()
+    ("release" in lower && ("assemble" in lower || "bundle" in lower || "publish" in lower)) || lower.endsWith("release")
+}
+
 android {
     namespace = "com.example.alcoholictimer" // 코드 패키지 구조는 유지 (선택)
     compileSdk = 36
 
     // 버전 코드 전략: yyyymmdd + 2자리 시퀀스 (NN)
-    // 증가: 2025100502 -> 2025100503
-    val releaseVersionCode = 2025100800
+    // 이전 사용: 2025100800 -> 신규: 2025100801
+    val releaseVersionCode = 2025100801
     val releaseVersionName = "1.0.2"
 
     defaultConfig {
@@ -54,11 +61,13 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // 서명 강제: 실제 release 관련 태스크(assembleRelease/bundleRelease 등) 요청 시에만 검사
             val hasKeystore = !System.getenv("KEYSTORE_PATH").isNullOrBlank()
+            if (isReleaseTaskRequested && !hasKeystore) {
+                throw GradleException("Unsigned release build blocked. Set KEYSTORE_PATH, KEYSTORE_STORE_PW, KEY_ALIAS, KEY_PASSWORD env vars before running a release build.")
+            }
             if (hasKeystore) {
                 signingConfig = signingConfigs.getByName("release")
-            } else {
-                println("[INFO] Skipping signingConfig assignment for release (no KEYSTORE_PATH)")
             }
         }
         // debug 설정 변경 없음
