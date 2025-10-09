@@ -19,8 +19,8 @@ android {
 
     // 버전 코드 전략: yyyymmdd + 2자리 시퀀스 (NN)
     // 이전 사용: 2025100800 -> 신규: 2025100801
-    val releaseVersionCode = 2025100801
-    val releaseVersionName = "1.0.2"
+    val releaseVersionCode = 2025100900
+    val releaseVersionName = "1.0.3"
 
     defaultConfig {
         applicationId = "kr.sweetapps.alcoholictimer" // 변경: Play Console에서 com.example.* 금지 대응
@@ -98,6 +98,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.fragment.ktx)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.material3)
     implementation(libs.androidx.ui)
@@ -105,6 +106,8 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.app.update.ktx)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     testImplementation(libs.junit)
     // org.json (Android 내장) 를 JVM 유닛 테스트 환경에서 사용하기 위한 의존성

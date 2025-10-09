@@ -26,6 +26,7 @@ Get-ChildItem gradlew.bat
 
 - 서명 환경변수 (네 값으로 넣어, 따옴표 포함)
 $env:KEYSTORE_PATH="G:/secure/alcoholic-timer-upload.jks"
+$env:KEYSTORE_PATH="G:/secure/AlcoholicTimer_Secure/alcoholic-timer-upload.jks"
 $env:KEYSTORE_STORE_PW="****"
 $env:KEY_ALIAS="alcoholictimeruploadkey"
 $env:KEY_PASSWORD="****"

@@ -33,19 +33,102 @@ import com.example.alcoholictimer.R
 import com.example.alcoholictimer.core.ui.AppElevation
 import com.example.alcoholictimer.core.ui.BaseActivity
 import com.example.alcoholictimer.core.ui.StandardScreenWithBottomButton
+import com.example.alcoholictimer.core.ui.components.AppUpdateDialog
+import com.example.alcoholictimer.core.util.AppUpdateManager
 import com.example.alcoholictimer.core.util.Constants
 import com.example.alcoholictimer.feature.run.RunActivity
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 class StartActivity : BaseActivity() {
+    private lateinit var appUpdateManager: AppUpdateManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Constants.initializeUserSettings(this)
         Constants.ensureInstallMarkerAndResetIfReinstalled(this)
-        setContent { BaseScreen(applyBottomInsets = false) { StartScreen() } }
+
+        // In-App Update 초기화
+        appUpdateManager = AppUpdateManager(this)
+
+        setContent {
+            BaseScreen(applyBottomInsets = false) {
+                StartScreenWithUpdate(appUpdateManager)
+            }
+        }
     }
+
     override fun getScreenTitle(): String = "금주 설정"
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager) {
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // 업데이트 다이얼로그 상태
+    var showUpdateDialog by remember { mutableStateOf(false) }
+    var updateInfo by remember { mutableStateOf<com.google.android.play.core.appupdate.AppUpdateInfo?>(null) }
+    var availableVersionName by remember { mutableStateOf("") }
+
+    // 앱 시작 시 업데이트 확인
+    LaunchedEffect(Unit) {
+        scope.launch {
+            appUpdateManager.checkForUpdate(
+                onUpdateAvailable = { info ->
+                    updateInfo = info
+                    availableVersionName = info.availableVersionCode().toString()
+                    showUpdateDialog = true
+                },
+                onNoUpdate = {
+                    // 업데이트 없음
+                }
+            )
+        }
+    }
+
+    // 업데이트 다운로드 완료 리스너
+    LaunchedEffect(Unit) {
+        appUpdateManager.registerInstallStateListener {
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    message = "업데이트가 다운로드되었습니다. 다시 시작하시겠습니까?",
+                    actionLabel = "다시 시작",
+                    duration = SnackbarDuration.Long
+                )
+                appUpdateManager.completeFlexibleUpdate()
+            }
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        StartScreen()
+
+        // 업데이트 다이얼로그
+        AppUpdateDialog(
+            isVisible = showUpdateDialog,
+            versionName = availableVersionName,
+            updateMessage = "새로운 기능과 개선사항이 포함되어 있습니다.",
+            onUpdateClick = {
+                updateInfo?.let { info ->
+                    appUpdateManager.startFlexibleUpdate(info)
+                }
+                showUpdateDialog = false
+            },
+            onDismiss = {
+                showUpdateDialog = false
+            },
+            canDismiss = !appUpdateManager.isMaxPostponeReached()
+        )
+
+        // 스낵바
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

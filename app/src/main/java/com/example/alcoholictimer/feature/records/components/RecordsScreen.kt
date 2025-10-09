@@ -221,6 +221,7 @@ fun RecordsScreen(
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 item {
+                    Spacer(modifier = Modifier.height(16.dp))
                     PeriodSelectionSection(
                         selectedPeriod = selectedPeriod,
                         onPeriodSelected = { period: String ->
