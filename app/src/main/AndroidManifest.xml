@@ -93,6 +93,13 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />
 
+        <!-- 오픈 라이선스 상세 화면 -->
+        <activity
+            android:name="com.example.alcoholictimer.feature.about.AboutLicensesActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AlcoholicTimer" />
+
     </application>
 
 </manifest>

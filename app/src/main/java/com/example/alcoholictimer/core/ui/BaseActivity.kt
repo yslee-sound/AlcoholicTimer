@@ -41,6 +41,7 @@ import com.example.alcoholictimer.feature.settings.SettingsActivity
 import com.example.alcoholictimer.feature.profile.NicknameEditActivity
 import androidx.core.splashscreen.SplashScreen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
 abstract class BaseActivity : ComponentActivity() {
     private var nicknameState = mutableStateOf("")
@@ -66,6 +67,9 @@ abstract class BaseActivity : ComponentActivity() {
     @Composable
     fun BaseScreen(
         applyBottomInsets: Boolean = true,
+        // 뒤로가기 상단바 지원 (기본값: 기존 메뉴 아이콘 유지)
+        showBackButton: Boolean = false,
+        onBackClick: (() -> Unit)? = null,
         content: @Composable () -> Unit
     ) {
         // Force light theme regardless of system setting
@@ -178,15 +182,28 @@ abstract class BaseActivity : ComponentActivity() {
                                         ) {
                                             IconButton(
                                                 onClick = {
-                                                    scope.launch { drawerState.open() }
+                                                    if (showBackButton) {
+                                                        onBackClick?.invoke() ?: run { this@BaseActivity.onBackPressedDispatcher.onBackPressed() }
+                                                    } else {
+                                                        scope.launch { drawerState.open() }
+                                                    }
                                                 }
                                             ) {
-                                                Icon(
-                                                    imageVector = Icons.Filled.Menu,
-                                                    contentDescription = "메뉴",
-                                                    tint = Color(0xFF2C3E50),
-                                                    modifier = Modifier.size(24.dp)
-                                                )
+                                                if (showBackButton) {
+                                                    Icon(
+                                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                                        contentDescription = "뒤로가기",
+                                                        tint = Color(0xFF2C3E50),
+                                                        modifier = Modifier.size(24.dp)
+                                                    )
+                                                } else {
+                                                    Icon(
+                                                        imageVector = Icons.Filled.Menu,
+                                                        contentDescription = "메뉴",
+                                                        tint = Color(0xFF2C3E50),
+                                                        modifier = Modifier.size(24.dp)
+                                                    )
+                                                }
                                             }
                                         }
                                     }

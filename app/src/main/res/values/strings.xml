@@ -58,6 +58,7 @@
 
     <!-- About screen (앱 정보) -->
     <string name="about_title">앱 정보</string>
+    <string name="about_version_info">버전 정보</string>
     <string name="about_open_license_notice">오픈 라이선스 고지</string>
     <string name="about_section_app_icon">앱 아이콘</string>
     <string name="about_label_original_work">원본 저작물</string>
