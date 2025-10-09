@@ -1,5 +1,6 @@
 package com.example.alcoholictimer.feature.records.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,7 +12,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.core.data.RecordsDataLoader
 import com.example.alcoholictimer.core.model.SobrietyRecord
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -34,6 +33,7 @@ import com.example.alcoholictimer.core.ui.AppElevation
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.ui.res.colorResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,15 +68,6 @@ fun AllRecordsScreen(
     LaunchedEffect(retryTrigger) { loadRecords() }
     LaunchedEffect(externalRefreshTrigger) { loadRecords() }
 
-    val gradientBackground = Brush.linearGradient(
-        colors = listOf(
-            Color(0xFFF8F9FA),
-            Color(0xFFE9ECEF)
-        ),
-        start = Offset(0f, 0f),
-        end = Offset.Infinite
-    )
-
     val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
     CompositionLocalProvider(
@@ -88,12 +79,12 @@ fun AllRecordsScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(brush = gradientBackground)
+                .background(Color.White)
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    shadowElevation = 4.dp,
+                    shadowElevation = AppElevation.CARD_HIGH,
                     color = MaterialTheme.colorScheme.surface
                 ) {
                     TopAppBar(
@@ -256,44 +247,34 @@ fun AllRecordsScreen(
 private fun EmptyRecordsState() {
     val emptyCd = stringResource(id = R.string.empty_records_cd)
 
-    Card(
+    // 카드 제거: 단순 중앙 정렬 안내만 표시
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 32.dp)
             .semantics { contentDescription = emptyCd },
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD) // lowered from CARD_HIGH
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(48.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "📝",
-                fontSize = 48.sp,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = stringResource(id = R.string.empty_records_title),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = stringResource(id = R.string.empty_records_subtitle),
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-        }
+        Text(
+            text = "📝",
+            fontSize = 48.sp,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = stringResource(id = R.string.empty_records_title),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = stringResource(id = R.string.empty_records_subtitle),
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
     }
 }
 

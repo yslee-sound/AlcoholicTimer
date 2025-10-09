@@ -42,6 +42,7 @@ import com.example.alcoholictimer.R
 import com.example.alcoholictimer.feature.start.StartActivity
 import com.example.alcoholictimer.feature.detail.DetailActivity
 import com.example.alcoholictimer.core.ui.AppElevation
+import androidx.compose.foundation.BorderStroke
 
 class RunActivity : BaseActivity() {
 
@@ -147,7 +148,13 @@ private fun RunScreen() {
 
     StandardScreenWithBottomButton(
         topContent = {
-            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+                border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+            ) {
                 Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         RunStatChip(title = stringResource(id = R.string.stat_goal_days), value = "${targetDays.toInt()}일", color = colorResource(id = R.color.color_stat_goal), modifier = Modifier.weight(1f))
@@ -161,7 +168,10 @@ private fun RunScreen() {
 
             Card(
                 modifier = Modifier.fillMaxWidth().height(168.dp).clickable { toggleIndicator() },
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+                border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
             ) {
                 Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
                     val labelBoxH = 36.dp; val valueBoxH = 66.dp; val hintBoxH = 20.dp; val gapSmall = 6.dp; val gapMedium = 8.dp
@@ -272,7 +282,13 @@ private fun RunScreen() {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+                border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+            ) {
                 Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) { ModernProgressIndicatorSimple(progress = progress) }
             }
         },

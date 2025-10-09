@@ -1,5 +1,6 @@
 package com.example.alcoholictimer.feature.records.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,10 +13,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.alcoholictimer.R
 import com.example.alcoholictimer.core.model.SobrietyRecord
 import com.example.alcoholictimer.core.ui.AppAlphas
 import com.example.alcoholictimer.core.ui.AppElevation
@@ -82,7 +85,8 @@ fun RecordSummaryCard(
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = resolvedContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD) // lowered from CARD_HIGH
+        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+        border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
     ) {
         Column(
             modifier = Modifier

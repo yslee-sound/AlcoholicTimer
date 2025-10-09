@@ -23,12 +23,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.colorResource
-import com.example.alcoholictimer.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -84,30 +80,13 @@ abstract class BaseActivity : ComponentActivity() {
                 label = "blur"
             )
 
-            val gradientBackground = Brush.linearGradient(
-                colors = listOf(
-                    colorResource(id = R.color.color_bg_gradient_start),
-                    colorResource(id = R.color.color_bg_gradient_mid),
-                    colorResource(id = R.color.color_bg_gradient_end)
-                ),
-                start = Offset(0f, 0f),
-                end = Offset(1000f, 1000f)
-            )
-
             ModalNavigationDrawer(
                 drawerState = drawerState,
                 drawerContent = {
                     ModalDrawerSheet(
                         modifier = Modifier
                             .fillMaxWidth(0.8f)
-                            .background(
-                                brush = Brush.linearGradient(
-                                    colors = listOf(
-                                        Color.White,
-                                        Color(0xFFF8F9FA)
-                                    )
-                                )
-                            ),
+                            .background(Color.White),
                         drawerContainerColor = Color.Transparent,
                         drawerShape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
                     ) {
@@ -212,13 +191,12 @@ abstract class BaseActivity : ComponentActivity() {
                         }
                     }
                 ) { paddingValues ->
-                    // 배경 gradient를 인셋 패딩 적용 전후 구분하려고 두 개의 Box 레이어로 분리
+                    // 배경 gradient 레이어 제거 -> 흰색 단색 배경으로 단순화
                     Box(Modifier.fillMaxSize()) {
-                        // 전체 화면(시스템 바 영역 포함)에 gradient 적용
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(brush = gradientBackground)
+                                .background(color = Color.White)
                         )
                         val insetModifier = if (applyBottomInsets) {
                             Modifier.windowInsetsPadding(
@@ -226,7 +204,6 @@ abstract class BaseActivity : ComponentActivity() {
                             )
                         } else {
                             Modifier.windowInsetsPadding(
-                                // 하단 제외: 좌우만 적용
                                 WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
                             )
                         }

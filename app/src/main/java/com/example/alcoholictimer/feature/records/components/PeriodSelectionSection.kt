@@ -10,12 +10,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.alcoholictimer.R
 import com.example.alcoholictimer.core.ui.AppElevation
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.foundation.BorderStroke
 
 @Composable
 fun PeriodSelectionSection(
@@ -30,9 +33,10 @@ fun PeriodSelectionSection(
     Column(modifier = modifier.fillMaxWidth()) {
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD)
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+            border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
         ) {
             Row(
                 modifier = Modifier
@@ -68,9 +72,10 @@ fun PeriodSelectionSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .then(if (selectedPeriod == "전체") Modifier else Modifier.clickable { onPeriodClick(selectedPeriod) }),
-            shape = RoundedCornerShape(8.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD)
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+            border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
         ) {
             Row(
                 modifier = Modifier

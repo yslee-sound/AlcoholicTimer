@@ -5,7 +5,7 @@ import android.content.Intent
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,16 +17,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import com.example.alcoholictimer.R
 import com.example.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
 import com.example.alcoholictimer.core.util.DateOverlapUtils
 import com.example.alcoholictimer.core.data.RecordsDataLoader
@@ -364,6 +365,7 @@ fun RecordsScreen(
 
 @Composable
 private fun EmptyRecordsState() {
+    // 카드 형태 제거: 단순 중앙 정렬 안내만 표시
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -605,7 +607,8 @@ private fun PeriodStatisticsSection(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD) // lowered from CARD_HIGH
+        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+        border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
     ) {
         Column(
             modifier = Modifier
@@ -667,16 +670,17 @@ private fun PeriodStatisticsSection(
     }
 }
 
+@Suppress("UNUSED_PARAMETER")
 @Composable
 private fun AutoResizeSingleLineText(
     text: String,
     baseStyle: TextStyle,
     modifier: Modifier = Modifier,
-    minFontSizeSp: Float = 10f,
     step: Float = 0.95f,
     color: Color? = null,
     textAlign: TextAlign? = null,
 ) {
+    val minSpLocal = 10f
     var style by remember(text) { mutableStateOf(baseStyle) }
     var tried by remember(text) { mutableStateOf(0) }
     Text(
@@ -691,7 +695,7 @@ private fun AutoResizeSingleLineText(
         onTextLayout = { result ->
             if (result.hasVisualOverflow && tried < 20) {
                 val current = style.fontSize.value
-                val next = (current * step).coerceAtLeast(10f)
+                val next = (current * step).coerceAtLeast(minSpLocal)
                 if (next < current - 0.1f) {
                     style = style.copy(fontSize = next.sp, lineHeight = (next.sp * 1.1f))
                     tried++

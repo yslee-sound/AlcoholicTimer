@@ -5,16 +5,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.example.alcoholictimer.R
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.ui.unit.min
 
 private val MaxContentWidth: Dp = 600.dp
 
@@ -22,20 +18,10 @@ private val MaxContentWidth: Dp = 600.dp
 fun StandardScreen(
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val backgroundBrush = Brush.linearGradient(
-        colors = listOf(
-            colorResource(id = R.color.color_bg_gradient_start),
-            colorResource(id = R.color.color_bg_gradient_mid),
-            colorResource(id = R.color.color_bg_gradient_end)
-        ),
-        start = Offset(0f, 0f),
-        end = Offset(1000f, 1000f)
-    )
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(backgroundBrush)
+            .background(Color.White)
             .padding(LayoutConstants.SCREEN_HORIZONTAL_PADDING)
             .imePadding(),
         verticalArrangement = Arrangement.spacedBy(LayoutConstants.CARD_SPACING),
@@ -49,19 +35,9 @@ fun StandardScreenWithBottomButton(
     bottomButton: @Composable () -> Unit,
     imePaddingEnabled: Boolean = true
 ) {
-    val backgroundBrush = Brush.linearGradient(
-        colors = listOf(
-            colorResource(id = R.color.color_bg_gradient_start),
-            colorResource(id = R.color.color_bg_gradient_mid),
-            colorResource(id = R.color.color_bg_gradient_end)
-        ),
-        start = Offset(0f, 0f),
-        end = Offset(1000f, 1000f)
-    )
-
     val rootModifier = Modifier
         .fillMaxSize()
-        .background(backgroundBrush)
+        .background(Color.White)
         .then(if (imePaddingEnabled) Modifier.imePadding() else Modifier)
 
     val navBarPaddingValues = WindowInsets.navigationBars.asPaddingValues()
