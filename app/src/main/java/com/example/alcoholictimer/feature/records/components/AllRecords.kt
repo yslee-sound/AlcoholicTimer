@@ -28,7 +28,6 @@ import androidx.compose.ui.semantics.semantics
 import com.example.alcoholictimer.R
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.material.icons.outlined.Close
-import com.example.alcoholictimer.core.ui.AppElevation
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.asPaddingValues
@@ -81,46 +80,52 @@ fun AllRecordsScreen(
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shadowElevation = AppElevation.CARD_HIGH,
-                    color = MaterialTheme.colorScheme.surface
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .windowInsetsPadding(WindowInsets.statusBars),
+                    shadowElevation = 0.dp,
+                    tonalElevation = 0.dp,
+                    color = Color.White
                 ) {
-                    TopAppBar(
-                        title = {
-                            Text(
-                                text = stringResource(id = R.string.all_records_title),
-                                style = MaterialTheme.typography.titleLarge,
-                                color = MaterialTheme.colorScheme.onSurface,
+                    Column {
+                        TopAppBar(
+                            title = {
+                                Text(
+                                    text = stringResource(id = R.string.all_records_title),
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                            },
+                            navigationIcon = {
+                                IconButton(onClick = onNavigateBack) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                        contentDescription = stringResource(id = R.string.cd_navigate_back),
+                                        tint = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            },
+                            actions = {
+                                IconButton(
+                                    onClick = { showDeleteAllDialog = true },
+                                    enabled = !isLoading && records.isNotEmpty()
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Close,
+                                        contentDescription = stringResource(id = R.string.cd_delete_all_records),
+                                        tint = if (!isLoading && records.isNotEmpty()) Color(0xFFE53E3E) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                                    )
+                                }
+                            },
+                            colors = TopAppBarDefaults.topAppBarColors(
+                                containerColor = Color.Transparent,
+                                titleContentColor = MaterialTheme.colorScheme.onSurface,
+                                navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                                actionIconContentColor = MaterialTheme.colorScheme.onSurface
                             )
-                        },
-                        navigationIcon = {
-                            IconButton(onClick = onNavigateBack) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = stringResource(id = R.string.cd_navigate_back),
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        },
-                        actions = {
-                            IconButton(
-                                onClick = { showDeleteAllDialog = true },
-                                enabled = !isLoading && records.isNotEmpty()
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Close,
-                                    contentDescription = stringResource(id = R.string.cd_delete_all_records),
-                                    tint = if (!isLoading && records.isNotEmpty()) Color(0xFFE53E3E) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                                )
-                            }
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = Color.Transparent,
-                            titleContentColor = MaterialTheme.colorScheme.onSurface,
-                            navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
-                            actionIconContentColor = MaterialTheme.colorScheme.onSurface
                         )
-                    )
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                    }
                 }
 
                 when {

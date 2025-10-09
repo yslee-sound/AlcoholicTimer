@@ -157,14 +157,29 @@ private fun AddRecordScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("금주 기록 추가", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onCancel) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "뒤로가기")
-                    }
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .windowInsetsPadding(WindowInsets.statusBars),
+                shadowElevation = 0.dp,
+                tonalElevation = 0.dp,
+                color = MaterialTheme.colorScheme.surface
+            ) {
+                Column {
+                    TopAppBar(
+                        title = { Text("금주 기록 추가", fontWeight = FontWeight.Bold) },
+                        navigationIcon = {
+                            IconButton(onClick = onCancel) {
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "뒤로가기")
+                            }
+                        }
+                    )
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)
+                    )
                 }
-            )
+            }
         },
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface

@@ -1,26 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 앱 전역 테마: 플랫폼에 존재하는 NoActionBar 테마를 부모로 사용 -->
+    <!-- Android 10+ (API 29+)에서 상태바/내비바 대비 강제(구분선 느낌의 스크림)를 끄기 -->
     <style name="Theme.AlcoholicTimer" parent="@android:style/Theme.DeviceDefault.NoActionBar">
-        <!-- 상태바를 시스템이 항상 표시하도록 보장 -->
+        <!-- 기존 설정 유지 -->
         <item name="android:windowFullscreen">false</item>
-        <!-- 상태바 배경은 흰색 (라이트 테마에 맞춤) -->
         <item name="android:statusBarColor">@android:color/white</item>
-
-        <!-- 필요 시 상태바/내비바 색 등 시스템 속성 커스터마이즈 가능 -->
+        <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowBackground">@android:color/white</item>
-        <!-- 일부 기기에서 상태바 아래 얇은 선(오버레이) 제거 -->
+        <!-- 대비 강제 해제: 얇은 상단 구분선 제거 -->
+        <item name="android:enforceStatusBarContrast">false</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <!-- 오버레이 제거 -->
         <item name="android:windowContentOverlay">@null</item>
     </style>
 
-    <!-- 스플래시 테마(Pre-Android 12 + backport용) -->
     <style name="Theme.AlcoholicTimer.Splash" parent="@android:style/Theme.DeviceDefault.NoActionBar">
-        <!-- 즉시 흰 화면 보장 -->
         <item name="android:windowBackground">@android:color/white</item>
-        <!-- backport가 읽는 속성들 -->
         <item name="windowSplashScreenBackground">@android:color/white</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground_inset</item>
         <item name="windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
         <item name="postSplashScreenTheme">@style/Theme.AlcoholicTimer</item>
+        <item name="android:statusBarColor">@android:color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <!-- 대비 강제 해제 및 오버레이 제거 -->
+        <item name="android:enforceStatusBarContrast">false</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <item name="android:windowContentOverlay">@null</item>
     </style>
 </resources>

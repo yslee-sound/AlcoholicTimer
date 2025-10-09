@@ -77,9 +77,9 @@ fun AlcoholicTimerTheme(
             val activity = view.context as? Activity ?: return@SideEffect
             val window = activity.window
 
-            // 완전한 화이트 대신 약간의 라이트 그레이로 시스템 바 배경을 지정
-            val statusBarColor = Color(0xFFF2F4F7)
-            val navBarColor = Color(0xFFF7F7F7)
+            // 상태바/내비바를 화면과 동일한 화이트로 지정해 경계선 시각 차이를 제거
+            val statusBarColor = Color.White
+            val navBarColor = Color.White
 
             if (applySystemBars) {
                 WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -91,7 +91,6 @@ fun AlcoholicTimerTheme(
                 )
             } else {
                 WindowCompat.setDecorFitsSystemWindows(window, true)
-                // Edge-to-edge 비활성화 시에도 색을 명시적으로 지정
                 window.statusBarColor = statusBarColor.toArgb()
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     window.navigationBarColor = navBarColor.toArgb()

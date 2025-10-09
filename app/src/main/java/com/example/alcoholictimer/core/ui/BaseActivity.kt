@@ -11,13 +11,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,29 +29,30 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
-import com.example.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
-import com.example.alcoholictimer.feature.level.LevelActivity
-import com.example.alcoholictimer.feature.start.StartActivity
-import com.example.alcoholictimer.feature.run.RunActivity
-import com.example.alcoholictimer.feature.settings.SettingsActivity
-import com.example.alcoholictimer.feature.profile.NicknameEditActivity
 import androidx.core.splashscreen.SplashScreen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import com.example.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
+import com.example.alcoholictimer.feature.level.LevelActivity
+import com.example.alcoholictimer.feature.profile.NicknameEditActivity
+import com.example.alcoholictimer.feature.run.RunActivity
+import com.example.alcoholictimer.feature.settings.SettingsActivity
+import com.example.alcoholictimer.feature.start.StartActivity
+import kotlinx.coroutines.launch
 
 abstract class BaseActivity : ComponentActivity() {
     private var nicknameState = mutableStateOf("")
 
+    // Ensure declaration before first usage
+    private fun getNickname(): String {
+        val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+        return sharedPref.getString("nickname", "알중이1") ?: "알중이1"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Install SplashScreen for Android 12+ and provide backport for older versions
+        // Install SplashScreen for Android 12+
         val splashScreen: SplashScreen = installSplashScreen()
-        // Remove exit animation immediately to avoid icon/shape lingering
-        splashScreen.setOnExitAnimationListener { provider ->
-            provider.remove()
-        }
+        splashScreen.setOnExitAnimationListener { provider -> provider.remove() }
         super.onCreate(savedInstanceState)
-        // 중복 system bar 설정 제거: Theme SideEffect에서만 처리 (AlcoholicTimerTheme)
         nicknameState.value = getNickname()
     }
 
@@ -63,14 +65,11 @@ abstract class BaseActivity : ComponentActivity() {
     @Composable
     fun BaseScreen(
         applyBottomInsets: Boolean = true,
-        // Edge-to-Edge 시스템 바 적용 여부 (기본 true)
         applySystemBars: Boolean = true,
-        // 뒤로가기 상단바 지원 (기본값: 기존 메뉴 아이콘 유지)
         showBackButton: Boolean = false,
         onBackClick: (() -> Unit)? = null,
         content: @Composable () -> Unit
     ) {
-        // Force light theme regardless of system setting
         AlcoholicTimerTheme(darkTheme = false, applySystemBars = applySystemBars) {
             val drawerState = rememberDrawerState(DrawerValue.Closed)
             val scope = rememberCoroutineScope()
@@ -86,9 +85,7 @@ abstract class BaseActivity : ComponentActivity() {
                 drawerState = drawerState,
                 drawerContent = {
                     ModalDrawerSheet(
-                        modifier = Modifier
-                            .fillMaxWidth(0.8f)
-                            .background(Color.White),
+                        modifier = Modifier.fillMaxWidth(0.8f).background(Color.White),
                         drawerContainerColor = Color.Transparent,
                         drawerShape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
                     ) {
@@ -97,11 +94,11 @@ abstract class BaseActivity : ComponentActivity() {
                             onNicknameClick = {
                                 scope.launch {
                                     drawerState.close()
-                                    var isNicknameEditNavigated = false
+                                    var navigated = false
                                     snapshotFlow { drawerState.isAnimationRunning }
                                         .collect { isAnimating ->
-                                            if (!isAnimating && drawerState.currentValue == DrawerValue.Closed && !isNicknameEditNavigated) {
-                                                isNicknameEditNavigated = true
+                                            if (!isAnimating && drawerState.currentValue == DrawerValue.Closed && !navigated) {
+                                                navigated = true
                                                 navigateToNicknameEdit()
                                                 return@collect
                                             }
@@ -130,9 +127,9 @@ abstract class BaseActivity : ComponentActivity() {
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                // Edge-to-edge일 때만 상태바 인셋 패딩 적용
                                 .then(if (applySystemBars) Modifier.windowInsetsPadding(WindowInsets.statusBars) else Modifier),
-                            shadowElevation = 4.dp,
+                            shadowElevation = 0.dp,
+                            tonalElevation = 0.dp,
                             color = Color.White
                         ) {
                             Column {
@@ -157,9 +154,7 @@ abstract class BaseActivity : ComponentActivity() {
                                     ),
                                     navigationIcon = {
                                         Surface(
-                                            modifier = Modifier
-                                                .padding(8.dp)
-                                                .size(48.dp),
+                                            modifier = Modifier.padding(8.dp).size(48.dp),
                                             shape = CircleShape,
                                             color = Color(0xFFF8F9FA),
                                             shadowElevation = 2.dp
@@ -192,16 +187,20 @@ abstract class BaseActivity : ComponentActivity() {
                                         }
                                     }
                                 )
+                                // Global subtle divider under app bar
+                                HorizontalDivider(
+                                    thickness = 1.dp,
+                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)
+                                )
                             }
                         }
                     }
                 ) { paddingValues ->
-                    // 배경 gradient 레이어 제거 -> 흰색 단색 배경으로 단순화
                     Box(Modifier.fillMaxSize()) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(color = Color.White)
+                                .background(Color.White)
                         )
                         val insetModifier = if (applyBottomInsets) {
                             Modifier.windowInsetsPadding(
@@ -212,7 +211,6 @@ abstract class BaseActivity : ComponentActivity() {
                                 WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
                             )
                         }
-                        // 실제 콘텐츠 레이어: 시스템 바 안전 패딩 + 스캐폴드 패딩 적용
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -226,11 +224,6 @@ abstract class BaseActivity : ComponentActivity() {
         }
     }
 
-    private fun getNickname(): String {
-        val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
-        return sharedPref.getString("nickname", "알중이1") ?: "알중이1"
-    }
-
     private fun handleMenuSelection(menuItem: String) {
         when (menuItem) {
             "금주" -> {
@@ -242,14 +235,14 @@ abstract class BaseActivity : ComponentActivity() {
                     if (this !is StartActivity) navigateToActivity(StartActivity::class.java)
                 }
             }
-            "기록" -> {
-                if (this !is com.example.alcoholictimer.feature.records.RecordsActivity) {
-                    navigateToActivity(com.example.alcoholictimer.feature.records.RecordsActivity::class.java)
-                }
+            "기록" -> if (this !is com.example.alcoholictimer.feature.records.RecordsActivity) {
+                navigateToActivity(com.example.alcoholictimer.feature.records.RecordsActivity::class.java)
             }
             "레벨" -> if (this !is LevelActivity) navigateToActivity(LevelActivity::class.java)
             "설정" -> if (this !is SettingsActivity) navigateToActivity(SettingsActivity::class.java)
-            "앱 정보" -> if (this !is com.example.alcoholictimer.feature.about.AboutActivity) navigateToActivity(com.example.alcoholictimer.feature.about.AboutActivity::class.java)
+            "앱 정보" -> if (this !is com.example.alcoholictimer.feature.about.AboutActivity) {
+                navigateToActivity(com.example.alcoholictimer.feature.about.AboutActivity::class.java)
+            }
         }
     }
 
@@ -348,7 +341,7 @@ fun DrawerMenu(
             Surface(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable { onItemSelected(title) },
                 shape = RoundedCornerShape(12.dp),
-                color = AppColors.SurfaceOverlaySoft // was surfaceVariant
+                color = AppColors.SurfaceOverlaySoft
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
@@ -393,7 +386,7 @@ fun DrawerMenu(
             Surface(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable { onItemSelected(title) },
                 shape = RoundedCornerShape(12.dp),
-                color = AppColors.SurfaceOverlaySoft // was surfaceVariant
+                color = AppColors.SurfaceOverlaySoft
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),

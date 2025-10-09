@@ -6,5 +6,11 @@
         <item name="windowSplashScreenAnimatedIcon">@drawable/splash_app_icon</item>
         <item name="windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
         <item name="postSplashScreenTheme">@style/Theme.AlcoholicTimer</item>
+        <!-- 스플래시 동안도 상단 경계선이 보이지 않도록 -->
+        <item name="android:statusBarColor">@android:color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:enforceStatusBarContrast">false</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <item name="android:windowContentOverlay">@null</item>
     </style>
 </resources>
