@@ -45,6 +45,29 @@ app\build\outputs\bundle\release\app-release.aab
 
 ```
 
+### 1.3 signingReport 오류(구성 캐시/데몬) 트러블슈팅
+증상 예:
+```
+Could not load the value of field `dslSigningConfig` ... Class 'com.android.build.gradle.internal.dsl.SigningConfig$AgpDecorated' not found ...
+```
+조치 순서(Windows PowerShell):
+```
+G:
+cd G:\Workspace\AlcoholicTimer
+
+# 1) Gradle 데몬 중지
+.\gradlew.bat --stop
+
+# 2) 구성 캐시 정리(헬퍼 태스크)
+.\gradlew.bat purgeConfigCache
+
+# 3) 구성 캐시 비활성화로 1회 실행
+.\gradlew.bat --no-configuration-cache :app:signingReport
+
+# (대안) 환경 변수만 빠르게 확인
+.\gradlew.bat :app:printReleaseSigningEnv
+```
+참고: 프로젝트는 기본적으로 구성 캐시를 사용(org.gradle.configuration-cache=true). signingReport는 AGP 내부 구현 이슈로 캐시 재사용 시 간헐적으로 실패할 수 있어 위 절차로 1회 강제 재구성/확인한다.
 
 
 ## 2. 새 업로드 키 생성 (최초 1회)
@@ -77,7 +100,7 @@ Alias: upload
 SHA1:  11:22:33:...:AA
 SHA-256:  AA:BB:CC:...:FF
 ```
-※ 출력이 안 나오면: Android Gradle Plugin 캐시/동기화 문제 → `gradlew.bat --stop` 후 재실행.
+※ 출력이 안 나오면: Android Gradle Plugin 캐시/동기화 문제 → `gradlew.bat --stop` 후 `gradlew.bat purgeConfigCache` → `--no-configuration-cache` 로 1회 재실행.
 
 ## 5. Fingerprint 추출 (직접 keytool)
 ```

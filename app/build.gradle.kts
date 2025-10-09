@@ -121,5 +121,26 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 }
 
+// signingReport 대안: 서명 환경변수 및 키스토어 존재 여부를 출력하는 헬퍼 태스크
+// 구성 캐시 문제로 signingReport 가 실패할 때 빠르게 상태를 확인하는 용도
+tasks.register("printReleaseSigningEnv") {
+    group = "help"
+    description = "Prints release signing env vars and keystore file existence"
+    doLast {
+        val ksPath = System.getenv("KEYSTORE_PATH")
+        val alias = System.getenv("KEY_ALIAS")
+        val hasStorePw = !System.getenv("KEYSTORE_STORE_PW").isNullOrEmpty()
+        val hasKeyPw = !System.getenv("KEY_PASSWORD").isNullOrEmpty()
+        println("KEYSTORE_PATH=${ksPath ?: "<not set>"}")
+        if (!ksPath.isNullOrBlank()) {
+            val f = file(ksPath)
+            println(" - exists=${f.exists()} size=${if (f.exists()) f.length() else 0}")
+        }
+        println("KEY_ALIAS=${alias ?: "<not set>"}")
+        println("KEYSTORE_STORE_PW set=${hasStorePw}")
+        println("KEY_PASSWORD set=${hasKeyPw}")
+    }
+}
+
 // (단순화) designTokenCheck 커스텀 태스크 제거.
 // 필요 시 별도 스크립트나 독립 Gradle 플러그인/CI 스텝으로 수행 권장.
