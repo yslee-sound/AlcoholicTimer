@@ -61,6 +61,20 @@ abstract class BaseActivity : ComponentActivity() {
         nicknameState.value = getNickname()
     }
 
+    // Returns the drawer menu title that matches current screen, or null if none
+    private fun currentDrawerSelection(): String? = when (this) {
+        is RunActivity, is StartActivity,
+        is com.example.alcoholictimer.feature.run.QuitActivity -> "금주"
+        is com.example.alcoholictimer.feature.records.RecordsActivity,
+        is com.example.alcoholictimer.feature.records.AllRecordsActivity,
+        is com.example.alcoholictimer.feature.detail.DetailActivity -> "기록"
+        is LevelActivity -> "레벨"
+        is SettingsActivity -> "설정"
+        is com.example.alcoholictimer.feature.about.AboutActivity,
+        is com.example.alcoholictimer.feature.about.AboutLicensesActivity -> "앱 정보"
+        else -> null
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun BaseScreen(
@@ -91,6 +105,7 @@ abstract class BaseActivity : ComponentActivity() {
                     ) {
                         DrawerMenu(
                             nickname = currentNickname,
+                            selectedItem = currentDrawerSelection(),
                             onNicknameClick = {
                                 scope.launch {
                                     drawerState.close()
@@ -189,8 +204,8 @@ abstract class BaseActivity : ComponentActivity() {
                                 )
                                 // Global subtle divider under app bar
                                 HorizontalDivider(
-                                    thickness = 1.dp,
-                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f)
+                                    thickness = 1.5.dp,
+                                    color = Color(0xFFE0E0E0)
                                 )
                             }
                         }
@@ -266,6 +281,7 @@ abstract class BaseActivity : ComponentActivity() {
 @Composable
 fun DrawerMenu(
     nickname: String,
+    selectedItem: String?,
     onNicknameClick: () -> Unit,
     onItemSelected: (String) -> Unit
 ) {
@@ -338,10 +354,11 @@ fun DrawerMenu(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
         )
         menuItems.forEach { (title, icon) ->
+            val isSelected = title == selectedItem
             Surface(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable { onItemSelected(title) },
                 shape = RoundedCornerShape(12.dp),
-                color = AppColors.SurfaceOverlaySoft
+                color = if (isSelected) AppColors.SurfaceOverlaySoft else Color.Transparent
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
@@ -349,7 +366,7 @@ fun DrawerMenu(
                 ) {
                     Surface(
                         shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
                         modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
@@ -363,7 +380,7 @@ fun DrawerMenu(
                     CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)) {
                         Text(
                             text = title,
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -383,10 +400,11 @@ fun DrawerMenu(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
         )
         settingsItems.forEach { (title, icon) ->
+            val isSelected = title == selectedItem
             Surface(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable { onItemSelected(title) },
                 shape = RoundedCornerShape(12.dp),
-                color = AppColors.SurfaceOverlaySoft
+                color = if (isSelected) AppColors.SurfaceOverlaySoft else Color.Transparent
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
@@ -394,7 +412,7 @@ fun DrawerMenu(
                 ) {
                     Surface(
                         shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
                         modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
@@ -408,7 +426,7 @@ fun DrawerMenu(
                     CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 1f)) {
                         Text(
                             text = title,
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }

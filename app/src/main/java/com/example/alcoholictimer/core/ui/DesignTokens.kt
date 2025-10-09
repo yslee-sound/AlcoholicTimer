@@ -22,9 +22,11 @@ object AppElevation {
 }
 
 /**
- * 추가 색상 토큰: 반투명 surface(white 70% over light gray gradient) 근사 고정 불투명 값.
- * 이전 surface.copy(alpha=0.7f) 대체용 (#FBFBFC).
+ * 선택된 항목 하이라이트용 소프트 그레이 배경.
+ * 배경이 흰색(#FFFFFF)일 때도 충분히 식별되도록 명도 대비를 높인 톤입니다.
  */
 object AppColors {
-    val SurfaceOverlaySoft = Color(0xFFFBFBFC)
+    // 기존: Color(0xFFFBFBFC) -> 거의 흰색이라 시인성이 낮았음
+    // 변경: 약한 블루-그레이 톤으로 대비 강화
+    val SurfaceOverlaySoft = Color(0xFFE9EEF5)
 }

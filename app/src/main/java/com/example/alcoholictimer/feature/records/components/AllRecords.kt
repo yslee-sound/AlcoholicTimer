@@ -124,7 +124,10 @@ fun AllRecordsScreen(
                                 actionIconContentColor = MaterialTheme.colorScheme.onSurface
                             )
                         )
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                        HorizontalDivider(
+                            thickness = 1.5.dp,
+                            color = Color(0xFFE0E0E0)
+                        )
                     }
                 }
 
