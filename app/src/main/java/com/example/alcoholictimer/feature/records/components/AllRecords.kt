@@ -1,6 +1,5 @@
 package com.example.alcoholictimer.feature.records.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -33,7 +32,6 @@ import com.example.alcoholictimer.core.ui.AppElevation
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.ui.res.colorResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

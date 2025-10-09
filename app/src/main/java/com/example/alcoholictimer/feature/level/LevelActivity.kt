@@ -20,20 +20,22 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.alcoholictimer.R
 import com.example.alcoholictimer.core.ui.AppElevation
 import com.example.alcoholictimer.core.ui.BaseActivity
 import com.example.alcoholictimer.core.util.Constants
 import com.example.alcoholictimer.core.data.RecordsDataLoader
 import kotlinx.coroutines.delay
 import java.util.Locale
+import androidx.compose.foundation.BorderStroke
 
 class LevelActivity : BaseActivity() {
 
@@ -99,9 +101,10 @@ private fun CurrentLevelCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD) // lowered
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+        border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
     ) {
         Column(modifier = Modifier.padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Box(
@@ -229,9 +232,10 @@ private fun ProgressToNextLevel(
 private fun LevelListCard(currentLevel: LevelDefinitions.LevelInfo, currentDays: Int) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD) // lowered
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+        border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
             Text(
@@ -264,21 +268,23 @@ private fun LevelItem(
     isAchieved: Boolean,
     isNext: Boolean
 ) {
+    val itemElevation = if (isCurrent) AppElevation.ZERO else AppElevation.CARD
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = when {
                 isCurrent -> level.color.copy(alpha = 0.1f)
                 isAchieved -> level.color.copy(alpha = 0.1f)
-                else -> Color(0xFFFAFAFA)
+                else -> MaterialTheme.colorScheme.surface
             }
         ),
         border = when {
-            isCurrent -> androidx.compose.foundation.BorderStroke(2.dp, level.color)
-            isAchieved -> androidx.compose.foundation.BorderStroke(1.dp, level.color.copy(alpha = 0.5f))
-            else -> null
-        }
+            isCurrent -> BorderStroke(1.5.dp, level.color)
+            isAchieved -> BorderStroke(1.dp, level.color.copy(alpha = 0.6f))
+            else -> BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+        },
+        elevation = CardDefaults.cardElevation(defaultElevation = itemElevation)
     ) {
         Row(
             modifier = Modifier
