@@ -40,6 +40,9 @@ import com.example.alcoholictimer.feature.run.RunActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.WindowInsetsCompat
 
 class StartActivity : BaseActivity() {
     private lateinit var appUpdateManager: AppUpdateManager
@@ -49,11 +52,20 @@ class StartActivity : BaseActivity() {
         Constants.initializeUserSettings(this)
         Constants.ensureInstallMarkerAndResetIfReinstalled(this)
 
+        // 첫 프레임부터 상태바 표시 및 어두운 아이콘 적용 (Splash -> 첫 화면 전환 시 깜빡임 방지)
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+        val controller = WindowInsetsControllerCompat(window, window.decorView)
+        controller.isAppearanceLightStatusBars = true
+        controller.isAppearanceLightNavigationBars = true
+        controller.show(WindowInsetsCompat.Type.statusBars())
+        controller.show(WindowInsetsCompat.Type.navigationBars())
+
         // In-App Update 초기화
         appUpdateManager = AppUpdateManager(this)
 
         setContent {
-            BaseScreen(applyBottomInsets = false) {
+            // 첫 실행 화면에서는 edge-to-edge 비활성화하여 상태바를 OS가 분리 렌더링
+            BaseScreen(applyBottomInsets = false, applySystemBars = false) {
                 StartScreenWithUpdate(appUpdateManager)
             }
         }

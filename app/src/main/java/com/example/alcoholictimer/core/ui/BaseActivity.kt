@@ -63,13 +63,15 @@ abstract class BaseActivity : ComponentActivity() {
     @Composable
     fun BaseScreen(
         applyBottomInsets: Boolean = true,
+        // Edge-to-Edge 시스템 바 적용 여부 (기본 true)
+        applySystemBars: Boolean = true,
         // 뒤로가기 상단바 지원 (기본값: 기존 메뉴 아이콘 유지)
         showBackButton: Boolean = false,
         onBackClick: (() -> Unit)? = null,
         content: @Composable () -> Unit
     ) {
         // Force light theme regardless of system setting
-        AlcoholicTimerTheme(darkTheme = false) {
+        AlcoholicTimerTheme(darkTheme = false, applySystemBars = applySystemBars) {
             val drawerState = rememberDrawerState(DrawerValue.Closed)
             val scope = rememberCoroutineScope()
             val currentNickname by nicknameState
@@ -126,7 +128,10 @@ abstract class BaseActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
                         Surface(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                // Edge-to-edge일 때만 상태바 인셋 패딩 적용
+                                .then(if (applySystemBars) Modifier.windowInsetsPadding(WindowInsets.statusBars) else Modifier),
                             shadowElevation = 4.dp,
                             color = Color.White
                         ) {

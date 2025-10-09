@@ -17,6 +17,8 @@ PowerShell:
 
 1.2. PowerShell:
 ```
+- 제일 먼저 버전 변경할 것
+
 - 드라이브 & 디렉터리 이동
 G:
 cd G:\Workspace\AlcoholicTimer
@@ -25,7 +27,6 @@ Get-ChildItem gradlew.bat
 파일 목록에 gradlew.bat 보이면 OK.
 
 - 서명 환경변수 (네 값으로 넣어, 따옴표 포함)
-$env:KEYSTORE_PATH="G:/secure/alcoholic-timer-upload.jks"
 $env:KEYSTORE_PATH="G:/secure/AlcoholicTimer_Secure/alcoholic-timer-upload.jks"
 $env:KEYSTORE_STORE_PW="****"
 $env:KEY_ALIAS="alcoholictimeruploadkey"

@@ -11,15 +11,15 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.SystemBarStyle
-import androidx.activity.ComponentActivity // added
+import androidx.activity.ComponentActivity
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.WindowInsetsCompat
 
 private val DarkColorScheme = darkColorScheme(
     primary = BluePrimaryDark,
@@ -71,30 +71,38 @@ fun AlcoholicTimerTheme(
 
     MaterialTheme(colorScheme = colorScheme, typography = AppTypography, content = content)
 
-    if (applySystemBars) {
-        val view = LocalView.current
-        if (!view.isInEditMode) {
-            SideEffect {
-                val activity = view.context as? Activity ?: return@SideEffect
-                val window = activity.window
-                val surface = colorScheme.surface
-                val useDarkIcons = surface.luminance() > 0.5f
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val activity = view.context as? Activity ?: return@SideEffect
+            val window = activity.window
 
+            // 완전한 화이트 대신 약간의 라이트 그레이로 시스템 바 배경을 지정
+            val statusBarColor = Color(0xFFF2F4F7)
+            val navBarColor = Color(0xFFF7F7F7)
+
+            if (applySystemBars) {
                 WindowCompat.setDecorFitsSystemWindows(window, false)
-
-                val surfaceArgb = surface.toArgb()
-                // auto -> light 고정 (라이트 테마만 지원, 휴리스틱 제거하여 아이콘 톤 흔들림 방지)
-                val statusBarStyle = SystemBarStyle.light(surfaceArgb, surfaceArgb)
-                val navigationBarStyle = SystemBarStyle.light(surfaceArgb, surfaceArgb)
+                val statusBarStyle = SystemBarStyle.light(statusBarColor.toArgb(), statusBarColor.toArgb())
+                val navigationBarStyle = SystemBarStyle.light(navBarColor.toArgb(), navBarColor.toArgb())
                 (activity as? ComponentActivity)?.enableEdgeToEdge(
                     statusBarStyle = statusBarStyle,
                     navigationBarStyle = navigationBarStyle
                 )
-
-                val controller = WindowInsetsControllerCompat(window, view)
-                controller.isAppearanceLightStatusBars = useDarkIcons
-                controller.isAppearanceLightNavigationBars = useDarkIcons
+            } else {
+                WindowCompat.setDecorFitsSystemWindows(window, true)
+                // Edge-to-edge 비활성화 시에도 색을 명시적으로 지정
+                window.statusBarColor = statusBarColor.toArgb()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    window.navigationBarColor = navBarColor.toArgb()
+                }
             }
+
+            val controller = WindowInsetsControllerCompat(window, view)
+            controller.isAppearanceLightStatusBars = true
+            controller.isAppearanceLightNavigationBars = true
+            controller.show(WindowInsetsCompat.Type.statusBars())
+            controller.show(WindowInsetsCompat.Type.navigationBars())
         }
     }
 }
