@@ -39,8 +39,7 @@ $env:KEY_PASSWORD="****"
 .\gradlew.bat :app:signingReport
 
 - 릴리즈 번들 빌드
-.\gradlew.b
-at clean :app:bundleRelease
+.\gradlew.bat clean :app:bundleRelease
 
 -산출물
 app\build\outputs\bundle\release\app-release.aab
