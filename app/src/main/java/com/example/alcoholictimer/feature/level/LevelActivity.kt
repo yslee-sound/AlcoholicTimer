@@ -72,6 +72,8 @@ fun LevelScreen() {
     val totalPastDuration = pastRecords.sumOf { record -> (record.endTime - record.startTime) }
 
     val totalElapsedTime = totalPastDuration + currentElapsedTime
+    // 추가: 총 경과 일수(소수점 포함) 계산
+    val totalElapsedDaysFloat = totalElapsedTime / Constants.DAY_IN_MILLIS.toFloat()
 
     val levelDays = Constants.calculateLevelDays(totalElapsedTime)
     val currentLevel = LevelDefinitions.getLevelInfo(levelDays)
@@ -87,7 +89,8 @@ fun LevelScreen() {
             .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        CurrentLevelCard(currentLevel = currentLevel, currentDays = levelDays, startTime = startTime)
+        // 변경: float 경과 일수 전달
+        CurrentLevelCard(currentLevel = currentLevel, currentDays = levelDays, elapsedDaysFloat = totalElapsedDaysFloat, startTime = startTime)
         LevelListCard(currentLevel = currentLevel, currentDays = levelDays)
         Spacer(modifier = Modifier.height(navBarBottom + 8.dp))
     }
@@ -97,6 +100,7 @@ fun LevelScreen() {
 private fun CurrentLevelCard(
     currentLevel: LevelDefinitions.LevelInfo,
     currentDays: Int,
+    elapsedDaysFloat: Float,
     startTime: Long
 ) {
     Card(
@@ -140,17 +144,30 @@ private fun CurrentLevelCard(
             if (nextLevel != null) {
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // 변경: 정수 일수 대신 실수 일수 기반 진행률 계산
                 val progress = if (nextLevel.start > currentLevel.start) {
-                    val progressInLevel = currentDays - currentLevel.start
-                    val totalNeeded = nextLevel.start - currentLevel.start
-                    if (totalNeeded > 0) (progressInLevel.toFloat() / totalNeeded.toFloat()).coerceIn(0f, 1f) else 0f
+                    val progressInLevel = elapsedDaysFloat - currentLevel.start
+                    val totalNeeded = (nextLevel.start - currentLevel.start).toFloat()
+                    if (totalNeeded > 0f) (progressInLevel / totalNeeded).coerceIn(0f, 1f) else 0f
                 } else 0f
+
+                // 추가: 남은 시간(일+시간) 문자열 생성
+                val remainingDaysFloat = (nextLevel.start - elapsedDaysFloat).coerceAtLeast(0f)
+                val remainingDaysInt = kotlin.math.floor(remainingDaysFloat.toDouble()).toInt()
+                val remainingHoursInt = kotlin.math.floor(((remainingDaysFloat - remainingDaysInt) * 24f).toDouble()).toInt()
+                val remainingText = when {
+                    remainingDaysInt > 0 && remainingHoursInt > 0 -> "${remainingDaysInt}일 ${remainingHoursInt}시간 남음"
+                    remainingDaysInt > 0 -> "${remainingDaysInt}일 남음"
+                    remainingHoursInt > 0 -> "${remainingHoursInt}시간 남음"
+                    else -> "곧 레벨업"
+                }
 
                 ProgressToNextLevel(
                     currentLevel = currentLevel,
                     nextLevel = nextLevel,
                     progress = progress,
                     remainingDays = (nextLevel.start - currentDays).coerceAtLeast(0),
+                    remainingText = remainingText,
                     isSobrietyActive = startTime > 0
                 )
             }
@@ -164,6 +181,7 @@ private fun ProgressToNextLevel(
     nextLevel: LevelDefinitions.LevelInfo,
     progress: Float,
     remainingDays: Int,
+    remainingText: String,
     isSobrietyActive: Boolean
 ) {
     var isVisible by remember { mutableStateOf(true) }
@@ -219,7 +237,7 @@ private fun ProgressToNextLevel(
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text(text = String.format(Locale.getDefault(), "%.1f%%", progress * 100), style = MaterialTheme.typography.labelMedium.copy(color = Color(0xFF999999)))
-            Text(text = "${remainingDays}일 남음", style = MaterialTheme.typography.labelMedium.copy(color = Color(0xFF999999)))
+            Text(text = remainingText, style = MaterialTheme.typography.labelMedium.copy(color = Color(0xFF999999)))
         }
 
         Spacer(modifier = Modifier.height(12.dp))
