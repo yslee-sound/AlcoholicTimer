@@ -14,6 +14,7 @@ import com.google.android.play.core.appupdate.AppUpdateOptions
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
+import com.google.android.play.core.install.InstallStateUpdatedListener
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -30,6 +31,8 @@ class AppUpdateManager(private val activity: ComponentActivity) {
     }
 
     private var updateResultLauncher: ActivityResultLauncher<IntentSenderRequest>? = null
+
+    private var installStateListener: InstallStateUpdatedListener? = null
 
     companion object {
         private const val TAG = "AppUpdateManager"
@@ -170,15 +173,21 @@ class AppUpdateManager(private val activity: ComponentActivity) {
      * Flexible Update 설치 상태 리스너 등록
      */
     fun registerInstallStateListener(onDownloaded: () -> Unit) {
-        appUpdateManager.registerListener { state ->
+        val listener = InstallStateUpdatedListener { state ->
             when (state.installStatus()) {
                 InstallStatus.DOWNLOADED -> {
                     Log.d(TAG, "업데이트 다운로드 완료")
                     onDownloaded()
                 }
                 InstallStatus.DOWNLOADING -> {
-                    val progress = state.bytesDownloaded() * 100 / state.totalBytesToDownload()
-                    Log.d(TAG, "다운로드 중: $progress%")
+                    val total = state.totalBytesToDownload()
+                    val downloaded = state.bytesDownloaded()
+                    if (total > 0) {
+                        val progress = downloaded * 100 / total
+                        Log.d(TAG, "다운로드 중: ${progress}% (${downloaded}/${total})")
+                    } else {
+                        Log.d(TAG, "다운로드 중: ${downloaded} bytes")
+                    }
                 }
                 InstallStatus.FAILED -> {
                     Log.e(TAG, "업데이트 다운로드 실패: ${state.installErrorCode()}")
@@ -188,6 +197,16 @@ class AppUpdateManager(private val activity: ComponentActivity) {
                 }
             }
         }
+        installStateListener = listener
+        appUpdateManager.registerListener(listener)
+    }
+
+    /**
+     * 설치 상태 리스너 등록 해제
+     */
+    fun unregisterInstallStateListener() {
+        installStateListener?.let { appUpdateManager.unregisterListener(it) }
+        installStateListener = null
     }
 
     /**
@@ -215,6 +234,14 @@ class AppUpdateManager(private val activity: ComponentActivity) {
         val prefs = activity.getSharedPreferences(UPDATE_CHECK_PREFS, Context.MODE_PRIVATE)
         val count = prefs.getInt(KEY_UPDATE_POSTPONED_COUNT, 0)
         prefs.edit().putInt(KEY_UPDATE_POSTPONED_COUNT, count + 1).apply()
+    }
+
+    /**
+     * 사용자가 업데이트를 미룬 경우(다이얼로그 닫기 등) 연기 횟수를 증가시킵니다.
+     * Flexible/Immediate 업데이트 플로우 외부(UI)에서 호출합니다.
+     */
+    fun markUserPostpone() {
+        incrementPostponeCount()
     }
 
     /**

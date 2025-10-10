@@ -37,12 +37,14 @@ import com.example.alcoholictimer.core.ui.components.AppUpdateDialog
 import com.example.alcoholictimer.core.util.AppUpdateManager
 import com.example.alcoholictimer.core.util.Constants
 import com.example.alcoholictimer.feature.run.RunActivity
+import com.google.android.play.core.install.model.AppUpdateType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.compose.material3.SnackbarResult
 
 class StartActivity : BaseActivity() {
     private lateinit var appUpdateManager: AppUpdateManager
@@ -89,6 +91,7 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager) {
     LaunchedEffect(Unit) {
         scope.launch {
             appUpdateManager.checkForUpdate(
+                forceCheck = true,
                 onUpdateAvailable = { info ->
                     updateInfo = info
                     availableVersionName = info.availableVersionCode().toString()
@@ -101,17 +104,25 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager) {
         }
     }
 
-    // 업데이트 다운로드 완료 리스너
+    // 업데이트 다운로드 완료 리스너: 사용자 액션(다시 시작) 시에만 설치 완료
     LaunchedEffect(Unit) {
         appUpdateManager.registerInstallStateListener {
             scope.launch {
-                snackbarHostState.showSnackbar(
-                    message = "업데이트가 다운로드되었습니다. 다시 시작하시겠습니까?",
+                val result = snackbarHostState.showSnackbar(
+                    message = "업데이트가 다운로드되었습니다. 다시 시작하여 설치하세요.",
                     actionLabel = "다시 시작",
-                    duration = SnackbarDuration.Long
+                    duration = SnackbarDuration.Indefinite
                 )
-                appUpdateManager.completeFlexibleUpdate()
+                if (result == SnackbarResult.ActionPerformed) {
+                    appUpdateManager.completeFlexibleUpdate()
+                }
             }
+        }
+    }
+    // 화면 소멸 시 리스너 정리
+    DisposableEffect(Unit) {
+        onDispose {
+            appUpdateManager.unregisterInstallStateListener()
         }
     }
 
@@ -125,11 +136,17 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager) {
             updateMessage = "새로운 기능과 개선사항이 포함되어 있습니다.",
             onUpdateClick = {
                 updateInfo?.let { info ->
-                    appUpdateManager.startFlexibleUpdate(info)
+                    val immediateAllowed = info.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
+                    if (appUpdateManager.isMaxPostponeReached() && immediateAllowed) {
+                        appUpdateManager.startImmediateUpdate(info)
+                    } else {
+                        appUpdateManager.startFlexibleUpdate(info)
+                    }
                 }
                 showUpdateDialog = false
             },
             onDismiss = {
+                appUpdateManager.markUserPostpone()
                 showUpdateDialog = false
             },
             canDismiss = !appUpdateManager.isMaxPostponeReached()
