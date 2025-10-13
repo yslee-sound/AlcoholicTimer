@@ -52,11 +52,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 
 class StartActivity : BaseActivity() {
     private lateinit var appUpdateManager: AppUpdateManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // 런처 액티비티에서만 스플래시 설치
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         Constants.initializeUserSettings(this)
         Constants.ensureInstallMarkerAndResetIfReinstalled(this)

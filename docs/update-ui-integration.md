@@ -81,8 +81,41 @@
 - 스낵바/다이얼로그는 동일한 `SnackbarHostState`/스코프에서 관리
 - 버전 표기 매핑은 릴리스마다 갱신 필요(미갱신 시 코드값 노출)
 
+## SDK 30 호환성 패치(중요)
+안드로이드 11(API 30) 기기에서 In‑App Update 사용 시 다음을 적용해 크래시를 방지합니다.
+
+1) 패키지 가시성 선언(AndroidManifest.xml)
+- <queries> 아래에 Play Store 패키지 선언:
+  - com.android.vending
+- 목적: SDK 30+에서 패키지 조회 허용(미선언 시 NameNotFoundException 등 유발)
+
+1-b) Pre‑Android 12 스플래시 테마 보강(values/values-v23/values-v29)
+- `Theme.AlcoholicTimer.Splash`에 다음 속성 추가:
+  - `<item name="splashScreenIconSize">240dp</item>`
+- 이유: core-splashscreen의 `splash_screen_view.xml`이 API 31 미만에서 이 속성을 참조하며, 누락 시 InflateException 발생 가능
+
+1-c) 스플래시 설치는 런처 액티비티에서만
+- 공통 베이스(예: `BaseActivity`)에서 `installSplashScreen()`을 호출하지 말고, 런처 액티비티의 `onCreate()` 초반에만 호출
+- Manifest에서 런처 액티비티에만 `Theme.AlcoholicTimer.Splash` 적용, 그 외 액티비티는 일반 테마 사용
+
+2) Play Store 존재 가드(AppUpdateManager)
+- 체크 전 hasPlayStore(context)로 com.android.vending 존재 여부 확인
+- 없으면 In‑App Update 스킵(onNoUpdate())으로 degrade
+- 예외 처리: Play Core 미가용/네트워크 예외 등은 모두 onNoUpdate()로 처리(앱 크래시 금지)
+
+3) 정책
+- Immediate는 “최대 미루기 초과 && Immediate 허용”에서만 사용(기존 정책 유지)
+- 그 외는 Flexible 우선
+
+4) 테스트(실기/에뮬레이터)
+- Play 설치 유무 확인: `adb shell pm list packages | grep com.android.vending`
+- 앱 실행 후: 런처 진입 및 내부 화면(예: Records) 전환 시 크래시 없음 확인
+- Play 미탑재 기기에서는 업데이트 다이얼로그가 뜨지 않는 것이 정상 동작
+
 ## 변경 산출물 체크리스트
 - 시작 화면 파일 수정 및 관련 import 추가
 - `UpdateVersionMapper.kt` 생성/갱신
+- AndroidManifest `<queries>`에 `com.android.vending` 추가
+- `AppUpdateManager`에 Play Store 가드 및 예외 다운그레이드 처리
 - 문자열 리소스 `checking_update` 추가
-- QA 스모크: 빌드/실행/데모/실 플로우/릴리스 무시 동작 + 버전명 표기 확인
+- QA 스모크: 빌드/실행/데모/실 플로우/릴리스 무시 동작 + 버전명 표기 + SDK30 크래시 없음 확인

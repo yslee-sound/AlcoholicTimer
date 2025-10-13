@@ -2,6 +2,8 @@ package com.example.alcoholictimer.core.util
 
 import android.app.Activity
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
@@ -70,6 +72,22 @@ class AppUpdateManager(private val activity: ComponentActivity) {
         }
     }
 
+    /** Play Store(com.android.vending) 존재 여부 */
+    private fun hasPlayStore(context: Context = activity): Boolean {
+        val pm = context.packageManager
+        return try {
+            if (Build.VERSION.SDK_INT >= 33) {
+                pm.getPackageInfo("com.android.vending", PackageManager.PackageInfoFlags.of(0))
+            } else {
+                @Suppress("DEPRECATION")
+                pm.getPackageInfo("com.android.vending", 0)
+            }
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     /**
      * 앱 업데이트 확인 및 실행
      *
@@ -83,6 +101,13 @@ class AppUpdateManager(private val activity: ComponentActivity) {
         onNoUpdate: () -> Unit = {}
     ) {
         try {
+            // Play Store 없는 기기에서는 In-App Update 비대상 → 즉시 스킵
+            if (!hasPlayStore()) {
+                Log.w(TAG, "Play Store not found. Skipping in-app update check.")
+                onNoUpdate()
+                return
+            }
+
             // 시간 제한 확인 (24시간마다 1회)
             if (!forceCheck && !shouldCheckForUpdate()) {
                 Log.d(TAG, "업데이트 확인 시간이 아직 안 됨")
@@ -111,7 +136,7 @@ class AppUpdateManager(private val activity: ComponentActivity) {
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "업데이트 확인 실패", e)
+            Log.w(TAG, "업데이트 확인 실패 또는 Play Core 미가용. Degrade to no update.", e)
             onNoUpdate()
         }
     }

@@ -2,6 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- SDK 30+ 패키지 가시성: Play Store 존재 확인을 위해 선언 -->
+    <queries>
+        <package android:name="com.android.vending" />
+    </queries>
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"

@@ -29,8 +29,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import androidx.core.splashscreen.SplashScreen
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
 import com.example.alcoholictimer.feature.level.LevelActivity
 import com.example.alcoholictimer.feature.profile.NicknameEditActivity
@@ -49,9 +47,7 @@ abstract class BaseActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Install SplashScreen for Android 12+
-        val splashScreen: SplashScreen = installSplashScreen()
-        splashScreen.setOnExitAnimationListener { provider -> provider.remove() }
+        // Splash 설치 제거: 런처 액티비티(StartActivity)에서만 수행
         super.onCreate(savedInstanceState)
         nicknameState.value = getNickname()
     }
