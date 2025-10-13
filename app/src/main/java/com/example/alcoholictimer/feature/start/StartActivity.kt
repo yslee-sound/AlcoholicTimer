@@ -37,6 +37,7 @@ import com.example.alcoholictimer.core.ui.StandardScreenWithBottomButton
 import com.example.alcoholictimer.core.ui.components.AppUpdateDialog
 import com.example.alcoholictimer.core.util.AppUpdateManager
 import com.example.alcoholictimer.core.util.Constants
+import com.example.alcoholictimer.core.util.UpdateVersionMapper
 import com.example.alcoholictimer.feature.run.RunActivity
 import com.google.android.play.core.install.model.AppUpdateType
 import kotlinx.coroutines.delay
@@ -71,13 +72,16 @@ class StartActivity : BaseActivity() {
         // In-App Update 초기화
         appUpdateManager = AppUpdateManager(this)
 
-        // 데모 모드 플래그 (인텐트로 전달 시 UI만 시연)
-        val demoUpdateUi = intent.getBooleanExtra("demo_update_ui", false)
+        // 디버그 빌드 여부 (릴리스에서 데모 비활성화용)
+        val isDebugBuild = (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
+
+        // 데모 모드 플래그: DEBUG에서만 인텐트 값 반영, RELEASE에서는 항상 false
+        val demoUpdateUi = if (isDebugBuild) intent.getBooleanExtra("demo_update_ui", false) else false
 
         setContent {
             // 첫 실행 화면에서는 edge-to-edge 비활성화하여 상태바를 OS가 분리 렌더링
             BaseScreen(applyBottomInsets = false, applySystemBars = false) {
-                StartScreenWithUpdate(appUpdateManager, demoMode = demoUpdateUi)
+                StartScreenWithUpdate(appUpdateManager, demoMode = demoUpdateUi, debugEnabled = isDebugBuild)
             }
         }
     }
@@ -87,7 +91,7 @@ class StartActivity : BaseActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager, demoMode: Boolean = false) {
+fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager, demoMode: Boolean = false, debugEnabled: Boolean = false) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -97,26 +101,35 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager, demoMode: Boolean 
     var updateInfo by remember { mutableStateOf<com.google.android.play.core.appupdate.AppUpdateInfo?>(null) }
     var availableVersionName by remember { mutableStateOf("") }
 
+    // DEBUG에서만 데모 활성화
+    val demoEnabled = debugEnabled
+    val demoActive = demoEnabled && demoMode
+
     // 데모 트리거 함수 (UI만 시연)
     val triggerDemo: () -> Unit = {
         isCheckingUpdate = true
         scope.launch {
             delay(600)
-            availableVersionName = "2025101001"
+            // 데모 타깃 코드는 실제 배포 정책과 동일 포맷 (yyyymmddNN)
+            val demoTargetCode = 2025101001
+            // 코드 -> 사용자 노출용 버전명으로 매핑 (없으면 코드 문자열 폴백)
+            availableVersionName = UpdateVersionMapper.toVersionName(demoTargetCode) ?: demoTargetCode.toString()
             showUpdateDialog = true
             isCheckingUpdate = false
         }
     }
 
     // 앱 시작 시 업데이트 확인 (데모 모드면 실제 체크 생략)
-    if (!demoMode) {
+    if (!demoActive) {
         LaunchedEffect(Unit) {
             scope.launch {
                 appUpdateManager.checkForUpdate(
                     forceCheck = false,
                     onUpdateAvailable = { info ->
                         updateInfo = info
-                        availableVersionName = info.availableVersionCode().toString()
+                        // 제공되는 것은 versionCode뿐이므로 사용자 노출용 버전명으로 변환
+                        val code = info.availableVersionCode()
+                        availableVersionName = UpdateVersionMapper.toVersionName(code) ?: code.toString()
                         showUpdateDialog = true
                         isCheckingUpdate = false
                     },
@@ -164,7 +177,7 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager, demoMode: Boolean 
     Box(modifier = Modifier.fillMaxSize()) {
         StartScreen(
             gateNavigation = gateNavigation,
-            onDebugLongPress = { if (demoMode) triggerDemo() else triggerDemo() }
+            onDebugLongPress = if (demoEnabled) ({ triggerDemo() }) else null
         )
 
         // 업데이트 다이얼로그
@@ -173,7 +186,7 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager, demoMode: Boolean 
             versionName = availableVersionName,
             updateMessage = "새로운 기능과 개선사항이 포함되어 있습니다.",
             onUpdateClick = {
-                if (demoMode) {
+                if (demoActive) {
                     showUpdateDialog = false
                     scope.launch { snackbarHostState.showSnackbar("데모: 업데이트 버튼 클릭") }
                 } else {
@@ -189,14 +202,14 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager, demoMode: Boolean 
                 }
             },
             onDismiss = {
-                if (demoMode) {
+                if (demoActive) {
                     showUpdateDialog = false
                 } else {
                     appUpdateManager.markUserPostpone()
                     showUpdateDialog = false
                 }
             },
-            canDismiss = !appUpdateManager.isMaxPostponeReached() || demoMode
+            canDismiss = !appUpdateManager.isMaxPostponeReached() || demoActive
         )
 
         // 로딩 오버레이 (다이얼로그 표시 중에는 숨김)
@@ -266,19 +279,23 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
                     modifier = Modifier.fillMaxWidth().padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    val baseTitleModifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(bottom = 24.dp)
+                    val titleModifier = if (onDebugLongPress != null) {
+                        baseTitleModifier.combinedClickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = {},
+                            onLongClick = { onDebugLongPress() }
+                        )
+                    } else baseTitleModifier
+
                     Text(
                         text = "목표 기간 설정",
                         style = MaterialTheme.typography.titleLarge,
                         color = colorResource(id = R.color.color_title_primary),
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(bottom = 24.dp)
-                            .combinedClickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                onClick = {},
-                                onLongClick = { onDebugLongPress?.invoke() }
-                            )
+                        modifier = titleModifier
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
