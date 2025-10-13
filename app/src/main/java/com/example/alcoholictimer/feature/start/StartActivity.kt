@@ -49,6 +49,8 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 
 class StartActivity : BaseActivity() {
     private lateinit var appUpdateManager: AppUpdateManager
@@ -69,10 +71,13 @@ class StartActivity : BaseActivity() {
         // In-App Update 초기화
         appUpdateManager = AppUpdateManager(this)
 
+        // 데모 모드 플래그 (인텐트로 전달 시 UI만 시연)
+        val demoUpdateUi = intent.getBooleanExtra("demo_update_ui", false)
+
         setContent {
             // 첫 실행 화면에서는 edge-to-edge 비활성화하여 상태바를 OS가 분리 렌더링
             BaseScreen(applyBottomInsets = false, applySystemBars = false) {
-                StartScreenWithUpdate(appUpdateManager)
+                StartScreenWithUpdate(appUpdateManager, demoMode = demoUpdateUi)
             }
         }
     }
@@ -80,9 +85,9 @@ class StartActivity : BaseActivity() {
     override fun getScreenTitle(): String = "금주 설정"
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager) {
+fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager, demoMode: Boolean = false) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -92,25 +97,40 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager) {
     var updateInfo by remember { mutableStateOf<com.google.android.play.core.appupdate.AppUpdateInfo?>(null) }
     var availableVersionName by remember { mutableStateOf("") }
 
-    // 앱 시작 시 업데이트 확인
-    LaunchedEffect(Unit) {
+    // 데모 트리거 함수 (UI만 시연)
+    val triggerDemo: () -> Unit = {
+        isCheckingUpdate = true
         scope.launch {
-            appUpdateManager.checkForUpdate(
-                forceCheck = false,
-                onUpdateAvailable = { info ->
-                    updateInfo = info
-                    availableVersionName = info.availableVersionCode().toString()
-                    showUpdateDialog = true
-                    isCheckingUpdate = false
-                },
-                onNoUpdate = {
-                    isCheckingUpdate = false
-                }
-            )
+            delay(600)
+            availableVersionName = "2025101001"
+            showUpdateDialog = true
+            isCheckingUpdate = false
         }
     }
 
-    // 업데이트 다운로드 완료 리스너: 사용자 액션(다시 시작) 시에만 설치 완료
+    // 앱 시작 시 업데이트 확인 (데모 모드면 실제 체크 생략)
+    if (!demoMode) {
+        LaunchedEffect(Unit) {
+            scope.launch {
+                appUpdateManager.checkForUpdate(
+                    forceCheck = false,
+                    onUpdateAvailable = { info ->
+                        updateInfo = info
+                        availableVersionName = info.availableVersionCode().toString()
+                        showUpdateDialog = true
+                        isCheckingUpdate = false
+                    },
+                    onNoUpdate = {
+                        isCheckingUpdate = false
+                    }
+                )
+            }
+        }
+    } else {
+        LaunchedEffect(Unit) { triggerDemo() }
+    }
+
+    // 업데이트 다운로드 완료 리스너
     LaunchedEffect(Unit) {
         appUpdateManager.registerInstallStateListener {
             scope.launch {
@@ -125,12 +145,7 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager) {
             }
         }
     }
-    // 화면 소멸 시 리스너 정리
-    DisposableEffect(Unit) {
-        onDispose {
-            appUpdateManager.unregisterInstallStateListener()
-        }
-    }
+    DisposableEffect(Unit) { onDispose { appUpdateManager.unregisterInstallStateListener() } }
 
     // 업데이트 중/다이얼로그 표시 중에는 Run 화면으로의 자동 이동을 보류
     val gateNavigation = isCheckingUpdate || showUpdateDialog
@@ -147,7 +162,10 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager) {
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        StartScreen(gateNavigation = gateNavigation)
+        StartScreen(
+            gateNavigation = gateNavigation,
+            onDebugLongPress = { if (demoMode) triggerDemo() else triggerDemo() }
+        )
 
         // 업데이트 다이얼로그
         AppUpdateDialog(
@@ -155,21 +173,30 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager) {
             versionName = availableVersionName,
             updateMessage = "새로운 기능과 개선사항이 포함되어 있습니다.",
             onUpdateClick = {
-                updateInfo?.let { info ->
-                    val immediateAllowed = info.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
-                    if (appUpdateManager.isMaxPostponeReached() && immediateAllowed) {
-                        appUpdateManager.startImmediateUpdate(info)
-                    } else {
-                        appUpdateManager.startFlexibleUpdate(info)
+                if (demoMode) {
+                    showUpdateDialog = false
+                    scope.launch { snackbarHostState.showSnackbar("데모: 업데이트 버튼 클릭") }
+                } else {
+                    updateInfo?.let { info ->
+                        val immediateAllowed = info.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
+                        if (appUpdateManager.isMaxPostponeReached() && immediateAllowed) {
+                            appUpdateManager.startImmediateUpdate(info)
+                        } else {
+                            appUpdateManager.startFlexibleUpdate(info)
+                        }
                     }
+                    showUpdateDialog = false
                 }
-                showUpdateDialog = false
             },
             onDismiss = {
-                appUpdateManager.markUserPostpone()
-                showUpdateDialog = false
+                if (demoMode) {
+                    showUpdateDialog = false
+                } else {
+                    appUpdateManager.markUserPostpone()
+                    showUpdateDialog = false
+                }
             },
-            canDismiss = !appUpdateManager.isMaxPostponeReached()
+            canDismiss = !appUpdateManager.isMaxPostponeReached() || demoMode
         )
 
         // 로딩 오버레이 (다이얼로그 표시 중에는 숨김)
@@ -178,10 +205,7 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager) {
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6f))
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) { /* 터치 차단 */ },
+                    .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { },
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -193,16 +217,13 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager) {
         }
 
         // 스낵바
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
+        SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun StartScreen(gateNavigation: Boolean = false) {
+fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)? = null) {
     val context = LocalContext.current
     val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
     val startTime = sharedPref.getLong("start_time", 0L)
@@ -218,9 +239,7 @@ fun StartScreen(gateNavigation: Boolean = false) {
         return
     }
 
-    var textFieldValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(text = "30", selection = TextRange(0, 2)))
-    }
+    var textFieldValue by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue(text = "30", selection = TextRange(0, 2))) }
     val isValid by remember { derivedStateOf { textFieldValue.text.toFloatOrNull()?.let { it > 0 } ?: false } }
     var isTextSelected by remember { mutableStateOf(true) }
     var isFocused by remember { mutableStateOf(false) }
@@ -251,7 +270,15 @@ fun StartScreen(gateNavigation: Boolean = false) {
                         text = "목표 기간 설정",
                         style = MaterialTheme.typography.titleLarge,
                         color = colorResource(id = R.color.color_title_primary),
-                        modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 24.dp)
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(bottom = 24.dp)
+                            .combinedClickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = {},
+                                onLongClick = { onDebugLongPress?.invoke() }
+                            )
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
