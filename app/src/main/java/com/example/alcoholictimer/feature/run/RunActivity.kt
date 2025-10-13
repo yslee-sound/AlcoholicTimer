@@ -43,6 +43,7 @@ import com.example.alcoholictimer.feature.start.StartActivity
 import com.example.alcoholictimer.feature.detail.DetailActivity
 import com.example.alcoholictimer.core.ui.AppElevation
 import androidx.compose.foundation.BorderStroke
+import com.example.alcoholictimer.core.util.AppUpdateManager
 
 class RunActivity : BaseActivity() {
 
@@ -61,6 +62,30 @@ class RunActivity : BaseActivity() {
 @Composable
 private fun RunScreen() {
     val context = LocalContext.current
+
+    // 업데이트 다운로드 완료 스낵바를 위한 상태/리스너
+    val snackbarHostState = remember { SnackbarHostState() }
+    val appUpdateManager = remember(context) { AppUpdateManager(context as RunActivity) }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        appUpdateManager.registerInstallStateListener {
+            // Flexible 업데이트 다운로드 완료 알림 및 재시작 버튼 제공
+            scope.launch {
+                val result = snackbarHostState.showSnackbar(
+                    message = context.getString(R.string.update_downloaded_restart_prompt),
+                    actionLabel = context.getString(R.string.action_restart),
+                    duration = SnackbarDuration.Indefinite
+                )
+                if (result == SnackbarResult.ActionPerformed) {
+                    appUpdateManager.completeFlexibleUpdate()
+                }
+            }
+        }
+    }
+    DisposableEffect(Unit) {
+        onDispose { appUpdateManager.unregisterInstallStateListener() }
+    }
 
     val sp = remember { context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE) }
     val startTime = remember { sp.getLong(Constants.PREF_START_TIME, 0L) }
@@ -146,169 +171,177 @@ private fun RunScreen() {
         }
     }
 
-    StandardScreenWithBottomButton(
-        topContent = {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-                border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
-            ) {
-                Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        RunStatChip(title = stringResource(id = R.string.stat_goal_days), value = "${targetDays.toInt()}일", color = colorResource(id = R.color.color_stat_goal), modifier = Modifier.weight(1f))
-                        RunStatChip(title = stringResource(id = R.string.stat_level), value = levelName.take(6), color = levelInfo.color, modifier = Modifier.weight(1f))
-                        RunStatChip(title = stringResource(id = R.string.stat_time), value = progressTimeTextHM, color = colorResource(id = R.color.color_stat_time), modifier = Modifier.weight(1f))
+    Box(modifier = Modifier.fillMaxSize()) {
+        StandardScreenWithBottomButton(
+            topContent = {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+                    border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            RunStatChip(title = stringResource(id = R.string.stat_goal_days), value = "${targetDays.toInt()}일", color = colorResource(id = R.color.color_stat_goal), modifier = Modifier.weight(1f))
+                            RunStatChip(title = stringResource(id = R.string.stat_level), value = levelName.take(6), color = levelInfo.color, modifier = Modifier.weight(1f))
+                            RunStatChip(title = stringResource(id = R.string.stat_time), value = progressTimeTextHM, color = colorResource(id = R.color.color_stat_time), modifier = Modifier.weight(1f))
+                        }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-            Card(
-                modifier = Modifier.fillMaxWidth().height(168.dp).clickable { toggleIndicator() },
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-                border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
-            ) {
-                Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
-                    val labelBoxH = 36.dp; val valueBoxH = 66.dp; val hintBoxH = 20.dp; val gapSmall = 6.dp; val gapMedium = 8.dp
-                    val (label, valueText, valueColor) = when (currentIndicator) {
-                        0 -> Triple(stringResource(id = R.string.indicator_title_days), String.format(Locale.getDefault(), "%.1f", elapsedDaysFloat), colorResource(id = R.color.color_indicator_days))
-                        1 -> Triple(stringResource(id = R.string.indicator_title_time), progressTimeText, colorResource(id = R.color.color_indicator_time))
-                        2 -> Triple(stringResource(id = R.string.indicator_title_saved_money), String.format(Locale.getDefault(), "%,.0f원", savedMoney).replace(" ", ""), colorResource(id = R.color.color_indicator_money))
-                        3 -> Triple(stringResource(id = R.string.indicator_title_saved_hours), String.format(Locale.getDefault(), "%.1f", savedHours), colorResource(id = R.color.color_indicator_hours))
-                        else -> Triple(stringResource(id = R.string.indicator_title_life_gain), FormatUtils.daysToDayHourString(lifeGainDays, 2), colorResource(id = R.color.color_indicator_life))
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(modifier = Modifier.fillMaxWidth().height(labelBoxH), contentAlignment = Alignment.Center) {
-                            val base = MaterialTheme.typography.titleMedium
-                            Text(
-                                text = label,
-                                style = base.copy(
-                                    color = colorResource(id = R.color.color_indicator_label_gray),
-                                    lineHeight = base.fontSize * 1.2f,
-                                    platformStyle = PlatformTextStyle(includeFontPadding = true)
-                                ),
-                                textAlign = TextAlign.Center,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                Card(
+                    modifier = Modifier.fillMaxWidth().height(168.dp).clickable { toggleIndicator() },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+                    border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+                ) {
+                    Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
+                        val labelBoxH = 36.dp; val valueBoxH = 66.dp; val hintBoxH = 20.dp; val gapSmall = 6.dp; val gapMedium = 8.dp
+                        val (label, valueText, valueColor) = when (currentIndicator) {
+                            0 -> Triple(stringResource(id = R.string.indicator_title_days), String.format(Locale.getDefault(), "%.1f", elapsedDaysFloat), colorResource(id = R.color.color_indicator_days))
+                            1 -> Triple(stringResource(id = R.string.indicator_title_time), progressTimeText, colorResource(id = R.color.color_indicator_time))
+                            2 -> Triple(stringResource(id = R.string.indicator_title_saved_money), String.format(Locale.getDefault(), "%,.0f원", savedMoney).replace(" ", ""), colorResource(id = R.color.color_indicator_money))
+                            3 -> Triple(stringResource(id = R.string.indicator_title_saved_hours), String.format(Locale.getDefault(), "%.1f", savedHours), colorResource(id = R.color.color_indicator_hours))
+                            else -> Triple(stringResource(id = R.string.indicator_title_life_gain), FormatUtils.daysToDayHourString(lifeGainDays, 2), colorResource(id = R.color.color_indicator_life))
                         }
-                        Spacer(modifier = Modifier.height(gapSmall))
-                        Box(modifier = Modifier.fillMaxWidth().height(valueBoxH), contentAlignment = Alignment.Center) {
-                            val baseStyle = MaterialTheme.typography.headlineMedium
-                            val bigSize = (baseStyle.fontSize.value * 1.5f).sp
-                            val bigStyle = baseStyle.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = valueColor,
-                                fontSize = bigSize,
-                                lineHeight = bigSize * 1.1f,
-                                platformStyle = PlatformTextStyle(includeFontPadding = true),
-                                fontFeatureSettings = "tnum"
-                            )
-                            val unitStyle = baseStyle.copy(
-                                color = valueColor,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = baseStyle.fontSize,
-                                lineHeight = baseStyle.fontSize * 1.1f,
-                                platformStyle = PlatformTextStyle(includeFontPadding = true)
-                            )
-                            val isMoney = currentIndicator == 2
-                            val isLifeGain = currentIndicator == 4
-                            if (isMoney) {
-                                val numeric = valueText.replace("원", "")
-                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                                    Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
-                                    Spacer(modifier = Modifier.width(2.dp))
-                                    Text(text = "원", style = unitStyle, modifier = Modifier.alignByBaseline())
-                                }
-                            } else if (isLifeGain) {
-                                val twoPart = Regex("""(\d+)\s*일\s*([0-9]+(?:\.[0-9]+)?)\s*시간""")
-                                val onePart = Regex("""([0-9]+(?:\.[0-9]+)?)\s*시간""")
-                                val m1 = twoPart.find(valueText)
-                                val m2 = if (m1 == null) onePart.find(valueText) else null
-                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                                    if (m1 != null) {
-                                        val dStr = m1.groupValues[1]
-                                        val hStr = m1.groupValues[2]
-                                        Text(text = dStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
-                                        Spacer(modifier = Modifier.width(2.dp))
-                                        Text(text = "일", style = unitStyle, modifier = Modifier.alignByBaseline())
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
-                                        Spacer(modifier = Modifier.width(2.dp))
-                                        Text(text = "시간", style = unitStyle, modifier = Modifier.alignByBaseline())
-                                    } else if (m2 != null) {
-                                        val hStr = m2.groupValues[1]
-                                        Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
-                                        Spacer(modifier = Modifier.width(2.dp))
-                                        Text(text = "시간", style = unitStyle, modifier = Modifier.alignByBaseline())
-                                    } else {
-                                        Text(text = valueText, style = bigStyle, textAlign = TextAlign.Center, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
-                                    }
-                                }
-                            } else {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Box(modifier = Modifier.fillMaxWidth().height(labelBoxH), contentAlignment = Alignment.Center) {
+                                val base = MaterialTheme.typography.titleMedium
                                 Text(
-                                    text = valueText,
-                                    style = bigStyle,
+                                    text = label,
+                                    style = base.copy(
+                                        color = colorResource(id = R.color.color_indicator_label_gray),
+                                        lineHeight = base.fontSize * 1.2f,
+                                        platformStyle = PlatformTextStyle(includeFontPadding = true)
+                                    ),
                                     textAlign = TextAlign.Center,
                                     maxLines = 1,
-                                    softWrap = false,
-                                    overflow = TextOverflow.Clip
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(gapSmall))
+                            Box(modifier = Modifier.fillMaxWidth().height(valueBoxH), contentAlignment = Alignment.Center) {
+                                val baseStyle = MaterialTheme.typography.headlineMedium
+                                val bigSize = (baseStyle.fontSize.value * 1.5f).sp
+                                val bigStyle = baseStyle.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = valueColor,
+                                    fontSize = bigSize,
+                                    lineHeight = bigSize * 1.1f,
+                                    platformStyle = PlatformTextStyle(includeFontPadding = true),
+                                    fontFeatureSettings = "tnum"
+                                )
+                                val unitStyle = baseStyle.copy(
+                                    color = valueColor,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = baseStyle.fontSize,
+                                    lineHeight = baseStyle.fontSize * 1.1f,
+                                    platformStyle = PlatformTextStyle(includeFontPadding = true)
+                                )
+                                val isMoney = currentIndicator == 2
+                                val isLifeGain = currentIndicator == 4
+                                if (isMoney) {
+                                    val numeric = valueText.replace("원", "")
+                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                        Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                        Spacer(modifier = Modifier.width(2.dp))
+                                        Text(text = "원", style = unitStyle, modifier = Modifier.alignByBaseline())
+                                    }
+                                } else if (isLifeGain) {
+                                    val twoPart = Regex("""(\d+)\s*일\s*([0-9]+(?:\.[0-9]+)?)\s*시간""")
+                                    val onePart = Regex("""([0-9]+(?:\.[0-9]+)?)\s*시간""")
+                                    val m1 = twoPart.find(valueText)
+                                    val m2 = if (m1 == null) onePart.find(valueText) else null
+                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                        if (m1 != null) {
+                                            val dStr = m1.groupValues[1]
+                                            val hStr = m1.groupValues[2]
+                                            Text(text = dStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                            Spacer(modifier = Modifier.width(2.dp))
+                                            Text(text = "일", style = unitStyle, modifier = Modifier.alignByBaseline())
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                            Spacer(modifier = Modifier.width(2.dp))
+                                            Text(text = "시간", style = unitStyle, modifier = Modifier.alignByBaseline())
+                                        } else if (m2 != null) {
+                                            val hStr = m2.groupValues[1]
+                                            Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                            Spacer(modifier = Modifier.width(2.dp))
+                                            Text(text = "시간", style = unitStyle, modifier = Modifier.alignByBaseline())
+                                        } else {
+                                            Text(text = valueText, style = bigStyle, textAlign = TextAlign.Center, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
+                                        }
+                                    }
+                                } else {
+                                    Text(
+                                        text = valueText,
+                                        style = bigStyle,
+                                        textAlign = TextAlign.Center,
+                                        maxLines = 1,
+                                        softWrap = false,
+                                        overflow = TextOverflow.Clip
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(gapMedium))
+                            Box(modifier = Modifier.fillMaxWidth().height(hintBoxH), contentAlignment = Alignment.Center) {
+                                val base = MaterialTheme.typography.labelMedium
+                                Text(
+                                    text = stringResource(id = R.string.tap_to_switch_indicator),
+                                    style = base.copy(
+                                        color = colorResource(id = R.color.color_hint_gray),
+                                        lineHeight = base.fontSize * 1.2f,
+                                        platformStyle = PlatformTextStyle(includeFontPadding = true)
+                                    ),
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
-                        Spacer(modifier = Modifier.height(gapMedium))
-                        Box(modifier = Modifier.fillMaxWidth().height(hintBoxH), contentAlignment = Alignment.Center) {
-                            val base = MaterialTheme.typography.labelMedium
-                            Text(
-                                text = stringResource(id = R.string.tap_to_switch_indicator),
-                                style = base.copy(
-                                    color = colorResource(id = R.color.color_hint_gray),
-                                    lineHeight = base.fontSize * 1.2f,
-                                    platformStyle = PlatformTextStyle(includeFontPadding = true)
-                                ),
-                                textAlign = TextAlign.Center,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-                border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
-            ) {
-                Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) { ModernProgressIndicatorSimple(progress = progress) }
-            }
-        },
-        bottomButton = {
-            ModernStopButtonSimple(onStop = {
-                val intent = Intent(context, QuitActivity::class.java).apply {
-                    putExtra("elapsed_days", elapsedDays)
-                    putExtra("elapsed_hours", elapsedHours)
-                    putExtra("elapsed_minutes", elapsedMinutes)
-                    putExtra("saved_money", savedMoney)
-                    putExtra("saved_hours", savedHours)
-                    putExtra("life_gain_days", lifeGainDays)
-                    putExtra("level_name", levelName)
-                    putExtra("level_color", levelInfo.color.value.toLong())
-                    putExtra("quit_timestamp", System.currentTimeMillis())
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+                    border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) { ModernProgressIndicatorSimple(progress = progress) }
                 }
-                context.startActivity(intent)
-            })
-        }
-    )
+            },
+            bottomButton = {
+                ModernStopButtonSimple(onStop = {
+                    val intent = Intent(context, QuitActivity::class.java).apply {
+                        putExtra("elapsed_days", elapsedDays)
+                        putExtra("elapsed_hours", elapsedHours)
+                        putExtra("elapsed_minutes", elapsedMinutes)
+                        putExtra("saved_money", savedMoney)
+                        putExtra("saved_hours", savedHours)
+                        putExtra("life_gain_days", lifeGainDays)
+                        putExtra("level_name", levelName)
+                        putExtra("level_color", levelInfo.color.value.toLong())
+                        putExtra("quit_timestamp", System.currentTimeMillis())
+                    }
+                    context.startActivity(intent)
+                })
+            }
+        )
+
+        // 업데이트 안내 스낵바 (다운로드 완료 시 표시)
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
 }
 
 @Composable

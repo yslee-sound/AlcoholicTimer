@@ -82,8 +82,9 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // 업데이트 다이얼로그 상태
+    // 업데이트 다이얼로그/체크 상태
     var showUpdateDialog by remember { mutableStateOf(false) }
+    var isCheckingUpdate by remember { mutableStateOf(true) }
     var updateInfo by remember { mutableStateOf<com.google.android.play.core.appupdate.AppUpdateInfo?>(null) }
     var availableVersionName by remember { mutableStateOf("") }
 
@@ -91,14 +92,15 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager) {
     LaunchedEffect(Unit) {
         scope.launch {
             appUpdateManager.checkForUpdate(
-                forceCheck = true,
+                forceCheck = false,
                 onUpdateAvailable = { info ->
                     updateInfo = info
                     availableVersionName = info.availableVersionCode().toString()
                     showUpdateDialog = true
+                    isCheckingUpdate = false
                 },
                 onNoUpdate = {
-                    // 업데이트 없음
+                    isCheckingUpdate = false
                 }
             )
         }
@@ -126,8 +128,11 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager) {
         }
     }
 
+    // 업데이트 중/다이얼로그 표시 중에는 Run 화면으로의 자동 이동을 보류
+    val gateNavigation = isCheckingUpdate || showUpdateDialog
+
     Box(modifier = Modifier.fillMaxSize()) {
-        StartScreen()
+        StartScreen(gateNavigation = gateNavigation)
 
         // 업데이트 다이얼로그
         AppUpdateDialog(
@@ -162,13 +167,14 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StartScreen() {
+fun StartScreen(gateNavigation: Boolean = false) {
     val context = LocalContext.current
     val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
     val startTime = sharedPref.getLong("start_time", 0L)
     val timerCompleted = sharedPref.getBoolean("timer_completed", false)
 
-    if (startTime != 0L && !timerCompleted) {
+    // 진행 중 세션이 있고, 게이트가 내려가 있을 때만 Run 화면으로 이동
+    if (!gateNavigation && startTime != 0L && !timerCompleted) {
         LaunchedEffect(Unit) {
             context.startActivity(Intent(context, RunActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

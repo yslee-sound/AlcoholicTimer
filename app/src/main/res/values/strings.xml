@@ -34,6 +34,10 @@
 
     <string name="toast_goal_completed">금주 목표를 달성했습니다!</string>
 
+    <!-- Update Snackbar (Flexible download completed) -->
+    <string name="update_downloaded_restart_prompt">업데이트가 다운로드되었습니다. 다시 시작하여 설치하세요.</string>
+    <string name="action_restart">다시 시작</string>
+
     <!-- Quit screen -->
     <string name="quit_title">금주 종료</string>
     <string name="quit_confirm_title">정말 멈추시겠어요?</string>
