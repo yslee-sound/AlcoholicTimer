@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import android.content.res.Configuration
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.window.DialogProperties
 
 // 앱 테마
 import com.example.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
@@ -40,7 +41,11 @@ fun AppUpdateDialog(
             if (canDismiss) {
                 onDismiss()
             }
-        }
+        },
+        properties = DialogProperties(
+            dismissOnBackPress = canDismiss,
+            dismissOnClickOutside = canDismiss
+        )
     ) {
         Card(
             modifier = Modifier

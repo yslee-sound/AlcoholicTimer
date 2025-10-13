@@ -39,6 +39,7 @@ import com.example.alcoholictimer.feature.start.StartActivity
 import kotlinx.coroutines.launch
 import androidx.core.view.WindowCompat
 import kotlinx.coroutines.delay
+import androidx.compose.ui.input.pointer.*
 
 // 전역 입력 잠금 요청을 위한 CompositionLocal
 val LocalRequestGlobalLock = compositionLocalOf<(Long) -> Unit> { { _: Long -> } }
@@ -121,6 +122,23 @@ abstract class BaseActivity : ComponentActivity() {
                 animationSpec = tween(durationMillis = 300),
                 label = "blur"
             )
+
+            // 드로어 열림/애니메이션/닫힘 직후 입력 완전 차단 가드
+            var drawerInputGuardActive by remember { mutableStateOf(false) }
+            val drawerGuardGraceMs = 200L
+            LaunchedEffect(drawerState) {
+                snapshotFlow { Triple(drawerState.isAnimationRunning, drawerState.currentValue, drawerState.targetValue) }
+                    .collect { (isAnimating, current, target) ->
+                        if (isAnimating || current != DrawerValue.Closed || target != DrawerValue.Closed) {
+                            drawerInputGuardActive = true
+                        } else {
+                            // 닫힘이 안정화된 직후에도 잠시 입력을 소비해 클릭 스루 방지
+                            drawerInputGuardActive = true
+                            delay(drawerGuardGraceMs)
+                            drawerInputGuardActive = false
+                        }
+                    }
+            }
 
             CompositionLocalProvider(LocalRequestGlobalLock provides requestGlobalLock) {
                 ModalNavigationDrawer(
@@ -268,16 +286,20 @@ abstract class BaseActivity : ComponentActivity() {
                                     .blur(radius = blurRadius.dp)
                             ) { content() }
 
-                            // 전역 입력 차단 오버레이(설정 화면 제외): 클릭만 흡수
-                            if (enableGlobalOverlay && globalInputLocked) {
+                            // 전역 입력 차단 오버레이(설정 화면 제외) + 드로어 가드: 모든 포인터 입력 소비
+                            if ((enableGlobalOverlay && globalInputLocked) || drawerInputGuardActive) {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .clickable(
-                                            enabled = true,
-                                            indication = null,
-                                            interactionSource = remember { MutableInteractionSource() }
-                                        ) {}
+                                        .pointerInput(drawerInputGuardActive, globalInputLocked) {
+                                            // 활성 시 전체 포인터 이벤트를 소비하여 배경 인터랙션 차단
+                                            while (true) {
+                                                awaitPointerEventScope {
+                                                    val event = awaitPointerEvent()
+                                                    event.changes.forEach { it.consume() }
+                                                }
+                                            }
+                                        }
                                 )
                             }
                         }
