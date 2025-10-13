@@ -15,6 +15,18 @@
 - 상세 화면: 기록 삭제가 되지 않던 버그(JSON 키 불일치 start_time/end_time vs startTime/endTime) 수정
 - (예정) 통계 경계 케이스 보정
 
+## [1.0.1] - 2025-10-14
+### Added
+- 문서: `docs/INSETS_AND_IME_GUIDE.md`에 "드로어 + IME" 안정화 정책 및 스니펫 추가
+- 프롬프트: `docs/INSETS_AND_IME_PROMPT.txt`에 드로어 오픈 시 포커스 해제/키보드 숨김, 드로어 시트 패딩, 입력 가드 타이밍 등 반영
+
+### Changed
+- BaseActivity: 드로어 오픈(버튼/제스처) 시 즉시 포커스 해제 + 키보드 숨김, 드로어 시트에 status/navigation bars 패딩 추가, 입력 가드 타이밍 보강
+- About 화면: 클릭/정보 영역을 흰색 카드로 그룹화하여 회색 배경과 대비 강화
+
+### Fixed
+- 입력 중 드로어 오픈 시 레이아웃 튐/겹침/배경 클릭 스루 가능성 축소
+
 ## [1.0.0] - 2025-10-05
 ### Added
 - 금주(금주 시작~현재) 기록 생성/조회 기본 플로우
@@ -39,5 +51,6 @@
 - Fixed: 버그 수정
 - Security: 취약점 관련 또는 보안 영향 변경
 
-[Unreleased]: https://example.com/compare/v1.0.0...HEAD
+[Unreleased]: https://example.com/compare/v1.0.1...HEAD
+[1.0.1]: https://example.com/releases/v1.0.1
 [1.0.0]: https://example.com/releases/v1.0.0

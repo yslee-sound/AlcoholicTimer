@@ -50,6 +50,72 @@
   - 전역(모든 화면)에 `systemBarsPadding()` 또는 `safeDrawingPadding()` 하단을 무차별 적용.
   - 같은 화면에서 서로 다른 레벨의 컨테이너가 각각 하단 인셋을 중복 적용.
 
+### 2-1) 드로어(ModalNavigationDrawer) + IME 정책
+
+상황: TextField에 포커스가 있는 상태에서 드로어를 열면 레이아웃 튐/겹침, 스크림 뒤 배경 입력 누수, 드로어가 키보드에 가려짐 등의 문제가 발생할 수 있다.
+
+권장 정책(라이트 모드/일반 UX 기준)
+- 드로어를 여는 순간(버튼 클릭 또는 제스처 시작) 즉시 포커스 해제 + 키보드 숨김.
+- 드로어 시트 루트에 `statusBarsPadding()` 및 `navigationBarsPadding()` 적용(시스템 바와 겹침 방지).
+- 드로어 애니메이션 시작 프레임부터 전역 입력 가드(overlay) 활성화 → 배경 터치 스루 방지.
+- 드로어 닫힌 직후 짧은 그레이스 타임(예: 200ms) 동안 입력 소비로 잔여 탭 스루 예방.
+
+코드 스니펫(Compose, Material3)
+
+```kotlin
+val drawerState = rememberDrawerState(DrawerValue.Closed)
+val scope = rememberCoroutineScope()
+val focusManager = LocalFocusManager.current
+val keyboardController = LocalSoftwareKeyboardController.current
+
+// 드로어 상태 변화 감지: 열리기 시작하면 즉시 포커스/키보드 정리 + 입력 가드 on
+var drawerInputGuardActive by remember { mutableStateOf(false) }
+val drawerGuardGraceMs = 200L
+LaunchedEffect(drawerState) {
+    snapshotFlow { Triple(drawerState.isAnimationRunning, drawerState.currentValue, drawerState.targetValue) }
+        .collect { (isAnimating, current, target) ->
+            if (isAnimating || target != DrawerValue.Closed || current != DrawerValue.Closed) {
+                focusManager.clearFocus(force = true)
+                keyboardController?.hide()
+                drawerInputGuardActive = true
+            } else {
+                drawerInputGuardActive = true
+                delay(drawerGuardGraceMs)
+                drawerInputGuardActive = false
+            }
+        }
+}
+
+ModalNavigationDrawer(
+    drawerState = drawerState,
+    drawerContent = {
+        ModalDrawerSheet(
+            modifier = Modifier
+                .fillMaxWidth(0.8f)
+                .statusBarsPadding()
+                .navigationBarsPadding()
+        ) {
+            // ...
+        }
+    }
+) {
+    TopAppBar(
+        navigationIcon = {
+            IconButton(onClick = {
+                // 드로어 열기 전에 포커스/키보드 정리
+                focusManager.clearFocus(force = true)
+                keyboardController?.hide()
+                scope.launch { drawerState.open() }
+            }) { /* ... */ }
+        }
+    )
+
+    // drawerInputGuardActive가 true일 때 포인터 이벤트 소비 오버레이를 깔아 클릭 스루 방지
+}
+```
+
+대안 정책(특수 요구 사항): 키보드를 유지한 채 드로어를 노출해야 한다면, 드로어 컨텐트에 `WindowInsets.ime.asPaddingValues()`를 반영해 하단을 띄우되, 시각적 튐과 공간 부족을 고려할 것(권장 X).
+
 ---
 
 ## 3) 스니펫 모음
@@ -99,6 +165,60 @@ Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing.only(Win
 }
 ```
 
+5) 드로어 + IME 처리
+
+```kotlin
+val drawerState = rememberDrawerState(DrawerValue.Closed)
+val scope = rememberCoroutineScope()
+val focusManager = LocalFocusManager.current
+val keyboardController = LocalSoftwareKeyboardController.current
+
+// 드로어 상태 변화 감지: 열리기 시작하면 즉시 포커스/키보드 정리 + 입력 가드 on
+var drawerInputGuardActive by remember { mutableStateOf(false) }
+val drawerGuardGraceMs = 200L
+LaunchedEffect(drawerState) {
+    snapshotFlow { Triple(drawerState.isAnimationRunning, drawerState.currentValue, drawerState.targetValue) }
+        .collect { (isAnimating, current, target) ->
+            if (isAnimating || target != DrawerValue.Closed || current != DrawerValue.Closed) {
+                focusManager.clearFocus(force = true)
+                keyboardController?.hide()
+                drawerInputGuardActive = true
+            } else {
+                drawerInputGuardActive = true
+                delay(drawerGuardGraceMs)
+                drawerInputGuardActive = false
+            }
+        }
+}
+
+ModalNavigationDrawer(
+    drawerState = drawerState,
+    drawerContent = {
+        ModalDrawerSheet(
+            modifier = Modifier
+                .fillMaxWidth(0.8f)
+                .statusBarsPadding()
+                .navigationBarsPadding()
+        ) {
+            // ...
+        }
+    }
+) {
+    TopAppBar(
+        navigationIcon = {
+            IconButton(onClick = {
+                // 드로어 열기 전에 포커스/키보드 정리
+                focusManager.clearFocus(force = true)
+                keyboardController?.hide()
+                scope.launch { drawerState.open() }
+            }) { /* ... */ }
+        }
+    )
+
+    // drawerInputGuardActive가 true일 때 포인터 이벤트 소비 오버레이를 깔아 클릭 스루 방지
+}
+```
+
 ---
 
 ## 4) 리포 내 전수 점검 체크리스트
@@ -108,6 +228,8 @@ Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing.only(Win
 - [ ] AppBar 컨테이너에만 `WindowInsets.statusBars` 적용
 - [ ] 입력 화면 루트에 `imePadding()` 적용
 - [ ] 하단 고정 버튼 화면에서 IME/네비 비교 후 큰 값 사용
+- [ ] 드로어: 오픈 시 포커스 해제 + 키보드 숨김, 드로어 시트에 status/navigation bars 패딩 적용
+- [ ] 드로어: 애니메이션 시작부터 입력 가드 활성화, 닫힘 직후 그레이스 타임 소비
 - [ ] insets 중복 적용 지점 제거(부모/자식 중복)
 - [ ] Debug 빌드 컴파일 확인
 
@@ -116,6 +238,11 @@ Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing.only(Win
 ```
 ./gradlew.bat :app:compileDebugKotlin --console=plain -x lint -x test
 ```
+
+수동 QA 체크
+- 3버튼 기기: 하단 여백 과도 현상 없음
+- TextField 포커스 상태에서 드로어 열기: 키보드 즉시 숨김, 드로어가 가려지지 않음, 배경 클릭 스루 없음
+- 드로어 닫힘 직후 잘못된 클릭 전달 없음
 
 ---
 
@@ -126,8 +253,9 @@ Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing.only(Win
 3) AppBar에만 statusBars 인셋 적용.
 4) 입력 화면에는 imePadding 적용.
 5) 하단 고정 버튼 화면은 IME/네비 합성 하단 여백 사용.
-6) 전수 검색 키워드: `safeDrawing`, `systemBarsPadding`, `windowInsetsPadding`, `imePadding`, `navigationBarsPadding`, `statusBarsPadding`.
-7) 빌드/스모크 테스트.
+6) 드로어가 있다면: 오픈 시 포커스 해제 + 키보드 숨김, 드로어 시트 패딩, 입력 가드 타이밍 반영.
+7) 전수 검색 키워드: `safeDrawing`, `systemBarsPadding`, `windowInsetsPadding`, `imePadding`, `navigationBarsPadding`, `statusBarsPadding`, `ModalNavigationDrawer`, `ModalDrawerSheet`, `DrawerValue.Open`, `LocalSoftwareKeyboardController`.
+8) 빌드/스모크 테스트.
 
 ---
 
@@ -135,11 +263,12 @@ Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing.only(Win
 
 - 3버튼 기기에서 여백이 남음: 해당 화면 루트에 Bottom 인셋이 남아있는지 확인(전역/로컬 중복 포함).
 - 키보드가 버튼을 가림: 루트에 `imePadding()` 누락 또는 하단 버튼 패딩에서 IME 인셋 미반영.
+- 드로어가 키보드에 가려짐/레이아웃 튐: 드로어 오픈 시 포커스/키보드 정리 누락, 드로어 시트 패딩 누락.
 - 특정 OEM 키보드에서 늦게 반영: 패딩이 애니메이션 중 갱신될 수 있으므로 실제 기기에서 재확인.
 
 ---
 
 ## 7) 변경 이력(요약)
 
+- 2025-10-14: 드로어 + IME 안정화 정책 문서화. BaseActivity에 포커스/키보드 정리, 드로어 패딩, 입력 가드 타이밍 반영. 프롬프트 업데이트.
 - 2025-10-13: AlcoholicTimer에 전역 인셋 정책 정비, AllRecords 하단 인셋 제거, 하단 버튼/IME 대응 개선, 닉네임 편집 화면 imePadding 추가.
-
