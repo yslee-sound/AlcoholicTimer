@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -50,27 +51,39 @@ private fun AboutListScreen(onOpenLicenses: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 8.dp) // 상단만 약간의 여백
+            .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        // 1) 버전 정보
-        SimpleListRow(
-            title = stringResource(id = R.string.about_version_info),
-            trailing = {
-                Text(
-                    text = versionName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+        // 흰색 카드 안에 리스트 아이템 묶기
+        Surface(
+            color = MaterialTheme.colorScheme.surface,
+            shape = MaterialTheme.shapes.medium,
+            tonalElevation = 0.dp,
+            shadowElevation = 1.dp,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                // 1) 버전 정보 (정보 표시 행)
+                SimpleListRow(
+                    title = stringResource(id = R.string.about_version_info),
+                    trailing = {
+                        Text(
+                            text = versionName,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
+
+                // 2) 오픈 라이선스 고지 (탭 시 이동)
+                SimpleListRow(
+                    title = stringResource(id = R.string.about_open_license_notice),
+                    onClick = onOpenLicenses
                 )
             }
-        )
-        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
-
-        // 2) 오픈 라이선스 고지 (탭 시 이동)
-        SimpleListRow(
-            title = stringResource(id = R.string.about_open_license_notice),
-            onClick = onOpenLicenses
-        )
-        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
+        }
+        // 아래 여백
+        Spacer(Modifier.height(12.dp))
     }
 }
 
