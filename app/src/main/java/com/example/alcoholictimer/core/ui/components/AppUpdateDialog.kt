@@ -118,14 +118,14 @@ fun AppUpdateDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    if (canDismiss) {
-                        OutlinedButton(
-                            onClick = onDismiss,
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text("나중에")
-                        }
+                    // 항상 노출, 필요 시 비활성화
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        enabled = canDismiss,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("나중에")
                     }
 
                     Button(
