@@ -7,6 +7,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,6 +38,10 @@ import com.example.alcoholictimer.feature.settings.SettingsActivity
 import com.example.alcoholictimer.feature.start.StartActivity
 import kotlinx.coroutines.launch
 import androidx.core.view.WindowCompat
+import kotlinx.coroutines.delay
+
+// 전역 입력 잠금 요청을 위한 CompositionLocal
+val LocalRequestGlobalLock = compositionLocalOf<(Long) -> Unit> { { _: Long -> } }
 
 abstract class BaseActivity : ComponentActivity() {
     private var nicknameState = mutableStateOf("")
@@ -88,150 +93,194 @@ abstract class BaseActivity : ComponentActivity() {
             val scope = rememberCoroutineScope()
             val currentNickname by nicknameState
 
+            // 전역 입력 차단(설정 화면 제외)
+            val enableGlobalOverlay = this !is SettingsActivity
+            var globalInputLocked by remember { mutableStateOf(false) }
+            var lockDurationMs by remember { mutableStateOf(250L) }
+            var lockTick by remember { mutableIntStateOf(0) }
+
+            val requestGlobalLock: (Long) -> Unit = remember(enableGlobalOverlay) {
+                { duration ->
+                    if (enableGlobalOverlay) {
+                        globalInputLocked = true
+                        lockDurationMs = duration
+                        lockTick++
+                    }
+                }
+            }
+
+            LaunchedEffect(lockTick) {
+                if (globalInputLocked) {
+                    delay(lockDurationMs)
+                    globalInputLocked = false
+                }
+            }
+
             val blurRadius by animateFloatAsState(
                 targetValue = if (drawerState.targetValue == DrawerValue.Open) 8f else 0f,
                 animationSpec = tween(durationMillis = 300),
                 label = "blur"
             )
 
-            ModalNavigationDrawer(
-                drawerState = drawerState,
-                drawerContent = {
-                    ModalDrawerSheet(
-                        modifier = Modifier.fillMaxWidth(0.8f).background(Color.White),
-                        drawerContainerColor = Color.Transparent,
-                        drawerShape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
-                    ) {
-                        DrawerMenu(
-                            nickname = currentNickname,
-                            selectedItem = currentDrawerSelection(),
-                            onNicknameClick = {
-                                scope.launch {
-                                    drawerState.close()
-                                    var navigated = false
-                                    snapshotFlow { drawerState.isAnimationRunning }
-                                        .collect { isAnimating ->
-                                            if (!isAnimating && drawerState.currentValue == DrawerValue.Closed && !navigated) {
-                                                navigated = true
-                                                navigateToNicknameEdit()
-                                                return@collect
-                                            }
-                                        }
-                                }
-                            },
-                            onItemSelected = { menuItem ->
-                                scope.launch {
-                                    drawerState.close()
-                                    snapshotFlow { drawerState.isAnimationRunning }
-                                        .collect { isAnimating ->
-                                            if (!isAnimating && drawerState.currentValue == DrawerValue.Closed) {
-                                                handleMenuSelection(menuItem)
-                                                return@collect
-                                            }
-                                        }
-                                }
-                            }
-                        )
-                    }
-                }
-            ) {
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    topBar = {
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .then(if (applySystemBars) Modifier.windowInsetsPadding(WindowInsets.statusBars) else Modifier),
-                            shadowElevation = 0.dp,
-                            tonalElevation = 0.dp,
-                            color = Color.White
+            CompositionLocalProvider(LocalRequestGlobalLock provides requestGlobalLock) {
+                ModalNavigationDrawer(
+                    drawerState = drawerState,
+                    drawerContent = {
+                        ModalDrawerSheet(
+                            modifier = Modifier.fillMaxWidth(0.8f).background(Color.White),
+                            drawerContainerColor = Color.Transparent,
+                            drawerShape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
                         ) {
-                            Column {
-                                TopAppBar(
-                                    title = {
-                                        CompositionLocalProvider(
-                                            LocalDensity provides Density(LocalDensity.current.density, fontScale = 1.2f)
-                                        ) {
-                                            Text(
-                                                text = getScreenTitle(),
-                                                color = Color(0xFF2C3E50),
-                                                fontWeight = FontWeight.SemiBold,
-                                                style = MaterialTheme.typography.titleMedium
-                                            )
-                                        }
-                                    },
-                                    colors = TopAppBarDefaults.topAppBarColors(
-                                        containerColor = Color.Transparent,
-                                        titleContentColor = Color(0xFF2C3E50),
-                                        navigationIconContentColor = Color(0xFF2C3E50),
-                                        actionIconContentColor = Color(0xFF2C3E50)
-                                    ),
-                                    navigationIcon = {
-                                        Surface(
-                                            modifier = Modifier.padding(8.dp).size(48.dp),
-                                            shape = CircleShape,
-                                            color = Color(0xFFF8F9FA),
-                                            shadowElevation = 2.dp
-                                        ) {
-                                            IconButton(
-                                                onClick = {
+                            DrawerMenu(
+                                nickname = currentNickname,
+                                selectedItem = currentDrawerSelection(),
+                                onNicknameClick = {
+                                    // 전역 입력 잠금 요청
+                                    requestGlobalLock(300)
+                                    scope.launch {
+                                        drawerState.close()
+                                        var navigated = false
+                                        snapshotFlow { drawerState.isAnimationRunning }
+                                            .collect { isAnimating ->
+                                                if (!isAnimating && drawerState.currentValue == DrawerValue.Closed && !navigated) {
+                                                    navigated = true
+                                                    navigateToNicknameEdit()
+                                                    return@collect
+                                                }
+                                            }
+                                    }
+                                },
+                                onItemSelected = { menuItem ->
+                                    // 전역 입력 잠금 요청
+                                    requestGlobalLock(300)
+                                    scope.launch {
+                                        drawerState.close()
+                                        snapshotFlow { drawerState.isAnimationRunning }
+                                            .collect { isAnimating ->
+                                                if (!isAnimating && drawerState.currentValue == DrawerValue.Closed) {
+                                                    handleMenuSelection(menuItem)
+                                                    return@collect
+                                                }
+                                            }
+                                    }
+                                }
+                            )
+                        }
+                    }
+                ) {
+                    Scaffold(
+                        modifier = Modifier.fillMaxSize(),
+                        topBar = {
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .then(if (applySystemBars) Modifier.windowInsetsPadding(WindowInsets.statusBars) else Modifier),
+                                shadowElevation = 0.dp,
+                                tonalElevation = 0.dp,
+                                color = Color.White
+                            ) {
+                                Column {
+                                    TopAppBar(
+                                        title = {
+                                            CompositionLocalProvider(
+                                                LocalDensity provides Density(LocalDensity.current.density, fontScale = 1.2f)
+                                            ) {
+                                                Text(
+                                                    text = getScreenTitle(),
+                                                    color = Color(0xFF2C3E50),
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    style = MaterialTheme.typography.titleMedium
+                                                )
+                                            }
+                                        },
+                                        colors = TopAppBarDefaults.topAppBarColors(
+                                            containerColor = Color.Transparent,
+                                            titleContentColor = Color(0xFF2C3E50),
+                                            navigationIconContentColor = Color(0xFF2C3E50),
+                                            actionIconContentColor = Color(0xFF2C3E50)
+                                        ),
+                                        navigationIcon = {
+                                            Surface(
+                                                modifier = Modifier.padding(8.dp).size(48.dp),
+                                                shape = CircleShape,
+                                                color = Color(0xFFF8F9FA),
+                                                shadowElevation = 2.dp
+                                            ) {
+                                                IconButton(
+                                                    onClick = {
+                                                        // 전역 입력 잠금 요청
+                                                        requestGlobalLock(300)
+                                                        if (showBackButton) {
+                                                            onBackClick?.invoke() ?: run { this@BaseActivity.onBackPressedDispatcher.onBackPressed() }
+                                                        } else {
+                                                            scope.launch { drawerState.open() }
+                                                        }
+                                                    }
+                                                ) {
                                                     if (showBackButton) {
-                                                        onBackClick?.invoke() ?: run { this@BaseActivity.onBackPressedDispatcher.onBackPressed() }
+                                                        Icon(
+                                                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                                            contentDescription = "뒤로가기",
+                                                            tint = Color(0xFF2C3E50),
+                                                            modifier = Modifier.size(24.dp)
+                                                        )
                                                     } else {
-                                                        scope.launch { drawerState.open() }
+                                                        Icon(
+                                                            imageVector = Icons.Filled.Menu,
+                                                            contentDescription = "메뉴",
+                                                            tint = Color(0xFF2C3E50),
+                                                            modifier = Modifier.size(24.dp)
+                                                        )
                                                     }
                                                 }
-                                            ) {
-                                                if (showBackButton) {
-                                                    Icon(
-                                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                                        contentDescription = "뒤로가기",
-                                                        tint = Color(0xFF2C3E50),
-                                                        modifier = Modifier.size(24.dp)
-                                                    )
-                                                } else {
-                                                    Icon(
-                                                        imageVector = Icons.Filled.Menu,
-                                                        contentDescription = "메뉴",
-                                                        tint = Color(0xFF2C3E50),
-                                                        modifier = Modifier.size(24.dp)
-                                                    )
-                                                }
                                             }
                                         }
-                                    }
+                                    )
+                                    // Global subtle divider under app bar
+                                    HorizontalDivider(
+                                        thickness = 1.5.dp,
+                                        color = Color(0xFFE0E0E0)
+                                    )
+                                }
+                            }
+                        },
+                        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+                    ) { paddingValues ->
+                        Box(Modifier.fillMaxSize()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.White)
+                            )
+                            val insetModifier = if (applyBottomInsets) {
+                                // 하단 safe area는 전역 적용하지 않고, 수평만 적용
+                                Modifier.windowInsetsPadding(
+                                    WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
                                 )
-                                // Global subtle divider under app bar
-                                HorizontalDivider(
-                                    thickness = 1.5.dp,
-                                    color = Color(0xFFE0E0E0)
+                            } else {
+                                Modifier
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(paddingValues)
+                                    .then(insetModifier)
+                                    .blur(radius = blurRadius.dp)
+                            ) { content() }
+
+                            // 전역 입력 차단 오버레이(설정 화면 제외): 클릭만 흡수
+                            if (enableGlobalOverlay && globalInputLocked) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clickable(
+                                            enabled = true,
+                                            indication = null,
+                                            interactionSource = remember { MutableInteractionSource() }
+                                        ) {}
                                 )
                             }
                         }
-                    },
-                    contentWindowInsets = WindowInsets(0, 0, 0, 0)
-                ) { paddingValues ->
-                    Box(Modifier.fillMaxSize()) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color.White)
-                        )
-                        val insetModifier = if (applyBottomInsets) {
-                            // 하단 safe area는 전역 적용하지 않고, 수평만 적용
-                            Modifier.windowInsetsPadding(
-                                WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
-                            )
-                        } else {
-                            Modifier
-                        }
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(paddingValues)
-                                .then(insetModifier)
-                                .blur(radius = blurRadius.dp)
-                        ) { content() }
                     }
                 }
             }

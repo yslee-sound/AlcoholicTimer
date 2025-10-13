@@ -41,9 +41,7 @@ import androidx.compose.ui.unit.sp
 import kotlin.math.max
 import kotlin.math.min
 import com.example.alcoholictimer.core.ui.AppElevation
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import kotlinx.coroutines.delay
+import com.example.alcoholictimer.core.ui.LocalRequestGlobalLock
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,9 +64,8 @@ fun RecordsScreen(
     var selectedDetailPeriod by remember { mutableStateOf("${currentYear}년 ${currentMonth}월") }
     var selectedWeekRange by remember { mutableStateOf<Pair<Long, Long>?>(null) }
 
-    // 초간단 전역 입력 잠금(투명 오버레이)
-    var isInteractionLocked by remember { mutableStateOf(false) }
-    var lockTick by remember { mutableIntStateOf(0) }
+    // 전역 입력 잠금 훅
+    val requestGlobalLock = LocalRequestGlobalLock.current
 
     val loadRecords = {
         isLoading = true
@@ -210,17 +207,7 @@ fun RecordsScreen(
         if (result.resultCode == Activity.RESULT_OK) { loadRecords() }
     }
 
-    // 잠금 해제 타이머
-    LaunchedEffect(lockTick) {
-        if (isInteractionLocked) {
-            delay(250)
-            isInteractionLocked = false
-        }
-    }
-
     CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = LocalDensity.current.fontScale * fontScale)) {
-        // StandardScreen 제거: BaseScreen이 이미 gradient 배경을 제공하므로 여기서는 투명 컨테이너만.
-        // 추가로 좌우 기본 패딩(16dp) 적용.
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -236,19 +223,15 @@ fun RecordsScreen(
                     PeriodSelectionSection(
                         selectedPeriod = selectedPeriod,
                         onPeriodSelected = { period: String ->
-                            if (!isInteractionLocked) {
-                                isInteractionLocked = true
-                                lockTick++
-                                selectedPeriod = period
-                                selectedDetailPeriod = ""
-                            }
+                            // 전역 입력 잠금: 전환/리컴포지션 안정화를 위해 짧게 차단
+                            requestGlobalLock(250)
+                            selectedPeriod = period
+                            selectedDetailPeriod = ""
                         },
                         onPeriodClick = { _ ->
-                            if (!isInteractionLocked) {
-                                isInteractionLocked = true
-                                lockTick++
-                                showBottomSheet = true
-                            }
+                            // 전역 입력 잠금: 바텀시트 등장 전 탭 전파를 흡수
+                            requestGlobalLock(250)
+                            showBottomSheet = true
                         },
                         selectedDetailPeriod = selectedDetailPeriod
                     )
@@ -259,6 +242,8 @@ fun RecordsScreen(
                         selectedPeriod = selectedPeriod,
                         onAddRecord = {
                             if (!isLaunchingAddRecord) {
+                                // 전역 입력 잠금: 액티비티 전환 중 중복 탭 방지
+                                requestGlobalLock(300)
                                 isLaunchingAddRecord = true
                                 val intent = Intent(context, AddRecordActivity::class.java)
                                 addRecordLauncher.launch(intent)
@@ -329,19 +314,6 @@ fun RecordsScreen(
                     }
                 }
             }
-
-            // 투명 오버레이: 잠금 중에는 모든 하위 클릭 차단
-            if (isInteractionLocked) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable(
-                            enabled = true,
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
-                        ) {}
-                )
-            }
         }
     }
 
@@ -396,7 +368,6 @@ fun RecordsScreen(
 
 @Composable
 private fun EmptyRecordsState() {
-    // 카드 형태 제거: 단순 중앙 정렬 안내만 표시
     Column(
         modifier = Modifier
             .fillMaxSize()
