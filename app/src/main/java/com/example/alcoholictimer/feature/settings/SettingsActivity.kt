@@ -23,15 +23,12 @@ import com.example.alcoholictimer.core.ui.AppElevation
 import com.example.alcoholictimer.core.ui.BaseActivity
 import com.example.alcoholictimer.core.util.Constants
 import com.example.alcoholictimer.R
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.asPaddingValues
 
 class SettingsActivity : BaseActivity() {
     override fun getScreenTitle(): String = "설정"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { BaseScreen(applyBottomInsets = false) { SettingsScreen() } }
+        setContent { BaseScreen { SettingsScreen() } }
     }
 }
 
@@ -44,8 +41,6 @@ fun SettingsScreen() {
     var selectedCost by remember { mutableStateOf(initialCost) }
     var selectedFrequency by remember { mutableStateOf(initialFrequency) }
     var selectedDuration by remember { mutableStateOf(initialDuration) }
-
-    val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -75,7 +70,7 @@ fun SettingsScreen() {
                 onOptionSelected = { newValue -> selectedDuration = newValue; sharedPref.edit { putString("selected_duration", newValue) } }
             )
         }
-        Spacer(modifier = Modifier.height(navBarBottom + 8.dp))
+        // 하단 Spacer 제거: BaseScreen이 safe area까지 정리
     }
 }
 

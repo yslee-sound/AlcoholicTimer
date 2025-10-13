@@ -42,7 +42,7 @@ class LevelActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            BaseScreen(applyBottomInsets = false) { LevelScreen() }
+            BaseScreen { LevelScreen() }
         }
     }
 
@@ -78,21 +78,19 @@ fun LevelScreen() {
     val levelDays = Constants.calculateLevelDays(totalElapsedTime)
     val currentLevel = LevelDefinitions.getLevelInfo(levelDays)
 
-    val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-
     // backgroundBrush 제거 (BaseScreen 배경 사용)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 16.dp),
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // 변경: float 경과 일수 전달
         CurrentLevelCard(currentLevel = currentLevel, currentDays = levelDays, elapsedDaysFloat = totalElapsedDaysFloat, startTime = startTime)
         LevelListCard(currentLevel = currentLevel, currentDays = levelDays)
-        Spacer(modifier = Modifier.height(navBarBottom + 8.dp))
+        // 하단 여백 추가 제거 (BaseScreen이 safe area 처리)
     }
 }
 

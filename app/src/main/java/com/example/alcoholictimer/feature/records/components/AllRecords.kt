@@ -28,9 +28,6 @@ import androidx.compose.ui.semantics.semantics
 import com.example.alcoholictimer.R
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.asPaddingValues
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,8 +62,6 @@ fun AllRecordsScreen(
     LaunchedEffect(retryTrigger) { loadRecords() }
     LaunchedEffect(externalRefreshTrigger) { loadRecords() }
 
-    val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-
     CompositionLocalProvider(
         LocalDensity provides Density(
             density = LocalDensity.current.density,
@@ -77,6 +72,10 @@ fun AllRecordsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.White)
+                .windowInsetsPadding(
+                    // 하단 여백 제거: 수평 인셋만 적용
+                    WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
+                )
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 Surface(
@@ -168,7 +167,7 @@ fun AllRecordsScreen(
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
-                        ) { EmptyRecordsState() }
+                        ) { AllRecordsEmptyState() }
                     }
 
                     else -> {
@@ -177,7 +176,7 @@ fun AllRecordsScreen(
                                 .fillMaxSize()
                                 .padding(horizontal = 16.dp),
                             verticalArrangement = Arrangement.spacedBy(0.dp),
-                            contentPadding = PaddingValues(top = 12.dp, bottom = navBarBottom + 8.dp)
+                            contentPadding = PaddingValues(top = 12.dp, bottom = 12.dp)
                         ) {
                             items(
                                 items = records,
@@ -228,21 +227,13 @@ fun AllRecordsScreen(
                                     // 실패 시 머무름
                                 }
                             }
-                        ) {
-                            Text(
-                                text = stringResource(id = R.string.all_records_delete_confirm),
-                                color = Color(0xFFE53E3E),
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                        ) { Text(stringResource(id = R.string.dialog_delete_confirm)) }
                     },
                     dismissButton = {
                         TextButton(onClick = { showDeleteAllDialog = false }) {
-                            Text(text = stringResource(id = R.string.dialog_cancel), color = Color(0xFF718096))
+                            Text(stringResource(id = R.string.dialog_cancel))
                         }
-                    },
-                    containerColor = Color.White,
-                    shape = RoundedCornerShape(16.dp)
+                    }
                 )
             }
         }
@@ -250,7 +241,7 @@ fun AllRecordsScreen(
 }
 
 @Composable
-private fun EmptyRecordsState() {
+fun AllRecordsEmptyState() {
     val emptyCd = stringResource(id = R.string.empty_records_cd)
 
     // 카드 제거: 단순 중앙 정렬 안내만 표시

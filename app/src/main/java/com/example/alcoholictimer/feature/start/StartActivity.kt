@@ -64,8 +64,7 @@ class StartActivity : BaseActivity() {
         Constants.initializeUserSettings(this)
         Constants.ensureInstallMarkerAndResetIfReinstalled(this)
 
-        // 첫 프레임부터 상태바 표시 및 어두운 아이콘 적용 (Splash -> 첫 화면 전환 시 깜빡임 방지)
-        WindowCompat.setDecorFitsSystemWindows(window, true)
+        // 상태바/내비게이션 바 라이트 아이콘 적용 및 표시
         val controller = WindowInsetsControllerCompat(window, window.decorView)
         controller.isAppearanceLightStatusBars = true
         controller.isAppearanceLightNavigationBars = true
@@ -82,8 +81,8 @@ class StartActivity : BaseActivity() {
         val demoUpdateUi = if (isDebugBuild) intent.getBooleanExtra("demo_update_ui", false) else false
 
         setContent {
-            // 첫 실행 화면에서는 edge-to-edge 비활성화하여 상태바를 OS가 분리 렌더링
-            BaseScreen(applyBottomInsets = false, applySystemBars = false) {
+            // 상단 시스템바 패딩은 적용, 하단은 개별 레이아웃에서 처리
+            BaseScreen(applyBottomInsets = false, applySystemBars = true) {
                 StartScreenWithUpdate(appUpdateManager, demoMode = demoUpdateUi, debugEnabled = isDebugBuild)
             }
         }

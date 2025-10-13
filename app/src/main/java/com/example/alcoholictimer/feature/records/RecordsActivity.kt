@@ -28,7 +28,7 @@ class RecordsActivity : BaseActivity() {
         setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = density.fontScale * 0.9f)) {
-                BaseScreen(applyBottomInsets = false) {
+                BaseScreen {
                     RecordsScreen(
                         externalRefreshTrigger = refreshTrigger,
                         onNavigateToDetail = { record -> handleCardClick(record) },

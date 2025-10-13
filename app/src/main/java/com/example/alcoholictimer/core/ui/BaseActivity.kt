@@ -36,6 +36,7 @@ import com.example.alcoholictimer.feature.run.RunActivity
 import com.example.alcoholictimer.feature.settings.SettingsActivity
 import com.example.alcoholictimer.feature.start.StartActivity
 import kotlinx.coroutines.launch
+import androidx.core.view.WindowCompat
 
 abstract class BaseActivity : ComponentActivity() {
     private var nicknameState = mutableStateOf("")
@@ -47,6 +48,8 @@ abstract class BaseActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Edge-to-edge: 시스템 창 적합 해제 후 Compose 인셋만 사용
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         // Splash 설치 제거: 런처 액티비티(StartActivity)에서만 수행
         super.onCreate(savedInstanceState)
         nicknameState.value = getNickname()
@@ -205,7 +208,8 @@ abstract class BaseActivity : ComponentActivity() {
                                 )
                             }
                         }
-                    }
+                    },
+                    contentWindowInsets = WindowInsets(0, 0, 0, 0)
                 ) { paddingValues ->
                     Box(Modifier.fillMaxSize()) {
                         Box(
@@ -214,13 +218,12 @@ abstract class BaseActivity : ComponentActivity() {
                                 .background(Color.White)
                         )
                         val insetModifier = if (applyBottomInsets) {
-                            Modifier.windowInsetsPadding(
-                                WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
-                            )
-                        } else {
+                            // 하단 safe area는 전역 적용하지 않고, 수평만 적용
                             Modifier.windowInsetsPadding(
                                 WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
                             )
+                        } else {
+                            Modifier
                         }
                         Box(
                             modifier = Modifier

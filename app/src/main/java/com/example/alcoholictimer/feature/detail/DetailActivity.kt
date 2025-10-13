@@ -188,7 +188,11 @@ fun DetailScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White) // Run 화면과 동일: 단색 surface 배경
+                .background(Color.White)
+                .windowInsetsPadding(
+                    // 하단은 전역에서 처리하지 않음: 수평만 적용
+                    WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
+                )
         ) {
             Column(
                 modifier = Modifier
@@ -390,9 +394,8 @@ fun DetailScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
-                val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-                Spacer(modifier = Modifier.height(navBarBottom + 8.dp))
+                // 하단 여백 축소
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
             if (showDeleteDialog) {

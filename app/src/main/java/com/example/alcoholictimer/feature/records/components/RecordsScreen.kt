@@ -41,9 +41,6 @@ import androidx.compose.ui.unit.sp
 import kotlin.math.max
 import kotlin.math.min
 import com.example.alcoholictimer.core.ui.AppElevation
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.asPaddingValues
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -206,8 +203,6 @@ fun RecordsScreen(
         if (result.resultCode == Activity.RESULT_OK) { loadRecords() }
     }
 
-    val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-
     CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = LocalDensity.current.fontScale * fontScale)) {
         // StandardScreen 제거: BaseScreen이 이미 gradient 배경을 제공하므로 여기서는 투명 컨테이너만.
         // 추가로 좌우 기본 패딩(16dp) 적용.
@@ -218,7 +213,7 @@ fun RecordsScreen(
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = navBarBottom + 4.dp),
+                contentPadding = PaddingValues(bottom = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 item {
