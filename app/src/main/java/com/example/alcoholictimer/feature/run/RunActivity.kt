@@ -44,6 +44,7 @@ import com.example.alcoholictimer.feature.detail.DetailActivity
 import com.example.alcoholictimer.core.ui.AppElevation
 import androidx.compose.foundation.BorderStroke
 import com.example.alcoholictimer.core.util.AppUpdateManager
+import kotlinx.coroutines.launch
 
 class RunActivity : BaseActivity() {
 

@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -45,6 +46,9 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 
 class StartActivity : BaseActivity() {
     private lateinit var appUpdateManager: AppUpdateManager
@@ -131,6 +135,17 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager) {
     // 업데이트 중/다이얼로그 표시 중에는 Run 화면으로의 자동 이동을 보류
     val gateNavigation = isCheckingUpdate || showUpdateDialog
 
+    // 300ms 이상 걸릴 때만 오버레이 표시 (깜빡임 방지)
+    var showOverlay by remember { mutableStateOf(false) }
+    LaunchedEffect(isCheckingUpdate, showUpdateDialog) {
+        if (isCheckingUpdate && !showUpdateDialog) {
+            delay(300)
+            if (isCheckingUpdate && !showUpdateDialog) showOverlay = true
+        } else {
+            showOverlay = false
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         StartScreen(gateNavigation = gateNavigation)
 
@@ -156,6 +171,26 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager) {
             },
             canDismiss = !appUpdateManager.isMaxPostponeReached()
         )
+
+        // 로딩 오버레이 (다이얼로그 표시 중에는 숨김)
+        if (showOverlay) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6f))
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) { /* 터치 차단 */ },
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator()
+                    Spacer(Modifier.height(12.dp))
+                    Text(text = stringResource(id = R.string.checking_update), style = MaterialTheme.typography.bodyMedium, color = colorResource(id = R.color.color_hint_gray))
+                }
+            }
+        }
 
         // 스낵바
         SnackbarHost(
