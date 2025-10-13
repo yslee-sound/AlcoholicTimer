@@ -27,6 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -94,6 +96,10 @@ abstract class BaseActivity : ComponentActivity() {
             val scope = rememberCoroutineScope()
             val currentNickname by nicknameState
 
+            // 입력/키보드 컨트롤러
+            val focusManager = LocalFocusManager.current
+            val keyboardController = LocalSoftwareKeyboardController.current
+
             // 전역 입력 차단(설정 화면 제외)
             val enableGlobalOverlay = this !is SettingsActivity
             var globalInputLocked by remember { mutableStateOf(false) }
@@ -129,7 +135,10 @@ abstract class BaseActivity : ComponentActivity() {
             LaunchedEffect(drawerState) {
                 snapshotFlow { Triple(drawerState.isAnimationRunning, drawerState.currentValue, drawerState.targetValue) }
                     .collect { (isAnimating, current, target) ->
-                        if (isAnimating || current != DrawerValue.Closed || target != DrawerValue.Closed) {
+                        // 드로어 열리기 시작하면 즉시 포커스 해제 + 키보드 숨김 (제스처 오픈 포함)
+                        if (isAnimating || target != DrawerValue.Closed || current != DrawerValue.Closed) {
+                            focusManager.clearFocus(force = true)
+                            keyboardController?.hide()
                             drawerInputGuardActive = true
                         } else {
                             // 닫힘이 안정화된 직후에도 잠시 입력을 소비해 클릭 스루 방지
@@ -145,7 +154,11 @@ abstract class BaseActivity : ComponentActivity() {
                     drawerState = drawerState,
                     drawerContent = {
                         ModalDrawerSheet(
-                            modifier = Modifier.fillMaxWidth(0.8f).background(Color.White),
+                            modifier = Modifier
+                                .fillMaxWidth(0.8f)
+                                .statusBarsPadding()
+                                .navigationBarsPadding()
+                                .background(Color.White),
                             drawerContainerColor = Color.Transparent,
                             drawerShape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
                         ) {
@@ -226,8 +239,10 @@ abstract class BaseActivity : ComponentActivity() {
                                             ) {
                                                 IconButton(
                                                     onClick = {
-                                                        // 전역 입력 잠금 요청
+                                                        // 전역 입력 잠금 + 포커스/키보드 정리 후 드로어 동작
                                                         requestGlobalLock(300)
+                                                        focusManager.clearFocus(force = true)
+                                                        keyboardController?.hide()
                                                         if (showBackButton) {
                                                             onBackClick?.invoke() ?: run { this@BaseActivity.onBackPressedDispatcher.onBackPressed() }
                                                         } else {
