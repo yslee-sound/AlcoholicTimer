@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.ime
+import androidx.compose.material3.MaterialTheme
 
 private val MaxContentWidth: Dp = 600.dp
 
@@ -22,7 +23,8 @@ fun StandardScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            // 기존 Color.White -> 전역 배경 연회색으로 변경
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(LayoutConstants.SCREEN_HORIZONTAL_PADDING)
             .imePadding(),
         verticalArrangement = Arrangement.spacedBy(LayoutConstants.CARD_SPACING),
@@ -38,7 +40,8 @@ fun StandardScreenWithBottomButton(
 ) {
     val rootModifier = Modifier
         .fillMaxSize()
-        .background(Color.White)
+        // 기존 Color.White -> 전역 배경 연회색으로 변경
+        .background(MaterialTheme.colorScheme.surfaceVariant)
         .then(if (imePaddingEnabled) Modifier.imePadding() else Modifier)
 
     val navBarPaddingValues = WindowInsets.navigationBars.asPaddingValues()
@@ -82,11 +85,9 @@ fun StandardScreenWithBottomButton(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(
-                    start = LayoutConstants.BOTTOM_BUTTON_HORIZONTAL_PADDING,
-                    end = LayoutConstants.BOTTOM_BUTTON_HORIZONTAL_PADDING,
-                    bottom = effectiveBottom + 24.dp
-                )
+                // 수평 패딩과 하단 패딩을 분리 적용하여 타입 혼동 방지
+                .padding(horizontal = LayoutConstants.BOTTOM_BUTTON_HORIZONTAL_PADDING)
+                .padding(bottom = effectiveBottom + 24.dp)
                 .wrapContentWidth(Alignment.CenterHorizontally)
                 .widthIn(max = MaxContentWidth),
             contentAlignment = Alignment.Center

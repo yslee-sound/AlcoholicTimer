@@ -71,7 +71,8 @@ fun AllRecordsScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                // 기존 Color.White에서 전역 배경 연회색으로
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .windowInsetsPadding(
                     // 하단 여백 제거: 수평 인셋만 적용
                     WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)

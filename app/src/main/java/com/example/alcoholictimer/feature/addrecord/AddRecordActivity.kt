@@ -29,6 +29,7 @@ import com.example.alcoholictimer.core.model.SobrietyRecord
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.content.edit
+import com.example.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
 
 class AddRecordActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,7 +37,8 @@ class AddRecordActivity : ComponentActivity() {
         setContent {
             // 앱은 라이트 모드 고정 정책: 다크 모드 진입 방지
             AlcoholicTimerTheme(darkTheme = false) {
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
+                // 전역 배경을 연회색으로, 내부 주요 Surface는 흰색 유지
+                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceVariant) {
                     AddRecordScreen(
                         onSave = { record ->
                             val success = saveRecord(record)
@@ -182,7 +184,8 @@ private fun AddRecordScreen(
                 }
             }
         },
-        containerColor = MaterialTheme.colorScheme.surface,
+        // 전역 배경은 연회색으로 설정
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
         contentColor = MaterialTheme.colorScheme.onSurface
     ) { innerPadding ->
         Column(
@@ -190,7 +193,8 @@ private fun AddRecordScreen(
                 .padding(innerPadding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .background(MaterialTheme.colorScheme.surface)
+                // 화면 배경도 연회색 유지
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(horizontal = 16.dp)
         ) {
             Spacer(Modifier.height(8.dp))
@@ -302,58 +306,19 @@ private fun AddRecordScreen(
                 ) { Text("저장") }
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(24.dp))
         }
-    }
 
-    // 바텀시트: 목표 일수 선택
-    if (showTargetSheet) {
-        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        ModalBottomSheet(
-            onDismissRequest = { showTargetSheet = false },
-            sheetState = sheetState
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("목표 일수 선택", style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(8.dp))
-
-                // 가로 3휠(백/십/일의 자리)
-                TripleDigitNumberPicker(
-                    value = tempTarget,
-                    onValueChange = { v -> tempTarget = v.coerceIn(0, 999) },
-                    modifier = Modifier
-                        .padding(vertical = 8.dp)
-                ,
-                    unitLabel = "일"
-                )
-
-                Spacer(Modifier.height(8.dp))
-                Text("1~999일", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(Modifier.height(16.dp))
-
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    OutlinedButton(onClick = { showTargetSheet = false }, modifier = Modifier.weight(1f)) {
-                        Text("취소")
-                    }
-                    Button(
-                        onClick = {
-                            targetDays = tempTarget.coerceIn(1, 999).toString()
-                            showTargetSheet = false
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) { Text("완료") }
-                }
-            }
+        if (showTargetSheet) {
+            // 바텀시트는 핵심 대화형 요소이므로 흰색 Surface 유지
+            com.example.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet(
+                initialValue = tempTarget,
+                onConfirm = { picked: Int ->
+                    targetDays = picked.toString()
+                    showTargetSheet = false
+                },
+                onDismiss = { showTargetSheet = false }
+            )
         }
     }
 }

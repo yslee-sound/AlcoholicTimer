@@ -268,7 +268,8 @@ abstract class BaseActivity : ComponentActivity() {
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.White)
+                                    // 기존 Color.White에서 전역 배경색(연회색)으로 변경
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
                             )
                             val insetModifier = if (applyBottomInsets) {
                                 // 하단 safe area는 전역 적용하지 않고, 수평만 적용

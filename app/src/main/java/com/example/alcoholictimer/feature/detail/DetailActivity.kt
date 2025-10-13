@@ -188,7 +188,8 @@ fun DetailScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                // 전역 배경을 연회색으로 변경
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .windowInsetsPadding(
                     // 하단은 전역에서 처리하지 않음: 수평만 적용
                     WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
