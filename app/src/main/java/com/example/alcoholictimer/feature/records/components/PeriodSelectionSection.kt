@@ -19,6 +19,7 @@ import com.example.alcoholictimer.core.ui.AppElevation
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.foundation.BorderStroke
+import android.os.SystemClock
 
 @Composable
 fun PeriodSelectionSection(
@@ -29,6 +30,10 @@ fun PeriodSelectionSection(
     modifier: Modifier = Modifier
 ) {
     val periods = listOf("주", "월", "년", "전체")
+
+    // 초간단 디바운스: 너무 빠른 연속 탭 무시
+    var lastClickAt by remember { mutableStateOf(0L) }
+    val debounceMs = 250L
 
     Column(modifier = modifier.fillMaxWidth()) {
         Card(
@@ -50,7 +55,13 @@ fun PeriodSelectionSection(
                         modifier = Modifier
                             .weight(1f)
                             .padding(horizontal = 4.dp)
-                            .clickable { onPeriodSelected(period) },
+                            .clickable {
+                                val now = SystemClock.elapsedRealtime()
+                                if (now - lastClickAt >= debounceMs) {
+                                    lastClickAt = now
+                                    onPeriodSelected(period)
+                                }
+                            },
                         shape = RoundedCornerShape(8.dp),
                         color = if (isSelected) Color(0xFF74B9FF) else Color.Transparent
                     ) {
@@ -71,7 +82,13 @@ fun PeriodSelectionSection(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .then(if (selectedPeriod == "전체") Modifier else Modifier.clickable { onPeriodClick(selectedPeriod) }),
+                .then(if (selectedPeriod == "전체") Modifier else Modifier.clickable {
+                    val now = SystemClock.elapsedRealtime()
+                    if (now - lastClickAt >= debounceMs) {
+                        lastClickAt = now
+                        onPeriodClick(selectedPeriod)
+                    }
+                }),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),

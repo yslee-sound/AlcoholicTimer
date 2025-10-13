@@ -41,6 +41,9 @@ import androidx.compose.ui.unit.sp
 import kotlin.math.max
 import kotlin.math.min
 import com.example.alcoholictimer.core.ui.AppElevation
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,6 +65,10 @@ fun RecordsScreen(
     var showBottomSheet by remember { mutableStateOf(false) }
     var selectedDetailPeriod by remember { mutableStateOf("${currentYear}년 ${currentMonth}월") }
     var selectedWeekRange by remember { mutableStateOf<Pair<Long, Long>?>(null) }
+
+    // 초간단 전역 입력 잠금(투명 오버레이)
+    var isInteractionLocked by remember { mutableStateOf(false) }
+    var lockTick by remember { mutableIntStateOf(0) }
 
     val loadRecords = {
         isLoading = true
@@ -203,6 +210,14 @@ fun RecordsScreen(
         if (result.resultCode == Activity.RESULT_OK) { loadRecords() }
     }
 
+    // 잠금 해제 타이머
+    LaunchedEffect(lockTick) {
+        if (isInteractionLocked) {
+            delay(250)
+            isInteractionLocked = false
+        }
+    }
+
     CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = LocalDensity.current.fontScale * fontScale)) {
         // StandardScreen 제거: BaseScreen이 이미 gradient 배경을 제공하므로 여기서는 투명 컨테이너만.
         // 추가로 좌우 기본 패딩(16dp) 적용.
@@ -221,11 +236,19 @@ fun RecordsScreen(
                     PeriodSelectionSection(
                         selectedPeriod = selectedPeriod,
                         onPeriodSelected = { period: String ->
-                            selectedPeriod = period
-                            selectedDetailPeriod = ""
+                            if (!isInteractionLocked) {
+                                isInteractionLocked = true
+                                lockTick++
+                                selectedPeriod = period
+                                selectedDetailPeriod = ""
+                            }
                         },
                         onPeriodClick = { _ ->
-                            showBottomSheet = true
+                            if (!isInteractionLocked) {
+                                isInteractionLocked = true
+                                lockTick++
+                                showBottomSheet = true
+                            }
                         },
                         selectedDetailPeriod = selectedDetailPeriod
                     )
@@ -270,7 +293,7 @@ fun RecordsScreen(
                     }
                 }
                 if (!isLoading && latestRecords.isNotEmpty()) {
-                    items(latestRecords) { record ->
+                    items(items = latestRecords, key = { it.id }) { record ->
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -305,6 +328,19 @@ fun RecordsScreen(
                         }
                     }
                 }
+            }
+
+            // 투명 오버레이: 잠금 중에는 모든 하위 클릭 차단
+            if (isInteractionLocked) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            enabled = true,
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {}
+                )
             }
         }
     }
