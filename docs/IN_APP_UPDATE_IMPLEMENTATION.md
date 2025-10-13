@@ -55,7 +55,9 @@ fun completeFlexibleUpdate()
 - Material Design 3 스타일 업데이트 다이얼로그
 - 사용자 친화적 UI
 - 업데이트 내용 표시
-- "나중에" / "업데이트" 버튼
+- 버튼 구성: "나중에"(항상 표시, `enabled = canDismiss`), "업데이트"
+  - `canDismiss=false`(연기 불가)일 때는 버튼을 숨기지 않고 비활성화로 표기
+  - 다이얼로그 바깥 터치로 닫기(onDismissRequest)는 `canDismiss`가 true일 때만 동작
 
 ### 3. StartActivity 통합
 
@@ -68,6 +70,8 @@ fun completeFlexibleUpdate()
    - 백그라운드에서 다운로드
    - 다운로드 완료 후 스낵바 표시
    - "다시 시작" 버튼으로 설치 완료
+4. `canDismiss` 전달 규칙: `!appUpdateManager.isMaxPostponeReached() || demoActive`
+   - 연기 한도(3회) 초과 시 닫기 불가 + "나중에" 비활성화 표시
 
 ---
 
@@ -85,7 +89,7 @@ fun completeFlexibleUpdate()
 다이얼로그 표시
    ↓
 사용자 선택
-   ├─ "나중에" → 연기 카운트 증가 (최대 3회)
+   ├─ "나중에" → 연기 카운트 +1 (최대 3회) [버튼은 항상 표시, 필요 시 비활성화]
    └─ "업데이트" → 백그라운드 다운로드
                   ↓
               다운로드 완료
@@ -102,7 +106,7 @@ fun completeFlexibleUpdate()
 ### 업데이트 확인 조건
 
 1. **시간 제한**: 마지막 확인 후 24시간 경과
-2. **연기 제한**: 최대 3번까지 연기 가능
+2. **연기 제한**: 최대 3번까지 연기 가능(초과 시 닫기 불가 + "나중에" 비활성화)
 3. **Play Store 연동**: Google Play에 배포된 버전만 감지
 
 ---
@@ -209,16 +213,10 @@ Play Console → 해당 버전 → 출시 노트:
 ### ✅ 해야 할 것
 
 1. **24시간 제한 존중**
-   - 과도한 업데이트 알림 방지
-   - 사용자 경험 보호
-
 2. **명확한 안내**
-   - 왜 업데이트가 필요한지 설명
-   - 변경사항 간단히 표시
-
 3. **사용자 선택권**
-   - Flexible Update를 기본으로 사용
-   - "나중에" 옵션 제공
+   - Flexible 기본, Immediate는 긴급 시에만
+   - "나중에"는 항상 표시하고, 연기 불가 시 비활성화 처리
 
 ### ❌ 하지 말아야 할 것
 

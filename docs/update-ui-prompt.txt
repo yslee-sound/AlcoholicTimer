@@ -16,6 +16,7 @@
 - 확인이 300ms 이상 지속될 때만 반투명 오버레이(+Progress, “업데이트 확인 중…”)를 표시한다.
 - 업데이트가 있으면 커스텀 AppUpdateDialog를 띄우고, 사용자가 ‘업데이트’를 누르면 Flexible(미룰 수 있음) 또는 Immediate(최대 미루기 초과 시) 플로우를 시작한다.
 - Flexible 다운로드 완료 시 스낵바로 “다시 시작” 액션을 제공해 설치를 완료한다.
+- ‘나중에’ 버튼은 항상 표시하되, 연기 불가 상태(canDismiss=false)에서는 비활성화(enabled=false)로 처리한다(숨기지 않음).
 
 데모 모드:
 - BuildConfig.DEBUG일 때만 활성화.
@@ -38,15 +39,21 @@
 - 롱프레스: 제목 Text의 Modifier에 combinedClickable을 부착. Compose 버전에 맞춰 필수 파라미터(interactionSource, indication, onClick, onLongClick) 모두 지정.
 - demoActive일 때는 실제 checkForUpdate를 건너뛰고, 600ms 지연 후 가짜 버전으로 다이얼로그 표시. ‘업데이트’ 버튼은 실제 업데이트 시작 대신 스낵바만.
 
-3) 문자열 리소스 추가: `checking_update` = "업데이트 확인 중..."
+3) AppUpdateDialog 수정(중요)
+- ‘나중에’ 버튼을 항상 표시하고, 매개변수 canDismiss:Boolean을 받아 enabled = canDismiss로 연결한다.
+- 다이얼로그 바깥 터치(onDismissRequest)는 canDismiss==true일 때에만 닫히도록 유지한다.
+- 호출부(Start/홈 화면)에서는 canDismiss = !appUpdateManager.isMaxPostponeReached() || demoActive 를 전달한다.
 
-4) 기존 업데이트 호출부가 있다면 forceCheck=true를 모두 제거하고 forceCheck=false로 통일.
+4) 문자열 리소스 추가: `checking_update` = "업데이트 확인 중..."
 
-5) 규칙
+5) 기존 업데이트 호출부가 있다면 forceCheck=true를 모두 제거하고 forceCheck=false로 통일.
+
+6) 규칙
 - Release 빌드: 데모 트리거/인텐트 완전 무시.
 - Flexible/Immediate 선택 규칙: 최대 미루기 초과 시 Immediate 허용이면 Immediate, 아니면 Flexible.
+- ‘나중에’는 숨기지 않고 비활성화로 노출한다(정책에 따라 UX 투명성 확보).
 
-6) 변경 후 컴파일/런 스모크 확인.
+7) 변경 후 컴파일/런 스모크 확인.
 
 버전 표기 개선(필수) – 최소 단계 프롬프트
 - 목적: 다이얼로그에 availableVersionCode(예: 2025101001)가 아닌 사용자 버전명(예: 1.0.7) 표시
@@ -89,6 +96,7 @@ Step 3. 테스트
 
 산출물
 - 수정된 시작 화면 파일과 관련 import.
+- 수정된 `AppUpdateDialog`(‘나중에’ 버튼 항상 노출 + enabled 바인딩).
 - 새 문자열 리소스.
 - 간단 ADB 명령: adb shell am start -n <패키지>/<메인액티비티> -e demo_update_ui true - 테스트 시나리오 요약.
 

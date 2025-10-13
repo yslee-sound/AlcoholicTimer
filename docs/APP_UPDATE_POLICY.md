@@ -23,22 +23,26 @@
   - 다음 조건을 모두 만족할 때만 시도
     1. 사용자가 업데이트를 3회 연기(MAX_POSTPONE_COUNT=3)
     2. Google Play가 Immediate를 허용함(`AppUpdateInfo.isUpdateTypeAllowed(IMMEDIATE)`)
-  - 위 조건 중 2가 거짓이면 Flexible Update로 폴백(다이얼로그 닫기 불가 상태 유지)
+  - 위 조건 중 2가 거짓이면 Flexible Update로 폴백(닫기 불가 상태 유지)
 
 근거: Immediate는 Google Play에서 업데이트 우선도/신선도(staleness) 등으로 허용 여부를 판단합니다. 앱은 허용 시에만 요청합니다.
 
 ---
 
 ## 3) 사용자 프롬프트/연기 정책
-- 다이얼로그 구성: 버전/메시지 + [나중에] [업데이트]
+- 다이얼로그 구성: 버전/메시지 + "나중에" "업데이트"
+- ‘나중에’ 버튼 정책(중요):
+  - 버튼은 항상 노출한다.
+  - 연기 불가 상태(canDismiss=false)에서는 버튼을 "비활성화"로 표시한다(숨기지 않음).
+  - 다이얼로그 바깥 터치로 닫기는 canDismiss=false일 때 차단한다.
 - 연기(Postpone) 정책:
-  - 사용자가 [나중에] 선택 시 연기 횟수를 +1 저장(SharedPreferences)
-  - 연기 횟수 < 3: 다이얼로그는 닫기 가능
+  - 사용자가 "나중에" 선택 시 연기 횟수를 +1 저장(SharedPreferences)
+  - 연기 횟수 < 3: 다이얼로그는 닫기 가능(canDismiss=true)
   - 연기 횟수 ≥ 3: 다이얼로그는 닫기 불가(canDismiss=false)
     - Immediate 허용 시: 즉시 업데이트 요청
     - Immediate 미허용 시: Flexible 진행(닫기 불가)
 
-- 다운로드 완료 후 설치: 스낵바에 “다시 시작” 액션을 제공하고, 사용자가 눌렀을 때만 `completeFlexibleUpdate()`로 설치 완료(자동 재시작)
+- 다운로드 완료 후 설치: 스낵바에 "다시 시작" 액션을 제공하고, 사용자가 눌렀을 때만 `completeFlexibleUpdate()`로 설치 완료(자동 재시작)
 
 ---
 
@@ -84,9 +88,9 @@
 
 ## 9) QA 체크리스트(내부 테스트 트랙 권장)
 - [ ] 업데이트 있음 → 다이얼로그 노출 확인
-- [ ] [업데이트] 선택 시 Flexible 다운로드 진행 확인
-- [ ] 다운로드 완료 → 스낵바 노출 및 [다시 시작] 클릭 시 설치 완료 확인
-- [ ] [나중에] 3회 반복 → 4회차에 닫기 불가 확인
+- [ ] "업데이트" 선택 시 Flexible 다운로드 진행 확인
+- [ ] 다운로드 완료 → 스낵바 노출 및 "다시 시작" 클릭 시 설치 완료 확인
+- [ ] "나중에" 3회 반복 → 4회차에 닫기 불가 확인(버튼은 비활성화로 표기)
 - [ ] Immediate 허용 시(Play에서 설정): 4회차에 Immediate 플로우 진입 확인
 - [ ] Immediate 미허용 시: 닫기 불가 Flexible로 폴백 확인
 - [ ] 리스너 등록/해제 누수 없음(화면 이동/종료 시 로그 확인)
@@ -119,4 +123,3 @@
 - 구현 상세: `docs/IN_APP_UPDATE_IMPLEMENTATION.md`
 - 정책 리뷰: `docs/IN_APP_UPDATE_POLICY_REVIEW.md`
 - 테스터 배포: `docs/TESTER_ROLLOUT_GUIDE.md`
-
