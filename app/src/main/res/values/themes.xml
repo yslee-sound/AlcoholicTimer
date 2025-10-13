@@ -7,19 +7,19 @@
         <!-- 상태바 배경은 흰색 (라이트 테마에 맞춤) -->
         <item name="android:statusBarColor">@android:color/white</item>
 
-        <!-- 필요 시 상태바/내비바 색 등 시스템 속성 커스터마이즈 가능 -->
-        <item name="android:windowBackground">@android:color/white</item>
+        <!-- Splash와 동일한 배경을 유지하여 전환 시 깜빡임 제거 -->
+        <item name="android:windowBackground">@drawable/splash_screen</item>
         <!-- 일부 기기에서 상태바 아래 얇은 선(오버레이) 제거 -->
         <item name="android:windowContentOverlay">@null</item>
     </style>
 
     <!-- 스플래시 테마(Pre-Android 12 + backport용) -->
     <style name="Theme.AlcoholicTimer.Splash" parent="@android:style/Theme.DeviceDefault.NoActionBar">
-        <!-- 즉시 흰 화면 보장 -->
-        <item name="android:windowBackground">@android:color/white</item>
+        <!-- 윈도우 배경 자체에 아이콘을 그려 백포트 미동작 시에도 표시 보장 -->
+        <item name="android:windowBackground">@drawable/splash_screen</item>
         <!-- backport가 읽는 속성들 -->
         <item name="windowSplashScreenBackground">@android:color/white</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground_inset</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_app_icon</item>
         <item name="windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
         <item name="postSplashScreenTheme">@style/Theme.AlcoholicTimer</item>
         <!-- API 31 미만에서 호환 레이아웃이 요구하는 아이콘 크기 속성(필수) -->

@@ -3,8 +3,13 @@ package com.example.alcoholictimer.feature.start
 import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.os.Bundle
+import android.os.SystemClock
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,6 +28,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -59,7 +65,12 @@ class StartActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // 런처 액티비티에서만 스플래시 설치
-        installSplashScreen()
+        val splash = installSplashScreen()
+        // 스플래시 최소 표시 시간 (예: 800ms)
+        val splashStart = SystemClock.uptimeMillis()
+        val minShowMillis = 800L
+        splash.setKeepOnScreenCondition { Build.VERSION.SDK_INT >= 31 && SystemClock.uptimeMillis() - splashStart < minShowMillis }
+
         super.onCreate(savedInstanceState)
         Constants.initializeUserSettings(this)
         Constants.ensureInstallMarkerAndResetIfReinstalled(this)
@@ -80,11 +91,35 @@ class StartActivity : BaseActivity() {
         // 데모 모드 플래그: DEBUG에서만 인텐트 값 반영, RELEASE에서는 항상 false
         val demoUpdateUi = if (isDebugBuild) intent.getBooleanExtra("demo_update_ui", false) else false
 
-        setContent {
-            // 상단 시스템바 패딩은 적용, 하단은 개별 레이아웃에서 처리
-            BaseScreen(applyBottomInsets = false, applySystemBars = true) {
-                StartScreenWithUpdate(appUpdateManager, demoMode = demoUpdateUi, debugEnabled = isDebugBuild)
+        val launchContent = {
+            // 남은 최소 오버레이 시간 계산 (API<31에서 setContent 지연 후엔 0일 수 있음)
+            val elapsed = SystemClock.uptimeMillis() - splashStart
+            val initialRemain = (minShowMillis - elapsed).coerceAtLeast(0L)
+            setContent {
+                // 상단 시스템바 패딩은 적용, 하단은 개별 레이아웃에서 처리
+                BaseScreen(applyBottomInsets = false, applySystemBars = true) {
+                    StartScreenWithUpdate(
+                        appUpdateManager,
+                        demoMode = demoUpdateUi,
+                        debugEnabled = isDebugBuild,
+                        initialMinRemainMillis = initialRemain,
+                        onSplashFinished = {
+                            // 스플래시 오버레이 종료 시, 창 배경(스플래시 레이어)을 제거하여 잔상/깜빡임 방지
+                            window.setBackgroundDrawable(null)
+                        }
+                    )
+                }
             }
+        }
+
+        if (Build.VERSION.SDK_INT < 31) {
+            // API 31 미만: 첫 렌더를 지연하여 windowBackground가 충분히 노출되도록 함
+            val elapsed = SystemClock.uptimeMillis() - splashStart
+            val remain = (minShowMillis - elapsed).coerceAtLeast(0L)
+            Handler(Looper.getMainLooper()).postDelayed({ launchContent() }, remain)
+        } else {
+            // API 31 이상: 시스템 SplashScreen이 유지 조건으로 제어됨
+            launchContent()
         }
     }
 
@@ -93,9 +128,24 @@ class StartActivity : BaseActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager, demoMode: Boolean = false, debugEnabled: Boolean = false) {
+fun StartScreenWithUpdate(
+    appUpdateManager: AppUpdateManager,
+    demoMode: Boolean = false,
+    debugEnabled: Boolean = false,
+    initialMinRemainMillis: Long = 0L,
+    onSplashFinished: () -> Unit = {}
+) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // 최소 오버레이 유지 상태: 초기 남은 시간이 있으면 true로 시작, 남은 시간 후 false로 전환
+    var keepMinOverlay by remember { mutableStateOf(initialMinRemainMillis > 0L) }
+    LaunchedEffect(initialMinRemainMillis) {
+        if (initialMinRemainMillis > 0L) {
+            delay(initialMinRemainMillis)
+            keepMinOverlay = false
+        }
+    }
 
     // 업데이트 다이얼로그/체크 상태
     var showUpdateDialog by remember { mutableStateOf(false) }
@@ -165,69 +215,35 @@ fun StartScreenWithUpdate(appUpdateManager: AppUpdateManager, demoMode: Boolean 
     // 업데이트 중/다이얼로그 표시 중에는 Run 화면으로의 자동 이동을 보류
     val gateNavigation = isCheckingUpdate || showUpdateDialog
 
-    // 300ms 이상 걸릴 때만 오버레이 표시 (깜빡임 방지)
-    var showOverlay by remember { mutableStateOf(false) }
-    LaunchedEffect(isCheckingUpdate, showUpdateDialog) {
-        if (isCheckingUpdate && !showUpdateDialog) {
-            delay(300)
-            if (isCheckingUpdate && !showUpdateDialog) showOverlay = true
-        } else {
-            showOverlay = false
-        }
-    }
-
     Box(modifier = Modifier.fillMaxSize()) {
         StartScreen(
             gateNavigation = gateNavigation,
             onDebugLongPress = if (demoEnabled) ({ triggerDemo() }) else null
         )
 
-        // 업데이트 다이얼로그
-        AppUpdateDialog(
-            isVisible = showUpdateDialog,
-            versionName = availableVersionName,
-            updateMessage = "새로운 기능과 개선사항이 포함되어 있습니다.",
-            onUpdateClick = {
-                if (demoActive) {
-                    showUpdateDialog = false
-                    scope.launch { snackbarHostState.showSnackbar("데모: 업데이트 버튼 클릭") }
-                } else {
-                    updateInfo?.let { info ->
-                        val immediateAllowed = info.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
-                        if (appUpdateManager.isMaxPostponeReached() && immediateAllowed) {
-                            appUpdateManager.startImmediateUpdate(info)
-                        } else {
-                            appUpdateManager.startFlexibleUpdate(info)
-                        }
-                    }
-                    showUpdateDialog = false
-                }
-            },
-            onDismiss = {
-                if (demoActive) {
-                    showUpdateDialog = false
-                } else {
-                    appUpdateManager.markUserPostpone()
-                    showUpdateDialog = false
-                }
-            },
-            canDismiss = !appUpdateManager.isMaxPostponeReached() || demoActive
-        )
+        // 스플래시 오버레이: 최소 유지 시간이 남아있거나, 업데이트 체크 중인 동안 표시 (다이얼로그 표시 시에는 숨김)
+        val showSplashOverlay = (keepMinOverlay || isCheckingUpdate) && !showUpdateDialog
 
-        // 로딩 오버레이 (다이얼로그 표시 중에는 숨김)
-        if (showOverlay) {
+        // 오버레이가 사라지는 시점에 한 번 콜백 호출(창 배경 제거 등)
+        LaunchedEffect(showSplashOverlay) {
+            if (!showSplashOverlay) {
+                onSplashFinished()
+            }
+        }
+
+        if (showSplashOverlay) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6f))
+                    .background(Color.White)
                     .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { },
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator()
-                    Spacer(Modifier.height(12.dp))
-                    Text(text = stringResource(id = R.string.checking_update), style = MaterialTheme.typography.bodyMedium, color = colorResource(id = R.color.color_hint_gray))
-                }
+                Image(
+                    painter = painterResource(id = R.drawable.splash_app_icon),
+                    contentDescription = null,
+                    modifier = Modifier.size(240.dp)
+                )
             }
         }
 
@@ -274,7 +290,7 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD), // down from CARD_HIGH
+                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
                 border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
             ) {
                 Column(
