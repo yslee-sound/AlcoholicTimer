@@ -65,6 +65,28 @@ Step 3. 테스트
 - adb shell am start -n <패키지>/<메인액티비티> -e demo_update_ui true
 - 다이얼로그에 "버전 1.0.x" 표기 확인(코드값 노출 시 매핑 누락)
 
+SDK 30 호환 패치(필수) – 최소 단계 프롬프트
+- 목적: Android 11(API 30) 기기에서 In‑App Update 사용 시 크래시 방지
+
+Step 1. AndroidManifest 패키지 가시성 선언
+- `<queries><package android:name="com.android.vending"/></queries>` 추가
+
+Step 1-b. Pre‑Android 12 스플래시 테마 보강
+- `Theme.AlcoholicTimer.Splash`에 `<item name="splashScreenIconSize">240dp</item>` 추가(값 제안: 240dp)
+- 대상: values/themes.xml, values-v23/themes.xml, values-v29/themes.xml
+
+Step 1-c. 스플래시 설치는 런처 액티비티에서만
+- 공통 베이스에서 `installSplashScreen()` 호출 금지
+- 런처 액티비티 onCreate 초반에서만 `installSplashScreen()` 호출
+- 런처 액티비티에만 스플래시 테마 적용, 나머지는 일반 테마
+
+Step 2. Play Store 존재 가드(AppUpdateManager)
+- 체크 전 com.android.vending 존재 확인 → 없으면 onNoUpdate()
+- 모든 예외는 onNoUpdate()로 다운그레이드 처리
+
+Step 3. 테스트
+- Play 존재 확인 후 SDK 30 실기에서 런처/내부 화면 전환 시 크래시 없음 확인(Play 미탑재 기기는 업데이트 다이얼로그 미노출이 정상)
+
 산출물
 - 수정된 시작 화면 파일과 관련 import.
 - 새 문자열 리소스.

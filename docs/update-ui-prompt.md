@@ -76,13 +76,18 @@ Step 1-b. Pre‑Android 12 스플래시 테마 보강
   - `<item name="splashScreenIconSize">240dp</item>`
 - 대상 파일: `values/themes.xml`, `values-v23/themes.xml`, `values-v29/themes.xml`
 
+Step 1-c. 스플래시 설치는 런처 액티비티에서만
+- 공통 베이스 액티비티에서 `installSplashScreen()` 호출 금지
+- 런처 액티비티의 `onCreate()` 초반에서만 `installSplashScreen()` 호출
+- Manifest에서 런처 액티비티에만 스플래시 테마 적용(`Theme.AlcoholicTimer.Splash`), 다른 액티비티는 일반 테마
+
 Step 2. Play Store 존재 가드 추가(AppUpdateManager)
 - 체크 전 `hasPlayStore()`로 `com.android.vending` 존재 확인 → 없으면 `onNoUpdate()`로 스킵
 - 모든 예외는 크래시 대신 `onNoUpdate()`로 다운그레이드 처리
 
 Step 3. 테스트
 - Play 존재 확인: `adb shell pm list packages | grep com.android.vending`
-- 앱 실행: SDK 30 기기에서 첫 화면 로드 시 크래시가 없어야 함(Play 미탑재 기기는 업데이트 다이얼로그 미노출이 정상)
+- 앱 실행: SDK 30 기기에서 런처/내부 화면 전환 시 크래시가 없어야 함(Play 미탑재 기기는 업데이트 다이얼로그 미노출이 정상)
 
 ### 산출물 
 - 수정된 시작 화면 파일과 관련 import. 
