@@ -61,174 +61,86 @@
    - 다크/라이트 모드 모두 확인(배경은 항상 흰색으로 유지되는지).
    - 전환 시 로고 잔상/깜빡임/두 번 보임 현상 여부 확인.
 
-트러블슈팅
-- 31+에서 본화면 직전 로고가 잠깐 다시 보임: 메인 테마 배경을 `@android:color/white`로 유지하고, 31+에서는 Compose 오버레이를 비활성화했는지 확인.
-- 아이콘 원형 컨테이너 잘림: 인셋 24dp → 28~32dp로 확대.
-- 프레임 깜빡임: 오버레이 종료 시점에 `window.setBackgroundDrawable(null)` 호출 누락 여부 확인.
+## 내부 내비게이션에서 스플래시 생략(API 30-)
+문제: 드로어 등 내부 라우팅으로 런처(Start) 화면을 열 때, API 30-에서는 테마의 `windowBackground`(스플래시 레이어)가 다시 보여 깜빡임처럼 보일 수 있습니다.
 
-애니메이션/시간 파라미터
-- 최소 표시시간: 600~1200ms 권장(기본 800ms)
-- 오버레이 enter/exit: 220ms, scale 0.98 → 1.02(200~300ms로 조정 가능)
-- 시스템 스플래시 exit: 220ms, scale 1.05(1.02~1.08로 조정 가능)
-
-예시 코드 모음(필요 부분만 발췌)
-
+해결 방법(권장 패턴)
+1) 내부 이동 시 인텐트에 플래그를 추가합니다.
 ```kotlin
-// StartActivity.kt (핵심 로직 요약)
-class StartActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        val splash = androidx.core.splashscreen.SplashScreen.installSplashScreen(this)
-        val splashStart = android.os.SystemClock.uptimeMillis()
-        val minShowMillis = 800L
-        if (android.os.Build.VERSION.SDK_INT >= 31) {
-            splash.setOnExitAnimationListener { provider ->
-                provider.iconView.animate()
-                    .alpha(0f)
-                    .scaleX(1.05f)
-                    .scaleY(1.05f)
-                    .setDuration(220)
-                    .withEndAction { provider.remove() }
-                    .start()
-            }
-            splash.setKeepOnScreenCondition {
-                android.os.SystemClock.uptimeMillis() - splashStart < minShowMillis
-            }
-        }
-        super.onCreate(savedInstanceState)
+// Drawer 등에서 StartActivity로 이동
+startActivity(Intent(this, StartActivity::class.java).apply {
+    putExtra("skip_splash", true)
+})
+overridePendingTransition(0, 0)
+```
+2) StartActivity에서 플래그를 읽어 API 31 미만일 때 스플래시 지연/오버레이를 건너뜁니다.
+```kotlin
+val skipSplash = intent.getBooleanExtra("skip_splash", false)
+val usesComposeOverlay = Build.VERSION.SDK_INT < 31 && !skipSplash
+val initialRemain = if (skipSplash) 0L else computedRemain
 
-        val launchContent = {
-            val elapsed = android.os.SystemClock.uptimeMillis() - splashStart
-            val initialRemain = (minShowMillis - elapsed).coerceAtLeast(0L)
-            val usesComposeOverlay = android.os.Build.VERSION.SDK_INT < 31
-            setContent {
-                val keepMin = remember { mutableStateOf(initialRemain > 0L) }
-                LaunchedEffect(initialRemain) {
-                    if (initialRemain > 0L) kotlinx.coroutines.delay(initialRemain); keepMin.value = false
-                }
-                val isChecking = remember { mutableStateOf(true) }
-                LaunchedEffect(Unit) { kotlinx.coroutines.delay(400); isChecking.value = false }
+if (Build.VERSION.SDK_INT < 31) {
+    if (skipSplash) {
+        // 테마 windowBackground(스플래시 레이어)를 즉시 덮고 첫 프레임 직후 제거
+        window.setBackgroundDrawable(ColorDrawable(Color.WHITE))
+        launchContent()
+        window.decorView.post { window.setBackgroundDrawable(null) }
+    } else {
+        Handler(Looper.getMainLooper()).postDelayed({ launchContent() }, remain)
+    }
+} else {
+    launchContent()
+}
+```
+효과: 콜드 스타트에서는 스플래시가 정상 노출되고, 내부 네비게이션에서는 스플래시가 전혀 보이지 않습니다.
 
-                val showOverlay = usesComposeOverlay && (keepMin.value || isChecking.value)
-                LaunchedEffect(showOverlay) {
-                    if (!showOverlay) window.setBackgroundDrawable(null)
-                }
+## Start 화면 워터마크(배경 장식) 패턴
+목적: Start(금주 설정) 화면의 빈 영역에 앱 정체성을 드러내는 워터마크(연한 아이콘)를 표시합니다.
 
-                androidx.compose.material3.MaterialTheme {
-                    Box(Modifier.fillMaxSize()) {
-                        // 실제 화면 UI
+레이어링 원칙
+- “배경 색상” 위, “실제 콘텐츠” 아래 레이어에 그려야 합니다. 공용 스크린 컴포저블이 배경을 덮어씌운다면, 별도의 장식 슬롯을 제공하세요.
 
-                        // 스플래시 오버레이(30-): 페이드/스케일 연출
-                        androidx.compose.animation.AnimatedVisibility(
-                            visible = showOverlay,
-                            enter = androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(220)) +
-                                    androidx.compose.animation.scaleIn(initialScale = 0.98f, animationSpec = androidx.compose.animation.core.tween(220)),
-                            exit = androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(220)) +
-                                   androidx.compose.animation.scaleOut(targetScale = 1.02f, animationSpec = androidx.compose.animation.core.tween(220))
-                        ) {
-                            Box(
-                                Modifier
-                                    .fillMaxSize()
-                                    .background(androidx.compose.ui.graphics.Color.White),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                androidx.compose.foundation.Image(
-                                    painter = androidx.compose.ui.res.painterResource(id = R.drawable.splash_app_icon),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(240.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (android.os.Build.VERSION.SDK_INT < 31) {
-            val remain = (minShowMillis - (android.os.SystemClock.uptimeMillis() - splashStart)).coerceAtLeast(0L)
-            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({ launchContent() }, remain)
-        } else {
-            launchContent()
-        }
+예시 A: 공용 스크린에 슬롯 추가
+```kotlin
+@Composable
+fun StandardScreenWithBottomButton(
+    topContent: @Composable ColumnScope.() -> Unit,
+    bottomButton: @Composable () -> Unit,
+    backgroundDecoration: @Composable BoxScope.() -> Unit = {}
+) {
+    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant)) {
+        backgroundDecoration() // 배경 위, 콘텐츠 아래
+        // ... top/bottom 레이아웃 ...
     }
 }
 ```
-
-```xml
-<!-- values/themes.xml (31 미만 공통) -->
-<resources>
-    <style name="Theme.YourApp" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="android:windowBackground">@drawable/splash_screen</item>
-    </style>
-
-    <!-- 백포트 호환 목적의 스플래시 테마 정의(선택) -->
-    <style name="Theme.YourApp.Splash" parent="Theme.SplashScreen">
-        <item name="postSplashScreenTheme">@style/Theme.YourApp</item>
-        <item name="android:windowSplashScreenBackground">@android:color/white</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_app_icon</item>
-    </style>
-</resources>
+Start 화면에서 슬롯 사용
+```kotlin
+StandardScreenWithBottomButton(
+    topContent = { /* 카드/입력 UI */ },
+    bottomButton = { /* 시작 버튼 */ },
+    backgroundDecoration = {
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+            val base = if (maxWidth < maxHeight) maxWidth else maxHeight
+            val iconSize = base * 0.70f // 기본 70% (이식 시 0.35~0.80 권장)
+            Image(
+                painter = painterResource(R.drawable.splash_app_icon),
+                contentDescription = null,
+                modifier = Modifier.align(Alignment.Center).size(iconSize).alpha(0.12f)
+            )
+        }
+    }
+)
 ```
+예시 B: 슬롯이 없다면 레이어 순서 보장
+- 최상단 Box에서: 배경 색상 → 워터마크 → 실제 콘텐츠 순으로 배치.
 
-```xml
-<!-- values-v31/themes.xml (31+) -->
-<resources>
-    <style name="Theme.YourApp" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="android:windowBackground">@android:color/white</item>
-    </style>
+튜닝 범위(권장)
+- 크기 비율: 0.35f ~ 0.80f (기본 0.70f)
+- 투명도(alpha): 0.08 ~ 0.16 (기본 0.12)
+- 위치: 중앙 고정(필요 시 `offset(y = 24.dp)` 등으로 미세 조정)
 
-    <style name="Theme.YourApp.Splash" parent="Theme.SplashScreen">
-        <item name="postSplashScreenTheme">@style/Theme.YourApp</item>
-        <item name="android:windowSplashScreenBackground">@android:color/white</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_app_icon_inset</item>
-        <item name="android:windowSplashScreenAnimationDuration">220</item>
-    </style>
-</resources>
-```
-
-```xml
-<!-- drawable/splash_screen.xml -->
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@android:color/white" />
-    <item>
-        <inset
-            android:insetLeft="0dp"
-            android:insetTop="0dp"
-            android:insetRight="0dp"
-            android:insetBottom="0dp">
-            <bitmap
-                android:src="@drawable/splash_app_icon"
-                android:gravity="center"
-                android:antialias="true"
-                android:filter="true"
-                android:dither="true" />
-        </inset>
-    </item>
-</layer-list>
-```
-
-```xml
-<!-- drawable-anydpi-v26/splash_app_icon_inset.xml (31+ 인셋) -->
-<inset xmlns:android="http://schemas.android.com/apk/res/android"
-    android:insetLeft="24dp"
-    android:insetTop="24dp"
-    android:insetRight="24dp"
-    android:insetBottom="24dp">
-    <bitmap android:src="@drawable/splash_app_icon" />
-</inset>
-```
-
-검증 체크리스트(요약)
-- API 30/31/34+에서 콜드 스타트 시:
-  - 아이콘이 시작부터 끝까지 끊김 없이 보이나?
-  - 31+: 시스템 스플래시 종료 시 페이드/스케일 아웃이 220ms로 자연스러운가?
-  - 30-: Compose 오버레이 페이드/스케일 인/아웃이 220ms로 동작하는가?
-  - 오버레이 종료 후 잔상/깜빡임이 없는가(`window.setBackgroundDrawable(null)` 호출 확인)?
-- 다크/라이트 모드: 배경이 항상 흰색으로 유지되는가?
-- 특정 기기(노치, 라운드, 고주사율)에서 잘림/깜빡임 없는가?
-
-부록: 조절 포인트
-- 최소 표시시간: 800ms(앱 특성에 맞게 600~1200ms)
-- 오버레이 애니메이션: 180~300ms, scale 0.98/1.02
-- 시스템 스플래시 exit: 200~300ms, scale 1.02~1.08
-- 인셋: 24dp → 28~32dp(원형 잘림 발생 시)
-
+## 변경 이력(요약)
+- 2025-10-14
+  - 내부 네비게이션(API 30-) 스플래시 재등장 방지: `skip_splash` 플래그 도입, Start에서 지연/오버레이 생략 + 배경 즉시 덮기/첫 프레임 이후 제거.
+  - Start 화면 워터마크 추가: 공용 스크린에 `backgroundDecoration` 슬롯 추가, 기본 크기 70%, alpha 0.12.

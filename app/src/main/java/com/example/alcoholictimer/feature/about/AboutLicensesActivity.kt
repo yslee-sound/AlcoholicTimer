@@ -42,8 +42,9 @@ class AboutLicensesActivity : BaseActivity() {
 @Composable
 private fun AboutLicensesScreen() {
     val context = LocalContext.current
-    val ccByUrl = "https://creativecommons.org/licenses/by/4.0/"
-    val sourceUrl = "https://www.figma.com/files/team/1555631729927297611/resources/community/file/1149764730850773390?fuid=1555631727933133748"
+    val ccByUrl = stringResource(R.string.about_value_license_cc_by_url)
+    // 출처 URL을 문자열 리소스에서 로드(하드코딩 제거)
+    val sourceUrl = stringResource(R.string.about_value_source_url)
 
     Column(
         modifier = Modifier

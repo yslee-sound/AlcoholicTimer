@@ -333,7 +333,15 @@ abstract class BaseActivity : ComponentActivity() {
                 if (startTime > 0) {
                     if (this !is RunActivity) navigateToActivity(RunActivity::class.java)
                 } else {
-                    if (this !is StartActivity) navigateToActivity(StartActivity::class.java)
+                    if (this !is StartActivity) {
+                        // 드로어 내비게이션: StartActivity 진입 시 스플래시 생략 플래그 전달(API<31)
+                        val intent = Intent(this, StartActivity::class.java).apply {
+                            putExtra("skip_splash", true)
+                        }
+                        startActivity(intent)
+                        @Suppress("DEPRECATION")
+                        overridePendingTransition(0, 0)
+                    }
                 }
             }
             "기록" -> if (this !is com.example.alcoholictimer.feature.records.RecordsActivity) {

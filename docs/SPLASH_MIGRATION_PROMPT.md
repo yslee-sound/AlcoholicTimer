@@ -30,6 +30,17 @@
    - 최소 표시시간 800ms, 애니메이션 220ms.
    - 필요 시 인셋 28~32dp, 애니메이션 200~300ms로 조정.
 
+5) 내부 네비게이션(API 30-): 스플래시 생략
+   - 드로어 등 내부 라우팅으로 Start 화면을 열 때는 인텐트에 `skip_splash=true`를 넣어줘.
+   - StartActivity에서는 API<31일 때 `skip_splash`가 true면 지연과 Compose 오버레이를 모두 건너뛰고,
+     `window.setBackgroundDrawable(ColorDrawable(Color.WHITE))`로 테마 스플래시 레이어를 덮은 후,
+     첫 프레임 직후 `window.setBackgroundDrawable(null)`로 제거해 깜빡임을 방지해줘.
+
+6) Start 화면 워터마크(배경 장식)
+   - 공용 스크린에 `backgroundDecoration` 슬롯을 추가하거나, 레이어 순서를 배경→워터마크→콘텐츠로 보장해줘.
+   - 워터마크는 `@drawable/splash_app_icon`을 중앙에 배치하고, 화면 짧은 변의 70% 크기(0.70f), alpha 0.12로 표시해줘.
+   - 필요 시 크기 0.35f~0.80f, alpha 0.08~0.16 범위로 조절 가능.
+
 내 프로젝트 테마 이름은 `Theme.YourApp`, 스플래시 테마는 `Theme.YourApp.Splash`, 아이콘은 `@drawable/splash_app_icon`이야.
 해당 파일들('StartActivity.kt', 'values*/themes.xml', 'drawable/splash_screen.xml', 'drawable-anydpi-v26/splash_app_icon_inset.xml')을 생성/수정해줘.
 
@@ -44,5 +55,5 @@
 적용 팁
 - 31+에서는 Compose 오버레이를 사용하지 않습니다(시스템 스플래시만 사용).
 - 30-에서는 windowBackground + Compose 오버레이 조합으로 최소 표시시간과 전환 애니메이션을 보장합니다.
-- 오버레이 종료 직후 반드시 `window.setBackgroundDrawable(null)`를 호출해 잔상을 제거하세요.
-
+- 내부 네비게이션(API 30-)에서는 `skip_splash` 플래그로 지연/오버레이를 생략하고, 첫 프레임 직후 `window.setBackgroundDrawable(null)`를 호출해 잔상을 제거하세요.
+- Start 화면 워터마크는 `backgroundDecoration` 슬롯을 통해 배경 위/콘텐츠 아래 레이어에서 그리세요.

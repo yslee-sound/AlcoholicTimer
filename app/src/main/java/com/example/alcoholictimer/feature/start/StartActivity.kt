@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -42,6 +43,7 @@ import com.example.alcoholictimer.core.ui.StandardScreenWithBottomButton
 import com.example.alcoholictimer.core.util.AppUpdateManager
 import com.example.alcoholictimer.core.util.Constants
 import com.example.alcoholictimer.feature.run.RunActivity
+import com.google.android.play.core.appupdate.AppUpdateInfo
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -61,6 +63,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.ui.draw.alpha
+import com.example.alcoholictimer.core.ui.components.AppUpdateDialog
+import androidx.core.graphics.drawable.toDrawable
+import android.graphics.Color as AndroidColor
 
 class StartActivity : BaseActivity() {
     private lateinit var appUpdateManager: AppUpdateManager
@@ -90,6 +95,9 @@ class StartActivity : BaseActivity() {
         Constants.initializeUserSettings(this)
         Constants.ensureInstallMarkerAndResetIfReinstalled(this)
 
+        // 드로어 내비게이션 시 스플래시 생략 플래그
+        val skipSplash = intent.getBooleanExtra("skip_splash", false)
+
         // 상태바/내비게이션 바 라이트 아이콘 적용 및 표시
         val controller = WindowInsetsControllerCompat(window, window.decorView)
         controller.isAppearanceLightStatusBars = true
@@ -110,7 +118,8 @@ class StartActivity : BaseActivity() {
             // 남은 최소 오버레이 시간 계산 (API<31에서 setContent 지연 후엔 0일 수 있음)
             val elapsed = SystemClock.uptimeMillis() - splashStart
             val initialRemain = (minShowMillis - elapsed).coerceAtLeast(0L)
-            val usesComposeOverlay = Build.VERSION.SDK_INT < 31
+            // API 30 이하에서 오버레이는 비활성화하여 이중 스플래시 방지
+            val usesComposeOverlay = false
             setContent {
                 // 상단 시스템바 패딩은 적용, 하단은 개별 레이아웃에서 처리
                 BaseScreen(applyBottomInsets = false, applySystemBars = true) {
@@ -118,7 +127,7 @@ class StartActivity : BaseActivity() {
                         appUpdateManager,
                         demoMode = demoUpdateUi,
                         debugEnabled = isDebugBuild,
-                        initialMinRemainMillis = initialRemain,
+                        initialMinRemainMillis = if (skipSplash) 0L else initialRemain,
                         usesComposeOverlay = usesComposeOverlay,
                         onSplashFinished = {
                             // 스플래시 오버레이 종료 시, 창 배경(스플래시 레이어)을 제거하여 잔상/깜빡임 방지
@@ -127,13 +136,17 @@ class StartActivity : BaseActivity() {
                     )
                 }
             }
+            // 오버레이를 쓰지 않는 내부 네비게이션의 경우, 첫 프레임 직후 배경을 제거
+            if (skipSplash && Build.VERSION.SDK_INT < 31) {
+                window.decorView.post { window.setBackgroundDrawable(null) }
+            }
         }
 
         if (Build.VERSION.SDK_INT < 31) {
-            // API 31 미만: 첫 렌더를 지연하여 windowBackground가 충분히 노출되도록 함
-            val elapsed = SystemClock.uptimeMillis() - splashStart
-            val remain = (minShowMillis - elapsed).coerceAtLeast(0L)
-            Handler(Looper.getMainLooper()).postDelayed({ launchContent() }, remain)
+            // API 30 이하: 테마 스플래시 아이콘 → 즉시 화이트 배경으로 덮고 setContent, 첫 프레임 이후 배경 제거
+            window.setBackgroundDrawable(AndroidColor.WHITE.toDrawable())
+            launchContent()
+            window.decorView.post { window.setBackgroundDrawable(null) }
         } else {
             // API 31 이상: 시스템 SplashScreen이 유지 조건으로 제어됨
             launchContent()
@@ -156,6 +169,10 @@ fun StartScreenWithUpdate(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    // Composable 컨텍스트에서 미리 문자열 평가
+    val restartPromptText = stringResource(R.string.update_downloaded_restart_prompt)
+    val actionRestartText = stringResource(R.string.action_restart)
+
     // 최소 오버레이 유지 상태: 초기 남은 시간이 있으면 true로 시작, 남은 시간 후 false로 전환
     var keepMinOverlay by remember { mutableStateOf(initialMinRemainMillis > 0L) }
     LaunchedEffect(initialMinRemainMillis) {
@@ -173,14 +190,18 @@ fun StartScreenWithUpdate(
     val demoEnabled = debugEnabled
     val demoActive = demoEnabled && demoMode
 
+    // 업데이트 정보/표시 버전명 상태 보관
+    var updateInfo by remember { mutableStateOf<AppUpdateInfo?>(null) }
+    var availableVersionName by remember { mutableStateOf("") }
+
     // 데모 트리거 함수 (UI만 시연)
     val triggerDemo: () -> Unit = {
         isCheckingUpdate = true
         scope.launch {
             delay(600)
-            // 데모 타깃 코드는 실제 배포 정책과 동일 포맷 (yyyymmddNN)
-            val demoTargetCode = 2025101001
-            // 사용자 노출용 버전명 매핑은 생략(미사용)
+            // 데모용 표시 버전명 세팅
+            availableVersionName = "2.0.0"
+            // 다이얼로그 표시
             showUpdateDialog = true
             isCheckingUpdate = false
         }
@@ -192,8 +213,10 @@ fun StartScreenWithUpdate(
             scope.launch {
                 appUpdateManager.checkForUpdate(
                     forceCheck = false,
-                    onUpdateAvailable = { _ ->
-                        // 업데이트 사용 가능: 다이얼로그 표시만 트리거 (버전명 처리 생략)
+                    onUpdateAvailable = { info ->
+                        // 업데이트 사용 가능: 정보 보관 후 다이얼로그 표시
+                        updateInfo = info
+                        availableVersionName = "v${info.availableVersionCode()}"
                         showUpdateDialog = true
                         isCheckingUpdate = false
                     },
@@ -212,8 +235,8 @@ fun StartScreenWithUpdate(
         appUpdateManager.registerInstallStateListener {
             scope.launch {
                 val result = snackbarHostState.showSnackbar(
-                    message = "업데이트가 다운로드되었습니다. 다시 시작하여 설치하세요.",
-                    actionLabel = "다시 시작",
+                    message = restartPromptText,
+                    actionLabel = actionRestartText,
                     duration = SnackbarDuration.Indefinite
                 )
                 if (result == SnackbarResult.ActionPerformed) {
@@ -265,6 +288,34 @@ fun StartScreenWithUpdate(
 
         // 스낵바
         SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+
+        // 업데이트 다이얼로그 렌더링 (실사용/데모 공통)
+        AppUpdateDialog(
+            isVisible = showUpdateDialog,
+            versionName = if (availableVersionName.isNotBlank()) availableVersionName else "vNext",
+            onUpdateClick = {
+                if (demoActive) {
+                    // 데모: 다운로드 완료 스낵바를 직접 노출해 흐름 시연
+                    showUpdateDialog = false
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = restartPromptText,
+                            actionLabel = actionRestartText,
+                            duration = SnackbarDuration.Indefinite
+                        )
+                    }
+                } else {
+                    // 실사용: Flexible Update 시작
+                    updateInfo?.let { appUpdateManager.startFlexibleUpdate(it) }
+                    showUpdateDialog = false
+                }
+            },
+            onDismiss = {
+                showUpdateDialog = false
+                appUpdateManager.markUserPostpone()
+            },
+            canDismiss = !appUpdateManager.isMaxPostponeReached()
+        )
     }
 }
 
@@ -321,7 +372,7 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
                             baseTitleModifier.combinedClickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null,
-                                onClick = {},
+                                onClick = { onDebugLongPress() },
                                 onLongClick = { onDebugLongPress() }
                             )
                         } else baseTitleModifier

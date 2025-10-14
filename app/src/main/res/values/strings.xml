@@ -39,7 +39,7 @@
     <string name="action_restart">다시 시작</string>
 
     <!-- Start overlay -->
-    <string name="checking_update">업데이트 확인 중...</string>
+    <string name="checking_update">업데이트 확인 중&#8230;</string>
 
     <!-- Quit screen -->
     <string name="quit_title">금주 종료</string>
@@ -75,9 +75,13 @@
     <string name="about_label_license">라이선스</string>
     <string name="about_label_changes">변경 사항</string>
 
-    <string name="about_value_icon_name">Alcohol &amp; Drink icon set</string>
-    <string name="about_value_icon_author">Sujan khadka</string>
+    <!-- Updated license notice values -->
+    <string name="about_value_icon_name">Free Wayfinding vector icons - Guidance icon set</string>
+    <string name="about_value_icon_author">Streamline and Vincent le moign</string>
+    <string name="about_value_source_url">https://www.figma.com/community/file/1227184301417272677/free-wayfinding-vector-icons-guidance-icon-set</string>
+
     <string name="about_value_license_cc_by">Creative Commons Attribution 4.0 International (CC BY 4.0)</string>
+    <string name="about_value_license_cc_by_url">https://creativecommons.org/licenses/by/4.0/</string>
     <string name="about_value_change_desc">아이콘의 색상 및 모양 일부를 수정하여 사용함.</string>
     <string name="about_notice_compliance">본 앱은 CC BY 4.0 조건에 따라 적절한 저작자 표시, 출처 및 라이선스 링크 제공, 변경 사항 고지를 준수합니다.</string>
 
