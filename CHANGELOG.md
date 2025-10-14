@@ -9,15 +9,20 @@
 - (예정) 날짜/통계 계산 단위 테스트 확대
 - 문서: `docs/MODAL_BARRIER_AND_INPUT_GUARD.md` (드로어/모달 “완전한 모달 배리어” 설계·구현·QA 가이드)
 - 프롬프트: `docs/MODAL_BARRIER_PROMPT.txt` (다른 앱에서 재사용 가능한 입력 가드 구현 지시문)
+- 문서: `docs/IN_APP_UPDATE_TROUBLESHOOTING.md` (In‑App Update 데모/다이얼로그/스플래시 관련 트러블슈팅 및 QA 체크리스트)
 
 ### Changed
 - (예정) 접근성 개선 (터치 타겟/콘트라스트)
 - Base 화면: 드로어 열림/애니메이션/닫힘 직후 입력 가드 적용(그레이스 타임 포함)으로 모달 배리어 일관성 강화
+- Start 화면: In‑App Update 데모 트리거(제목 탭/롱프레스, 인텐트 `demo_update_ui`) 연결, `AppUpdateDialog` 실제 렌더링 추가, 업데이트 정보 상태(`updateInfo`, `availableVersionName`) 보관
 
 ### Fixed
 - 상세 화면: 기록 삭제가 되지 않던 버그(JSON 키 불일치 start_time/end_time vs startTime/endTime) 수정
 - (예정) 통계 경계 케이스 보정
 - 드로어 스크림 탭 후 배경으로 입력이 새는 클릭 스루 가능성 차단(애니메이션 경계 및 Up 이벤트 유출 방지)
+- In‑App Update: Pixel 4a(API 30)에서 업데이트 다이얼로그 전 스플래시가 한 번 더 보이던 현상 제거(API<31 경로에서 Compose 오버레이/지연 제거 + windowBackground 즉시 제거)
+- In‑App Update: `stringResource(...)`를 코루틴에서 호출하던 @Composable 컨텍스트 오류 수정(Composable 스코프에서 미리 평가)
+- 리소스: `strings.xml` 말줄임표(… → `&#8230;`) Lint 경고 제거, 깨진 한글(“기록이 ��습니다”) 복구
 
 ## [1.0.1] - 2025-10-14
 ### Added
