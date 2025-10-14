@@ -27,7 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
@@ -40,16 +39,12 @@ import com.example.alcoholictimer.R
 import com.example.alcoholictimer.core.ui.AppElevation
 import com.example.alcoholictimer.core.ui.BaseActivity
 import com.example.alcoholictimer.core.ui.StandardScreenWithBottomButton
-import com.example.alcoholictimer.core.ui.components.AppUpdateDialog
 import com.example.alcoholictimer.core.util.AppUpdateManager
 import com.example.alcoholictimer.core.util.Constants
-import com.example.alcoholictimer.core.util.UpdateVersionMapper
 import com.example.alcoholictimer.feature.run.RunActivity
-import com.google.android.play.core.install.model.AppUpdateType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
-import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.compose.material3.SnackbarResult
@@ -65,6 +60,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.ui.draw.alpha
 
 class StartActivity : BaseActivity() {
     private lateinit var appUpdateManager: AppUpdateManager
@@ -72,6 +68,19 @@ class StartActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         // 런처 액티비티에서만 스플래시 설치
         val splash = installSplashScreen()
+        // Android 12+ 시스템 스플래시 종료 연출: 220ms 페이드 + 약간 확대 후 제거
+        if (Build.VERSION.SDK_INT >= 31) {
+            splash.setOnExitAnimationListener { provider ->
+                val icon = provider.iconView
+                icon.animate()
+                    .alpha(0f)
+                    .scaleX(1.05f)
+                    .scaleY(1.05f)
+                    .setDuration(220)
+                    .withEndAction { provider.remove() }
+                    .start()
+            }
+        }
         // 스플래시 최소 표시 시간 (예: 800ms)
         val splashStart = SystemClock.uptimeMillis()
         val minShowMillis = 800L
@@ -101,6 +110,7 @@ class StartActivity : BaseActivity() {
             // 남은 최소 오버레이 시간 계산 (API<31에서 setContent 지연 후엔 0일 수 있음)
             val elapsed = SystemClock.uptimeMillis() - splashStart
             val initialRemain = (minShowMillis - elapsed).coerceAtLeast(0L)
+            val usesComposeOverlay = Build.VERSION.SDK_INT < 31
             setContent {
                 // 상단 시스템바 패딩은 적용, 하단은 개별 레이아웃에서 처리
                 BaseScreen(applyBottomInsets = false, applySystemBars = true) {
@@ -109,6 +119,7 @@ class StartActivity : BaseActivity() {
                         demoMode = demoUpdateUi,
                         debugEnabled = isDebugBuild,
                         initialMinRemainMillis = initialRemain,
+                        usesComposeOverlay = usesComposeOverlay,
                         onSplashFinished = {
                             // 스플래시 오버레이 종료 시, 창 배경(스플래시 레이어)을 제거하여 잔상/깜빡임 방지
                             window.setBackgroundDrawable(null)
@@ -139,6 +150,7 @@ fun StartScreenWithUpdate(
     demoMode: Boolean = false,
     debugEnabled: Boolean = false,
     initialMinRemainMillis: Long = 0L,
+    usesComposeOverlay: Boolean = true,
     onSplashFinished: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
@@ -156,8 +168,6 @@ fun StartScreenWithUpdate(
     // 업데이트 다이얼로그/체크 상태
     var showUpdateDialog by remember { mutableStateOf(false) }
     var isCheckingUpdate by remember { mutableStateOf(true) }
-    var updateInfo by remember { mutableStateOf<com.google.android.play.core.appupdate.AppUpdateInfo?>(null) }
-    var availableVersionName by remember { mutableStateOf("") }
 
     // DEBUG에서만 데모 활성화
     val demoEnabled = debugEnabled
@@ -170,8 +180,7 @@ fun StartScreenWithUpdate(
             delay(600)
             // 데모 타깃 코드는 실제 배포 정책과 동일 포맷 (yyyymmddNN)
             val demoTargetCode = 2025101001
-            // 코드 -> 사용자 노출용 버전명으로 매핑 (없으면 코드 문자열 폴백)
-            availableVersionName = UpdateVersionMapper.toVersionName(demoTargetCode) ?: demoTargetCode.toString()
+            // 사용자 노출용 버전명 매핑은 생략(미사용)
             showUpdateDialog = true
             isCheckingUpdate = false
         }
@@ -183,11 +192,8 @@ fun StartScreenWithUpdate(
             scope.launch {
                 appUpdateManager.checkForUpdate(
                     forceCheck = false,
-                    onUpdateAvailable = { info ->
-                        updateInfo = info
-                        // 제공되는 것은 versionCode뿐이므로 사용자 노출용 버전명으로 변환
-                        val code = info.availableVersionCode()
-                        availableVersionName = UpdateVersionMapper.toVersionName(code) ?: code.toString()
+                    onUpdateAvailable = { _ ->
+                        // 업데이트 사용 가능: 다이얼로그 표시만 트리거 (버전명 처리 생략)
                         showUpdateDialog = true
                         isCheckingUpdate = false
                     },
@@ -228,7 +234,7 @@ fun StartScreenWithUpdate(
         )
 
         // 스플래시 오버레이: 최소 유지 시간이 남아있거나, 업데이트 체크 중인 동안 표시 (다이얼로그 표시 시에는 숨김)
-        val showSplashOverlay = (keepMinOverlay || isCheckingUpdate) && !showUpdateDialog
+        val showSplashOverlay = usesComposeOverlay && (keepMinOverlay || isCheckingUpdate) && !showUpdateDialog
 
         // 오버레이가 사라지는 시점에 한 번 콜백 호출(창 배경 제거 등)
         LaunchedEffect(showSplashOverlay) {
@@ -294,113 +300,127 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
         }
     }
 
-    StandardScreenWithBottomButton(
-        topContent = {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-                border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+    Box(modifier = Modifier.fillMaxSize()) {
+        StandardScreenWithBottomButton(
+            topContent = {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD), // down from CARD_HIGH
+                    border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
                 ) {
-                    val baseTitleModifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(bottom = 24.dp)
-                    val titleModifier = if (onDebugLongPress != null) {
-                        baseTitleModifier.combinedClickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = {},
-                            onLongClick = { onDebugLongPress() }
-                        )
-                    } else baseTitleModifier
-
-                    Text(
-                        text = "목표 기간 설정",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = colorResource(id = R.color.color_title_primary),
-                        modifier = titleModifier
-                    )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Card(
-                            modifier = Modifier.width(100.dp).height(56.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.color_bg_card_light)),
-                            elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD)
-                        ) {
-                            Box(modifier = Modifier.fillMaxSize().padding(12.dp), contentAlignment = Alignment.Center) {
-                                BasicTextField(
-                                    value = textFieldValue,
-                                    onValueChange = { newValue ->
-                                        val filtered = newValue.text.filter { it.isDigit() || it == '.' }
-                                        val dots = filtered.count { it == '.' }
-                                        val finalFiltered = if (dots <= 1) filtered else textFieldValue.text
-                                        val finalText = when {
-                                            finalFiltered.isEmpty() -> "0"
-                                            finalFiltered.length > 1 && finalFiltered.startsWith("0") && !finalFiltered.startsWith("0.") -> finalFiltered.substring(1)
-                                            else -> finalFiltered
-                                        }
-                                        val selection = if (isTextSelected) TextRange(finalText.length) else TextRange(finalText.length)
-                                        textFieldValue = TextFieldValue(text = finalText, selection = selection)
-                                        isTextSelected = false
-                                    },
-                                    textStyle = MaterialTheme.typography.headlineLarge.copy(
-                                        color = colorResource(id = R.color.color_indicator_days),
-                                        textAlign = TextAlign.Center
-                                    ),
-                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                    singleLine = true,
-                                    cursorBrush = SolidColor(colorResource(id = R.color.color_indicator_days)),
-                                    modifier = Modifier.fillMaxWidth().onFocusChanged { isFocused = it.isFocused }
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
+                        val baseTitleModifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(bottom = 24.dp)
+                        val titleModifier = if (onDebugLongPress != null) {
+                            baseTitleModifier.combinedClickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = {},
+                                onLongClick = { onDebugLongPress() }
+                            )
+                        } else baseTitleModifier
+
                         Text(
-                            text = "일",
+                            text = "목표 기간 설정",
                             style = MaterialTheme.typography.titleLarge,
-                            color = colorResource(id = R.color.color_indicator_label_gray)
+                            color = colorResource(id = R.color.color_title_primary),
+                            modifier = titleModifier
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                        ) {
+                            Card(
+                                modifier = Modifier.width(100.dp).height(56.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.color_bg_card_light)),
+                                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD)
+                            ) {
+                                Box(modifier = Modifier.fillMaxSize().padding(12.dp), contentAlignment = Alignment.Center) {
+                                    BasicTextField(
+                                        value = textFieldValue,
+                                        onValueChange = { newValue ->
+                                            val filtered = newValue.text.filter { it.isDigit() || it == '.' }
+                                            val dots = filtered.count { it == '.' }
+                                            val finalFiltered = if (dots <= 1) filtered else textFieldValue.text
+                                            val finalText = when {
+                                                finalFiltered.isEmpty() -> "0"
+                                                finalFiltered.length > 1 && finalFiltered.startsWith("0") && !finalFiltered.startsWith("0.") -> finalFiltered.substring(1)
+                                                else -> finalFiltered
+                                            }
+                                            val selection = if (isTextSelected) TextRange(finalText.length) else TextRange(finalText.length)
+                                            textFieldValue = TextFieldValue(text = finalText, selection = selection)
+                                            isTextSelected = false
+                                        },
+                                        textStyle = MaterialTheme.typography.headlineLarge.copy(
+                                            color = colorResource(id = R.color.color_indicator_days),
+                                            textAlign = TextAlign.Center
+                                        ),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        singleLine = true,
+                                        cursorBrush = SolidColor(colorResource(id = R.color.color_indicator_days)),
+                                        modifier = Modifier.fillMaxWidth().onFocusChanged { isFocused = it.isFocused }
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Text(
+                                text = "일",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = colorResource(id = R.color.color_indicator_label_gray)
+                            )
+                        }
+                        Text(
+                            text = "금주할 목표 기간을 입력해주세요",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = colorResource(id = R.color.color_hint_gray),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
                         )
                     }
-                    Text(
-                        text = "금주할 목표 기간을 입력해주세요",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colorResource(id = R.color.color_hint_gray),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                }
+            },
+            bottomButton = {
+                Box(modifier = Modifier.size(96.dp), contentAlignment = Alignment.Center) {
+                    ModernStartButton(
+                        isEnabled = isValid,
+                        onStart = {
+                            val targetTime = textFieldValue.text.toFloatOrNull() ?: 0f
+                            if (targetTime > 0f) {
+                                val formatted = String.format(Locale.US, "%.6f", targetTime).toFloat()
+                                sharedPref.edit {
+                                    putFloat("target_days", formatted)
+                                    putLong("start_time", System.currentTimeMillis())
+                                    putBoolean("timer_completed", false)
+                                }
+                                context.startActivity(Intent(context, RunActivity::class.java))
+                            }
+                        }
+                    )
+                }
+            },
+            imePaddingEnabled = false,
+            backgroundDecoration = {
+                // 워터마크: 배경 위/콘텐츠 아래 레이어에 중앙 배치
+                BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                    val base = if (maxWidth < maxHeight) maxWidth else maxHeight
+                    val iconSize = base * 0.70f // 기존 0.35f에서 2배로 확대
+                    Image(
+                        painter = painterResource(id = R.drawable.splash_app_icon),
+                        contentDescription = null,
+                        modifier = Modifier.align(Alignment.Center).size(iconSize).alpha(0.12f)
                     )
                 }
             }
-        },
-        bottomButton = {
-            Box(modifier = Modifier.size(96.dp), contentAlignment = Alignment.Center) {
-                ModernStartButton(
-                    isEnabled = isValid,
-                    onStart = {
-                        val targetTime = textFieldValue.text.toFloatOrNull() ?: 0f
-                        if (targetTime > 0f) {
-                            val formatted = String.format(Locale.US, "%.6f", targetTime).toFloat()
-                            sharedPref.edit {
-                                putFloat("target_days", formatted)
-                                putLong("start_time", System.currentTimeMillis())
-                                putBoolean("timer_completed", false)
-                            }
-                            context.startActivity(Intent(context, RunActivity::class.java))
-                        }
-                    }
-                )
-            }
-        },
-        imePaddingEnabled = false
-    )
+        )
+    }
 }
 
 @Composable

@@ -70,7 +70,7 @@ fun SettingsScreen() {
                 onOptionSelected = { newValue -> selectedDuration = newValue; sharedPref.edit { putString("selected_duration", newValue) } }
             )
         }
-        // 하단 Spacer 제거: BaseScreen이 safe area까지 정리
+        // 하단 Spacer 제거: BaseScreen이 safe area까지 ���리
     }
 }
 
