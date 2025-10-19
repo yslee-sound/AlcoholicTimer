@@ -22,9 +22,10 @@
 | Q18 | 성능(첫 실행) | 첫 실행 cold start 체감 | 2.5s 이내 (주관) |  |  |
 | Q19 | Lint/로그 | 로그캣 경고/에러 | 치명적 오류 로그 없음 |  |  |
 | Q20 | 빌드 서명 검증 | 서명 AAB 설치 | 정상 설치/실행 |  |  |
+| Q21 | 오버스크롤(RecordsScreen) | 끝단 플링/바운스 확인 | 기기/OS별 시각효과 차이 허용. 스크롤 동작 정상 시 PASS (정책 문서 참조) |  | [OVERSCROLL_BEHAVIOR.md](./OVERSCROLL_BEHAVIOR.md) |
 
 ## 추가 점검 메모
 - 메모리 사용량 / GC (선택)
 - 향후 Crashlytics 도입 전 베이스라인: 크래시 0회
 - 데이터 마이그레이션 단계(필드명 변경 등) 발생 시 회귀 테스트 케이스 추가
-
+- 금주 기록 화면 오버스크롤 시각효과는 플랫폼 차이에 따른 정상 동작: 상세는 [OVERSCROLL_BEHAVIOR.md](./OVERSCROLL_BEHAVIOR.md) 참고
