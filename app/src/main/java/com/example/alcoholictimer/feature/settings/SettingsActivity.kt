@@ -23,6 +23,7 @@ import com.example.alcoholictimer.core.ui.AppElevation
 import com.example.alcoholictimer.core.ui.BaseActivity
 import com.example.alcoholictimer.core.util.Constants
 import com.example.alcoholictimer.R
+import com.example.alcoholictimer.core.ui.LocalSafeContentPadding
 
 class SettingsActivity : BaseActivity() {
     override fun getScreenTitle(): String = "설정"
@@ -42,8 +43,10 @@ fun SettingsScreen() {
     var selectedFrequency by remember { mutableStateOf(initialFrequency) }
     var selectedDuration by remember { mutableStateOf(initialDuration) }
 
+    val safePadding = LocalSafeContentPadding.current
+
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp).padding(safePadding),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         SettingsCard(title = "음주 비용", titleColor = colorResource(id = R.color.color_indicator_money)) {
@@ -65,12 +68,11 @@ fun SettingsScreen() {
         SettingsCard(title = "음주 시간", titleColor = colorResource(id = R.color.color_indicator_hours)) {
             SettingsOptionGroup(
                 selectedOption = selectedDuration,
-                options = listOf("짧음", "보통", "김"),
-                labels = listOf("짧음 (2시간 이하)", "보통 (3~5시간)", "김 (6시간 이상)"),
+                options = listOf("짧음", "보통", "길게"),
+                labels = listOf("짧음 (2시간 이하)", "보통 (3~5시간)", "길게 (6시간 이상)"),
                 onOptionSelected = { newValue -> selectedDuration = newValue; sharedPref.edit { putString("selected_duration", newValue) } }
             )
         }
-        // 하단 Spacer 제거: BaseScreen이 safe area까지 ���리
     }
 }
 

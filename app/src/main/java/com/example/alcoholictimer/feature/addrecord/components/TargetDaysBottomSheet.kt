@@ -15,7 +15,12 @@ fun TargetDaysBottomSheet(
     onConfirm: (Int) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var current by remember(initialValue) { mutableIntStateOf(initialValue.coerceIn(0, 999)) }
+    val clamped = initialValue.coerceIn(0, 999)
+    var hundreds by remember(clamped) { mutableIntStateOf(clamped / 100) }
+    var tens by remember(clamped) { mutableIntStateOf((clamped / 10) % 10) }
+    var ones by remember(clamped) { mutableIntStateOf(clamped % 10) }
+
+    val current by remember { derivedStateOf { hundreds * 100 + tens * 10 + ones } }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -31,12 +36,37 @@ fun TargetDaysBottomSheet(
         ) {
             Text("목표 일수 선택", style = MaterialTheme.typography.titleMedium)
 
-            NumberPicker(
-                value = current,
-                onValueChange = { current = it.coerceIn(0, 999) },
-                range = 0..999,
-                label = "일"
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                NumberPicker(
+                    value = hundreds,
+                    onValueChange = { hundreds = it.coerceIn(0, 9) },
+                    range = 0..9,
+                    modifier = Modifier.width(64.dp)
+                )
+                Spacer(Modifier.width(12.dp))
+                NumberPicker(
+                    value = tens,
+                    onValueChange = { tens = it.coerceIn(0, 9) },
+                    range = 0..9,
+                    modifier = Modifier.width(64.dp)
+                )
+                Spacer(Modifier.width(12.dp))
+                NumberPicker(
+                    value = ones,
+                    onValueChange = { ones = it.coerceIn(0, 9) },
+                    range = 0..9,
+                    modifier = Modifier.width(64.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Box(
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                ) {
+                    Text("일", style = MaterialTheme.typography.titleMedium)
+                }
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -56,4 +86,3 @@ fun TargetDaysBottomSheet(
         }
     }
 }
-

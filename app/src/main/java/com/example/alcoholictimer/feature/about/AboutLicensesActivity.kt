@@ -29,6 +29,7 @@ import com.example.alcoholictimer.core.ui.BaseActivity
 import android.content.ClipData
 import android.content.ClipboardManager
 import androidx.core.content.ContextCompat
+import com.example.alcoholictimer.core.ui.LocalSafeContentPadding
 
 class AboutLicensesActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.about_open_license_notice)
@@ -46,11 +47,14 @@ private fun AboutLicensesScreen() {
     // 출처 URL을 문자열 리소스에서 로드(하드코딩 제거)
     val sourceUrl = stringResource(R.string.about_value_source_url)
 
+    val safePadding = LocalSafeContentPadding.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(16.dp)
+            .padding(safePadding),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Card(

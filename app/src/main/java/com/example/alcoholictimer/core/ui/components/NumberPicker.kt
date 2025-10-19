@@ -53,7 +53,8 @@ fun NumberPicker(
     }
 
     Box(
-        modifier = modifier.height(itemHeight * visibleItemsCount).width(100.dp),
+        // 고정 너비(100.dp)를 제거하여 호출부에서 modifier로 너비를 제어할 수 있게 함
+        modifier = modifier.height(itemHeight * visibleItemsCount),
         contentAlignment = Alignment.Center
     ) {
         Box(
@@ -98,4 +99,3 @@ fun NumberPicker(
         }
     }
 }
-

@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.alcoholictimer.core.ui.BaseActivity
 import com.example.alcoholictimer.R
+import com.example.alcoholictimer.core.ui.LocalSafeContentPadding
 
 class AboutActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.about_title)
@@ -48,10 +49,13 @@ private fun AboutListScreen(onOpenLicenses: () -> Unit) {
         }
     }
 
+    val safePadding = LocalSafeContentPadding.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp, vertical = 12.dp)
+            .padding(safePadding)
     ) {
         // 흰색 카드 안에 리스트 아이템 묶기
         Surface(

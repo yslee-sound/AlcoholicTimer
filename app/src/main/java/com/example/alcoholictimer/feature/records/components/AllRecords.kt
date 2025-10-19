@@ -1,12 +1,8 @@
 package com.example.alcoholictimer.feature.records.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,7 +23,9 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import com.example.alcoholictimer.R
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
+import com.example.alcoholictimer.core.ui.LocalSafeContentPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,14 +33,17 @@ fun AllRecordsScreen(
     externalRefreshTrigger: Int = 0,
     onNavigateBack: () -> Unit = {},
     onNavigateToDetail: (SobrietyRecord) -> Unit = {},
-    fontScale: Float = 1.06f
+    fontScale: Float = 1.06f,
+    externalDeleteDialog: MutableState<Boolean>? = null
 ) {
     val context = LocalContext.current
     var records by remember { mutableStateOf<List<SobrietyRecord>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var loadError by remember { mutableStateOf<String?>(null) }
     var retryTrigger by remember { mutableIntStateOf(0) }
-    var showDeleteAllDialog by remember { mutableStateOf(false) }
+    // 외부에서 제어 가능한 삭제 다이얼로그 상태(없으면 내부에서 생성)
+    val ownDialog = remember { mutableStateOf(false) }
+    val dialogState = externalDeleteDialog ?: ownDialog
 
     val loadRecords: () -> Unit = remember {
         {
@@ -68,175 +69,105 @@ fun AllRecordsScreen(
             fontScale = LocalDensity.current.fontScale * fontScale
         )
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                // 기존 Color.White에서 전역 배경 연회색으로
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .windowInsetsPadding(
-                    // 하단 여백 제거: 수평 인셋만 적용
-                    WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
-                )
+        Column(
+            modifier = Modifier.fillMaxSize()
         ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                Surface(
+            // 외부 액션버튼(상단 앱바)이 제공되지 않는 경우에만 내부 X 버튼 노출
+            if (externalDeleteDialog == null) {
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .windowInsetsPadding(WindowInsets.statusBars),
-                    shadowElevation = 0.dp,
-                    tonalElevation = 0.dp,
-                    color = Color.White
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
-                        TopAppBar(
-                            title = {
-                                Text(
-                                    text = stringResource(id = R.string.all_records_title),
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.onSurface,
+                    IconButton(
+                        onClick = { dialogState.value = true },
+                        enabled = !isLoading && records.isNotEmpty()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Close,
+                            contentDescription = stringResource(id = R.string.cd_delete_all_records),
+                            tint = if (!isLoading && records.isNotEmpty()) Color(0xFFE53E3E) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                        )
+                    }
+                }
+            }
+
+            when {
+                isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) { CircularProgressIndicator(color = MaterialTheme.colorScheme.primary) }
+                }
+                loadError != null -> {
+                    Column(
+                        modifier = Modifier.fillMaxSize().padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.error_loading_records),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(onClick = { retryTrigger++ }) { Text(text = stringResource(id = R.string.retry)) }
+                    }
+                }
+                records.isEmpty() -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { AllRecordsEmptyState() }
+                }
+                else -> {
+                    val safePadding = LocalSafeContentPadding.current
+                    val bottomPadding = safePadding.calculateBottomPadding() + 12.dp
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(0.dp),
+                        contentPadding = PaddingValues(top = 12.dp, bottom = bottomPadding)
+                    ) {
+                        items(items = records, key = { it.id }) { record ->
+                            Box(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                            ) {
+                                RecordSummaryCard(
+                                    record = record,
+                                    onClick = { onNavigateToDetail(record) },
+                                    compact = false,
+                                    headerIconSizeDp = 56.dp
                                 )
-                            },
-                            navigationIcon = {
-                                IconButton(onClick = onNavigateBack) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = stringResource(id = R.string.cd_navigate_back),
-                                        tint = MaterialTheme.colorScheme.onSurface
-                                    )
-                                }
-                            },
-                            actions = {
-                                IconButton(
-                                    onClick = { showDeleteAllDialog = true },
-                                    enabled = !isLoading && records.isNotEmpty()
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Close,
-                                        contentDescription = stringResource(id = R.string.cd_delete_all_records),
-                                        tint = if (!isLoading && records.isNotEmpty()) Color(0xFFE53E3E) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                                    )
-                                }
-                            },
-                            colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = Color.Transparent,
-                                titleContentColor = MaterialTheme.colorScheme.onSurface,
-                                navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
-                                actionIconContentColor = MaterialTheme.colorScheme.onSurface
-                            )
-                        )
-                        HorizontalDivider(
-                            thickness = 1.5.dp,
-                            color = Color(0xFFE0E0E0)
-                        )
-                    }
-                }
-
-                when {
-                    isLoading -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-
-                    loadError != null -> {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = stringResource(id = R.string.error_loading_records),
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = 16.sp,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Button(onClick = { retryTrigger++ }) {
-                                Text(text = stringResource(id = R.string.retry))
-                            }
-                        }
-                    }
-
-                    records.isEmpty() -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) { AllRecordsEmptyState() }
-                    }
-
-                    else -> {
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(0.dp),
-                            contentPadding = PaddingValues(top = 12.dp, bottom = 12.dp)
-                        ) {
-                            items(
-                                items = records,
-                                key = { it.id }
-                            ) { record ->
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 4.dp)
-                                ) {
-                                    RecordSummaryCard(
-                                        record = record,
-                                        onClick = { onNavigateToDetail(record) },
-                                        compact = false,
-                                        headerIconSizeDp = 56.dp
-                                    )
-                                }
                             }
                         }
                     }
                 }
             }
+        }
 
-            if (showDeleteAllDialog) {
-                AlertDialog(
-                    onDismissRequest = { showDeleteAllDialog = false },
-                    title = {
-                        Text(
-                            text = stringResource(id = R.string.all_records_delete_title),
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF2D3748)
-                        )
-                    },
-                    text = {
-                        Text(
-                            text = stringResource(id = R.string.all_records_delete_message),
-                            color = Color(0xFF4A5568)
-                        )
-                    },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                showDeleteAllDialog = false
-                                val success = RecordsDataLoader.clearAllRecords(context)
-                                if (success) {
-                                    onNavigateBack()
-                                } else {
-                                    // 실패 시 머무름
-                                }
-                            }
-                        ) { Text(stringResource(id = R.string.dialog_delete_confirm)) }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showDeleteAllDialog = false }) {
-                            Text(stringResource(id = R.string.dialog_cancel))
+        if (dialogState.value) {
+            AlertDialog(
+                onDismissRequest = { dialogState.value = false },
+                title = {
+                    Text(
+                        text = stringResource(id = R.string.all_records_delete_title),
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF2D3748)
+                    )
+                },
+                text = { Text(text = stringResource(id = R.string.all_records_delete_message), color = Color(0xFF4A5568)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            dialogState.value = false
+                            val success = RecordsDataLoader.clearAllRecords(context)
+                            if (success) onNavigateBack()
                         }
-                    }
-                )
-            }
+                    ) { Text(stringResource(id = R.string.dialog_delete_confirm)) }
+                },
+                dismissButton = { TextButton(onClick = { dialogState.value = false }) { Text(stringResource(id = R.string.dialog_cancel)) } }
+            )
         }
     }
 }
@@ -244,20 +175,11 @@ fun AllRecordsScreen(
 @Composable
 fun AllRecordsEmptyState() {
     val emptyCd = stringResource(id = R.string.empty_records_cd)
-
-    // 카드 제거: 단순 중앙 정렬 안내만 표시
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 32.dp)
-            .semantics { contentDescription = emptyCd },
+        modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp).semantics { contentDescription = emptyCd },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "📝",
-            fontSize = 48.sp,
-            textAlign = TextAlign.Center
-        )
+        Text(text = "📝", fontSize = 48.sp, textAlign = TextAlign.Center)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = stringResource(id = R.string.empty_records_title),
@@ -278,6 +200,4 @@ fun AllRecordsEmptyState() {
 
 @Preview(showBackground = true)
 @Composable
-fun AllRecordsScreenPreview() {
-    AllRecordsScreen()
-}
+fun AllRecordsScreenPreview() { AllRecordsScreen() }

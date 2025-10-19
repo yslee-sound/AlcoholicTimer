@@ -42,6 +42,7 @@ import kotlin.math.max
 import kotlin.math.min
 import com.example.alcoholictimer.core.ui.AppElevation
 import com.example.alcoholictimer.core.ui.LocalRequestGlobalLock
+import com.example.alcoholictimer.core.ui.LocalSafeContentPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -208,6 +209,9 @@ fun RecordsScreen(
     }
 
     CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = LocalDensity.current.fontScale * fontScale)) {
+        // BaseScreen에서 제공하는 하단 안전 패딩 사용
+        val safePadding = LocalSafeContentPadding.current
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -215,7 +219,7 @@ fun RecordsScreen(
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 12.dp),
+                contentPadding = safePadding,
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 item {

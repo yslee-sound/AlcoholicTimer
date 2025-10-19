@@ -42,9 +42,14 @@ import kotlinx.coroutines.launch
 import androidx.core.view.WindowCompat
 import kotlinx.coroutines.delay
 import androidx.compose.ui.input.pointer.*
+import androidx.compose.ui.unit.Dp
+import androidx.compose.foundation.layout.RowScope
 
 // 전역 입력 잠금 요청을 위한 CompositionLocal
 val LocalRequestGlobalLock = compositionLocalOf<(Long) -> Unit> { { _: Long -> } }
+
+// 스크롤 화면에서 하단 안전 패딩(내비/IME + 추가 여백)을 일관 적용하기 위한 CompositionLocal
+val LocalSafeContentPadding = compositionLocalOf { PaddingValues(bottom = 0.dp) }
 
 abstract class BaseActivity : ComponentActivity() {
     private var nicknameState = mutableStateOf("")
@@ -89,12 +94,14 @@ abstract class BaseActivity : ComponentActivity() {
         applySystemBars: Boolean = true,
         showBackButton: Boolean = false,
         onBackClick: (() -> Unit)? = null,
+        bottomExtra: Dp = 24.dp, // 스크롤 화면 공통 추가 여백(디폴트 24dp)
+        topBarActions: @Composable RowScope.() -> Unit = {},
         content: @Composable () -> Unit
     ) {
         AlcoholicTimerTheme(darkTheme = false, applySystemBars = applySystemBars) {
             val drawerState = rememberDrawerState(DrawerValue.Closed)
             val scope = rememberCoroutineScope()
-            val currentNickname by nicknameState
+            val currentNickname by remember { nicknameState }
 
             // 입력/키보드 컨트롤러
             val focusManager = LocalFocusManager.current
@@ -129,19 +136,17 @@ abstract class BaseActivity : ComponentActivity() {
                 label = "blur"
             )
 
-            // 드로어 열림/애니메이션/닫힘 직후 입력 완전 차단 가드
+            // 드로어 입력 가드
             var drawerInputGuardActive by remember { mutableStateOf(false) }
             val drawerGuardGraceMs = 200L
             LaunchedEffect(drawerState) {
                 snapshotFlow { Triple(drawerState.isAnimationRunning, drawerState.currentValue, drawerState.targetValue) }
                     .collect { (isAnimating, current, target) ->
-                        // 드로어 열리기 시작하면 즉시 포커스 해제 + 키보드 숨김 (제스처 오픈 포함)
                         if (isAnimating || target != DrawerValue.Closed || current != DrawerValue.Closed) {
                             focusManager.clearFocus(force = true)
                             keyboardController?.hide()
                             drawerInputGuardActive = true
                         } else {
-                            // 닫힘이 안정화된 직후에도 잠시 입력을 소비해 클릭 스루 방지
                             drawerInputGuardActive = true
                             delay(drawerGuardGraceMs)
                             drawerInputGuardActive = false
@@ -149,7 +154,16 @@ abstract class BaseActivity : ComponentActivity() {
                     }
             }
 
-            CompositionLocalProvider(LocalRequestGlobalLock provides requestGlobalLock) {
+            // 시스템 내비/IME 하단 인셋 계산 + 공통 추가 여백
+            val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+            val imeBottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
+            val safeBottom = maxOf(navBottom, imeBottom) + bottomExtra
+            val providedSafePadding = PaddingValues(bottom = safeBottom)
+
+            CompositionLocalProvider(
+                LocalRequestGlobalLock provides requestGlobalLock,
+                LocalSafeContentPadding provides providedSafePadding
+            ) {
                 ModalNavigationDrawer(
                     drawerState = drawerState,
                     drawerContent = {
@@ -267,7 +281,8 @@ abstract class BaseActivity : ComponentActivity() {
                                                     }
                                                 }
                                             }
-                                        }
+                                        },
+                                        actions = { topBarActions() }
                                     )
                                     // Global subtle divider under app bar
                                     HorizontalDivider(
@@ -283,11 +298,10 @@ abstract class BaseActivity : ComponentActivity() {
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    // 기존 Color.White에서 전역 배경색(연회색)으로 변경
                                     .background(MaterialTheme.colorScheme.surfaceVariant)
                             )
                             val insetModifier = if (applyBottomInsets) {
-                                // 하단 safe area는 전역 적용하지 않고, 수평만 적용
+                                // 기본은 수평 + 상단만 시스템 인셋 적용 (하단은 스크롤 화면에서 LocalSafeContentPadding으로 처리)
                                 Modifier.windowInsetsPadding(
                                     WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
                                 )

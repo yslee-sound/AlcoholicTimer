@@ -170,7 +170,7 @@ fun DetailScreen(
     val drinkHoursVal = when(selectedDuration) {
         "짧음" -> 2
         "보통" -> 4
-        "김" -> 6
+        "길게" -> 6
         else -> 4
     }
 

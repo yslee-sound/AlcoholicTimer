@@ -5,16 +5,12 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.SystemClock
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
@@ -22,16 +18,11 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -65,6 +56,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.ui.draw.alpha
 import com.example.alcoholictimer.core.ui.components.AppUpdateDialog
 import androidx.core.graphics.drawable.toDrawable
+import com.example.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
 import android.graphics.Color as AndroidColor
 
 class StartActivity : BaseActivity() {
@@ -337,19 +329,10 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
         return
     }
 
-    var textFieldValue by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue(text = "30", selection = TextRange(0, 2))) }
-    val isValid by remember { derivedStateOf { textFieldValue.text.toFloatOrNull()?.let { it > 0 } ?: false } }
-    var isTextSelected by remember { mutableStateOf(true) }
-    var isFocused by remember { mutableStateOf(false) }
-
-    LaunchedEffect(isFocused) {
-        if (isFocused) {
-            delay(50)
-            val len = textFieldValue.text.length
-            textFieldValue = textFieldValue.copy(selection = TextRange(0, len))
-            isTextSelected = true
-        }
-    }
+    // 목표 일수(정수, 0..999), 기본값 30
+    var targetDays by rememberSaveable { mutableIntStateOf(30) }
+    val isValid by remember { derivedStateOf { targetDays > 0 } }
+    var showDaysPicker by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         StandardScreenWithBottomButton(
@@ -388,36 +371,30 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
                             horizontalArrangement = Arrangement.Center,
                             modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                         ) {
+                            // 선택 박스(클릭 시 3자리 다이얼 바텀시트 표시, 롱프레스: 데모 업데이트 트리거)
                             Card(
-                                modifier = Modifier.width(100.dp).height(56.dp),
+                                modifier = Modifier.width(120.dp).height(56.dp),
                                 shape = RoundedCornerShape(12.dp),
                                 colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.color_bg_card_light)),
                                 elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD)
                             ) {
-                                Box(modifier = Modifier.fillMaxSize().padding(12.dp), contentAlignment = Alignment.Center) {
-                                    BasicTextField(
-                                        value = textFieldValue,
-                                        onValueChange = { newValue ->
-                                            val filtered = newValue.text.filter { it.isDigit() || it == '.' }
-                                            val dots = filtered.count { it == '.' }
-                                            val finalFiltered = if (dots <= 1) filtered else textFieldValue.text
-                                            val finalText = when {
-                                                finalFiltered.isEmpty() -> "0"
-                                                finalFiltered.length > 1 && finalFiltered.startsWith("0") && !finalFiltered.startsWith("0.") -> finalFiltered.substring(1)
-                                                else -> finalFiltered
-                                            }
-                                            val selection = if (isTextSelected) TextRange(finalText.length) else TextRange(finalText.length)
-                                            textFieldValue = TextFieldValue(text = finalText, selection = selection)
-                                            isTextSelected = false
-                                        },
-                                        textStyle = MaterialTheme.typography.headlineLarge.copy(
-                                            color = colorResource(id = R.color.color_indicator_days),
-                                            textAlign = TextAlign.Center
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(12.dp)
+                                        .combinedClickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = null,
+                                            onClick = { showDaysPicker = true },
+                                            onLongClick = { onDebugLongPress?.invoke() }
                                         ),
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                        singleLine = true,
-                                        cursorBrush = SolidColor(colorResource(id = R.color.color_indicator_days)),
-                                        modifier = Modifier.fillMaxWidth().onFocusChanged { isFocused = it.isFocused }
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = targetDays.toString(),
+                                        style = MaterialTheme.typography.headlineLarge,
+                                        color = colorResource(id = R.color.color_indicator_days),
+                                        textAlign = TextAlign.Center
                                     )
                                 }
                             }
@@ -429,7 +406,7 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
                             )
                         }
                         Text(
-                            text = "금주할 목표 기간을 입력해주세요",
+                            text = "금주할 목표 기간을 선택해주세요",
                             style = MaterialTheme.typography.bodyMedium,
                             color = colorResource(id = R.color.color_hint_gray),
                             textAlign = TextAlign.Center,
@@ -443,16 +420,13 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
                     ModernStartButton(
                         isEnabled = isValid,
                         onStart = {
-                            val targetTime = textFieldValue.text.toFloatOrNull() ?: 0f
-                            if (targetTime > 0f) {
-                                val formatted = String.format(Locale.US, "%.6f", targetTime).toFloat()
-                                sharedPref.edit {
-                                    putFloat("target_days", formatted)
-                                    putLong("start_time", System.currentTimeMillis())
-                                    putBoolean("timer_completed", false)
-                                }
-                                context.startActivity(Intent(context, RunActivity::class.java))
+                            val formatted = String.format(Locale.US, "%.6f", targetDays.toFloat()).toFloat()
+                            sharedPref.edit {
+                                putFloat("target_days", formatted)
+                                putLong("start_time", System.currentTimeMillis())
+                                putBoolean("timer_completed", false)
                             }
+                            context.startActivity(Intent(context, RunActivity::class.java))
                         }
                     )
                 }
@@ -471,6 +445,18 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
                 }
             }
         )
+
+        // 3자리 다이얼 바텀시트
+        if (showDaysPicker) {
+            TargetDaysBottomSheet(
+                initialValue = targetDays,
+                onConfirm = { picked ->
+                    targetDays = picked.coerceIn(0, 999)
+                    showDaysPicker = false
+                },
+                onDismiss = { showDaysPicker = false }
+            )
+        }
     }
 }
 

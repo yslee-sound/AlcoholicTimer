@@ -36,6 +36,7 @@ import com.example.alcoholictimer.core.data.RecordsDataLoader
 import kotlinx.coroutines.delay
 import java.util.Locale
 import androidx.compose.foundation.BorderStroke
+import com.example.alcoholictimer.core.ui.LocalSafeContentPadding
 
 class LevelActivity : BaseActivity() {
 
@@ -78,19 +79,21 @@ fun LevelScreen() {
     val levelDays = Constants.calculateLevelDays(totalElapsedTime)
     val currentLevel = LevelDefinitions.getLevelInfo(levelDays)
 
-    // backgroundBrush 제거 (BaseScreen 배경 사용)
+    // BaseScreen에서 제공하는 하단 안전 패딩(LocalSafeContentPadding)을 그대로 소비
+    val safePadding = LocalSafeContentPadding.current
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(start = 16.dp, end = 16.dp, top = 16.dp),
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+            .padding(safePadding),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // 변경: float 경과 일수 전달
         CurrentLevelCard(currentLevel = currentLevel, currentDays = levelDays, elapsedDaysFloat = totalElapsedDaysFloat, startTime = startTime)
         LevelListCard(currentLevel = currentLevel, currentDays = levelDays)
-        // 하단 여백 추가 제거 (BaseScreen이 safe area 처리)
+        // 하단 여백 추가 제거: BaseScreen이 safe area까지 처리
     }
 }
 
@@ -284,7 +287,8 @@ private fun LevelItem(
     isAchieved: Boolean,
     isNext: Boolean
 ) {
-    val itemElevation = if (isCurrent) AppElevation.ZERO else AppElevation.CARD
+    // 내부 리스트 아이템에서는 그림자를 사용하지 않는다(중첩 음영에 의한 두꺼운 회색띠 방지)
+    val itemElevation = AppElevation.ZERO
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),

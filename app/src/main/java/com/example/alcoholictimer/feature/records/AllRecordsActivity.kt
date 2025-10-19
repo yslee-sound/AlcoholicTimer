@@ -3,49 +3,54 @@ package com.example.alcoholictimer.feature.records
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import com.example.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
-import com.example.alcoholictimer.feature.detail.DetailActivity
 import com.example.alcoholictimer.core.model.SobrietyRecord
+import com.example.alcoholictimer.feature.detail.DetailActivity
+import com.example.alcoholictimer.core.ui.BaseActivity
+import androidx.activity.compose.setContent
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 
-class AllRecordsActivity : ComponentActivity() {
+class AllRecordsActivity : BaseActivity() {
 
     companion object { private const val TAG = "AllRecordsActivity" }
 
-    private var externalRefreshTriggerState by mutableIntStateOf(0)
+    // Compose 위임 대신 일반 Int 상태로 관리 (빌드 에러 회피)
+    private var externalRefreshTriggerState: Int = 0
 
     private val detailLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             Log.d(TAG, "DetailActivity RESULT_OK 수신 → 리스트 새로고침 트리거 증가")
-            externalRefreshTriggerState++
+            externalRefreshTriggerState = externalRefreshTriggerState + 1
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            AlcoholicTimerTheme(darkTheme = false) {
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    com.example.alcoholictimer.feature.records.components.AllRecordsScreen(
-                        externalRefreshTrigger = externalRefreshTriggerState,
-                        onNavigateBack = { finish() },
-                        onNavigateToDetail = { record -> handleRecordClick(record) }
-                    )
+            val showDeleteAll = remember { mutableStateOf(false) }
+            BaseScreen(showBackButton = true, onBackClick = { finish() }, topBarActions = {
+                IconButton(onClick = { showDeleteAll.value = true }) {
+                    Icon(imageVector = Icons.Outlined.Close, contentDescription = "모든 기록 삭제")
                 }
+            }) {
+                com.example.alcoholictimer.feature.records.components.AllRecordsScreen(
+                    externalRefreshTrigger = externalRefreshTriggerState,
+                    onNavigateBack = { finish() },
+                    onNavigateToDetail = { record -> handleRecordClick(record) },
+                    externalDeleteDialog = showDeleteAll
+                )
             }
         }
     }
+
+    override fun getScreenTitle(): String = "모든 기록"
 
     private fun handleRecordClick(record: SobrietyRecord) {
         Log.d(TAG, "===== 기록 클릭 시작 =====")
