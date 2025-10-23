@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoholictimer.R
 import com.example.alcoholictimer.core.ui.AppElevation
+import com.example.alcoholictimer.core.ui.AppBorder
 import com.example.alcoholictimer.core.ui.LayoutConstants
 import com.example.alcoholictimer.core.ui.theme.AmberSecondaryLight
 import com.example.alcoholictimer.core.ui.theme.BluePrimaryLight
@@ -263,7 +264,7 @@ fun DetailScreen(
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-                    border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+                    border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
                 ) {
                     Column(
                         modifier = Modifier.padding(20.dp)

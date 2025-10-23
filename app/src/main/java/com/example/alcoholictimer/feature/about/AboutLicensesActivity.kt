@@ -30,6 +30,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import androidx.core.content.ContextCompat
 import com.example.alcoholictimer.core.ui.LocalSafeContentPadding
+import com.example.alcoholictimer.core.ui.AppBorder
 
 class AboutLicensesActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.about_open_license_notice)
@@ -61,7 +62,7 @@ private fun AboutLicensesScreen() {
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-            border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+            border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
         ) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(

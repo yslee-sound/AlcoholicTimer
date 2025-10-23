@@ -5,7 +5,7 @@ import android.content.Intent
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.BorderStroke as FBorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import kotlin.math.max
 import kotlin.math.min
 import com.example.alcoholictimer.core.ui.AppElevation
+import com.example.alcoholictimer.core.ui.AppBorder
 import com.example.alcoholictimer.core.ui.LocalRequestGlobalLock
 import com.example.alcoholictimer.core.ui.LocalSafeContentPadding
 
@@ -614,7 +615,7 @@ private fun PeriodStatisticsSection(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-        border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+        border = FBorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
     ) {
         Column(
             modifier = Modifier

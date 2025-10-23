@@ -43,8 +43,9 @@ import com.example.alcoholictimer.feature.start.StartActivity
 import com.example.alcoholictimer.feature.detail.DetailActivity
 import com.example.alcoholictimer.core.ui.AppElevation
 import androidx.compose.foundation.BorderStroke
-import com.example.alcoholictimer.core.util.AppUpdateManager
+import com.example.alcoholictimer.core.ui.AppBorder
 import kotlinx.coroutines.launch
+import com.example.alcoholictimer.core.util.AppUpdateManager
 
 class RunActivity : BaseActivity() {
 
@@ -63,30 +64,6 @@ class RunActivity : BaseActivity() {
 @Composable
 private fun RunScreen() {
     val context = LocalContext.current
-
-    // 업데이트 다운로드 완료 스낵바를 위한 상태/리스너
-    val snackbarHostState = remember { SnackbarHostState() }
-    val appUpdateManager = remember(context) { AppUpdateManager(context as RunActivity) }
-    val scope = rememberCoroutineScope()
-
-    LaunchedEffect(Unit) {
-        appUpdateManager.registerInstallStateListener {
-            // Flexible 업데이트 다운로드 완료 알림 및 재시작 버튼 제공
-            scope.launch {
-                val result = snackbarHostState.showSnackbar(
-                    message = context.getString(R.string.update_downloaded_restart_prompt),
-                    actionLabel = context.getString(R.string.action_restart),
-                    duration = SnackbarDuration.Indefinite
-                )
-                if (result == SnackbarResult.ActionPerformed) {
-                    appUpdateManager.completeFlexibleUpdate()
-                }
-            }
-        }
-    }
-    DisposableEffect(Unit) {
-        onDispose { appUpdateManager.unregisterInstallStateListener() }
-    }
 
     val sp = remember { context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE) }
     val startTime = remember { sp.getLong(Constants.PREF_START_TIME, 0L) }
@@ -180,7 +157,7 @@ private fun RunScreen() {
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-                    border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+                    border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
                 ) {
                     Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -198,7 +175,7 @@ private fun RunScreen() {
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-                    border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+                    border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
                 ) {
                     Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
                         val labelBoxH = 36.dp; val valueBoxH = 66.dp; val hintBoxH = 20.dp; val gapSmall = 6.dp; val gapMedium = 8.dp
@@ -314,7 +291,7 @@ private fun RunScreen() {
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-                    border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+                    border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
                 ) {
                     Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) { ModernProgressIndicatorSimple(progress = progress) }
                 }
@@ -335,12 +312,6 @@ private fun RunScreen() {
                     context.startActivity(intent)
                 })
             }
-        )
-
-        // 업데이트 안내 스낵바 (다운로드 완료 시 표시)
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter)
         )
     }
 }

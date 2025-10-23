@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import com.example.alcoholictimer.R
 import com.example.alcoholictimer.core.ui.AppElevation
+import com.example.alcoholictimer.core.ui.AppBorder
 import com.example.alcoholictimer.core.ui.BaseActivity
 import com.example.alcoholictimer.core.ui.StandardScreenWithBottomButton
 import com.example.alcoholictimer.core.util.AppUpdateManager
@@ -342,7 +343,7 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD), // down from CARD_HIGH
-                    border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+                    border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
                 ) {
                     Column(
                         modifier = Modifier.fillMaxWidth().padding(24.dp),
