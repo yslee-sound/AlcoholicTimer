@@ -88,6 +88,10 @@ android {
         abortOnError = true
         warningsAsErrors = false // 초기 온보딩: 경고는 유지, 필요시 true
     }
+
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
 }
 
 kotlin {
@@ -110,8 +114,12 @@ dependencies {
     implementation(libs.kotlinx.coroutines.play.services)
 
     testImplementation(libs.junit)
-    // org.json (Android 내장) 를 JVM 유닛 테스트 환경에서 사용하기 위한 의존성
+    testImplementation(libs.androidx.ui.test.junit4)
+    testImplementation(libs.androidx.test.core.ktx)
+    testImplementation(libs.robolectric)
+    // org.json for JVM tests
     testImplementation("org.json:json:20240303")
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

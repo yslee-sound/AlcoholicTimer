@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -37,6 +38,7 @@ import kotlinx.coroutines.delay
 import java.util.Locale
 import androidx.compose.foundation.BorderStroke
 import com.example.alcoholictimer.core.ui.LocalSafeContentPadding
+import com.example.alcoholictimer.core.ui.components.MainLevelCardFrame
 
 class LevelActivity : BaseActivity() {
 
@@ -98,30 +100,33 @@ fun LevelScreen() {
 }
 
 @Composable
-private fun CurrentLevelCard(
+fun CurrentLevelCard(
     currentLevel: LevelDefinitions.LevelInfo,
     currentDays: Int,
     elapsedDaysFloat: Float,
     startTime: Long
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-        border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
-    ) {
-        Column(modifier = Modifier.padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    MainLevelCardFrame(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .padding(32.dp)
+                .testTag("main_level_card_content"),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Box(
                 modifier = Modifier
                     .size(100.dp)
                     .clip(CircleShape)
                     .background(
                         Brush.radialGradient(colors = listOf(currentLevel.color.copy(alpha = 0.8f), currentLevel.color))
-                    ),
+                    )
+                    .testTag("main_level_badge"),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = currentLevel.name.take(2), style = MaterialTheme.typography.titleLarge.copy(color = Color.White))
+                Text(
+                    text = currentLevel.name.take(2),
+                    style = MaterialTheme.typography.titleLarge.copy(color = Color.White)
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -130,15 +135,28 @@ private fun CurrentLevelCard(
             Text(
                 text = currentLevel.name,
                 style = MaterialTheme.typography.headlineLarge.copy(color = currentLevel.color),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                modifier = Modifier.testTag("main_level_title")
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                Text(text = "$currentDays", style = MaterialTheme.typography.headlineLarge.copy(color = Color(0xFF1976D2)))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.testTag("main_level_days_row")
+            ) {
+                Text(
+                    text = "$currentDays",
+                    style = MaterialTheme.typography.headlineLarge.copy(color = Color(0xFF1976D2)),
+                    modifier = Modifier.testTag("main_level_days_value")
+                )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "일차", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium, color = Color(0xFF666666)))
+                Text(
+                    text = "일차",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium, color = Color(0xFF666666)),
+                    modifier = Modifier.testTag("main_level_days_label")
+                )
             }
 
             val nextLevel = getNextLevel(currentLevel)
@@ -224,6 +242,7 @@ private fun ProgressToNextLevel(
                 .height(8.dp)
                 .clip(RoundedCornerShape(4.dp))
                 .background(Color(0xFFE0E0E0))
+                .testTag("main_level_progress")
         ) {
             val animatedProgress by animateFloatAsState(targetValue = progress, animationSpec = tween(durationMillis = 1000), label = "progress")
             Box(
@@ -231,6 +250,7 @@ private fun ProgressToNextLevel(
                     .fillMaxHeight()
                     .fillMaxWidth(animatedProgress)
                     .background(Brush.horizontalGradient(colors = listOf(nextLevel.color.copy(alpha = 0.7f), nextLevel.color)))
+                    .testTag("main_level_progress_fill")
             )
         }
 

@@ -8,6 +8,7 @@
 >   - 레벨 화면 메인 카드(상단 "현재 레벨" 카드) 디테일 보존을 위한 불변 규칙 추가
 >   - 허용/금지 변경 범위 명시, 회귀 방지 체크리스트와 수용 기준 보강
 >   - 개발 가이드에 외곽(Frame)만 교체하는 패턴 권장
+>   - 세만틱스 기반 회귀 테스트 도입(라이트 모드 우선) 및 관련 문서 링크 추가
 > - v1.0.0 (2025-10-21)
 >   - 초기 작성: 디자인 토큰(AppElevation/AppBorder/color_border_light) 정의
 >   - AppCard 기본값(0dp + Hairline) 제안 및 화면별 적용 가이드 수록
@@ -169,26 +170,31 @@
 - 특히 “전체 레벨” 박스가 회색 테두리/그림자 없이 평면 컨테이너로 보이는지, 원형 시작/중지 버튼이 2dp 고도로 떠 보이는지 확인
 - 레벨 화면 메인 카드: 전/후 스크린샷 비교로 내부 디테일 불변 확인(자동/수동 모두 허용)
 
-변경 로그 템플릿(권장)
-- feat(ui): 전역 플랫 스타일 적용 – 0dp 카드 + 0.5dp 헤어라인, border 톤 업(#EEF1F5), 주요 원형 버튼 2dp 유지
-- chore: Card 사용부를 AppCard로 통일; 그림자 제거; 다크 모드 outlineVariant 매핑
-- fix: 레벨 리스트 예외(현재/달성 1dp 색 테두리) 유지
-- docs: 레벨 메인 카드 불변 규칙·회귀 방지 체크리스트 추가
+세만틱스 회귀 테스트(라이트 모드 우선)
+- 목적: 스냅샷 인프라(Paparazzi/Roborazzi) 전 구성 단계에서, 내부 디테일 불변을 기계적으로 검증
+- 대상/파일
+  - 레벨 메인 카드: `app/src/test/java/com/example/alcoholictimer/feature/level/CurrentLevelCardSemanticsTest.kt`
+  - 상세 가이드: `docs/LEVEL_MAIN_CARD_STABILITY.md`
+- 테스트 태그(필수 유지)
+  - `main_level_card_content`, `main_level_badge`, `main_level_title`
+  - `main_level_days_row`, `main_level_days_value`, `main_level_days_label`
+  - `main_level_progress`, `main_level_progress_fill`
+- 환경 고정/안정화
+  - 테마: `AlcoholicTimerTheme(darkTheme = false)`
+  - 깜빡임 방지: 테스트 경로에서 `startTime = 0L`
+  - Robolectric NPE 방지: `ShadowBuild.setFingerprint("robolectric")`
+- 실행(Windows cmd)
+  ```bat
+  .\gradlew.bat :app:testDebugUnitTest
+  .\gradlew.bat :app:testDebugUnitTest --tests "*CurrentLevelCardSemanticsTest"
+  ```
 
-PR 체크리스트(복붙용)
-- [ ] AppElevation/AppBorder/color_border_light 토큰 추가/갱신
-- [ ] AppCard 기본값(0dp + Hairline) 적용
-- [ ] 레벨/Start/Run/Quit/Records/Detail/AboutLicenses 화면 반영
-- [ ] 원형 시작/중지 버튼 2dp 유지
-- [ ] 레벨 화면 메인 카드 불변 규칙 준수(전/후 스크린샷 또는 픽셀 비교)
-- [ ] 빌드/테스트 통과
-- [ ] 시각 확인 스크린샷 첨부(라이트/다크)
+관련 구현(참고)
+- 외곽 전용 프레임: `MainLevelCardFrame` (`app/src/main/java/com/example/alcoholictimer/core/ui/components/MainLevelCardFrame.kt`)
+  - elevation = `AppElevation.CARD`(0dp), border = `BorderStroke(AppBorder.Hairline, color_border_light)`, contentPadding=0dp
+- 공통 카드 기본값: `AppCard` (`app/src/main/java/com/example/alcoholictimer/core/ui/AppCard.kt`)
+  - 기본 elevation=0dp, 기본 border=Hairline(0.5dp)
+- 디자인 토큰: `DesignTokens.kt`
+  - `AppElevation.CARD = 0.dp`, `AppElevation.CARD_HIGH = 2.dp`, `AppBorder.Hairline = 0.5.dp`
 
-미래 개선(선택)
-- 다크 모드에서 outlineVariant 미세 튜닝(톤/알파)
-- 리스트 하단 여백 소폭 확대로 플랫 스타일의 공간감 강화
-- 경계 두께/톤을 스크린샷 기준으로 1~2 단계 더 튜닝
-
-사용 방법
-- 본 문서를 프롬프트로 붙여넣고, 대상 앱의 테마/컴포넌트/화면 코드를 분석·수정하도록 지시하라.
-- 파일/패키지 구조가 다를 수 있으므로, 토큰/컴포넌트 정의 위치는 대상 앱의 컨벤션을 따른다.
+...existing code...

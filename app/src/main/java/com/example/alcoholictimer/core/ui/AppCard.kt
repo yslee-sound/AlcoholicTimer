@@ -26,7 +26,7 @@ import com.example.alcoholictimer.R
 @Composable
 fun AppCard(
     modifier: Modifier = Modifier,
-    elevation: Dp = AppElevation.CARD, // default lowered from CARD_HIGH
+    elevation: Dp = AppElevation.CARD, // 플랫 기본(0dp)
     shape: Shape = RoundedCornerShape(16.dp),
     containerColor: Color = MaterialTheme.colorScheme.surface,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
@@ -37,7 +37,7 @@ fun AppCard(
 ) {
     val cardColors = CardDefaults.cardColors(containerColor = containerColor, contentColor = contentColor)
     val cardElevation = CardDefaults.cardElevation(defaultElevation = elevation)
-    val resolvedBorder = border ?: BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+    val resolvedBorder = border ?: BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
     if (onClick == null) {
         Card(
             modifier = modifier,
