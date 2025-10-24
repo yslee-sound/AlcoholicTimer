@@ -23,8 +23,8 @@ object InterstitialAdManager {
     private const val GOOGLE_TEST_INTERSTITIAL_ID = "ca-app-pub-3940256099942544/1033173712"
 
     private fun currentUnitId(): String {
-        val id = BuildConfig.ADMOB_INTERSTITIAL_UNIT_ID
-        return if (id.isNullOrBlank() || id.contains("REPLACE_WITH_REAL_INTERSTITIAL")) GOOGLE_TEST_INTERSTITIAL_ID else id
+        val id: String = BuildConfig.ADMOB_INTERSTITIAL_UNIT_ID
+        return if (id.isBlank() || id.contains("REPLACE_WITH_REAL_INTERSTITIAL")) GOOGLE_TEST_INTERSTITIAL_ID else id
     }
 
     // Policy defaults (can be wired to Remote Config later)
@@ -43,13 +43,15 @@ object InterstitialAdManager {
     // simple listeners to notify callers when load succeeds/fails
     private val loadListeners = mutableListOf<(Boolean) -> Unit>()
 
+    private fun isPolicyBypassed(): Boolean = BuildConfig.DEBUG
+
     fun preload(context: Context) {
         if (isLoading.get()) return
         if (interstitialAd != null) return
         isLoading.set(true)
         val adRequest = AdRequest.Builder().build()
         val unitId = currentUnitId()
-        Log.d(TAG, "Loading interstitial with unitId=$unitId")
+        Log.d(TAG, "Loading interstitial with unitId=$unitId (debug=${BuildConfig.DEBUG})")
         InterstitialAd.load(
             context,
             unitId,
@@ -141,27 +143,37 @@ object InterstitialAdManager {
         activity: Activity,
         onDismiss: (() -> Unit)? = null
     ): Boolean {
-        // Cold start당 1회만 허용
-        if (hasShownThisColdStart.get()) {
+        val bypass = isPolicyBypassed()
+        if (!bypass && hasShownThisColdStart.get()) {
             Log.d(TAG, "Blocked: already shown this cold start")
             return false
         }
-        val ad = interstitialAd ?: return false.also { Log.d(TAG, "Blocked: ad not loaded") }
+        val ad = interstitialAd
+        if (ad == null) {
+            Log.d(TAG, "Blocked: ad not loaded${if (bypass) " (debug: will just return)" else ""}")
+            return false
+        }
         if (activity.isFinishing || activity.isDestroyed) {
             Log.d(TAG, "Blocked: invalid activity state")
             return false
         }
-        val (pass, reason) = passesPolicy(activity)
-        if (!pass) {
-            Log.d(TAG, "Blocked by policy: $reason")
-            return false
+        if (!bypass) {
+            val (pass, reason) = passesPolicy(activity)
+            if (!pass) {
+                Log.d(TAG, "Blocked by policy: $reason")
+                return false
+            }
+        } else {
+            Log.d(TAG, "Policy bypassed (debug): always show if loaded")
         }
         // 콜백 주입
         ad.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdShowedFullScreenContent() {
                 Log.d(TAG, "onAdShowedFullScreenContent")
-                // 표시 성공 기록
-                recordShown(activity)
+                if (!bypass) {
+                    // 표시 성공 기록은 릴리즈 정책에서만 반영
+                    recordShown(activity)
+                }
             }
             override fun onAdDismissedFullScreenContent() {
                 Log.d(TAG, "onAdDismissedFullScreenContent")

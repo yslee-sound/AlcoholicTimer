@@ -46,12 +46,16 @@ import com.sweetapps.alcoholictimer.feature.start.StartActivity
 import com.sweetapps.alcoholictimer.core.ui.AppElevation
 import com.sweetapps.alcoholictimer.core.ui.AppBorder
 import com.sweetapps.alcoholictimer.core.util.Constants
+import com.sweetapps.alcoholictimer.core.ads.InterstitialAdManager
+import com.sweetapps.alcoholictimer.BuildConfig
 
 class QuitActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.quit_title)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent { BaseScreen(applyBottomInsets = false) { QuitScreen() } }
+        // 전면광고 프리로드(이미 로드된 경우 내부에서 무시됨)
+        InterstitialAdManager.preload(applicationContext)
     }
 }
 
@@ -150,7 +154,7 @@ fun QuitScreen() {
                                                 delay(16)
                                             }
                                             if (progress >= 1f && isPressed) {
-                                                // 완료 처리: 기록 저장 + 진행 상태 정리 + StartActivity로 안전 전환
+                                                // 완료 처리: 기록 저장 + 진행 상태 정리
                                                 try {
                                                     saveCompletedRecord(
                                                         context = context,
@@ -170,29 +174,64 @@ fun QuitScreen() {
                                                 } catch (t: Throwable) {
                                                     Log.e("QuitActivity", "진행 상태 업데이트 실패", t)
                                                 }
-                                                // Activity 컨텍스트를 통해 안전하게 전환
-                                                val act = activity
-                                                if (act != null) {
-                                                    val i = Intent(act, StartActivity::class.java).apply {
-                                                        // 기존 태스크 위로 올리며 중복 방지
-                                                        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+
+                                                // StartActivity로의 안전한 전환 로직을 람다로 정의
+                                                val navigateToStart: () -> Unit = {
+                                                    val act = activity
+                                                    if (act != null) {
+                                                        val i = Intent(act, StartActivity::class.java).apply {
+                                                            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                                                        }
+                                                        try {
+                                                            act.startActivity(i)
+                                                        } finally {
+                                                            act.finish()
+                                                        }
+                                                    } else {
+                                                        try {
+                                                            val i = Intent(context, StartActivity::class.java).apply {
+                                                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                            }
+                                                            context.startActivity(i)
+                                                        } catch (t: Throwable) {
+                                                            Log.e("QuitActivity", "StartActivity 진입 실패", t)
+                                                        }
                                                     }
-                                                    try {
-                                                        act.startActivity(i)
-                                                    } finally {
-                                                        // 현재 종료 화면은 닫아 안정적 복귀
-                                                        act.finish()
+                                                }
+
+                                                // 전면광고 노출 시도: 성공 시 닫힌 후 navigateToStart 수행, 실패/차단 시 즉시 전환
+                                                val actForAd = activity
+                                                if (actForAd != null) {
+                                                    val showed = InterstitialAdManager.maybeShowIfEligible(actForAd) { navigateToStart() }
+                                                    if (!showed) {
+                                                        if (BuildConfig.DEBUG) {
+                                                            // 디버그: 최대 2.5초 대기하며 로드 되면 즉시 표시, 실패/타임아웃 시 전환
+                                                            var handled = false
+                                                            InterstitialAdManager.addLoadListener { success ->
+                                                                if (!handled) {
+                                                                    handled = true
+                                                                    if (success) {
+                                                                        val s2 = InterstitialAdManager.maybeShowIfEligible(actForAd) { navigateToStart() }
+                                                                        if (!s2) navigateToStart()
+                                                                    } else {
+                                                                        navigateToStart()
+                                                                    }
+                                                                }
+                                                            }
+                                                            InterstitialAdManager.preload(actForAd.applicationContext)
+                                                            coroutineScope.launch {
+                                                                delay(2500)
+                                                                if (!handled) { handled = true; navigateToStart() }
+                                                            }
+                                                        } else {
+                                                            // 릴리즈: 정책 미충족/미로딩 시 즉시 전환 + 다음 기회 대비 프리로드
+                                                            navigateToStart()
+                                                            InterstitialAdManager.preload(actForAd.applicationContext)
+                                                        }
                                                     }
                                                 } else {
-                                                    // 비정상 컨텍스트인 경우에도 최소한 전환 시도
-                                                    try {
-                                                        val i = Intent(context, StartActivity::class.java).apply {
-                                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                                        }
-                                                        context.startActivity(i)
-                                                    } catch (t: Throwable) {
-                                                        Log.e("QuitActivity", "StartActivity 진입 실패", t)
-                                                    }
+                                                    // 비정상 컨텍스트: 즉시 전환
+                                                    navigateToStart()
                                                 }
                                             }
                                         } catch (t: Throwable) {
