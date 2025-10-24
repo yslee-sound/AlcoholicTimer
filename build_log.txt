@@ -1,0 +1,526 @@
+Initialized native services in: C:\Users\khafr\.gradle\native
+Initialized jansi services in: C:\Users\khafr\.gradle\native
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.13/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Starting process 'Gradle build daemon'. Working directory: C:\Users\khafr\.gradle\daemon\8.13 Command: C:\Program Files\Java\jdk-17\bin\java.exe --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-opens=java.base/java.nio.charset=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED -Xmx2048m -Dfile.encoding=UTF-8 -Duser.country=KR -Duser.language=ko -Duser.variant -cp C:\Users\khafr\.gradle\wrapper\dists\gradle-8.13-bin\5xuhj0ry160q40clulazy9h7d\gradle-8.13\lib\gradle-daemon-main-8.13.jar -javaagent:C:\Users\khafr\.gradle\wrapper\dists\gradle-8.13-bin\5xuhj0ry160q40clulazy9h7d\gradle-8.13\lib\agents\gradle-instrumentation-agent-8.13.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 8.13
+Successfully started process 'Gradle build daemon'
+An attempt to start the daemon took 1.288 secs.
+The client will now receive all logging from the daemon (pid: 98528). The daemon log file: C:\Users\khafr\.gradle\daemon\8.13\daemon-98528.out.log
+Daemon will be stopped at the end of the build 
+Using 32 worker leases.
+Received JVM installation metadata from 'C:\Program Files\Java\jdk-17': {JAVA_HOME=C:\Program Files\Java\jdk-17, JAVA_VERSION=17.0.15, JAVA_VENDOR=Oracle Corporation, RUNTIME_NAME=Java(TM) SE Runtime Environment, RUNTIME_VERSION=17.0.15+9-LTS-241, VM_NAME=Java HotSpot(TM) 64-Bit Server VM, VM_VERSION=17.0.15+9-LTS-241, VM_VENDOR=Oracle Corporation, OS_ARCH=amd64}
+Calculating task graph as configuration cache cannot be reused because file 'app\build.gradle.kts' has changed.
+Watching the file system is configured to be enabled if available
+Now considering [G:\Workspace\AlcoholicTimer] as hierarchies to watch
+File system watching is active
+Starting Build
+Settings evaluated using settings file 'G:\Workspace\AlcoholicTimer\settings.gradle.kts'.
+Using local directory build cache for the root build (location = C:\Users\khafr\.gradle\caches\build-cache-1, remove unused entries = after 7 days).
+Projects loaded. Root project using build file 'G:\Workspace\AlcoholicTimer\build.gradle.kts'.
+Included projects: [root project 'AlcoholicTimer', project ':app']
+
+> Configure project :
+Evaluating root project 'AlcoholicTimer' using build file 'G:\Workspace\AlcoholicTimer\build.gradle.kts'.
+Resolved plugin [id: 'com.android.application', version: '8.13.0', apply: false]
+Resolved plugin [id: 'org.jetbrains.kotlin.android', version: '2.2.20', apply: false]
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.compose', version: '2.2.20', apply: false]
+
+> Configure project :app
+Evaluating project ':app' using build file 'G:\Workspace\AlcoholicTimer\app\build.gradle.kts'.
+Resolved plugin [id: 'com.android.application', version: '8.13.0']
+Resolved plugin [id: 'org.jetbrains.kotlin.android', version: '2.2.20']
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.compose', version: '2.2.20']
+Using default execution profile
+Build 592419e8-e060-453c-b924-e0e4e2596acb is started
+Using Kotlin Gradle Plugin gradle813 variant
+[WARN] Release keystore not configured - will build unsigned bundle. Set KEYSTORE_PATH before production release.
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+All projects evaluated.
+Task name matched 'assembleDebug'
+Selected primary task 'assembleDebug' from project :
+Adding -Xuse-inline-scopes-numbers Kotlin compiler flag for task :app:compileDebugKotlin
+Tasks to be executed: [task ':app:preBuild', task ':app:preDebugBuild', task ':app:mergeDebugJniLibFolders', task ':app:mergeDebugNativeLibs', task ':app:stripDebugDebugSymbols', task ':app:extractDebugNativeSymbolTables', task ':app:mergeDebugNativeDebugMetadata', task ':app:checkKotlinGradlePluginConfigurationErrors', task ':app:generateDebugBuildConfig', task ':app:checkDebugAarMetadata', task ':app:processDebugNavigationResources', task ':app:compileDebugNavigationResources', task ':app:generateDebugResValues', task ':app:mapDebugSourceSetPaths', task ':app:generateDebugResources', task ':app:mergeDebugResources', task ':app:packageDebugResources', task ':app:parseDebugLocalResources', task ':app:createDebugCompatibleScreenManifests', task ':app:extractDeepLinksDebug', task ':app:processDebugMainManifest', task ':app:processDebugManifest', task ':app:processDebugManifestForPackage', task ':app:processDebugResources', task ':app:compileDebugKotlin', task ':app:javaPreCompileDebug', task ':app:compileDebugJavaWithJavac', task ':app:mergeDebugShaders', task ':app:compileDebugShaders', task ':app:generateDebugAssets', task ':app:mergeDebugAssets', task ':app:compressDebugAssets', task ':app:processDebugJavaRes', task ':app:mergeDebugJavaResource', task ':app:checkDebugDuplicateClasses', task ':app:desugarDebugFileDependencies', task ':app:mergeExtDexDebug', task ':app:mergeLibDexDebug', task ':app:dexBuilderDebug', task ':app:mergeProjectDexDebug', task ':app:validateSigningDebug', task ':app:writeDebugAppMetadata', task ':app:writeDebugSigningConfigVersions', task ':app:packageDebug', task ':app:createDebugApkListingFileRedirect', task ':app:assembleDebug']
+Tasks that were excluded: []
+Adding -Xuse-inline-scopes-numbers Kotlin compiler flag for task :app:compileDebugAndroidTestKotlin
+Build 592419e8-e060-453c-b924-e0e4e2596acb is closed
+Using local directory build cache for the root build (location = C:\Users\khafr\.gradle\caches\build-cache-1, remove unused entries = after 7 days).
+Ignoring listeners of task graph ready event, as this build (:) has already executed work.
+Resolve mutations for :app:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker Thread 24,5,main]) started.
+Resolve mutations for :app:preBuild (Thread[Execution worker Thread 5,5,main]) started.
+:app:preBuild (Thread[included builds,5,main]) started.
+:app:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker Thread 24,5,main]) started.
+
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Skipping task ':app:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+
+> Task :app:preBuild UP-TO-DATE
+Skipping task ':app:preBuild' as it has no actions.
+Resolve mutations for :app:preDebugBuild (Thread[included builds,5,main]) started.
+:app:preDebugBuild (Thread[included builds,5,main]) started.
+
+> Task :app:preDebugBuild UP-TO-DATE
+Skipping task ':app:preDebugBuild' as it has no actions.
+Resolve mutations for :app:mergeDebugJniLibFolders (Thread[included builds,5,main]) started.
+Resolve mutations for :app:generateDebugBuildConfig (Thread[Execution worker Thread 24,5,main]) started.
+Resolve mutations for :app:checkDebugAarMetadata (Thread[Execution worker Thread 23,5,main]) started.
+Resolve mutations for :app:processDebugNavigationResources (Thread[Execution worker Thread 31,5,main]) started.
+Resolve mutations for :app:createDebugCompatibleScreenManifests (Thread[Execution worker Thread 25,5,main]) started.
+Resolve mutations for :app:mergeDebugShaders (Thread[Execution worker Thread 27,5,main]) started.
+Resolve mutations for :app:generateDebugResValues (Thread[Execution worker Thread 30,5,main]) started.
+Resolve mutations for :app:javaPreCompileDebug (Thread[Execution worker Thread 26,5,main]) started.
+Resolve mutations for :app:validateSigningDebug (Thread[Execution worker,5,main]) started.
+Resolve mutations for :app:desugarDebugFileDependencies (Thread[Execution worker Thread 29,5,main]) started.
+Resolve mutations for :app:checkDebugDuplicateClasses (Thread[Execution worker Thread 28,5,main]) started.
+Resolve mutations for :app:writeDebugSigningConfigVersions (Thread[Execution worker Thread 10,5,main]) started.
+Resolve mutations for :app:writeDebugAppMetadata (Thread[Execution worker Thread 3,5,main]) started.
+:app:mergeDebugShaders (Thread[Execution worker Thread 27,5,main]) started.
+:app:generateDebugBuildConfig (Thread[Execution worker Thread 24,5,main]) started.
+:app:desugarDebugFileDependencies (Thread[Execution worker Thread 29,5,main]) started.
+:app:generateDebugResValues (Thread[Execution worker Thread 10,5,main]) started.
+:app:javaPreCompileDebug (Thread[Execution worker Thread 26,5,main]) started.
+:app:checkDebugAarMetadata (Thread[Execution worker Thread 23,5,main]) started.
+:app:mergeDebugJniLibFolders (Thread[included builds,5,main]) started.
+:app:createDebugCompatibleScreenManifests (Thread[Execution worker Thread 25,5,main]) started.
+:app:validateSigningDebug (Thread[Execution worker,5,main]) started.
+:app:processDebugNavigationResources (Thread[Execution worker Thread 31,5,main]) started.
+:app:checkDebugDuplicateClasses (Thread[Execution worker Thread 28,5,main]) started.
+:app:writeDebugSigningConfigVersions (Thread[Execution worker Thread 5,5,main]) started.
+:app:writeDebugAppMetadata (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:generateDebugBuildConfig UP-TO-DATE
+Build cache key for task ':app:generateDebugBuildConfig' is 8d8e6e3a1d947646da2c2d4f4cce2e26
+Skipping task ':app:generateDebugBuildConfig' as it is up-to-date.
+
+> Task :app:javaPreCompileDebug UP-TO-DATE
+Build cache key for task ':app:javaPreCompileDebug' is 0505ba3ea501012286352d97fc3f9ace
+Skipping task ':app:javaPreCompileDebug' as it is up-to-date.
+
+> Task :app:writeDebugAppMetadata UP-TO-DATE
+Caching disabled for task ':app:writeDebugAppMetadata' because:
+  Caching has been disabled for the task
+Skipping task ':app:writeDebugAppMetadata' as it is up-to-date.
+
+> Task :app:mergeDebugJniLibFolders UP-TO-DATE
+Caching disabled for task ':app:mergeDebugJniLibFolders' because:
+  Simple merging task
+Skipping task ':app:mergeDebugJniLibFolders' as it is up-to-date.
+
+> Task :app:validateSigningDebug UP-TO-DATE
+Caching disabled for task ':app:validateSigningDebug' because:
+  Caching has been disabled for the task
+Skipping task ':app:validateSigningDebug' as it is up-to-date.
+
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+Caching disabled for task ':app:createDebugCompatibleScreenManifests' because:
+  Caching has been disabled for the task
+Skipping task ':app:createDebugCompatibleScreenManifests' as it is up-to-date.
+
+> Task :app:mergeDebugShaders UP-TO-DATE
+Caching disabled for task ':app:mergeDebugShaders' because:
+  Simple merging task
+Skipping task ':app:mergeDebugShaders' as it is up-to-date.
+
+> Task :app:generateDebugResValues UP-TO-DATE
+Build cache key for task ':app:generateDebugResValues' is 5c7e19418fb51d9600580d5316557193
+Skipping task ':app:generateDebugResValues' as it is up-to-date.
+Resolve mutations for :app:mergeDebugNativeLibs (Thread[Execution worker Thread 10,5,main]) started.
+Resolve mutations for :app:extractDeepLinksDebug (Thread[Execution worker Thread 25,5,main]) started.
+Resolve mutations for :app:generateDebugResources (Thread[included builds,5,main]) started.
+Resolve mutations for :app:mapDebugSourceSetPaths (Thread[Execution worker Thread 27,5,main]) started.
+:app:extractDeepLinksDebug (Thread[Execution worker Thread 25,5,main]) started.
+:app:mergeDebugNativeLibs (Thread[Execution worker Thread 10,5,main]) started.
+Resolve mutations for :app:compileDebugShaders (Thread[Execution worker,5,main]) started.
+:app:mapDebugSourceSetPaths (Thread[Execution worker Thread 27,5,main]) started.
+:app:generateDebugResources (Thread[included builds,5,main]) started.
+:app:compileDebugShaders (Thread[Execution worker,5,main]) started.
+
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+Build cache key for task ':app:extractDeepLinksDebug' is c9b6957503452545902e212b5eba1854
+Skipping task ':app:extractDeepLinksDebug' as it is up-to-date.
+Resolve mutations for :app:processDebugMainManifest (Thread[Execution worker Thread 25,5,main]) started.
+:app:processDebugMainManifest (Thread[Execution worker Thread 25,5,main]) started.
+
+> Task :app:generateDebugResources UP-TO-DATE
+Build cache key for task ':app:generateDebugResources' is 9a1d4061d24031f3bf9ec21630cb9cc1
+Skipping task ':app:generateDebugResources' as it is up-to-date.
+Resolve mutations for :app:mergeDebugResources (Thread[included builds,5,main]) started.
+:app:mergeDebugResources (Thread[included builds,5,main]) started.
+
+> Task :app:compileDebugShaders NO-SOURCE
+Skipping task ':app:compileDebugShaders' as it has no source files and no previous output files.
+Resolve mutations for :app:packageDebugResources (Thread[Execution worker,5,main]) started.
+:app:packageDebugResources (Thread[Execution worker,5,main]) started.
+Resolve mutations for :app:generateDebugAssets (Thread[Execution worker Thread 4,5,main]) started.
+:app:generateDebugAssets (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :app:generateDebugAssets UP-TO-DATE
+Skipping task ':app:generateDebugAssets' as it has no actions.
+Resolve mutations for :app:mergeDebugAssets (Thread[Execution worker Thread 4,5,main]) started.
+:app:mergeDebugAssets (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :app:packageDebugResources UP-TO-DATE
+Build cache key for task ':app:packageDebugResources' is 1c7d11f9a178de604c8d3ac6267f2682
+Skipping task ':app:packageDebugResources' as it is up-to-date.
+
+> Task :app:writeDebugSigningConfigVersions
+Caching disabled for task ':app:writeDebugSigningConfigVersions' because:
+  Caching has been disabled for the task
+Task ':app:writeDebugSigningConfigVersions' is not up-to-date because:
+  Value of input property 'enableV1Signing' has changed for task ':app:writeDebugSigningConfigVersions'
+
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+Caching disabled for task ':app:mapDebugSourceSetPaths' because:
+  Caching has been disabled for the task
+Skipping task ':app:mapDebugSourceSetPaths' as it is up-to-date.
+
+> Task :app:mergeDebugResources UP-TO-DATE
+Build cache key for task ':app:mergeDebugResources' is 474c3a5406aca2f02b782dbb0124e4cd
+Skipping task ':app:mergeDebugResources' as it is up-to-date.
+
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':app:checkDebugAarMetadata' because:
+  Caching has been disabled for the task
+Skipping task ':app:checkDebugAarMetadata' as it is up-to-date.
+
+> Task :app:mergeDebugAssets UP-TO-DATE
+Caching disabled for task ':app:mergeDebugAssets' because:
+  Simple merging task
+Skipping task ':app:mergeDebugAssets' as it is up-to-date.
+Resolve mutations for :app:compressDebugAssets (Thread[Execution worker Thread 23,5,main]) started.
+:app:compressDebugAssets (Thread[Execution worker Thread 23,5,main]) started.
+
+> Task :app:processDebugNavigationResources UP-TO-DATE
+Build cache key for task ':app:processDebugNavigationResources' is 1f2b57acba955487ff6b498dec88892b
+Skipping task ':app:processDebugNavigationResources' as it is up-to-date.
+Resolve mutations for :app:compileDebugNavigationResources (Thread[Execution worker Thread 31,5,main]) started.
+:app:compileDebugNavigationResources (Thread[Execution worker Thread 31,5,main]) started.
+
+> Task :app:checkDebugDuplicateClasses UP-TO-DATE
+Caching disabled for task ':app:checkDebugDuplicateClasses' because:
+  Caching has been disabled for the task
+Skipping task ':app:checkDebugDuplicateClasses' as it is up-to-date.
+Resolve mutations for :app:parseDebugLocalResources (Thread[Execution worker Thread 28,5,main]) started.
+
+> Task :app:compressDebugAssets UP-TO-DATE
+Build cache key for task ':app:compressDebugAssets' is ff2c4e56f16915995ca09d0897bef91c
+Skipping task ':app:compressDebugAssets' as it is up-to-date.
+Resolve mutations for :app:mergeLibDexDebug (Thread[Execution worker Thread 23,5,main]) started.
+:app:parseDebugLocalResources (Thread[Execution worker Thread 28,5,main]) started.
+:app:mergeLibDexDebug (Thread[Execution worker Thread 23,5,main]) started.
+
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+Build cache key for task ':app:compileDebugNavigationResources' is be197dc67979ba380ea6aab6cacafb7d
+Skipping task ':app:compileDebugNavigationResources' as it is up-to-date.
+
+> Task :app:parseDebugLocalResources UP-TO-DATE
+Build cache key for task ':app:parseDebugLocalResources' is 474915b668228f5e8a78b2b0d522f1c1
+Skipping task ':app:parseDebugLocalResources' as it is up-to-date.
+
+> Task :app:mergeDebugNativeLibs UP-TO-DATE
+Caching disabled for task ':app:mergeDebugNativeLibs' because:
+  Caching has been disabled for the task
+Skipping task ':app:mergeDebugNativeLibs' as it is up-to-date.
+Resolve mutations for :app:stripDebugDebugSymbols (Thread[Execution worker Thread 10,5,main]) started.
+:app:stripDebugDebugSymbols (Thread[Execution worker Thread 10,5,main]) started.
+
+> Task :app:stripDebugDebugSymbols UP-TO-DATE
+Caching disabled for task ':app:stripDebugDebugSymbols' because:
+  Caching has been disabled for the task
+Skipping task ':app:stripDebugDebugSymbols' as it is up-to-date.
+Resolve mutations for :app:extractDebugNativeSymbolTables (Thread[Execution worker Thread 10,5,main]) started.
+:app:extractDebugNativeSymbolTables (Thread[Execution worker Thread 10,5,main]) started.
+
+> Task :app:extractDebugNativeSymbolTables UP-TO-DATE
+Build cache key for task ':app:extractDebugNativeSymbolTables' is 074da3ebaf217c01582e5b94f9fb6bd0
+Skipping task ':app:extractDebugNativeSymbolTables' as it is up-to-date.
+Resolve mutations for :app:mergeDebugNativeDebugMetadata (Thread[Execution worker Thread 10,5,main]) started.
+:app:mergeDebugNativeDebugMetadata (Thread[Execution worker Thread 10,5,main]) started.
+
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+Skipping task ':app:mergeDebugNativeDebugMetadata' as it has no source files and no previous output files.
+
+> Task :app:mergeLibDexDebug FROM-CACHE
+Build cache key for task ':app:mergeLibDexDebug' is 0ca6b733eb058f03c4d791291654e2ba
+Task ':app:mergeLibDexDebug' is not up-to-date because:
+  Value of input property 'sharedParams.minSdkVersion' has changed for task ':app:mergeLibDexDebug'
+Loaded cache entry for task ':app:mergeLibDexDebug' with cache key 0ca6b733eb058f03c4d791291654e2ba
+
+> Task :app:desugarDebugFileDependencies FROM-CACHE
+Build cache key for task ':app:desugarDebugFileDependencies' is efd8cf82c1f9944b216fac2c3413edcc
+Task ':app:desugarDebugFileDependencies' is not up-to-date because:
+  Value of input property 'minSdkVersion' has changed for task ':app:desugarDebugFileDependencies'
+Loaded cache entry for task ':app:desugarDebugFileDependencies' with cache key efd8cf82c1f9944b216fac2c3413edcc
+Resolve mutations for :app:mergeExtDexDebug (Thread[Execution worker Thread 29,5,main]) started.
+
+> Task :app:processDebugMainManifest FROM-CACHE
+Build cache key for task ':app:processDebugMainManifest' is 8eac2c8232cb3357e8bf5bfc8ebc41d3
+Task ':app:processDebugMainManifest' is not up-to-date because:
+  Value of input property 'optionalFeatures' has changed for task ':app:processDebugMainManifest'
+Loaded cache entry for task ':app:processDebugMainManifest' with cache key 8eac2c8232cb3357e8bf5bfc8ebc41d3
+Resolve mutations for :app:processDebugManifest (Thread[Execution worker Thread 25,5,main]) started.
+:app:processDebugManifest (Thread[Execution worker Thread 29,5,main]) started.
+:app:mergeExtDexDebug (Thread[Execution worker Thread 10,5,main]) started.
+
+> Task :app:processDebugManifest FROM-CACHE
+Build cache key for task ':app:processDebugManifest' is 6b8dec11de7936a89ac889c55f43dd91
+Task ':app:processDebugManifest' is not up-to-date because:
+  Input property 'mainMergedManifest' file G:\Workspace\AlcoholicTimer\app\build\intermediates\merged_manifest\debug\processDebugMainManifest\AndroidManifest.xml has changed.
+Loaded cache entry for task ':app:processDebugManifest' with cache key 6b8dec11de7936a89ac889c55f43dd91
+Resolve mutations for :app:processDebugManifestForPackage (Thread[Execution worker Thread 29,5,main]) started.
+:app:processDebugManifestForPackage (Thread[Execution worker Thread 29,5,main]) started.
+
+> Task :app:processDebugManifestForPackage FROM-CACHE
+Build cache key for task ':app:processDebugManifestForPackage' is 87df0fef5f9c84c4181fbc89e9e6f65f
+Task ':app:processDebugManifestForPackage' is not up-to-date because:
+  Input property 'mergedManifests' file G:\Workspace\AlcoholicTimer\app\build\intermediates\merged_manifests\debug\processDebugManifest\AndroidManifest.xml has changed.
+Loaded cache entry for task ':app:processDebugManifestForPackage' with cache key 87df0fef5f9c84c4181fbc89e9e6f65f
+Resolve mutations for :app:processDebugResources (Thread[Execution worker Thread 29,5,main]) started.
+:app:processDebugResources (Thread[Execution worker Thread 29,5,main]) started.
+
+> Task :app:mergeExtDexDebug FROM-CACHE
+Build cache key for task ':app:mergeExtDexDebug' is 77bdf04beffd383b9b189c7f0352f6de
+Task ':app:mergeExtDexDebug' is not up-to-date because:
+  Value of input property 'sharedParams.minSdkVersion' has changed for task ':app:mergeExtDexDebug'
+Loaded cache entry for task ':app:mergeExtDexDebug' with cache key 77bdf04beffd383b9b189c7f0352f6de
+
+> Task :app:processDebugResources
+Build cache key for task ':app:processDebugResources' is ab9fad9e64b3da2154604f75c8c071ef
+Task ':app:processDebugResources' is not up-to-date because:
+  Value of input property 'useStableIds' has changed for task ':app:processDebugResources'
+The input changes require a full rebuild for incremental task ':app:processDebugResources'.
+AAPT2 aapt2-8.13.0-13719691-windows Daemon #0: starting
+Aapt output file G:\Workspace\AlcoholicTimer\app\build\intermediates\linked_resources_binary_format\debug\processDebugResources\linked-resources-binary-format-debug.ap_
+Stored cache entry for task ':app:processDebugResources' with cache key ab9fad9e64b3da2154604f75c8c071ef
+Resolve mutations for :app:compileDebugKotlin (Thread[Execution worker Thread 10,5,main]) started.
+:app:compileDebugKotlin (Thread[Execution worker Thread 10,5,main]) started.
+
+> Task :app:compileDebugKotlin
+Build cache key for BuildToolsApiClasspathEntrySnapshotTransform: G:\Workspace\AlcoholicTimer\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar is 5da087eadc7ba5927ea2d36ed82a56c3
+Stored cache entry for BuildToolsApiClasspathEntrySnapshotTransform: G:\Workspace\AlcoholicTimer\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar with cache key 5da087eadc7ba5927ea2d36ed82a56c3
+Build cache key for task ':app:compileDebugKotlin' is 41d216307db7673399c9e46f3e2698bd
+Task ':app:compileDebugKotlin' is not up-to-date because:
+  Value of input property 'kotlinJavaToolchainProvider.javaVersion' has changed for task ':app:compileDebugKotlin'
+The input changes require a full rebuild for incremental task ':app:compileDebugKotlin'.
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\java', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\java', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\java', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\main\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\main\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\main\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\java', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\java', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\java', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\java', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\main\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\java', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\java', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\java', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\main\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\main\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\main\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\java', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\java', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\java', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\java', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\main\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\main\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\main\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\java', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\java', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\java', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\java', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\main\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\main\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\main\kotlin', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\java', not found
+Kotlin source files: G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\ads\InterstitialAdManager.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\ads\NativeAdManager.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\ads\NativeViewBinder.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\ads\UmpConsentManager.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\data\RecordsDataLoader.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\model\SobrietyRecord.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\ui\AdBanner.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\ui\AppCard.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\ui\BaseActivity.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\ui\components\AppUpdateDialog.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\ui\components\MainLevelCardFrame.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\ui\components\NumberPicker.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\ui\DesignTokens.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\ui\LayoutConstants.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\ui\NativeExitPopup.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\ui\StandardScreen.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\ui\theme\Color.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\ui\theme\Theme.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\ui\theme\Type.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\util\AppUpdateManager.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\util\Constants.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\util\DateOverlapUtils.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\util\FormatUtils.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\util\PercentUtils.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\core\util\UpdateVersionMapper.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\about\AboutActivity.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\about\AboutLicensesActivity.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\addrecord\AddRecordActivity.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\addrecord\components\TargetDaysBottomSheet.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\addrecord\TripleDigitNumberPicker.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\detail\components\DetailStatCard.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\detail\DetailActivity.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\level\LevelActivity.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\level\LevelDefinitions.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\profile\NicknameEditActivity.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\records\AllRecordsActivity.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\records\components\AllRecords.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\records\components\MonthPickerBottomSheet.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\records\components\PeriodSelectionSection.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\records\components\RecordsScreen.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\records\components\RecordSummaryCard.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\records\components\StatisticsCardsSection.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\records\components\WeekPickerBottomSheet.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\records\components\YearPickerBottomSheet.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\records\RecordsActivity.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\run\QuitActivity.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\run\RunActivity.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\settings\SettingsActivity.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\feature\start\StartActivity.kt, G:\Workspace\AlcoholicTimer\app\src\main\java\com\example\alcoholictimer\MainApplication.kt
+Java source files: G:\Workspace\AlcoholicTimer\app\build\generated\source\buildConfig\debug\com\sweetapps\alcoholictimer\BuildConfig.java
+Script source files: 
+Script file extensions: 
+Using Kotlin/JVM incremental compilation
+[KOTLIN] Kotlin compilation 'jdkHome' argument: null
+Options for KOTLIN DAEMON: IncrementalCompilationOptions(super=CompilationOptions(compilerMode=INCREMENTAL_COMPILER, targetPlatform=JVM, reportCategories=[0, 3], reportSeverity=2, requestedCompilationResults=[0], kotlinScriptExtensions=[]), sourceChanges=org.jetbrains.kotlin.buildtools.api.SourcesChanges$Unknown@42423aae, classpathChanges=NotAvailableForNonIncrementalRun, workingDir=G:\Workspace\AlcoholicTimer\app\build\kotlin\compileDebugKotlin\cacheable, multiModuleICSettings=MultiModuleICSettings(buildHistoryFile=G:\Workspace\AlcoholicTimer\app\build\kotlin\compileDebugKotlin\local-state\build-history.bin, useModuleDetection=true), icFeatures=IncrementalCompilationFeatures(usePreciseJavaTracking=true, withAbiSnapshot=false, preciseCompilationResultsBackup=true, keepIncrementalCompilationCachesInMemory=true, enableUnsafeIncrementalCompilationForMultiplatform=false, enableMonotonousIncrementalCompileSetExpansion=true), outputFiles=[G:\Workspace\AlcoholicTimer\app\build\tmp\kotlin-classes\debug, G:\Workspace\AlcoholicTimer\app\build\kotlin\compileDebugKotlin\cacheable, G:\Workspace\AlcoholicTimer\app\build\kotlin\compileDebugKotlin\local-state])
+w: file:///G:/Workspace/AlcoholicTimer/app/src/main/java/com/example/alcoholictimer/core/ui/BaseActivity.kt:81:9 Check for instance is always 'false'.
+w: file:///G:/Workspace/AlcoholicTimer/app/src/main/java/com/example/alcoholictimer/core/ui/theme/Theme.kt:94:24 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+w: file:///G:/Workspace/AlcoholicTimer/app/src/main/java/com/example/alcoholictimer/core/ui/theme/Theme.kt:96:28 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+Finished executing kotlin compiler using DAEMON strategy
+Stored cache entry for task ':app:compileDebugKotlin' with cache key 41d216307db7673399c9e46f3e2698bd
+Resolve mutations for :app:compileDebugJavaWithJavac (Thread[Execution worker Thread 10,5,main]) started.
+Resolve mutations for :app:processDebugJavaRes (Thread[Execution worker Thread 13,5,main]) started.
+:app:processDebugJavaRes (Thread[Execution worker Thread 13,5,main]) started.
+:app:compileDebugJavaWithJavac (Thread[Execution worker Thread 10,5,main]) started.
+
+> Task :app:processDebugJavaRes UP-TO-DATE
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\main\resources', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\resources', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\main\resources', not found
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\resources', not found
+Caching disabled for task ':app:processDebugJavaRes' because:
+  Caching has been disabled for the task
+Skipping task ':app:processDebugJavaRes' as it is up-to-date.
+Resolve mutations for :app:mergeDebugJavaResource (Thread[Execution worker Thread 13,5,main]) started.
+:app:mergeDebugJavaResource (Thread[Execution worker Thread 13,5,main]) started.
+
+> Task :app:mergeDebugJavaResource UP-TO-DATE
+Caching disabled for task ':app:mergeDebugJavaResource' because:
+  Caching has been disabled for the task
+Skipping task ':app:mergeDebugJavaResource' as it is up-to-date.
+
+> Task :app:compileDebugJavaWithJavac
+Build cache key for task ':app:compileDebugJavaWithJavac' is 91d3e73d7aeb3c2578ae39f4d001b832
+Task ':app:compileDebugJavaWithJavac' is not up-to-date because:
+  Value of input property 'javaCompiler.metadata.languageVersion' has changed for task ':app:compileDebugJavaWithJavac'
+  Value of input property 'javaCompiler.metadata.taskInputs.languageVersion' has changed for task ':app:compileDebugJavaWithJavac'
+  Value of input property 'javaVersion' has changed for task ':app:compileDebugJavaWithJavac'
+The input changes require a full rebuild for incremental task ':app:compileDebugJavaWithJavac'.
+Compilation mode: in-process compilation
+Full recompilation is required because no incremental change information is available. This is usually caused by clean builds or changing compiler arguments.
+Compiling with toolchain 'C:\Program Files\Java\jdk-17'.
+file or directory 'G:\Workspace\AlcoholicTimer\app\src\debug\java', not found
+Compiling with JDK Java compiler API.
+Class dependency analysis for incremental compilation took 0.006 secs.
+Created classpath snapshot for incremental compilation in 0.194 secs.
+Stored cache entry for task ':app:compileDebugJavaWithJavac' with cache key 91d3e73d7aeb3c2578ae39f4d001b832
+Resolve mutations for :app:dexBuilderDebug (Thread[Execution worker Thread 10,5,main]) started.
+:app:dexBuilderDebug (Thread[Execution worker Thread 5,5,main]) started.
+
+> Task :app:dexBuilderDebug
+Build cache key for task ':app:dexBuilderDebug' is 6446f505c2064f3f5b01b2c0a9dac179
+Task ':app:dexBuilderDebug' is not up-to-date because:
+  Value of input property 'dexParams.errorFormatMode' has changed for task ':app:dexBuilderDebug'
+  Value of input property 'dexParams.minSdkVersion' has changed for task ':app:dexBuilderDebug'
+The input changes require a full rebuild for incremental task ':app:dexBuilderDebug'.
+Dex builder is incremental : false 
+Processing input G:\Workspace\AlcoholicTimer\app\build\tmp\kotlin-classes\debug
+Processing input G:\Workspace\AlcoholicTimer\app\build\intermediates\javac\debug\compileDebugJavaWithJavac\classes
+Dexing G:\Workspace\AlcoholicTimer\app\build\tmp\kotlin-classes\debug
+Dexing G:\Workspace\AlcoholicTimer\app\build\intermediates\javac\debug\compileDebugJavaWithJavac\classes
+Processing input G:\Workspace\AlcoholicTimer\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar
+Dexing G:\Workspace\AlcoholicTimer\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\tmp\kotlin-classes\debug' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\tmp\kotlin-classes\debug' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\tmp\kotlin-classes\debug' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\tmp\kotlin-classes\debug' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\tmp\kotlin-classes\debug' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\tmp\kotlin-classes\debug' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\tmp\kotlin-classes\debug' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\tmp\kotlin-classes\debug' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\tmp\kotlin-classes\debug' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\tmp\kotlin-classes\debug' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\tmp\kotlin-classes\debug' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\tmp\kotlin-classes\debug' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\tmp\kotlin-classes\debug' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\tmp\kotlin-classes\debug' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\tmp\kotlin-classes\debug' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\tmp\kotlin-classes\debug' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\javac\debug\compileDebugJavaWithJavac\classes' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_0.jar'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_1.jar'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_2.jar'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_4.jar'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_3.jar'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_5.jar'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_6.jar'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_7.jar'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_8.jar'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_9.jar'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_10.jar'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_11.jar'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_12.jar'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_13.jar'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_14.jar'
+Dexing 'G:\Workspace\AlcoholicTimer\app\build\intermediates\compile_and_runtime_not_namespaced_r_class_jar\debug\processDebugResources\R.jar' to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_15.jar'
+Done with all dex archive conversions
+Stored cache entry for task ':app:dexBuilderDebug' with cache key 6446f505c2064f3f5b01b2c0a9dac179
+Resolve mutations for :app:mergeProjectDexDebug (Thread[Execution worker Thread 5,5,main]) started.
+:app:mergeProjectDexDebug (Thread[Execution worker Thread 5,5,main]) started.
+
+> Task :app:mergeProjectDexDebug
+Build cache key for task ':app:mergeProjectDexDebug' is 0efeb6b619230571fa7d5cbf1ac861f9
+Task ':app:mergeProjectDexDebug' is not up-to-date because:
+  Value of input property 'sharedParams.minSdkVersion' has changed for task ':app:mergeProjectDexDebug'
+The input changes require a full rebuild for incremental task ':app:mergeProjectDexDebug'.
+Merging to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\dex\debug\mergeProjectDexDebug\5' with D8 from all or a subset of dex files in G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, and from all global synthetics files in 
+Merging to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\dex\debug\mergeProjectDexDebug\4' with D8 from all or a subset of dex files in G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, and from all global synthetics files in 
+Merging to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\dex\debug\mergeProjectDexDebug\10' with D8 from all or a subset of dex files in G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, and from all global synthetics files in 
+Merging to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\dex\debug\mergeProjectDexDebug\11' with D8 from all or a subset of dex files in G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, and from all global synthetics files in 
+Merging to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\dex\debug\mergeProjectDexDebug\13' with D8 from all or a subset of dex files in G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, and from all global synthetics files in 
+Merging to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\dex\debug\mergeProjectDexDebug\0' with D8 from all or a subset of dex files in G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_0.jar, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_1.jar, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_10.jar, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_11.jar, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_12.jar, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_13.jar, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_14.jar, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_15.jar, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_2.jar, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_3.jar, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_4.jar, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_5.jar, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_6.jar, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_7.jar, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_8.jar, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out\7e429d599517f275d79a39e06b87a741599d8c3e107b09fae890fe4a7b61c785_9.jar, and from all global synthetics files in 
+Merging to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\dex\debug\mergeProjectDexDebug\6' with D8 from all or a subset of dex files in G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, and from all global synthetics files in 
+Merging to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\dex\debug\mergeProjectDexDebug\15' with D8 from all or a subset of dex files in G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, and from all global synthetics files in 
+Merging to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\dex\debug\mergeProjectDexDebug\2' with D8 from all or a subset of dex files in G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, and from all global synthetics files in 
+Merging to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\dex\debug\mergeProjectDexDebug\8' with D8 from all or a subset of dex files in G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, and from all global synthetics files in 
+Merging to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\dex\debug\mergeProjectDexDebug\12' with D8 from all or a subset of dex files in G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, and from all global synthetics files in 
+Merging to 'G:\Workspace\AlcoholicTimer\app\build\intermediates\dex\debug\mergeProjectDexDebug\3' with D8 from all or a subset of dex files in G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, G:\Workspace\AlcoholicTimer\app\build\intermediates\project_dex_archive\debug\dexBuilderDebug\out, and from all global synthetics files in 
+Stored cache entry for task ':app:mergeProjectDexDebug' with cache key 0efeb6b619230571fa7d5cbf1ac861f9
+Resolve mutations for :app:packageDebug (Thread[Execution worker Thread 5,5,main]) started.
+:app:packageDebug (Thread[Execution worker Thread 5,5,main]) started.
+
+> Task :app:packageDebug
+Caching disabled for task ':app:packageDebug' because:
+  Caching has been disabled for the task
+Task ':app:packageDebug' is not up-to-date because:
+  Value of input property 'abiFilters' has changed for task ':app:packageDebug'
+  Value of input property 'deterministicEntryOrder' has changed for task ':app:packageDebug'
+  Value of input property 'minSdkVersionForDexing' has changed for task ':app:packageDebug'
+The input changes require a full rebuild for incremental task ':app:packageDebug'.
+Resolve mutations for :app:createDebugApkListingFileRedirect (Thread[Execution worker Thread 5,5,main]) started.
+Resolve mutations for :app:assembleDebug (Thread[Execution worker Thread 8,5,main]) started.
+:app:createDebugApkListingFileRedirect (Thread[Execution worker Thread 8,5,main]) started.
+:app:assembleDebug (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:assembleDebug
+Skipping task ':app:assembleDebug' as it has no actions.
+
+> Task :app:createDebugApkListingFileRedirect
+Caching disabled for task ':app:createDebugApkListingFileRedirect' because:
+  Caching has been disabled for the task
+Task ':app:createDebugApkListingFileRedirect' is not up-to-date because:
+  Input property 'listingFile' file G:\Workspace\AlcoholicTimer\app\build\intermediates\apk\debug\output-metadata.json has been removed.
+  Input property 'listingFile' file G:\Workspace\AlcoholicTimer\app\build\outputs\apk\debug\output-metadata.json has been added.
+Build a9a7924f-42e3-4065-9c1e-e49551b3c92c is started
+AAPT2 aapt2-8.13.0-13719691-windows Daemon #0: shutdown
+Build a9a7924f-42e3-4065-9c1e-e49551b3c92c is closed
+
+0 problems were found storing the configuration cache.
+
+See the complete report at file:///G:/Workspace/AlcoholicTimer/build/reports/configuration-cache/9a3kvn86g73tbp561gxbpqn8v/7003uqu2mhzcjdhq1dh2udlr6/configuration-cache-report.html
+
+BUILD SUCCESSFUL in 26s
+39 actionable tasks: 8 executed, 6 from cache, 25 up-to-date
+Watched directory hierarchies: [G:\Workspace\AlcoholicTimer]
+Configuration cache entry stored.
+Configuration Cache (G:\Workspace\AlcoholicTimer\.gradle\configuration-cache) [subdir: G:\Workspace\AlcoholicTimer\.gradle\configuration-cache\60ee0917-b671-4df6-934b-3c3f89bfc9f7] cleanup deleted 7 files/directories.

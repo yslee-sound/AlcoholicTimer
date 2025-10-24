@@ -64,6 +64,9 @@ import com.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBotto
 import android.graphics.Color as AndroidColor
 import com.sweetapps.alcoholictimer.core.ads.InterstitialAdManager
 import com.sweetapps.alcoholictimer.core.ads.UmpConsentManager
+import com.sweetapps.alcoholictimer.core.ads.NativeAdManager
+import com.sweetapps.alcoholictimer.core.ui.NativeExitPopup
+import androidx.activity.compose.BackHandler
 
 class StartActivity : BaseActivity() {
     private lateinit var appUpdateManager: AppUpdateManager
@@ -94,7 +97,10 @@ class StartActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         // 스플래시에서 전면광고 로딩은 UMP 동의 플로우 완료 후로 지연
         UmpConsentManager.requestAndLoadIfRequired(this) { canRequest ->
-            if (canRequest) InterstitialAdManager.preload(this)
+            if (canRequest) {
+                InterstitialAdManager.preload(this)
+                NativeAdManager.preload(this) // 네이티브 광고도 미리 로드
+            }
         }
         Constants.initializeUserSettings(this)
         Constants.ensureInstallMarkerAndResetIfReinstalled(this)
@@ -353,6 +359,15 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
     val isValid by remember { derivedStateOf { targetDays > 0 } }
     var showDaysPicker by remember { mutableStateOf(false) }
 
+    // 네이티브 광고 종료 팝업 상태
+    var showExitPopup by remember { mutableStateOf(false) }
+    val activity = context as? android.app.Activity
+
+    // 뒤로가기 핸들러: 네이티브 광고 팝업 표시
+    BackHandler(enabled = true) {
+        showExitPopup = true
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         StandardScreenWithBottomButton(
             topContent = {
@@ -521,6 +536,17 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
                 onDismiss = { showDaysPicker = false }
             )
         }
+
+        // 네이티브 광고 종료 팝업
+        NativeExitPopup(
+            visible = showExitPopup,
+            onConfirmExit = {
+                activity?.finish()
+            },
+            onDismiss = {
+                showExitPopup = false
+            }
+        )
     }
 }
 
