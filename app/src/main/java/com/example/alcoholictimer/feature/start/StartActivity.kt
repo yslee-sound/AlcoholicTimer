@@ -39,6 +39,9 @@ import com.google.android.play.core.appupdate.AppUpdateInfo
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
+import android.os.Handler
+import android.os.Looper
+import java.util.concurrent.atomic.AtomicBoolean
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.compose.material3.SnackbarResult
@@ -60,18 +63,17 @@ import androidx.core.graphics.drawable.toDrawable
 import com.example.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
 import android.graphics.Color as AndroidColor
 import com.example.alcoholictimer.core.ads.InterstitialAdManager
+import com.example.alcoholictimer.core.ads.UmpConsentManager
 
 class StartActivity : BaseActivity() {
     private lateinit var appUpdateManager: AppUpdateManager
-    private var splashOverlayFinished: Boolean = false
-    private var interstitialAttemptedOnce: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // 런처 액티비티에서만 스플래시 설치
-        val splash = installSplashScreen()
+        val splash = if (Build.VERSION.SDK_INT >= 31) installSplashScreen() else null
         // Android 12+ 시스템 스플래시 종료 연출: 220ms 페이드 + 약간 확대 후 제거
         if (Build.VERSION.SDK_INT >= 31) {
-            splash.setOnExitAnimationListener { provider ->
+            splash?.setOnExitAnimationListener { provider ->
                 val icon = provider.iconView
                 icon.animate()
                     .alpha(0f)
@@ -85,11 +87,15 @@ class StartActivity : BaseActivity() {
         // 스플래시 최소 표시 시간 (예: 800ms)
         val splashStart = SystemClock.uptimeMillis()
         val minShowMillis = 800L
-        splash.setKeepOnScreenCondition { Build.VERSION.SDK_INT >= 31 && SystemClock.uptimeMillis() - splashStart < minShowMillis }
+        if (Build.VERSION.SDK_INT >= 31) {
+            splash?.setKeepOnScreenCondition { SystemClock.uptimeMillis() - splashStart < minShowMillis }
+        }
 
         super.onCreate(savedInstanceState)
-        // 스플래시에서 전면광고 로딩만 수행(표시는 하지 않음)
-        InterstitialAdManager.preload(this)
+        // 스플래시에서 전면광고 로딩은 UMP 동의 플로우 완료 후로 지연
+        UmpConsentManager.requestAndLoadIfRequired(this) { canRequest ->
+            if (canRequest) InterstitialAdManager.preload(this)
+        }
         Constants.initializeUserSettings(this)
         Constants.ensureInstallMarkerAndResetIfReinstalled(this)
 
@@ -118,6 +124,8 @@ class StartActivity : BaseActivity() {
             val initialRemain = (minShowMillis - elapsed).coerceAtLeast(0L)
             // API 30 이하에서 오버레이는 비활성화하여 이중 스플래시 방지
             val usesComposeOverlay = false
+            // 배경 제거 중복 방지 플래그
+            val backgroundRemoved = AtomicBoolean(false)
             setContent {
                 // 상단 시스템바 패딩은 적용, 하단은 개별 레이아웃에서 처리
                 BaseScreen(applyBottomInsets = false, applySystemBars = true) {
@@ -128,14 +136,18 @@ class StartActivity : BaseActivity() {
                         initialMinRemainMillis = if (skipSplash) 0L else initialRemain,
                         usesComposeOverlay = usesComposeOverlay,
                         onSplashFinished = {
-                            // 스플래시 오버레이 종료 시, 창 배경(스플래시 레이어)을 제거하여 잔상/깜빡임 방지
-                            window.setBackgroundDrawable(null)
-                            splashOverlayFinished = true
+                            // 배경 제거를 한 번만 수행
+                            fun removeBackgroundOnce() {
+                                if (backgroundRemoved.compareAndSet(false, true)) window.setBackgroundDrawable(null)
+                            }
+                            // 정책상: 메인 표시 후 즉시 노출 금지. 첫 사용자 제스처에서만 시도.
+                            // 따라서 여기서는 배경 제거만 수행하고 광고 표시를 시도하지 않는다.
+                            removeBackgroundOnce()
                         }
                     )
                 }
             }
-            // 오버레이를 쓰지 않는 내부 네비게이션의 경우, 첫 프레임 직후 배경을 제거
+            // 오버레이를 쓰지 않는 내부 네비게이션의 경우, 첫 프레임 직후 배경 제거
             if (skipSplash && Build.VERSION.SDK_INT < 31) {
                 window.decorView.post { window.setBackgroundDrawable(null) }
             }
@@ -149,15 +161,6 @@ class StartActivity : BaseActivity() {
         } else {
             // API 31 이상: 시스템 SplashScreen이 유지 조건으로 제어됨
             launchContent()
-        }
-    }
-
-    override fun onUserInteraction() {
-        super.onUserInteraction()
-        // 메인 화면 표시 이후 첫 사용자 상호작용에서만 1회 시도
-        if (!interstitialAttemptedOnce && splashOverlayFinished) {
-            interstitialAttemptedOnce = true
-            InterstitialAdManager.maybeShowIfEligible(this)
         }
     }
 
@@ -216,8 +219,8 @@ fun StartScreenWithUpdate(
     }
 
     // 앱 시작 시 업데이트 확인 (데모 모드면 실제 체크 생략)
-    if (!demoActive) {
-        LaunchedEffect(Unit) {
+    LaunchedEffect(demoActive) {
+        if (!demoActive) {
             scope.launch {
                 appUpdateManager.checkForUpdate(
                     forceCheck = false,
@@ -233,9 +236,9 @@ fun StartScreenWithUpdate(
                     }
                 )
             }
+        } else {
+            triggerDemo()
         }
-    } else {
-        LaunchedEffect(Unit) { triggerDemo() }
     }
 
     // 업데이트 다운로드 완료 리스너
@@ -264,7 +267,7 @@ fun StartScreenWithUpdate(
             onDebugLongPress = if (demoEnabled) ({ triggerDemo() }) else null
         )
 
-        // 스플래시 오버레이: 최소 유지 시간이 남아있거나, 업데이트 체크 중인 동안 표시 (다이얼로그 표시 시에는 숨김)
+        // 스플래시 오버레이: 최소 유지 시간이 남았거나 업데이트 체크 중인 동안 표시 (다이얼로그 표시 시엔 숨김)
         val showSplashOverlay = usesComposeOverlay && (keepMinOverlay || isCheckingUpdate) && !showUpdateDialog
 
         // 오버레이가 사라지는 시점에 한 번 콜백 호출(창 배경 제거 등)
@@ -294,7 +297,7 @@ fun StartScreenWithUpdate(
             }
         }
 
-        // 스낵바
+        // 스냅바
         SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
 
         // 업데이트 다이얼로그 렌더링 (실사용/데모 공통)
@@ -432,21 +435,66 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
                 }
             },
             bottomButton = {
+                val activity = context as? android.app.Activity
                 Box(modifier = Modifier.size(96.dp), contentAlignment = Alignment.Center) {
                     ModernStartButton(
                         isEnabled = isValid,
                         onStart = {
+                            // 상태를 먼저 기록
                             val formatted = String.format(Locale.US, "%.6f", targetDays.toFloat()).toFloat()
                             sharedPref.edit {
                                 putFloat("target_days", formatted)
                                 putLong("start_time", System.currentTimeMillis())
                                 putBoolean("timer_completed", false)
                             }
-                            context.startActivity(Intent(context, RunActivity::class.java))
+                            val launchRun: () -> Unit = {
+                                context.startActivity(Intent(context, RunActivity::class.java))
+                            }
+                            // 메인 화면의 “앞으로 진행” 제스처에서만 Interstitial 시도
+                            val act = activity
+                            if (act != null) {
+                                if (InterstitialAdManager.isLoaded()) {
+                                    val showed = InterstitialAdManager.maybeShowIfEligible(act) { launchRun() }
+                                    if (!showed) launchRun()
+                                } else {
+                                    // 최초 클릭 시 로드 대기(최대 1.2초) 후 즉시 표시 시도
+                                    val done = AtomicBoolean(false)
+                                    val handler = Handler(Looper.getMainLooper())
+                                    val timeoutMs = 1200L
+                                    val timeout = Runnable {
+                                        if (done.compareAndSet(false, true)) {
+                                            launchRun()
+                                        }
+                                    }
+                                    handler.postDelayed(timeout, timeoutMs)
+                                    InterstitialAdManager.addLoadListener { success ->
+                                        if (done.compareAndSet(false, true)) {
+                                            handler.removeCallbacks(timeout)
+                                            if (success) {
+                                                val showed = InterstitialAdManager.maybeShowIfEligible(act) { launchRun() }
+                                                if (!showed) launchRun()
+                                            } else {
+                                                launchRun()
+                                            }
+                                        }
+                                    }
+                                    // 로드를 트리거(중복 로드는 내부 가드)
+                                    InterstitialAdManager.preload(act.applicationContext)
+                                    // 레이스: 이미 로드가 끝났다면 즉시 성공 경로 수행
+                                    if (InterstitialAdManager.isLoaded() && done.compareAndSet(false, true)) {
+                                        handler.removeCallbacks(timeout)
+                                        val showed = InterstitialAdManager.maybeShowIfEligible(act) { launchRun() }
+                                        if (!showed) launchRun()
+                                    }
+                                }
+                            } else {
+                                launchRun()
+                            }
                         }
                     )
                 }
             },
+            // 하단 광고 배너 제거 (bottomAd 미지정)
             imePaddingEnabled = false,
             backgroundDecoration = {
                 // 워터마크: 배경 위/콘텐츠 아래 레이어에 중앙 배치

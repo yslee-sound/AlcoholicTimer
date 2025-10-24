@@ -46,6 +46,7 @@ import androidx.compose.foundation.BorderStroke
 import com.example.alcoholictimer.core.ui.AppBorder
 import kotlinx.coroutines.launch
 import com.example.alcoholictimer.core.util.AppUpdateManager
+import com.example.alcoholictimer.core.ads.InterstitialAdManager
 
 class RunActivity : BaseActivity() {
 
@@ -136,15 +137,24 @@ private fun RunScreen() {
                 sp.edit { remove(Constants.PREF_START_TIME); putBoolean(Constants.PREF_TIMER_COMPLETED, true) }
                 hasCompleted = true
                 Toast.makeText(context, context.getString(R.string.toast_goal_completed), Toast.LENGTH_SHORT).show()
-                DetailActivity.start(
-                    context = context,
-                    startTime = startTime,
-                    endTime = System.currentTimeMillis(),
-                    targetDays = targetDays,
-                    actualDays = (elapsedMillis / Constants.DAY_IN_MILLIS).toInt(),
-                    isCompleted = true
-                )
-                (context as? RunActivity)?.finish()
+
+                val goDetail: () -> Unit = {
+                    DetailActivity.start(
+                        context = context,
+                        startTime = startTime,
+                        endTime = System.currentTimeMillis(),
+                        targetDays = targetDays,
+                        actualDays = (elapsedMillis / Constants.DAY_IN_MILLIS).toInt(),
+                        isCompleted = true
+                    )
+                    (context as? RunActivity)?.finish()
+                }
+
+                val activity = context as? android.app.Activity
+                val showed = activity?.let { InterstitialAdManager.maybeShowIfEligible(it) { goDetail() } } ?: false
+                if (!showed) {
+                    goDetail()
+                }
             } catch (_: Exception) { }
         }
     }

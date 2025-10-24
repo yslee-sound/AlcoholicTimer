@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.WindowInsets
@@ -38,7 +37,9 @@ fun StandardScreenWithBottomButton(
     bottomButton: @Composable () -> Unit,
     imePaddingEnabled: Boolean = true,
     // 새로 추가: 배경 위/콘텐츠 아래에 깔릴 장식 레이어
-    backgroundDecoration: @Composable BoxScope.() -> Unit = {}
+    backgroundDecoration: @Composable BoxScope.() -> Unit = {},
+    // 선택적 하단 광고 슬롯(버튼 위에 표시)
+    bottomAd: (@Composable () -> Unit)? = null
 ) {
     val rootModifier = Modifier
         .fillMaxSize()
@@ -83,6 +84,23 @@ fun StandardScreenWithBottomButton(
                 verticalArrangement = Arrangement.spacedBy(LayoutConstants.CARD_SPACING),
                 content = topContent
             )
+        }
+
+        // 선택적 하단 광고: 버튼 위에 배치
+        if (bottomAd != null) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(horizontal = LayoutConstants.BOTTOM_BUTTON_HORIZONTAL_PADDING)
+                    // 버튼 영역 위에 위치하도록 충분한 하단 패딩을 추가
+                    .padding(bottom = effectiveBottom + 24.dp + 96.dp)
+                    .wrapContentWidth(Alignment.CenterHorizontally)
+                    .widthIn(max = MaxContentWidth),
+                contentAlignment = Alignment.Center
+            ) {
+                bottomAd()
+            }
         }
 
         // 버튼: 시스템 바 높이 또는 IME 높이 + 적당한 여백(24dp) 적용
