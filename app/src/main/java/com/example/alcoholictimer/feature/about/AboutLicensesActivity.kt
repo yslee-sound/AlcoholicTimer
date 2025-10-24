@@ -31,13 +31,14 @@ import android.content.ClipboardManager
 import androidx.core.content.ContextCompat
 import com.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 import com.sweetapps.alcoholictimer.core.ui.AppBorder
+import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
 
 class AboutLicensesActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.about_open_license_notice)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { BaseScreen(showBackButton = true) { AboutLicensesScreen() } }
+        setContent { BaseScreen(showBackButton = true, bottomAd = { AdmobBanner() }) { AboutLicensesScreen() } }
     }
 }
 

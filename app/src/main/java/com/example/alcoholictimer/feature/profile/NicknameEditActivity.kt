@@ -20,12 +20,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import com.sweetapps.alcoholictimer.core.ui.BaseActivity
+import com.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
+import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
 
 class NicknameEditActivity : BaseActivity() {
     override fun getScreenTitle(): String = "별명 변경"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { BaseScreen { NicknameEditScreen() } }
+        setContent { BaseScreen(bottomAd = { AdmobBanner() }) { NicknameEditScreen() } }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -38,16 +40,13 @@ class NicknameEditActivity : BaseActivity() {
 
         LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
-        // B 타입 규칙: 하단 여백은 max(navBars, IME) + 16.dp 한 번만 적용 (imePadding 금지)
-        val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-        val imeBottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
-        val bottomGap = maxOf(navBottom, imeBottom) + 16.dp
+        val safePadding = LocalSafeContentPadding.current
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp)
-                .padding(bottom = bottomGap),
+                .padding(safePadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(text = "새로운 별명을 입력해주세요", fontSize = 18.sp, fontWeight = FontWeight.Medium, color = Color.Gray, modifier = Modifier.padding(bottom = 32.dp))

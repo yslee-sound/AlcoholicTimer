@@ -7,7 +7,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,8 +43,6 @@ import kotlinx.coroutines.delay
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.unit.Dp
 import androidx.compose.foundation.layout.RowScope
-import com.sweetapps.alcoholictimer.core.ui.AppColors
-import kotlin.jvm.java
 
 // 전역 입력 잠금 요청을 위한 CompositionLocal
 val LocalRequestGlobalLock = compositionLocalOf<(Long) -> Unit> { { _: Long -> } }
@@ -98,6 +95,9 @@ abstract class BaseActivity : ComponentActivity() {
         onBackClick: (() -> Unit)? = null,
         bottomExtra: Dp = 16.dp, // 스크롤 화면 공통 추가 여백(문서 기준 16dp)
         topBarActions: @Composable RowScope.() -> Unit = {},
+        // 새로 추가: 하단 배너 광고 슬롯과 공간 예약 옵션
+        bottomAd: (@Composable () -> Unit)? = null,
+        reserveSpaceForBottomAd: Boolean = false,
         content: @Composable () -> Unit
     ) {
         AlcoholicTimerTheme(darkTheme = false, applySystemBars = applySystemBars) {
@@ -156,10 +156,11 @@ abstract class BaseActivity : ComponentActivity() {
                     }
             }
 
-            // 시스템 내비/IME 하단 인셋 계산 + 공통 추가 여백
+            // 시스템 내비/IME 하단 인셋 계산 + 공통 추가 여백 (배너 높이는 여기선 제외: 하단 컨테이너로 공간 확보)
             val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
             val imeBottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
-            val safeBottom = maxOf(navBottom, imeBottom) + bottomExtra
+            val effectiveBottom = maxOf(navBottom, imeBottom)
+            val safeBottom = effectiveBottom + bottomExtra
             val providedSafePadding = PaddingValues(bottom = safeBottom)
 
             CompositionLocalProvider(
@@ -296,43 +297,66 @@ abstract class BaseActivity : ComponentActivity() {
                         },
                         contentWindowInsets = WindowInsets(0, 0, 0, 0)
                     ) { paddingValues ->
-                        Box(Modifier.fillMaxSize()) {
+                        // Column 구성: 상단 컨텐츠 영역(가중치 1) + 하단 배너 컨테이너(옵션)
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            // 배경 레이어
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                            )
-                            val insetModifier = if (applyBottomInsets) {
-                                // 기본은 수평 + 상단만 시스템 인셋 적용 (하단은 스크롤 화면에서 LocalSafeContentPadding으로 처리)
-                                Modifier.windowInsetsPadding(
-                                    WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
-                                )
-                            } else {
-                                Modifier
-                            }
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(paddingValues)
-                                    .then(insetModifier)
-                                    .blur(radius = blurRadius.dp)
-                            ) { content() }
-
-                            // 전역 입력 차단 오버레이(설정 화면 제외) + 드로어 가드: 모든 포인터 입력 소비
-                            if ((enableGlobalOverlay && globalInputLocked) || drawerInputGuardActive) {
+                                    .weight(1f)
+                            ) {
                                 Box(
                                     modifier = Modifier
-                                        .fillMaxSize()
-                                        .pointerInput(drawerInputGuardActive, globalInputLocked) {
-                                            // 활성 시 전체 포인터 이벤트를 소비하여 배경 인터랙션 차단
-                                            while (true) {
-                                                awaitPointerEventScope {
-                                                    val event = awaitPointerEvent()
-                                                    event.changes.forEach { it.consume() }
+                                        .matchParentSize()
+                                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                                )
+                                val insetModifier = if (applyBottomInsets) {
+                                    Modifier.windowInsetsPadding(
+                                        WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
+                                    )
+                                } else { Modifier }
+                                Box(
+                                    modifier = Modifier
+                                        .matchParentSize()
+                                        .padding(paddingValues)
+                                        .then(insetModifier)
+                                        .blur(radius = blurRadius.dp)
+                                ) { content() }
+
+                                // 전역 입력 차단 오버레이(설정 화면 제외) + 드로어 가드: 모든 포인터 입력 소비
+                                if ((enableGlobalOverlay && globalInputLocked) || drawerInputGuardActive) {
+                                    Box(
+                                        modifier = Modifier
+                                            .matchParentSize()
+                                            .pointerInput(drawerInputGuardActive, globalInputLocked) {
+                                                while (true) {
+                                                    awaitPointerEventScope {
+                                                        val event = awaitPointerEvent()
+                                                        event.changes.forEach { it.consume() }
+                                                    }
                                                 }
                                             }
-                                        }
-                                )
+                                    )
+                                }
+                            }
+
+                            // 하단 고정 배너 컨테이너: 광고 미노출 시에도 공간 예약 옵션 제공
+                            val showOrReserveAd = (bottomAd != null) || reserveSpaceForBottomAd
+                            if (showOrReserveAd) {
+                                Spacer(modifier = Modifier.height(LayoutConstants.BANNER_TOP_GAP))
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = LayoutConstants.SCREEN_HORIZONTAL_PADDING)
+                                        .padding(bottom = effectiveBottom)
+                                        .heightIn(min = LayoutConstants.BANNER_MIN_HEIGHT),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    bottomAd?.invoke()
+                                }
+                            } else {
+                                // 배너가 없고 예약도 없는 경우: 하단에 시스템 인셋만큼의 최소 여백 보장(미세 튐 방지)
+                                Spacer(modifier = Modifier.height(effectiveBottom))
                             }
                         }
                     }

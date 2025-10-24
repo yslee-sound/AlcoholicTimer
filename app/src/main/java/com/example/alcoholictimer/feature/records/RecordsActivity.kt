@@ -14,6 +14,7 @@ import com.sweetapps.alcoholictimer.core.ui.BaseActivity
 import com.sweetapps.alcoholictimer.core.model.SobrietyRecord
 import com.sweetapps.alcoholictimer.feature.detail.DetailActivity
 import com.sweetapps.alcoholictimer.feature.records.components.RecordsScreen
+import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
 
 class RecordsActivity : BaseActivity() {
 
@@ -28,7 +29,9 @@ class RecordsActivity : BaseActivity() {
         setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = density.fontScale * 0.9f)) {
-                BaseScreen {
+                BaseScreen(
+                    bottomAd = { AdmobBanner() }
+                ) {
                     RecordsScreen(
                         externalRefreshTrigger = refreshTrigger,
                         onNavigateToDetail = { record -> handleCardClick(record) },

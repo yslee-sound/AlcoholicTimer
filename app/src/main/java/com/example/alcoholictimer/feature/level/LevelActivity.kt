@@ -40,13 +40,16 @@ import com.sweetapps.alcoholictimer.core.ui.AppBorder
 import androidx.compose.foundation.BorderStroke
 import com.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 import com.sweetapps.alcoholictimer.core.ui.components.MainLevelCardFrame
+import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
 
 class LevelActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            BaseScreen { LevelScreen() }
+            BaseScreen(
+                bottomAd = { AdmobBanner() }
+            ) { LevelScreen() }
         }
     }
 

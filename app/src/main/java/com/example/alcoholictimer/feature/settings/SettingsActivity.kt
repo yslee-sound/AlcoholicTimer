@@ -34,12 +34,13 @@ import com.sweetapps.alcoholictimer.core.ui.LayoutConstants
 import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.RadioButtonDefaults
+import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
 
 class SettingsActivity : BaseActivity() {
     override fun getScreenTitle(): String = "설정"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { BaseScreen { SettingsScreen() } }
+        setContent { BaseScreen(bottomAd = { AdmobBanner() }) { SettingsScreen() } }
     }
 }
 

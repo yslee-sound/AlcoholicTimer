@@ -20,13 +20,14 @@ import androidx.compose.ui.unit.dp
 import com.sweetapps.alcoholictimer.core.ui.BaseActivity
 import com.sweetapps.alcoholictimer.R
 import com.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
+import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
 
 class AboutActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.about_title)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { BaseScreen { AboutListScreen(onOpenLicenses = { openLicenses() }) } }
+        setContent { BaseScreen(bottomAd = { AdmobBanner() }) { AboutListScreen(onOpenLicenses = { openLicenses() }) } }
     }
 
     @Suppress("DEPRECATION")

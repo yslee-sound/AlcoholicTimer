@@ -48,8 +48,6 @@ import com.sweetapps.alcoholictimer.core.ui.AppBorder
 import kotlinx.coroutines.launch
 import com.sweetapps.alcoholictimer.core.util.AppUpdateManager
 import com.sweetapps.alcoholictimer.core.ads.InterstitialAdManager
-import com.sweetapps.alcoholictimer.feature.run.QuitActivity
-import kotlin.jvm.java
 
 class RunActivity : BaseActivity() {
 

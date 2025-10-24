@@ -42,15 +42,16 @@ import com.sweetapps.alcoholictimer.R
 import com.sweetapps.alcoholictimer.core.ui.AppElevation
 import com.sweetapps.alcoholictimer.core.ui.AppBorder
 import com.sweetapps.alcoholictimer.core.ui.LayoutConstants
-import com.sweetapps.alcoholictimer.core.ui.theme.AmberSecondaryLight
-import com.sweetapps.alcoholictimer.core.ui.theme.BluePrimaryLight
-import com.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
+import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
 import com.sweetapps.alcoholictimer.core.util.Constants
 import com.sweetapps.alcoholictimer.core.util.FormatUtils
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
 import androidx.core.content.edit // SharedPreferences 확장 함수 import 복구
+import com.sweetapps.alcoholictimer.core.ui.theme.AmberSecondaryLight
+import com.sweetapps.alcoholictimer.core.ui.theme.BluePrimaryLight
+import com.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
 
 class DetailActivity : ComponentActivity() {
 
@@ -186,261 +187,231 @@ fun DetailScreen(
 
     val density = LocalDensity.current
     CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = density.fontScale * 0.9f)) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                // 전역 배경을 연회색으로 변경
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .windowInsetsPadding(
-                    // 하단은 전역에서 처리하지 않음: 수평만 적용
-                    WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
-                )
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
-                    .statusBarsPadding()
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+        // 하단 고정 배너를 위한 레이아웃: Column(컨텐츠 weight(1f) + 배너 컨테이너)
+        // 시스템 바/IME 하단 인셋 계산
+        val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+        val imeBottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
+        val effectiveBottom = maxOf(navBottom, imeBottom)
+
+        Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant)) {
+            // 상단 스크롤 컨텐츠 영역
+            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp)
+                        .statusBarsPadding()
                 ) {
                     Row(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.White)
+                                    .clickable { onBack() }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                                    contentDescription = stringResource(id = R.string.cd_navigate_back),
+                                    tint = Color(0xFF2D3748),
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(4.dp))
+                            CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1f)) {
+                                val base = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                                val scaled = base.copy(fontSize = (base.fontSize.value * 1.3f).sp)
+                                Text(
+                                    text = stringResource(id = R.string.detail_title),
+                                    style = scaled,
+                                    color = Color(0xFF2D3748),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
                                 .size(48.dp)
                                 .clip(CircleShape)
                                 .background(Color.White)
-                                .clickable { onBack() }
+                                .clickable { showDeleteDialog = true }
                         ) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                                contentDescription = stringResource(id = R.string.cd_navigate_back),
-                                tint = Color(0xFF2D3748),
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription = stringResource(id = R.string.dialog_delete_title),
+                                tint = Color(0xFFE53E3E),
                                 modifier = Modifier.size(24.dp)
                             )
                         }
-                        Spacer(modifier = Modifier.width(4.dp))
-                        CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1f)) {
-                            val base = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-                            val scaled = base.copy(fontSize = (base.fontSize.value * 1.3f).sp)
-                            Text(
-                                text = stringResource(id = R.string.detail_title),
-                                style = scaled,
-                                color = Color(0xFF2D3748),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
                     }
 
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(CircleShape)
-                            .background(Color.White)
-                            .clickable { showDeleteDialog = true }
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+                        border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Delete,
-                            contentDescription = stringResource(id = R.string.dialog_delete_title),
-                            tint = Color(0xFFE53E3E),
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-                    border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
-                ) {
-                    Column(
-                        modifier = Modifier.padding(20.dp)
-                    ) {
-                        Text(
-                            text = "${stringResource(id = R.string.detail_start_label)} $displayDateTime",
-                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                            color = Color(0xFF718096)
-                        )
-
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        Text(
-                            text = "${stringResource(id = R.string.detail_end_label)} ${dateTimeFormat.format(Date(endTime))}",
-                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                            color = Color(0xFF718096)
-                        )
-
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
+                        Column(
+                            modifier = Modifier.padding(20.dp)
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = String.format(Locale.getDefault(), "%.1f", totalDays),
-                                    style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.ExtraBold),
-                                    color = accentColor
-                                )
-                                Text(
-                                    text = stringResource(id = R.string.unit_day),
-                                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
-                                    color = Color(0xFF718096)
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = stringResource(id = R.string.detail_progress_rate),
-                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                                    color = Color(0xFF718096)
-                                )
-                                Text(
-                                    text = String.format(Locale.getDefault(), "%.1f%%", achievementRate),
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = accentColor
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            LinearProgressIndicator(
-                                progress = { (achievementRate / 100.0).toFloat().coerceIn(0f, 1f) },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(8.dp)
-                                    .clip(RoundedCornerShape(4.dp)),
-                                color = accentColor,
-                                trackColor = Color(0xFFE2E8F0)
+                            Text(
+                                text = "${stringResource(id = R.string.detail_start_label)} $displayDateTime",
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                                color = Color(0xFF718096)
                             )
 
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            Text(
+                                text = "${stringResource(id = R.string.detail_end_label)} ${dateTimeFormat.format(Date(endTime))}",
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                                color = Color(0xFF718096)
+                            )
+
+                            Spacer(modifier = Modifier.height(24.dp))
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
+                                horizontalArrangement = Arrangement.Center
                             ) {
-                                Text(
-                                    text = stringResource(id = R.string.detail_progress_current, String.format(Locale.getDefault(), "%.1f", totalDays)),
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                                    color = Color(0xFF718096)
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        text = String.format(Locale.getDefault(), "%.1f", totalDays),
+                                        style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.ExtraBold),
+                                        color = accentColor
+                                    )
+                                    Text(
+                                        text = stringResource(id = R.string.unit_day),
+                                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                                        color = Color(0xFF718096)
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = stringResource(id = R.string.detail_progress_rate),
+                                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                                        color = Color(0xFF718096)
+                                    )
+                                    Text(
+                                        text = String.format(Locale.getDefault(), "%.1f%%", achievementRate),
+                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                        color = accentColor
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                LinearProgressIndicator(
+                                    progress = { (achievementRate / 100.0).toFloat().coerceIn(0f, 1f) },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(8.dp)
+                                        .clip(RoundedCornerShape(4.dp)),
+                                    color = accentColor,
+                                    trackColor = Color(0xFFE2E8F0)
                                 )
-                                Text(
-                                    text = stringResource(id = R.string.detail_progress_target, targetDays.toInt()),
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                                    color = Color(0xFF718096)
-                                )
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = stringResource(id = R.string.detail_progress_current, String.format(Locale.getDefault(), "%.1f", totalDays)),
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                                        color = Color(0xFF718096)
+                                    )
+                                    Text(
+                                        text = stringResource(id = R.string.detail_progress_target, targetDays.toInt()),
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                                        color = Color(0xFF718096)
+                                    )
+                                }
                             }
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
+                    ) {
+                        com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
+                            value = String.format(Locale.getDefault(), "%.1f일", totalDays),
+                            label = stringResource(id = R.string.stat_total_days),
+                            modifier = Modifier.weight(1f),
+                            valueColor = colorResource(id = R.color.color_indicator_days)
+                        )
+                        com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
+                            value = String.format(Locale.getDefault(), "%,.0f원", savedMoney.toDouble()),
+                            label = stringResource(id = R.string.stat_saved_money_short),
+                            modifier = Modifier.weight(1f),
+                            valueColor = colorResource(id = R.color.color_indicator_money)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
+                    ) {
+                        com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
+                            value = String.format(Locale.getDefault(), "%.1f시간", savedHoursExact),
+                            label = stringResource(id = R.string.stat_saved_hours_short),
+                            modifier = Modifier.weight(1f),
+                            valueColor = colorResource(id = R.color.color_indicator_hours)
+                        )
+                        com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
+                            value = FormatUtils.daysToDayHourString(lifeExpectancyIncrease, 2),
+                            label = stringResource(id = R.string.indicator_title_life_gain),
+                            modifier = Modifier.weight(1f),
+                            valueColor = colorResource(id = R.color.color_indicator_life)
+                        )
+                    }
+
+                    // 하단 여백 축소
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
-                ) {
-                    com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
-                        value = String.format(Locale.getDefault(), "%.1f일", totalDays),
-                        label = stringResource(id = R.string.stat_total_days),
-                        modifier = Modifier.weight(1f),
-                        valueColor = colorResource(id = R.color.color_indicator_days)
-                    )
-                    com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
-                        value = String.format(Locale.getDefault(), "%,.0f원", savedMoney.toDouble()),
-                        label = stringResource(id = R.string.stat_saved_money_short),
-                        modifier = Modifier.weight(1f),
-                        valueColor = colorResource(id = R.color.color_indicator_money)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
-                ) {
-                    com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
-                        value = String.format(Locale.getDefault(), "%.1f시간", savedHoursExact),
-                        label = stringResource(id = R.string.stat_saved_hours_short),
-                        modifier = Modifier.weight(1f),
-                        valueColor = colorResource(id = R.color.color_indicator_hours)
-                    )
-                    com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
-                        value = FormatUtils.daysToDayHourString(lifeExpectancyIncrease, 2),
-                        label = stringResource(id = R.string.indicator_title_life_gain),
-                        modifier = Modifier.weight(1f),
-                        valueColor = colorResource(id = R.color.color_indicator_life)
-                    )
-                }
-
-                // 하단 여백 축소
-                Spacer(modifier = Modifier.height(8.dp))
             }
 
-            if (showDeleteDialog) {
-                AlertDialog(
-                    onDismissRequest = { showDeleteDialog = false },
-                    title = {
-                        Text(
-                            stringResource(id = R.string.dialog_delete_title),
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF2D3748)
-                        )
-                    },
-                    text = {
-                        Text(
-                            stringResource(id = R.string.dialog_delete_message),
-                            color = Color(0xFF4A5568)
-                        )
-                    },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                showDeleteDialog = false
-                                try {
-                                    deleteRecord(context, startTime, endTime)
-                                } catch (e: Exception) {
-                                    Log.e("DetailActivity", "삭제 중 오류", e)
-                                }
-                                val activity = (context as? DetailActivity)
-                                activity?.setResult(Activity.RESULT_OK)
-                                activity?.finish()
-                            }
-                        ) {
-                            Text(stringResource(id = R.string.dialog_delete_confirm), color = Color(0xFFE53E3E), fontWeight = FontWeight.Bold)
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showDeleteDialog = false }) {
-                            Text(stringResource(id = R.string.dialog_cancel), color = Color(0xFF718096))
-                        }
-                    },
-                    containerColor = Color.White,
-                    shape = RoundedCornerShape(16.dp)
-                )
+            // 하단 고정 배너 컨테이너(항상 고정 공간 확보)
+            Spacer(modifier = Modifier.height(LayoutConstants.BANNER_TOP_GAP))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = effectiveBottom)
+                    .heightIn(min = LayoutConstants.BANNER_MIN_HEIGHT),
+                contentAlignment = Alignment.Center
+            ) {
+                AdmobBanner()
             }
         }
     }

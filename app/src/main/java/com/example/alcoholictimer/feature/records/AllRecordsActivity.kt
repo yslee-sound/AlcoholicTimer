@@ -15,6 +15,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableIntStateOf
+import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
 
 class AllRecordsActivity : BaseActivity() {
 
@@ -36,15 +37,20 @@ class AllRecordsActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             val showDeleteAll = remember { mutableStateOf(false) }
-            BaseScreen(showBackButton = true, onBackClick = { finish() }, topBarActions = {
-                IconButton(onClick = { showDeleteAll.value = true }) {
-                    Icon(imageVector = Icons.Outlined.Close, contentDescription = "모든 기록 삭제")
-                }
-            }) {
+            BaseScreen(
+                showBackButton = true,
+                onBackClick = { finish() },
+                topBarActions = {
+                    IconButton(onClick = { showDeleteAll.value = true }) {
+                        Icon(imageVector = Icons.Outlined.Close, contentDescription = "모든 기록 삭제")
+                    }
+                },
+                bottomAd = { AdmobBanner() }
+            ) {
                 com.sweetapps.alcoholictimer.feature.records.components.AllRecordsScreen(
                     externalRefreshTrigger = externalRefreshTriggerState.intValue,
-                    onNavigateBack = { finish() },
                     onNavigateToDetail = { record -> handleRecordClick(record) },
+                    onNavigateToAllRecords = { /* no-op */ },
                     externalDeleteDialog = showDeleteAll
                 )
             }
