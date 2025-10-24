@@ -59,9 +59,12 @@ import com.example.alcoholictimer.core.ui.components.AppUpdateDialog
 import androidx.core.graphics.drawable.toDrawable
 import com.example.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
 import android.graphics.Color as AndroidColor
+import com.example.alcoholictimer.core.ads.InterstitialAdManager
 
 class StartActivity : BaseActivity() {
     private lateinit var appUpdateManager: AppUpdateManager
+    private var splashOverlayFinished: Boolean = false
+    private var interstitialAttemptedOnce: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // 런처 액티비티에서만 스플래시 설치
@@ -85,6 +88,8 @@ class StartActivity : BaseActivity() {
         splash.setKeepOnScreenCondition { Build.VERSION.SDK_INT >= 31 && SystemClock.uptimeMillis() - splashStart < minShowMillis }
 
         super.onCreate(savedInstanceState)
+        // 스플래시에서 전면광고 로딩만 수행(표시는 하지 않음)
+        InterstitialAdManager.preload(this)
         Constants.initializeUserSettings(this)
         Constants.ensureInstallMarkerAndResetIfReinstalled(this)
 
@@ -125,6 +130,7 @@ class StartActivity : BaseActivity() {
                         onSplashFinished = {
                             // 스플래시 오버레이 종료 시, 창 배경(스플래시 레이어)을 제거하여 잔상/깜빡임 방지
                             window.setBackgroundDrawable(null)
+                            splashOverlayFinished = true
                         }
                     )
                 }
@@ -143,6 +149,15 @@ class StartActivity : BaseActivity() {
         } else {
             // API 31 이상: 시스템 SplashScreen이 유지 조건으로 제어됨
             launchContent()
+        }
+    }
+
+    override fun onUserInteraction() {
+        super.onUserInteraction()
+        // 메인 화면 표시 이후 첫 사용자 상호작용에서만 1회 시도
+        if (!interstitialAttemptedOnce && splashOverlayFinished) {
+            interstitialAttemptedOnce = true
+            InterstitialAdManager.maybeShowIfEligible(this)
         }
     }
 

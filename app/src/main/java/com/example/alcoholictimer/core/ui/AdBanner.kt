@@ -12,11 +12,11 @@ import com.google.android.gms.ads.AdView
 fun AdmobBanner(modifier: Modifier = Modifier) {
     AndroidView(
         modifier = modifier.fillMaxWidth(),
-        factory = {
-            context ->
+        factory = { context ->
             AdView(context).apply {
-                adUnitId = "ca-app-pub-3940256099942544/6300978111" // Sample Ad unit ID
-                adSize = AdSize.BANNER
+                // Sample Ad unit ID (테스트 전용)
+                setAdUnitId("ca-app-pub-3940256099942544/6300978111")
+                setAdSize(AdSize.BANNER)
                 loadAd(AdRequest.Builder().build())
             }
         }

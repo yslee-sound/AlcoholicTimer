@@ -113,11 +113,14 @@ dependencies {
     implementation(libs.app.update.ktx)
     implementation(libs.kotlinx.coroutines.play.services)
 
+    // AdMob & UMP (명시 버전 사용)
+    implementation("com.google.android.gms:play-services-ads:23.4.0")
+    implementation("com.google.android.ump:user-messaging-platform:2.2.0")
+
     testImplementation(libs.junit)
     testImplementation(libs.androidx.ui.test.junit4)
     testImplementation(libs.androidx.test.core.ktx)
     testImplementation(libs.robolectric)
-    // org.json for JVM tests
     testImplementation("org.json:json:20240303")
 
     androidTestImplementation(libs.androidx.junit)
@@ -151,4 +154,4 @@ tasks.register("printReleaseSigningEnv") {
 }
 
 // (단순화) designTokenCheck 커스텀 태스크 제거.
-// 필요 시 별도 스크립트나 독립 Gradle 플러그인/CI 스텝으로 수행 권장.
+// 필요 시 별도 스크립트나 독립 Gradle 플러그인/CI 스텝으로 수행 권장
