@@ -17,6 +17,7 @@
 - Base 화면: 드로어 열림/애니메이션/닫힘 직후 입력 가드 적용(그레이스 타임 포함)으로 모달 배리어 일관성 강화
 - Start 화면: In‑App Update 데모 트리거(제목 탭/롱프레스, 인텐트 `demo_update_ui`) 연결, `AppUpdateDialog` 실제 렌더링 추가, 업데이트 정보 상태(`updateInfo`, `availableVersionName`) 보관
 - Start 화면: 목표 일수 입력 방식을 “숫자 입력”에서 “가로 3자리 다이얼 바텀시트(백/십/일)”로 전환
+- 문서: `docs/a_SETTINGS_SCREEN_UI_PROMPT.md` v1.1.0 — 설정 화면 가이드 카드형 → 목록형(비스크롤 기본), 흰 배경, 섹션 Divider, 컴팩트 라디오(40dp), 배너 위 8dp 완충, 전역 배너 갭 0dp 반영
 
 ### Fixed
 - 상세 화면: 기록 삭제가 되지 않던 버그(JSON 키 불일치) 수정
