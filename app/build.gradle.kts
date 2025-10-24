@@ -14,7 +14,7 @@ val isReleaseTaskRequested: Boolean = gradle.startParameter.taskNames.any { name
 }
 
 android {
-    namespace = "com.example.alcoholictimer" // 코드 패키지 구조는 유지 (선택)
+    namespace = "com.sweetapps.alcoholictimer"
     compileSdk = 36
 
     // 버전 코드 전략: yyyymmdd + 2자리 시퀀스 (NN)
@@ -23,7 +23,7 @@ android {
     val releaseVersionName = "1.0.8"
 
     defaultConfig {
-        applicationId = "kr.sweetapps.alcoholictimer" // 변경: Play Console에서 com.example.* 금지 대응
+        applicationId = "kr.sweetapps.alcoholictimer" // Play Console용 applicationId는 유지
         minSdk = 21
         targetSdk = 36
         versionCode = releaseVersionCode

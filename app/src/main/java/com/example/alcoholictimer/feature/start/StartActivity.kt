@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.feature.start
+package com.sweetapps.alcoholictimer.feature.start
 
 import android.content.Context.MODE_PRIVATE
 import android.content.Intent
@@ -27,14 +27,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
-import com.example.alcoholictimer.R
-import com.example.alcoholictimer.core.ui.AppElevation
-import com.example.alcoholictimer.core.ui.AppBorder
-import com.example.alcoholictimer.core.ui.BaseActivity
-import com.example.alcoholictimer.core.ui.StandardScreenWithBottomButton
-import com.example.alcoholictimer.core.util.AppUpdateManager
-import com.example.alcoholictimer.core.util.Constants
-import com.example.alcoholictimer.feature.run.RunActivity
+import com.sweetapps.alcoholictimer.R
+import com.sweetapps.alcoholictimer.core.ui.AppElevation
+import com.sweetapps.alcoholictimer.core.ui.AppBorder
+import com.sweetapps.alcoholictimer.core.ui.BaseActivity
+import com.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
+import com.sweetapps.alcoholictimer.core.util.AppUpdateManager
+import com.sweetapps.alcoholictimer.core.util.Constants
+import com.sweetapps.alcoholictimer.feature.run.RunActivity
 import com.google.android.play.core.appupdate.AppUpdateInfo
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -58,12 +58,12 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.ui.draw.alpha
-import com.example.alcoholictimer.core.ui.components.AppUpdateDialog
+import com.sweetapps.alcoholictimer.core.ui.components.AppUpdateDialog
 import androidx.core.graphics.drawable.toDrawable
-import com.example.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
+import com.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
 import android.graphics.Color as AndroidColor
-import com.example.alcoholictimer.core.ads.InterstitialAdManager
-import com.example.alcoholictimer.core.ads.UmpConsentManager
+import com.sweetapps.alcoholictimer.core.ads.InterstitialAdManager
+import com.sweetapps.alcoholictimer.core.ads.UmpConsentManager
 
 class StartActivity : BaseActivity() {
     private lateinit var appUpdateManager: AppUpdateManager

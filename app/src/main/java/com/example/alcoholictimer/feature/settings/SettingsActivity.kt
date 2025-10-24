@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.feature.settings
+package com.sweetapps.alcoholictimer.feature.settings
 
 import android.content.Context
 import android.os.Bundle
@@ -19,12 +19,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
-import com.example.alcoholictimer.core.ui.AppElevation
-import com.example.alcoholictimer.core.ui.AppBorder
-import com.example.alcoholictimer.core.ui.BaseActivity
-import com.example.alcoholictimer.core.util.Constants
-import com.example.alcoholictimer.R
-import com.example.alcoholictimer.core.ui.LocalSafeContentPadding
+import com.sweetapps.alcoholictimer.core.ui.AppElevation
+import com.sweetapps.alcoholictimer.core.ui.AppBorder
+import com.sweetapps.alcoholictimer.core.ui.BaseActivity
+import com.sweetapps.alcoholictimer.core.util.Constants
+import com.sweetapps.alcoholictimer.R
+import com.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 
 class SettingsActivity : BaseActivity() {
     override fun getScreenTitle(): String = "설정"

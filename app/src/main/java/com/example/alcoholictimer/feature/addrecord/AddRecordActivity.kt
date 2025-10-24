@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.feature.addrecord
+package com.sweetapps.alcoholictimer.feature.addrecord
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
@@ -23,13 +23,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
-import com.example.alcoholictimer.core.data.RecordsDataLoader
-import com.example.alcoholictimer.core.model.SobrietyRecord
+import com.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
+import com.sweetapps.alcoholictimer.core.data.RecordsDataLoader
+import com.sweetapps.alcoholictimer.core.model.SobrietyRecord
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.content.edit
-import com.example.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
+import com.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
 
 class AddRecordActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -311,7 +311,7 @@ private fun AddRecordScreen(
 
         if (showTargetSheet) {
             // 바텀시트는 핵심 대화형 요소이므로 흰색 Surface 유지
-            com.example.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet(
+            com.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet(
                 initialValue = tempTarget,
                 onConfirm = { picked: Int ->
                     targetDays = picked.toString()

@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.core.ui
+package com.sweetapps.alcoholictimer.core.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.example.alcoholictimer.R
+import com.sweetapps.alcoholictimer.R
 
 /**
  * 공통 카드 래퍼: elevation/shape/패딩/기본 색상을 디자인 토큰과 동기화.

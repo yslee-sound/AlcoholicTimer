@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.feature.records.components
+package com.sweetapps.alcoholictimer.feature.records.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -18,11 +18,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.alcoholictimer.R
-import com.example.alcoholictimer.core.model.SobrietyRecord
-import com.example.alcoholictimer.core.ui.AppAlphas
-import com.example.alcoholictimer.core.ui.AppElevation
-import com.example.alcoholictimer.core.ui.AppBorder
+import com.sweetapps.alcoholictimer.R
+import com.sweetapps.alcoholictimer.core.model.SobrietyRecord
+import com.sweetapps.alcoholictimer.core.ui.AppAlphas
+import com.sweetapps.alcoholictimer.core.ui.AppElevation
+import com.sweetapps.alcoholictimer.core.ui.AppBorder
 import java.text.SimpleDateFormat
 import java.util.*
 

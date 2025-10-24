@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.core.model
+package com.sweetapps.alcoholictimer.core.model
 
 import org.junit.Assert.*
 import org.junit.Test
@@ -116,4 +116,3 @@ class SobrietyRecordTest {
         assertEquals(r.memo, r2.memo)
     }
 }
-

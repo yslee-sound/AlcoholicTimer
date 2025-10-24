@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.feature.records.components
+package com.sweetapps.alcoholictimer.feature.records.components
 
 import android.app.Activity
 import android.content.Intent
@@ -27,23 +27,23 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import com.example.alcoholictimer.R
-import com.example.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
-import com.example.alcoholictimer.core.util.DateOverlapUtils
-import com.example.alcoholictimer.core.data.RecordsDataLoader
-import com.example.alcoholictimer.core.model.SobrietyRecord
+import com.sweetapps.alcoholictimer.R
+import com.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
+import com.sweetapps.alcoholictimer.core.util.DateOverlapUtils
+import com.sweetapps.alcoholictimer.core.data.RecordsDataLoader
+import com.sweetapps.alcoholictimer.core.model.SobrietyRecord
 import java.util.*
-import com.example.alcoholictimer.feature.addrecord.AddRecordActivity
-import com.example.alcoholictimer.core.util.PercentUtils
+import com.sweetapps.alcoholictimer.feature.addrecord.AddRecordActivity
+import com.sweetapps.alcoholictimer.core.util.PercentUtils
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
 import kotlin.math.max
 import kotlin.math.min
-import com.example.alcoholictimer.core.ui.AppElevation
-import com.example.alcoholictimer.core.ui.AppBorder
-import com.example.alcoholictimer.core.ui.LocalRequestGlobalLock
-import com.example.alcoholictimer.core.ui.LocalSafeContentPadding
+import com.sweetapps.alcoholictimer.core.ui.AppElevation
+import com.sweetapps.alcoholictimer.core.ui.AppBorder
+import com.sweetapps.alcoholictimer.core.ui.LocalRequestGlobalLock
+import com.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

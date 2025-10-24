@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.core.ads
+package com.sweetapps.alcoholictimer.core.ads
 
 import android.app.Activity
 import android.util.Log

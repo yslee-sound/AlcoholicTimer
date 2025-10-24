@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.feature.records.components
+package com.sweetapps.alcoholictimer.feature.records.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,13 +14,13 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.alcoholictimer.R
-import com.example.alcoholictimer.core.ui.AppElevation
+import com.sweetapps.alcoholictimer.R
+import com.sweetapps.alcoholictimer.core.ui.AppElevation
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.foundation.BorderStroke
 import android.os.SystemClock
-import com.example.alcoholictimer.core.ui.AppBorder
+import com.sweetapps.alcoholictimer.core.ui.AppBorder
 
 @Composable
 fun PeriodSelectionSection(

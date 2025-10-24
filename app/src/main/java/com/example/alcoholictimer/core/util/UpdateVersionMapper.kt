@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.core.util
+package com.sweetapps.alcoholictimer.core.util
 
 /**
  * Play In-App Update API는 대상 버전의 versionName을 제공하지 않으므로

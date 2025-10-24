@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.feature.profile
+package com.sweetapps.alcoholictimer.feature.profile
 
 import android.content.Intent
 import android.os.Bundle
@@ -19,7 +19,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
-import com.example.alcoholictimer.core.ui.BaseActivity
+import com.sweetapps.alcoholictimer.core.ui.BaseActivity
 
 class NicknameEditActivity : BaseActivity() {
     override fun getScreenTitle(): String = "별명 변경"
@@ -38,11 +38,16 @@ class NicknameEditActivity : BaseActivity() {
 
         LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
+        // B 타입 규칙: 하단 여백은 max(navBars, IME) + 16.dp 한 번만 적용 (imePadding 금지)
+        val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+        val imeBottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
+        val bottomGap = maxOf(navBottom, imeBottom) + 16.dp
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp)
-                .imePadding(),
+                .padding(bottom = bottomGap),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(text = "새로운 별명을 입력해주세요", fontSize = 18.sp, fontWeight = FontWeight.Medium, color = Color.Gray, modifier = Modifier.padding(bottom = 32.dp))

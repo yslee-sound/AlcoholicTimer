@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.core.util
+package com.sweetapps.alcoholictimer.core.util
 
 import java.util.Calendar
 import java.util.TimeZone

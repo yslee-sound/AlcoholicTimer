@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.feature.records
+package com.sweetapps.alcoholictimer.feature.records
 
 import android.content.Intent
 import android.os.Bundle
@@ -10,10 +10,10 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
-import com.example.alcoholictimer.core.ui.BaseActivity
-import com.example.alcoholictimer.core.model.SobrietyRecord
-import com.example.alcoholictimer.feature.detail.DetailActivity
-import com.example.alcoholictimer.feature.records.components.RecordsScreen
+import com.sweetapps.alcoholictimer.core.ui.BaseActivity
+import com.sweetapps.alcoholictimer.core.model.SobrietyRecord
+import com.sweetapps.alcoholictimer.feature.detail.DetailActivity
+import com.sweetapps.alcoholictimer.feature.records.components.RecordsScreen
 
 class RecordsActivity : BaseActivity() {
 

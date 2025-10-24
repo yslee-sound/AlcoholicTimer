@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.core.ui.components
+package com.sweetapps.alcoholictimer.core.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,7 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.window.DialogProperties
 
 // 앱 테마
-import com.example.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
+import com.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
 
 /**
  * 앱 업데이트 다이얼로그

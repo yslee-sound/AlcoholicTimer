@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.core.ui.components
+package com.sweetapps.alcoholictimer.core.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
@@ -10,10 +10,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.res.colorResource
-import com.example.alcoholictimer.R
-import com.example.alcoholictimer.core.ui.AppCard
-import com.example.alcoholictimer.core.ui.AppElevation
-import com.example.alcoholictimer.core.ui.AppBorder
+import com.sweetapps.alcoholictimer.R
+import com.sweetapps.alcoholictimer.core.ui.AppCard
+import com.sweetapps.alcoholictimer.core.ui.AppElevation
+import com.sweetapps.alcoholictimer.core.ui.AppBorder
 
 /**
  * 레벨 화면 메인 카드의 "외곽(Frame)"만 담당하는 래퍼.

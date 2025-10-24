@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.feature.level
+package com.sweetapps.alcoholictimer.feature.level
 
 import androidx.compose.material3.Surface
 import androidx.compose.ui.test.assertIsDisplayed
@@ -7,7 +7,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import org.junit.Rule
 import org.junit.Test
-import com.example.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
+import com.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowBuild
 import androidx.test.ext.junit.runners.AndroidJUnit4

@@ -1,11 +1,11 @@
-package com.example.alcoholictimer
+package com.sweetapps.alcoholictimer
 
 import android.content.Context
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.core.app.ApplicationProvider
-import com.example.alcoholictimer.feature.start.StartActivity
+import com.sweetapps.alcoholictimer.feature.start.StartActivity
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

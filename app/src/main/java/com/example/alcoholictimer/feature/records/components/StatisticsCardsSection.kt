@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.feature.records.components
+package com.sweetapps.alcoholictimer.feature.records.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -10,8 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.alcoholictimer.core.model.SobrietyRecord
-import com.example.alcoholictimer.core.util.PercentUtils
+import com.sweetapps.alcoholictimer.core.model.SobrietyRecord
+import com.sweetapps.alcoholictimer.core.util.PercentUtils
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min

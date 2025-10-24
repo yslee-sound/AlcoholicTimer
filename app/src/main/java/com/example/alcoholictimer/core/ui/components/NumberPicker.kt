@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.core.ui.components
+package com.sweetapps.alcoholictimer.core.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior

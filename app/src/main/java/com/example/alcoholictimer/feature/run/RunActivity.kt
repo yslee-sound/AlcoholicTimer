@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.feature.run
+package com.sweetapps.alcoholictimer.feature.run
 
 import android.content.Context
 import android.content.Intent
@@ -32,21 +32,23 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.core.content.edit
 import java.util.Locale
-import com.example.alcoholictimer.core.ui.BaseActivity
-import com.example.alcoholictimer.core.ui.StandardScreenWithBottomButton
-import com.example.alcoholictimer.core.util.Constants
-import com.example.alcoholictimer.feature.level.LevelDefinitions
-import com.example.alcoholictimer.core.util.FormatUtils
+import com.sweetapps.alcoholictimer.core.ui.BaseActivity
+import com.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
+import com.sweetapps.alcoholictimer.core.util.Constants
+import com.sweetapps.alcoholictimer.feature.level.LevelDefinitions
+import com.sweetapps.alcoholictimer.core.util.FormatUtils
 import kotlinx.coroutines.delay
-import com.example.alcoholictimer.R
-import com.example.alcoholictimer.feature.start.StartActivity
-import com.example.alcoholictimer.feature.detail.DetailActivity
-import com.example.alcoholictimer.core.ui.AppElevation
+import com.sweetapps.alcoholictimer.R
+import com.sweetapps.alcoholictimer.feature.start.StartActivity
+import com.sweetapps.alcoholictimer.feature.detail.DetailActivity
+import com.sweetapps.alcoholictimer.core.ui.AppElevation
 import androidx.compose.foundation.BorderStroke
-import com.example.alcoholictimer.core.ui.AppBorder
+import com.sweetapps.alcoholictimer.core.ui.AppBorder
 import kotlinx.coroutines.launch
-import com.example.alcoholictimer.core.util.AppUpdateManager
-import com.example.alcoholictimer.core.ads.InterstitialAdManager
+import com.sweetapps.alcoholictimer.core.util.AppUpdateManager
+import com.sweetapps.alcoholictimer.core.ads.InterstitialAdManager
+import com.sweetapps.alcoholictimer.feature.run.QuitActivity
+import kotlin.jvm.java
 
 class RunActivity : BaseActivity() {
 

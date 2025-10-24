@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.feature.records.components
+package com.sweetapps.alcoholictimer.feature.records.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -12,9 +12,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.alcoholictimer.core.ui.AppAlphas
-import com.example.alcoholictimer.core.ui.components.NumberPicker
-import com.example.alcoholictimer.core.model.SobrietyRecord
+import com.sweetapps.alcoholictimer.core.ui.AppAlphas
+import com.sweetapps.alcoholictimer.core.ui.components.NumberPicker
+import com.sweetapps.alcoholictimer.core.model.SobrietyRecord
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)

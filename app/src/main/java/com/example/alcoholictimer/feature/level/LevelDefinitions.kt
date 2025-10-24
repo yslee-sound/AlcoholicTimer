@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.feature.level
+package com.sweetapps.alcoholictimer.feature.level
 
 import androidx.compose.ui.graphics.Color
 

@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.feature.records.components
+package com.sweetapps.alcoholictimer.feature.records.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,16 +16,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.alcoholictimer.core.data.RecordsDataLoader
-import com.example.alcoholictimer.core.model.SobrietyRecord
+import com.sweetapps.alcoholictimer.core.data.RecordsDataLoader
+import com.sweetapps.alcoholictimer.core.model.SobrietyRecord
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import com.example.alcoholictimer.R
+import com.sweetapps.alcoholictimer.R
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
-import com.example.alcoholictimer.core.ui.LocalSafeContentPadding
+import com.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

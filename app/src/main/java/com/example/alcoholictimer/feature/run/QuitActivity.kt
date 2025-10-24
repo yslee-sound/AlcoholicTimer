@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.feature.run
+package com.sweetapps.alcoholictimer.feature.run
 
 import android.content.Context
 import android.content.Intent
@@ -37,14 +37,14 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Locale
-import com.example.alcoholictimer.R
-import com.example.alcoholictimer.core.ui.BaseActivity
-import com.example.alcoholictimer.core.ui.StandardScreenWithBottomButton
-import com.example.alcoholictimer.core.ui.LayoutConstants
-import com.example.alcoholictimer.core.util.FormatUtils
-import com.example.alcoholictimer.feature.start.StartActivity
-import com.example.alcoholictimer.core.ui.AppElevation
-import com.example.alcoholictimer.core.ui.AppBorder
+import com.sweetapps.alcoholictimer.R
+import com.sweetapps.alcoholictimer.core.ui.BaseActivity
+import com.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
+import com.sweetapps.alcoholictimer.core.ui.LayoutConstants
+import com.sweetapps.alcoholictimer.core.util.FormatUtils
+import com.sweetapps.alcoholictimer.feature.start.StartActivity
+import com.sweetapps.alcoholictimer.core.ui.AppElevation
+import com.sweetapps.alcoholictimer.core.ui.AppBorder
 
 class QuitActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.quit_title)
@@ -211,13 +211,13 @@ fun StatisticsCardsSection(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
         ) {
-            com.example.alcoholictimer.feature.detail.components.DetailStatCard(
+            com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
                 value = String.format(Locale.getDefault(), "%.1f일", totalDaysDecimal),
                 label = stringResource(id = R.string.stat_total_days),
                 modifier = Modifier.weight(1f),
                 valueColor = colorResource(id = R.color.color_indicator_days)
             )
-            com.example.alcoholictimer.feature.detail.components.DetailStatCard(
+            com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
                 value = String.format(Locale.getDefault(), "%,.0f원", savedMoney),
                 label = stringResource(id = R.string.stat_saved_money_short),
                 modifier = Modifier.weight(1f),
@@ -228,13 +228,13 @@ fun StatisticsCardsSection(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
         ) {
-            com.example.alcoholictimer.feature.detail.components.DetailStatCard(
+            com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
                 value = String.format(Locale.getDefault(), "%.1f시간", savedHours),
                 label = stringResource(id = R.string.stat_saved_hours_short),
                 modifier = Modifier.weight(1f),
                 valueColor = colorResource(id = R.color.color_indicator_hours)
             )
-            com.example.alcoholictimer.feature.detail.components.DetailStatCard(
+            com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
                 value = FormatUtils.daysToDayHourString(lifeGainDays, 2),
                 label = stringResource(id = R.string.indicator_title_life_gain),
                 modifier = Modifier.weight(1f),
@@ -259,16 +259,17 @@ private fun saveCompletedRecord(
             put("endTime", endTime)
             put("targetDays", targetDays.toInt())
             put("actualDays", actualDays)
-            put("isCompleted", (actualDays.toFloat() / targetDays) >= 1f)
-            put("status", if ((actualDays.toFloat() / targetDays) >= 1f) "완료" else "중지")
+            put("isCompleted", true)
+            put("status", "quit")
             put("createdAt", System.currentTimeMillis())
         }
-        val recordsJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
-        val recordsList = try { JSONArray(recordsJson) } catch (_: Exception) { JSONArray() }
-        recordsList.put(record)
-        sharedPref.edit { putString("sobriety_records", recordsList.toString()) }
+        val current = sharedPref.getString("sobriety_records", "[]") ?: "[]"
+        val array = JSONArray(current)
+        array.put(record)
+        sharedPref.edit { putString("sobriety_records", array.toString()) }
+        Log.d("QuitActivity", "기록 저장 완료: ${'$'}record")
     } catch (e: Exception) {
-        Log.e("QuitActivity", "기록 저장 중 오류", e)
+        Log.e("QuitActivity", "기록 저장 오류", e)
     }
 }
 

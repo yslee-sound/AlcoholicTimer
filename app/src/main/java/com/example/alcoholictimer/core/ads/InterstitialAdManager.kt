@@ -1,11 +1,11 @@
-package com.example.alcoholictimer.core.ads
+package com.sweetapps.alcoholictimer.core.ads
 
 import android.app.Activity
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import com.example.alcoholictimer.BuildConfig
+import com.sweetapps.alcoholictimer.BuildConfig
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.interstitial.InterstitialAd

@@ -1,4 +1,4 @@
-package com.example.alcoholictimer
+package com.sweetapps.alcoholictimer
 
 import org.junit.Test
 

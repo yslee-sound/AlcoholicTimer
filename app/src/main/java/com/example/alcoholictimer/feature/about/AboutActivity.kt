@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.feature.about
+package com.sweetapps.alcoholictimer.feature.about
 
 import android.content.Intent
 import android.os.Bundle
@@ -17,9 +17,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.alcoholictimer.core.ui.BaseActivity
-import com.example.alcoholictimer.R
-import com.example.alcoholictimer.core.ui.LocalSafeContentPadding
+import com.sweetapps.alcoholictimer.core.ui.BaseActivity
+import com.sweetapps.alcoholictimer.R
+import com.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 
 class AboutActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.about_title)

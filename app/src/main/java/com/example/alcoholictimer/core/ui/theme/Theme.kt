@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.core.ui.theme
+package com.sweetapps.alcoholictimer.core.ui.theme
 
 import android.app.Activity
 import android.os.Build

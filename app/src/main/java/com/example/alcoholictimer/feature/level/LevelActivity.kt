@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.feature.level
+package com.sweetapps.alcoholictimer.feature.level
 
 import android.content.Context
 import android.os.Bundle
@@ -29,17 +29,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.alcoholictimer.R
-import com.example.alcoholictimer.core.ui.AppElevation
-import com.example.alcoholictimer.core.ui.BaseActivity
-import com.example.alcoholictimer.core.util.Constants
-import com.example.alcoholictimer.core.data.RecordsDataLoader
+import com.sweetapps.alcoholictimer.R
+import com.sweetapps.alcoholictimer.core.ui.AppElevation
+import com.sweetapps.alcoholictimer.core.ui.BaseActivity
+import com.sweetapps.alcoholictimer.core.util.Constants
+import com.sweetapps.alcoholictimer.core.data.RecordsDataLoader
 import kotlinx.coroutines.delay
 import java.util.Locale
-import com.example.alcoholictimer.core.ui.AppBorder
+import com.sweetapps.alcoholictimer.core.ui.AppBorder
 import androidx.compose.foundation.BorderStroke
-import com.example.alcoholictimer.core.ui.LocalSafeContentPadding
-import com.example.alcoholictimer.core.ui.components.MainLevelCardFrame
+import com.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
+import com.sweetapps.alcoholictimer.core.ui.components.MainLevelCardFrame
 
 class LevelActivity : BaseActivity() {
 

@@ -1,9 +1,9 @@
-package com.example.alcoholictimer.core.data
+package com.sweetapps.alcoholictimer.core.data
 
 import android.content.Context
 import android.util.Log
 import androidx.core.content.edit
-import com.example.alcoholictimer.core.model.SobrietyRecord
+import com.sweetapps.alcoholictimer.core.model.SobrietyRecord
 
 object RecordsDataLoader {
     private const val TAG = "RecordsDataLoader"

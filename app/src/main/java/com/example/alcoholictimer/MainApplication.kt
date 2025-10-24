@@ -1,9 +1,9 @@
-package com.example.alcoholictimer
+package com.sweetapps.alcoholictimer
 
 import android.app.Application
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
-import com.example.alcoholictimer.core.ads.InterstitialAdManager
+import com.sweetapps.alcoholictimer.core.ads.InterstitialAdManager
 
 class MainApplication : Application() {
     override fun onCreate() {

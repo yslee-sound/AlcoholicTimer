@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.feature.about
+package com.sweetapps.alcoholictimer.feature.about
 
 import android.content.Intent
 import android.os.Bundle
@@ -23,14 +23,14 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import com.example.alcoholictimer.R
-import com.example.alcoholictimer.core.ui.AppElevation
-import com.example.alcoholictimer.core.ui.BaseActivity
+import com.sweetapps.alcoholictimer.R
+import com.sweetapps.alcoholictimer.core.ui.AppElevation
+import com.sweetapps.alcoholictimer.core.ui.BaseActivity
 import android.content.ClipData
 import android.content.ClipboardManager
 import androidx.core.content.ContextCompat
-import com.example.alcoholictimer.core.ui.LocalSafeContentPadding
-import com.example.alcoholictimer.core.ui.AppBorder
+import com.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
+import com.sweetapps.alcoholictimer.core.ui.AppBorder
 
 class AboutLicensesActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.about_open_license_notice)

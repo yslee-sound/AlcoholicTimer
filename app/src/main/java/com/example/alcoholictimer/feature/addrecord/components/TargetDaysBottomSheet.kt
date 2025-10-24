@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.feature.addrecord.components
+package com.sweetapps.alcoholictimer.feature.addrecord.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -6,7 +6,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.alcoholictimer.core.ui.components.NumberPicker
+import com.sweetapps.alcoholictimer.core.ui.components.NumberPicker
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

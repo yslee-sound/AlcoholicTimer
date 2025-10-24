@@ -1,6 +1,6 @@
-package com.example.alcoholictimer.core.model
+package com.sweetapps.alcoholictimer.core.model
 
-import com.example.alcoholictimer.core.util.PercentUtils
+import com.sweetapps.alcoholictimer.core.util.PercentUtils
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.SimpleDateFormat

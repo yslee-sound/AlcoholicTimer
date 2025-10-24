@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.core.ui
+package com.sweetapps.alcoholictimer.core.ui
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -22,7 +22,10 @@ object AppElevation {
 
 /** 전역 테두리 두께 표준 */
 object AppBorder {
-    val Hairline = 0.5.dp
+    // 가이드라인에 따른 헤어라인 두께
+    // Hairline: 가장 얇은 테두리 / 선
+    // 0.75dp로 설정하여 미세한 구분선 표현
+    val Hairline = 0.75.dp
 }
 
 /**

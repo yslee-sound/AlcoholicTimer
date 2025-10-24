@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.core.ui
+package com.sweetapps.alcoholictimer.core.ui
 
 import android.content.Intent
 import android.os.Bundle
@@ -32,18 +32,20 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import com.example.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
-import com.example.alcoholictimer.feature.level.LevelActivity
-import com.example.alcoholictimer.feature.profile.NicknameEditActivity
-import com.example.alcoholictimer.feature.run.RunActivity
-import com.example.alcoholictimer.feature.settings.SettingsActivity
-import com.example.alcoholictimer.feature.start.StartActivity
+import com.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
+import com.sweetapps.alcoholictimer.feature.level.LevelActivity
+import com.sweetapps.alcoholictimer.feature.profile.NicknameEditActivity
+import com.sweetapps.alcoholictimer.feature.run.RunActivity
+import com.sweetapps.alcoholictimer.feature.settings.SettingsActivity
+import com.sweetapps.alcoholictimer.feature.start.StartActivity
 import kotlinx.coroutines.launch
 import androidx.core.view.WindowCompat
 import kotlinx.coroutines.delay
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.unit.Dp
 import androidx.compose.foundation.layout.RowScope
+import com.sweetapps.alcoholictimer.core.ui.AppColors
+import kotlin.jvm.java
 
 // 전역 입력 잠금 요청을 위한 CompositionLocal
 val LocalRequestGlobalLock = compositionLocalOf<(Long) -> Unit> { { _: Long -> } }
@@ -76,14 +78,14 @@ abstract class BaseActivity : ComponentActivity() {
     // Returns the drawer menu title that matches current screen, or null if none
     private fun currentDrawerSelection(): String? = when (this) {
         is RunActivity, is StartActivity,
-        is com.example.alcoholictimer.feature.run.QuitActivity -> "금주"
-        is com.example.alcoholictimer.feature.records.RecordsActivity,
-        is com.example.alcoholictimer.feature.records.AllRecordsActivity,
-        is com.example.alcoholictimer.feature.detail.DetailActivity -> "기록"
+        is com.sweetapps.alcoholictimer.feature.run.QuitActivity -> "금주"
+        is com.sweetapps.alcoholictimer.feature.records.RecordsActivity,
+        is com.sweetapps.alcoholictimer.feature.records.AllRecordsActivity,
+        is com.sweetapps.alcoholictimer.feature.detail.DetailActivity -> "기록"
         is LevelActivity -> "레벨"
         is SettingsActivity -> "설정"
-        is com.example.alcoholictimer.feature.about.AboutActivity,
-        is com.example.alcoholictimer.feature.about.AboutLicensesActivity -> "앱 정보"
+        is com.sweetapps.alcoholictimer.feature.about.AboutActivity,
+        is com.sweetapps.alcoholictimer.feature.about.AboutLicensesActivity -> "앱 정보"
         else -> null
     }
 
@@ -94,7 +96,7 @@ abstract class BaseActivity : ComponentActivity() {
         applySystemBars: Boolean = true,
         showBackButton: Boolean = false,
         onBackClick: (() -> Unit)? = null,
-        bottomExtra: Dp = 24.dp, // 스크롤 화면 공통 추가 여백(디폴트 24dp)
+        bottomExtra: Dp = 16.dp, // 스크롤 화면 공통 추가 여백(문서 기준 16dp)
         topBarActions: @Composable RowScope.() -> Unit = {},
         content: @Composable () -> Unit
     ) {
@@ -358,13 +360,13 @@ abstract class BaseActivity : ComponentActivity() {
                     }
                 }
             }
-            "기록" -> if (this !is com.example.alcoholictimer.feature.records.RecordsActivity) {
-                navigateToActivity(com.example.alcoholictimer.feature.records.RecordsActivity::class.java)
+            "기록" -> if (this !is com.sweetapps.alcoholictimer.feature.records.RecordsActivity) {
+                navigateToActivity(com.sweetapps.alcoholictimer.feature.records.RecordsActivity::class.java)
             }
             "레벨" -> if (this !is LevelActivity) navigateToActivity(LevelActivity::class.java)
             "설정" -> if (this !is SettingsActivity) navigateToActivity(SettingsActivity::class.java)
-            "앱 정보" -> if (this !is com.example.alcoholictimer.feature.about.AboutActivity) {
-                navigateToActivity(com.example.alcoholictimer.feature.about.AboutActivity::class.java)
+            "앱 정보" -> if (this !is com.sweetapps.alcoholictimer.feature.about.AboutActivity) {
+                navigateToActivity(com.sweetapps.alcoholictimer.feature.about.AboutActivity::class.java)
             }
         }
     }

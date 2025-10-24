@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.feature.detail
+package com.sweetapps.alcoholictimer.feature.detail
 
 import android.app.Activity
 import android.content.Context
@@ -38,15 +38,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.alcoholictimer.R
-import com.example.alcoholictimer.core.ui.AppElevation
-import com.example.alcoholictimer.core.ui.AppBorder
-import com.example.alcoholictimer.core.ui.LayoutConstants
-import com.example.alcoholictimer.core.ui.theme.AmberSecondaryLight
-import com.example.alcoholictimer.core.ui.theme.BluePrimaryLight
-import com.example.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
-import com.example.alcoholictimer.core.util.Constants
-import com.example.alcoholictimer.core.util.FormatUtils
+import com.sweetapps.alcoholictimer.R
+import com.sweetapps.alcoholictimer.core.ui.AppElevation
+import com.sweetapps.alcoholictimer.core.ui.AppBorder
+import com.sweetapps.alcoholictimer.core.ui.LayoutConstants
+import com.sweetapps.alcoholictimer.core.ui.theme.AmberSecondaryLight
+import com.sweetapps.alcoholictimer.core.ui.theme.BluePrimaryLight
+import com.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
+import com.sweetapps.alcoholictimer.core.util.Constants
+import com.sweetapps.alcoholictimer.core.util.FormatUtils
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
@@ -362,13 +362,13 @@ fun DetailScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
                 ) {
-                    com.example.alcoholictimer.feature.detail.components.DetailStatCard(
+                    com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
                         value = String.format(Locale.getDefault(), "%.1f일", totalDays),
                         label = stringResource(id = R.string.stat_total_days),
                         modifier = Modifier.weight(1f),
                         valueColor = colorResource(id = R.color.color_indicator_days)
                     )
-                    com.example.alcoholictimer.feature.detail.components.DetailStatCard(
+                    com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
                         value = String.format(Locale.getDefault(), "%,.0f원", savedMoney.toDouble()),
                         label = stringResource(id = R.string.stat_saved_money_short),
                         modifier = Modifier.weight(1f),
@@ -382,13 +382,13 @@ fun DetailScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
                 ) {
-                    com.example.alcoholictimer.feature.detail.components.DetailStatCard(
+                    com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
                         value = String.format(Locale.getDefault(), "%.1f시간", savedHoursExact),
                         label = stringResource(id = R.string.stat_saved_hours_short),
                         modifier = Modifier.weight(1f),
                         valueColor = colorResource(id = R.color.color_indicator_hours)
                     )
-                    com.example.alcoholictimer.feature.detail.components.DetailStatCard(
+                    com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
                         value = FormatUtils.daysToDayHourString(lifeExpectancyIncrease, 2),
                         label = stringResource(id = R.string.indicator_title_life_gain),
                         modifier = Modifier.weight(1f),

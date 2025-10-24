@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.feature.detail.components
+package com.sweetapps.alcoholictimer.feature.detail.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,8 +15,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.alcoholictimer.core.ui.AppCard
-import com.example.alcoholictimer.core.ui.AppElevation
+import com.sweetapps.alcoholictimer.core.ui.AppCard
+import com.sweetapps.alcoholictimer.core.ui.AppElevation
 
 @Composable
 fun DetailStatCard(

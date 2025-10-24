@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package com.example.alcoholictimer.core.util
+package com.sweetapps.alcoholictimer.core.util
 
 import android.content.Context
 import androidx.core.content.edit

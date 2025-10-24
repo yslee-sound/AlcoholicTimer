@@ -1,4 +1,4 @@
-package com.example.alcoholictimer.core.ui
+package com.sweetapps.alcoholictimer.core.ui
 
 import androidx.compose.ui.unit.dp
 
