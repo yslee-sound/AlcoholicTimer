@@ -126,12 +126,12 @@ fun AllRecordsScreen(
 
                     LazyColumn(
                         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(0.dp),
-                        contentPadding = PaddingValues(top = 12.dp, bottom = bottomPadding)
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(top = 16.dp, bottom = bottomPadding)
                     ) {
                         items(items = records, key = { it.id }) { record ->
                             Box(
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 0.dp)
                             ) {
                                 RecordSummaryCard(
                                     record = record,

@@ -49,8 +49,8 @@ class AllRecordsActivity : BaseActivity() {
             ) {
                 com.sweetapps.alcoholictimer.feature.records.components.AllRecordsScreen(
                     externalRefreshTrigger = externalRefreshTriggerState.intValue,
+                    onNavigateBack = { finish() },
                     onNavigateToDetail = { record -> handleRecordClick(record) },
-                    onNavigateToAllRecords = { /* no-op */ },
                     externalDeleteDialog = showDeleteAll
                 )
             }

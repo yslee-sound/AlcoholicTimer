@@ -98,6 +98,7 @@ abstract class BaseActivity : ComponentActivity() {
         // 새로 추가: 하단 배너 광고 슬롯과 공간 예약 옵션
         bottomAd: (@Composable () -> Unit)? = null,
         reserveSpaceForBottomAd: Boolean = false,
+        bannerTopGap: Dp = LayoutConstants.BANNER_TOP_GAP,
         content: @Composable () -> Unit
     ) {
         AlcoholicTimerTheme(darkTheme = false, applySystemBars = applySystemBars) {
@@ -156,11 +157,17 @@ abstract class BaseActivity : ComponentActivity() {
                     }
             }
 
-            // 시스템 내비/IME 하단 인셋 계산 + 공통 추가 여백 (배너 높이는 여기선 제외: 하단 컨테이너로 공간 확보)
+            // 시스템 내비/IME 하단 인셋 계산 + 공통 추가 여백
             val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
             val imeBottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
             val effectiveBottom = maxOf(navBottom, imeBottom)
-            val safeBottom = effectiveBottom + bottomExtra
+
+            // 하단 배너가 있는 화면에선 콘텐츠 안전패딩에서 내비게이션 바 여백을 제거하고,
+            // IME가 열릴 때만 IME 높이를 포함한다. (배너 컨테이너가 내비/IME 인셋은 따로 처리)
+            val hasOrReservesAd = (bottomAd != null) || reserveSpaceForBottomAd
+            val contentBottomInset = if (hasOrReservesAd) imeBottom else effectiveBottom
+            // 배너가 있으면 추가 여백(bottomExtra)을 콘텐츠 쪽에 더하지 않는다
+            val safeBottom = contentBottomInset + if (hasOrReservesAd) 0.dp else bottomExtra
             val providedSafePadding = PaddingValues(bottom = safeBottom)
 
             CompositionLocalProvider(
@@ -343,11 +350,12 @@ abstract class BaseActivity : ComponentActivity() {
                             // 하단 고정 배너 컨테이너: 광고 미노출 시에도 공간 예약 옵션 제공
                             val showOrReserveAd = (bottomAd != null) || reserveSpaceForBottomAd
                             if (showOrReserveAd) {
-                                Spacer(modifier = Modifier.height(LayoutConstants.BANNER_TOP_GAP))
+                                Spacer(modifier = Modifier.height(bannerTopGap))
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = LayoutConstants.SCREEN_HORIZONTAL_PADDING)
+                                        // 내비/IME 인셋은 여기에서 처리한다. (콘텐츠 안전패딩과 중복 방지)
                                         .padding(bottom = effectiveBottom)
                                         .heightIn(min = LayoutConstants.BANNER_MIN_HEIGHT),
                                     contentAlignment = Alignment.Center

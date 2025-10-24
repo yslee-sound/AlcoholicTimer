@@ -93,7 +93,9 @@ fun LevelScreen() {
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(start = 16.dp, end = 16.dp, top = 16.dp)
-            .padding(safePadding),
+            .padding(safePadding)
+            // 마지막 카드가 배너와 너무 붙지 않도록 내부 하단 여백 추가
+            .padding(bottom = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // 변경: float 경과 일수 전달

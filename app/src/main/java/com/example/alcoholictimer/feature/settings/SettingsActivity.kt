@@ -72,8 +72,7 @@ fun SettingsScreen() {
             .padding(
                 start = LayoutConstants.SCREEN_HORIZONTAL_PADDING,
                 end = LayoutConstants.SCREEN_HORIZONTAL_PADDING,
-                top = 8.dp,
-                bottom = 8.dp
+                top = 8.dp
             )
             .padding(safePadding)
             .onSizeChanged { viewportH = it.height }
@@ -141,6 +140,13 @@ fun SettingsScreen() {
                             )
                         }
                     }
+                }
+                // 스크롤이 필요 없는 경우: 남는 높이만큼 채워 마지막 카드가 하단까지 내려오도록 보정
+                if (!allowScroll) {
+                    val contentTotalPx = costH + freqH + durH + gapPx * 2
+                    val fillerPx = (viewportH - contentTotalPx).coerceAtLeast(0)
+                    val fillerDp = with(density) { fillerPx.toDp() }
+                    item { Spacer(modifier = Modifier.height(fillerDp)) }
                 }
             }
         }

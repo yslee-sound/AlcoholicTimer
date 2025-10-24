@@ -14,6 +14,6 @@ object LayoutConstants {
 
     // 배너 광고 관련: Anchored Adaptive 최소 높이는 보통 50dp (전화기 기준)
     val BANNER_MIN_HEIGHT = 50.dp
-    // 버튼 아래 배너와의 간격(시각적 분리)
-    val BANNER_TOP_GAP = 12.dp
+    // 버튼/콘텐츠 아래 배너와의 간격(시각적 분리) — 기본 16dp로 상향
+    val BANNER_TOP_GAP = 16.dp
 }

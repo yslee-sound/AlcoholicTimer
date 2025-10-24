@@ -1,4 +1,14 @@
 # 변경 이력 (Banner Ads)
+- 2025-10-24 v1.1.3
+  - 배너 상단 기본 간격 `BANNER_TOP_GAP`을 12dp → 16dp로 상향(전역 기본). 화면별로 필요 시 `bannerTopGap` 파라미터로 재정의 가능.
+- 2025-10-24 v1.1.2
+  - BaseScreen에 `bannerTopGap` 파라미터 추가: 화면별로 배너 위 간격을 조절 가능. 기본값은 `LayoutConstants.BANNER_TOP_GAP`.
+  - 설정 화면은 `bannerTopGap = 0.dp`로 적용하여 배너 위 회색 영역 제거.
+  - BaseScreen: 배너가 있을 때 콘텐츠 쪽 `bottomExtra`와 내비 인셋을 제거, IME 표시시에만 IME 높이 반영.
+  - 설정 화면: 콘텐츠가 화면을 다 채우지 못할 때 마지막에 남는 높이만큼 Spacer를 삽입해 배너 직전까지 채우도록 보정.
+- 2025-10-24 v1.1.1
+  - 설정 화면(SettingsActivity) 하단 여백 과다 이슈 수정: BaseScreen이 제공하는 LocalSafeContentPadding과 별도 수동 bottom 패딩(8dp)이 중복되어 배너 상단에 불필요한 회색 공간이 생긴 문제 해결. 수동 bottom 패딩 제거.
+  - 가이드 보강: BaseScreen + bottomAd 조합에서는 콘텐츠 영역에 별도의 하단 패딩을 추가하지 말 것(Do/Don't 섹션 추가).
 - 2025-10-24 v1.1.0
   - StandardScreenWithBottomButton 개선: 배너를 화면 최하단(시스템바/IME 위)으로 이동 배치, 버튼은 그 위로 고정 배치. 버튼 위치 일관성을 위해 `reserveSpaceForBottomAd` 옵션 추가.
   - LayoutConstants에 `BANNER_MIN_HEIGHT(50dp)`, `BANNER_TOP_GAP(12dp)` 추가.
@@ -46,33 +56,22 @@
 - 참고: 본 저장소에는 위 요구사항을 충족하는 `AdmobBanner`가 구현되어 있음
 
 3) 배치 슬롯 연결
-- 파일: `app/src/main/java/.../core/ui/StandardScreen.kt`
-  - `StandardScreenWithBottomButton`의 `bottomAd` 슬롯에 배너를 주입하여 “버튼 아래, 화면 최하단”에 표시
-  - 버튼은 항상 동일 위치로 올려 배치되며, 배너 유무와 무관하게 일관성 유지 가능
-  - 버튼과 배너 사이에 내부 상수(`BANNER_TOP_GAP`)로 간격을 둬 클릭 유도 배치 방지
-  - 추가 옵션: `reserveSpaceForBottomAd`
-    - 광고를 노출하지 않아도 배너 영역의 공간만 예약해 버튼 높이를 동일하게 유지
-    - 민감/집중 상호작용 화면에서 UX를 훼손하지 않으면서 레이아웃 일관성을 유지할 때 사용
-- 예시(일반 화면: 배너 노출)
+- 파일: `app/src/main/java/.../core/ui/StandardScreen.kt` 또는 `BaseActivity.kt`의 `BaseScreen`
+  - `bottomAd` 슬롯에 배너를 주입하여 “콘텐츠 아래, 화면 최하단”에 표시
+  - 배너 위 간격은 `bannerTopGap`으로 화면별 조절 가능 (전역 기본은 `LayoutConstants.BANNER_TOP_GAP`=16dp)
+  - 버튼/기타 고정 UI가 있는 경우 `reserveSpaceForBottomAd`로 공간만 예약 가능
+- 예시(일반 화면: 기본 간격 유지)
   ```kotlin
-  StandardScreenWithBottomButton(
-      topContent = { /* ... */ },
-      bottomButton = { /* ... */ },
-      bottomAd = { AdmobBanner() }
-  )
+  BaseScreen(bottomAd = { AdmobBanner() }) { /* content */ }
   ```
-- 예시(민감 화면: 배너 미노출, 공간만 예약 — 금주 설정 화면 반영됨)
+- 예시(설정 화면: 간격 제거)
   ```kotlin
-  StandardScreenWithBottomButton(
-      topContent = { /* ... */ },
-      bottomButton = { /* ... */ },
-      reserveSpaceForBottomAd = true
-  )
+  BaseScreen(bottomAd = { AdmobBanner() }, bannerTopGap = 0.dp) { /* content */ }
   ```
 
 4) 정책/컴플라이언스
 - UMP 동의 전 광고 요청 금지, Privacy Policy/데이터 안전성 반영
-- 클릭 유도 배치 금지: 버튼과 배너 간 충분한 상/하 간격 유지(`BANNER_TOP_GAP` 등으로 확보)
+- 클릭 유도 배치 금지: 버튼과 배너 간 충분한 상/하 간격 유지(필요 시 `bannerTopGap`으로 조절)
 - 테스트: 디버그 빌드에서 “Test Ad” 라벨 확인
 
 5) QA 체크리스트
@@ -85,6 +84,18 @@
 - 특정 화면에서만 배너를 노출하려면 Route/ScreenKey 별 조건 분기
 
 ---
+
+부록 A: BaseScreen 사용 시 하단 패딩 가이드 (Do/Don't)
+
+- Do
+  - 콘텐츠 루트에 `LocalSafeContentPadding`만 적용하세요. 예) `Column(...).padding(LocalSafeContentPadding.current)`
+  - 배너는 `BaseScreen(bottomAd = { AdmobBanner() })`에만 전달하세요. 배너 영역과 콘텐츠 영역을 분리해 일관성을 유지합니다.
+  - 배너 미노출 화면에서 버튼 높이를 맞추려면 `reserveSpaceForBottomAd = true`를 사용하세요.
+  - 화면 특성에 따라 배너 위 간격이 필요 없으면 `bannerTopGap = 0.dp`를 사용하세요.
+
+- Don't
+  - BaseScreen + `bottomAd`를 사용할 때 콘텐츠에 별도 `.padding(bottom = xx.dp)`를 더하지 마세요. 시스템 인셋/추가여백은 Base가 이미 적용합니다. 중복 적용 시 배너 상단에 불필요한 빈 공간(회색 영역)이 생깁니다.
+  - 배너와 콘텐츠 사이에 임의의 Spacer를 직접 넣지 마세요. 간격은 `bannerTopGap` 또는 `BANNER_TOP_GAP`으로 일괄 관리합니다.
 
 부록: 간단 빌드/실행
 - 디버그 빌드: `gradlew :app:assembleDebug`
