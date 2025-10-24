@@ -45,6 +45,7 @@ import com.sweetapps.alcoholictimer.core.util.FormatUtils
 import com.sweetapps.alcoholictimer.feature.start.StartActivity
 import com.sweetapps.alcoholictimer.core.ui.AppElevation
 import com.sweetapps.alcoholictimer.core.ui.AppBorder
+import com.sweetapps.alcoholictimer.core.util.Constants
 
 class QuitActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.quit_title)
@@ -66,8 +67,8 @@ fun QuitScreen() {
     val savedMoney = intent?.getDoubleExtra("saved_money", 0.0) ?: 0.0
     val savedHours = intent?.getDoubleExtra("saved_hours", 0.0) ?: 0.0
     val lifeGainDays = intent?.getDoubleExtra("life_gain_days", 0.0) ?: 0.0
-    val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
-    val targetDays = sharedPref.getFloat("target_days", 30f)
+    val sharedPref = context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
+    val targetDays = sharedPref.getFloat(Constants.PREF_TARGET_DAYS, 30f)
 
     var isPressed by remember { mutableStateOf(false) }
     var progress by remember { mutableFloatStateOf(0f) }
@@ -140,29 +141,62 @@ fun QuitScreen() {
                                 awaitEachGesture {
                                     awaitFirstDown(); isPressed = true; progress = 0f
                                     val job = coroutineScope.launch {
-                                        val duration = 1500L
-                                        val startMs = System.currentTimeMillis()
-                                        while (progress < 1f && isPressed) {
-                                            val elapsed = System.currentTimeMillis() - startMs
-                                            progress = (elapsed.toFloat() / duration).coerceAtMost(1f)
-                                            delay(16)
-                                        }
-                                        if (progress >= 1f && isPressed) {
-                                            saveCompletedRecord(
-                                                context = context,
-                                                startTime = System.currentTimeMillis() - (elapsedDays * 24L * 60 * 60 * 1000),
-                                                endTime = System.currentTimeMillis(),
-                                                targetDays = targetDays,
-                                                actualDays = elapsedDays
-                                            )
-                                            sharedPref.edit {
-                                                remove("start_time")
-                                                putBoolean("timer_completed", true)
+                                        try {
+                                            val duration = 1500L
+                                            val startMs = System.currentTimeMillis()
+                                            while (progress < 1f && isPressed) {
+                                                val elapsed = System.currentTimeMillis() - startMs
+                                                progress = (elapsed.toFloat() / duration).coerceAtMost(1f)
+                                                delay(16)
                                             }
-                                            val intent = Intent(context, StartActivity::class.java).apply {
-                                                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                            if (progress >= 1f && isPressed) {
+                                                // 완료 처리: 기록 저장 + 진행 상태 정리 + StartActivity로 안전 전환
+                                                try {
+                                                    saveCompletedRecord(
+                                                        context = context,
+                                                        startTime = System.currentTimeMillis() - (elapsedDays * 24L * 60 * 60 * 1000),
+                                                        endTime = System.currentTimeMillis(),
+                                                        targetDays = targetDays,
+                                                        actualDays = elapsedDays
+                                                    )
+                                                } catch (t: Throwable) {
+                                                    Log.e("QuitActivity", "saveCompletedRecord 실패", t)
+                                                }
+                                                try {
+                                                    sharedPref.edit {
+                                                        remove(Constants.PREF_START_TIME)
+                                                        putBoolean(Constants.PREF_TIMER_COMPLETED, true)
+                                                    }
+                                                } catch (t: Throwable) {
+                                                    Log.e("QuitActivity", "진행 상태 업데이트 실패", t)
+                                                }
+                                                // Activity 컨텍스트를 통해 안전하게 전환
+                                                val act = activity
+                                                if (act != null) {
+                                                    val i = Intent(act, StartActivity::class.java).apply {
+                                                        // 기존 태스크 위로 올리며 중복 방지
+                                                        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                                                    }
+                                                    try {
+                                                        act.startActivity(i)
+                                                    } finally {
+                                                        // 현재 종료 화면은 닫아 안정적 복귀
+                                                        act.finish()
+                                                    }
+                                                } else {
+                                                    // 비정상 컨텍스트인 경우에도 최소한 전환 시도
+                                                    try {
+                                                        val i = Intent(context, StartActivity::class.java).apply {
+                                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                        }
+                                                        context.startActivity(i)
+                                                    } catch (t: Throwable) {
+                                                        Log.e("QuitActivity", "StartActivity 진입 실패", t)
+                                                    }
+                                                }
                                             }
-                                            context.startActivity(intent)
+                                        } catch (t: Throwable) {
+                                            Log.e("QuitActivity", "중지 제스처 처리 중 오류", t)
                                         }
                                     }
                                     waitForUpOrCancellation(); isPressed = false; job.cancel()
@@ -252,7 +286,7 @@ private fun saveCompletedRecord(
     actualDays: Int
 ) {
     try {
-        val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
+        val sharedPref = context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
         val record = JSONObject().apply {
             put("id", System.currentTimeMillis().toString())
             put("startTime", startTime)
@@ -263,11 +297,11 @@ private fun saveCompletedRecord(
             put("status", "quit")
             put("createdAt", System.currentTimeMillis())
         }
-        val current = sharedPref.getString("sobriety_records", "[]") ?: "[]"
+        val current = sharedPref.getString(Constants.PREF_SOBRIETY_RECORDS, "[]") ?: "[]"
         val array = JSONArray(current)
         array.put(record)
-        sharedPref.edit { putString("sobriety_records", array.toString()) }
-        Log.d("QuitActivity", "기록 저장 완료: ${'$'}record")
+        sharedPref.edit { putString(Constants.PREF_SOBRIETY_RECORDS, array.toString()) }
+        Log.d("QuitActivity", "기록 저장 완료: $record")
     } catch (e: Exception) {
         Log.e("QuitActivity", "기록 저장 오류", e)
     }
