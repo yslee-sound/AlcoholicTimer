@@ -71,11 +71,14 @@ android {
             }
             // 빌드타입별 전면광고 유닛ID: 실제 배포용 유닛ID로 교체 필요
             buildConfigField("String", "ADMOB_INTERSTITIAL_UNIT_ID", "\"ca-app-pub-8420908105703273/REPLACE_WITH_REAL_INTERSTITIAL\"")
+            // 빌드타입별 배너 유닛ID: 실제 배포용 유닛ID로 교체 필요
+            buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"ca-app-pub-8420908105703273/REPLACE_WITH_REAL_BANNER\"")
         }
         // debug 설정 변경 없음
         getByName("debug") {
             // 디버그는 항상 테스트 유닛ID 사용 (Google 샘플 ID)
             buildConfigField("String", "ADMOB_INTERSTITIAL_UNIT_ID", "\"ca-app-pub-3940256099942544/1033173712\"")
+            buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"ca-app-pub-3940256099942544/6300978111\"")
         }
     }
 

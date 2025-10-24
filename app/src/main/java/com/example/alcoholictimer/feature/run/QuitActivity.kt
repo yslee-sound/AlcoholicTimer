@@ -48,6 +48,7 @@ import com.sweetapps.alcoholictimer.core.ui.AppBorder
 import com.sweetapps.alcoholictimer.core.util.Constants
 import com.sweetapps.alcoholictimer.core.ads.InterstitialAdManager
 import com.sweetapps.alcoholictimer.BuildConfig
+import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
 
 class QuitActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.quit_title)
@@ -262,7 +263,8 @@ fun QuitScreen() {
                     } }
                 }
             }
-        }
+        },
+        bottomAd = { AdmobBanner() }
     )
 }
 

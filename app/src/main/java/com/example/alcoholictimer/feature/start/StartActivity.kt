@@ -494,8 +494,8 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
                     )
                 }
             },
-            // 하단 광고 배너 제거 (bottomAd 미지정)
-            imePaddingEnabled = false,
+            // 광고는 노출하지 않음. 공간만 예약해 버튼 위치를 동일하게 유지
+            reserveSpaceForBottomAd = true,
             backgroundDecoration = {
                 // 워터마크: 배경 위/콘텐츠 아래 레이어에 중앙 배치
                 BoxWithConstraints(modifier = Modifier.fillMaxSize()) {

@@ -34,6 +34,7 @@ import androidx.core.content.edit
 import java.util.Locale
 import com.sweetapps.alcoholictimer.core.ui.BaseActivity
 import com.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
+import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
 import com.sweetapps.alcoholictimer.core.util.Constants
 import com.sweetapps.alcoholictimer.feature.level.LevelDefinitions
 import com.sweetapps.alcoholictimer.core.util.FormatUtils
@@ -323,7 +324,8 @@ private fun RunScreen() {
                     }
                     context.startActivity(intent)
                 })
-            }
+            },
+            bottomAd = { AdmobBanner() }
         )
     }
 }
