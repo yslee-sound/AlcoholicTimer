@@ -403,6 +403,10 @@ fun DetailScreen(
 
             // 하단 고정 배너 컨테이너(항상 고정 공간 확보)
             Spacer(modifier = Modifier.height(LayoutConstants.BANNER_TOP_GAP))
+            androidx.compose.material3.HorizontalDivider(
+                thickness = 1.25.dp,
+                color = androidx.compose.ui.graphics.Color(0xFFD6D6D6)
+            )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

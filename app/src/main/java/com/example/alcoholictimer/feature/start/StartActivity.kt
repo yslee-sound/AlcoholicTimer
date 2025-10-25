@@ -67,31 +67,32 @@ import com.sweetapps.alcoholictimer.core.ads.UmpConsentManager
 import com.sweetapps.alcoholictimer.core.ads.NativeAdManager
 import com.sweetapps.alcoholictimer.core.ui.NativeExitPopup
 import androidx.activity.compose.BackHandler
+import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
 
 class StartActivity : BaseActivity() {
     private lateinit var appUpdateManager: AppUpdateManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // 런처 액티비티에서만 스플래시 설치
+        val splashStart = SystemClock.uptimeMillis()
+        val minShowMillis = 300L // DEBUG/RELEASE 모두 최소 300ms 표시로 단축
+
         val splash = if (Build.VERSION.SDK_INT >= 31) installSplashScreen() else null
-        // Android 12+ 시스템 스플래시 종료 연출: 220ms 페이드 + 약간 확대 후 제거
+
+        // Android 12+ 시스템 스플래시 종료 연출 및 유지 조건
         if (Build.VERSION.SDK_INT >= 31) {
+            splash?.setKeepOnScreenCondition {
+                (SystemClock.uptimeMillis() - splashStart) < minShowMillis
+            }
             splash?.setOnExitAnimationListener { provider ->
+                // 간단한 페이드아웃으로 통일
                 val icon = provider.iconView
                 icon.animate()
                     .alpha(0f)
-                    .scaleX(1.05f)
-                    .scaleY(1.05f)
-                    .setDuration(220)
+                    .setDuration(150)
                     .withEndAction { provider.remove() }
                     .start()
             }
-        }
-        // 스플래시 최소 표시 시간 (예: 800ms)
-        val splashStart = SystemClock.uptimeMillis()
-        val minShowMillis = 800L
-        if (Build.VERSION.SDK_INT >= 31) {
-            splash?.setKeepOnScreenCondition { SystemClock.uptimeMillis() - splashStart < minShowMillis }
         }
 
         super.onCreate(savedInstanceState)
@@ -134,7 +135,7 @@ class StartActivity : BaseActivity() {
             val backgroundRemoved = AtomicBoolean(false)
             setContent {
                 // 상단 시스템바 패딩은 적용, 하단은 개별 레이아웃에서 처리
-                BaseScreen(applyBottomInsets = false, applySystemBars = true) {
+                BaseScreen(applyBottomInsets = false, applySystemBars = true, manageBottomAreaExternally = true) {
                     StartScreenWithUpdate(
                         appUpdateManager,
                         demoMode = demoUpdateUi,
@@ -153,10 +154,44 @@ class StartActivity : BaseActivity() {
                     )
                 }
             }
+            // setContent 이후 즉시/지연 반복적으로 배경 제거 시도 (안전망)
+            window.decorView.post {
+                try {
+                    android.util.Log.d("StartActivity", "Post setContent: clearing window background (immediate)")
+                    window.setBackgroundDrawable(null)
+                } catch (_: Throwable) { }
+            }
+            window.decorView.postDelayed({
+                try {
+                    android.util.Log.d("StartActivity", "Post setContent: clearing window background (300ms)")
+                    window.setBackgroundDrawable(null)
+                } catch (_: Throwable) { }
+            }, 300)
+            window.decorView.postDelayed({
+                try {
+                    android.util.Log.d("StartActivity", "Post setContent: clearing window background (1200ms)")
+                    window.setBackgroundDrawable(null)
+                } catch (_: Throwable) { }
+            }, 1200)
+            window.decorView.postDelayed({
+                try {
+                    android.util.Log.d("StartActivity", "Post setContent: clearing window background (2400ms)")
+                    window.setBackgroundDrawable(null)
+                } catch (_: Throwable) { }
+            }, 2400)
             // 오버레이를 쓰지 않는 내부 네비게이션의 경우, 첫 프레임 직후 배경 제거
             if (skipSplash && Build.VERSION.SDK_INT < 31) {
                 window.decorView.post { window.setBackgroundDrawable(null) }
             }
+            // 안전망: 어떤 이유로든 배경 제거 콜백이 실행되지 않으면 1.2초 후 강제 제거
+            window.decorView.postDelayed({
+                try {
+                    if (!backgroundRemoved.get()) {
+                        android.util.Log.d("StartActivity", "Fallback: clearing window background after timeout")
+                        window.setBackgroundDrawable(null)
+                    }
+                } catch (_: Throwable) { }
+            }, 1200)
         }
 
         if (Build.VERSION.SDK_INT < 31) {
@@ -167,6 +202,17 @@ class StartActivity : BaseActivity() {
         } else {
             // API 31 이상: 시스템 SplashScreen이 유지 조건으로 제어됨
             launchContent()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 재개 시점에서도 배경을 한 번 더 제거하여 잔류 케이스 차단
+        window.decorView.post {
+            try {
+                android.util.Log.d("StartActivity", "onResume: clearing window background")
+                window.setBackgroundDrawable(null)
+            } catch (_: Throwable) { }
         }
     }
 
@@ -509,18 +555,23 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
                     )
                 }
             },
-            // 광고는 노출하지 않음. 공간만 예약해 버튼 위치를 동일하게 유지
-            reserveSpaceForBottomAd = true,
+            // 광고를 실제로 노출하여 다른 화면과 동일한 포맷 적용
+            bottomAd = { AdmobBanner() },
             backgroundDecoration = {
-                // 워터마크: 배경 위/콘텐츠 아래 레이어에 중앙 배치
+                // 워터마크: 디버그에선 혼동 방지를 위해 비활성화, 릴리즈에서는 작게/연하게 표시
                 BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                    val base = if (maxWidth < maxHeight) maxWidth else maxHeight
-                    val iconSize = base * 0.70f // 기존 0.35f에서 2배로 확대
-                    Image(
-                        painter = painterResource(id = R.drawable.splash_app_icon),
-                        contentDescription = null,
-                        modifier = Modifier.align(Alignment.Center).size(iconSize).alpha(0.12f)
-                    )
+                    val isDebug = (com.sweetapps.alcoholictimer.BuildConfig.DEBUG)
+                    if (isDebug) {
+                        // no-op: 디버그 빌드에서는 배경 워터마크를 그리지 않음
+                    } else {
+                        val base = if (maxWidth < maxHeight) maxWidth else maxHeight
+                        val iconSize = base * 0.35f // 축소
+                        Image(
+                            painter = painterResource(id = R.drawable.splash_app_icon),
+                            contentDescription = null,
+                            modifier = Modifier.align(Alignment.Center).size(iconSize).alpha(0.08f)
+                        )
+                    }
                 }
             }
         )

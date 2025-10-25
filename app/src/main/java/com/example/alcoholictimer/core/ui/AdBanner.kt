@@ -14,6 +14,7 @@ import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.ump.UserMessagingPlatform
 import com.sweetapps.alcoholictimer.BuildConfig
+import kotlin.math.min
 
 private const val TAG = "AdmobBanner"
 
@@ -22,7 +23,7 @@ fun AdmobBanner(modifier: Modifier = Modifier) {
     AndroidView(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 50.dp), // Adaptive 높이는 기기/회전에 따라 달라짐. 최소 보장만 둠.
+            .heightIn(min = 50.dp),
         factory = { context ->
             AdView(context).apply {
                 layoutParams = ViewGroup.LayoutParams(
@@ -30,18 +31,19 @@ fun AdmobBanner(modifier: Modifier = Modifier) {
                     ViewGroup.LayoutParams.WRAP_CONTENT
                 )
 
-                // BuildConfig에서 읽고, 비었거나 플레이스홀더면 테스트 ID로 폴백
                 val resolvedUnitId = BuildConfig.ADMOB_BANNER_UNIT_ID
                 val unitId = if (resolvedUnitId.isNullOrBlank() || resolvedUnitId.contains("REPLACE_WITH_REAL_BANNER")) {
-                    "ca-app-pub-3940256099942544/6300978111" // Google 테스트 배너 ID
+                    "ca-app-pub-3940256099942544/6300978111"
                 } else resolvedUnitId
                 setAdUnitId(unitId)
 
-                // 화면 너비 기준으로 adaptive 배너 사이즈 계산(회전 시에는 재생성 타이밍에 다시 계산 권장)
+                // 화면 풀폭 기준으로 Adaptive 사이즈 계산(상한/좌우 패딩 제거)
                 try {
-                    val density = context.resources.displayMetrics.density
-                    val adWidth = (context.resources.displayMetrics.widthPixels / density).toInt()
-                    val adaptiveSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, adWidth)
+                    val dm = context.resources.displayMetrics
+                    val density = dm.density
+                    val screenWidthDp = (dm.widthPixels / density).toInt()
+                    val adWidthDp = screenWidthDp.coerceAtLeast(0)
+                    val adaptiveSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, adWidthDp)
                     setAdSize(adaptiveSize)
                 } catch (t: Throwable) {
                     try { setAdSize(AdSize.BANNER) } catch (ignored: Throwable) {

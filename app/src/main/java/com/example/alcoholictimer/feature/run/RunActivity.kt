@@ -56,7 +56,7 @@ class RunActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            BaseScreen(applyBottomInsets = false) {
+            BaseScreen(applyBottomInsets = false, manageBottomAreaExternally = true) {
                 RunScreen()
             }
         }

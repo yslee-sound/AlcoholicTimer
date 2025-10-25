@@ -77,8 +77,7 @@ abstract class BaseActivity : ComponentActivity() {
         is RunActivity, is StartActivity,
         is com.sweetapps.alcoholictimer.feature.run.QuitActivity -> "금주"
         is com.sweetapps.alcoholictimer.feature.records.RecordsActivity,
-        is com.sweetapps.alcoholictimer.feature.records.AllRecordsActivity,
-        is com.sweetapps.alcoholictimer.feature.detail.DetailActivity -> "기록"
+        is com.sweetapps.alcoholictimer.feature.records.AllRecordsActivity -> "기록"
         is LevelActivity -> "레벨"
         is SettingsActivity -> "설정"
         is com.sweetapps.alcoholictimer.feature.about.AboutActivity,
@@ -99,6 +98,8 @@ abstract class BaseActivity : ComponentActivity() {
         bottomAd: (@Composable () -> Unit)? = null,
         reserveSpaceForBottomAd: Boolean = false,
         bannerTopGap: Dp = LayoutConstants.BANNER_TOP_GAP,
+        // 추가: 하단 영역을 외부 레이아웃이 전담할 때 true로 설정(예: StandardScreenWithBottomButton 사용 화면)
+        manageBottomAreaExternally: Boolean = false,
         content: @Composable () -> Unit
     ) {
         AlcoholicTimerTheme(darkTheme = false, applySystemBars = applySystemBars) {
@@ -349,22 +350,23 @@ abstract class BaseActivity : ComponentActivity() {
 
                             // 하단 고정 배너 컨테이너: 광고 미노출 시에도 공간 예약 옵션 제공
                             val showOrReserveAd = (bottomAd != null) || reserveSpaceForBottomAd
-                            if (showOrReserveAd) {
-                                Spacer(modifier = Modifier.height(bannerTopGap))
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = LayoutConstants.SCREEN_HORIZONTAL_PADDING)
-                                        // 내비/IME 인셋은 여기에서 처리한다. (콘텐츠 안전패딩과 중복 방지)
-                                        .padding(bottom = effectiveBottom)
-                                        .heightIn(min = LayoutConstants.BANNER_MIN_HEIGHT),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    bottomAd?.invoke()
+                            if (!manageBottomAreaExternally) {
+                                if (showOrReserveAd) {
+                                    // 전역 배너 위 간격(기본 0dp)
+                                    if (bannerTopGap > 0.dp) Spacer(modifier = Modifier.height(bannerTopGap))
+                                    // 원복: 상단 Divider 없이 바로 컨테이너 Surface
+                                    Surface(color = Color.White, shadowElevation = 0.dp, tonalElevation = 0.dp) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(bottom = effectiveBottom)
+                                                .heightIn(min = LayoutConstants.BANNER_MIN_HEIGHT),
+                                            contentAlignment = Alignment.Center
+                                        ) { bottomAd?.invoke() }
+                                    }
+                                } else {
+                                    Spacer(modifier = Modifier.height(effectiveBottom))
                                 }
-                            } else {
-                                // 배너가 없고 예약도 없는 경우: 하단에 시스템 인셋만큼의 최소 여백 보장(미세 튐 방지)
-                                Spacer(modifier = Modifier.height(effectiveBottom))
                             }
                         }
                     }

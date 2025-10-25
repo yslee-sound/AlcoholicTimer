@@ -2,12 +2,18 @@ package com.sweetapps.alcoholictimer.core.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
+import com.google.android.gms.ads.AdSize
+import androidx.compose.material3.Surface
 
 private val MaxContentWidth: Dp = 600.dp
 
@@ -26,14 +32,27 @@ fun StandardScreen(
 }
 
 @Composable
+private fun predictAnchoredBannerHeightDp(): Dp {
+    val context = LocalContext.current
+    val conf = LocalConfiguration.current
+    val density = LocalDensity.current
+    // 컨테이너는 화면 풀폭으로 사용하므로 screenWidthDp 전체 사용
+    val availableWidthDp = conf.screenWidthDp
+    return try {
+        val adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, availableWidthDp)
+        with(density) { adSize.getHeightInPixels(context).toDp() }.coerceAtLeast(LayoutConstants.BANNER_MIN_HEIGHT)
+    } catch (_: Throwable) {
+        LayoutConstants.BANNER_MIN_HEIGHT
+    }
+}
+
+@Composable
 fun StandardScreenWithBottomButton(
     topContent: @Composable ColumnScope.() -> Unit,
     bottomButton: @Composable () -> Unit,
     imePaddingEnabled: Boolean = false,
     backgroundDecoration: @Composable BoxScope.() -> Unit = {},
-    // 선택적 하단 광고 슬롯(버튼 아래, 화면 하단에 표시)
     bottomAd: (@Composable () -> Unit)? = null,
-    // 광고가 없더라도 공간을 예약하여 버튼 위치를 동일하게 유지할지 여부(예: 금주 설정 화면)
     reserveSpaceForBottomAd: Boolean = false
 ) {
     val rootModifier = Modifier
@@ -49,18 +68,18 @@ fun StandardScreenWithBottomButton(
     val buttonSize = 96.dp
     val buttonBottomGap = 24.dp
     val adTopGap = LayoutConstants.BANNER_TOP_GAP
-    val adMinHeight = if (bottomAd != null || reserveSpaceForBottomAd) LayoutConstants.BANNER_MIN_HEIGHT else 0.dp
 
-    // 콘텐츠 하단 여유: 버튼이 반쯤 겹치는 레이아웃 특성을 반영 + 버튼 아래 배너 영역까지 고려
-    val reservedBottom = (buttonSize / 2) + buttonBottomGap + adTopGap + adMinHeight + effectiveBottom
+    // 모든 화면에서 동일한 버튼 위치를 보장하기 위해 예측 높이를 사용해 공간 예약
+    val predictedBannerH = predictAnchoredBannerHeightDp()
+    val reservedBannerH = if (bottomAd != null || reserveSpaceForBottomAd) predictedBannerH else 0.dp
 
-    Box(
-        modifier = rootModifier
-    ) {
-        // 배경 장식 레이어(워터마크 등)
+    val reservedBottom by remember(reservedBannerH, adTopGap, effectiveBottom) {
+        mutableStateOf((buttonSize / 2) + buttonBottomGap + adTopGap + reservedBannerH + effectiveBottom)
+    }
+
+    Box(modifier = rootModifier) {
         backgroundDecoration()
 
-        // Centered column with max width constraint
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -84,24 +103,27 @@ fun StandardScreenWithBottomButton(
             )
         }
 
-        // 하단 광고: 화면 하단(시스템 바/IME 위)에 배치. 없으면 reserveSpaceForBottomAd가 true일 때 공간만 예약됨.
         if (bottomAd != null) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .padding(horizontal = LayoutConstants.BOTTOM_BUTTON_HORIZONTAL_PADDING)
-                    .padding(bottom = effectiveBottom)
-                    .wrapContentWidth(Alignment.CenterHorizontally)
-                    .widthIn(max = MaxContentWidth),
-                contentAlignment = Alignment.Center
+            // 원복: 상단 Divider 없이, 기존 Surface 컨테이너만 사용
+            Surface(
+                modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
+                color = androidx.compose.ui.graphics.Color.White,
+                shadowElevation = 0.dp,
+                tonalElevation = 0.dp
             ) {
-                bottomAd()
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = effectiveBottom)
+                        .heightIn(min = LayoutConstants.BANNER_MIN_HEIGHT),
+                    contentAlignment = Alignment.Center
+                ) { bottomAd() }
             }
         }
 
-        // 버튼: 광고 영역 위로 올려 배치
-        val buttonBottomPadding = effectiveBottom + (adMinHeight + adTopGap) + buttonBottomGap
+        val buttonBottomPadding by remember(reservedBannerH, adTopGap, effectiveBottom) {
+            mutableStateOf(effectiveBottom + (reservedBannerH + adTopGap) + buttonBottomGap)
+        }
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -111,8 +133,6 @@ fun StandardScreenWithBottomButton(
                 .wrapContentWidth(Alignment.CenterHorizontally)
                 .widthIn(max = MaxContentWidth),
             contentAlignment = Alignment.Center
-        ) {
-            bottomButton()
-        }
+        ) { bottomButton() }
     }
 }

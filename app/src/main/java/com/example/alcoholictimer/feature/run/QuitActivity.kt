@@ -54,7 +54,7 @@ class QuitActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.quit_title)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { BaseScreen(applyBottomInsets = false) { QuitScreen() } }
+        setContent { BaseScreen(applyBottomInsets = false, manageBottomAreaExternally = true) { QuitScreen() } }
         // 전면광고 프리로드(이미 로드된 경우 내부에서 무시됨)
         InterstitialAdManager.preload(applicationContext)
     }
