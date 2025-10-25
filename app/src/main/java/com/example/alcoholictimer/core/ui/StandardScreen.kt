@@ -33,7 +33,7 @@ fun StandardScreen(
 }
 
 @Composable
-private fun predictAnchoredBannerHeightDp(): Dp {
+fun predictAnchoredBannerHeightDp(): Dp {
     val context = LocalContext.current
     val conf = LocalConfiguration.current
     val density = LocalDensity.current
@@ -121,7 +121,7 @@ fun StandardScreenWithBottomButton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = effectiveBottom)
-                        .heightIn(min = LayoutConstants.BANNER_MIN_HEIGHT),
+                        .height(predictedBannerH),
                     contentAlignment = Alignment.Center
                 ) { bottomAd() }
             }

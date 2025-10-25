@@ -33,6 +33,7 @@ import com.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBotto
 import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
 import com.sweetapps.alcoholictimer.core.ui.LayoutConstants
 import com.sweetapps.alcoholictimer.core.ui.AppBorder
+import com.sweetapps.alcoholictimer.core.ui.predictAnchoredBannerHeightDp
 
 class AddRecordActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -345,7 +346,7 @@ private fun AddRecordScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .padding(bottom = effectiveBottom)
-                    .heightIn(min = LayoutConstants.BANNER_MIN_HEIGHT),
+                    .height(predictAnchoredBannerHeightDp()),
                 contentAlignment = Alignment.Center
             ) {
                 AdmobBanner()

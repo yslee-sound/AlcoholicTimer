@@ -361,12 +361,14 @@ abstract class BaseActivity : ComponentActivity() {
                                             thickness = AppBorder.Hairline,
                                             color = Color(0xFFE0E0E0)
                                         )
+                                        // 화면 폭 기준 Anchored Adaptive 배너 예상 높이
+                                        val predictedBannerH = predictAnchoredBannerHeightDp()
                                         Surface(color = Color.White, shadowElevation = 0.dp, tonalElevation = 0.dp) {
                                             Box(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .padding(bottom = effectiveBottom)
-                                                    .heightIn(min = LayoutConstants.BANNER_MIN_HEIGHT),
+                                                    .height(predictedBannerH),
                                                 contentAlignment = Alignment.Center
                                             ) { bottomAd?.invoke() }
                                         }
@@ -400,7 +402,7 @@ abstract class BaseActivity : ComponentActivity() {
                         @Suppress("DEPRECATION")
                         overridePendingTransition(0, 0)
                         // 현재 화면을 스택에서 제거
-                        finish()
+                        // finish()  // 원복: 여기서 종료하지 않음
                     }
                 }
             }
@@ -424,7 +426,7 @@ abstract class BaseActivity : ComponentActivity() {
         startActivity(intent)
         overridePendingTransition(0, 0)
         // 현재 화면을 스택에서 제거하여 뒤로가기 스택 누적 방지
-        finish()
+        // finish() // 원복: 호출자에 따라 종료 여부 결정
     }
 
     @Suppress("DEPRECATION")
@@ -432,6 +434,7 @@ abstract class BaseActivity : ComponentActivity() {
         val intent = Intent(this, NicknameEditActivity::class.java)
         startActivity(intent)
         overridePendingTransition(0, 0)
+        // finish() // 원복: 강제 종료하지 않음
     }
 
     /**

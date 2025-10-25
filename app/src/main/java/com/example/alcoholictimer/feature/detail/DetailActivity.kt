@@ -1,6 +1,5 @@
 package com.sweetapps.alcoholictimer.feature.detail
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -52,6 +51,7 @@ import androidx.core.content.edit // SharedPreferences 확장 함수 import 복�
 import com.sweetapps.alcoholictimer.core.ui.theme.AmberSecondaryLight
 import com.sweetapps.alcoholictimer.core.ui.theme.BluePrimaryLight
 import com.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
+import com.sweetapps.alcoholictimer.core.ui.predictAnchoredBannerHeightDp
 
 class DetailActivity : ComponentActivity() {
 
@@ -404,16 +404,16 @@ fun DetailScreen(
             // 하단 고정 배너 컨테이너(항상 고정 공간 확보)
             Spacer(modifier = Modifier.height(LayoutConstants.BANNER_TOP_GAP))
             // 배너 상단 헤어라인
-            androidx.compose.material3.HorizontalDivider(
+            HorizontalDivider(
                 thickness = AppBorder.Hairline,
-                color = androidx.compose.ui.graphics.Color(0xFFE0E0E0)
+                color = Color(0xFFE0E0E0)
             )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .padding(bottom = effectiveBottom)
-                    .heightIn(min = LayoutConstants.BANNER_MIN_HEIGHT),
+                    .height(predictAnchoredBannerHeightDp()),
                 contentAlignment = Alignment.Center
             ) {
                 AdmobBanner()
@@ -422,6 +422,7 @@ fun DetailScreen(
     }
 }
 
+@Suppress("unused")
 private fun deleteRecord(context: Context, startTime: Long, endTime: Long) {
     val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
     val jsonString = sharedPref.getString("sobriety_records", null) ?: return
