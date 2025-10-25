@@ -3,6 +3,7 @@ package com.sweetapps.alcoholictimer.feature.level
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -47,6 +48,11 @@ class LevelActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            // 뒤로가기 버튼: 메인 홈(Start/Run)으로 이동
+            BackHandler(enabled = true) {
+                navigateToMainHome()
+            }
+
             BaseScreen(
                 bottomAd = { AdmobBanner() }
             ) { LevelScreen() }

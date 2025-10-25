@@ -1,8 +1,8 @@
 package com.sweetapps.alcoholictimer.core.ads
 
 import android.content.Context
+import android.net.ConnectivityManager
 import android.util.Log
-import androidx.core.content.edit
 import com.sweetapps.alcoholictimer.BuildConfig
 import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
@@ -60,21 +60,66 @@ object NativeAdManager {
             return
         }
 
+        // 네트워크 상태 체크
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+        @Suppress("DEPRECATION")
+        val networkInfo = connectivityManager?.activeNetworkInfo
+        @Suppress("DEPRECATION")
+        if (networkInfo == null || !networkInfo.isConnected) {
+            Log.w(TAG, "⚠️ No network connection, skip ad loading")
+            return
+        }
+
         isLoading.set(true)
         val unitId = currentUnitId()
-        Log.d(TAG, "Loading native ad with unitId=$unitId (debug=${BuildConfig.DEBUG})")
+        Log.d(TAG, "🔄 Loading native ad with unitId=$unitId (debug=${BuildConfig.DEBUG})")
+        @Suppress("DEPRECATION")
+        Log.d(TAG, "   Network: ${networkInfo.typeName}, Connected: ${networkInfo.isConnected}")
 
         val adLoader = AdLoader.Builder(context, unitId)
             .forNativeAd { nativeAd ->
-                Log.d(TAG, "Native ad loaded successfully")
+                Log.d(TAG, "✅ Native ad loaded successfully")
                 cachedNativeAd = nativeAd
                 isLoading.set(false)
             }
             .withAdListener(object : com.google.android.gms.ads.AdListener() {
                 override fun onAdFailedToLoad(error: LoadAdError) {
-                    Log.w(TAG, "Native ad failed to load: ${error.message}")
+                    Log.e(TAG, "❌ Native ad failed to load:")
+                    Log.e(TAG, "   - Error code: ${error.code}")
+                    Log.e(TAG, "   - Error domain: ${error.domain}")
+                    Log.e(TAG, "   - Error message: ${error.message}")
+                    Log.e(TAG, "   - Response info: ${error.responseInfo}")
+
+                    // 에러 코드별 처리
+                    when (error.code) {
+                        0 -> Log.e(TAG, "   ⚠️ ERROR_CODE_INTERNAL_ERROR - 일시적 문제, 재시도 가능")
+                        1 -> Log.e(TAG, "   ⚠️ ERROR_CODE_INVALID_REQUEST - 광고 요청 설정 확인 필요")
+                        2 -> Log.e(TAG, "   ⚠️ ERROR_CODE_NETWORK_ERROR - 네트워크 연결 문제")
+                        3 -> Log.e(TAG, "   ℹ️ ERROR_CODE_NO_FILL - 현재 표시할 광고 없음 (정상)")
+                    }
+
                     cachedNativeAd = null
                     isLoading.set(false)
+
+                    // 네트워크 오류 시 30초 후 재시도
+                    if (error.code == 2 || error.code == 0) {
+                        Log.d(TAG, "   🔄 Will retry in 30 seconds...")
+                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                            preload(context.applicationContext)
+                        }, 30000)
+                    }
+                }
+
+                override fun onAdOpened() {
+                    Log.d(TAG, "Native ad opened")
+                }
+
+                override fun onAdClosed() {
+                    Log.d(TAG, "Native ad closed")
+                }
+
+                override fun onAdClicked() {
+                    Log.d(TAG, "Native ad clicked")
                 }
             })
             .build()
@@ -86,11 +131,17 @@ object NativeAdManager {
      * 로드된 네이티브 광고 획득 (소유권 이전)
      * 호출자는 반드시 사용 후 destroy() 호출 필요
      */
-    fun acquire(): NativeAd? {
+    fun acquire(context: Context): NativeAd? {
         val ad = cachedNativeAd
         cachedNativeAd = null
         if (ad != null) {
-            Log.d(TAG, "Ad acquired, will reload in background")
+            Log.d(TAG, "✅ Ad acquired, will reload in background")
+            // 즉시 다음 광고 로드 시작
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                preload(context.applicationContext)
+            }, 1000)
+        } else {
+            Log.w(TAG, "⚠️ No ad available to acquire")
         }
         return ad
     }

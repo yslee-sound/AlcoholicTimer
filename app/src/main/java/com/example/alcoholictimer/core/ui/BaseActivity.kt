@@ -391,6 +391,7 @@ abstract class BaseActivity : ComponentActivity() {
                         // 드로어 내비게이션: StartActivity 진입 시 스플래시 생략 플래그 전달(API<31)
                         val intent = Intent(this, StartActivity::class.java).apply {
                             putExtra("skip_splash", true)
+                            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                         }
                         startActivity(intent)
                         @Suppress("DEPRECATION")
@@ -411,7 +412,10 @@ abstract class BaseActivity : ComponentActivity() {
 
     @Suppress("DEPRECATION")
     private fun navigateToActivity(activityClass: Class<*>) {
-        val intent = Intent(this, activityClass)
+        val intent = Intent(this, activityClass).apply {
+            // singleTask 모드와 함께 사용하여 기존 인스턴스 재사용 및 위의 Activity 제거
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        }
         startActivity(intent)
         overridePendingTransition(0, 0)
     }
@@ -421,6 +425,36 @@ abstract class BaseActivity : ComponentActivity() {
         val intent = Intent(this, NicknameEditActivity::class.java)
         startActivity(intent)
         overridePendingTransition(0, 0)
+    }
+
+    /**
+     * 메인 홈 화면으로 이동
+     * - 금주 진행 중: RunActivity
+     * - 금주 진행 전: StartActivity
+     */
+    @Suppress("DEPRECATION")
+    protected fun navigateToMainHome() {
+        val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+        val startTime = sharedPref.getLong("start_time", 0L)
+        val isRunning = startTime > 0
+
+        val targetActivity = if (isRunning) RunActivity::class.java else StartActivity::class.java
+
+        // 이미 메인 홈 화면이면 아무것도 하지 않음
+        if ((isRunning && this is RunActivity) || (!isRunning && this is StartActivity)) {
+            return
+        }
+
+        val intent = Intent(this, targetActivity).apply {
+            // 모든 상위 Activity를 제거하고 메인 홈만 남김
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            if (targetActivity == StartActivity::class.java) {
+                putExtra("skip_splash", true)
+            }
+        }
+        startActivity(intent)
+        overridePendingTransition(0, 0)
+        finish()
     }
 
     protected abstract fun getScreenTitle(): String

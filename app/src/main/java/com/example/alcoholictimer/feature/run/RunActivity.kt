@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
@@ -71,6 +72,11 @@ private fun RunScreen() {
     val startTime = remember { sp.getLong(Constants.PREF_START_TIME, 0L) }
     val targetDays = remember { sp.getFloat(Constants.PREF_TARGET_DAYS, 30f) }
     val timerCompleted = remember { sp.getBoolean(Constants.PREF_TIMER_COMPLETED, false) }
+    // 뒤로가기 핸들러: 금주 진행 중 실수로 종료 방지 - QuitActivity로 이동
+    BackHandler(enabled = true) {
+        context.startActivity(Intent(context, QuitActivity::class.java))
+    }
+
 
     LaunchedEffect(startTime, timerCompleted) {
         if (timerCompleted || startTime == 0L) {

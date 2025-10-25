@@ -3,6 +3,7 @@ package com.sweetapps.alcoholictimer.feature.about
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.HorizontalDivider
@@ -26,7 +27,14 @@ class AboutActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.about_title)
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+        setContent {
+            // 뒤로가기 버튼: 메인 홈(Start/Run)으로 이동
+            BackHandler(enabled = true) {
+                navigateToMainHome()
+            }
+
+            BaseScreen(bottomAd = { AdmobBanner() }) { AboutListScreen(onOpenLicenses = { openLicenses() }) }
+        }
         setContent { BaseScreen(bottomAd = { AdmobBanner() }) { AboutListScreen(onOpenLicenses = { openLicenses() }) } }
     }
 

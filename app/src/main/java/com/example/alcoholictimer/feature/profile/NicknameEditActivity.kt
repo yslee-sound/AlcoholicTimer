@@ -24,7 +24,7 @@ import com.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
 
 class NicknameEditActivity : BaseActivity() {
-    override fun getScreenTitle(): String = "별명 변경"
+    override fun getScreenTitle(): String = "프로필 편집"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent { BaseScreen(bottomAd = { AdmobBanner() }) { NicknameEditScreen() } }

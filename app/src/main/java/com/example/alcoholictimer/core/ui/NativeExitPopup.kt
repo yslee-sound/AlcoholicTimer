@@ -45,9 +45,19 @@ fun NativeExitPopup(
 
     LaunchedEffect(visible) {
         if (visible && canShowAd) {
-            nativeAd = NativeAdManager.acquire()
+            android.util.Log.d("NativeExitPopup", "Attempting to acquire native ad...")
+            nativeAd = NativeAdManager.acquire(context)
             if (nativeAd != null) {
+                android.util.Log.d("NativeExitPopup", "✅ Native ad acquired successfully")
                 NativeAdManager.recordShown(context)
+            } else {
+                android.util.Log.w("NativeExitPopup", "⚠️ No native ad available")
+            }
+        } else {
+            if (!visible) {
+                android.util.Log.d("NativeExitPopup", "Popup not visible")
+            } else {
+                android.util.Log.d("NativeExitPopup", "Cannot show ad (policy restriction)")
             }
         }
     }

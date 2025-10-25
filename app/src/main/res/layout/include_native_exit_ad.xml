@@ -10,6 +10,20 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <!-- 광고 라벨 (정책 필수) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="Ad"
+            android:textColor="#999999"
+            android:textSize="10sp"
+            android:background="#F0F0F0"
+            android:paddingStart="6dp"
+            android:paddingEnd="6dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
