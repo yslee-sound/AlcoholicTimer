@@ -32,6 +32,7 @@ import androidx.core.content.edit
 import com.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
 import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
 import com.sweetapps.alcoholictimer.core.ui.LayoutConstants
+import com.sweetapps.alcoholictimer.core.ui.AppBorder
 
 class AddRecordActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -334,9 +335,10 @@ private fun AddRecordScreen(
 
             // 하단 고정 배너 컨테이너(항상 고정 공간 확보)
             Spacer(modifier = Modifier.height(LayoutConstants.BANNER_TOP_GAP))
+            // 배너 상단 헤어라인
             androidx.compose.material3.HorizontalDivider(
-                thickness = 1.25.dp,
-                color = androidx.compose.ui.graphics.Color(0xFFD6D6D6)
+                thickness = AppBorder.Hairline,
+                color = androidx.compose.ui.graphics.Color(0xFFE0E0E0)
             )
             Box(
                 modifier = Modifier

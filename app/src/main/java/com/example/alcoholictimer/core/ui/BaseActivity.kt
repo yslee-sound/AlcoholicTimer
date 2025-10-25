@@ -354,7 +354,11 @@ abstract class BaseActivity : ComponentActivity() {
                                 if (showOrReserveAd) {
                                     // 전역 배너 위 간격(기본 0dp)
                                     if (bannerTopGap > 0.dp) Spacer(modifier = Modifier.height(bannerTopGap))
-                                    // 원복: 상단 Divider 없이 바로 컨테이너 Surface
+                                    // 배너 상단 헤어라인
+                                    HorizontalDivider(
+                                        thickness = AppBorder.Hairline,
+                                        color = Color(0xFFE0E0E0)
+                                    )
                                     Surface(color = Color.White, shadowElevation = 0.dp, tonalElevation = 0.dp) {
                                         Box(
                                             modifier = Modifier

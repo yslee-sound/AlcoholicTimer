@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -104,7 +105,12 @@ fun StandardScreenWithBottomButton(
         }
 
         if (bottomAd != null) {
-            // 원복: 상단 Divider 없이, 기존 Surface 컨테이너만 사용
+            // 배너 상단 헤어라인
+            HorizontalDivider(
+                modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
+                thickness = AppBorder.Hairline,
+                color = androidx.compose.ui.graphics.Color(0xFFE0E0E0)
+            )
             Surface(
                 modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
                 color = androidx.compose.ui.graphics.Color.White,
