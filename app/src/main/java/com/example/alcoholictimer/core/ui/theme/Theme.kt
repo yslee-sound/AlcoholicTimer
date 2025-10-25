@@ -15,11 +15,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import androidx.activity.enableEdgeToEdge
-import androidx.activity.SystemBarStyle
-import androidx.activity.ComponentActivity
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.core.view.WindowInsetsCompat
 
 private val DarkColorScheme = darkColorScheme(
     primary = BluePrimaryDark,
@@ -69,39 +65,29 @@ fun AlcoholicTimerTheme(
         else -> LightColorScheme
     }
 
-    MaterialTheme(colorScheme = colorScheme, typography = AppTypography, content = content)
-
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val activity = view.context as? Activity ?: return@SideEffect
             val window = activity.window
 
-            // 상태바/내비바를 화면과 동일한 화이트로 지정해 경계선 시각 차이를 제거
-            val statusBarColor = Color.White
-            val navBarColor = Color.White
-
+            // Edge-to-edge 설정
             if (applySystemBars) {
                 WindowCompat.setDecorFitsSystemWindows(window, false)
-                val statusBarStyle = SystemBarStyle.light(statusBarColor.toArgb(), statusBarColor.toArgb())
-                val navigationBarStyle = SystemBarStyle.light(navBarColor.toArgb(), navBarColor.toArgb())
-                (activity as? ComponentActivity)?.enableEdgeToEdge(
-                    statusBarStyle = statusBarStyle,
-                    navigationBarStyle = navigationBarStyle
-                )
             } else {
                 WindowCompat.setDecorFitsSystemWindows(window, true)
-                window.statusBarColor = statusBarColor.toArgb()
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    window.navigationBarColor = navBarColor.toArgb()
-                }
             }
 
-            val controller = WindowInsetsControllerCompat(window, view)
-            controller.isAppearanceLightStatusBars = true
-            controller.isAppearanceLightNavigationBars = true
-            controller.show(WindowInsetsCompat.Type.statusBars())
-            controller.show(WindowInsetsCompat.Type.navigationBars())
+            // 상태바를 흰색으로 설정
+            window.statusBarColor = android.graphics.Color.WHITE
+            window.navigationBarColor = android.graphics.Color.TRANSPARENT
+
+            // 상태바 아이콘을 어둡게 설정 (흰색 배경에 어두운 아이콘)
+            val insetsController = WindowInsetsControllerCompat(window, view)
+            insetsController.isAppearanceLightStatusBars = true
+            insetsController.isAppearanceLightNavigationBars = false
         }
     }
+
+    MaterialTheme(colorScheme = colorScheme, typography = AppTypography, content = content)
 }

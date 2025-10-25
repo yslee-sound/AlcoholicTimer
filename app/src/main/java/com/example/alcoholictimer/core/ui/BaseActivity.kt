@@ -1,6 +1,7 @@
 package com.sweetapps.alcoholictimer.core.ui
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.compose.animation.core.animateFloatAsState
@@ -60,10 +61,26 @@ abstract class BaseActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
         // Edge-to-edge: 시스템 창 적합 해제 후 Compose 인셋만 사용
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        // Splash 설치 제거: 런처 액티비티(StartActivity)에서만 수행
-        super.onCreate(savedInstanceState)
+
+        // 상태바를 흰색으로 설정
+        window.statusBarColor = android.graphics.Color.WHITE
+        window.navigationBarColor = android.graphics.Color.TRANSPARENT
+
+        // Android 10+(API 29): 시스템의 상태바/내비바 대비 강제 오버레이 비활성화
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isStatusBarContrastEnforced = false
+            window.isNavigationBarContrastEnforced = false
+        }
+
+        // 상태바 아이콘을 어둡게 (검은색) 설정
+        val controller = androidx.core.view.WindowInsetsControllerCompat(window, window.decorView)
+        controller.isAppearanceLightStatusBars = true
+        controller.isAppearanceLightNavigationBars = true
+
         nicknameState.value = getNickname()
     }
 
@@ -175,201 +192,215 @@ abstract class BaseActivity : ComponentActivity() {
                 LocalRequestGlobalLock provides requestGlobalLock,
                 LocalSafeContentPadding provides providedSafePadding
             ) {
-                ModalNavigationDrawer(
-                    drawerState = drawerState,
-                    drawerContent = {
-                        ModalDrawerSheet(
+                val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+                Box(modifier = Modifier.fillMaxSize()) {
+                    if (applySystemBars && statusBarTop > 0.dp) {
+                        Box(
                             modifier = Modifier
-                                .fillMaxWidth(0.8f)
-                                .statusBarsPadding()
-                                .navigationBarsPadding()
-                                .background(Color.White),
-                            drawerContainerColor = Color.Transparent,
-                            drawerShape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
-                        ) {
-                            DrawerMenu(
-                                nickname = currentNickname,
-                                selectedItem = currentDrawerSelection(),
-                                onNicknameClick = {
-                                    // 전역 입력 잠금 요청
-                                    requestGlobalLock(300)
-                                    scope.launch {
-                                        drawerState.close()
-                                        var navigated = false
-                                        snapshotFlow { drawerState.isAnimationRunning }
-                                            .collect { isAnimating ->
-                                                if (!isAnimating && drawerState.currentValue == DrawerValue.Closed && !navigated) {
-                                                    navigated = true
-                                                    navigateToNicknameEdit()
-                                                    return@collect
-                                                }
-                                            }
-                                    }
-                                },
-                                onItemSelected = { menuItem ->
-                                    // 전역 입력 잠금 요청
-                                    requestGlobalLock(300)
-                                    scope.launch {
-                                        drawerState.close()
-                                        snapshotFlow { drawerState.isAnimationRunning }
-                                            .collect { isAnimating ->
-                                                if (!isAnimating && drawerState.currentValue == DrawerValue.Closed) {
-                                                    handleMenuSelection(menuItem)
-                                                    return@collect
-                                                }
-                                            }
-                                    }
-                                }
-                            )
-                        }
+                                .align(Alignment.TopStart)
+                                .fillMaxWidth()
+                                .height(statusBarTop)
+                                .background(Color.White)
+                        )
                     }
-                ) {
-                    Scaffold(
-                        modifier = Modifier.fillMaxSize(),
-                        topBar = {
-                            Surface(
+
+                    ModalNavigationDrawer(
+                        drawerState = drawerState,
+                        drawerContent = {
+                            ModalDrawerSheet(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .then(if (applySystemBars) Modifier.windowInsetsPadding(WindowInsets.statusBars) else Modifier),
-                                shadowElevation = 0.dp,
-                                tonalElevation = 0.dp,
-                                color = Color.White
+                                    .fillMaxWidth(0.8f)
+                                    .statusBarsPadding()
+                                    .navigationBarsPadding()
+                                    .background(Color.White),
+                                drawerContainerColor = Color.Transparent,
+                                drawerShape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
                             ) {
-                                Column {
-                                    TopAppBar(
-                                        title = {
-                                            CompositionLocalProvider(
-                                                LocalDensity provides Density(LocalDensity.current.density, fontScale = 1.2f)
-                                            ) {
-                                                Text(
-                                                    text = getScreenTitle(),
-                                                    color = Color(0xFF2C3E50),
-                                                    fontWeight = FontWeight.SemiBold,
-                                                    style = MaterialTheme.typography.titleMedium
-                                                )
-                                            }
-                                        },
-                                        colors = TopAppBarDefaults.topAppBarColors(
-                                            containerColor = Color.Transparent,
-                                            titleContentColor = Color(0xFF2C3E50),
-                                            navigationIconContentColor = Color(0xFF2C3E50),
-                                            actionIconContentColor = Color(0xFF2C3E50)
-                                        ),
-                                        navigationIcon = {
-                                            Surface(
-                                                modifier = Modifier.padding(8.dp).size(48.dp),
-                                                shape = CircleShape,
-                                                color = Color(0xFFF8F9FA),
-                                                shadowElevation = 2.dp
-                                            ) {
-                                                IconButton(
-                                                    onClick = {
-                                                        // 전역 입력 잠금 + 포커스/키보드 정리 후 드로어 동작
-                                                        requestGlobalLock(300)
-                                                        focusManager.clearFocus(force = true)
-                                                        keyboardController?.hide()
+                                DrawerMenu(
+                                    nickname = currentNickname,
+                                    selectedItem = currentDrawerSelection(),
+                                    onNicknameClick = {
+                                        // 전역 입력 잠금 요청
+                                        requestGlobalLock(300)
+                                        scope.launch {
+                                            drawerState.close()
+                                            var navigated = false
+                                            snapshotFlow { drawerState.isAnimationRunning }
+                                                .collect { isAnimating ->
+                                                    if (!isAnimating && drawerState.currentValue == DrawerValue.Closed && !navigated) {
+                                                        navigated = true
+                                                        navigateToNicknameEdit()
+                                                        return@collect
+                                                    }
+                                                }
+                                        }
+                                    },
+                                    onItemSelected = { menuItem ->
+                                        // 전역 입력 잠금 요청
+                                        requestGlobalLock(300)
+                                        scope.launch {
+                                            drawerState.close()
+                                            snapshotFlow { drawerState.isAnimationRunning }
+                                                .collect { isAnimating ->
+                                                    if (!isAnimating && drawerState.currentValue == DrawerValue.Closed) {
+                                                        handleMenuSelection(menuItem)
+                                                        return@collect
+                                                    }
+                                                }
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    ) {
+                        Scaffold(
+                            modifier = Modifier.fillMaxSize(),
+                            containerColor = Color.White,
+                            topBar = {
+                                Surface(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .then(if (applySystemBars) Modifier.windowInsetsPadding(WindowInsets.statusBars) else Modifier),
+                                    shadowElevation = 0.dp,
+                                    tonalElevation = 0.dp,
+                                    color = Color.White
+                                ) {
+                                    Column {
+                                        TopAppBar(
+                                            title = {
+                                                CompositionLocalProvider(
+                                                    LocalDensity provides Density(LocalDensity.current.density, fontScale = 1.2f)
+                                                ) {
+                                                    Text(
+                                                        text = getScreenTitle(),
+                                                        color = Color(0xFF2C3E50),
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        style = MaterialTheme.typography.titleMedium
+                                                    )
+                                                }
+                                            },
+                                            colors = TopAppBarDefaults.topAppBarColors(
+                                                containerColor = Color.Transparent,
+                                                titleContentColor = Color(0xFF2C3E50),
+                                                navigationIconContentColor = Color(0xFF2C3E50),
+                                                actionIconContentColor = Color(0xFF2C3E50)
+                                            ),
+                                            navigationIcon = {
+                                                Surface(
+                                                    modifier = Modifier.padding(8.dp).size(48.dp),
+                                                    shape = CircleShape,
+                                                    color = Color(0xFFF8F9FA),
+                                                    shadowElevation = 2.dp
+                                                ) {
+                                                    IconButton(
+                                                        onClick = {
+                                                            // 전역 입력 잠금 + 포커스/키보드 정리 후 드로어 동작
+                                                            requestGlobalLock(300)
+                                                            focusManager.clearFocus(force = true)
+                                                            keyboardController?.hide()
+                                                            if (showBackButton) {
+                                                                onBackClick?.invoke() ?: run { this@BaseActivity.onBackPressedDispatcher.onBackPressed() }
+                                                            } else {
+                                                                scope.launch { drawerState.open() }
+                                                            }
+                                                        }
+                                                    ) {
                                                         if (showBackButton) {
-                                                            onBackClick?.invoke() ?: run { this@BaseActivity.onBackPressedDispatcher.onBackPressed() }
+                                                            Icon(
+                                                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                                                contentDescription = "뒤로가기",
+                                                                tint = Color(0xFF2C3E50),
+                                                                modifier = Modifier.size(24.dp)
+                                                            )
                                                         } else {
-                                                            scope.launch { drawerState.open() }
+                                                            Icon(
+                                                                imageVector = Icons.Filled.Menu,
+                                                                contentDescription = "메뉴",
+                                                                tint = Color(0xFF2C3E50),
+                                                                modifier = Modifier.size(24.dp)
+                                                            )
                                                         }
                                                     }
-                                                ) {
-                                                    if (showBackButton) {
-                                                        Icon(
-                                                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                                            contentDescription = "뒤로가기",
-                                                            tint = Color(0xFF2C3E50),
-                                                            modifier = Modifier.size(24.dp)
-                                                        )
-                                                    } else {
-                                                        Icon(
-                                                            imageVector = Icons.Filled.Menu,
-                                                            contentDescription = "메뉴",
-                                                            tint = Color(0xFF2C3E50),
-                                                            modifier = Modifier.size(24.dp)
-                                                        )
-                                                    }
                                                 }
-                                            }
-                                        },
-                                        actions = { topBarActions() }
-                                    )
-                                    // Global subtle divider under app bar
-                                    HorizontalDivider(
-                                        thickness = 1.5.dp,
-                                        color = Color(0xFFE0E0E0)
-                                    )
+                                            },
+                                            actions = { topBarActions() }
+                                        )
+                                        // Global subtle divider under app bar
+                                        HorizontalDivider(
+                                            thickness = 1.5.dp,
+                                            color = Color(0xFFE0E0E0)
+                                        )
+                                    }
                                 }
-                            }
-                        },
-                        contentWindowInsets = WindowInsets(0, 0, 0, 0)
-                    ) { paddingValues ->
-                        // Column 구성: 상단 컨텐츠 영역(가중치 1) + 하단 배너 컨테이너(옵션)
-                        Column(modifier = Modifier.fillMaxSize()) {
-                            // 배경 레이어
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .weight(1f)
-                            ) {
+                            },
+                            contentWindowInsets = WindowInsets(0, 0, 0, 0)
+                        ) { paddingValues ->
+                            // Column 구성: 상단 컨텐츠 영역(가중치 1) + 하단 배너 컨테이너(옵션)
+                            Column(modifier = Modifier.fillMaxSize()) {
+                                // 배경 레이어
                                 Box(
                                     modifier = Modifier
-                                        .matchParentSize()
-                                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                                )
-                                val insetModifier = if (applyBottomInsets) {
-                                    Modifier.windowInsetsPadding(
-                                        WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
-                                    )
-                                } else { Modifier }
-                                Box(
-                                    modifier = Modifier
-                                        .matchParentSize()
-                                        .padding(paddingValues)
-                                        .then(insetModifier)
-                                        .blur(radius = blurRadius.dp)
-                                ) { content() }
-
-                                // 전역 입력 차단 오버레이(설정 화면 제외) + 드로어 가드: 모든 포인터 입력 소비
-                                if ((enableGlobalOverlay && globalInputLocked) || drawerInputGuardActive) {
+                                        .fillMaxSize()
+                                        .weight(1f)
+                                ) {
                                     Box(
                                         modifier = Modifier
                                             .matchParentSize()
-                                            .pointerInput(drawerInputGuardActive, globalInputLocked) {
-                                                while (true) {
-                                                    awaitPointerEventScope {
-                                                        val event = awaitPointerEvent()
-                                                        event.changes.forEach { it.consume() }
-                                                    }
-                                                }
-                                            }
+                                            .background(MaterialTheme.colorScheme.surfaceVariant)
                                     )
-                                }
-                            }
+                                    val insetModifier = if (applyBottomInsets) {
+                                        Modifier.windowInsetsPadding(
+                                            WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
+                                        )
+                                    } else { Modifier }
+                                    Box(
+                                        modifier = Modifier
+                                            .matchParentSize()
+                                            .padding(paddingValues)
+                                            .then(insetModifier)
+                                            .blur(radius = blurRadius.dp)
+                                    ) { content() }
 
-                            // 하단 고정 배너 컨테이너: 광고 미노출 시에도 공간 예약 옵션 제공
-                            val showOrReserveAd = (bottomAd != null) || reserveSpaceForBottomAd
-                            if (!manageBottomAreaExternally) {
-                                if (showOrReserveAd) {
-                                    // 전역 배너 위 간격(기본 0dp)
-                                    if (bannerTopGap > 0.dp) Spacer(modifier = Modifier.height(bannerTopGap))
-                                    // 배너 상단 헤어라인
-                                    HorizontalDivider(
-                                        thickness = AppBorder.Hairline,
-                                        color = Color(0xFFE0E0E0)
-                                    )
-                                    Surface(color = Color.White, shadowElevation = 0.dp, tonalElevation = 0.dp) {
+                                    // 전역 입력 차단 오버레이(설정 화면 제외) + 드로어 가드: 모든 포인터 입력 소비
+                                    if ((enableGlobalOverlay && globalInputLocked) || drawerInputGuardActive) {
                                         Box(
                                             modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(bottom = effectiveBottom)
-                                                .heightIn(min = LayoutConstants.BANNER_MIN_HEIGHT),
-                                            contentAlignment = Alignment.Center
-                                        ) { bottomAd?.invoke() }
+                                                .matchParentSize()
+                                                .pointerInput(drawerInputGuardActive, globalInputLocked) {
+                                                    while (true) {
+                                                        awaitPointerEventScope {
+                                                            val event = awaitPointerEvent()
+                                                            event.changes.forEach { it.consume() }
+                                                        }
+                                                    }
+                                                }
+                                        )
                                     }
-                                } else {
-                                    Spacer(modifier = Modifier.height(effectiveBottom))
+                                }
+
+                                // 하단 고정 배너 컨테이너: 광고 미노출 시에도 공간 예약 옵션 제공
+                                val showOrReserveAd = (bottomAd != null) || reserveSpaceForBottomAd
+                                if (!manageBottomAreaExternally) {
+                                    if (showOrReserveAd) {
+                                        // 전역 배너 위 간격(기본 0dp)
+                                        if (bannerTopGap > 0.dp) Spacer(modifier = Modifier.height(bannerTopGap))
+                                        // 배너 상단 헤어라인
+                                        HorizontalDivider(
+                                            thickness = AppBorder.Hairline,
+                                            color = Color(0xFFE0E0E0)
+                                        )
+                                        Surface(color = Color.White, shadowElevation = 0.dp, tonalElevation = 0.dp) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(bottom = effectiveBottom)
+                                                    .heightIn(min = LayoutConstants.BANNER_MIN_HEIGHT),
+                                                contentAlignment = Alignment.Center
+                                            ) { bottomAd?.invoke() }
+                                        }
+                                    } else {
+                                        Spacer(modifier = Modifier.height(effectiveBottom))
+                                    }
                                 }
                             }
                         }
