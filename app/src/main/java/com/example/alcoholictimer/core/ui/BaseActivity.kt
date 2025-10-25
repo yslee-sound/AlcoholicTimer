@@ -396,6 +396,8 @@ abstract class BaseActivity : ComponentActivity() {
                         startActivity(intent)
                         @Suppress("DEPRECATION")
                         overridePendingTransition(0, 0)
+                        // 현재 화면을 스택에서 제거
+                        finish()
                     }
                 }
             }
@@ -418,6 +420,8 @@ abstract class BaseActivity : ComponentActivity() {
         }
         startActivity(intent)
         overridePendingTransition(0, 0)
+        // 현재 화면을 스택에서 제거하여 뒤로가기 스택 누적 방지
+        finish()
     }
 
     @Suppress("DEPRECATION")

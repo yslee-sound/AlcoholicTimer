@@ -31,6 +31,7 @@ import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
 class SettingsActivity : BaseActivity() {
     override fun getScreenTitle(): String = "설정"
     override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         setContent {
             // 뒤로가기 버튼: 메인 홈(Start/Run)으로 이동
             BackHandler(enabled = true) {
@@ -39,7 +40,6 @@ class SettingsActivity : BaseActivity() {
 
             BaseScreen(bottomAd = { AdmobBanner() }) { SettingsScreen() }
         }
-        setContent { BaseScreen(bottomAd = { AdmobBanner() }) { SettingsScreen() } }
     }
 }
 

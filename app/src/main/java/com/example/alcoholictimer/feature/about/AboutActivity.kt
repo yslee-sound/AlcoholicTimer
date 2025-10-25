@@ -27,6 +27,7 @@ class AboutActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.about_title)
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         setContent {
             // 뒤로가기 버튼: 메인 홈(Start/Run)으로 이동
             BackHandler(enabled = true) {
@@ -35,7 +36,6 @@ class AboutActivity : BaseActivity() {
 
             BaseScreen(bottomAd = { AdmobBanner() }) { AboutListScreen(onOpenLicenses = { openLicenses() }) }
         }
-        setContent { BaseScreen(bottomAd = { AdmobBanner() }) { AboutListScreen(onOpenLicenses = { openLicenses() }) } }
     }
 
     @Suppress("DEPRECATION")
