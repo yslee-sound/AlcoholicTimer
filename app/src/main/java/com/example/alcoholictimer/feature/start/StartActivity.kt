@@ -368,15 +368,6 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
     val isValid by remember { derivedStateOf { targetDays > 0 } }
     var showDaysPicker by remember { mutableStateOf(false) }
 
-    // 네이티브 광고 종료 팝업 상태
-    var showExitPopup by remember { mutableStateOf(false) }
-    val activity = context as? android.app.Activity
-
-    // 뒤로가기 핸들러: 네이티브 광고 팝업 표시
-    BackHandler(enabled = true) {
-        showExitPopup = true
-    }
-
     Box(modifier = Modifier.fillMaxSize()) {
         StandardScreenWithBottomButton(
             topContent = {
@@ -550,17 +541,6 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
                 onDismiss = { showDaysPicker = false }
             )
         }
-
-        // 네이티브 광고 종료 팝업
-        NativeExitPopup(
-            visible = showExitPopup,
-            onConfirmExit = {
-                activity?.finish()
-            },
-            onDismiss = {
-                showExitPopup = false
-            }
-        )
     }
 }
 
