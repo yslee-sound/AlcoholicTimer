@@ -174,18 +174,10 @@ abstract class BaseActivity : ComponentActivity() {
                 LocalRequestGlobalLock provides requestGlobalLock,
                 LocalSafeContentPadding provides providedSafePadding
             ) {
-                val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+                // 상단 상태바 오버레이 제거 (decorFitsSystemWindows=true에서는 불필요)
+                // val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
                 Box(modifier = Modifier.fillMaxSize()) {
-                    if (applySystemBars && statusBarTop > 0.dp) {
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .fillMaxWidth()
-                                .height(statusBarTop)
-                                .background(Color.White)
-                        )
-                    }
-
+                    // ModalNavigationDrawer 시작
                     ModalNavigationDrawer(
                         drawerState = drawerState,
                         drawerContent = {
@@ -240,9 +232,7 @@ abstract class BaseActivity : ComponentActivity() {
                             containerColor = Color.White,
                             topBar = {
                                 Surface(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .then(if (applySystemBars) Modifier.windowInsetsPadding(WindowInsets.statusBars) else Modifier),
+                                    modifier = Modifier.fillMaxWidth(),
                                     shadowElevation = 0.dp,
                                     tonalElevation = 0.dp,
                                     color = Color.White
