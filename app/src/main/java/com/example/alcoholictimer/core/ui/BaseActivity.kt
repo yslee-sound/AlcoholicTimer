@@ -354,8 +354,15 @@ abstract class BaseActivity : ComponentActivity() {
                                 val showOrReserveAd = (bottomAd != null) || reserveSpaceForBottomAd
                                 if (!manageBottomAreaExternally) {
                                     if (showOrReserveAd) {
-                                        // 전역 배너 위 간격(기본 0dp)
-                                        if (bannerTopGap > 0.dp) Spacer(modifier = Modifier.height(bannerTopGap))
+                                        // 전역 배너 위 간격을 회색(surfaceVariant)으로 채워 구분감 부여
+                                        if (bannerTopGap > 0.dp) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(bannerTopGap)
+                                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                            )
+                                        }
                                         // 배너 상단 헤어라인
                                         HorizontalDivider(
                                             thickness = AppBorder.Hairline,

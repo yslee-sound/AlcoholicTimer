@@ -23,7 +23,7 @@ fun AdmobBanner(modifier: Modifier = Modifier) {
     AndroidView(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 50.dp),
+            .heightIn(min = LayoutConstants.BANNER_MIN_HEIGHT),
         factory = { context ->
             AdView(context).apply {
                 layoutParams = ViewGroup.LayoutParams(

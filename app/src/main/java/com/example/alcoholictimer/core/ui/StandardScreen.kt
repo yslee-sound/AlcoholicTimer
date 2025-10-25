@@ -105,6 +105,16 @@ fun StandardScreenWithBottomButton(
         }
 
         if (bottomAd != null) {
+            // 배너 상단 간격을 회색으로 채워 구분감 부여
+            if (adTopGap > 0.dp) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .height(adTopGap)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                )
+            }
             // 배너 상단 헤어라인
             HorizontalDivider(
                 modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
