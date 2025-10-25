@@ -109,12 +109,7 @@ class StartActivity : BaseActivity() {
         // 드로어 내비게이션 시 스플래시 생략 플래그
         val skipSplash = intent.getBooleanExtra("skip_splash", false)
 
-        // 상태바/내비게이션 바 라이트 아이콘 적용 및 표시
-        val controller = WindowInsetsControllerCompat(window, window.decorView)
-        controller.isAppearanceLightStatusBars = true
-        controller.isAppearanceLightNavigationBars = true
-        controller.show(WindowInsetsCompat.Type.statusBars())
-        controller.show(WindowInsetsCompat.Type.navigationBars())
+        // 시스템바는 XML 테마에 일임 (코드로 상태/네비 색상 및 아이콘을 설정하지 않음)
 
         // In-App Update 초기화
         appUpdateManager = AppUpdateManager(this)
@@ -132,7 +127,7 @@ class StartActivity : BaseActivity() {
             // API 30 이하에서 오버레이는 비활성화하여 이중 스플래시 방지
             val usesComposeOverlay = false
             // 배경 제거 중복 방지 플래그
-            val backgroundRemoved = AtomicBoolean(false)
+            val backgroundRemoved = java.util.concurrent.atomic.AtomicBoolean(false)
             setContent {
                 // 상단 시스템바 패딩은 적용, 하단은 개별 레이아웃에서 처리
                 BaseScreen(applyBottomInsets = false, applySystemBars = true, manageBottomAreaExternally = true) {
@@ -147,56 +142,29 @@ class StartActivity : BaseActivity() {
                             fun removeBackgroundOnce() {
                                 if (backgroundRemoved.compareAndSet(false, true)) window.setBackgroundDrawable(null)
                             }
-                            // 정책상: 메인 표시 후 즉시 노출 금지. 첫 사용자 제스처에서만 시도.
-                            // 따라서 여기서는 배경 제거만 수행하고 광고 표시를 시도하지 않는다.
                             removeBackgroundOnce()
                         }
                     )
                 }
             }
             // setContent 이후 즉시/지연 반복적으로 배경 제거 시도 (안전망)
-            window.decorView.post {
-                try {
-                    android.util.Log.d("StartActivity", "Post setContent: clearing window background (immediate)")
-                    window.setBackgroundDrawable(null)
-                } catch (_: Throwable) { }
-            }
-            window.decorView.postDelayed({
-                try {
-                    android.util.Log.d("StartActivity", "Post setContent: clearing window background (300ms)")
-                    window.setBackgroundDrawable(null)
-                } catch (_: Throwable) { }
-            }, 300)
-            window.decorView.postDelayed({
-                try {
-                    android.util.Log.d("StartActivity", "Post setContent: clearing window background (1200ms)")
-                    window.setBackgroundDrawable(null)
-                } catch (_: Throwable) { }
-            }, 1200)
-            window.decorView.postDelayed({
-                try {
-                    android.util.Log.d("StartActivity", "Post setContent: clearing window background (2400ms)")
-                    window.setBackgroundDrawable(null)
-                } catch (_: Throwable) { }
-            }, 2400)
-            // 오버레이를 쓰지 않는 내부 네비게이션의 경우, 첫 프레임 직후 배경 제거
+            window.decorView.post { runCatching { window.setBackgroundDrawable(null) } }
+            window.decorView.postDelayed({ runCatching { window.setBackgroundDrawable(null) } }, 300)
+            window.decorView.postDelayed({ runCatching { window.setBackgroundDrawable(null) } }, 1200)
+            window.decorView.postDelayed({ runCatching { window.setBackgroundDrawable(null) } }, 2400)
             if (skipSplash && Build.VERSION.SDK_INT < 31) {
                 window.decorView.post { window.setBackgroundDrawable(null) }
             }
-            // 안전망: 어떤 이유로든 배경 제거 콜백이 실행되지 않으면 1.2초 후 강제 제거
             window.decorView.postDelayed({
-                try {
-                    if (!backgroundRemoved.get()) {
-                        android.util.Log.d("StartActivity", "Fallback: clearing window background after timeout")
-                        window.setBackgroundDrawable(null)
-                    }
-                } catch (_: Throwable) { }
+                runCatching {
+                    if (!backgroundRemoved.get()) window.setBackgroundDrawable(null)
+                }
             }, 1200)
         }
 
         if (Build.VERSION.SDK_INT < 31) {
             // API 30 이하: 테마 스플래시 아이콘 → 즉시 화이트 배경으로 덮고 setContent, 첫 프레임 이후 배경 제거
-            window.setBackgroundDrawable(AndroidColor.WHITE.toDrawable())
+            window.setBackgroundDrawable(android.graphics.Color.WHITE.toDrawable())
             launchContent()
             window.decorView.post { window.setBackgroundDrawable(null) }
         } else {
@@ -208,12 +176,7 @@ class StartActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
         // 재개 시점에서도 배경을 한 번 더 제거하여 잔류 케이스 차단
-        window.decorView.post {
-            try {
-                android.util.Log.d("StartActivity", "onResume: clearing window background")
-                window.setBackgroundDrawable(null)
-            } catch (_: Throwable) { }
-        }
+        window.decorView.post { runCatching { window.setBackgroundDrawable(null) } }
     }
 
     override fun getScreenTitle(): String = "금주 설정"

@@ -62,25 +62,7 @@ abstract class BaseActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Edge-to-edge: 시스템 창 적합 해제 후 Compose 인셋만 사용
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        // 상태바를 흰색으로 설정
-        window.statusBarColor = android.graphics.Color.WHITE
-        window.navigationBarColor = android.graphics.Color.TRANSPARENT
-
-        // Android 10+(API 29): 시스템의 상태바/내비바 대비 강제 오버레이 비활성화
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            window.isStatusBarContrastEnforced = false
-            window.isNavigationBarContrastEnforced = false
-        }
-
-        // 상태바 아이콘을 어둡게 (검은색) 설정
-        val controller = androidx.core.view.WindowInsetsControllerCompat(window, window.decorView)
-        controller.isAppearanceLightStatusBars = true
-        controller.isAppearanceLightNavigationBars = true
-
+        // 시스템바 색/아이콘은 XML 테마에서만 관리 (코드로 설정하지 않음)
         nicknameState.value = getNickname()
     }
 
