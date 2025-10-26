@@ -13,6 +13,7 @@ class MainApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+
         // ⚠️ 광고 설정 - 본인 광고 클릭 방지 매우 중요!
         //
         // 📱 본인 기기를 테스트 기기로 등록하는 방법:
@@ -36,15 +37,14 @@ class MainApplication : Application() {
         val testDeviceIds = if (BuildConfig.DEBUG) {
             // 디버그 빌드: 테스트 기기만
             listOf(
-                "33BE2250B43518CCDA7DE426D04EE231" // 샘플 테스트 기기
-                // "YOUR_DEVICE_ID_HERE"  // ← 본인 기기 ID 추가 (선택)
+                "33BE2250B43518CCDA7DE426D04EE231",  // 샘플 테스트 기기
+                "79DB2DA46501DFD953D9222E13384F99"   // 본인 기기
             )
         } else {
-            // 릴리즈 빌드: 본인 기기를 영구 등록하려면 아래 주석 해제
-            emptyList()
-            // listOf(
-            //     "YOUR_DEVICE_ID_HERE"  // ← 본인 기기 ID (실수 클릭 방지)
-            // )
+            // 릴리즈 빌드: 본인 기기를 영구 등록 (실수 클릭 방지)
+            listOf(
+                "79DB2DA46501DFD953D9222E13384F99"   // 본인 기기 ID
+            )
         }
 
         val config = RequestConfiguration.Builder()
