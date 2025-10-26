@@ -199,7 +199,91 @@ BackHandler(enabled = true) {
 - 앱이 백그라운드로 이동하여 금주가 계속 진행됨
 - '중지'는 하단 Stop 버튼으로만 수행
 
-### 4. AndroidManifest.xml - singleTask 설정
+### 4. StartActivity - 금주 종료 상태 감지 및 렌더링 안전장치
+```kotlin
+// StartScreen Composable
+@Composable
+fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)? = null) {
+    val context = LocalContext.current
+    val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
+    
+    // SharedPreferences 값을 State로 관리하여 변경 감지
+    var startTime by remember { mutableLongStateOf(sharedPref.getLong("start_time", 0L)) }
+    var timerCompleted by remember { mutableStateOf(sharedPref.getBoolean("timer_completed", false)) }
+    
+    // SharedPreferences 변경 감지 (Activity 재시작 시 최신 값 로드)
+    LaunchedEffect(Unit) {
+        startTime = sharedPref.getLong("start_time", 0L)
+        timerCompleted = sharedPref.getBoolean("timer_completed", false)
+    }
+    
+    // 진행 중 세션이 있고, 게이트가 내려가 있을 때만 Run 화면으로 이동
+    // timer_completed가 true이거나 start_time이 0이면 이동하지 않음
+    if (!gateNavigation && startTime != 0L && !timerCompleted) {
+        LaunchedEffect(Unit) {
+            context.startActivity(Intent(context, RunActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            })
+        }
+        return
+    }
+    // ... 나머지 UI
+}
+
+// onCreate - DecorView 렌더링 에러 방지
+override fun onCreate(savedInstanceState: Bundle?) {
+    val splash = if (Build.VERSION.SDK_INT >= 31) installSplashScreen() else null
+    
+    if (Build.VERSION.SDK_INT >= 31) {
+        splash?.setOnExitAnimationListener { provider ->
+            val icon = provider.iconView
+            if (icon != null) {
+                icon.animate()
+                    .alpha(0f)
+                    .setDuration(150)
+                    .withEndAction { provider.remove() }
+                    .start()
+            } else {
+                // iconView가 null인 경우 즉시 제거 (NullPointerException 방지)
+                provider.remove()
+            }
+        }
+    }
+    
+    super.onCreate(savedInstanceState)
+    
+    // DecorView 렌더링 에러 방지 (BackgroundFallback NullPointerException 회피)
+    try {
+        window.decorView.setWillNotDraw(false)
+    } catch (e: Exception) {
+        Log.w("StartActivity", "DecorView setup warning: ${e.message}")
+    }
+    // ... 나머지 초기화
+}
+```
+✅ **중요**:
+- State 관리로 금주 종료 후 최신 상태 반영
+- iconView null 체크로 스플래시 애니메이션 크래시 방지
+- DecorView 렌더링 안전장치로 시스템 레벨 에러 회피
+
+### 5. QuitActivity - 금주 종료 시 완전한 초기화
+```kotlin
+val navigateToStart: () -> Unit = {
+    Log.d("QuitActivity", "StartActivity로 이동 시작")
+    val i = Intent(activity, StartActivity::class.java).apply {
+        // 금주 종료 후에는 새로운 Task로 시작하여 완전히 초기화
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+    }
+    activity.startActivity(i)
+    activity.finish()
+}
+```
+✅ **중요**:
+- `FLAG_ACTIVITY_NEW_TASK | CLEAR_TASK`로 완전 초기화
+- 기존 Activity 스택 모두 제거
+- StartActivity가 새로 시작되어 최신 SharedPreferences 로드
+
+### 6. AndroidManifest.xml - singleTask 설정
 - StartActivity / RunActivity: singleTask  
 - 그 외: standard  
 (기존과 동일)
@@ -376,9 +460,51 @@ QuitActivity에서 뒤로가기:
    ```
 3. **SharedPreferences 초기화**: 설정 > 앱 > AlcoholicTimer > 저장공간 > 데이터 삭제
 
+### 앱 크래시 (NullPointerException: BackgroundFallback.draw)
+**증상**: 앱 시작 시 "ViewGroup.getLeft() on a null object reference" 에러
+
+**원인**: Android 시스템 스플래시 애니메이션 중 iconView가 null일 때 발생
+
+**해결 완료**: 
+- StartActivity.kt에 null 체크 추가
+- DecorView 렌더링 안전장치 추가
+
+**코드 위치**: `StartActivity.kt` - `onCreate()` 스플래시 애니메이션 부분
+```kotlin
+val icon = provider.iconView
+if (icon != null) {
+    icon.animate()...
+} else {
+    provider.remove()  // null일 경우 즉시 제거
+}
+```
+
+### StartActivity에서 금주 종료 상태 반영 안 됨
+**증상**: 금주 종료 후 StartActivity가 RunActivity로 자동 이동함
+
+**원인**: SharedPreferences를 한 번만 읽고 State 업데이트 안 됨
+
+**해결 완료**:
+- State 변수로 관리 (`mutableLongStateOf`, `mutableStateOf`)
+- `LaunchedEffect(Unit)`로 Activity 재시작 시 최신 값 로드
+
+**코드 위치**: `StartActivity.kt` - `StartScreen` Composable
+```kotlin
+var startTime by remember { mutableLongStateOf(sharedPref.getLong("start_time", 0L)) }
+var timerCompleted by remember { mutableStateOf(sharedPref.getBoolean("timer_completed", false)) }
+
+LaunchedEffect(Unit) {
+    startTime = sharedPref.getLong("start_time", 0L)
+    timerCompleted = sharedPref.getBoolean("timer_completed", false)
+}
+```
+
 ---
 
 ## 변경 이력
+- 2025-10-26: **버그 수정** - StartActivity 스플래시 애니메이션 NullPointerException 수정 (iconView null 체크 추가)
+- 2025-10-26: **버그 수정** - StartScreen SharedPreferences State 관리 개선 (LaunchedEffect로 최신 값 로드)
+- 2025-10-26: **중요 수정** - QuitActivity Intent 플래그 변경 (FLAG_ACTIVITY_NEW_TASK | CLEAR_TASK)
 - 2025-10-26: **중요 수정** - RunActivity에 BackHandler 추가하여 뒤로가기 시 StartActivity로 돌아가지 않고 백그라운드로 이동하도록 수정
 - 2025-10-26: QuitActivity 시나리오 상세화, 금주 종료 플로우 명확화, 문제 해결 가이드 추가
 - 2025-10-26: StartActivity 종료 팝업 제거, RunActivity 뒤로가기 핸들러 제거. 본 문서 최신화
