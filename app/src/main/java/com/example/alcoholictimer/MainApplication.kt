@@ -13,15 +13,38 @@ class MainApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        // 광고 설정 (에뮬레이터는 자동으로 테스트 기기로 인식됨)
-        // 실제 기기에서 테스트하려면 Logcat에서 "Use RequestConfiguration.Builder().setTestDeviceIds()"
-        // 메시지를 확인하고 해당 ID를 아래에 추가하세요
+        // ⚠️ 광고 설정 - 본인 광고 클릭 방지 매우 중요!
+        //
+        // 📱 본인 기기를 테스트 기기로 등록하는 방법:
+        // 1. 앱 실행 후 Logcat에서 "Use RequestConfiguration.Builder().setTestDeviceIds()"
+        //    메시지를 찾으세요. 예:
+        //    I/Ads: Use RequestConfiguration.Builder()
+        //          .setTestDeviceIds(Arrays.asList("ABC123DEF456"))
+        //
+        // 2. 해당 ID를 아래 리스트에 추가하세요:
+        //    "ABC123DEF456"  // 본인 기기 ID
+        //
+        // 3. 본인 기기를 등록하면:
+        //    ✅ 실수로 광고를 클릭해도 안전 (계정 정지 방지)
+        //    ✅ 앱을 자유롭게 사용 가능
+        //    ✅ 테스트 광고만 표시됨
+        //
+        // ⚠️ 주의: 본인 광고를 절대 클릭하지 마세요!
+        //    → AdMob 계정 영구 정지 위험
+        //    → 상세 가이드: docs/AD_SELF_CLICK_WARNING.md
+
         val testDeviceIds = if (BuildConfig.DEBUG) {
+            // 디버그 빌드: 테스트 기기만
             listOf(
-                "33BE2250B43518CCDA7DE426D04EE231" // 필요 시 실제 테스트 기기 ID 추가
+                "33BE2250B43518CCDA7DE426D04EE231" // 샘플 테스트 기기
+                // "YOUR_DEVICE_ID_HERE"  // ← 본인 기기 ID 추가 (선택)
             )
         } else {
+            // 릴리즈 빌드: 본인 기기를 영구 등록하려면 아래 주석 해제
             emptyList()
+            // listOf(
+            //     "YOUR_DEVICE_ID_HERE"  // ← 본인 기기 ID (실수 클릭 방지)
+            // )
         }
 
         val config = RequestConfiguration.Builder()
