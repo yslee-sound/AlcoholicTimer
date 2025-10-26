@@ -85,17 +85,35 @@ class StartActivity : BaseActivity() {
                 (SystemClock.uptimeMillis() - splashStart) < minShowMillis
             }
             splash?.setOnExitAnimationListener { provider ->
-                // 간단한 페이드아웃으로 통일 (null 체크 추가)
-                val icon = provider.iconView
-                if (icon != null) {
-                    icon.animate()
-                        .alpha(0f)
-                        .setDuration(150)
-                        .withEndAction { provider.remove() }
-                        .start()
-                } else {
-                    // iconView가 null인 경우 즉시 제거
-                    provider.remove()
+                try {
+                    // API 36에서 getIconView()가 내부적으로 null을 던질 수 있음 (플랫폼 버그)
+                    @Suppress("SENSELESS_COMPARISON")
+                    val icon = provider.iconView
+                    if (icon != null) {
+                        icon.animate()
+                            .alpha(0f)
+                            .setDuration(150)
+                            .withEndAction {
+                                try {
+                                    provider.remove()
+                                } catch (e: Exception) {
+                                    android.util.Log.w("StartActivity", "Provider remove error: ${e.message}")
+                                }
+                            }
+                            .start()
+                    } else {
+                        // iconView가 null인 경우 즉시 제거
+                        android.util.Log.w("StartActivity", "iconView is null, removing provider immediately")
+                        provider.remove()
+                    }
+                } catch (e: Exception) {
+                    // NPE 또는 기타 예외 발생 시 안전하게 제거 (API 36에서 발생 확인)
+                    android.util.Log.w("StartActivity", "Splash exit animation error: ${e.message}", e)
+                    try {
+                        provider.remove()
+                    } catch (removeError: Exception) {
+                        android.util.Log.e("StartActivity", "Failed to remove splash provider: ${removeError.message}")
+                    }
                 }
             }
         }

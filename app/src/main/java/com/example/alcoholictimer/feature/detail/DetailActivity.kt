@@ -426,10 +426,51 @@ fun DetailScreen(
                 AdmobBanner()
             }
         }
+
+        // 삭제 확인 다이얼로그
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = {
+                    Text(
+                        text = stringResource(id = R.string.dialog_delete_title),
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                    )
+                },
+                text = {
+                    Text(
+                        text = stringResource(id = R.string.dialog_delete_message),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            deleteRecord(context, startTime, endTime)
+                            showDeleteDialog = false
+                            onBack()
+                        }
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.dialog_delete_confirm),
+                            color = Color(0xFFE53E3E),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text(
+                            text = stringResource(id = R.string.dialog_cancel),
+                            color = Color(0xFF718096)
+                        )
+                    }
+                }
+            )
+        }
     }
 }
 
-@Suppress("unused")
 private fun deleteRecord(context: Context, startTime: Long, endTime: Long) {
     val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
     val jsonString = sharedPref.getString("sobriety_records", null) ?: return
