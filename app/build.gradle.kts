@@ -75,6 +75,8 @@ android {
             buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"ca-app-pub-8420908105703273/REPLACE_WITH_REAL_BANNER\"")
             // 빌드타입별 네이티브 광고 유닛ID: 실제 배포용 유닛ID로 교체 필요
             buildConfigField("String", "ADMOB_NATIVE_UNIT_ID", "\"ca-app-pub-8420908105703273/REPLACE_WITH_REAL_NATIVE\"")
+            // 빌드타입별 앱 오프닝 광고 유닛ID: 실제 배포용 유닛ID로 교체 필요
+            buildConfigField("String", "ADMOB_APP_OPEN_UNIT_ID", "\"ca-app-pub-8420908105703273/REPLACE_WITH_REAL_APP_OPEN\"")
         }
         // debug 설정 변경 없음
         getByName("debug") {
@@ -83,6 +85,8 @@ android {
             buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"ca-app-pub-3940256099942544/6300978111\"")
             // 네이티브 Advanced 테스트 유닛ID
             buildConfigField("String", "ADMOB_NATIVE_UNIT_ID", "\"ca-app-pub-3940256099942544/2247696110\"")
+            // 앱 오프닝 테스트 유닛ID
+            buildConfigField("String", "ADMOB_APP_OPEN_UNIT_ID", "\"ca-app-pub-3940256099942544/9257395921\"")
         }
     }
 
@@ -126,6 +130,9 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.app.update.ktx)
     implementation(libs.kotlinx.coroutines.play.services)
+
+    // Lifecycle Process (앱 오프닝 광고용)
+    implementation("androidx.lifecycle:lifecycle-process:2.9.4")
 
     // AdMob & UMP (명시 버전 사용)
     implementation("com.google.android.gms:play-services-ads:23.4.0")
