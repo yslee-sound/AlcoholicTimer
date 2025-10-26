@@ -473,27 +473,48 @@ fun DetailScreen(
 
 private fun deleteRecord(context: Context, startTime: Long, endTime: Long) {
     val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
-    val jsonString = sharedPref.getString("sobriety_records", null) ?: return
+    val jsonString = sharedPref.getString("sobriety_records", null)
+
+    if (jsonString == null) {
+        Log.w("DetailActivity", "기록이 없습니다 (sobriety_records == null)")
+        return
+    }
+
     try {
+        Log.d("DetailActivity", "삭제 시작: start=$startTime, end=$endTime")
+
         val originalArray = org.json.JSONArray(jsonString)
+        Log.d("DetailActivity", "삭제 전 기록 수: ${originalArray.length()}")
+
         val newArray = org.json.JSONArray()
         var removedCount = 0
+
         for (i in 0 until originalArray.length()) {
             val obj = originalArray.getJSONObject(i)
             // 저장 시 사용된 camelCase 우선, 혹시 남아있을 수 있는 snake_case fallback
             val s = if (obj.has("startTime")) obj.optLong("startTime", -1) else obj.optLong("start_time", -1)
             val e = if (obj.has("endTime")) obj.optLong("endTime", -1) else obj.optLong("end_time", -1)
+
             if (s == startTime && e == endTime) {
+                Log.d("DetailActivity", "삭제 대상 발견: index=$i, start=$s, end=$e")
                 removedCount++
             } else {
                 newArray.put(obj)
             }
         }
+
         if (removedCount > 0) {
-            sharedPref.edit { putString("sobriety_records", newArray.toString()) }
-            Log.d("DetailActivity", "삭제 성공: ${removedCount}개 기록 제거 (start=$startTime, end=$endTime)")
+            // commit()을 사용하여 동기적으로 저장
+            val success = sharedPref.edit().putString("sobriety_records", newArray.toString()).commit()
+
+            if (success) {
+                Log.d("DetailActivity", "삭제 성공: ${removedCount}개 기록 제거, 남은 기록 수: ${newArray.length()}")
+            } else {
+                Log.e("DetailActivity", "SharedPreferences commit 실패")
+            }
         } else {
             Log.w("DetailActivity", "삭제 대상 기록을 찾지 못함 (start=$startTime, end=$endTime)")
+            Log.w("DetailActivity", "전체 기록 JSON: $jsonString")
         }
     } catch (e: Exception) {
         Log.e("DetailActivity", "기록 삭제 중 오류", e)

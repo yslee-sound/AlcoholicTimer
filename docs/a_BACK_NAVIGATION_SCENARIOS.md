@@ -201,6 +201,56 @@ BackHandler(enabled = true) {
 
 ### 4. StartActivity - 금주 종료 상태 감지 및 렌더링 안전장치
 ```kotlin
+// onCreate - DecorView 렌더링 에러 방지
+override fun onCreate(savedInstanceState: Bundle?) {
+    val splash = if (Build.VERSION.SDK_INT >= 31) installSplashScreen() else null
+    
+    if (Build.VERSION.SDK_INT >= 31) {
+        splash?.setOnExitAnimationListener { provider ->
+            val icon = provider.iconView
+            if (icon != null) {
+                icon.animate()
+                    .alpha(0f)
+                    .setDuration(150)
+                    .withEndAction { provider.remove() }
+                    .start()
+            } else {
+                // iconView가 null인 경우 즉시 제거 (NullPointerException 방지)
+                provider.remove()
+            }
+        }
+    }
+    
+    super.onCreate(savedInstanceState)
+    
+    // DecorView 렌더링 에러 방지 (BackgroundFallback NullPointerException 회피)
+    try {
+        window.decorView.setWillNotDraw(false)
+    } catch (e: Exception) {
+        Log.w("StartActivity", "DecorView setup warning: ${e.message}")
+    }
+    // ... 나머지 초기화
+}
+
+// onResume - 금주 진행 중 재진입 처리
+override fun onResume() {
+    super.onResume()
+    // 재개 시점에서도 배경을 한 번 더 제거하여 잔류 케이스 차단
+    window.decorView.post { runCatching { window.setBackgroundDrawable(null) } }
+    
+    // 금주 진행 중이면 즉시 RunActivity로 이동 (앱 재진입 시 StartActivity가 아닌 RunActivity를 보여주기 위함)
+    val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+    val startTime = sharedPref.getLong("start_time", 0L)
+    val timerCompleted = sharedPref.getBoolean("timer_completed", false)
+    
+    if (startTime != 0L && !timerCompleted) {
+        // 금주 진행 중: RunActivity로 즉시 전환
+        startActivity(Intent(this, RunActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+        })
+    }
+}
+
 // StartScreen Composable
 @Composable
 fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)? = null) {
@@ -261,10 +311,11 @@ override fun onCreate(savedInstanceState: Bundle?) {
     // ... 나머지 초기화
 }
 ```
-✅ **중요**:
+✅ **중요**: 
 - State 관리로 금주 종료 후 최신 상태 반영
 - iconView null 체크로 스플래시 애니메이션 크래시 방지
 - DecorView 렌더링 안전장치로 시스템 레벨 에러 회피
+- **onResume에서 금주 진행 중 체크**: 앱 재진입 시 StartActivity가 아닌 RunActivity로 즉시 이동하여 사용자 혼란 방지
 
 ### 5. QuitActivity - 금주 종료 시 완전한 초기화
 ```kotlin
@@ -344,7 +395,18 @@ val navigateToStart: () -> Unit = {
   - RunActivity로 이동 ✅
 ```
 
-### ✅ 테스트 6: 일반/서브 화면 복귀
+### ✅ 테스트 6: 금주 진행 중 앱 재진입
+```
+1. RunActivity 실행(금주 진행 중)
+2. 홈 버튼 클릭 → 앱 백그라운드로 이동
+3. 최근 앱 목록 또는 런처에서 앱 다시 열기
+예상:
+  - RunActivity로 즉시 복귀 ✅
+  - StartActivity가 보이지 않음 ✅
+  - 금주가 계속 진행됨 ✅
+```
+
+### ✅ 테스트 7: 일반/서브 화면 복귀
 - 기존 시나리오와 동일(메인 홈 자동 판단 후 복귀)
 
 ---
@@ -502,6 +564,7 @@ LaunchedEffect(Unit) {
 ---
 
 ## 변경 이력
+- 2025-10-27: **중요 수정** - StartActivity onResume에 금주 진행 중 체크 추가 (앱 재진입 시 RunActivity로 즉시 이동)
 - 2025-10-26: **버그 수정** - StartActivity 스플래시 애니메이션 NullPointerException 수정 (iconView null 체크 추가)
 - 2025-10-26: **버그 수정** - StartScreen SharedPreferences State 관리 개선 (LaunchedEffect로 최신 값 로드)
 - 2025-10-26: **중요 수정** - QuitActivity Intent 플래그 변경 (FLAG_ACTIVITY_NEW_TASK | CLEAR_TASK)

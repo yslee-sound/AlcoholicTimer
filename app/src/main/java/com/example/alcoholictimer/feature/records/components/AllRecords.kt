@@ -162,7 +162,17 @@ fun AllRecordsScreen(
                         onClick = {
                             dialogState.value = false
                             val success = RecordsDataLoader.clearAllRecords(context)
-                            if (success) onNavigateBack()
+
+                            if (success) {
+                                // 삭제 성공: 리스트 새로고침
+                                retryTrigger++
+
+                                // 잠시 후 빈 화면 확인 후 뒤로가기 (선택사항)
+                                // onNavigateBack()을 즉시 호출하지 않고 사용자가 확인할 수 있게 함
+                            } else {
+                                // 삭제 실패: 에러 표시 (향후 개선 가능)
+                                loadError = "삭제 실패"
+                            }
                         }
                     ) { Text(stringResource(id = R.string.dialog_delete_confirm)) }
                 },

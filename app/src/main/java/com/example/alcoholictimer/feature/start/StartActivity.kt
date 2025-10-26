@@ -68,6 +68,7 @@ import com.sweetapps.alcoholictimer.core.ads.NativeAdManager
 import com.sweetapps.alcoholictimer.core.ui.NativeExitPopup
 import androidx.activity.compose.BackHandler
 import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
+import com.sweetapps.alcoholictimer.core.ui.WatermarkTokens
 
 class StartActivity : BaseActivity() {
     private lateinit var appUpdateManager: AppUpdateManager
@@ -157,8 +158,7 @@ class StartActivity : BaseActivity() {
             val initialRemain = (minShowMillis - elapsed).coerceAtLeast(0L)
             // API 30 이하에서 오버레이는 비활성화하여 이중 스플래시 방지
             val usesComposeOverlay = false
-            // 배경 제거 중복 방지 플래그
-            val backgroundRemoved = java.util.concurrent.atomic.AtomicBoolean(false)
+
             setContent {
                 // 상단 시스템바 패딩은 적용, 하단은 개별 레이아웃에서 처리
                 BaseScreen(applyBottomInsets = false, applySystemBars = true, manageBottomAreaExternally = true) {
@@ -169,28 +169,17 @@ class StartActivity : BaseActivity() {
                         initialMinRemainMillis = if (skipSplash) 0L else initialRemain,
                         usesComposeOverlay = usesComposeOverlay,
                         onSplashFinished = {
-                            // 배경 제거를 한 번만 수행
-                            fun removeBackgroundOnce() {
-                                if (backgroundRemoved.compareAndSet(false, true)) window.setBackgroundDrawable(null)
-                            }
-                            removeBackgroundOnce()
+                            // 배경을 제거하지 않음 - 워터마크 아이콘 유지
                         }
                     )
                 }
             }
-            // setContent 이후 즉시/지연 반복적으로 배경 제거 시도 (안전망)
-            window.decorView.post { runCatching { window.setBackgroundDrawable(null) } }
-            window.decorView.postDelayed({ runCatching { window.setBackgroundDrawable(null) } }, 300)
-            window.decorView.postDelayed({ runCatching { window.setBackgroundDrawable(null) } }, 1200)
-            window.decorView.postDelayed({ runCatching { window.setBackgroundDrawable(null) } }, 2400)
-            if (skipSplash && Build.VERSION.SDK_INT < 31) {
-                window.decorView.post { window.setBackgroundDrawable(null) }
-            }
-            window.decorView.postDelayed({
-                runCatching {
-                    if (!backgroundRemoved.get()) window.setBackgroundDrawable(null)
-                }
-            }, 1200)
+
+            // 배경 제거 로직을 주석 처리하여 워터마크 아이콘이 계속 표시되도록 함
+            // window.decorView.post { runCatching { window.setBackgroundDrawable(null) } }
+            // window.decorView.postDelayed({ runCatching { window.setBackgroundDrawable(null) } }, 300)
+            // window.decorView.postDelayed({ runCatching { window.setBackgroundDrawable(null) } }, 1200)
+            // window.decorView.postDelayed({ runCatching { window.setBackgroundDrawable(null) } }, 2400)
         }
 
         if (Build.VERSION.SDK_INT < 31) {
@@ -206,10 +195,8 @@ class StartActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
-        // 재개 시점에서도 배경을 한 번 더 제거하여 잔류 케이스 차단
-        window.decorView.post { runCatching { window.setBackgroundDrawable(null) } }
+            // API 30 이하: 배경을 유지하여 워터마크 아이콘 표시
     }
-
     override fun getScreenTitle(): String = "금주 설정"
 }
 
@@ -552,20 +539,16 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
             // 광고를 실제로 노출하여 다른 화면과 동일한 포맷 적용
             bottomAd = { AdmobBanner() },
             backgroundDecoration = {
-                // 워터마크: 디버그에선 혼동 방지를 위해 비활성화, 릴리즈에서는 작게/연하게 표시
+                // 중앙 워터마크: 디버그/릴리스 모두 항상 표시, 표준 토큰 크기/투명도 적용
                 BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                    val isDebug = (com.sweetapps.alcoholictimer.BuildConfig.DEBUG)
-                    if (isDebug) {
-                        // no-op: 디버그 빌드에서는 배경 워터마크를 그리지 않음
-                    } else {
-                        val base = if (maxWidth < maxHeight) maxWidth else maxHeight
-                        val iconSize = base * 0.35f // 축소
-                        Image(
-                            painter = painterResource(id = R.drawable.splash_app_icon),
-                            contentDescription = null,
-                            modifier = Modifier.align(Alignment.Center).size(iconSize).alpha(0.08f)
-                        )
-                    }
+                    Image(
+                        painter = painterResource(id = R.drawable.splash_app_icon),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .size(WatermarkTokens.IconSize)
+                            .alpha(WatermarkTokens.IconAlpha)
+                    )
                 }
             }
         )
