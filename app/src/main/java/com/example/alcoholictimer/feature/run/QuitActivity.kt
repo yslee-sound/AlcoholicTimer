@@ -49,6 +49,7 @@ import com.sweetapps.alcoholictimer.core.util.Constants
 import com.sweetapps.alcoholictimer.core.ads.InterstitialAdManager
 import com.sweetapps.alcoholictimer.BuildConfig
 import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
+import androidx.activity.compose.BackHandler
 
 class QuitActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.quit_title)
@@ -65,6 +66,12 @@ class QuitActivity : BaseActivity() {
 fun QuitScreen() {
     val context = LocalContext.current
     val activity = context as? QuitActivity
+
+    // 뒤로가기 시 취소 버튼과 동일하게 RunActivity로 복귀
+    BackHandler(enabled = true) {
+        activity?.finish()
+    }
+
     val intent = activity?.intent
     val elapsedDays = intent?.getIntExtra("elapsed_days", 0) ?: 0
     val elapsedHours = intent?.getIntExtra("elapsed_hours", 0) ?: 0

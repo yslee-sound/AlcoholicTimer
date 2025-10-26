@@ -48,6 +48,7 @@ import com.sweetapps.alcoholictimer.core.ui.AppBorder
 import kotlinx.coroutines.launch
 import com.sweetapps.alcoholictimer.core.util.AppUpdateManager
 import com.sweetapps.alcoholictimer.core.ads.InterstitialAdManager
+import androidx.activity.compose.BackHandler
 
 class RunActivity : BaseActivity() {
 
@@ -66,6 +67,13 @@ class RunActivity : BaseActivity() {
 @Composable
 private fun RunScreen() {
     val context = LocalContext.current
+    val activity = context as? RunActivity
+
+    // 금주 진행 중에는 뒤로가기로 StartActivity로 돌아가지 않도록 방지
+    // 뒤로가기 시 앱을 백그라운드로 이동
+    BackHandler(enabled = true) {
+        activity?.moveTaskToBack(true)
+    }
 
     val sp = remember { context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE) }
     val startTime = remember { sp.getLong(Constants.PREF_START_TIME, 0L) }

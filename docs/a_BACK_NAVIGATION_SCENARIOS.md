@@ -53,8 +53,10 @@
 **RunActivity (금주 진행 화면)**
 ```
 사용자: 뒤로가기 버튼 클릭
-앱: 시스템 기본 동작(이전 화면이 있으면 복귀, 루트면 종료/백그라운드)
+앱: 앱을 백그라운드로 이동 (StartActivity로 돌아가지 않음)
 ```
+✅ **중요**: 금주 진행 중에는 절대로 StartActivity(금주 설정 화면)으로 돌아가지 않습니다
+✅ 뒤로가기 시 앱이 백그라운드로 이동하여 금주가 계속 진행됩니다
 ✅ '금주 종료' 확인 화면은 뒤로가기로 열리지 않음(중지 버튼으로만 진입)
 
 ---
@@ -184,9 +186,18 @@ protected fun navigateToMainHome() { /* 기존 구현 유지 */ }
 BackHandler(enabled = true) { navigateToMainHome() }
 ```
 
-### 3. RunActivity - 뒤로가기 핸들러 제거
-- 이전: 뒤로가기 → QuitActivity 진입(실수 방지)
-- 현재: 뒤로가기는 시스템 기본 동작. ‘중지’는 하단 Stop 버튼으로만 수행
+### 3. RunActivity - BackHandler로 백그라운드 이동
+```kotlin
+// 금주 진행 중에는 뒤로가기로 StartActivity로 돌아가지 않도록 방지
+// 뒤로가기 시 앱을 백그라운드로 이동
+BackHandler(enabled = true) {
+    activity?.moveTaskToBack(true)
+}
+```
+✅ **중요**: 
+- 금주 진행 중에는 뒤로가기를 눌러도 StartActivity로 돌아가지 않음
+- 앱이 백그라운드로 이동하여 금주가 계속 진행됨
+- '중지'는 하단 Stop 버튼으로만 수행
 
 ### 4. AndroidManifest.xml - singleTask 설정
 - StartActivity / RunActivity: singleTask  
@@ -208,7 +219,10 @@ BackHandler(enabled = true) { navigateToMainHome() }
 ```
 1. RunActivity 실행(금주 진행 중)
 2. 뒤로가기 클릭
-예상: Quit 화면 없이 기본 동작(이전 화면 복귀 또는 종료)
+예상: 
+  - 앱이 백그라운드로 이동 ✅
+  - StartActivity로 돌아가지 않음 ✅
+  - 금주가 계속 진행됨 ✅
 ```
 
 ### ✅ 테스트 3: 금주 종료 플로우 (정상 종료)
@@ -365,6 +379,7 @@ QuitActivity에서 뒤로가기:
 ---
 
 ## 변경 이력
+- 2025-10-26: **중요 수정** - RunActivity에 BackHandler 추가하여 뒤로가기 시 StartActivity로 돌아가지 않고 백그라운드로 이동하도록 수정
 - 2025-10-26: QuitActivity 시나리오 상세화, 금주 종료 플로우 명확화, 문제 해결 가이드 추가
 - 2025-10-26: StartActivity 종료 팝업 제거, RunActivity 뒤로가기 핸들러 제거. 본 문서 최신화
 - 2025-01-25: 초기 정의(뒤로가기 팝업/확인 흐름 포함)

@@ -214,9 +214,11 @@ abstract class BaseActivity : ComponentActivity() {
                                         requestGlobalLock(300)
                                         scope.launch {
                                             drawerState.close()
+                                            var navigated = false
                                             snapshotFlow { drawerState.isAnimationRunning }
                                                 .collect { isAnimating ->
-                                                    if (!isAnimating && drawerState.currentValue == DrawerValue.Closed) {
+                                                    if (!isAnimating && drawerState.currentValue == DrawerValue.Closed && !navigated) {
+                                                        navigated = true
                                                         handleMenuSelection(menuItem)
                                                         return@collect
                                                     }
