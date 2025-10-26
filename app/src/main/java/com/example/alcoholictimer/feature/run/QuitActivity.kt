@@ -131,16 +131,19 @@ fun QuitScreen() {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Box(contentAlignment = Alignment.Center, modifier = Modifier.size(106.dp)) {
+                        // 배경 원 (회색)
                         CircularProgressIndicator(
                             progress = { 1f }, modifier = Modifier.size(106.dp),
                             color = Color(0xFFE0E0E0), strokeWidth = 4.dp, trackColor = Color.Transparent
                         )
+                        // 진행 상태 원 (빨간색)
                         if (isPressed) {
                             CircularProgressIndicator(
                                 progress = { progress }, modifier = Modifier.size(106.dp),
                                 color = Color(0xFFD32F2F), strokeWidth = 4.dp, trackColor = Color.Transparent
                             )
                         }
+                        // 중지 버튼
                         Card(
                             modifier = Modifier.size(96.dp).pointerInput(Unit) {
                                 awaitEachGesture {
@@ -155,6 +158,9 @@ fun QuitScreen() {
                                                 delay(16)
                                             }
                                             if (progress >= 1f && isPressed) {
+                                                // 롱프레스 완료 로그
+                                                Log.d("QuitActivity", "롱프레스 완료 - 금주 종료 처리 시작")
+
                                                 // 완료 처리: 기록 저장 + 진행 상태 정리
                                                 try {
                                                     saveCompletedRecord(
@@ -164,6 +170,7 @@ fun QuitScreen() {
                                                         targetDays = targetDays,
                                                         actualDays = elapsedDays
                                                     )
+                                                    Log.d("QuitActivity", "기록 저장 완료")
                                                 } catch (t: Throwable) {
                                                     Log.e("QuitActivity", "saveCompletedRecord 실패", t)
                                                 }
@@ -172,26 +179,30 @@ fun QuitScreen() {
                                                         remove(Constants.PREF_START_TIME)
                                                         putBoolean(Constants.PREF_TIMER_COMPLETED, true)
                                                     }
+                                                    Log.d("QuitActivity", "진행 상태 업데이트 완료: timer_completed=true")
                                                 } catch (t: Throwable) {
                                                     Log.e("QuitActivity", "진행 상태 업데이트 실패", t)
                                                 }
 
                                                 // StartActivity로의 안전한 전환 로직을 람다로 정의
                                                 val navigateToStart: () -> Unit = {
+                                                    Log.d("QuitActivity", "StartActivity로 이동 시작")
                                                     val act = activity
                                                     if (act != null) {
                                                         val i = Intent(act, StartActivity::class.java).apply {
-                                                            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                                                            // 금주 종료 후에는 새로운 Task로 시작하여 완전히 초기화
+                                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                                                         }
                                                         try {
                                                             act.startActivity(i)
+                                                            Log.d("QuitActivity", "StartActivity 실행 성공")
                                                         } finally {
                                                             act.finish()
                                                         }
                                                     } else {
                                                         try {
                                                             val i = Intent(context, StartActivity::class.java).apply {
-                                                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                                                             }
                                                             context.startActivity(i)
                                                         } catch (t: Throwable) {
@@ -199,6 +210,8 @@ fun QuitScreen() {
                                                         }
                                                     }
                                                 }
+
+                                                // ...existing ad code...
 
                                                 // 전면광고 노출 시도: 성공 시 닫힌 후 navigateToStart 수행, 실패/차단 시 즉시 전환
                                                 val actForAd = activity
@@ -253,7 +266,10 @@ fun QuitScreen() {
                         } }
                     }
                     Card(
-                        onClick = { (context as? QuitActivity)?.finish() },
+                        onClick = {
+                            // 취소: RunActivity로 복귀 (금주 계속 진행)
+                            (context as? QuitActivity)?.finish()
+                        },
                         modifier = Modifier.size(96.dp),
                         shape = CircleShape,
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF4CAF50)),

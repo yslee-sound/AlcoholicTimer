@@ -85,17 +85,30 @@ class StartActivity : BaseActivity() {
                 (SystemClock.uptimeMillis() - splashStart) < minShowMillis
             }
             splash?.setOnExitAnimationListener { provider ->
-                // 간단한 페이드아웃으로 통일
+                // 간단한 페이드아웃으로 통일 (null 체크 추가)
                 val icon = provider.iconView
-                icon.animate()
-                    .alpha(0f)
-                    .setDuration(150)
-                    .withEndAction { provider.remove() }
-                    .start()
+                if (icon != null) {
+                    icon.animate()
+                        .alpha(0f)
+                        .setDuration(150)
+                        .withEndAction { provider.remove() }
+                        .start()
+                } else {
+                    // iconView가 null인 경우 즉시 제거
+                    provider.remove()
+                }
             }
         }
 
         super.onCreate(savedInstanceState)
+
+        // DecorView 렌더링 에러 방지 (BackgroundFallback NullPointerException 회피)
+        try {
+            window.decorView.setWillNotDraw(false)
+        } catch (e: Exception) {
+            android.util.Log.w("StartActivity", "DecorView setup warning: ${e.message}")
+        }
+
         // 스플래시에서 전면광고 로딩은 UMP 동의 플로우 완료 후로 지연
         UmpConsentManager.requestAndLoadIfRequired(this) { canRequest ->
             if (canRequest) {
@@ -350,10 +363,19 @@ fun StartScreenWithUpdate(
 fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)? = null) {
     val context = LocalContext.current
     val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
-    val startTime = sharedPref.getLong("start_time", 0L)
-    val timerCompleted = sharedPref.getBoolean("timer_completed", false)
+
+    // SharedPreferences 값을 State로 관리하여 변경 감지
+    var startTime by remember { mutableLongStateOf(sharedPref.getLong("start_time", 0L)) }
+    var timerCompleted by remember { mutableStateOf(sharedPref.getBoolean("timer_completed", false)) }
+
+    // SharedPreferences 변경 감지 (Activity 재시작 시 최신 값 로드)
+    LaunchedEffect(Unit) {
+        startTime = sharedPref.getLong("start_time", 0L)
+        timerCompleted = sharedPref.getBoolean("timer_completed", false)
+    }
 
     // 진행 중 세션이 있고, 게이트가 내려가 있을 때만 Run 화면으로 이동
+    // timer_completed가 true이거나 start_time이 0이면 이동하지 않음
     if (!gateNavigation && startTime != 0L && !timerCompleted) {
         LaunchedEffect(Unit) {
             context.startActivity(Intent(context, RunActivity::class.java).apply {

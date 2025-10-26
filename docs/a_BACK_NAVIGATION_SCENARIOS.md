@@ -112,15 +112,63 @@ Run(메인 홈) → 드로어 → Records → 드로어 → Settings
 
 ---
 
-### 시나리오 4: QuitActivity → RunActivity 복귀
-```
-RunActivity에서 중지 버튼 클릭 → QuitActivity
+### 시나리오 4: QuitActivity - 금주 중지/종료 화면
 
-사용자: 뒤로가기(또는 취소)
-앱: QuitActivity 종료 → RunActivity로 복귀
+**진입**: RunActivity에서 하단 중지 버튼 클릭으로만 진입 가능 (뒤로가기로 진입 불가)
+
+#### A) 금주 계속 진행 (취소)
+```
+RunActivity → 중지 버튼 → QuitActivity
+
+사용자 행동:
+  1. 뒤로가기 버튼 클릭
+  2. 초록 버튼(계속하기) 클릭
+  
+앱 동작:
+  QuitActivity.finish()
+  → RunActivity로 복귀 ✅
+  → 금주 계속 진행
 ```
 
-✅ 의도된 흐름 유지(중지는 버튼으로만 시작)
+#### B) 금주 종료 (빨간 버튼 롱프레스 1.5초 완료)
+```
+RunActivity → 중지 버튼 → QuitActivity
+
+사용자 행동:
+  빨간 버튼 1.5초 동안 롱프레스 완료 (진행바 100%)
+  
+앱 동작:
+  1. 금주 기록 저장 ✅
+  2. SharedPreferences 업데이트:
+     - start_time 삭제 (0L로 설정)
+     - timer_completed = true
+  3. StartActivity로 이동 (FLAG_ACTIVITY_NEW_TASK | CLEAR_TASK) ✅
+  4. QuitActivity 종료
+  
+결과:
+  → StartActivity 표시 (금주 설정 화면)
+  → 조건: start_time = 0L && timer_completed = true
+  → RunActivity로 자동 이동하지 않음 ✅
+  → 새로운 금주 시작 가능
+```
+
+#### C) 롱프레스 미완료 (1.5초 전에 손 뗌)
+```
+RunActivity → 중지 버튼 → QuitActivity
+
+사용자 행동:
+  빨간 버튼 누름 → 1초만 누르고 손 뗌 (진행바 미완료)
+  
+앱 동작:
+  - 아무 일도 일어나지 않음
+  - QuitActivity에 그대로 머물음
+  - 다시 선택 가능 (롱프레스 재시도, 취소, 뒤로가기)
+```
+
+✅ **중요**: 
+- 금주 종료는 **반드시 1.5초 롱프레스 완료**가 필요
+- 뒤로가기 또는 초록 버튼 클릭 시 금주 계속 진행 (RunActivity 복귀)
+- 금주 종료 후에는 StartActivity로 이동하며, 다시 RunActivity로 자동 이동하지 않음
 
 ---
 
@@ -163,14 +211,42 @@ BackHandler(enabled = true) { navigateToMainHome() }
 예상: Quit 화면 없이 기본 동작(이전 화면 복귀 또는 종료)
 ```
 
-### ✅ 테스트 3: 중지 플로우
+### ✅ 테스트 3: 금주 종료 플로우 (정상 종료)
 ```
-1. RunActivity 실행
-2. 하단 중지 버튼 클릭
-예상: QuitActivity 표시 → 취소 시 Run으로 복귀, 완료 시 기록 저장/후속 이동
+1. RunActivity 실행(금주 진행 중)
+2. 하단 중지 버튼 클릭 → QuitActivity 표시
+3. 빨간 버튼 1.5초 동안 롱프레스 완료 (진행바 100%)
+예상: 
+  - 기록 저장 완료 ✅
+  - StartActivity로 이동 ✅
+  - 뒤로가기 클릭 → 앱 종료/백그라운드 ✅
+  - RunActivity로 다시 이동하지 않음 ✅
 ```
 
-### ✅ 테스트 4: 일반/서브 화면 복귀
+### ✅ 테스트 4: 금주 종료 취소 (계속 진행)
+```
+1. RunActivity 실행(금주 진행 중)
+2. 하단 중지 버튼 클릭 → QuitActivity 표시
+3-A. 뒤로가기 클릭
+   예상: RunActivity로 복귀 → 금주 계속 ✅
+3-B. 초록 버튼(계속하기) 클릭
+   예상: RunActivity로 복귀 → 금주 계속 ✅
+3-C. 빨간 버튼 0.5초만 누르고 손 뗌 (롱프레스 미완료)
+   예상: QuitActivity에 그대로 머물음 → 다시 선택 가능 ✅
+```
+
+### ✅ 테스트 5: 금주 종료 후 새 금주 시작
+```
+1. 금주 종료 완료 (테스트 3 완료 상태)
+2. StartActivity에서 목표 일수 설정
+3. 시작 버튼 클릭
+예상:
+  - timer_completed = false로 초기화 ✅
+  - start_time = 새로운 시간 ✅
+  - RunActivity로 이동 ✅
+```
+
+### ✅ 테스트 6: 일반/서브 화면 복귀
 - 기존 시나리오와 동일(메인 홈 자동 판단 후 복귀)
 
 ---
@@ -179,9 +255,116 @@ BackHandler(enabled = true) { navigateToMainHome() }
 - 종료 시점 팝업/광고 제거로 정책 리스크 해소
 - 뒤로가기의 예측 가능성 증대(기본 동작 준수)
 - 중지는 명시적 버튼으로만 수행되어 의도치 않은 종료 방지
+- 금주 종료 후 StartActivity 완전 초기화로 상태 혼란 방지
+
+---
+
+## ⚠️ 주의사항 및 흔한 혼란
+
+### 1. 롱프레스 미완료 혼란
+**증상**: "금주 종료했는데 다시 RunActivity로 이동해요"
+
+**원인**: 빨간 버튼을 1.5초 동안 완전히 누르지 않음
+```
+잘못된 사용:
+  빨간 버튼 클릭 (0.5초) → 손 뗌
+  → 아무 일도 안 일어남
+  → 뒤로가기 클릭
+  → RunActivity로 복귀 ❌
+
+올바른 사용:
+  빨간 버튼 1.5초 동안 누름 (진행바 100% 채움)
+  → 기록 저장 및 StartActivity 이동 ✅
+```
+
+**해결**: 진행바가 완전히 채워질 때까지(100%) 버튼을 누르고 있어야 함
+
+### 2. 버튼 혼동
+**증상**: "종료했는데 계속 진행되고 있어요"
+
+**원인**: 빨간 버튼(종료)과 초록 버튼(계속하기) 혼동
+```
+초록 버튼 (계속하기 ▶️):
+  → RunActivity로 복귀 → 금주 계속 진행
+
+빨간 버튼 (종료 ⏹):
+  → 1.5초 롱프레스 완료 시 → StartActivity로 이동
+```
+
+**해결**: 종료하려면 반드시 빨간 버튼을 1.5초 동안 눌러야 함
+
+### 3. 뒤로가기 동작 혼동
+**증상**: "QuitActivity에서 뒤로가기 했는데 종료 안 돼요"
+
+**원인**: QuitActivity는 RunActivity의 서브 화면이므로 뒤로가기 시 부모로 복귀
+```
+QuitActivity에서 뒤로가기:
+  → QuitActivity.finish()
+  → RunActivity로 복귀 (금주 계속)
+  → 이것은 의도된 동작! ✅
+
+금주 종료 방법:
+  → 빨간 버튼 1.5초 롱프레스 완료
+  → StartActivity로 이동 ✅
+```
+
+**해결**: 금주를 종료하려면 뒤로가기가 아닌 빨간 버튼 롱프레스 필요
+
+### 4. 금주 종료 후 자동 이동 문제 (해결됨)
+**이전 문제**: 금주 종료 후 StartActivity에서 다시 RunActivity로 자동 이동
+
+**원인**: 
+- Intent 플래그: `FLAG_ACTIVITY_CLEAR_TOP | SINGLE_TOP` 사용
+- 기존 StartActivity 재사용 → 오래된 SharedPreferences 값 사용
+- `start_time != 0L` 조건 충족 → RunActivity 자동 이동 ❌
+
+**해결**: 
+- Intent 플래그 변경: `FLAG_ACTIVITY_NEW_TASK | CLEAR_TASK`
+- StartActivity 완전 재시작 → 최신 SharedPreferences 로드
+- `start_time = 0L && timer_completed = true` → RunActivity 이동 안 함 ✅
+
+**코드 위치**: `QuitActivity.kt` - `navigateToStart()` 함수
+
+---
+
+## 🔍 문제 해결 가이드
+
+### 금주가 종료되지 않을 때
+1. **진행바 확인**: 빨간 버튼을 누를 때 원형 진행바가 100% 채워졌나요?
+   - 아니오 → 1.5초 동안 완전히 누르세요
+   - 예 → 다음 단계 확인
+
+2. **Logcat 확인**: Android Studio에서 다음 로그 확인
+   ```
+   D/QuitActivity: 롱프레스 완료 - 금주 종료 처리 시작
+   D/QuitActivity: 기록 저장 완료
+   D/QuitActivity: 진행 상태 업데이트 완료: timer_completed=true
+   D/QuitActivity: StartActivity로 이동 시작
+   D/QuitActivity: StartActivity 실행 성공
+   ```
+   - 로그 없음 → 롱프레스 미완료
+   - 로그 있음 → 정상 작동
+
+3. **SharedPreferences 확인**: Device File Explorer에서 확인
+   ```
+   /data/data/kr.sweetapps.alcoholictimer/shared_prefs/user_settings.xml
+
+   <long name="start_time" value="0" />  ← 0이어야 함
+   <boolean name="timer_completed" value="true" />  ← true여야 함
+   ```
+
+### 종료 후 다시 RunActivity로 이동할 때
+1. **앱 버전 확인**: 최신 버전 사용 중인지 확인
+2. **앱 완전 재설치**: 
+   ```bash
+   adb uninstall kr.sweetapps.alcoholictimer
+   gradlew installDebug
+   ```
+3. **SharedPreferences 초기화**: 설정 > 앱 > AlcoholicTimer > 저장공간 > 데이터 삭제
 
 ---
 
 ## 변경 이력
+- 2025-10-26: QuitActivity 시나리오 상세화, 금주 종료 플로우 명확화, 문제 해결 가이드 추가
 - 2025-10-26: StartActivity 종료 팝업 제거, RunActivity 뒤로가기 핸들러 제거. 본 문서 최신화
 - 2025-01-25: 초기 정의(뒤로가기 팝업/확인 흐름 포함)
