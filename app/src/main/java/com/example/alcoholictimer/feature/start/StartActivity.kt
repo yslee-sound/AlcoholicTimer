@@ -210,8 +210,8 @@ class StartActivity : BaseActivity() {
         super.onResume()
             // API 30 이하: 배경을 유지하여 워터마크 아이콘 표시
     }
-    override fun getScreenTitleResId(): Int = R.string.settings_title
-    override fun getScreenTitle(): String = getString(R.string.settings_title)
+    override fun getScreenTitleResId(): Int = R.string.start_screen_title
+    override fun getScreenTitle(): String = getString(R.string.start_screen_title)
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)

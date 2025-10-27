@@ -153,6 +153,9 @@
     <string name="target_days_unit">day(s)</string>
     <string name="target_days_hint">Please select your sobriety goal period</string>
 
+    <!-- Start Activity screen title -->
+    <string name="start_screen_title">Sobriety Start</string>
+
     <!-- Settings screen -->
     <string name="settings_title">Settings</string>
     <string name="settings_drinking_cost">Drinking Cost</string>

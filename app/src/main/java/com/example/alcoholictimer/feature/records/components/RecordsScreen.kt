@@ -68,9 +68,12 @@ fun RecordsScreen(
     val periodYear = stringResource(R.string.records_period_year)
     val periodAll = stringResource(R.string.records_period_all)
 
+    // 초기 날짜 포맷 문자열
+    val initialDateText = stringResource(R.string.date_format_year_month, currentYear, currentMonth)
+
     var selectedPeriod by remember { mutableStateOf(periodMonth) }
     var showBottomSheet by remember { mutableStateOf(false) }
-    var selectedDetailPeriod by remember { mutableStateOf(stringResource(R.string.date_format_year_month, currentYear, currentMonth)) }
+    var selectedDetailPeriod by remember { mutableStateOf(initialDateText) }
     var selectedWeekRange by remember { mutableStateOf<Pair<Long, Long>?>(null) }
 
     // 전역 입력 잠금 훅
@@ -110,11 +113,12 @@ fun RecordsScreen(
             }
             periodMonth -> {
                 val range: Pair<Long, Long> = if (selectedDetailPeriod.isNotEmpty()) {
-                    val regex = Regex("(\\d{4})년 (\\d{1,2})월")
-                    val match = regex.find(selectedDetailPeriod)
-                    if (match != null) {
-                        val year = match.groupValues[1].toInt()
-                        val month = match.groupValues[2].toInt() - 1
+                    // 언어 독립적으로 숫자만 추출 (예: "2025년 10월" 또는 "10/2025")
+                    val numbers = Regex("(\\d+)").findAll(selectedDetailPeriod).map { it.value.toInt() }.toList()
+                    if (numbers.size >= 2) {
+                        // 첫 번째 숫자가 연도, 두 번째 숫자가 월
+                        val year = numbers[0]
+                        val month = numbers[1] - 1
                         val cal = Calendar.getInstance()
                         cal.set(year, month, 1, 0, 0, 0)
                         cal.set(Calendar.MILLISECOND, 0)
@@ -153,10 +157,10 @@ fun RecordsScreen(
             }
             periodYear -> {
                 val range: Pair<Long, Long> = if (selectedDetailPeriod.isNotEmpty()) {
-                    val regex = Regex("(\\d{4})년")
-                    val match = regex.find(selectedDetailPeriod)
-                    if (match != null) {
-                        val year = match.groupValues[1].toInt()
+                    // 언어 독립적으로 4자리 연도 숫자만 추출
+                    val yearMatch = Regex("(\\d{4})").find(selectedDetailPeriod)
+                    if (yearMatch != null) {
+                        val year = yearMatch.groupValues[1].toInt()
                         val cal = Calendar.getInstance()
                         cal.set(year, 0, 1, 0, 0, 0)
                         cal.set(Calendar.MILLISECOND, 0)
@@ -361,14 +365,14 @@ fun RecordsScreen(
             }
             periodYear -> {
                 val initialYearForPicker =
-                    Regex("(\\d{4})년").find(selectedDetailPeriod)?.groupValues?.getOrNull(1)?.toIntOrNull()
+                    Regex("(\\d{4})").find(selectedDetailPeriod)?.groupValues?.getOrNull(1)?.toIntOrNull()
                         ?: Calendar.getInstance().get(Calendar.YEAR)
 
                 YearPickerBottomSheet(
                     isVisible = true,
                     onDismiss = { showBottomSheet = false },
                     onYearPicked = { year ->
-                        selectedDetailPeriod = "${year}년"
+                        selectedDetailPeriod = context.getString(R.string.date_format_year, year)
                         showBottomSheet = false
                     },
                     records = records,
