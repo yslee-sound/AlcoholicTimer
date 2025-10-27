@@ -106,6 +106,14 @@ private fun RunScreen() {
     val levelDays = remember(elapsedMillis) { Constants.calculateLevelDays(elapsedMillis) }
     val levelInfo = remember(levelDays) { LevelDefinitions.getLevelInfo(levelDays) }
     val levelName = context.getString(levelInfo.nameResId)
+    val levelNumber = remember(levelDays) { LevelDefinitions.getLevelNumber(levelDays) + 1 } // +1 for display (1-indexed)
+    val levelDisplayText = "Lv.$levelNumber"
+
+    // Goal days format based on locale
+    val goalDaysText = remember(targetDays) {
+        val days = targetDays.toInt()
+        if (Locale.getDefault().language == "ko") "${days}일" else "$days day(s)"
+    }
 
     val elapsedHours = ((elapsedMillis % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)).toInt()
     val elapsedMinutes = ((elapsedMillis % (60 * 60 * 1000)) / (60 * 1000)).toInt()
@@ -180,8 +188,8 @@ private fun RunScreen() {
                 ) {
                     Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            RunStatChip(title = stringResource(id = R.string.stat_goal_days), value = "${targetDays.toInt()}일", color = colorResource(id = R.color.color_stat_goal), modifier = Modifier.weight(1f))
-                            RunStatChip(title = stringResource(id = R.string.stat_level), value = levelName.take(6), color = levelInfo.color, modifier = Modifier.weight(1f))
+                            RunStatChip(title = stringResource(id = R.string.stat_goal_days), value = goalDaysText, color = colorResource(id = R.color.color_stat_goal), modifier = Modifier.weight(1f))
+                            RunStatChip(title = stringResource(id = R.string.stat_level), value = levelDisplayText, color = levelInfo.color, modifier = Modifier.weight(1f))
                             RunStatChip(title = stringResource(id = R.string.stat_time), value = progressTimeTextHM, color = colorResource(id = R.color.color_stat_time), modifier = Modifier.weight(1f))
                         }
                     }
