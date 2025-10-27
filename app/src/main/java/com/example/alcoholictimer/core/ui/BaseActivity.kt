@@ -1,9 +1,9 @@
 package com.sweetapps.alcoholictimer.core.ui
 
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import com.sweetapps.alcoholictimer.R
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -57,7 +57,7 @@ abstract class BaseActivity : ComponentActivity() {
     // Ensure declaration before first usage
     private fun getNickname(): String {
         val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
-        return sharedPref.getString("nickname", "알중이1") ?: "알중이1"
+        return sharedPref.getString("nickname", getString(R.string.default_nickname)) ?: getString(R.string.default_nickname)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,13 +74,13 @@ abstract class BaseActivity : ComponentActivity() {
     // Returns the drawer menu title that matches current screen, or null if none
     private fun currentDrawerSelection(): String? = when (this) {
         is RunActivity, is StartActivity,
-        is com.sweetapps.alcoholictimer.feature.run.QuitActivity -> "금주"
+        is com.sweetapps.alcoholictimer.feature.run.QuitActivity -> getString(R.string.drawer_menu_sobriety)
         is com.sweetapps.alcoholictimer.feature.records.RecordsActivity,
-        is com.sweetapps.alcoholictimer.feature.records.AllRecordsActivity -> "기록"
-        is LevelActivity -> "레벨"
-        is SettingsActivity -> "설정"
+        is com.sweetapps.alcoholictimer.feature.records.AllRecordsActivity -> getString(R.string.drawer_menu_records)
+        is LevelActivity -> getString(R.string.drawer_menu_level)
+        is SettingsActivity -> getString(R.string.drawer_menu_settings)
         is com.sweetapps.alcoholictimer.feature.about.AboutActivity,
-        is com.sweetapps.alcoholictimer.feature.about.AboutLicensesActivity -> "앱 정보"
+        is com.sweetapps.alcoholictimer.feature.about.AboutLicensesActivity -> getString(R.string.drawer_menu_about)
         else -> null
     }
 
@@ -282,14 +282,14 @@ abstract class BaseActivity : ComponentActivity() {
                                                         if (showBackButton) {
                                                             Icon(
                                                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                                                contentDescription = "뒤로가기",
+                                                                contentDescription = getString(R.string.cd_navigate_back),
                                                                 tint = Color(0xFF2C3E50),
                                                                 modifier = Modifier.size(24.dp)
                                                             )
                                                         } else {
                                                             Icon(
                                                                 imageVector = Icons.Filled.Menu,
-                                                                contentDescription = "메뉴",
+                                                                contentDescription = getString(R.string.cd_menu),
                                                                 tint = Color(0xFF2C3E50),
                                                                 modifier = Modifier.size(24.dp)
                                                             )
@@ -394,8 +394,14 @@ abstract class BaseActivity : ComponentActivity() {
     }
 
     private fun handleMenuSelection(menuItem: String) {
+        val sobrietyMenu = getString(R.string.drawer_menu_sobriety)
+        val recordsMenu = getString(R.string.drawer_menu_records)
+        val levelMenu = getString(R.string.drawer_menu_level)
+        val settingsMenu = getString(R.string.drawer_menu_settings)
+        val aboutMenu = getString(R.string.drawer_menu_about)
+
         when (menuItem) {
-            "금주" -> {
+            sobrietyMenu -> {
                 val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
                 val startTime = sharedPref.getLong("start_time", 0L)
                 if (startTime > 0) {
@@ -415,12 +421,12 @@ abstract class BaseActivity : ComponentActivity() {
                     }
                 }
             }
-            "기록" -> if (this !is com.sweetapps.alcoholictimer.feature.records.RecordsActivity) {
+            recordsMenu -> if (this !is com.sweetapps.alcoholictimer.feature.records.RecordsActivity) {
                 navigateToActivity(com.sweetapps.alcoholictimer.feature.records.RecordsActivity::class.java)
             }
-            "레벨" -> if (this !is LevelActivity) navigateToActivity(LevelActivity::class.java)
-            "설정" -> if (this !is SettingsActivity) navigateToActivity(SettingsActivity::class.java)
-            "앱 정보" -> if (this !is com.sweetapps.alcoholictimer.feature.about.AboutActivity) {
+            levelMenu -> if (this !is LevelActivity) navigateToActivity(LevelActivity::class.java)
+            settingsMenu -> if (this !is SettingsActivity) navigateToActivity(SettingsActivity::class.java)
+            aboutMenu -> if (this !is com.sweetapps.alcoholictimer.feature.about.AboutActivity) {
                 navigateToActivity(com.sweetapps.alcoholictimer.feature.about.AboutActivity::class.java)
             }
         }
@@ -486,14 +492,16 @@ fun DrawerMenu(
     onNicknameClick: () -> Unit,
     onItemSelected: (String) -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+
     val menuItems = listOf(
-        "금주" to Icons.Filled.PlayArrow,
-        "기록" to Icons.AutoMirrored.Filled.List,
-        "레벨" to Icons.Filled.Star
+        context.getString(R.string.drawer_menu_sobriety) to Icons.Filled.PlayArrow,
+        context.getString(R.string.drawer_menu_records) to Icons.AutoMirrored.Filled.List,
+        context.getString(R.string.drawer_menu_level) to Icons.Filled.Star
     )
     val settingsItems = listOf(
-        "설정" to Icons.Filled.Settings,
-        "앱 정보" to Icons.Filled.Info
+        context.getString(R.string.drawer_menu_settings) to Icons.Filled.Settings,
+        context.getString(R.string.drawer_menu_about) to Icons.Filled.Info
     )
 
     Column(
@@ -519,7 +527,7 @@ fun DrawerMenu(
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.Filled.Person,
-                            contentDescription = "아바타",
+                            contentDescription = context.getString(R.string.cd_avatar),
                             tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(32.dp)
                         )
@@ -534,7 +542,7 @@ fun DrawerMenu(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "프로필 편집",
+                            text = context.getString(R.string.drawer_edit_profile),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -549,7 +557,7 @@ fun DrawerMenu(
             thickness = 1.dp
         )
         Text(
-            text = "메뉴",
+            text = context.getString(R.string.drawer_section_menu),
             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
@@ -595,7 +603,7 @@ fun DrawerMenu(
             thickness = 1.dp
         )
         Text(
-            text = "설정",
+            text = context.getString(R.string.drawer_section_settings),
             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)

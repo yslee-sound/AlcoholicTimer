@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
+import com.sweetapps.alcoholictimer.R
 import com.sweetapps.alcoholictimer.core.ui.BaseActivity
 import com.sweetapps.alcoholictimer.core.model.SobrietyRecord
 import com.sweetapps.alcoholictimer.feature.detail.DetailActivity
@@ -54,7 +55,7 @@ class RecordsActivity : BaseActivity() {
         refreshTrigger++
     }
 
-    override fun getScreenTitle(): String = "금주 기록"
+    override fun getScreenTitle(): String = getString(R.string.records_title)
 
     private fun handleCardClick(record: SobrietyRecord) {
         Log.d(TAG, "===== 카드 클릭 시작 =====")

@@ -14,17 +14,19 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
+import com.sweetapps.alcoholictimer.R
 import com.sweetapps.alcoholictimer.core.ui.BaseActivity
 import com.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
 
 class NicknameEditActivity : BaseActivity() {
-    override fun getScreenTitle(): String = "프로필 편집"
+    override fun getScreenTitle(): String = getString(R.string.profile_edit_title)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -56,7 +58,7 @@ class NicknameEditActivity : BaseActivity() {
             verticalArrangement = Arrangement.Top
         ) {
             Text(
-                text = "새로운 별명을 입력해주세요",
+                text = stringResource(R.string.profile_edit_instruction),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
                 color = Color.Gray,
@@ -65,7 +67,7 @@ class NicknameEditActivity : BaseActivity() {
             OutlinedTextField(
                 value = nicknameText,
                 onValueChange = { nicknameText = it },
-                label = { Text("별명") },
+                label = { Text(stringResource(R.string.profile_nickname_label)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -80,14 +82,14 @@ class NicknameEditActivity : BaseActivity() {
                 modifier = Modifier.fillMaxWidth().height(48.dp),
                 enabled = nicknameText.isNotBlank()
             ) {
-                Text(text = "저장", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                Text(text = stringResource(R.string.profile_save), fontSize = 16.sp, fontWeight = FontWeight.Medium)
             }
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedButton(
                 onClick = { finish() },
                 modifier = Modifier.fillMaxWidth().height(48.dp)
             ) {
-                Text(text = "취소", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                Text(text = stringResource(R.string.profile_cancel), fontSize = 16.sp, fontWeight = FontWeight.Medium)
             }
         }
     }
@@ -103,7 +105,7 @@ class NicknameEditActivity : BaseActivity() {
 
     private fun getNickname(): String {
         val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
-        return sharedPref.getString("nickname", "알중이1") ?: "알중이1"
+        return sharedPref.getString("nickname", getString(R.string.default_nickname)) ?: getString(R.string.default_nickname)
     }
 
     private fun saveNickname(nickname: String) {

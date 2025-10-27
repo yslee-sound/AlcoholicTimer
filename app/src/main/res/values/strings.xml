@@ -87,4 +87,64 @@
 
     <string name="action_copy">복사</string>
     <string name="toast_copied">주소를 복사했습니다.</string>
+
+    <!-- Drawer menu (네비게이션 드로어) -->
+    <string name="default_nickname">알중이1</string>
+    <string name="drawer_edit_profile">프로필 편집</string>
+    <string name="drawer_section_menu">메뉴</string>
+    <string name="drawer_section_settings">설정</string>
+    <string name="drawer_menu_sobriety">금주</string>
+    <string name="drawer_menu_records">기록</string>
+    <string name="drawer_menu_level">레벨</string>
+    <string name="drawer_menu_settings">설정</string>
+    <string name="drawer_menu_about">앱 정보</string>
+    <string name="cd_avatar">아바타</string>
+    <string name="cd_menu">메뉴</string>
+
+    <!-- Profile Edit screen (프로필 편집) -->
+    <string name="profile_edit_title">프로필 편집</string>
+    <string name="profile_edit_instruction">새로운 별명을 입력해주세요</string>
+    <string name="profile_nickname_label">별명</string>
+    <string name="profile_save">저장</string>
+    <string name="profile_cancel">취소</string>
+
+    <!-- Records screen (기록 화면) -->
+    <string name="records_title">금주 기록</string>
+    <string name="records_period_week">주</string>
+    <string name="records_period_month">월</string>
+    <string name="records_period_year">년</string>
+    <string name="records_period_all">전체</string>
+    <string name="records_monthly_stats">월 통계</string>
+    <string name="records_success_rate">성공률</string>
+    <string name="records_avg_duration">평균 지속일</string>
+    <string name="records_max_duration">최대 지속일</string>
+    <string name="records_total_days">총 누적 금주일</string>
+    <string name="records_no_records">아직 금주 기록이 없습니다</string>
+    <string name="records_view_all">모든 기록 보기 (%d개)</string>
+    <string name="records_add">금주 기록 추가</string>
+    <string name="records_day_unit">일</string>
+    <string name="records_percent_unit">%</string>
+
+    <!-- Level names (레벨 이름) -->
+    <string name="level_0">작심 7일</string>
+    <string name="level_1">의지의 2주</string>
+    <string name="level_2">한달의 기적</string>
+    <string name="level_3">습관의 탄생</string>
+    <string name="level_4">계속되는 도전</string>
+    <string name="level_5">거의 1년</string>
+    <string name="level_6">금주 마스터</string>
+    <string name="level_7">절제의 레전드</string>
+
+    <!-- Add Record screen (금주 기록 추가) -->
+    <string name="add_record_title">금주 기록 추가</string>
+    <string name="add_record_start_date_time">시작일 및 시간</string>
+    <string name="add_record_end_date_time">종료일 및 시간</string>
+    <string name="add_record_target_days">목표 일수</string>
+    <string name="add_record_error_invalid_range">종료 시간은 시작 시간 이후이어야 합니다</string>
+    <string name="add_record_error_set_target">목표 일수를 올바르게 입력하세요</string>
+    <string name="add_record_cancel">취소</string>
+    <string name="add_record_save">저장</string>
+    <string name="add_record_toast_success">금주 기록이 추가되었습니다</string>
+    <string name="add_record_toast_conflict">선택한 시간이 기존 기록과 겹칩니다</string>
+    <string name="add_record_days_unit">일</string>
 </resources>

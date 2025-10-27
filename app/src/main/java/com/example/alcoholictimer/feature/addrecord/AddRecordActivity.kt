@@ -20,9 +20,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sweetapps.alcoholictimer.R
 import com.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
 import com.sweetapps.alcoholictimer.core.data.RecordsDataLoader
 import com.sweetapps.alcoholictimer.core.model.SobrietyRecord
@@ -47,11 +49,11 @@ class AddRecordActivity : ComponentActivity() {
                         onSave = { record ->
                             val success = saveRecord(record)
                             if (success) {
-                                Toast.makeText(this, "금주 기록이 추가되었습니다", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this, getString(R.string.add_record_toast_success), Toast.LENGTH_SHORT).show()
                                 setResult(RESULT_OK)
                                 finish()
                             } else {
-                                Toast.makeText(this, "선택한 시간이 기존 기록과 겹칩니다", Toast.LENGTH_LONG).show()
+                                Toast.makeText(this, getString(R.string.add_record_toast_conflict), Toast.LENGTH_LONG).show()
                             }
                         },
                         onCancel = { finish() }
@@ -174,10 +176,10 @@ private fun AddRecordScreen(
             ) {
                 Column {
                     TopAppBar(
-                        title = { Text("금주 기록 추가", fontWeight = FontWeight.Bold) },
+                        title = { Text(stringResource(R.string.add_record_title), fontWeight = FontWeight.Bold) },
                         navigationIcon = {
                             IconButton(onClick = onCancel) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "뒤로가기")
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_navigate_back))
                             }
                         }
                     )
@@ -224,7 +226,7 @@ private fun AddRecordScreen(
                             },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("시작일 및 시간", fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
+                        Text(stringResource(R.string.add_record_start_date_time), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
                         Text(
                             text = "${dateFormat.format(Date(startDate))} ${String.format(Locale.getDefault(), "%02d:%02d", startTime.first, startTime.second)}",
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -246,7 +248,7 @@ private fun AddRecordScreen(
                             },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("종료일 및 시간", fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
+                        Text(stringResource(R.string.add_record_end_date_time), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
                         Text(
                             text = "${dateFormat.format(Date(endDate))} ${String.format(Locale.getDefault(), "%02d:%02d", endTime.first, endTime.second)}",
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -266,9 +268,9 @@ private fun AddRecordScreen(
                             },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("목표 일수", fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
+                        Text(stringResource(R.string.add_record_target_days), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
                         Text(
-                            text = "${targetDays}일",
+                            text = "$targetDays${stringResource(R.string.add_record_days_unit)}",
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -277,13 +279,10 @@ private fun AddRecordScreen(
 
                     // 경고/안내
                     if (isRangeInvalid) {
-                        Text("종료는 시작 이후여야 합니다", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
-                    }
-                    if (isOngoing) {
-                        Text("종료 시점은 현재 시각 이전이어야 합니다", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                        Text(stringResource(R.string.add_record_error_invalid_range), color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
                     }
                     if (!isTargetValid) {
-                        Text("목표 일수를 올바르게 입력하세요", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                        Text(stringResource(R.string.add_record_error_set_target), color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
                     }
 
                     Spacer(Modifier.height(16.dp))
@@ -293,7 +292,7 @@ private fun AddRecordScreen(
                         OutlinedButton(
                             onClick = onCancel,
                             modifier = Modifier.weight(1f)
-                        ) { Text("취소") }
+                        ) { Text(stringResource(R.string.add_record_cancel)) }
 
                         Button(
                             onClick = {
@@ -315,7 +314,7 @@ private fun AddRecordScreen(
                             },
                             enabled = !isRangeInvalid && !isOngoing && isTargetValid,
                             modifier = Modifier.weight(1f)
-                        ) { Text("저장") }
+                        ) { Text(stringResource(R.string.add_record_save)) }
                     }
 
                     Spacer(Modifier.height(24.dp))

@@ -118,6 +118,7 @@ fun CurrentLevelCard(
     elapsedDaysFloat: Float,
     startTime: Long
 ) {
+    val context = LocalContext.current
     MainLevelCardFrame(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier
@@ -135,8 +136,9 @@ fun CurrentLevelCard(
                     .testTag("main_level_badge"),
                 contentAlignment = Alignment.Center
             ) {
+                val levelName = context.getString(currentLevel.nameResId)
                 Text(
-                    text = currentLevel.name.take(2),
+                    text = levelName.take(2),
                     style = MaterialTheme.typography.titleLarge.copy(color = Color.White)
                 )
             }
@@ -145,7 +147,7 @@ fun CurrentLevelCard(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = currentLevel.name,
+                text = context.getString(currentLevel.nameResId),
                 style = MaterialTheme.typography.headlineLarge.copy(color = currentLevel.color),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.testTag("main_level_title")
@@ -319,6 +321,7 @@ private fun LevelItem(
     isAchieved: Boolean,
     isNext: Boolean
 ) {
+    val context = LocalContext.current
     // 내부 리스트 아이템에서는 그림자를 사용하지 않는다(중첩 음영에 의한 두꺼운 회색띠 방지)
     val itemElevation = AppElevation.ZERO
     Card(
@@ -351,8 +354,9 @@ private fun LevelItem(
                     .background(if (isAchieved) level.color else Color(0xFFE0E0E0)),
                 contentAlignment = Alignment.Center
             ) {
+                val levelName = context.getString(level.nameResId)
                 Text(
-                    text = level.name.take(1),
+                    text = levelName.take(1),
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = if (isAchieved) Color.White else Color(0xFF757575))
                 )
             }
@@ -361,7 +365,7 @@ private fun LevelItem(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = level.name,
+                    text = context.getString(level.nameResId),
                     style = (if (isCurrent) MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold) else MaterialTheme.typography.titleMedium)
                         .copy(color = if (isAchieved) level.color else Color(0xFF757575))
                 )

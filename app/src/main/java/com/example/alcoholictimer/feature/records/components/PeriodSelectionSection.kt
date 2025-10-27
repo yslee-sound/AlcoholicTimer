@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,7 +31,12 @@ fun PeriodSelectionSection(
     selectedDetailPeriod: String,
     modifier: Modifier = Modifier
 ) {
-    val periods = listOf("주", "월", "년", "전체")
+    val periodWeek = stringResource(R.string.records_period_week)
+    val periodMonth = stringResource(R.string.records_period_month)
+    val periodYear = stringResource(R.string.records_period_year)
+    val periodAll = stringResource(R.string.records_period_all)
+
+    val periods = listOf(periodWeek, periodMonth, periodYear, periodAll)
 
     // 초간단 디바운스: 너무 빠른 연속 탭 무시
     var lastClickAt by remember { mutableStateOf(0L) }
@@ -83,7 +89,7 @@ fun PeriodSelectionSection(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .then(if (selectedPeriod == "전체") Modifier else Modifier.clickable {
+                .then(if (selectedPeriod == periodAll) Modifier else Modifier.clickable {
                     val now = SystemClock.elapsedRealtime()
                     if (now - lastClickAt >= debounceMs) {
                         lastClickAt = now
@@ -108,7 +114,7 @@ fun PeriodSelectionSection(
                     fontWeight = FontWeight.Medium,
                     color = Color(0xFF2C3E50)
                 )
-                if (selectedPeriod != "전체") {
+                if (selectedPeriod != periodAll) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
                         contentDescription = "세부 기간 선택",

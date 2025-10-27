@@ -5,6 +5,13 @@
 
 ## [Unreleased]
 ### Added
+- 🌐 **다국어 지원**: 영어(English) 번역 완료 (`values-en/strings.xml`, 50개 문자열)
+- 문서: `docs/INTERNATIONALIZATION_PLAN.md` (7개 언어 다국어 출시 전체 기획안)
+- 문서: `docs/I18N_IMPLEMENTATION_GUIDE.md` (다국어 구현 상세 가이드)
+- 문서: `docs/I18N_QUICK_START.md` (6주 다국어 출시 빠른 시작)
+- 문서: `docs/I18N_ENGLISH_START.md` (영어 지원 빠른 시작 가이드)
+- 문서: `docs/I18N_ENGLISH_DONE.md` (영어 지원 완료 요약)
+- 문서: `docs/I18N_CHECKLIST.md` (다국어 체크리스트)
 - (예정) Crashlytics / Analytics 도입
 - (예정) 날짜/통계 계산 단위 테스트 확대
 - 문서: `docs/MODAL_BARRIER_AND_INPUT_GUARD.md` (드로어/모달 “완전한 모달 배리어” 설계·구현·QA 가이드)

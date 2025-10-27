@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -61,7 +62,13 @@ fun RecordsScreen(
     val currentYear = currentDate.get(Calendar.YEAR)
     val currentMonth = currentDate.get(Calendar.MONTH) + 1
 
-    var selectedPeriod by remember { mutableStateOf("월") }
+    // 기간 리소스 문자열
+    val periodWeek = stringResource(R.string.records_period_week)
+    val periodMonth = stringResource(R.string.records_period_month)
+    val periodYear = stringResource(R.string.records_period_year)
+    val periodAll = stringResource(R.string.records_period_all)
+
+    var selectedPeriod by remember { mutableStateOf(periodMonth) }
     var showBottomSheet by remember { mutableStateOf(false) }
     var selectedDetailPeriod by remember { mutableStateOf("${currentYear}년 ${currentMonth}월") }
     var selectedWeekRange by remember { mutableStateOf<Pair<Long, Long>?>(null) }
@@ -84,7 +91,7 @@ fun RecordsScreen(
 
     val filteredRecords = remember(records, selectedPeriod, selectedDetailPeriod, selectedWeekRange) {
         when (selectedPeriod) {
-            "주" -> {
+            periodWeek -> {
                 val range = selectedWeekRange ?: run {
                     val cal = Calendar.getInstance().apply {
                         firstDayOfWeek = Calendar.SUNDAY
@@ -101,7 +108,7 @@ fun RecordsScreen(
                 }
                 records.filter { it.endTime >= range.first && it.startTime <= range.second }
             }
-            "월" -> {
+            periodMonth -> {
                 val range: Pair<Long, Long> = if (selectedDetailPeriod.isNotEmpty()) {
                     val regex = Regex("(\\d{4})년 (\\d{1,2})월")
                     val match = regex.find(selectedDetailPeriod)
@@ -144,7 +151,7 @@ fun RecordsScreen(
                 }
                 records.filter { it.endTime >= range.first && it.startTime <= range.second }
             }
-            "년" -> {
+            periodYear -> {
                 val range: Pair<Long, Long> = if (selectedDetailPeriod.isNotEmpty()) {
                     val regex = Regex("(\\d{4})년")
                     val match = regex.find(selectedDetailPeriod)
@@ -299,6 +306,7 @@ fun RecordsScreen(
                     }
                     if (records.isNotEmpty()) {
                         item {
+                            val viewAllText = stringResource(R.string.records_view_all, records.size)
                             Button(
                                 onClick = onNavigateToAllRecords,
                                 modifier = Modifier
@@ -311,7 +319,7 @@ fun RecordsScreen(
                                 shape = RoundedCornerShape(8.dp)
                             ) {
                                 Text(
-                                    text = "모든 기록 보기 (${records.size}개)",
+                                    text = viewAllText,
                                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
                                 )
                             }
@@ -324,7 +332,7 @@ fun RecordsScreen(
 
     if (showBottomSheet) {
         when (selectedPeriod) {
-            "주" -> {
+            periodWeek -> {
                 WeekPickerBottomSheet(
                     isVisible = true,
                     onDismiss = { showBottomSheet = false },
@@ -335,7 +343,7 @@ fun RecordsScreen(
                     }
                 )
             }
-            "월" -> {
+            periodMonth -> {
                 MonthPickerBottomSheet(
                     isVisible = true,
                     onDismiss = { showBottomSheet = false },
@@ -345,13 +353,13 @@ fun RecordsScreen(
                     },
                     records = records,
                     onYearPicked = { year ->
-                        selectedPeriod = "년"
+                        selectedPeriod = periodYear
                         selectedDetailPeriod = "${year}년"
                         showBottomSheet = false
                     }
                 )
             }
-            "년" -> {
+            periodYear -> {
                 val initialYearForPicker =
                     Regex("(\\d{4})년").find(selectedDetailPeriod)?.groupValues?.getOrNull(1)?.toIntOrNull()
                         ?: Calendar.getInstance().get(Calendar.YEAR)
@@ -391,7 +399,7 @@ private fun EmptyRecordsState() {
             ) {
                 Icon(
                     imageVector = Icons.Default.Warning,
-                    contentDescription = "빈 상태",
+                    contentDescription = stringResource(R.string.empty_records_cd),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(40.dp)
                 )
@@ -399,7 +407,7 @@ private fun EmptyRecordsState() {
         }
         Spacer(modifier = Modifier.height(24.dp))
         Text(
-            text = "아직 금주 기록이 없습니다",
+            text = stringResource(R.string.records_no_records),
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center
@@ -419,6 +427,7 @@ private fun PeriodHeaderRow(
     onAddRecord: () -> Unit,
     enabled: Boolean
 ) {
+    val context = LocalContext.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -427,12 +436,7 @@ private fun PeriodHeaderRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = when (selectedPeriod) {
-                "주" -> "주 통계"
-                "월" -> "월 통계"
-                "년" -> "년 통계"
-                else -> "전체 통계"
-            },
+            text = stringResource(R.string.records_monthly_stats),
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -451,7 +455,7 @@ private fun PeriodHeaderRow(
         ) {
             Icon(
                 imageVector = Icons.Filled.Add,
-                contentDescription = "금주 기록 추가",
+                contentDescription = stringResource(R.string.records_add),
                 tint = MaterialTheme.colorScheme.onPrimary
             )
         }
@@ -469,10 +473,14 @@ private fun PeriodStatisticsSection(
     weekRange: Pair<Long, Long>? = null,
     onAddRecord: () -> Unit = {}
 ) {
+    val periodWeek = stringResource(R.string.records_period_week)
+    val periodMonth = stringResource(R.string.records_period_month)
+    val periodYear = stringResource(R.string.records_period_year)
+
     val totalRecords = records.size
     val periodRange: Pair<Long, Long>? = remember(selectedPeriod, selectedDetailPeriod, weekRange) {
         when (selectedPeriod) {
-            "주" -> {
+            periodWeek -> {
                 weekRange ?: run {
                     val cal = Calendar.getInstance().apply {
                         firstDayOfWeek = Calendar.SUNDAY
@@ -488,7 +496,7 @@ private fun PeriodStatisticsSection(
                     weekStart to weekEndInclusive
                 }
             }
-            "월" -> {
+            periodMonth -> {
                 val regex = Regex("(\\d{4})년 (\\d{1,2})월")
                 val match = regex.find(selectedDetailPeriod)
                 if (match != null) {
@@ -516,7 +524,7 @@ private fun PeriodStatisticsSection(
                     start to end
                 }
             }
-            "년" -> {
+            periodYear -> {
                 val regex = Regex("(\\d{4})년")
                 val match = regex.find(selectedDetailPeriod)
                 if (match != null) {
@@ -557,7 +565,7 @@ private fun PeriodStatisticsSection(
     }
 
     val successRate = if (totalRecords > 0) {
-        if (selectedPeriod == "주" && periodRange != null) {
+        if (selectedPeriod == periodWeek && periodRange != null) {
             val (periodStart, periodEnd) = periodRange
             val dayMillis = 24 * 60 * 60 * 1000.0
             val intervals = records.mapNotNull { record ->
@@ -624,30 +632,35 @@ private fun PeriodStatisticsSection(
         ) {
             // 헤더(Row + +버튼)는 PeriodHeaderRow로 이동하여 항상 노출되므로 여기서는 제거
             Spacer(modifier = Modifier.height(16.dp))
+
+            val dayUnit = stringResource(R.string.records_day_unit)
+            val percentUnit = stringResource(R.string.records_percent_unit)
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 val statsScale = 1.3f
+
                 StatisticItem(
-                    title = "성공률\n ",
-                    value = "$successRate%",
+                    title = stringResource(R.string.records_success_rate) + "\n ",
+                    value = "$successRate$percentUnit",
                     color = MaterialTheme.colorScheme.tertiary,
                     modifier = Modifier.weight(1f),
                     titleScale = statsScale,
                     valueScale = statsScale
                 )
                 StatisticItem(
-                    title = "평균\n지속일",
-                    value = "${averageDaysDisplay}일",
+                    title = stringResource(R.string.records_avg_duration),
+                    value = "$averageDaysDisplay$dayUnit",
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f),
                     titleScale = statsScale,
                     valueScale = statsScale
                 )
                 StatisticItem(
-                    title = "최대\n지속일",
-                    value = "${maxDaysDisplay}일",
+                    title = stringResource(R.string.records_max_duration),
+                    value = "$maxDaysDisplay$dayUnit",
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.weight(1f),
                     titleScale = statsScale,
@@ -663,12 +676,12 @@ private fun PeriodStatisticsSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "총 누적 금주일",
+                    text = stringResource(R.string.records_total_days),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "${totalDaysDisplay}일",
+                    text = "$totalDaysDisplay$dayUnit",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
                 )

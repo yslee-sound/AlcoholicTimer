@@ -105,7 +105,7 @@ private fun RunScreen() {
 
     val levelDays = remember(elapsedMillis) { Constants.calculateLevelDays(elapsedMillis) }
     val levelInfo = remember(levelDays) { LevelDefinitions.getLevelInfo(levelDays) }
-    val levelName = levelInfo.name
+    val levelName = context.getString(levelInfo.nameResId)
 
     val elapsedHours = ((elapsedMillis % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)).toInt()
     val elapsedMinutes = ((elapsedMillis % (60 * 60 * 1000)) / (60 * 1000)).toInt()
