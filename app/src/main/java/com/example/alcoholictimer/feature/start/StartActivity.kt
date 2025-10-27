@@ -138,6 +138,19 @@ class StartActivity : BaseActivity() {
         Constants.initializeUserSettings(this)
         Constants.ensureInstallMarkerAndResetIfReinstalled(this)
 
+        // 금주 진행 중이면 즉시 RunActivity로 리다이렉트 (플레이스토어 "열기" 대응)
+        val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+        val startTime = sharedPref.getLong("start_time", 0L)
+        if (startTime > 0) {
+            // 금주 진행 중: RunActivity로 이동 후 현재 StartActivity 종료
+            val intent = Intent(this, RunActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            }
+            startActivity(intent)
+            finish()
+            return
+        }
+
         // 드로어 내비게이션 시 스플래시 생략 플래그
         val skipSplash = intent.getBooleanExtra("skip_splash", false)
 
