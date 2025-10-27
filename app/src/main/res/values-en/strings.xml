@@ -154,6 +154,30 @@
 
     <!-- Settings screen -->
     <string name="settings_title">Sobriety Settings</string>
+    <string name="settings_drinking_cost">Drinking Cost</string>
+    <string name="settings_drinking_frequency">Drinking Frequency</string>
+    <string name="settings_drinking_duration">Drinking Duration</string>
+
+    <!-- Cost options -->
+    <string name="settings_cost_low">Low</string>
+    <string name="settings_cost_medium">Medium</string>
+    <string name="settings_cost_high">High</string>
+    <string name="settings_cost_low_label">Low (Under $10)</string>
+    <string name="settings_cost_medium_label">Medium ($10~50)</string>
+    <string name="settings_cost_high_label">High (Over $50)</string>
+
+    <!-- Frequency options -->
+    <string name="settings_frequency_low">Once a week or less</string>
+    <string name="settings_frequency_medium">2-3 times a week</string>
+    <string name="settings_frequency_high">4+ times a week</string>
+
+    <!-- Duration options -->
+    <string name="settings_duration_short">Short</string>
+    <string name="settings_duration_medium">Medium</string>
+    <string name="settings_duration_long">Long</string>
+    <string name="settings_duration_short_label">Short (Under 2 hours)</string>
+    <string name="settings_duration_medium_label">Medium (3-5 hours)</string>
+    <string name="settings_duration_long_label">Long (Over 6 hours)</string>
 
     <!-- Add Record screen -->
     <string name="add_record_title">Add Sobriety Record</string>

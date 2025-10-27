@@ -137,6 +137,7 @@
     <string name="level_7">절제의 레전드</string>
 
     <!-- Level screen (레벨 화면) -->
+    <string name="level_title">금주 레벨</string>
     <string name="level_days_label">일차</string>
     <string name="level_until_next">다음 레벨까지</string>
     <string name="level_days_remaining">남음</string>
@@ -154,6 +155,30 @@
 
     <!-- Settings screen (설정 화면) -->
     <string name="settings_title">금주 설정</string>
+    <string name="settings_drinking_cost">음주 비용</string>
+    <string name="settings_drinking_frequency">음주 빈도</string>
+    <string name="settings_drinking_duration">음주 시간</string>
+
+    <!-- Cost options -->
+    <string name="settings_cost_low">저</string>
+    <string name="settings_cost_medium">중</string>
+    <string name="settings_cost_high">고</string>
+    <string name="settings_cost_low_label">저 (1만원 이하)</string>
+    <string name="settings_cost_medium_label">중 (1~5만원)</string>
+    <string name="settings_cost_high_label">고 (5만원 이상)</string>
+
+    <!-- Frequency options -->
+    <string name="settings_frequency_low">주 1회 이하</string>
+    <string name="settings_frequency_medium">주 2~3회</string>
+    <string name="settings_frequency_high">주 4회 이상</string>
+
+    <!-- Duration options -->
+    <string name="settings_duration_short">짧음</string>
+    <string name="settings_duration_medium">보통</string>
+    <string name="settings_duration_long">길게</string>
+    <string name="settings_duration_short_label">짧음 (2시간 이하)</string>
+    <string name="settings_duration_medium_label">보통 (3~5시간)</string>
+    <string name="settings_duration_long_label">길게 (6시간 이상)</string>
 
     <!-- Add Record screen (금주 기록 추가) -->
     <string name="add_record_title">금주 기록 추가</string>

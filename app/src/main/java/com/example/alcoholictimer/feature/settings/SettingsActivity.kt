@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -71,11 +72,19 @@ fun SettingsScreen() {
                 .padding(bottom = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            SettingsSection(title = "음주 비용", titleColor = colorResource(id = R.color.color_indicator_money)) {
+            SettingsSection(title = stringResource(R.string.settings_drinking_cost), titleColor = colorResource(id = R.color.color_indicator_money)) {
                 SettingsOptionGroup(
                     selectedOption = selectedCost,
-                    options = listOf("저", "중", "고"),
-                    labels = listOf("저 (1만원 이하)", "중 (1~5만원)", "고 (5만원 이상)"),
+                    options = listOf(
+                        stringResource(R.string.settings_cost_low),
+                        stringResource(R.string.settings_cost_medium),
+                        stringResource(R.string.settings_cost_high)
+                    ),
+                    labels = listOf(
+                        stringResource(R.string.settings_cost_low_label),
+                        stringResource(R.string.settings_cost_medium_label),
+                        stringResource(R.string.settings_cost_high_label)
+                    ),
                     onOptionSelected = { newValue ->
                         selectedCost = newValue
                         sharedPref.edit { putString("selected_cost", newValue) }
@@ -84,11 +93,19 @@ fun SettingsScreen() {
             }
             SectionDivider()
 
-            SettingsSection(title = "음주 빈도", titleColor = colorResource(id = R.color.color_progress_primary)) {
+            SettingsSection(title = stringResource(R.string.settings_drinking_frequency), titleColor = colorResource(id = R.color.color_progress_primary)) {
                 SettingsOptionGroup(
                     selectedOption = selectedFrequency,
-                    options = listOf("주 1회 이하", "주 2~3회", "주 4회 이상"),
-                    labels = listOf("주 1회 이하", "주 2~3회", "주 4회 이상"),
+                    options = listOf(
+                        stringResource(R.string.settings_frequency_low),
+                        stringResource(R.string.settings_frequency_medium),
+                        stringResource(R.string.settings_frequency_high)
+                    ),
+                    labels = listOf(
+                        stringResource(R.string.settings_frequency_low),
+                        stringResource(R.string.settings_frequency_medium),
+                        stringResource(R.string.settings_frequency_high)
+                    ),
                     onOptionSelected = { newValue ->
                         selectedFrequency = newValue
                         sharedPref.edit { putString("selected_frequency", newValue) }
@@ -97,11 +114,19 @@ fun SettingsScreen() {
             }
             SectionDivider()
 
-            SettingsSection(title = "음주 시간", titleColor = colorResource(id = R.color.color_indicator_hours)) {
+            SettingsSection(title = stringResource(R.string.settings_drinking_duration), titleColor = colorResource(id = R.color.color_indicator_hours)) {
                 SettingsOptionGroup(
                     selectedOption = selectedDuration,
-                    options = listOf("짧음", "보통", "길게"),
-                    labels = listOf("짧음 (2시간 이하)", "보통 (3~5시간)", "길게 (6시간 이상)"),
+                    options = listOf(
+                        stringResource(R.string.settings_duration_short),
+                        stringResource(R.string.settings_duration_medium),
+                        stringResource(R.string.settings_duration_long)
+                    ),
+                    labels = listOf(
+                        stringResource(R.string.settings_duration_short_label),
+                        stringResource(R.string.settings_duration_medium_label),
+                        stringResource(R.string.settings_duration_long_label)
+                    ),
                     onOptionSelected = { newValue ->
                         selectedDuration = newValue
                         sharedPref.edit { putString("selected_duration", newValue) }
