@@ -66,6 +66,8 @@
     <string name="unit_days_format">%.1f일</string>
     <string name="unit_hours_format">%.1f시간</string>
     <string name="unit_won_format">%,.0f원</string>
+    <string name="unit_life_hours_only">%.2f시간</string>
+    <string name="unit_life_days_hours" formatted="false">%d일 %.2f시간</string>
 
     <!-- About screen (앱 정보) -->
     <string name="about_title">앱 정보</string>

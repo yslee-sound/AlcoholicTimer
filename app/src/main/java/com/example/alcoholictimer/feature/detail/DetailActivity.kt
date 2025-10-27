@@ -389,7 +389,7 @@ fun DetailScreen(
                             valueColor = colorResource(id = R.color.color_indicator_hours)
                         )
                         com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
-                            value = FormatUtils.daysToDayHourString(lifeExpectancyIncrease, 2),
+                            value = FormatUtils.daysToDayHourString(context, lifeExpectancyIncrease, 2),
                             label = stringResource(id = R.string.indicator_title_life_gain),
                             modifier = Modifier.weight(1f),
                             valueColor = colorResource(id = R.color.color_indicator_life)
