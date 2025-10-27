@@ -155,28 +155,10 @@ fun DetailScreen(
 
     val (selectedCost, selectedFrequency, selectedDuration) = Constants.getUserSettings(context)
 
-    val costVal = when(selectedCost) {
-        "저" -> 10000
-        "중" -> 40000
-        "고" -> 70000
-        else -> 40000
-    }
-
-    val freqVal = when(selectedFrequency) {
-        "주 1회 이하" -> 1.0
-        "주 2~3회" -> 2.5
-        "주 4회 이상" -> 5.0
-        else -> 2.5
-    }
-
-    val drinkHoursVal = when(selectedDuration) {
-        "짧음" -> 1.5
-        "보통" -> 4.0
-        "길게" -> 6.0
-        else -> 4.0
-    }
-
-    val hangoverHoursVal = 5.0
+    val costVal = Constants.DrinkingSettings.getCostValue(selectedCost)
+    val freqVal = Constants.DrinkingSettings.getFrequencyValue(selectedFrequency)
+    val drinkHoursVal = Constants.DrinkingSettings.getDurationValue(selectedDuration)
+    val hangoverHoursVal = Constants.DrinkingSettings.HANGOVER_HOURS
 
     val exactWeeks = totalHours / (24.0 * 7.0)
     val savedMoney = (exactWeeks * freqVal * costVal).roundToInt()

@@ -76,9 +76,9 @@ fun SettingsScreen() {
                 SettingsOptionGroup(
                     selectedOption = selectedCost,
                     options = listOf(
-                        stringResource(R.string.settings_cost_low),
-                        stringResource(R.string.settings_cost_medium),
-                        stringResource(R.string.settings_cost_high)
+                        Constants.KEY_COST_LOW,
+                        Constants.KEY_COST_MEDIUM,
+                        Constants.KEY_COST_HIGH
                     ),
                     labels = listOf(
                         stringResource(R.string.settings_cost_low_label),
@@ -87,7 +87,7 @@ fun SettingsScreen() {
                     ),
                     onOptionSelected = { newValue ->
                         selectedCost = newValue
-                        sharedPref.edit { putString("selected_cost", newValue) }
+                        sharedPref.edit { putString(Constants.PREF_SELECTED_COST, newValue) }
                     }
                 )
             }
@@ -97,9 +97,9 @@ fun SettingsScreen() {
                 SettingsOptionGroup(
                     selectedOption = selectedFrequency,
                     options = listOf(
-                        stringResource(R.string.settings_frequency_low),
-                        stringResource(R.string.settings_frequency_medium),
-                        stringResource(R.string.settings_frequency_high)
+                        Constants.KEY_FREQUENCY_LOW,
+                        Constants.KEY_FREQUENCY_MEDIUM,
+                        Constants.KEY_FREQUENCY_HIGH
                     ),
                     labels = listOf(
                         stringResource(R.string.settings_frequency_low),
@@ -108,7 +108,7 @@ fun SettingsScreen() {
                     ),
                     onOptionSelected = { newValue ->
                         selectedFrequency = newValue
-                        sharedPref.edit { putString("selected_frequency", newValue) }
+                        sharedPref.edit { putString(Constants.PREF_SELECTED_FREQUENCY, newValue) }
                     }
                 )
             }
@@ -118,9 +118,9 @@ fun SettingsScreen() {
                 SettingsOptionGroup(
                     selectedOption = selectedDuration,
                     options = listOf(
-                        stringResource(R.string.settings_duration_short),
-                        stringResource(R.string.settings_duration_medium),
-                        stringResource(R.string.settings_duration_long)
+                        Constants.KEY_DURATION_SHORT,
+                        Constants.KEY_DURATION_MEDIUM,
+                        Constants.KEY_DURATION_LONG
                     ),
                     labels = listOf(
                         stringResource(R.string.settings_duration_short_label),
@@ -129,7 +129,7 @@ fun SettingsScreen() {
                     ),
                     onOptionSelected = { newValue ->
                         selectedDuration = newValue
-                        sharedPref.edit { putString("selected_duration", newValue) }
+                        sharedPref.edit { putString(Constants.PREF_SELECTED_DURATION, newValue) }
                     }
                 )
             }
