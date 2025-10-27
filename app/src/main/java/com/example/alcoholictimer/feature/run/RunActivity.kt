@@ -206,12 +206,17 @@ private fun RunScreen() {
                 ) {
                     Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
                         val labelBoxH = 36.dp; val valueBoxH = 66.dp; val hintBoxH = 20.dp; val gapSmall = 6.dp; val gapMedium = 8.dp
+
+                        // Life Expectancy 값을 일/시간으로 분리
+                        val lifeGainDaysInt = lifeGainDays.toInt()
+                        val lifeGainHoursRemainder = (lifeGainDays - lifeGainDaysInt) * 24.0
+
                         val (label, valueText, valueColor) = when (currentIndicator) {
                             0 -> Triple(stringResource(id = R.string.indicator_title_days), String.format(Locale.getDefault(), "%.1f", elapsedDaysFloat), colorResource(id = R.color.color_indicator_days))
                             1 -> Triple(stringResource(id = R.string.indicator_title_time), progressTimeText, colorResource(id = R.color.color_indicator_time))
                             2 -> Triple(stringResource(id = R.string.indicator_title_saved_money), FormatUtils.formatMoney(context, savedMoney).replace(" ", ""), colorResource(id = R.color.color_indicator_money))
                             3 -> Triple(stringResource(id = R.string.indicator_title_saved_hours), String.format(Locale.getDefault(), "%.1f", savedHours), colorResource(id = R.color.color_indicator_hours))
-                            else -> Triple(stringResource(id = R.string.indicator_title_life_gain), FormatUtils.daysToDayHourString(lifeGainDays, 2), colorResource(id = R.color.color_indicator_life))
+                            else -> Triple(stringResource(id = R.string.indicator_title_life_gain), FormatUtils.daysToDayHourString(context, lifeGainDays, 2), colorResource(id = R.color.color_indicator_life))
                         }
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Box(modifier = Modifier.fillMaxWidth().height(labelBoxH), contentAlignment = Alignment.Center) {
@@ -269,8 +274,9 @@ private fun RunScreen() {
                                         }
                                     }
                                 } else if (isLifeGain) {
-                                    val twoPart = Regex("""(\d+)\s*일\s*([0-9]+(?:\.[0-9]+)?)\s*시간""")
-                                    val onePart = Regex("""([0-9]+(?:\.[0-9]+)?)\s*시간""")
+                                    // 다국어 지원: "1일 2.5시간" 또는 "1 day(s) 2.5 hr(s)"
+                                    val twoPart = Regex("""(\d+)\s*(?:일|day\(s\))\s*([0-9]+(?:\.[0-9]+)?)\s*(?:시간|hr\(s\))""")
+                                    val onePart = Regex("""([0-9]+(?:\.[0-9]+)?)\s*(?:시간|hr\(s\))""")
                                     val m1 = twoPart.find(valueText)
                                     val m2 = if (m1 == null) onePart.find(valueText) else null
                                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
@@ -279,16 +285,16 @@ private fun RunScreen() {
                                             val hStr = m1.groupValues[2]
                                             Text(text = dStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
                                             Spacer(modifier = Modifier.width(2.dp))
-                                            Text(text = "일", style = unitStyle, modifier = Modifier.alignByBaseline())
+                                            Text(text = stringResource(R.string.unit_day), style = unitStyle, modifier = Modifier.alignByBaseline())
                                             Spacer(modifier = Modifier.width(6.dp))
                                             Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
                                             Spacer(modifier = Modifier.width(2.dp))
-                                            Text(text = "시간", style = unitStyle, modifier = Modifier.alignByBaseline())
+                                            Text(text = stringResource(R.string.unit_hour), style = unitStyle, modifier = Modifier.alignByBaseline())
                                         } else if (m2 != null) {
                                             val hStr = m2.groupValues[1]
                                             Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
                                             Spacer(modifier = Modifier.width(2.dp))
-                                            Text(text = "시간", style = unitStyle, modifier = Modifier.alignByBaseline())
+                                            Text(text = stringResource(R.string.unit_hour), style = unitStyle, modifier = Modifier.alignByBaseline())
                                         } else {
                                             Text(text = valueText, style = bigStyle, textAlign = TextAlign.Center, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
                                         }

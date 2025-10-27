@@ -105,7 +105,14 @@ private fun AddRecordScreen(
     var showTargetSheet by remember { mutableStateOf(false) }
     var tempTarget by remember(targetDays) { mutableIntStateOf(targetDays.toIntOrNull()?.coerceIn(0, 999) ?: 0) }
 
-    val dateFormat = SimpleDateFormat("yyyy년 MM월 dd일", Locale.getDefault())
+    // 다국어 지원 날짜 포맷
+    val dateFormat = remember {
+        val locale = Locale.getDefault()
+        when (locale.language) {
+            "ko" -> SimpleDateFormat("yyyy년 MM월 dd일", locale)
+            else -> SimpleDateFormat("MMM dd, yyyy", Locale.ENGLISH)
+        }
+    }
 
     // 밀리초 계산(선택 날짜 + 시간)
     val startMillis by remember(startDate, startTime) {
@@ -228,7 +235,7 @@ private fun AddRecordScreen(
                     ) {
                         Text(stringResource(R.string.add_record_start_date_time), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
                         Text(
-                            text = "${dateFormat.format(Date(startDate))} ${String.format(Locale.getDefault(), "%02d:%02d", startTime.first, startTime.second)}",
+                            text = "${dateFormat.format(Date(startDate))} - ${String.format(Locale.getDefault(), "%02d:%02d", startTime.first, startTime.second)}",
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -250,7 +257,7 @@ private fun AddRecordScreen(
                     ) {
                         Text(stringResource(R.string.add_record_end_date_time), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
                         Text(
-                            text = "${dateFormat.format(Date(endDate))} ${String.format(Locale.getDefault(), "%02d:%02d", endTime.first, endTime.second)}",
+                            text = "${dateFormat.format(Date(endDate))} - ${String.format(Locale.getDefault(), "%02d:%02d", endTime.first, endTime.second)}",
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
