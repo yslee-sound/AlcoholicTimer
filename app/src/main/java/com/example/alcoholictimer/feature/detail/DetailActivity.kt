@@ -170,13 +170,13 @@ fun DetailScreen(
     }
 
     val drinkHoursVal = when(selectedDuration) {
-        "짧음" -> 2
-        "보통" -> 4
-        "길게" -> 6
-        else -> 4
+        "짧음" -> 1.5
+        "보통" -> 4.0
+        "길게" -> 6.0
+        else -> 4.0
     }
 
-    val hangoverHoursVal = 5
+    val hangoverHoursVal = 5.0
 
     val exactWeeks = totalHours / (24.0 * 7.0)
     val savedMoney = (exactWeeks * freqVal * costVal).roundToInt()
