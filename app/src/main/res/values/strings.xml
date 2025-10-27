@@ -159,10 +159,7 @@
     <string name="settings_drinking_frequency">음주 빈도</string>
     <string name="settings_drinking_duration">음주 시간</string>
 
-    <!-- All Records screen (모든 기록 화면) -->
-    <string name="all_records_title">모든 기록</string>
-    <string name="all_records_delete_title">모든 기록 삭제</string>
-    <string name="all_records_delete_message">정말로 모든 금주 기록을 삭제하시겠습니까?</string>
+    <!-- Additional All Records screen strings (추가 모든 기록 화면 문자열) -->
     <string name="all_records_delete_failed">삭제 실패</string>
     <string name="record_completed">완료</string>
     <string name="record_incomplete">미완료</string>

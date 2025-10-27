@@ -16,6 +16,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.res.stringResource
+import com.sweetapps.alcoholictimer.R
 import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
 
 class AllRecordsActivity : BaseActivity() {

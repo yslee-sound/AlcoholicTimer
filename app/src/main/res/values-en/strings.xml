@@ -159,10 +159,7 @@
     <string name="settings_drinking_frequency">Drinking Frequency</string>
     <string name="settings_drinking_duration">Drinking Duration</string>
 
-    <!-- All Records screen -->
-    <string name="all_records_title">All Records</string>
-    <string name="all_records_delete_title">Delete All Records</string>
-    <string name="all_records_delete_message">Are you sure you want to delete all sobriety records?</string>
+    <!-- Additional All Records screen strings -->
     <string name="all_records_delete_failed">Delete failed</string>
     <string name="record_completed">Completed</string>
     <string name="record_incomplete">Incomplete</string>
