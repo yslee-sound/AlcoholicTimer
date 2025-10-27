@@ -159,6 +159,22 @@
     <string name="settings_drinking_frequency">음주 빈도</string>
     <string name="settings_drinking_duration">음주 시간</string>
 
+    <!-- All Records screen (모든 기록 화면) -->
+    <string name="all_records_title">모든 기록</string>
+    <string name="all_records_delete_title">모든 기록 삭제</string>
+    <string name="all_records_delete_message">정말로 모든 금주 기록을 삭제하시겠습니까?</string>
+    <string name="all_records_delete_failed">삭제 실패</string>
+    <string name="record_completed">완료</string>
+    <string name="record_incomplete">미완료</string>
+    <string name="record_actual_days">달성 일수</string>
+    <string name="record_target_days">목표 일수</string>
+    <string name="record_success_rate">달성률</string>
+    <string name="record_start_time">시작</string>
+    <string name="record_end_time">종료</string>
+    <string name="record_days_format">%.1f일</string>
+    <string name="record_target_days_format">%d일</string>
+    <string name="record_rate_format">%.1f%%</string>
+
     <!-- Cost options -->
     <string name="settings_cost_low">저</string>
     <string name="settings_cost_medium">중</string>

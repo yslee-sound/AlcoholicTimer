@@ -159,6 +159,22 @@
     <string name="settings_drinking_frequency">Drinking Frequency</string>
     <string name="settings_drinking_duration">Drinking Duration</string>
 
+    <!-- All Records screen -->
+    <string name="all_records_title">All Records</string>
+    <string name="all_records_delete_title">Delete All Records</string>
+    <string name="all_records_delete_message">Are you sure you want to delete all sobriety records?</string>
+    <string name="all_records_delete_failed">Delete failed</string>
+    <string name="record_completed">Completed</string>
+    <string name="record_incomplete">Incomplete</string>
+    <string name="record_actual_days">Actual Days</string>
+    <string name="record_target_days">Target Days</string>
+    <string name="record_success_rate">Success Rate</string>
+    <string name="record_start_time">Start</string>
+    <string name="record_end_time">End</string>
+    <string name="record_days_format">%.1f day(s)</string>
+    <string name="record_target_days_format">%d day(s)</string>
+    <string name="record_rate_format">%.1f%%</string>
+
     <!-- Cost options -->
     <string name="settings_cost_low">Low</string>
     <string name="settings_cost_medium">Medium</string>

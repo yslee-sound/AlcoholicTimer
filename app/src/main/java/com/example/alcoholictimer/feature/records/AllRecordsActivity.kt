@@ -15,6 +15,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.res.stringResource
 import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
 
 class AllRecordsActivity : BaseActivity() {
@@ -42,7 +43,7 @@ class AllRecordsActivity : BaseActivity() {
                 onBackClick = { finish() },
                 topBarActions = {
                     IconButton(onClick = { showDeleteAll.value = true }) {
-                        Icon(imageVector = Icons.Outlined.Close, contentDescription = "모든 기록 삭제")
+                        Icon(imageVector = Icons.Outlined.Close, contentDescription = stringResource(R.string.all_records_delete_title))
                     }
                 },
                 bottomAd = { AdmobBanner() }
@@ -57,7 +58,8 @@ class AllRecordsActivity : BaseActivity() {
         }
     }
 
-    override fun getScreenTitle(): String = "모든 기록"
+    override fun getScreenTitleResId(): Int = R.string.all_records_title
+    override fun getScreenTitle(): String = getString(R.string.all_records_title)
 
     private fun handleRecordClick(record: SobrietyRecord) {
         Log.d(TAG, "===== 기록 클릭 시작 =====")

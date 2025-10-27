@@ -171,7 +171,7 @@ fun AllRecordsScreen(
                                 // onNavigateBack()을 즉시 호출하지 않고 사용자가 확인할 수 있게 함
                             } else {
                                 // 삭제 실패: 에러 표시 (향후 개선 가능)
-                                loadError = "삭제 실패"
+                                loadError = context.getString(R.string.all_records_delete_failed)
                             }
                         }
                     ) { Text(stringResource(id = R.string.dialog_delete_confirm)) }

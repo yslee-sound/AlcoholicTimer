@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -106,7 +107,7 @@ fun RecordSummaryCard(
                 ) {
                     Icon(
                         imageVector = if (record.isCompleted) Icons.Filled.CheckCircle else Icons.Filled.Warning,
-                        contentDescription = if (record.isCompleted) "완료" else "미완료",
+                        contentDescription = stringResource(if (record.isCompleted) R.string.record_completed else R.string.record_incomplete),
                         tint = if (record.isCompleted) resolvedRateCompleted else statusIncomplete,
                         modifier = Modifier
                             .fillMaxSize()
@@ -132,32 +133,32 @@ fun RecordSummaryCard(
             ) {
                 Column {
                     Text(
-                        text = String.format(Locale.getDefault(), "%.1f일", totalDays),
+                        text = stringResource(R.string.record_days_format, totalDays),
                         fontSize = valueSize,
                         color = resolvedNumber,
                         fontWeight = numberFontWeight
                     )
-                    Text(text = "달성 일수", fontSize = labelSize, color = resolvedLabel)
+                    Text(text = stringResource(R.string.record_actual_days), fontSize = labelSize, color = resolvedLabel)
                 }
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "${record.targetDays}일",
+                        text = stringResource(R.string.record_target_days_format, record.targetDays),
                         fontSize = valueSize,
                         color = resolvedNumber,
                         fontWeight = numberFontWeight
                     )
-                    Text(text = "목표 일수", fontSize = labelSize, color = resolvedLabel)
+                    Text(text = stringResource(R.string.record_target_days), fontSize = labelSize, color = resolvedLabel)
                 }
 
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        text = String.format(Locale.getDefault(), "%.1f%%", successRate),
+                        text = stringResource(R.string.record_rate_format, successRate),
                         fontSize = valueSizePercent,
                         color = if (record.isCompleted) resolvedRateCompleted else resolvedRateInProgress,
                         fontWeight = numberFontWeight
                     )
-                    Text(text = "달성률", fontSize = labelSize, color = resolvedLabel)
+                    Text(text = stringResource(R.string.record_success_rate), fontSize = labelSize, color = resolvedLabel)
                 }
             }
 
@@ -181,8 +182,8 @@ fun RecordSummaryCard(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     val timeTextColor = resolvedLabel
-                    Text(text = "시작: $startTime", fontSize = labelSize, color = timeTextColor)
-                    Text(text = "종료: $endTime", fontSize = labelSize, color = timeTextColor)
+                    Text(text = stringResource(R.string.record_start_time) + ": $startTime", fontSize = labelSize, color = timeTextColor)
+                    Text(text = stringResource(R.string.record_end_time) + ": $endTime", fontSize = labelSize, color = timeTextColor)
                 }
             }
         }
