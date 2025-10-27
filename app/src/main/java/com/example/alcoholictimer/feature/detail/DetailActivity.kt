@@ -363,13 +363,13 @@ fun DetailScreen(
                         horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
                     ) {
                         com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
-                            value = String.format(Locale.getDefault(), "%.1f일", totalDays),
+                            value = stringResource(R.string.unit_days_format, totalDays),
                             label = stringResource(id = R.string.stat_total_days),
                             modifier = Modifier.weight(1f),
                             valueColor = colorResource(id = R.color.color_indicator_days)
                         )
                         com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
-                            value = String.format(Locale.getDefault(), "%,.0f원", savedMoney.toDouble()),
+                            value = stringResource(R.string.unit_won_format, savedMoney.toDouble()),
                             label = stringResource(id = R.string.stat_saved_money_short),
                             modifier = Modifier.weight(1f),
                             valueColor = colorResource(id = R.color.color_indicator_money)
@@ -383,7 +383,7 @@ fun DetailScreen(
                         horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
                     ) {
                         com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
-                            value = String.format(Locale.getDefault(), "%.1f시간", savedHoursExact),
+                            value = stringResource(R.string.unit_hours_format, savedHoursExact),
                             label = stringResource(id = R.string.stat_saved_hours_short),
                             modifier = Modifier.weight(1f),
                             valueColor = colorResource(id = R.color.color_indicator_hours)

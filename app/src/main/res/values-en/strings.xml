@@ -63,6 +63,9 @@
     <string name="detail_progress_target">Goal: %1$d days</string>
     <string name="detail_today_time">Today - %1$s</string>
     <string name="unit_day">day</string>
+    <string name="unit_days_format">%.1f day(s)</string>
+    <string name="unit_hours_format">%.1f hr(s)</string>
+    <string name="unit_won_format">₩%,.0f</string>
 
     <!-- About screen -->
     <string name="about_title">About</string>
