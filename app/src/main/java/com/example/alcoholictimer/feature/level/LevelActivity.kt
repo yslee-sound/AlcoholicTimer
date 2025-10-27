@@ -60,7 +60,8 @@ class LevelActivity : BaseActivity() {
         }
     }
 
-    override fun getScreenTitle(): String = "금주 레벨"
+    override fun getScreenTitleResId(): Int = R.string.level_title
+    override fun getScreenTitle(): String = getString(R.string.level_title)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

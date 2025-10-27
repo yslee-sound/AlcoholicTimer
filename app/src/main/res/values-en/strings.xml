@@ -137,6 +137,7 @@
     <string name="level_7">Legend Of The Legend</string>
 
     <!-- Level screen -->
+    <string name="level_title">Sobriety Levels</string>
     <string name="level_days_label">Days</string>
     <string name="level_until_next">Until Next Level</string>
     <string name="level_days_remaining">left</string>
@@ -153,7 +154,7 @@
     <string name="target_days_hint">Please select your sobriety goal period</string>
 
     <!-- Settings screen -->
-    <string name="settings_title">Sobriety Settings</string>
+    <string name="settings_title">Settings</string>
     <string name="settings_drinking_cost">Drinking Cost</string>
     <string name="settings_drinking_frequency">Drinking Frequency</string>
     <string name="settings_drinking_duration">Drinking Duration</string>
