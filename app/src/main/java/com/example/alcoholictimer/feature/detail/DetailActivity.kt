@@ -369,7 +369,7 @@ fun DetailScreen(
                             valueColor = colorResource(id = R.color.color_indicator_days)
                         )
                         com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
-                            value = stringResource(R.string.unit_won_format, savedMoney.toDouble()),
+                            value = FormatUtils.formatMoney(context, savedMoney.toDouble()),
                             label = stringResource(id = R.string.stat_saved_money_short),
                             modifier = Modifier.weight(1f),
                             valueColor = colorResource(id = R.color.color_indicator_money)

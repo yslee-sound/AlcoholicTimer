@@ -300,6 +300,7 @@ fun StatisticsCardsSection(
     savedHours: Double,
     lifeGainDays: Double
 ) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
@@ -310,13 +311,13 @@ fun StatisticsCardsSection(
             horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
         ) {
             com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
-                value = String.format(Locale.getDefault(), "%.1f일", totalDaysDecimal),
+                value = stringResource(R.string.unit_days_format, totalDaysDecimal),
                 label = stringResource(id = R.string.stat_total_days),
                 modifier = Modifier.weight(1f),
                 valueColor = colorResource(id = R.color.color_indicator_days)
             )
             com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
-                value = String.format(Locale.getDefault(), "%,.0f원", savedMoney),
+                value = FormatUtils.formatMoney(context, savedMoney),
                 label = stringResource(id = R.string.stat_saved_money_short),
                 modifier = Modifier.weight(1f),
                 valueColor = colorResource(id = R.color.color_indicator_money)
@@ -327,13 +328,13 @@ fun StatisticsCardsSection(
             horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
         ) {
             com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
-                value = String.format(Locale.getDefault(), "%.1f시간", savedHours),
+                value = stringResource(R.string.unit_hours_format, savedHours),
                 label = stringResource(id = R.string.stat_saved_hours_short),
                 modifier = Modifier.weight(1f),
                 valueColor = colorResource(id = R.color.color_indicator_hours)
             )
             com.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard(
-                value = FormatUtils.daysToDayHourString(lifeGainDays, 2),
+                value = FormatUtils.daysToDayHourString(context, lifeGainDays, 2),
                 label = stringResource(id = R.string.indicator_title_life_gain),
                 modifier = Modifier.weight(1f),
                 valueColor = colorResource(id = R.color.color_indicator_life)

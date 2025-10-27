@@ -209,7 +209,7 @@ private fun RunScreen() {
                         val (label, valueText, valueColor) = when (currentIndicator) {
                             0 -> Triple(stringResource(id = R.string.indicator_title_days), String.format(Locale.getDefault(), "%.1f", elapsedDaysFloat), colorResource(id = R.color.color_indicator_days))
                             1 -> Triple(stringResource(id = R.string.indicator_title_time), progressTimeText, colorResource(id = R.color.color_indicator_time))
-                            2 -> Triple(stringResource(id = R.string.indicator_title_saved_money), String.format(Locale.getDefault(), "%,.0f원", savedMoney).replace(" ", ""), colorResource(id = R.color.color_indicator_money))
+                            2 -> Triple(stringResource(id = R.string.indicator_title_saved_money), FormatUtils.formatMoney(context, savedMoney).replace(" ", ""), colorResource(id = R.color.color_indicator_money))
                             3 -> Triple(stringResource(id = R.string.indicator_title_saved_hours), String.format(Locale.getDefault(), "%.1f", savedHours), colorResource(id = R.color.color_indicator_hours))
                             else -> Triple(stringResource(id = R.string.indicator_title_life_gain), FormatUtils.daysToDayHourString(lifeGainDays, 2), colorResource(id = R.color.color_indicator_life))
                         }
@@ -250,11 +250,23 @@ private fun RunScreen() {
                                 val isMoney = currentIndicator == 2
                                 val isLifeGain = currentIndicator == 4
                                 if (isMoney) {
-                                    val numeric = valueText.replace("원", "")
-                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                                        Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
-                                        Spacer(modifier = Modifier.width(2.dp))
-                                        Text(text = "원", style = unitStyle, modifier = Modifier.alignByBaseline())
+                                    // 원화 또는 달러 형식 처리
+                                    val dollarMatch = Regex("""\$([0-9,]+)""").find(valueText)
+                                    if (dollarMatch != null) {
+                                        // 달러 형식: $1,000
+                                        val numeric = dollarMatch.groupValues[1]
+                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                            Text(text = "$", style = unitStyle, modifier = Modifier.alignByBaseline())
+                                            Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                        }
+                                    } else {
+                                        // 원화 형식: 1,000원
+                                        val numeric = valueText.replace("원", "").replace("₩", "")
+                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                            Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                            Spacer(modifier = Modifier.width(2.dp))
+                                            Text(text = "원", style = unitStyle, modifier = Modifier.alignByBaseline())
+                                        }
                                     }
                                 } else if (isLifeGain) {
                                     val twoPart = Regex("""(\d+)\s*일\s*([0-9]+(?:\.[0-9]+)?)\s*시간""")
