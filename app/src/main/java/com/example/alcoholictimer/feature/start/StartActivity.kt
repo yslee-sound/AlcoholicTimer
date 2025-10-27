@@ -435,7 +435,7 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
                         } else baseTitleModifier
 
                         Text(
-                            text = "목표 기간 설정",
+                            text = stringResource(R.string.target_days_title),
                             style = MaterialTheme.typography.titleLarge,
                             color = colorResource(id = R.color.color_title_primary),
                             modifier = titleModifier
@@ -474,13 +474,13 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
                             }
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
-                                text = "일",
+                                text = stringResource(R.string.target_days_unit),
                                 style = MaterialTheme.typography.titleLarge,
                                 color = colorResource(id = R.color.color_indicator_label_gray)
                             )
                         }
                         Text(
-                            text = "금주할 목표 기간을 선택해주세요",
+                            text = stringResource(R.string.target_days_hint),
                             style = MaterialTheme.typography.bodyMedium,
                             color = colorResource(id = R.color.color_hint_gray),
                             textAlign = TextAlign.Center,

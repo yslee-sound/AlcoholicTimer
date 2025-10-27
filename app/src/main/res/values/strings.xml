@@ -114,6 +114,7 @@
     <string name="records_period_month">월</string>
     <string name="records_period_year">년</string>
     <string name="records_period_all">전체</string>
+    <string name="records_this_week">이번 주</string>
     <string name="records_monthly_stats">월 통계</string>
     <string name="records_success_rate">성공률</string>
     <string name="records_avg_duration">평균 지속일</string>
@@ -134,6 +135,25 @@
     <string name="level_5">거의 1년</string>
     <string name="level_6">금주 마스터</string>
     <string name="level_7">절제의 레전드</string>
+
+    <!-- Level screen (레벨 화면) -->
+    <string name="level_days_label">일차</string>
+    <string name="level_until_next">다음 레벨까지</string>
+    <string name="level_days_remaining">남음</string>
+    <string name="level_hours_remaining">남음</string>
+    <string name="level_days_hours_remaining">일 %d시간 남음</string>
+    <string name="level_soon_levelup">곧 레벨업</string>
+    <string name="level_all_levels">전체 레벨</string>
+    <string name="level_day_unit">일</string>
+    <string name="level_hour_unit">시간</string>
+
+    <!-- Target Days Setting (목표 기간 설정) -->
+    <string name="target_days_title">목표 기간 설정</string>
+    <string name="target_days_unit">일</string>
+    <string name="target_days_hint">금주할 목표 기간을 선택해주세요</string>
+
+    <!-- Settings screen (설정 화면) -->
+    <string name="settings_title">금주 설정</string>
 
     <!-- Add Record screen (금주 기록 추가) -->
     <string name="add_record_title">금주 기록 추가</string>

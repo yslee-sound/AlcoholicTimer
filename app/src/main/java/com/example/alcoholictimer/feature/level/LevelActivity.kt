@@ -30,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.sweetapps.alcoholictimer.R
 import com.sweetapps.alcoholictimer.core.ui.AppElevation
 import com.sweetapps.alcoholictimer.core.ui.BaseActivity
@@ -136,10 +137,11 @@ fun CurrentLevelCard(
                     .testTag("main_level_badge"),
                 contentAlignment = Alignment.Center
             ) {
-                val levelName = context.getString(currentLevel.nameResId)
+                val levelNumber = LevelDefinitions.getLevelNumber(currentDays) + 1
                 Text(
-                    text = levelName.take(2),
-                    style = MaterialTheme.typography.titleLarge.copy(color = Color.White)
+                    text = "LV.$levelNumber",
+                    style = MaterialTheme.typography.titleLarge.copy(color = Color.White, fontWeight = FontWeight.Bold),
+                    fontSize = 20.sp
                 )
             }
 
@@ -167,7 +169,7 @@ fun CurrentLevelCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "일차",
+                    text = context.getString(R.string.level_days_label),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium, color = Color(0xFF666666)),
                     modifier = Modifier.testTag("main_level_days_label")
                 )
@@ -189,10 +191,10 @@ fun CurrentLevelCard(
                 val remainingDaysInt = kotlin.math.floor(remainingDaysFloat.toDouble()).toInt()
                 val remainingHoursInt = kotlin.math.floor(((remainingDaysFloat - remainingDaysInt) * 24f).toDouble()).toInt()
                 val remainingText = when {
-                    remainingDaysInt > 0 && remainingHoursInt > 0 -> "${remainingDaysInt}일 ${remainingHoursInt}시간 남음"
-                    remainingDaysInt > 0 -> "${remainingDaysInt}일 남음"
-                    remainingHoursInt > 0 -> "${remainingHoursInt}시간 남음"
-                    else -> "곧 레벨업"
+                    remainingDaysInt > 0 && remainingHoursInt > 0 -> "$remainingDaysInt${context.getString(R.string.level_day_unit)} $remainingHoursInt${context.getString(R.string.level_hour_unit)} ${context.getString(R.string.level_days_remaining)}"
+                    remainingDaysInt > 0 -> "$remainingDaysInt${context.getString(R.string.level_day_unit)} ${context.getString(R.string.level_days_remaining)}"
+                    remainingHoursInt > 0 -> "$remainingHoursInt${context.getString(R.string.level_hour_unit)} ${context.getString(R.string.level_hours_remaining)}"
+                    else -> context.getString(R.string.level_soon_levelup)
                 }
 
                 ProgressToNextLevel(
@@ -217,6 +219,7 @@ private fun ProgressToNextLevel(
     remainingText: String,
     isSobrietyActive: Boolean
 ) {
+    val context = LocalContext.current
     var isVisible by remember { mutableStateOf(true) }
 
     LaunchedEffect(remainingDays, isSobrietyActive) {
@@ -238,7 +241,7 @@ private fun ProgressToNextLevel(
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-            Text(text = "다음 레벨까지", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium, color = Color(0xFF666666)))
+            Text(text = context.getString(R.string.level_until_next), style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium, color = Color(0xFF666666)))
             Spacer(modifier = Modifier.width(8.dp))
             Box(
                 modifier = Modifier
@@ -283,6 +286,7 @@ private fun ProgressToNextLevel(
 
 @Composable
 private fun LevelListCard(currentLevel: LevelDefinitions.LevelInfo, currentDays: Int) {
+    val context = LocalContext.current
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -292,7 +296,7 @@ private fun LevelListCard(currentLevel: LevelDefinitions.LevelInfo, currentDays:
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
             Text(
-                text = "전체 레벨",
+                text = context.getString(R.string.level_all_levels),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color(0xFF333333)),
                 modifier = Modifier.padding(bottom = 24.dp)
             )
@@ -354,10 +358,13 @@ private fun LevelItem(
                     .background(if (isAchieved) level.color else Color(0xFFE0E0E0)),
                 contentAlignment = Alignment.Center
             ) {
-                val levelName = context.getString(level.nameResId)
+                val levelNumber = LevelDefinitions.levels.indexOf(level) + 1
                 Text(
-                    text = levelName.take(1),
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = if (isAchieved) Color.White else Color(0xFF757575))
+                    text = "$levelNumber",
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = if (isAchieved) Color.White else Color(0xFF757575)
+                    )
                 )
             }
 
@@ -370,7 +377,8 @@ private fun LevelItem(
                         .copy(color = if (isAchieved) level.color else Color(0xFF757575))
                 )
 
-                val rangeText = if (level.end == Int.MAX_VALUE) "${level.start}일 이상" else "${level.start}~${level.end}일"
+                val dayUnit = context.getString(R.string.level_day_unit)
+                val rangeText = if (level.end == Int.MAX_VALUE) "${level.start}$dayUnit+" else "${level.start}~${level.end}$dayUnit"
                 Text(text = rangeText, style = MaterialTheme.typography.labelMedium.copy(color = Color(0xFF666666)))
             }
 

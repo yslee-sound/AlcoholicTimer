@@ -114,6 +114,7 @@
     <string name="records_period_month">Month</string>
     <string name="records_period_year">Year</string>
     <string name="records_period_all">All</string>
+    <string name="records_this_week">This Week</string>
     <string name="records_monthly_stats">Monthly Stats</string>
     <string name="records_success_rate">Success Rate</string>
     <string name="records_avg_duration">Avg. Duration</string>
@@ -126,14 +127,33 @@
     <string name="records_percent_unit">%</string>
 
     <!-- Level names -->
-    <string name="level_0">First Week</string>
-    <string name="level_1">Two Weeks Strong</string>
-    <string name="level_2">One Month Miracle</string>
-    <string name="level_3">Habit Forming</string>
-    <string name="level_4">Continuing Challenge</string>
-    <string name="level_5">Nearly One Year</string>
-    <string name="level_6">Sobriety Master</string>
-    <string name="level_7">Abstinence Legend</string>
+    <string name="level_0">The Seven-Day Survivor</string>
+    <string name="level_1">The Fortitude Fortnight</string>
+    <string name="level_2">One-Month Miracle</string>
+    <string name="level_3">Habit Hatcher</string>
+    <string name="level_4">The Quest Continues</string>
+    <string name="level_5">The Near-Year</string>
+    <string name="level_6">The Sober Master</string>
+    <string name="level_7">Legend Of The Legend</string>
+
+    <!-- Level screen -->
+    <string name="level_days_label">Days</string>
+    <string name="level_until_next">Until Next Level</string>
+    <string name="level_days_remaining">left</string>
+    <string name="level_hours_remaining">left</string>
+    <string name="level_days_hours_remaining">day(s) %d hour(s) left</string>
+    <string name="level_soon_levelup">Level Up Soon!</string>
+    <string name="level_all_levels">All Levels</string>
+    <string name="level_day_unit">day(s)</string>
+    <string name="level_hour_unit">hour(s)</string>
+
+    <!-- Target Days Setting -->
+    <string name="target_days_title">Set Target Period</string>
+    <string name="target_days_unit">day(s)</string>
+    <string name="target_days_hint">Please select your sobriety goal period</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Sobriety Settings</string>
 
     <!-- Add Record screen -->
     <string name="add_record_title">Add Sobriety Record</string>

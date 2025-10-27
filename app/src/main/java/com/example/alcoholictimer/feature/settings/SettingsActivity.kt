@@ -29,7 +29,8 @@ import androidx.compose.material3.RadioButtonDefaults
 import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
 
 class SettingsActivity : BaseActivity() {
-    override fun getScreenTitle(): String = "설정"
+    override fun getScreenTitleResId(): Int = R.string.settings_title
+    override fun getScreenTitle(): String = getString(R.string.settings_title)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

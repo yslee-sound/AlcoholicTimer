@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -245,8 +246,9 @@ abstract class BaseActivity : ComponentActivity() {
                                                 CompositionLocalProvider(
                                                     LocalDensity provides Density(LocalDensity.current.density, fontScale = 1.2f)
                                                 ) {
+                                                    val titleText = getScreenTitleResId()?.let { stringResource(it) } ?: getScreenTitle()
                                                     Text(
-                                                        text = getScreenTitle(),
+                                                        text = titleText,
                                                         color = Color(0xFF2C3E50),
                                                         fontWeight = FontWeight.SemiBold,
                                                         style = MaterialTheme.typography.titleMedium
@@ -482,6 +484,9 @@ abstract class BaseActivity : ComponentActivity() {
         finish()
     }
 
+    protected open fun getScreenTitleResId(): Int? = null
+
+    @Deprecated("Use getScreenTitleResId() instead for proper localization support")
     protected abstract fun getScreenTitle(): String
 }
 

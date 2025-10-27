@@ -108,8 +108,16 @@ fun PeriodSelectionSection(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                val displayText = getCurrentPeriodText(
+                    selectedPeriod = selectedPeriod,
+                    selectedDetailPeriod = selectedDetailPeriod,
+                    periodWeek = periodWeek,
+                    periodMonth = periodMonth,
+                    periodYear = periodYear,
+                    periodAll = periodAll
+                )
                 Text(
-                    text = getCurrentPeriodText(selectedPeriod, selectedDetailPeriod),
+                    text = displayText,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color(0xFF2C3E50)
@@ -127,13 +135,22 @@ fun PeriodSelectionSection(
     }
 }
 
-private fun getCurrentPeriodText(selectedPeriod: String, selectedDetailPeriod: String): String {
+@Composable
+private fun getCurrentPeriodText(
+    selectedPeriod: String,
+    selectedDetailPeriod: String,
+    periodWeek: String,
+    periodMonth: String,
+    periodYear: String,
+    periodAll: String
+): String {
     val calendar = Calendar.getInstance()
+    val thisWeek = stringResource(R.string.records_this_week)
 
     return when (selectedPeriod) {
-        "주" -> if (selectedDetailPeriod.isNotEmpty()) selectedDetailPeriod else "이번 주"
-        "월" -> if (selectedDetailPeriod.isNotEmpty()) selectedDetailPeriod else SimpleDateFormat("yyyy년 M월", Locale.getDefault()).format(calendar.time)
-        "년" -> if (selectedDetailPeriod.isNotEmpty()) selectedDetailPeriod else SimpleDateFormat("yyyy년", Locale.getDefault()).format(calendar.time)
-        else -> "전체"
+        periodWeek -> if (selectedDetailPeriod.isNotEmpty()) selectedDetailPeriod else thisWeek
+        periodMonth -> if (selectedDetailPeriod.isNotEmpty()) selectedDetailPeriod else SimpleDateFormat("yyyy년 M월", Locale.getDefault()).format(calendar.time)
+        periodYear -> if (selectedDetailPeriod.isNotEmpty()) selectedDetailPeriod else SimpleDateFormat("yyyy년", Locale.getDefault()).format(calendar.time)
+        else -> periodAll
     }
 }

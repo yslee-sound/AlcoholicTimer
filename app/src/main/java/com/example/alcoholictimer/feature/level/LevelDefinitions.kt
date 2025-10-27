@@ -29,5 +29,9 @@ object LevelDefinitions {
     fun getLevelInfo(days: Int): LevelInfo {
         return levels.firstOrNull { days in it.start..it.end } ?: levels.first()
     }
+
+    fun getLevelNumber(days: Int): Int {
+        return levels.indexOfFirst { days in it.start..it.end }.takeIf { it >= 0 } ?: 0
+    }
 }
 
