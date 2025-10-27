@@ -5,7 +5,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.sweetapps.alcoholictimer.R
 import com.sweetapps.alcoholictimer.core.ui.components.NumberPicker
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,7 +36,7 @@ fun TargetDaysBottomSheet(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("목표 일수 선택", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.target_days_picker_title), style = MaterialTheme.typography.titleMedium)
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -64,7 +66,7 @@ fun TargetDaysBottomSheet(
                 Box(
                     modifier = Modifier.align(Alignment.CenterVertically)
                 ) {
-                    Text("일", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.target_days_picker_unit), style = MaterialTheme.typography.titleMedium)
                 }
             }
 
@@ -75,12 +77,12 @@ fun TargetDaysBottomSheet(
                 OutlinedButton(
                     onClick = onDismiss,
                     modifier = Modifier.weight(1f)
-                ) { Text("취소") }
+                ) { Text(stringResource(R.string.target_days_picker_cancel)) }
 
                 Button(
                     onClick = { onConfirm(current) },
                     modifier = Modifier.weight(1f)
-                ) { Text("확인") }
+                ) { Text(stringResource(R.string.target_days_picker_confirm)) }
             }
             Spacer(Modifier.height(12.dp))
         }

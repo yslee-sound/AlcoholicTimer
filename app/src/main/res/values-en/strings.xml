@@ -153,6 +153,12 @@
     <string name="target_days_unit">day(s)</string>
     <string name="target_days_hint">Please select your sobriety goal period</string>
 
+    <!-- Target Days Picker -->
+    <string name="target_days_picker_title">Select Target Days</string>
+    <string name="target_days_picker_unit">day(s)</string>
+    <string name="target_days_picker_cancel">Cancel</string>
+    <string name="target_days_picker_confirm">OK</string>
+
     <!-- Start Activity screen title -->
     <string name="start_screen_title">Sobriety Start</string>
 
