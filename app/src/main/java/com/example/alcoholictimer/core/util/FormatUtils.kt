@@ -52,7 +52,7 @@ object FormatUtils {
     /**
      * 금액을 로케일에 따라 포맷팅
      * 한국어: 원화 (₩1,000원)
-     * 영어: 달러 ($1)
+     * 영어: 달러 ($1.00)
      */
     @JvmStatic
     fun formatMoney(context: Context, amountInWon: Double): String {
@@ -61,9 +61,9 @@ object FormatUtils {
             // 한국어: 원화 표시
             context.getString(R.string.unit_won_format, amountInWon)
         } else {
-            // 영어: 달러로 변환
+            // 영어: 달러로 변환 (소수점 2자리)
             val amountInDollars = amountInWon / WON_TO_DOLLAR_RATE
-            String.format(locale, "$%,.0f", amountInDollars)
+            String.format(locale, "$%,.2f", amountInDollars)
         }
     }
 
