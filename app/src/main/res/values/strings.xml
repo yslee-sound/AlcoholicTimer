@@ -172,6 +172,18 @@
     <string name="record_target_days_format">%d일</string>
     <string name="record_rate_format">%.1f%%</string>
 
+    <!-- Month Picker (월 선택) -->
+    <string name="month_picker_title">월 선택</string>
+    <string name="month_picker_year_format">%d년</string>
+    <string name="month_picker_month_format">%d월</string>
+    <string name="month_picker_no_data">표시할 항목이 없습니다</string>
+    <string name="month_picker_select">선택</string>
+
+    <!-- Date Format (날짜 형식) -->
+    <string name="date_format_year_month">%1$d년 %2$d월</string>
+    <string name="date_format_year">%d년</string>
+    <string name="date_format_month">%d월</string>
+
     <!-- Cost options -->
     <string name="settings_cost_low">저</string>
     <string name="settings_cost_medium">중</string>

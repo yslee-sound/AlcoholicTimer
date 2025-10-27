@@ -172,6 +172,18 @@
     <string name="record_target_days_format">%d day(s)</string>
     <string name="record_rate_format">%.1f%%</string>
 
+    <!-- Month Picker -->
+    <string name="month_picker_title">Select Month</string>
+    <string name="month_picker_year_format">%d</string>
+    <string name="month_picker_month_format">%d</string>
+    <string name="month_picker_no_data">No data available</string>
+    <string name="month_picker_select">Select</string>
+
+    <!-- Date Format -->
+    <string name="date_format_year_month">%2$d/%1$d</string>
+    <string name="date_format_year">%d</string>
+    <string name="date_format_month">%d</string>
+
     <!-- Cost options -->
     <string name="settings_cost_low">Low</string>
     <string name="settings_cost_medium">Medium</string>

@@ -70,7 +70,7 @@ fun RecordsScreen(
 
     var selectedPeriod by remember { mutableStateOf(periodMonth) }
     var showBottomSheet by remember { mutableStateOf(false) }
-    var selectedDetailPeriod by remember { mutableStateOf("${currentYear}년 ${currentMonth}월") }
+    var selectedDetailPeriod by remember { mutableStateOf(stringResource(R.string.date_format_year_month, currentYear, currentMonth)) }
     var selectedWeekRange by remember { mutableStateOf<Pair<Long, Long>?>(null) }
 
     // 전역 입력 잠금 훅
@@ -348,13 +348,13 @@ fun RecordsScreen(
                     isVisible = true,
                     onDismiss = { showBottomSheet = false },
                     onMonthPicked = { year, month ->
-                        selectedDetailPeriod = "${year}년 ${month}월"
+                        selectedDetailPeriod = context.getString(R.string.date_format_year_month, year, month)
                         showBottomSheet = false
                     },
                     records = records,
                     onYearPicked = { year ->
                         selectedPeriod = periodYear
-                        selectedDetailPeriod = "${year}년"
+                        selectedDetailPeriod = context.getString(R.string.date_format_year, year)
                         showBottomSheet = false
                     }
                 )

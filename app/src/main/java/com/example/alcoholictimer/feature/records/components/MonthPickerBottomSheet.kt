@@ -8,10 +8,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sweetapps.alcoholictimer.R
 import com.sweetapps.alcoholictimer.core.ui.AppAlphas
 import com.sweetapps.alcoholictimer.core.ui.components.NumberPicker
 import com.sweetapps.alcoholictimer.core.model.SobrietyRecord
@@ -110,7 +112,7 @@ internal fun MonthPickerContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "월 선택",
+            text = stringResource(R.string.month_picker_title),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF2C3E50),
@@ -134,7 +136,7 @@ internal fun MonthPickerContent(
                             yearOptions.getOrNull(newIndex)?.let { y -> onYearPicked(y) }
                         },
                         range = 0 until yearOptions.size,
-                        displayValues = yearOptions.map { "${it}년" },
+                        displayValues = yearOptions.map { stringResource(R.string.month_picker_year_format, it) },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -143,7 +145,7 @@ internal fun MonthPickerContent(
                         value = selectedMonthIndex,
                         onValueChange = { selectedMonthIndex = it },
                         range = 0 until monthOptions.size,
-                        displayValues = monthOptions.map { "${it}월" },
+                        displayValues = monthOptions.map { stringResource(R.string.month_picker_month_format, it) },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -154,7 +156,7 @@ internal fun MonthPickerContent(
                     .fillMaxWidth()
                     .heightIn(min = 140.dp),
                 contentAlignment = Alignment.Center
-            ) { Text(text = "표시할 항목이 없습니다", color = Color(0xFF636E72), fontSize = 14.sp) }
+            ) { Text(text = stringResource(R.string.month_picker_no_data), color = Color(0xFF636E72), fontSize = 14.sp) }
         }
 
         Button(
@@ -178,7 +180,7 @@ internal fun MonthPickerContent(
                 disabledContentColor = Color.White.copy(alpha = 0.7f)
             ),
             shape = RoundedCornerShape(12.dp)
-        ) { Text(text = "선택", fontSize = 16.sp, fontWeight = FontWeight.Bold) }
+        ) { Text(text = stringResource(R.string.month_picker_select), fontSize = 16.sp, fontWeight = FontWeight.Bold) }
 
         Spacer(modifier = Modifier.height(8.dp))
     }
