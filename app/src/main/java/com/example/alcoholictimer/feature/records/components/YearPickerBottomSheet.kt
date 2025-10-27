@@ -8,10 +8,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sweetapps.alcoholictimer.R
 import com.sweetapps.alcoholictimer.core.ui.AppAlphas
 import com.sweetapps.alcoholictimer.core.ui.components.NumberPicker
 import com.sweetapps.alcoholictimer.core.model.SobrietyRecord
@@ -60,6 +63,7 @@ internal fun YearPickerContent(
     records: List<SobrietyRecord>,
     initialYear: Int
 ) {
+    val context = LocalContext.current
     val yearOptions = remember(records) {
         if (records.isEmpty()) emptyList() else run {
             val nowYear = Calendar.getInstance().get(Calendar.YEAR)
@@ -82,7 +86,7 @@ internal fun YearPickerContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "연도 선택",
+            text = stringResource(R.string.year_picker_title),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF2C3E50),
@@ -96,7 +100,7 @@ internal fun YearPickerContent(
                 value = selectedIndex,
                 onValueChange = { selectedIndex = it },
                 range = 0 until yearOptions.size,
-                displayValues = yearOptions.map { "${it}년" },
+                displayValues = yearOptions.map { context.getString(R.string.year_picker_year_format, it) },
                 modifier = Modifier.width(160.dp)
             )
         } else {
@@ -105,7 +109,7 @@ internal fun YearPickerContent(
                     .fillMaxWidth()
                     .heightIn(min = 140.dp),
                 contentAlignment = Alignment.Center
-            ) { Text(text = "표시할 항목이 없습니다", color = Color(0xFF636E72), fontSize = 14.sp) }
+            ) { Text(text = stringResource(R.string.year_picker_no_data), color = Color(0xFF636E72), fontSize = 14.sp) }
         }
 
         Button(
@@ -123,7 +127,7 @@ internal fun YearPickerContent(
                 .padding(top = 12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF74B9FF), contentColor = Color.White),
             shape = RoundedCornerShape(12.dp)
-        ) { Text(text = "선택", fontSize = 16.sp, fontWeight = FontWeight.Bold) }
+        ) { Text(text = stringResource(R.string.year_picker_select), fontSize = 16.sp, fontWeight = FontWeight.Bold) }
 
         Spacer(modifier = Modifier.height(16.dp))
     }

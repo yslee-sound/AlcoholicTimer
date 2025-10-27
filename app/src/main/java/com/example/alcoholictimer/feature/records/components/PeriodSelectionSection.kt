@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -144,13 +145,21 @@ private fun getCurrentPeriodText(
     periodYear: String,
     periodAll: String
 ): String {
+    val context = LocalContext.current
     val calendar = Calendar.getInstance()
     val thisWeek = stringResource(R.string.records_this_week)
 
     return when (selectedPeriod) {
         periodWeek -> if (selectedDetailPeriod.isNotEmpty()) selectedDetailPeriod else thisWeek
-        periodMonth -> if (selectedDetailPeriod.isNotEmpty()) selectedDetailPeriod else SimpleDateFormat("yyyy년 M월", Locale.getDefault()).format(calendar.time)
-        periodYear -> if (selectedDetailPeriod.isNotEmpty()) selectedDetailPeriod else SimpleDateFormat("yyyy년", Locale.getDefault()).format(calendar.time)
+        periodMonth -> if (selectedDetailPeriod.isNotEmpty()) selectedDetailPeriod else context.getString(
+            R.string.date_format_year_month,
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH) + 1
+        )
+        periodYear -> if (selectedDetailPeriod.isNotEmpty()) selectedDetailPeriod else context.getString(
+            R.string.date_format_year,
+            calendar.get(Calendar.YEAR)
+        )
         else -> periodAll
     }
 }

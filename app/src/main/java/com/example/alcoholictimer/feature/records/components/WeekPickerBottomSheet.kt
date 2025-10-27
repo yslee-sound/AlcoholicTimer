@@ -8,12 +8,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sweetapps.alcoholictimer.R
 import com.sweetapps.alcoholictimer.core.ui.AppAlphas
 import com.sweetapps.alcoholictimer.core.ui.components.NumberPicker
+import android.content.Context
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -49,7 +53,8 @@ internal fun WeekPickerContent(
     onWeekPicked: (weekStart: Long, weekEnd: Long, displayText: String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val weekOptions = remember { generateWeekOptions() }
+    val context = LocalContext.current
+    val weekOptions = remember { generateWeekOptions(context) }
     var selectedWeekIndex by remember { mutableIntStateOf(weekOptions.size - 1) }
 
     Column(
@@ -59,7 +64,7 @@ internal fun WeekPickerContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "주 선택",
+            text = stringResource(R.string.week_picker_title),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF2C3E50),
@@ -89,7 +94,7 @@ internal fun WeekPickerContent(
                 contentColor = Color.White
             ),
             shape = RoundedCornerShape(12.dp)
-        ) { Text(text = "선택", fontSize = 16.sp, fontWeight = FontWeight.Bold) }
+        ) { Text(text = stringResource(R.string.week_picker_select), fontSize = 16.sp, fontWeight = FontWeight.Bold) }
 
         Spacer(modifier = Modifier.height(16.dp))
     }
@@ -101,7 +106,7 @@ data class WeekOption(
     val displayText: String
 )
 
-private fun generateWeekOptions(): List<WeekOption> {
+private fun generateWeekOptions(context: Context): List<WeekOption> {
     val dateFormat = SimpleDateFormat("MM-dd", Locale.getDefault()).apply { timeZone = TimeZone.getDefault() }
     val options = mutableListOf<WeekOption>()
 
@@ -121,7 +126,11 @@ private fun generateWeekOptions(): List<WeekOption> {
         val weekEndInclusive = calEnd.timeInMillis + (24 * 60 * 60 * 1000L - 1)
         val startDate = dateFormat.format(Date(weekStart))
         val endDate = dateFormat.format(Date(calEnd.timeInMillis))
-        val displayText = when (i) { 0 -> "이번 주"; 1 -> "지난 주"; else -> "$startDate ~ $endDate" }
+        val displayText = when (i) {
+            0 -> context.getString(R.string.week_picker_this_week)
+            1 -> context.getString(R.string.week_picker_last_week)
+            else -> "$startDate ~ $endDate"
+        }
         options.add(WeekOption(weekStart, weekEndInclusive, displayText))
         cal.add(Calendar.DAY_OF_YEAR, -7)
     }

@@ -193,6 +193,18 @@
     <string name="date_format_year">%d</string>
     <string name="date_format_month">%d</string>
 
+    <!-- Week Picker -->
+    <string name="week_picker_title">Select Week</string>
+    <string name="week_picker_this_week">This Week</string>
+    <string name="week_picker_last_week">Last Week</string>
+    <string name="week_picker_select">Select</string>
+
+    <!-- Year Picker -->
+    <string name="year_picker_title">Select Year</string>
+    <string name="year_picker_year_format">%d</string>
+    <string name="year_picker_no_data">No data available</string>
+    <string name="year_picker_select">Select</string>
+
     <!-- Cost options -->
     <string name="settings_cost_low">Low</string>
     <string name="settings_cost_medium">Medium</string>

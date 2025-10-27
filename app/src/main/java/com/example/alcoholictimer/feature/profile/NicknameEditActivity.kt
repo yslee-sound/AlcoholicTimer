@@ -77,19 +77,23 @@ class NicknameEditActivity : BaseActivity() {
                 })
             )
             Spacer(modifier = Modifier.height(32.dp))
-            Button(
-                onClick = { saveNicknameAndFinish(nicknameText.trim()) },
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-                enabled = nicknameText.isNotBlank()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text(text = stringResource(R.string.profile_save), fontSize = 16.sp, fontWeight = FontWeight.Medium)
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedButton(
-                onClick = { finish() },
-                modifier = Modifier.fillMaxWidth().height(48.dp)
-            ) {
-                Text(text = stringResource(R.string.profile_cancel), fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                OutlinedButton(
+                    onClick = { finish() },
+                    modifier = Modifier.weight(1f).height(48.dp)
+                ) {
+                    Text(text = stringResource(R.string.profile_cancel), fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                }
+                Button(
+                    onClick = { saveNicknameAndFinish(nicknameText.trim()) },
+                    modifier = Modifier.weight(1f).height(48.dp),
+                    enabled = nicknameText.isNotBlank()
+                ) {
+                    Text(text = stringResource(R.string.profile_save), fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                }
             }
         }
     }
