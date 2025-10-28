@@ -247,5 +247,15 @@
     <string name="add_record_toast_success">Sobriety record added successfully</string>
     <string name="add_record_toast_conflict">Selected time conflicts with existing records</string>
     <string name="add_record_days_unit">day(s)</string>
+
+    <!-- Currency options -->
+    <string name="settings_currency">Currency</string>
+    <string name="currency_krw">Korean Won (₩)</string>
+    <string name="currency_jpy">Japanese Yen (¥)</string>
+    <string name="currency_usd">US Dollar ($)</string>
+    <string name="currency_eur">Euro (€)</string>
+    <string name="currency_mxn">Mexican Peso (MX$)</string>
+    <string name="currency_cny">Chinese Yuan (¥)</string>
+    <string name="currency_brl">Brazilian Real (R$)</string>
 </resources>
 

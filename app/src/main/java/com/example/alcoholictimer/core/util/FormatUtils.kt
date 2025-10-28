@@ -8,8 +8,6 @@ import kotlin.math.pow
 import kotlin.math.round
 
 object FormatUtils {
-    private const val WON_TO_DOLLAR_RATE = 1000.0 // 1,000원 = 1달러
-    private const val WON_TO_YEN_RATE = 10.0 // 10원 = 1엔
 
     @JvmStatic
     fun daysToDayHourString(days: Double, decimals: Int = 2, locale: Locale = Locale.getDefault()): String {
@@ -52,43 +50,15 @@ object FormatUtils {
 
     /**
      * 금액을 로케일에 따라 포맷팅
-     * 한국어: 원화 (₩1,000원)
-     * 영어: 달러 ($1.00)
-     * 일본어: 엔화 (¥100)
+     * 사용자가 선택한 통화로 표시합니다.
+     *
+     * @param context Context
+     * @param amountInWon 원화 기준 금액
+     * @return 포맷팅된 통화 문자열
      */
     @JvmStatic
     fun formatMoney(context: Context, amountInWon: Double): String {
-        val locale = Locale.getDefault()
-        return when (locale.language) {
-            "ko" -> {
-                // 한국어: 원화 표시
-                context.getString(R.string.unit_won_format, amountInWon)
-            }
-            "ja" -> {
-                // 일본어: 엔화로 변환 (10원 = 1엔)
-                val amountInYen = amountInWon / WON_TO_YEN_RATE
-                context.getString(R.string.unit_won_format, amountInYen)
-            }
-            else -> {
-                // 영어 등: 달러로 변환 (소수점 2자리)
-                val amountInDollars = amountInWon / WON_TO_DOLLAR_RATE
-                String.format(locale, "$%,.2f", amountInDollars)
-            }
-        }
-    }
-
-    /**
-     * 금액을 로케일에 따라 계산 (내부 계산용)
-     * 영어 환경에서는 달러 기준으로, 일본어에서는 엔화 기준으로 계산하기 위해 사용
-     */
-    @JvmStatic
-    fun convertMoneyForDisplay(amountInWon: Double): Double {
-        val locale = Locale.getDefault()
-        return when (locale.language) {
-            "ko" -> amountInWon
-            "ja" -> amountInWon / WON_TO_YEN_RATE
-            else -> amountInWon / WON_TO_DOLLAR_RATE
-        }
+        return CurrencyManager.formatMoney(amountInWon, context)
     }
 }
 

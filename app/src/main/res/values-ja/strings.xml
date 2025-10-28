@@ -247,5 +247,15 @@
     <string name="add_record_toast_success">禁酒記録が追加されました</string>
     <string name="add_record_toast_conflict">選択した時間が既存の記録と重複しています</string>
     <string name="add_record_days_unit">日</string>
+
+    <!-- Currency options (通貨選択) -->
+    <string name="settings_currency">通貨</string>
+    <string name="currency_krw">韓国ウォン (₩)</string>
+    <string name="currency_jpy">日本円 (¥)</string>
+    <string name="currency_usd">米ドル ($)</string>
+    <string name="currency_eur">ユーロ (€)</string>
+    <string name="currency_mxn">メキシコペソ (MX$)</string>
+    <string name="currency_cny">中国元 (¥)</string>
+    <string name="currency_brl">ブラジルレアル (R$)</string>
 </resources>
 

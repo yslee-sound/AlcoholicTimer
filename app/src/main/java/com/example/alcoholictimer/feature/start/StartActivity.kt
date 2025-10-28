@@ -74,6 +74,9 @@ class StartActivity : BaseActivity() {
     private lateinit var appUpdateManager: AppUpdateManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // 첫 실행 시 기본 통화 초기화
+        com.sweetapps.alcoholictimer.core.util.CurrencyManager.initializeDefaultCurrency(this)
+
         // 런처 액티비티에서만 스플래시 설치
         val splashStart = SystemClock.uptimeMillis()
         val minShowMillis = 300L // DEBUG/RELEASE 모두 최소 300ms 표시로 단축

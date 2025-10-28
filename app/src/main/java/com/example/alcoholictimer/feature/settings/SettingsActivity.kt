@@ -8,6 +8,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -54,14 +56,19 @@ fun SettingsScreen() {
     var selectedCost by remember { mutableStateOf(initialCost) }
     var selectedFrequency by remember { mutableStateOf(initialFrequency) }
     var selectedDuration by remember { mutableStateOf(initialDuration) }
+    var selectedCurrency by remember {
+        mutableStateOf(com.sweetapps.alcoholictimer.core.util.CurrencyManager.getSelectedCurrency(context).code)
+    }
 
     val safePadding = LocalSafeContentPadding.current
+    val scrollState = rememberScrollState()
 
-    // 전체 바탕 흰색 + 목록형(비스크롤) 레이아웃
+    // 전체 바탕 흰색 + 스크롤 가능한 목록형 레이아웃
     Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(scrollState)
                 .padding(
                     start = LayoutConstants.SCREEN_HORIZONTAL_PADDING,
                     end = LayoutConstants.SCREEN_HORIZONTAL_PADDING,
@@ -133,6 +140,17 @@ fun SettingsScreen() {
                     }
                 )
             }
+            SectionDivider()
+
+            SettingsSection(title = stringResource(R.string.settings_currency), titleColor = colorResource(id = R.color.color_indicator_money)) {
+                SettingsCurrencyGroup(
+                    selectedCurrency = selectedCurrency,
+                    onCurrencySelected = { newCurrency ->
+                        selectedCurrency = newCurrency
+                        com.sweetapps.alcoholictimer.core.util.CurrencyManager.saveCurrency(context, newCurrency)
+                    }
+                )
+            }
         }
     }
 }
@@ -172,6 +190,22 @@ fun SettingsOptionGroup(
                 isSelected = selectedOption == option,
                 label = labels[index],
                 onSelected = { onOptionSelected(option) }
+            )
+        }
+    }
+}
+
+@Composable
+fun SettingsCurrencyGroup(
+    selectedCurrency: String,
+    onCurrencySelected: (String) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        com.sweetapps.alcoholictimer.core.util.CurrencyManager.supportedCurrencies.forEach { currency ->
+            SettingsOptionItem(
+                isSelected = selectedCurrency == currency.code,
+                label = stringResource(currency.nameResId),
+                onSelected = { onCurrencySelected(currency.code) }
             )
         }
     }

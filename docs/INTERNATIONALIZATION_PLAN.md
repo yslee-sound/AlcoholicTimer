@@ -140,23 +140,91 @@ object LocaleDateFormat {
 }
 ```
 
-### 3.4 숫자/통화 포맷 현지화
+### 3.4 통화 현지화 전략
+
+#### 3.4.1 기본 원칙
+- **사용자 선택 기반**: 설정 화면에서 통화 선택 가능
+- **로케일 기반 자동 감지**: 첫 실행 시 국가/언어에 따라 기본 통화 설정
+- **KRW 기준 저장**: 모든 금액은 내부적으로 원화(KRW)로 저장, 표시만 변환
+- **고정 환율 사용**: 분기별 업데이트 (API 연동은 장기 과제)
+
+#### 3.4.2 지원 통화 목록 (Phase 1-3)
+
+| 통화 코드 | 기호 | 국가/지역 | KRW 환율 (2025-Q4) | 적용 언어 |
+|-----------|------|-----------|-------------------|-----------|
+| KRW | ₩ | 대한민국 | 1.0 | 한국어 |
+| JPY | ¥ | 일본 | 0.1 (10원 = 1엔) | 일본어 |
+| USD | $ | 미국, 국제 | 1,300.0 | 영어 (기본) |
+| EUR | € | 유럽연합 | 1,400.0 | 독일어, 프랑스어 |
+| MXN | MX$ | 멕시코 | 75.0 | 스페인어 (멕시코) |
+| CNY | ¥ | 중국 | 180.0 | 중국어 |
+| BRL | R$ | 브라질 | 250.0 | 포르투갈어 |
+
+#### 3.4.3 구현 방법
+
 ```kotlin
-// 금액 표시 (현재는 "원" 하드코딩)
-object LocaleCurrencyFormat {
-    fun formatMoney(amount: Double, context: Context): String {
+// CurrencyManager.kt
+data class CurrencyOption(
+    val code: String,
+    val symbol: String,
+    val nameResId: Int,
+    val rate: Double,  // KRW 기준
+    val decimalPlaces: Int = 0
+)
+
+object CurrencyManager {
+    val supportedCurrencies = listOf(
+        CurrencyOption("KRW", "₩", R.string.currency_krw, 1.0, 0),
+        CurrencyOption("JPY", "¥", R.string.currency_jpy, 0.1, 0),
+        CurrencyOption("USD", "$", R.string.currency_usd, 1300.0, 2),
+        CurrencyOption("EUR", "€", R.string.currency_eur, 1400.0, 2),
+        CurrencyOption("MXN", "MX$", R.string.currency_mxn, 75.0, 0),
+        CurrencyOption("CNY", "¥", R.string.currency_cny, 180.0, 2),
+        CurrencyOption("BRL", "R$", R.string.currency_brl, 250.0, 2)
+    )
+
+    fun formatMoney(amountInKRW: Double, context: Context): String {
+        val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val currencyCode = prefs.getString("currency", getDefaultCurrency(context)) ?: "KRW"
+        val currency = supportedCurrencies.find { it.code == currencyCode } 
+            ?: supportedCurrencies.first()
+        
+        val converted = amountInKRW / currency.rate
+        
+        return when {
+            currency.code == "KRW" -> 
+                String.format(Locale.getDefault(), "%,.0f%s", converted, currency.symbol)
+            currency.decimalPlaces == 0 -> 
+                String.format(Locale.getDefault(), "%s%,.0f", currency.symbol, converted)
+            else -> 
+                String.format(Locale.getDefault(), "%s%,.${currency.decimalPlaces}f", currency.symbol, converted)
+        }
+    }
+    
+    private fun getDefaultCurrency(context: Context): String {
         val locale = Locale.getDefault()
-        return when (locale.language) {
-            "ko" -> String.format(locale, "%,.0f원", amount)
-            "ja" -> String.format(locale, "¥%,.0f", amount)
-            "zh" -> String.format(locale, "¥%,.0f", amount)
-            "en" -> String.format(locale, "$%,.2f", amount)
-            "es", "pt" -> String.format(locale, "€%,.2f", amount)
-            else -> String.format(locale, "%,.2f", amount)
+        return when (locale.country) {
+            "KR" -> "KRW"
+            "JP" -> "JPY"
+            "US" -> "USD"
+            "CN" -> "CNY"
+            "MX" -> "MXN"
+            "BR" -> "BRL"
+            else -> when (locale.language) {
+                "es" -> "EUR"  // 스페인어권 기본
+                "de", "fr" -> "EUR"
+                else -> "USD"
+            }
         }
     }
 }
 ```
+
+#### 3.4.4 환율 업데이트 정책
+- **업데이트 주기**: 분기별 1회 (3개월)
+- **반영 시점**: 앱 버전 업데이트 시
+- **고지 방법**: Release Notes에 "환율 업데이트 (2025-Q4 기준)" 명시
+- **장기 계획**: Phase 4+ API 연동 검토 (ExchangeRate-API.com 등)
 
 ### 3.5 레이아웃 유연성
 - **ConstraintLayout 활용**: 텍스트 길이 변화에 대응
