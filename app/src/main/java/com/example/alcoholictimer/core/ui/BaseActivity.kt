@@ -65,6 +65,9 @@ abstract class BaseActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         // 시스템바 색/아이콘은 XML 테마에서만 관리 (코드로 설정하지 않음)
         nicknameState.value = getNickname()
+
+        // 디버그 배너 숨김 상태 초기화
+        DebugAdHelper.initialize(this)
     }
 
     override fun onResume() {
@@ -102,6 +105,32 @@ abstract class BaseActivity : ComponentActivity() {
         manageBottomAreaExternally: Boolean = false,
         content: @Composable () -> Unit
     ) {
+        val activityName = this@BaseActivity.javaClass.simpleName
+        android.util.Log.e("BaseActivity", "[$activityName] BaseScreen called - ENTRY POINT")
+
+        // 디버그 모드에서 배너 숨김 상태 확인 (반응형)
+        var shouldHideBanner by remember {
+            mutableStateOf(DebugAdHelper.bannerHiddenFlow.value).also {
+                android.util.Log.e("BaseActivity", "[$activityName] remember initial value: ${DebugAdHelper.bannerHiddenFlow.value}")
+            }
+        }
+
+        // Flow 변경사항을 LaunchedEffect로 명시적으로 구독
+        LaunchedEffect(Unit) {
+            android.util.Log.e("BaseActivity", "[$activityName] LaunchedEffect started, collecting flow...")
+            DebugAdHelper.bannerHiddenFlow.collect { hidden ->
+                android.util.Log.e("BaseActivity", "[$activityName] Flow collected: hidden=$hidden")
+                shouldHideBanner = hidden
+            }
+        }
+
+        val effectiveBottomAd = if (shouldHideBanner) null else bottomAd
+
+        // 매 recomposition마다 로깅 (SideEffect 사용)
+        SideEffect {
+            android.util.Log.e("BaseActivity", "[$activityName] SideEffect: shouldHideBanner=$shouldHideBanner, bottomAd=${bottomAd != null}, effectiveBottomAd=${effectiveBottomAd != null}")
+        }
+
         AlcoholicTimerTheme(darkTheme = false, applySystemBars = applySystemBars) {
             val drawerState = rememberDrawerState(DrawerValue.Closed)
             val scope = rememberCoroutineScope()
@@ -355,7 +384,7 @@ abstract class BaseActivity : ComponentActivity() {
                                 }
 
                                 // 하단 고정 배너 컨테이너: 광고 미노출 시에도 공간 예약 옵션 제공
-                                val showOrReserveAd = (bottomAd != null) || reserveSpaceForBottomAd
+                                val showOrReserveAd = (effectiveBottomAd != null) || reserveSpaceForBottomAd
                                 if (!manageBottomAreaExternally) {
                                     if (showOrReserveAd) {
                                         // 전역 배너 위 간격을 회색(surfaceVariant)으로 채워 구분감 부여
@@ -381,7 +410,7 @@ abstract class BaseActivity : ComponentActivity() {
                                                     .padding(bottom = effectiveBottom)
                                                     .height(predictedBannerH),
                                                 contentAlignment = Alignment.Center
-                                            ) { bottomAd?.invoke() }
+                                            ) { effectiveBottomAd?.invoke() }
                                         }
                                     } else {
                                         Spacer(modifier = Modifier.height(effectiveBottom))
