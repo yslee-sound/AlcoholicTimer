@@ -99,7 +99,8 @@ gradlew.bat clean :app:bundleRelease
 - 아이콘 디자인 가이드: [docs/ICON_DESIGN.md](./docs/ICON_DESIGN.md)
 - 디자인 토큰: [docs/DESIGN_TOKENS.md](./docs/DESIGN_TOKENS.md)
 - 출시 준비 & 배포 체크리스트: [docs/APP_RELEASE_PLAN.md](./docs/APP_RELEASE_PLAN.md)
-- **다국어화 (Internationalization)** - ✅ 영어 지원 완료!
+- **다국어화 (Internationalization)** - ✅ 영어, 일본어 지원 완료!
+  - [일본어 지원 완료 요약](./docs/I18N_JAPANESE_DONE.md) - 통화/날짜 포맷 포함 ✅
   - [영어 지원 완료 요약](./docs/I18N_ENGLISH_DONE.md) - 테스트 및 출시 준비 ✅
   - [영어 시작 가이드](./docs/I18N_ENGLISH_START.md) - 영어 버전 실행 방법 ⚡
   - [빠른 시작 가이드](./docs/I18N_QUICK_START.md) - 6주 다국어 출시 로드맵

@@ -110,6 +110,7 @@ private fun AddRecordScreen(
         val locale = Locale.getDefault()
         when (locale.language) {
             "ko" -> SimpleDateFormat("yyyy년 MM월 dd일", locale)
+            "ja" -> SimpleDateFormat("yyyy年MM月dd日", locale)
             else -> SimpleDateFormat("MMM dd, yyyy", Locale.ENGLISH)
         }
     }

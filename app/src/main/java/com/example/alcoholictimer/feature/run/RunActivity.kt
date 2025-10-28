@@ -111,8 +111,7 @@ private fun RunScreen() {
 
     // Goal days format based on locale
     val goalDaysText = remember(targetDays) {
-        val days = targetDays.toInt()
-        if (Locale.getDefault().language == "ko") "${days}일" else "$days day(s)"
+        context.getString(R.string.stat_goal_days_format, targetDays.toInt())
     }
 
     val elapsedHours = ((elapsedMillis % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)).toInt()
@@ -255,28 +254,41 @@ private fun RunScreen() {
                                 val isMoney = currentIndicator == 2
                                 val isLifeGain = currentIndicator == 4
                                 if (isMoney) {
-                                    // 원화 또는 달러 형식 처리
-                                    val dollarMatch = Regex("""\$([0-9,]+)""").find(valueText)
-                                    if (dollarMatch != null) {
-                                        // 달러 형식: $1,000
-                                        val numeric = dollarMatch.groupValues[1]
-                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                                            Text(text = "$", style = unitStyle, modifier = Modifier.alignByBaseline())
-                                            Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                    // 다국어 통화 형식 처리
+                                    val dollarMatch = Regex("""\$([0-9,]+(?:\.[0-9]+)?)""").find(valueText)
+                                    val yenMatch = Regex("""¥([0-9,]+)""").find(valueText)
+
+                                    when {
+                                        dollarMatch != null -> {
+                                            // 달러 형식: $1,000.00
+                                            val numeric = dollarMatch.groupValues[1]
+                                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                                Text(text = "$", style = unitStyle, modifier = Modifier.alignByBaseline())
+                                                Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                            }
                                         }
-                                    } else {
-                                        // 원화 형식: 1,000원
-                                        val numeric = valueText.replace("원", "").replace("₩", "")
-                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                                            Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
-                                            Spacer(modifier = Modifier.width(2.dp))
-                                            Text(text = "원", style = unitStyle, modifier = Modifier.alignByBaseline())
+                                        yenMatch != null -> {
+                                            // 엔화 형식: ¥1,000
+                                            val numeric = yenMatch.groupValues[1]
+                                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                                Text(text = "¥", style = unitStyle, modifier = Modifier.alignByBaseline())
+                                                Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                            }
+                                        }
+                                        else -> {
+                                            // 원화 형식: 1,000원 또는 ₩1,000
+                                            val numeric = valueText.replace("원", "").replace("₩", "").trim()
+                                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                                Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                                Spacer(modifier = Modifier.width(2.dp))
+                                                Text(text = "원", style = unitStyle, modifier = Modifier.alignByBaseline())
+                                            }
                                         }
                                     }
                                 } else if (isLifeGain) {
-                                    // 다국어 지원: "1일 2.5시간" 또는 "1 day(s) 2.5 hr(s)"
-                                    val twoPart = Regex("""(\d+)\s*(?:일|day\(s\))\s*([0-9]+(?:\.[0-9]+)?)\s*(?:시간|hr\(s\))""")
-                                    val onePart = Regex("""([0-9]+(?:\.[0-9]+)?)\s*(?:시간|hr\(s\))""")
+                                    // 다국어 지원: "1일 2.5시간" 또는 "1 day(s) 2.5 hr(s)" 또는 "1日 2.5時間"
+                                    val twoPart = Regex("""(\d+)\s*(?:일|日|day\(s\))\s*([0-9]+(?:\.[0-9]+)?)\s*(?:시간|時間|hr\(s\))""")
+                                    val onePart = Regex("""([0-9]+(?:\.[0-9]+)?)\s*(?:시간|時間|hr\(s\))""")
                                     val m1 = twoPart.find(valueText)
                                     val m2 = if (m1 == null) onePart.find(valueText) else null
                                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {

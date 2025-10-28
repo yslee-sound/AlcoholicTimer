@@ -1,6 +1,6 @@
 # AlcoholicTimer 다국어 출시 기획안
 
-최종 수정: 2025-10-27
+최종 수정: 2025-10-28
 
 ## 1. 목적 및 비전
 
@@ -299,13 +299,17 @@ object LocaleCurrencyFormat {
   - 스크린샷 캡처 (최소 5장)
 
 #### Week 5-6: 일본어 준비 및 QA
-- [ ] **일본어 번역**
+- [x] **일본어 번역** ✅ 완료 (2025-10-28)
   - `values-ja/strings.xml` 생성
-  - 전문 번역사 의뢰 (Upwork/Gengo)
+  - 전문 번역 완료 (205개 문자열)
 
-- [ ] **폰트 최적화**
-  - Noto Sans JP 폰트 추가 (필요 시)
-  - 한자/히라가나 표시 확인
+- [x] **통화 포맷 구현** ✅ 완료
+  - 환율: 1엔 = 10원 적용
+  - FormatUtils.kt 업데이트
+
+- [x] **날짜/시간 포맷 구현** ✅ 완료
+  - 일본어 형식: yyyy年MM月dd日, H:mm
+  - AddRecordActivity.kt, DetailActivity.kt 업데이트
 
 - [ ] **전체 QA**
   - 한국어/영어/일본어 3개 언어 전환 테스트

@@ -137,13 +137,27 @@ fun DetailScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     val accentColor = if (isCompleted) BluePrimaryLight else AmberSecondaryLight
 
-    val dateTimeFormat = SimpleDateFormat("yyyy-MM-dd - a h:mm", Locale.getDefault()).apply {
+    val dateTimeFormat = SimpleDateFormat(
+        when (Locale.getDefault().language) {
+            "ko" -> "yyyy-MM-dd - a h:mm"
+            "ja" -> "yyyy年MM月dd日 - H:mm"
+            else -> "yyyy-MM-dd - h:mm a"
+        },
+        Locale.getDefault()
+    ).apply {
         timeZone = TimeZone.getDefault()
     }
     val displayDateTime = if (startTime > 0) {
         dateTimeFormat.format(Date(startTime))
     } else {
-        val nowFormatted = SimpleDateFormat("a h:mm", Locale.getDefault()).apply {
+        val nowFormatted = SimpleDateFormat(
+            when (Locale.getDefault().language) {
+                "ko" -> "a h:mm"
+                "ja" -> "H:mm"
+                else -> "h:mm a"
+            },
+            Locale.getDefault()
+        ).apply {
             timeZone = TimeZone.getDefault()
         }.format(Date())
         stringResource(id = R.string.detail_today_time, nowFormatted)
