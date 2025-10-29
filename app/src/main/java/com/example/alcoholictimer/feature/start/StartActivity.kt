@@ -354,6 +354,7 @@ fun StartScreenWithUpdate(
         AppUpdateDialog(
             isVisible = showUpdateDialog,
             versionName = if (availableVersionName.isNotBlank()) availableVersionName else "vNext",
+            updateMessageResourceId = R.string.update_dialog_default_message,
             onUpdateClick = {
                 if (demoActive) {
                     // 데모: 다운로드 완료 스낵바를 직접 노출해 흐름 시연
