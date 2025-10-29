@@ -257,5 +257,12 @@
     <string name="currency_mxn">Mexican Peso (MX$)</string>
     <string name="currency_cny">Chinese Yuan (¥)</string>
     <string name="currency_brl">Brazilian Real (R$)</string>
-</resources>
 
+    <!-- Update dialog strings -->
+    <string name="update_dialog_title">New version available! 🎉</string>
+    <string name="update_dialog_version_format">Version %1$s</string>
+    <string name="update_dialog_default_message">Contains new features and improvements.</string>
+    <string name="update_dialog_later">Later</string>
+    <string name="update_dialog_update">Update</string>
+    <string name="update_dialog_icon_description">Update icon</string>
+</resources>

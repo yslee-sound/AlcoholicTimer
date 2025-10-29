@@ -1,4 +1,4 @@
-package com.sweetapps.alcoholictimer.core.ui.components
+package com.example.alcoholictimer.core.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,11 +15,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import android.content.res.Configuration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.res.stringResource
 
 // 앱 테마
 import com.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
+import com.sweetapps.alcoholictimer.R
 
 /**
  * 앱 업데이트 다이얼로그
@@ -29,12 +32,20 @@ import com.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
 fun AppUpdateDialog(
     isVisible: Boolean,
     versionName: String,
-    updateMessage: String = "새로운 기능과 개선사항이 포함되어 있습니다.",
+    updateMessage: String = "",
     onUpdateClick: () -> Unit,
     onDismiss: () -> Unit,
     canDismiss: Boolean = true
 ) {
     if (!isVisible) return
+
+    // 로컬라이즈된 문자열
+    val titleText = stringResource(id = R.string.update_dialog_title)
+    val versionText = stringResource(id = R.string.update_dialog_version_format, versionName)
+    val displayedUpdateMessage = if (updateMessage.isBlank()) stringResource(id = R.string.update_dialog_default_message) else updateMessage
+    val laterText = stringResource(id = R.string.update_dialog_later)
+    val updateBtnText = stringResource(id = R.string.update_dialog_update)
+    val iconDesc = stringResource(id = R.string.update_dialog_icon_description)
 
     Dialog(
         onDismissRequest = {
@@ -75,7 +86,7 @@ fun AppUpdateDialog(
                     ) {
                         Icon(
                             imageVector = Icons.Default.SystemUpdate,
-                            contentDescription = "업데이트",
+                            contentDescription = iconDesc,
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(32.dp)
                         )
@@ -86,7 +97,7 @@ fun AppUpdateDialog(
 
                 // 제목
                 Text(
-                    text = "새 버전이 있습니다! 🎉",
+                    text = titleText,
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold
                     ),
@@ -98,7 +109,7 @@ fun AppUpdateDialog(
 
                 // 버전 정보
                 Text(
-                    text = "버전 $versionName",
+                    text = versionText,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Medium
                     ),
@@ -110,7 +121,7 @@ fun AppUpdateDialog(
 
                 // 업데이트 내용
                 Text(
-                    text = updateMessage,
+                    text = displayedUpdateMessage,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
@@ -130,7 +141,7 @@ fun AppUpdateDialog(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("나중에")
+                        Text(laterText)
                     }
 
                     Button(
@@ -141,7 +152,7 @@ fun AppUpdateDialog(
                         ),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("업데이트")
+                        Text(updateBtnText)
                     }
                 }
             }
@@ -164,7 +175,7 @@ fun UpdateDownloadedSnackbar(
                 modifier = Modifier.padding(16.dp),
                 action = {
                     TextButton(onClick = onInstallClick) {
-                        Text("다시 시작")
+                        Text(stringResource(id = R.string.action_restart))
                     }
                 },
                 shape = RoundedCornerShape(8.dp)
@@ -214,9 +225,10 @@ private fun Preview_AppUpdateDialog_Force() {
 private fun Preview_UpdateDownloadedSnackbar() {
     AlcoholicTimerTheme(applySystemBars = false) {
         val snackbarHostState = remember { SnackbarHostState() }
+        val message = stringResource(id = R.string.update_downloaded_restart_prompt)
         LaunchedEffect(Unit) {
             snackbarHostState.showSnackbar(
-                message = "업데이트가 다운로드되었습니다. 다시 시작하여 설치하세요.",
+                message = message,
                 withDismissAction = true
             )
         }

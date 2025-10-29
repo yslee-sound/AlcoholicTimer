@@ -202,50 +202,11 @@
     <string name="date_format_year">%d年</string>
     <string name="date_format_month">%d月</string>
 
-    <!-- Week Picker (周选择) -->
-    <string name="week_picker_title">选择周</string>
-    <string name="week_picker_this_week">本周</string>
-    <string name="week_picker_last_week">上周</string>
-    <string name="week_picker_select">选择</string>
-
-    <!-- Year Picker (年份选择) -->
-    <string name="year_picker_title">选择年份</string>
-    <string name="year_picker_year_format">%d年</string>
-    <string name="year_picker_no_data">没有可显示的内容</string>
-    <string name="year_picker_select">选择</string>
-
-    <!-- Cost options -->
-    <string name="settings_cost_low">低</string>
-    <string name="settings_cost_medium">中</string>
-    <string name="settings_cost_high">高</string>
-    <string name="settings_cost_low_label">低 (￥70以下)</string>
-    <string name="settings_cost_medium_label">中 (￥70~350)</string>
-    <string name="settings_cost_high_label">高 (￥350以上)</string>
-
-    <!-- Frequency options -->
-    <string name="settings_frequency_low">每周1次以下</string>
-    <string name="settings_frequency_medium">每周2~3次</string>
-    <string name="settings_frequency_high">每周4次以上</string>
-
-    <!-- Duration options -->
-    <string name="settings_duration_short">短</string>
-    <string name="settings_duration_medium">中</string>
-    <string name="settings_duration_long">长</string>
-    <string name="settings_duration_short_label">短 (2小时以下)</string>
-    <string name="settings_duration_medium_label">中 (3~5小时)</string>
-    <string name="settings_duration_long_label">长 (6小时以上)</string>
-
-    <!-- Add Record screen (添加戒酒记录) -->
-    <string name="add_record_title">添加戒酒记录</string>
-    <string name="add_record_start_date_time">开始日期和时间</string>
-    <string name="add_record_end_date_time">结束日期和时间</string>
-    <string name="add_record_target_days">目标天数</string>
-    <string name="add_record_error_invalid_range">结束时间必须晚于开始时间</string>
-    <string name="add_record_error_set_target">请正确输入目标天数</string>
-    <string name="add_record_cancel">取消</string>
-    <string name="add_record_save">保存</string>
-    <string name="add_record_toast_success">戒酒记录已添加</string>
-    <string name="add_record_toast_conflict">所选时间与现有记录冲突</string>
-    <string name="add_record_days_unit">天</string>
+    <!-- Update dialog strings -->
+    <string name="update_dialog_title">有新版本可用！ 🎉</string>
+    <string name="update_dialog_version_format">版本 %1$s</string>
+    <string name="update_dialog_default_message">包含新功能和改进。</string>
+    <string name="update_dialog_later">稍后</string>
+    <string name="update_dialog_update">更新</string>
+    <string name="update_dialog_icon_description">更新图标</string>
 </resources>
-

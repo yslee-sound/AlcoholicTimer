@@ -202,50 +202,11 @@
     <string name="date_format_year">%d</string>
     <string name="date_format_month">%d</string>
 
-    <!-- Week Picker (selector de semana) -->
-    <string name="week_picker_title">Seleccionar Semana</string>
-    <string name="week_picker_this_week">Esta Semana</string>
-    <string name="week_picker_last_week">Semana Pasada</string>
-    <string name="week_picker_select">Seleccionar</string>
-
-    <!-- Year Picker (selector de año) -->
-    <string name="year_picker_title">Seleccionar Año</string>
-    <string name="year_picker_year_format">%d</string>
-    <string name="year_picker_no_data">No hay elementos para mostrar</string>
-    <string name="year_picker_select">Seleccionar</string>
-
-    <!-- Cost options -->
-    <string name="settings_cost_low">Bajo</string>
-    <string name="settings_cost_medium">Medio</string>
-    <string name="settings_cost_high">Alto</string>
-    <string name="settings_cost_low_label">Bajo (menos de €7)</string>
-    <string name="settings_cost_medium_label">Medio (€7~35)</string>
-    <string name="settings_cost_high_label">Alto (más de €35)</string>
-
-    <!-- Frequency options -->
-    <string name="settings_frequency_low">1 vez por semana o menos</string>
-    <string name="settings_frequency_medium">2~3 veces por semana</string>
-    <string name="settings_frequency_high">4 o más veces por semana</string>
-
-    <!-- Duration options -->
-    <string name="settings_duration_short">Corto</string>
-    <string name="settings_duration_medium">Medio</string>
-    <string name="settings_duration_long">Largo</string>
-    <string name="settings_duration_short_label">Corto (menos de 2 horas)</string>
-    <string name="settings_duration_medium_label">Medio (3~5 horas)</string>
-    <string name="settings_duration_long_label">Largo (más de 6 horas)</string>
-
-    <!-- Add Record screen (agregar registro de sobriedad) -->
-    <string name="add_record_title">Agregar Registro de Sobriedad</string>
-    <string name="add_record_start_date_time">Fecha y Hora de Inicio</string>
-    <string name="add_record_end_date_time">Fecha y Hora de Fin</string>
-    <string name="add_record_target_days">Días Objetivo</string>
-    <string name="add_record_error_invalid_range">La hora de fin debe ser posterior a la hora de inicio</string>
-    <string name="add_record_error_set_target">Por favor ingrese correctamente los días objetivo</string>
-    <string name="add_record_cancel">Cancelar</string>
-    <string name="add_record_save">Guardar</string>
-    <string name="add_record_toast_success">Registro de sobriedad agregado</string>
-    <string name="add_record_toast_conflict">El tiempo seleccionado se superpone con un registro existente</string>
-    <string name="add_record_days_unit">día(s)</string>
+    <!-- Update dialog strings -->
+    <string name="update_dialog_title">¡Nueva versión disponible! 🎉</string>
+    <string name="update_dialog_version_format">Versión %1$s</string>
+    <string name="update_dialog_default_message">Incluye nuevas funciones y mejoras.</string>
+    <string name="update_dialog_later">Más tarde</string>
+    <string name="update_dialog_update">Actualizar</string>
+    <string name="update_dialog_icon_description">Icono de actualización</string>
 </resources>
-
