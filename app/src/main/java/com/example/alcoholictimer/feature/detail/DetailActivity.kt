@@ -42,6 +42,7 @@ import com.sweetapps.alcoholictimer.core.ui.AppElevation
 import com.sweetapps.alcoholictimer.core.ui.AppBorder
 import com.sweetapps.alcoholictimer.core.ui.LayoutConstants
 import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
+import com.sweetapps.alcoholictimer.core.ui.DebugAdHelper
 import com.sweetapps.alcoholictimer.core.util.Constants
 import com.sweetapps.alcoholictimer.core.util.FormatUtils
 import java.text.SimpleDateFormat
@@ -136,6 +137,19 @@ fun DetailScreen(
     val context = LocalContext.current
     var showDeleteDialog by remember { mutableStateOf(false) }
     val accentColor = if (isCompleted) BluePrimaryLight else AmberSecondaryLight
+
+    // 디버그 모드에서 배너 숨김 상태 확인
+    var shouldHideBanner by remember { mutableStateOf(DebugAdHelper.bannerHiddenFlow.value) }
+
+    // Flow 변경사항을 LaunchedEffect로 명시적으로 구독
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        DebugAdHelper.bannerHiddenFlow.collect { hidden ->
+            android.util.Log.e("DetailActivity", "Flow collected: hidden=$hidden")
+            shouldHideBanner = hidden
+        }
+    }
+
+    android.util.Log.e("DetailActivity", "DetailScreen: shouldHideBanner=$shouldHideBanner")
 
     val dateTimeFormat = SimpleDateFormat(
         when (Locale.getDefault().language) {
@@ -397,29 +411,31 @@ fun DetailScreen(
                 }
             }
 
-            // 하단 고정 배너 컨테이너(항상 고정 공간 확보)
-            if (LayoutConstants.BANNER_TOP_GAP > 0.dp) {
+            // 하단 고정 배너 컨테이너(배너 숨김 상태에 따라 조건부 표시)
+            if (!shouldHideBanner) {
+                if (LayoutConstants.BANNER_TOP_GAP > 0.dp) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(LayoutConstants.BANNER_TOP_GAP)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                    )
+                }
+                // 배너 상단 헤어라인
+                HorizontalDivider(
+                    thickness = AppBorder.Hairline,
+                    color = Color(0xFFE0E0E0)
+                )
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(LayoutConstants.BANNER_TOP_GAP)
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                )
-            }
-            // 배너 상단 헤어라인
-            HorizontalDivider(
-                thickness = AppBorder.Hairline,
-                color = Color(0xFFE0E0E0)
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = effectiveBottom)
-                    .height(predictAnchoredBannerHeightDp()),
-                contentAlignment = Alignment.Center
-            ) {
-                AdmobBanner()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = effectiveBottom)
+                        .height(predictAnchoredBannerHeightDp()),
+                    contentAlignment = Alignment.Center
+                ) {
+                    AdmobBanner()
+                }
             }
         }
 
