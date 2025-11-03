@@ -56,14 +56,16 @@ fun StandardScreenWithBottomButton(
     bottomAd: (@Composable () -> Unit)? = null,
     reserveSpaceForBottomAd: Boolean = false
 ) {
-    // 디버그 모드에서 배너 숨김 상태 확인
-    var shouldHideBanner by remember { mutableStateOf(DebugAdHelper.bannerHiddenFlow.value) }
+    // 디버그 모드에서만 배너 숨김 상태 확인 (릴리즈에서는 항상 false)
+    var shouldHideBanner by remember { mutableStateOf(if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) DebugAdHelper.bannerHiddenFlow.value else false) }
 
-    // Flow 변경사항을 LaunchedEffect로 명시적으로 구독
-    LaunchedEffect(Unit) {
-        DebugAdHelper.bannerHiddenFlow.collect { hidden ->
-            android.util.Log.e("StandardScreen", "Flow collected: hidden=$hidden")
-            shouldHideBanner = hidden
+    // Flow 변경사항을 LaunchedEffect로 명시적으로 구독 (디버그 빌드에서만)
+    if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
+        LaunchedEffect(Unit) {
+            DebugAdHelper.bannerHiddenFlow.collect { hidden ->
+                android.util.Log.e("StandardScreen", "Flow collected: hidden=$hidden")
+                shouldHideBanner = hidden
+            }
         }
     }
 

@@ -178,3 +178,158 @@ tasks.register("printReleaseSigningEnv") {
 
 // (단순화) designTokenCheck 커스텀 태스크 제거.
 // 필요 시 별도 스크립트나 독립 Gradle 플러그인/CI 스텝으로 수행 권장
+
+// 릴리즈 빌드 전 광고 설정 검증 태스크
+tasks.register("verifyReleaseAdConfig") {
+    group = "verification"
+    description = "릴리즈 빌드 전에 광고 설정이 올바른지 검증합니다"
+
+    // Configuration cache 호환성
+    notCompatibleWithConfigurationCache("Uses project state directly")
+
+    doLast {
+        println("\n" + "=".repeat(80))
+        println("🔍 릴리즈 빌드 광고 설정 검증 중...")
+        println("=".repeat(80))
+
+        var hasError = false
+        val warnings = mutableListOf<String>()
+        val checks = mutableListOf<String>()
+
+        val projectDir = project.projectDir
+
+        // 1. DebugAdHelper.kt 파일 검증
+        val debugAdHelperFile = File(projectDir, "src/main/java/kr/sweetapps/alcoholictimer/core/ui/DebugAdHelper.kt")
+        if (debugAdHelperFile.exists()) {
+            val content = debugAdHelperFile.readText()
+
+            // BuildConfig.DEBUG 체크가 있는지 확인
+            if (!content.contains("BuildConfig.DEBUG")) {
+                hasError = true
+                println("❌ ERROR: DebugAdHelper.kt에 BuildConfig.DEBUG 체크가 없습니다!")
+            } else {
+                checks.add("✓ DebugAdHelper.kt에 BuildConfig.DEBUG 체크 존재")
+            }
+        } else {
+            warnings.add("⚠️  WARNING: DebugAdHelper.kt 파일을 찾을 수 없습니다")
+        }
+
+        // 2. BaseActivity.kt 검증
+        val baseActivityFile = File(projectDir, "src/main/java/kr/sweetapps/alcoholictimer/core/ui/BaseActivity.kt")
+        if (baseActivityFile.exists()) {
+            val content = baseActivityFile.readText()
+
+            // BuildConfig.DEBUG 체크가 있는지 확인
+            val hasBuildConfigCheck = content.contains("if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG)") ||
+                                     content.contains("if (BuildConfig.DEBUG)")
+
+            if (!hasBuildConfigCheck) {
+                hasError = true
+                println("❌ ERROR: BaseActivity.kt의 shouldHideBanner 로직에 BuildConfig.DEBUG 체크가 없습니다!")
+            } else {
+                checks.add("✓ BaseActivity.kt에 BuildConfig.DEBUG 체크 존재")
+            }
+        } else {
+            hasError = true
+            println("❌ ERROR: BaseActivity.kt 파일을 찾을 수 없습니다")
+        }
+
+        // 3. StandardScreen.kt 검증
+        val standardScreenFile = File(projectDir, "src/main/java/kr/sweetapps/alcoholictimer/core/ui/StandardScreen.kt")
+        if (standardScreenFile.exists()) {
+            val content = standardScreenFile.readText()
+
+            val hasBuildConfigCheck = content.contains("if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG)") ||
+                                     content.contains("if (BuildConfig.DEBUG)")
+
+            if (!hasBuildConfigCheck) {
+                hasError = true
+                println("❌ ERROR: StandardScreen.kt의 shouldHideBanner 로직에 BuildConfig.DEBUG 체크가 없습니다!")
+            } else {
+                checks.add("✓ StandardScreen.kt에 BuildConfig.DEBUG 체크 존재")
+            }
+        }
+
+        // 4. DetailActivity.kt 검증
+        val detailActivityFile = File(projectDir, "src/main/java/kr/sweetapps/alcoholictimer/feature/detail/DetailActivity.kt")
+        if (detailActivityFile.exists()) {
+            val content = detailActivityFile.readText()
+
+            val hasBuildConfigCheck = content.contains("if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG)") ||
+                                     content.contains("if (BuildConfig.DEBUG)")
+
+            if (!hasBuildConfigCheck) {
+                hasError = true
+                println("❌ ERROR: DetailActivity.kt의 shouldHideBanner 로직에 BuildConfig.DEBUG 체크가 없습니다!")
+            } else {
+                checks.add("✓ DetailActivity.kt에 BuildConfig.DEBUG 체크 존재")
+            }
+        }
+
+        // 5. 광고 유닛 ID 검증 (릴리즈 빌드 설정 확인)
+        val buildFile = File(projectDir, "build.gradle.kts")
+        val buildContent = buildFile.readText()
+
+        // 릴리즈 빌드에 실제 광고 ID가 설정되어 있는지 확인
+        if (buildContent.contains("ca-app-pub-8420908105703273/3187272865")) {
+            checks.add("✓ 릴리즈 BANNER 광고 유닛 ID 설정됨")
+        } else {
+            warnings.add("⚠️  WARNING: 릴리즈 BANNER 광고 유닛 ID가 올바르지 않을 수 있습니다")
+        }
+
+        if (buildContent.contains("ca-app-pub-8420908105703273/2270912481")) {
+            checks.add("✓ 릴리즈 INTERSTITIAL 광고 유닛 ID 설정됨")
+        } else {
+            warnings.add("⚠️  WARNING: 릴리즈 INTERSTITIAL 광고 유닛 ID가 올바르지 않을 수 있습니다")
+        }
+
+        if (buildContent.contains("ca-app-pub-8420908105703273/4469985826")) {
+            checks.add("✓ 릴리즈 APP_OPEN 광고 유닛 ID 설정됨")
+        } else {
+            warnings.add("⚠️  WARNING: 릴리즈 APP_OPEN 광고 유닛 ID가 올바르지 않을 수 있습니다")
+        }
+
+        // 결과 출력
+        println("\n✅ 통과한 검증:")
+        checks.forEach { println("  $it") }
+
+        if (warnings.isNotEmpty()) {
+            println("\n⚠️  경고:")
+            warnings.forEach { println("  $it") }
+        }
+
+        println("\n" + "=".repeat(80))
+
+        if (hasError) {
+            println("❌ 검증 실패! 릴리즈 빌드를 중단합니다.")
+            println("=".repeat(80) + "\n")
+            throw GradleException(
+                """
+                |릴리즈 빌드 광고 설정 검증 실패!
+                |
+                |DebugAdHelper가 릴리즈 빌드에서도 광고를 숨길 수 있는 상태입니다.
+                |다음 파일들을 확인하고 BuildConfig.DEBUG 체크를 추가하세요:
+                |  - BaseActivity.kt
+                |  - StandardScreen.kt
+                |  - DetailActivity.kt
+                |
+                |각 파일에서 shouldHideBanner 로직이 다음과 같이 구현되어야 합니다:
+                |  if (BuildConfig.DEBUG) { ... } else false
+                """.trimMargin()
+            )
+        } else {
+            println("✅ 모든 검증 통과! 릴리즈 빌드를 계속 진행합니다.")
+            println("=".repeat(80) + "\n")
+        }
+    }
+}
+
+// 모든 릴리즈 관련 태스크가 verifyReleaseAdConfig에 의존하도록 설정
+tasks.configureEach {
+    if (name.contains("Release", ignoreCase = true) &&
+        (name.contains("assemble", ignoreCase = true) ||
+         name.contains("bundle", ignoreCase = true))) {
+        dependsOn("verifyReleaseAdConfig")
+    }
+}
+

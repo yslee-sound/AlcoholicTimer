@@ -71,6 +71,9 @@ REM 클린 & 디버그 빌드
 gradlew.bat clean
 gradlew.bat :app:assembleDebug
 
+REM 릴리즈 광고 설정 검증 (릴리즈 빌드 전 필수!)
+gradlew.bat verifyReleaseAdConfig
+
 REM Lint 검사 (Debug / Release Vital)
 gradlew.bat :app:lintDebug
 gradlew.bat :app:lintVitalRelease
@@ -78,7 +81,7 @@ gradlew.bat :app:lintVitalRelease
 REM 유닛 테스트
 gradlew.bat :app:testDebugUnitTest
 
-REM 릴리스 번들 (환경변수 설정 후)
+REM 릴리스 번들 (환경변수 설정 후) - verifyReleaseAdConfig 자동 실행됨
 SET VERSION_CODE=20251005
 SET VERSION_NAME=1.0.0
 REM (선택) 서명 키 설정
@@ -91,6 +94,28 @@ gradlew.bat clean :app:bundleRelease
 생성 산출물:
 - Debug APK: `app/build/outputs/apk/debug/app-debug.apk`
 - Release AAB: `app/build/outputs/bundle/release/app-release.aab`
+
+## 릴리즈 빌드 광고 안전장치 🛡️
+
+릴리즈 빌드에서 디버그 기능(광고 숨기기)이 실수로 활성화되는 것을 방지하기 위해 **자동 검증 시스템**이 구축되어 있습니다.
+
+### 자동 검증 (필수)
+```bat
+REM 릴리즈 빌드 전 검증
+gradlew.bat verifyReleaseAdConfig
+
+REM 또는 릴리즈 빌드 시 자동 실행됨
+gradlew.bat bundleRelease  ← verifyReleaseAdConfig 자동 실행
+```
+
+### 검증 항목
+- ✅ `BuildConfig.DEBUG` 체크 존재 (BaseActivity, StandardScreen, DetailActivity)
+- ✅ 릴리즈 광고 유닛 ID 설정 확인
+- ✅ 검증 실패 시 빌드 자동 중단
+
+### 상세 가이드
+- [릴리즈 광고 검증 가이드](./docs/RELEASE_AD_VERIFICATION_GUIDE.md) - 사용 방법 및 문제 해결
+- [안전장치 구현 완료 문서](./docs/RELEASE_AD_SAFETY_IMPLEMENTATION.md) - 구현 상세
 
 ## 문서
 - 기획 사양: [docs/APP_SPEC.md](./docs/APP_SPEC.md)

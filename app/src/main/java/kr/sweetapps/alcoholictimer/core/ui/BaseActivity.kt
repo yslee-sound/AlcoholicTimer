@@ -112,19 +112,21 @@ abstract class BaseActivity : ComponentActivity() {
         val activityName = this@BaseActivity.javaClass.simpleName
         android.util.Log.e("BaseActivity", "[$activityName] BaseScreen called - ENTRY POINT")
 
-        // 디버그 모드에서 배너 숨김 상태 확인 (반응형)
+        // 디버그 모드에서만 배너 숨김 상태 확인 (릴리즈에서는 항상 false)
         var shouldHideBanner by remember {
-            mutableStateOf(DebugAdHelper.bannerHiddenFlow.value).also {
-                android.util.Log.e("BaseActivity", "[$activityName] remember initial value: ${DebugAdHelper.bannerHiddenFlow.value}")
+            mutableStateOf(if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) DebugAdHelper.bannerHiddenFlow.value else false).also {
+                android.util.Log.e("BaseActivity", "[$activityName] remember initial value: ${if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) DebugAdHelper.bannerHiddenFlow.value else false}")
             }
         }
 
-        // Flow 변경사항을 LaunchedEffect로 명시적으로 구독
-        LaunchedEffect(Unit) {
-            android.util.Log.e("BaseActivity", "[$activityName] LaunchedEffect started, collecting flow...")
-            DebugAdHelper.bannerHiddenFlow.collect { hidden ->
-                android.util.Log.e("BaseActivity", "[$activityName] Flow collected: hidden=$hidden")
-                shouldHideBanner = hidden
+        // Flow 변경사항을 LaunchedEffect로 명시적으로 구독 (디버그 빌드에서만)
+        if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
+            LaunchedEffect(Unit) {
+                android.util.Log.e("BaseActivity", "[$activityName] LaunchedEffect started, collecting flow...")
+                DebugAdHelper.bannerHiddenFlow.collect { hidden ->
+                    android.util.Log.e("BaseActivity", "[$activityName] Flow collected: hidden=$hidden")
+                    shouldHideBanner = hidden
+                }
             }
         }
 
