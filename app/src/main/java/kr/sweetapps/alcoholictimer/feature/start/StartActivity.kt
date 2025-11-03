@@ -508,6 +508,8 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
                             }
                             val launchRun: () -> Unit = {
                                 context.startActivity(Intent(context, RunActivity::class.java))
+                                // 백스택 정리: StartActivity 종료
+                                (context as? android.app.Activity)?.finish()
                             }
                             // 메인 화면의 “앞으로 진행” 제스처에서만 Interstitial 시도
                             val act = activity
