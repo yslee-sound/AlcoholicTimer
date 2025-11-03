@@ -84,6 +84,8 @@ private fun RunScreen() {
         if (timerCompleted || startTime == 0L) {
             context.startActivity(Intent(context, StartActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                // 스플래시 화면 스킵 플래그 추가 (내부 네비게이션)
+                putExtra("skip_splash", true)
             })
             (context as? RunActivity)?.finish()
         }

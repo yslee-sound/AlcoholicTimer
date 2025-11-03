@@ -199,6 +199,8 @@ fun QuitScreen() {
                                                         val i = Intent(act, StartActivity::class.java).apply {
                                                             // 금주 종료 후에는 새로운 Task로 시작하여 완전히 초기화
                                                             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                                            // 스플래시 화면 스킵 플래그 추가 (내부 네비게이션)
+                                                            putExtra("skip_splash", true)
                                                         }
                                                         try {
                                                             act.startActivity(i)
@@ -210,6 +212,8 @@ fun QuitScreen() {
                                                         try {
                                                             val i = Intent(context, StartActivity::class.java).apply {
                                                                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                                                // 스플래시 화면 스킵 플래그 추가 (내부 네비게이션)
+                                                                putExtra("skip_splash", true)
                                                             }
                                                             context.startActivity(i)
                                                         } catch (t: Throwable) {
