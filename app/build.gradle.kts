@@ -14,7 +14,7 @@ val isReleaseTaskRequested: Boolean = gradle.startParameter.taskNames.any { name
 }
 
 android {
-    namespace = "com.sweetapps.alcoholictimer"
+    namespace = "kr.sweetapps.alcoholictimer"
     compileSdk = 36
 
     // 버전 코드 전략: yyyymmdd + 2자리 시퀀스 (NN)

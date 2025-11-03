@@ -1,3 +1,0 @@
-package com.sweetapps.alcoholictimer.feature.level
-
-class CurrentLevelCardRoborazziTestDisabled

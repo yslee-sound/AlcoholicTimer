@@ -11,7 +11,7 @@
     </queries>
 
     <application
-        android:name="com.sweetapps.alcoholictimer.MainApplication"
+        android:name="kr.sweetapps.alcoholictimer.MainApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -24,7 +24,7 @@
 
         <!-- 메인 액티비티 (시작 화면) -->
         <activity
-            android:name="com.sweetapps.alcoholictimer.feature.start.StartActivity"
+            android:name="kr.sweetapps.alcoholictimer.feature.start.StartActivity"
             android:exported="true"
             android:launchMode="singleTask"
             android:theme="@style/Theme.AlcoholicTimer.Splash"
@@ -37,77 +37,77 @@
 
         <!-- 기록 화면 -->
         <activity
-            android:name="com.sweetapps.alcoholictimer.feature.records.RecordsActivity"
+            android:name="kr.sweetapps.alcoholictimer.feature.records.RecordsActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 모든 기록 화면 -->
         <activity
-            android:name="com.sweetapps.alcoholictimer.feature.records.AllRecordsActivity"
+            android:name="kr.sweetapps.alcoholictimer.feature.records.AllRecordsActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 레벨 화면 -->
         <activity
-            android:name="com.sweetapps.alcoholictimer.feature.level.LevelActivity"
+            android:name="kr.sweetapps.alcoholictimer.feature.level.LevelActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 설정 화면 -->
         <activity
-            android:name="com.sweetapps.alcoholictimer.feature.settings.SettingsActivity"
+            android:name="kr.sweetapps.alcoholictimer.feature.settings.SettingsActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 금주 진행 화면 -->
         <activity
-            android:name="com.sweetapps.alcoholictimer.feature.run.RunActivity"
+            android:name="kr.sweetapps.alcoholictimer.feature.run.RunActivity"
             android:exported="false"
             android:launchMode="singleTask"
             android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 금주 종료 확인 화면 -->
         <activity
-            android:name="com.sweetapps.alcoholictimer.feature.run.QuitActivity"
+            android:name="kr.sweetapps.alcoholictimer.feature.run.QuitActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 세부 기록 화면 -->
         <activity
-            android:name="com.sweetapps.alcoholictimer.feature.detail.DetailActivity"
+            android:name="kr.sweetapps.alcoholictimer.feature.detail.DetailActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 별명 편집 화면 -->
         <activity
-            android:name="com.sweetapps.alcoholictimer.feature.profile.NicknameEditActivity"
+            android:name="kr.sweetapps.alcoholictimer.feature.profile.NicknameEditActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 사용자 기록 추가 화면 -->
         <activity
-            android:name="com.sweetapps.alcoholictimer.feature.addrecord.AddRecordActivity"
+            android:name="kr.sweetapps.alcoholictimer.feature.addrecord.AddRecordActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />
 
         <!-- 앱 정보 화면 -->
         <activity
-            android:name="com.sweetapps.alcoholictimer.feature.about.AboutActivity"
+            android:name="kr.sweetapps.alcoholictimer.feature.about.AboutActivity"
             android:exported="false"
             android:launchMode="singleTask"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />
         <!-- 오픈 라이선스 상세 화면 -->
         <activity
-            android:name="com.sweetapps.alcoholictimer.feature.about.AboutLicensesActivity"
+            android:name="kr.sweetapps.alcoholictimer.feature.about.AboutLicensesActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />
