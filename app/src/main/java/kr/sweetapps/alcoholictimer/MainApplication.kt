@@ -72,16 +72,16 @@ class MainApplication : Application() {
             }
             .build()
         MobileAds.setRequestConfiguration(config)
+
+        // 앱 오프닝 광고 매니저를 먼저 초기화한 뒤 MobileAds.initialize 콜백에서 사용
+        appOpenAdManager = AppOpenAdManager(this)
+        appOpenAdManager.resetColdStart()
+
         MobileAds.initialize(this) { initStatus ->
             android.util.Log.d("MainApplication", "MobileAds initialized: $initStatus")
-
             // MobileAds 초기화 완료 후 앱 오프닝 광고 로드
             appOpenAdManager.loadAd()
         }
-
-        // 앱 오프닝 광고 매니저 초기화
-        appOpenAdManager = AppOpenAdManager(this)
-        appOpenAdManager.resetColdStart()
 
         // 콜드 스타트 게이트 초기화(프로세스 시작 시 1회 노출 허용)
         InterstitialAdManager.resetColdStartGate()

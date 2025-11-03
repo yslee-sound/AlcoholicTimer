@@ -194,6 +194,23 @@ class StartActivity : BaseActivity() {
         super.onResume()
             // API 30 이하: 배경을 유지하여 워터마크 아이콘 표시
     }
+
+    // 런처(singleTask) 재진입 시 스택 상단이 정리되어 Start가 전면에 오는 문제 대응
+    // 진행 중 세션이면 즉시 RunActivity로 전환
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+        val startTime = sharedPref.getLong("start_time", 0L)
+        val timerCompleted = sharedPref.getBoolean("timer_completed", false)
+        if (startTime > 0L && !timerCompleted) {
+            startActivity(Intent(this, RunActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            })
+            finish()
+        }
+    }
+
     override fun getScreenTitleResId(): Int = R.string.start_screen_title
     @Deprecated("Use getScreenTitleResId() instead")
     override fun getScreenTitle(): String = getString(R.string.start_screen_title)
