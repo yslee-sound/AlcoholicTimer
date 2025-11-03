@@ -79,7 +79,7 @@
     <string name="about_section_app_icon">앱 아이콘</string>
     <string name="about_label_original_work">원본 저작물</string>
     <string name="about_label_author">원저작자</string>
-    <string name="about_label_source">출��</string>
+    <string name="about_label_source">출처</string>
     <string name="about_label_source_link">출처 링크</string>
     <string name="about_label_license">라이선스</string>
     <string name="about_label_changes">변경 사항</string>
@@ -92,15 +92,15 @@
     <string name="about_value_license_cc_by">Creative Commons Attribution 4.0 International (CC BY 4.0)</string>
     <string name="about_value_license_cc_by_url">https://creativecommons.org/licenses/by/4.0/</string>
     <string name="about_value_change_desc">아이콘의 색상 및 모양 일부를 수정하여 사용함.</string>
-    <string name="about_notice_compliance">본 ���은 CC BY 4.0 조건에 따라 적절한 저작자 표시, 출처 및 라이선스 링크 제공, 변경 사항 고지를 준수합니다.</string>
+    <string name="about_notice_compliance">본 앱은 CC BY 4.0 조건에 따라 적절한 저작자 표시, 출처 및 라이선스 링크 제공, 변경 사항 고지를 준수합니다.</string>
 
     <string name="action_copy">복사</string>
     <string name="toast_copied">주소를 복사했습니다.</string>
 
     <!-- Drawer menu (네비게이션 드로어) -->
     <string name="default_nickname">알중이1</string>
-    <string name="drawer_edit_profile">프로필 편���</string>
-    <string name="drawer_section_menu">메��</string>
+    <string name="drawer_edit_profile">프로필 편집</string>
+    <string name="drawer_section_menu">메뉴</string>
     <string name="drawer_section_settings">설정</string>
     <string name="drawer_menu_sobriety">금주</string>
     <string name="drawer_menu_records">기록</string>
