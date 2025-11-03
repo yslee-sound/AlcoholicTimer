@@ -19,11 +19,11 @@
         <!-- 윈도우 배경 자체에 아이콘을 그려 백포트 미동작 시에도 표시 보장 -->
         <item name="android:windowBackground">@drawable/splash_screen</item>
         <!-- backport가 읽는 속성들 -->
-        <item name="windowSplashScreenBackground">@android:color/white</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_app_icon</item>
+        <item name="windowSplashScreenBackground">#f28090</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
         <item name="postSplashScreenTheme">@style/Theme.AlcoholicTimer</item>
-        <!-- Splash 동안에도 네비게이션바는 흰색 유지 -->
-        <item name="android:statusBarColor">@android:color/white</item>
-        <item name="android:navigationBarColor">@android:color/white</item>
+        <!-- Splash 동안에도 네비게이션바는 배경색과 동일하게 -->
+        <item name="android:statusBarColor">#f28090</item>
+        <item name="android:navigationBarColor">#f28090</item>
     </style>
 </resources>

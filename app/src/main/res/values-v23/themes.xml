@@ -14,13 +14,12 @@
     <style name="Theme.AlcoholicTimer.Splash" parent="@android:style/Theme.DeviceDefault.NoActionBar">
         <!-- 윈도우 배경 자체에 아이콘을 그려 표시 보장 -->
         <item name="android:windowBackground">@drawable/splash_screen</item>
-        <item name="windowSplashScreenBackground">@android:color/white</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_app_icon</item>
+        <item name="windowSplashScreenBackground">#f28090</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
         <item name="windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
         <item name="postSplashScreenTheme">@style/Theme.AlcoholicTimer</item>
-        <item name="android:statusBarColor">@android:color/white</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="splashScreenIconSize">240dp</item>
+        <item name="android:statusBarColor">#f28090</item>
+        <item name="android:windowLightStatusBar">false</item>
         <!-- 상단 경계선(오버레이) 제거 -->
         <item name="android:windowContentOverlay">@null</item>
     </style>

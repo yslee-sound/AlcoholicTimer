@@ -108,11 +108,11 @@ private fun AboutListScreen(
                     onClick = onOpenLicenses
                 )
 
-                // 3) 디버깅 모드 (디버그 빌드에서만 노출)
+                // 3) 디버그 모드 (디버그 빌드에서만 노출)
                 if (BuildConfig.DEBUG) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
                     SimpleListRow(
-                        title = "디버깅 모드",
+                        title = "디버그 모드",
                         onClick = onOpenDebug
                     )
                 }
