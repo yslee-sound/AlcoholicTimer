@@ -2,7 +2,6 @@ package com.sweetapps.alcoholictimer.feature.about
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -13,10 +12,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -28,7 +23,6 @@ import com.sweetapps.alcoholictimer.core.ui.BaseActivity
 import com.sweetapps.alcoholictimer.R
 import com.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 import com.sweetapps.alcoholictimer.core.ui.AdmobBanner
-import com.sweetapps.alcoholictimer.core.ui.DebugAdHelper
 
 class AboutActivity : BaseActivity() {
     @Suppress("OVERRIDE_DEPRECATION")
@@ -37,28 +31,13 @@ class AboutActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            var hideBannerAd by remember { mutableStateOf(DebugAdHelper.isBannerHidden(this@AboutActivity)) }
-
             // 뒤로가기 버튼: 메인 홈(Start/Run)으로 이동
-            BackHandler(enabled = true) {
-                navigateToMainHome()
-            }
+            BackHandler(enabled = true) { navigateToMainHome() }
 
             BaseScreen(bottomAd = { AdmobBanner() }) {
                 AboutListScreen(
                     onOpenLicenses = { openLicenses() },
-                    onVersionLongClick = {
-                        if (BuildConfig.DEBUG) {
-                            val newState = DebugAdHelper.toggleBannerHidden(this@AboutActivity)
-                            hideBannerAd = newState
-                            val message = if (newState) {
-                                "배너 광고 숨김 (디버그 전용)"
-                            } else {
-                                "배너 광고 표시"
-                            }
-                            Toast.makeText(this@AboutActivity, message, Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                    onOpenDebug = { openDebug() }
                 )
             }
         }
@@ -69,24 +48,30 @@ class AboutActivity : BaseActivity() {
         startActivity(Intent(this, AboutLicensesActivity::class.java))
         overridePendingTransition(0, 0)
     }
+
+    @Suppress("DEPRECATION")
+    private fun openDebug() {
+        if (!BuildConfig.DEBUG) return
+        try {
+            val clazz = Class.forName("com.sweetapps.alcoholictimer.feature.debug.DebugActivity")
+            startActivity(Intent(this, clazz))
+            overridePendingTransition(0, 0)
+        } catch (_: Throwable) { /* 디버그 빌드가 아니거나 Activity 미존재: 무시 */ }
+    }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun AboutListScreen(
     onOpenLicenses: () -> Unit,
-    onVersionLongClick: () -> Unit = {}
+    onOpenDebug: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val versionName = remember {
-        try {
-            @Suppress("DEPRECATION")
-            val pi = context.packageManager.getPackageInfo(context.packageName, 0)
-            pi.versionName ?: "-"
-        } catch (_: Throwable) {
-            "-"
-        }
-    }
+    val versionName = try {
+        @Suppress("DEPRECATION")
+        val pi = context.packageManager.getPackageInfo(context.packageName, 0)
+        pi.versionName ?: "-"
+    } catch (_: Throwable) { "-" }
 
     val safePadding = LocalSafeContentPadding.current
 
@@ -96,7 +81,6 @@ private fun AboutListScreen(
             .padding(horizontal = 16.dp, vertical = 12.dp)
             .padding(safePadding)
     ) {
-        // 흰색 카드 안에 리스트 아이템 묶기
         Surface(
             color = MaterialTheme.colorScheme.surface,
             shape = MaterialTheme.shapes.medium,
@@ -105,7 +89,7 @@ private fun AboutListScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
-                // 1) 버전 정보 (정보 표시 행) - 길게 클릭 시 배너 광고 토글 (디버그 빌드만)
+                // 1) 버전 정보 (정보 표시 행) - 길게 클릭 동작 제거
                 SimpleListRow(
                     title = stringResource(id = R.string.about_version_info),
                     trailing = {
@@ -114,8 +98,7 @@ private fun AboutListScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                    },
-                    onLongClick = onVersionLongClick
+                    }
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
 
@@ -124,9 +107,17 @@ private fun AboutListScreen(
                     title = stringResource(id = R.string.about_open_license_notice),
                     onClick = onOpenLicenses
                 )
+
+                // 3) 디버깅 모드 (디버그 빌드에서만 노출)
+                if (BuildConfig.DEBUG) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
+                    SimpleListRow(
+                        title = "디버깅 모드",
+                        onClick = onOpenDebug
+                    )
+                }
             }
         }
-        // 아래 여백
         Spacer(Modifier.height(12.dp))
     }
 }
