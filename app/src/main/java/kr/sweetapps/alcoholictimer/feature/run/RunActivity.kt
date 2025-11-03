@@ -1,0 +1,508 @@
+package kr.sweetapps.alcoholictimer.feature.run
+
+import android.content.Context
+import android.content.Intent
+import android.os.Bundle
+import android.widget.Toast
+import androidx.activity.compose.setContent
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.core.content.edit
+import java.util.Locale
+import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
+import kr.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
+import kr.sweetapps.alcoholictimer.core.ui.AdmobBanner
+import kr.sweetapps.alcoholictimer.core.util.Constants
+import kr.sweetapps.alcoholictimer.feature.level.LevelDefinitions
+import kr.sweetapps.alcoholictimer.core.util.FormatUtils
+import kotlinx.coroutines.delay
+import kr.sweetapps.alcoholictimer.R
+import kr.sweetapps.alcoholictimer.feature.start.StartActivity
+import kr.sweetapps.alcoholictimer.feature.detail.DetailActivity
+import kr.sweetapps.alcoholictimer.core.ui.AppElevation
+import androidx.compose.foundation.BorderStroke
+import kr.sweetapps.alcoholictimer.core.ui.AppBorder
+import kotlinx.coroutines.launch
+import kr.sweetapps.alcoholictimer.core.util.AppUpdateManager
+import kr.sweetapps.alcoholictimer.core.ads.InterstitialAdManager
+import androidx.activity.compose.BackHandler
+
+class RunActivity : BaseActivity() {
+
+    override fun getScreenTitle(): String = getString(R.string.run_title)
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            BaseScreen(applyBottomInsets = false, manageBottomAreaExternally = true) {
+                RunScreen()
+            }
+        }
+    }
+}
+
+@Composable
+private fun RunScreen() {
+    val context = LocalContext.current
+    val activity = context as? RunActivity
+
+    // 금주 진행 중에는 뒤로가기로 StartActivity로 돌아가지 않도록 방지
+    // 뒤로가기 시 앱을 백그라운드로 이동
+    BackHandler(enabled = true) {
+        activity?.moveTaskToBack(true)
+    }
+
+    val sp = remember { context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE) }
+    val startTime = remember { sp.getLong(Constants.PREF_START_TIME, 0L) }
+    val targetDays = remember { sp.getFloat(Constants.PREF_TARGET_DAYS, 30f) }
+    val timerCompleted = remember { sp.getBoolean(Constants.PREF_TIMER_COMPLETED, false) }
+
+    LaunchedEffect(startTime, timerCompleted) {
+        if (timerCompleted || startTime == 0L) {
+            context.startActivity(Intent(context, StartActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            })
+            (context as? RunActivity)?.finish()
+        }
+    }
+
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(1000)
+            now = System.currentTimeMillis()
+        }
+    }
+
+    val elapsedMillis by remember(now, startTime) {
+        derivedStateOf { if (startTime > 0) now - startTime else 0L }
+    }
+    val elapsedDaysFloat = remember(elapsedMillis) { elapsedMillis / Constants.DAY_IN_MILLIS.toFloat() }
+    val elapsedDays = remember(elapsedDaysFloat) { elapsedDaysFloat.toInt() }
+
+    val levelDays = remember(elapsedMillis) { Constants.calculateLevelDays(elapsedMillis) }
+    val levelInfo = remember(levelDays) { LevelDefinitions.getLevelInfo(levelDays) }
+    val levelName = context.getString(levelInfo.nameResId)
+    val levelNumber = remember(levelDays) { LevelDefinitions.getLevelNumber(levelDays) + 1 } // +1 for display (1-indexed)
+    val levelDisplayText = "Lv.$levelNumber"
+
+    // Goal days format based on locale
+    val goalDaysText = remember(targetDays) {
+        context.getString(R.string.stat_goal_days_format, targetDays.toInt())
+    }
+
+    val elapsedHours = ((elapsedMillis % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)).toInt()
+    val elapsedMinutes = ((elapsedMillis % (60 * 60 * 1000)) / (60 * 1000)).toInt()
+    val elapsedSeconds = ((elapsedMillis % (60 * 1000)) / 1000).toInt()
+    val progressTimeText = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds)
+    val progressTimeTextHM = String.format(Locale.getDefault(), "%02d:%02d", elapsedHours, elapsedMinutes)
+
+    val (selectedCost, selectedFrequency, selectedDuration) = Constants.getUserSettings(context)
+    val costVal = Constants.DrinkingSettings.getCostValue(selectedCost)
+    val freqVal = Constants.DrinkingSettings.getFrequencyValue(selectedFrequency)
+    val drinkHoursVal = Constants.DrinkingSettings.getDurationValue(selectedDuration)
+    val weeks = elapsedDaysFloat / 7.0
+    val savedMoney = remember(weeks, freqVal, costVal) { weeks * freqVal * costVal }
+    val savedHours = remember(weeks, freqVal, drinkHoursVal) { weeks * freqVal * (drinkHoursVal + Constants.DrinkingSettings.HANGOVER_HOURS) }
+    val lifeGainDays = remember(elapsedDaysFloat) { elapsedDaysFloat / 30.0 }
+
+    val totalTargetMillis = (targetDays * Constants.DAY_IN_MILLIS).toLong()
+    val progress = remember(elapsedMillis, totalTargetMillis) {
+        if (totalTargetMillis > 0) (elapsedMillis.toFloat() / totalTargetMillis).coerceIn(0f, 1f) else 0f
+    }
+
+    val indicatorKey = remember(startTime) { Constants.keyCurrentIndicator(startTime) }
+    var currentIndicator by remember { mutableIntStateOf(sp.getInt(indicatorKey, 0)) }
+
+    fun toggleIndicator() { val next = (currentIndicator + 1) % 5; currentIndicator = next; sp.edit { putInt(indicatorKey, next) } }
+
+    var hasCompleted by remember { mutableStateOf(false) }
+    LaunchedEffect(progress) {
+        if (!hasCompleted && progress >= 1f && startTime > 0) {
+            try {
+                saveCompletedRecord(
+                    context = context,
+                    startTime = startTime,
+                    endTime = System.currentTimeMillis(),
+                    targetDays = targetDays,
+                    actualDays = (elapsedMillis / Constants.DAY_IN_MILLIS).toInt()
+                )
+                sp.edit { remove(Constants.PREF_START_TIME); putBoolean(Constants.PREF_TIMER_COMPLETED, true) }
+                hasCompleted = true
+                Toast.makeText(context, context.getString(R.string.toast_goal_completed), Toast.LENGTH_SHORT).show()
+
+                val goDetail: () -> Unit = {
+                    DetailActivity.start(
+                        context = context,
+                        startTime = startTime,
+                        endTime = System.currentTimeMillis(),
+                        targetDays = targetDays,
+                        actualDays = (elapsedMillis / Constants.DAY_IN_MILLIS).toInt(),
+                        isCompleted = true
+                    )
+                    (context as? RunActivity)?.finish()
+                }
+
+                val activity = context as? android.app.Activity
+                val showed = activity?.let { InterstitialAdManager.maybeShowIfEligible(it) { goDetail() } } ?: false
+                if (!showed) {
+                    goDetail()
+                }
+            } catch (_: Exception) { }
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        StandardScreenWithBottomButton(
+            topContent = {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+                    border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            RunStatChip(title = stringResource(id = R.string.stat_goal_days), value = goalDaysText, color = colorResource(id = R.color.color_stat_goal), modifier = Modifier.weight(1f))
+                            RunStatChip(title = stringResource(id = R.string.stat_level), value = levelDisplayText, color = levelInfo.color, modifier = Modifier.weight(1f))
+                            RunStatChip(title = stringResource(id = R.string.stat_time), value = progressTimeTextHM, color = colorResource(id = R.color.color_stat_time), modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Card(
+                    modifier = Modifier.fillMaxWidth().height(168.dp).clickable { toggleIndicator() },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+                    border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
+                ) {
+                    Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
+                        val labelBoxH = 36.dp; val valueBoxH = 66.dp; val hintBoxH = 20.dp; val gapSmall = 6.dp; val gapMedium = 8.dp
+
+                        // Life Expectancy 값을 일/시간으로 분리
+                        val lifeGainDaysInt = lifeGainDays.toInt()
+                        val lifeGainHoursRemainder = (lifeGainDays - lifeGainDaysInt) * 24.0
+
+                        val (label, valueText, valueColor) = when (currentIndicator) {
+                            0 -> Triple(stringResource(id = R.string.indicator_title_days), String.format(Locale.getDefault(), "%.1f", elapsedDaysFloat), colorResource(id = R.color.color_indicator_days))
+                            1 -> Triple(stringResource(id = R.string.indicator_title_time), progressTimeText, colorResource(id = R.color.color_indicator_time))
+                            2 -> Triple(stringResource(id = R.string.indicator_title_saved_money), FormatUtils.formatMoney(context, savedMoney).replace(" ", ""), colorResource(id = R.color.color_indicator_money))
+                            3 -> Triple(stringResource(id = R.string.indicator_title_saved_hours), String.format(Locale.getDefault(), "%.1f", savedHours), colorResource(id = R.color.color_indicator_hours))
+                            else -> Triple(stringResource(id = R.string.indicator_title_life_gain), FormatUtils.daysToDayHourString(context, lifeGainDays, 2), colorResource(id = R.color.color_indicator_life))
+                        }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Box(modifier = Modifier.fillMaxWidth().height(labelBoxH), contentAlignment = Alignment.Center) {
+                                val base = MaterialTheme.typography.titleMedium
+                                Text(
+                                    text = label,
+                                    style = base.copy(
+                                        color = colorResource(id = R.color.color_indicator_label_gray),
+                                        lineHeight = base.fontSize * 1.2f,
+                                        platformStyle = PlatformTextStyle(includeFontPadding = true)
+                                    ),
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(gapSmall))
+                            Box(modifier = Modifier.fillMaxWidth().height(valueBoxH), contentAlignment = Alignment.Center) {
+                                val baseStyle = MaterialTheme.typography.headlineMedium
+                                val bigSize = (baseStyle.fontSize.value * 1.5f).sp
+                                val bigStyle = baseStyle.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = valueColor,
+                                    fontSize = bigSize,
+                                    lineHeight = bigSize * 1.1f,
+                                    platformStyle = PlatformTextStyle(includeFontPadding = true),
+                                    fontFeatureSettings = "tnum"
+                                )
+                                val unitStyle = baseStyle.copy(
+                                    color = valueColor,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = baseStyle.fontSize,
+                                    lineHeight = baseStyle.fontSize * 1.1f,
+                                    platformStyle = PlatformTextStyle(includeFontPadding = true)
+                                )
+                                val isMoney = currentIndicator == 2
+                                val isLifeGain = currentIndicator == 4
+                                if (isMoney) {
+                                    // 다국어 통화 형식 처리
+                                    val dollarMatch = Regex("""\$([0-9,]+(?:\.[0-9]+)?)""").find(valueText)
+                                    val yenMatch = Regex("""¥([0-9,]+)""").find(valueText)
+
+                                    when {
+                                        dollarMatch != null -> {
+                                            // 달러 형식: $1,000.00
+                                            val numeric = dollarMatch.groupValues[1]
+                                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                                Text(text = "$", style = unitStyle, modifier = Modifier.alignByBaseline())
+                                                Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                            }
+                                        }
+                                        yenMatch != null -> {
+                                            // 엔화 형식: ¥1,000
+                                            val numeric = yenMatch.groupValues[1]
+                                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                                Text(text = "¥", style = unitStyle, modifier = Modifier.alignByBaseline())
+                                                Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                            }
+                                        }
+                                        else -> {
+                                            // 원화 형식: 1,000원 또는 ₩1,000
+                                            val numeric = valueText.replace("원", "").replace("₩", "").trim()
+                                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                                Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                                Spacer(modifier = Modifier.width(2.dp))
+                                                Text(text = "원", style = unitStyle, modifier = Modifier.alignByBaseline())
+                                            }
+                                        }
+                                    }
+                                } else if (isLifeGain) {
+                                    // 다국어 지원: "1일 2.5시간" 또는 "1 day(s) 2.5 hr(s)" 또는 "1日 2.5時間"
+                                    val twoPart = Regex("""(\d+)\s*(?:일|日|day\(s\))\s*([0-9]+(?:\.[0-9]+)?)\s*(?:시간|時間|hr\(s\))""")
+                                    val onePart = Regex("""([0-9]+(?:\.[0-9]+)?)\s*(?:시간|時間|hr\(s\))""")
+                                    val m1 = twoPart.find(valueText)
+                                    val m2 = if (m1 == null) onePart.find(valueText) else null
+                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                        if (m1 != null) {
+                                            val dStr = m1.groupValues[1]
+                                            val hStr = m1.groupValues[2]
+                                            Text(text = dStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                            Spacer(modifier = Modifier.width(2.dp))
+                                            Text(text = stringResource(R.string.unit_day), style = unitStyle, modifier = Modifier.alignByBaseline())
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                            Spacer(modifier = Modifier.width(2.dp))
+                                            Text(text = stringResource(R.string.unit_hour), style = unitStyle, modifier = Modifier.alignByBaseline())
+                                        } else if (m2 != null) {
+                                            val hStr = m2.groupValues[1]
+                                            Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                            Spacer(modifier = Modifier.width(2.dp))
+                                            Text(text = stringResource(R.string.unit_hour), style = unitStyle, modifier = Modifier.alignByBaseline())
+                                        } else {
+                                            Text(text = valueText, style = bigStyle, textAlign = TextAlign.Center, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
+                                        }
+                                    }
+                                } else {
+                                    Text(
+                                        text = valueText,
+                                        style = bigStyle,
+                                        textAlign = TextAlign.Center,
+                                        maxLines = 1,
+                                        softWrap = false,
+                                        overflow = TextOverflow.Clip
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(gapMedium))
+                            Box(modifier = Modifier.fillMaxWidth().height(hintBoxH), contentAlignment = Alignment.Center) {
+                                val base = MaterialTheme.typography.labelMedium
+                                Text(
+                                    text = stringResource(id = R.string.tap_to_switch_indicator),
+                                    style = base.copy(
+                                        color = colorResource(id = R.color.color_hint_gray),
+                                        lineHeight = base.fontSize * 1.2f,
+                                        platformStyle = PlatformTextStyle(includeFontPadding = true)
+                                    ),
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+                    border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) { ModernProgressIndicatorSimple(progress = progress) }
+                }
+            },
+            bottomButton = {
+                ModernStopButtonSimple(onStop = {
+                    val intent = Intent(context, QuitActivity::class.java).apply {
+                        putExtra("elapsed_days", elapsedDays)
+                        putExtra("elapsed_hours", elapsedHours)
+                        putExtra("elapsed_minutes", elapsedMinutes)
+                        putExtra("saved_money", savedMoney)
+                        putExtra("saved_hours", savedHours)
+                        putExtra("life_gain_days", lifeGainDays)
+                        putExtra("level_name", levelName)
+                        putExtra("level_color", levelInfo.color.value.toLong())
+                        putExtra("quit_timestamp", System.currentTimeMillis())
+                    }
+                    context.startActivity(intent)
+                })
+            },
+            bottomAd = { AdmobBanner() }
+        )
+    }
+}
+
+@Composable
+private fun ModernProgressIndicatorSimple(progress: Float) {
+    var blink by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) { while (true) { delay(1000); blink = !blink } }
+    val alpha by animateFloatAsState(targetValue = if (blink) 1f else 0.3f, animationSpec = tween(durationMillis = 500, easing = androidx.compose.animation.core.FastOutSlowInEasing), label = "blink")
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+            Text(text = (progress * 100).toInt().coerceIn(0, 100).toString() + "%", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, color = colorResource(id = R.color.color_progress_primary)))
+            Spacer(modifier = Modifier.width(8.dp))
+            Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(colorResource(id = R.color.color_progress_primary).copy(alpha = alpha)))
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        LinearProgressIndicator(progress = { progress }, color = colorResource(id = R.color.color_progress_primary), trackColor = colorResource(id = R.color.color_progress_track), modifier = Modifier.fillMaxWidth().height(8.dp))
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ModernStopButtonSimple(onStop: () -> Unit, modifier: Modifier = Modifier) {
+    Card(
+        onClick = onStop,
+        modifier = modifier.size(96.dp),
+        shape = CircleShape,
+        colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.color_stop_button)),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
+    ) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = stringResource(id = R.string.cd_stop),
+                tint = Color.White,
+                modifier = Modifier.size(48.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun AutoResizeSingleLineText(
+    text: String,
+    baseStyle: TextStyle,
+    modifier: Modifier = Modifier,
+    minFontSizeSp: Float = 10f,
+    step: Float = 0.95f,
+    color: Color? = null,
+    textAlign: TextAlign? = null,
+) {
+    var style by remember(text) { mutableStateOf(baseStyle) }
+    var tried by remember(text) { mutableStateOf(0) }
+    Text(
+        text = text,
+        style = style,
+        color = color ?: style.color,
+        textAlign = textAlign,
+        maxLines = 1,
+        softWrap = false,
+        overflow = TextOverflow.Clip,
+        modifier = modifier,
+        onTextLayout = { result ->
+            if (result.hasVisualOverflow && tried < 20) {
+                val current = style.fontSize.value
+                val next = (current * step).coerceAtLeast(minFontSizeSp)
+                if (next < current - 0.1f) {
+                    style = style.copy(fontSize = next.sp, lineHeight = (next.sp * 1.1f))
+                    tried++
+                }
+            }
+        }
+    )
+}
+
+@Composable
+private fun RunStatChip(title: String, value: String, color: Color, modifier: Modifier = Modifier) {
+    Surface(modifier = modifier.height(84.dp), shape = RoundedCornerShape(12.dp), color = color.copy(alpha = 0.1f)) {
+        Column(modifier = Modifier.fillMaxWidth().padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            val baseValue = MaterialTheme.typography.titleMedium
+            val isTime = value.contains(":")
+            val baseFactor = if (isTime) 0.92f else 0.98f
+            val valueSize = (baseValue.fontSize.value * baseFactor).sp
+            val valueStyle = baseValue.copy(
+                fontWeight = FontWeight.Bold,
+                fontSize = valueSize,
+                lineHeight = valueSize * 1.1f,
+                platformStyle = PlatformTextStyle(includeFontPadding = true),
+                fontFeatureSettings = "tnum"
+            )
+            Box(modifier = Modifier.fillMaxWidth().height(34.dp), contentAlignment = Alignment.Center) {
+                AutoResizeSingleLineText(
+                    text = value,
+                    baseStyle = valueStyle,
+                    minFontSizeSp = (baseValue.fontSize.value * 0.75f),
+                    color = color,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            val baseLabel = MaterialTheme.typography.labelMedium
+            val labelStyle = baseLabel.copy(
+                lineHeight = baseLabel.fontSize * 1.2f,
+                platformStyle = PlatformTextStyle(includeFontPadding = true)
+            )
+            Box(modifier = Modifier.fillMaxWidth().height(22.dp), contentAlignment = Alignment.Center) {
+                AutoResizeSingleLineText(
+                    text = title,
+                    baseStyle = labelStyle,
+                    minFontSizeSp = (baseLabel.fontSize.value * 0.85f),
+                    color = colorResource(id = R.color.color_stat_title_gray),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+}
+
+private fun saveCompletedRecord(context: Context, startTime: Long, endTime: Long, targetDays: Float, actualDays: Int) {
+    try {
+        val sharedPref = context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
+        val recordId = System.currentTimeMillis().toString()
+        val isCompleted = actualDays >= targetDays
+        val status = if (isCompleted) "완료" else "중지"
+        val record = org.json.JSONObject().apply {
+            put("id", recordId); put("startTime", startTime); put("endTime", endTime); put("targetDays", targetDays.toInt()); put("actualDays", actualDays); put("isCompleted", isCompleted); put("status", status); put("createdAt", System.currentTimeMillis())
+        }
+        val recordsJson = sharedPref.getString(Constants.PREF_SOBRIETY_RECORDS, "[]") ?: "[]"
+        val list = try { org.json.JSONArray(recordsJson) } catch (_: Exception) { org.json.JSONArray() }
+        list.put(record)
+        sharedPref.edit { putString(Constants.PREF_SOBRIETY_RECORDS, list.toString()) }
+    } catch (_: Exception) { }
+}
