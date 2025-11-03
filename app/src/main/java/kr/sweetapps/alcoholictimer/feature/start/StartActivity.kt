@@ -521,7 +521,7 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
                                     // 최초 클릭 시 로드 대기(최대 1.2초) 후 즉시 표시 시도
                                     val done = AtomicBoolean(false)
                                     val handler = Handler(Looper.getMainLooper())
-                                    val timeoutMs = 1200L
+                                    val timeoutMs = 800L
                                     val timeout = Runnable {
                                         if (done.compareAndSet(false, true)) {
                                             launchRun()
