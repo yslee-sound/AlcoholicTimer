@@ -46,8 +46,6 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -143,12 +141,6 @@ class StartActivity : BaseActivity() {
         // In-App Update 초기화
         appUpdateManager = AppUpdateManager(this)
 
-        // 디버그 빌드 여부 (릴리스에서 데모 비활성화용)
-        val isDebugBuild = (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
-
-        // 데모 모드 플래그: DEBUG에서만 인텐트 값 반영, RELEASE에서는 항상 false
-        val demoUpdateUi = if (isDebugBuild) intent.getBooleanExtra("demo_update_ui", false) else false
-
         val launchContent = {
             // 남은 최소 오버레이 시간 계산 (API<31에서 setContent 지연 후엔 0일 수 있음)
             val elapsed = SystemClock.uptimeMillis() - splashStart
@@ -161,8 +153,6 @@ class StartActivity : BaseActivity() {
                 BaseScreen(applyBottomInsets = false, applySystemBars = true, manageBottomAreaExternally = true) {
                     StartScreenWithUpdate(
                         appUpdateManager,
-                        demoMode = demoUpdateUi,
-                        debugEnabled = isDebugBuild,
                         initialMinRemainMillis = if (skipSplash) 0L else initialRemain,
                         usesComposeOverlay = usesComposeOverlay,
                         onSplashFinished = {
@@ -216,12 +206,10 @@ class StartActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.start_screen_title)
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StartScreenWithUpdate(
     appUpdateManager: AppUpdateManager,
-    demoMode: Boolean = false,
-    debugEnabled: Boolean = false,
     initialMinRemainMillis: Long = 0L,
     usesComposeOverlay: Boolean = true,
     onSplashFinished: () -> Unit = {}
@@ -246,47 +234,26 @@ fun StartScreenWithUpdate(
     var showUpdateDialog by remember { mutableStateOf(false) }
     var isCheckingUpdate by remember { mutableStateOf(true) }
 
-    // DEBUG에서만 데모 활성화
-    val demoEnabled = debugEnabled
-    val demoActive = demoEnabled && demoMode
-
     // 업데이트 정보/표시 버전명 상태 보관
     var updateInfo by remember { mutableStateOf<AppUpdateInfo?>(null) }
     var availableVersionName by remember { mutableStateOf("") }
 
-    // 데모 트리거 함수 (UI만 시연)
-    val triggerDemo: () -> Unit = {
-        isCheckingUpdate = true
+    // 앱 시작 시 업데이트 확인
+    LaunchedEffect(Unit) {
         scope.launch {
-            delay(600)
-            // 데모용 표시 버전명 세팅
-            availableVersionName = "2.0.0"
-            // 다이얼로그 표시
-            showUpdateDialog = true
-            isCheckingUpdate = false
-        }
-    }
-
-    // 앱 시작 시 업데이트 확인 (데모 모드면 실제 체크 생략)
-    LaunchedEffect(demoActive) {
-        if (!demoActive) {
-            scope.launch {
-                appUpdateManager.checkForUpdate(
-                    forceCheck = false,
-                    onUpdateAvailable = { info ->
-                        // 업데이트 사용 가능: 정보 보관 후 다이얼로그 표시
-                        updateInfo = info
-                        availableVersionName = "v${info.availableVersionCode()}"
-                        showUpdateDialog = true
-                        isCheckingUpdate = false
-                    },
-                    onNoUpdate = {
-                        isCheckingUpdate = false
-                    }
-                )
-            }
-        } else {
-            triggerDemo()
+            appUpdateManager.checkForUpdate(
+                forceCheck = false,
+                onUpdateAvailable = { info ->
+                    // 업데이트 사용 가능: 정보 보관 후 다이얼로그 표시
+                    updateInfo = info
+                    availableVersionName = "v${info.availableVersionCode()}"
+                    showUpdateDialog = true
+                    isCheckingUpdate = false
+                },
+                onNoUpdate = {
+                    isCheckingUpdate = false
+                }
+            )
         }
     }
 
@@ -312,8 +279,7 @@ fun StartScreenWithUpdate(
 
     Box(modifier = Modifier.fillMaxSize()) {
         StartScreen(
-            gateNavigation = gateNavigation,
-            onDebugLongPress = if (demoEnabled) ({ triggerDemo() }) else null
+            gateNavigation = gateNavigation
         )
 
         // 스플래시 오버레이: 최소 유지 시간이 남았거나 업데이트 체크 중인 동안 표시 (다이얼로그 표시 시엔 숨김)
@@ -349,27 +315,15 @@ fun StartScreenWithUpdate(
         // 스냅바
         SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
 
-        // 업데이트 다이얼로그 렌더링 (실사용/데모 공통)
+        // 업데이트 다이얼로그 렌더링
         kr.sweetapps.alcoholictimer.core.ui.components.AppUpdateDialog(
             isVisible = showUpdateDialog,
             versionName = if (availableVersionName.isNotBlank()) availableVersionName else "vNext",
             updateMessageResourceId = R.string.update_dialog_default_message,
             onUpdateClick = {
-                if (demoActive) {
-                    // 데모: 다운로드 완료 스낵바를 직접 노출해 흐름 시연
-                    showUpdateDialog = false
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = restartPromptText,
-                            actionLabel = actionRestartText,
-                            duration = SnackbarDuration.Indefinite
-                        )
-                    }
-                } else {
-                    // 실사용: Flexible Update 시작
-                    updateInfo?.let { appUpdateManager.startFlexibleUpdate(it) }
-                    showUpdateDialog = false
-                }
+                // Flexible Update 시작
+                updateInfo?.let { appUpdateManager.startFlexibleUpdate(it) }
+                showUpdateDialog = false
             },
             onDismiss = {
                 showUpdateDialog = false
@@ -380,9 +334,9 @@ fun StartScreenWithUpdate(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)? = null) {
+fun StartScreen(gateNavigation: Boolean = false) {
     val context = LocalContext.current
     val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
 
@@ -426,30 +380,20 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
                         modifier = Modifier.fillMaxWidth().padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        val baseTitleModifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(bottom = 24.dp)
-                        val titleModifier = if (onDebugLongPress != null) {
-                            baseTitleModifier.combinedClickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                onClick = { onDebugLongPress() },
-                                onLongClick = { onDebugLongPress() }
-                            )
-                        } else baseTitleModifier
-
                         Text(
                             text = stringResource(R.string.target_days_title),
                             style = MaterialTheme.typography.titleLarge,
                             color = colorResource(id = R.color.color_title_primary),
-                            modifier = titleModifier
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(bottom = 24.dp)
                         )
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center,
                             modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                         ) {
-                            // 선택 박스(클릭 시 3자리 다이얼 바텀시트 표시, 롱프레스: 데모 업데이트 트리거)
+                            // 선택 박스(클릭 시 3자리 다이얼 바텀시트 표시)
                             Card(
                                 modifier = Modifier.width(120.dp).height(56.dp),
                                 shape = RoundedCornerShape(12.dp),
@@ -460,12 +404,10 @@ fun StartScreen(gateNavigation: Boolean = false, onDebugLongPress: (() -> Unit)?
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .padding(12.dp)
-                                        .combinedClickable(
+                                        .clickable(
                                             interactionSource = remember { MutableInteractionSource() },
-                                            indication = null,
-                                            onClick = { showDaysPicker = true },
-                                            onLongClick = { onDebugLongPress?.invoke() }
-                                        ),
+                                            indication = null
+                                        ) { showDaysPicker = true },
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
