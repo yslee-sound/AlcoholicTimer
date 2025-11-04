@@ -4,8 +4,10 @@
     <item>
         <color android:color="#f28090" />
     </item>
-    <!-- Centered new foreground icon -->
+    <!-- Centered new foreground icon (Android 11 이하용 - 280dp) -->
     <item
         android:gravity="center"
+        android:width="280dp"
+        android:height="280dp"
         android:drawable="@drawable/ic_splash_logo" />
 </layer-list>

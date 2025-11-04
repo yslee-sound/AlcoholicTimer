@@ -14,13 +14,22 @@
         <item name="android:windowContentOverlay">@null</item>
     </style>
 
-    <!-- Android 12+ Splash theme using SplashScreen attributes on app-based theme -->
-    <style name="Theme.AlcoholicTimer.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#f28090</item>
-        <!-- inset 래퍼로 안전 여백 확보 -->
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_app_icon_inset</item>
-        <item name="postSplashScreenTheme">@style/Theme.AlcoholicTimer</item>
-        <!-- Ensure nav bar is readable even during splash -->
+    <!-- Android 12+ 스플래시 테마 (새로운 SplashScreen API 사용) -->
+    <style name="Theme.AlcoholicTimer.Splash" parent="@android:style/Theme.DeviceDefault.NoActionBar">
+        <!-- 배경색 -->
+        <item name="android:windowSplashScreenBackground">#f28090</item>
+
+        <!-- 애니메이티드 아이콘 (240dp 권장, 시스템이 자동 조정) -->
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_app_icon_inset</item>
+
+        <!-- 아이콘 배경색 (투명) -->
+        <item name="android:windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+
+        <!-- 스플래시 종료 애니메이션 지속시간 -->
+        <item name="android:windowSplashScreenAnimationDuration">200</item>
+
+        <!-- 시스템 바 색상 -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:statusBarColor">#f28090</item>
         <item name="android:navigationBarColor">#f28090</item>
         <item name="android:windowLightStatusBar">false</item>
