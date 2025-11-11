@@ -56,22 +56,6 @@ fun StandardScreenWithBottomButton(
     bottomAd: (@Composable () -> Unit)? = null,
     reserveSpaceForBottomAd: Boolean = false
 ) {
-    // 디버그 모드에서만 배너 숨김 상태 확인 (릴리즈에서는 항상 false)
-    var shouldHideBanner by remember { mutableStateOf(if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) DebugAdHelper.bannerHiddenFlow.value else false) }
-
-    // Flow 변경사항을 LaunchedEffect로 명시적으로 구독 (디버그 빌드에서만)
-    if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
-        LaunchedEffect(Unit) {
-            DebugAdHelper.bannerHiddenFlow.collect { hidden ->
-                android.util.Log.e("StandardScreen", "Flow collected: hidden=$hidden")
-                shouldHideBanner = hidden
-            }
-        }
-    }
-
-    val effectiveBottomAd = if (shouldHideBanner) null else bottomAd
-
-    android.util.Log.e("StandardScreen", "StandardScreenWithBottomButton: shouldHideBanner=$shouldHideBanner, bottomAd=${bottomAd != null}, effectiveBottomAd=${effectiveBottomAd != null}")
 
     val rootModifier = Modifier
         .fillMaxSize()
@@ -89,7 +73,7 @@ fun StandardScreenWithBottomButton(
 
     // 모든 화면에서 동일한 버튼 위치를 보장하기 위해 예측 높이를 사용해 공간 예약
     val predictedBannerH = predictAnchoredBannerHeightDp()
-    val reservedBannerH = if (effectiveBottomAd != null || reserveSpaceForBottomAd) predictedBannerH else 0.dp
+    val reservedBannerH = if (bottomAd != null || reserveSpaceForBottomAd) predictedBannerH else 0.dp
 
     val reservedBottom by remember(reservedBannerH, adTopGap, effectiveBottom) {
         mutableStateOf((buttonSize / 2) + buttonBottomGap + adTopGap + reservedBannerH + effectiveBottom)
@@ -121,7 +105,7 @@ fun StandardScreenWithBottomButton(
             )
         }
 
-        if (effectiveBottomAd != null) {
+        if (bottomAd != null) {
             // 배너 상단 간격을 회색으로 채워 구분감 부여
             if (adTopGap > 0.dp) {
                 Box(
@@ -150,7 +134,7 @@ fun StandardScreenWithBottomButton(
                         .padding(bottom = effectiveBottom)
                         .height(predictedBannerH),
                     contentAlignment = Alignment.Center
-                ) { effectiveBottomAd() }
+                ) { bottomAd() }
             }
         }
 

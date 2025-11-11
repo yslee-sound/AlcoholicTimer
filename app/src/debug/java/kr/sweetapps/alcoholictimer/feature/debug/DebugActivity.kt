@@ -19,7 +19,6 @@ import androidx.compose.ui.window.DialogProperties
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.AdmobBanner
 import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
-import kr.sweetapps.alcoholictimer.core.ui.DebugAdHelper
 import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 import kr.sweetapps.alcoholictimer.data.supabase.model.PopupDecision
 import kr.sweetapps.alcoholictimer.ui.dialogs.EmergencyRedirectDialog
@@ -79,8 +78,6 @@ private fun DebugScreen(viewModel: DebugViewModel) {
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                BannerAdToggleRow()
-                HorizontalDivider()
                 SplashScreenButton(onShowSplash = { showSplashDialog = true })
             }
         }
@@ -236,30 +233,6 @@ private fun DebugScreen(viewModel: DebugViewModel) {
     }
 }
 
-@Composable
-private fun BannerAdToggleRow() {
-    val context = LocalContext.current
-    val hiddenState by DebugAdHelper.rememberBannerHiddenState(context)
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text(text = "배너 광고 숨기기", style = MaterialTheme.typography.bodyLarge)
-            Text(
-                text = if (hiddenState) "현재: 숨김" else "현재: 표시",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        Switch(
-            checked = hiddenState,
-            onCheckedChange = { DebugAdHelper.setBannerHidden(context, it) }
-        )
-    }
-}
 
 @Composable
 private fun SplashScreenButton(onShowSplash: () -> Unit) {
