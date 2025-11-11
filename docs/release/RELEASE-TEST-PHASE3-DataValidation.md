@@ -40,7 +40,7 @@ SET is_active = true,
     title = '서비스 안내',
     content = '중요 공지입니다. 앱을 최신 버전으로 유지해 주세요.',
     notice_version = 251109  -- YYMMDD 형식 권장
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 검증: 앱 실행 → 공지 팝업 표시, X 버튼으로 닫힘, 재실행 → 미표시(추적됨)
 
@@ -49,7 +49,7 @@ WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
 ```sql
 UPDATE notice_policy 
 SET content = '수정된 내용입니다. 오타를 바로잡았습니다.'
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 -- notice_version은 그대로 유지
 ```
 검증: 재실행 → 미표시(이미 본 버전)
@@ -61,7 +61,7 @@ UPDATE notice_policy
 SET title = '🎉 11월 이벤트',
     content = '11월 특별 이벤트가 시작되었습니다! 참여하세요.',
     notice_version = notice_version + 1
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 검증: 재실행 → 다시 표시(새 버전), 이후 재실행 → 미표시(추적됨)
 
@@ -76,9 +76,9 @@ WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
 예시:
 ```sql
 -- 날짜 기반
-UPDATE notice_policy SET notice_version = 251110 WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+UPDATE notice_policy SET notice_version = 251110 WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 -- 자동 증가
-UPDATE notice_policy SET notice_version = notice_version + 1 WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+UPDATE notice_policy SET notice_version = notice_version + 1 WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 
 ---
@@ -94,7 +94,7 @@ UPDATE notice_policy SET notice_version = notice_version + 1 WHERE app_id IN ('c
 
 참고 - 비활성화 SQL:
 ```sql
-UPDATE notice_policy SET is_active = false WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+UPDATE notice_policy SET is_active = false WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 (검증) 재실행 → 팝업 미표시
 

@@ -23,7 +23,7 @@
 UPDATE ad_policy
 SET ad_interstitial_max_per_hour = 1,
     ad_interstitial_max_per_day = 3
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 2) 테스트
 - 재실행(캐시 초기화) → 전면광고 표시 조건 충족(상세→홈 3회, 필요 시 60초 대기) → 1회 표시 ✅
@@ -37,7 +37,7 @@ WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
 UPDATE ad_policy
 SET ad_interstitial_max_per_hour = 2,
     ad_interstitial_max_per_day = 15
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 체크: max_per_hour=2, max_per_day=15.
 
@@ -54,28 +54,28 @@ SET is_active = true,
     ad_banner_enabled = true,
     ad_interstitial_max_per_hour = 2,
     ad_interstitial_max_per_day = 15
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 
 -- 2) update_policy: 비활성화
 UPDATE update_policy SET is_active = false
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 
 -- 3) emergency_policy: 비활성화
 UPDATE emergency_policy SET is_active = false
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 
 -- 4) notice_policy: 비활성화
 UPDATE notice_policy SET is_active = false
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 
 -- 5) 확인
-SELECT 'ad_policy' as t, app_id, is_active FROM ad_policy WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug')
+SELECT 'ad_policy' as t, app_id, is_active FROM ad_policy WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug')
 UNION ALL
-SELECT 'update_policy', app_id, is_active FROM update_policy WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug')
+SELECT 'update_policy', app_id, is_active FROM update_policy WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug')
 UNION ALL
-SELECT 'emergency_policy', app_id, is_active FROM emergency_policy WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug')
+SELECT 'emergency_policy', app_id, is_active FROM emergency_policy WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug')
 UNION ALL
-SELECT 'notice_policy', app_id, is_active FROM notice_policy WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug')
+SELECT 'notice_policy', app_id, is_active FROM notice_policy WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug')
 ORDER BY 1, 2;
 ```
 기대: ad_policy=true, 나머지=false (release/debug 각 1행).
@@ -85,7 +85,7 @@ ORDER BY 1, 2;
 SELECT app_id,is_active,ad_app_open_enabled,ad_interstitial_enabled,ad_banner_enabled,
        ad_interstitial_max_per_hour,ad_interstitial_max_per_day
 FROM ad_policy
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug')
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug')
 ORDER BY app_id;
 ```
 기대: 두 행 모두 true/true/true/true, per_hour=2, per_day=15.
@@ -112,16 +112,16 @@ ORDER BY app_id;
 
 - 표시 안 됨
 ```sql
-SELECT * FROM ad_policy WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+SELECT * FROM ad_policy WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 조치: 재시작(즉시 반영) 또는 3분 대기 → 필요 시 Debug 앱 데이터 초기화
 ```bash
-adb shell pm clear com.sweetapps.pocketchord.debug
+adb shell pm clear kr.sweetapps.alcoholictimer.debug
 ```
 - 긴급 전체 차단
 ```sql
 UPDATE ad_policy SET is_active=false
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 반영: 재시작 즉시 또는 실행 중 최대 3분.
 

@@ -26,38 +26,38 @@
 ### E1/E5 음수 값 차단
 ```sql
 -- 실패해야 정상
-UPDATE update_policy SET reshow_interval_hours = -1 WHERE app_id='com.sweetapps.pocketchord.debug';
-UPDATE update_policy SET max_later_count = -1 WHERE app_id='com.sweetapps.pocketchord';
+UPDATE update_policy SET reshow_interval_hours = -1 WHERE app_id='kr.sweetapps.alcoholictimer.debug';
+UPDATE update_policy SET max_later_count = -1 WHERE app_id='kr.sweetapps.alcoholictimer';
 ```
 기대: "violates check constraint" 에러, 값 미변경.
 
 ### E2 0초 간격 (즉시 재표시)
 ```sql
-UPDATE update_policy SET reshow_interval_seconds=0 WHERE app_id='com.sweetapps.pocketchord.debug';
+UPDATE update_policy SET reshow_interval_seconds=0 WHERE app_id='kr.sweetapps.alcoholictimer.debug';
 ```
 순서: 표시 → "나중에" → 앱 재시작 → 즉시 재표시.
 복구:
 ```sql
-UPDATE update_policy SET reshow_interval_seconds=60 WHERE app_id='com.sweetapps.pocketchord.debug';
+UPDATE update_policy SET reshow_interval_seconds=60 WHERE app_id='kr.sweetapps.alcoholictimer.debug';
 ```
 
 ### E3 과대(999h) 간격
 ```sql
-UPDATE update_policy SET reshow_interval_hours=999, reshow_interval_seconds=NULL, reshow_interval_minutes=NULL WHERE app_id='com.sweetapps.pocketchord.debug';
+UPDATE update_policy SET reshow_interval_hours=999, reshow_interval_seconds=NULL, reshow_interval_minutes=NULL WHERE app_id='kr.sweetapps.alcoholictimer.debug';
 ```
 확인: 반복 재시작마다 `skipped` 로그, 크래시/오버플로우 없음. 복구:
 ```sql
-UPDATE update_policy SET reshow_interval_hours=24, reshow_interval_seconds=60 WHERE app_id='com.sweetapps.pocketchord.debug';
+UPDATE update_policy SET reshow_interval_hours=24, reshow_interval_seconds=60 WHERE app_id='kr.sweetapps.alcoholictimer.debug';
 ```
 
 ### E4 0회 허용 → 즉시 강제
 ```sql
-UPDATE update_policy SET max_later_count=0 WHERE app_id='com.sweetapps.pocketchord.debug';
+UPDATE update_policy SET max_later_count=0 WHERE app_id='kr.sweetapps.alcoholictimer.debug';
 ```
 SharedPreferences 초기화 후 첫 실행: `later count (0) >= max (0)` 로그, "나중에" 없음, 뒤로가기 불가.
 복구:
 ```sql
-UPDATE update_policy SET max_later_count=3 WHERE app_id='com.sweetapps.pocketchord.debug';
+UPDATE update_policy SET max_later_count=3 WHERE app_id='kr.sweetapps.alcoholictimer.debug';
 ```
 
 ### E6 타임존 변경
@@ -100,7 +100,7 @@ UPDATE update_policy
 SET target_version_code=10,is_force_update=false,
     reshow_interval_hours=24, reshow_interval_minutes=NULL, reshow_interval_seconds=60,
     max_later_count=3,is_active=true
-WHERE app_id='com.sweetapps.pocketchord.debug';
+WHERE app_id='kr.sweetapps.alcoholictimer.debug';
 ```
 
 ### 4.2 릴리즈 기본값 복구 (24시간)
@@ -109,7 +109,7 @@ UPDATE update_policy
 SET target_version_code=10,is_force_update=false,
     reshow_interval_hours=24, reshow_interval_minutes=NULL, reshow_interval_seconds=NULL,
     max_later_count=3,is_active=true
-WHERE app_id='com.sweetapps.pocketchord';
+WHERE app_id='kr.sweetapps.alcoholictimer';
 ```
 
 ### 4.3 두 버전 동시 복구 & 확인
@@ -119,18 +119,18 @@ UPDATE update_policy
 SET target_version_code=10,is_force_update=false,
     reshow_interval_hours=24, reshow_interval_minutes=NULL, reshow_interval_seconds=60,
     max_later_count=3,is_active=true
-WHERE app_id='com.sweetapps.pocketchord.debug';
+WHERE app_id='kr.sweetapps.alcoholictimer.debug';
 
 UPDATE update_policy
 SET target_version_code=10,is_force_update=false,
     reshow_interval_hours=24, reshow_interval_minutes=NULL, reshow_interval_seconds=NULL,
     max_later_count=3,is_active=true
-WHERE app_id='com.sweetapps.pocketchord';
+WHERE app_id='kr.sweetapps.alcoholictimer';
 
 -- 확인
 SELECT app_id,target_version_code,is_force_update,is_active,
        reshow_interval_hours,reshow_interval_minutes,reshow_interval_seconds,max_later_count
-FROM update_policy WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug') ORDER BY app_id;
+FROM update_policy WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug') ORDER BY app_id;
 ```
 기대:
 
@@ -141,7 +141,7 @@ FROM update_policy WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.p
 
 ### 4.4 SharedPreferences 초기화
 ```cmd
-adb -s emulator-5554 shell run-as com.sweetapps.pocketchord.debug rm shared_prefs/update_preferences.xml
+adb -s emulator-5554 shell run-as kr.sweetapps.alcoholictimer.debug rm shared_prefs/update_preferences.xml
 ```
 효과: `update_dismissed_time`, `update_later_count`, `dismissedVersionCode` 리셋 → 첫 상태 재표시.
 
@@ -150,9 +150,9 @@ adb -s emulator-5554 shell run-as com.sweetapps.pocketchord.debug rm shared_pref
 
 | 상황 | SQL | 후속 |
 |------|-----|------|
-| 정책 비활성 | `UPDATE update_policy SET is_active=true WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');` | 재시작 |
-| 팝업 미표시 | `UPDATE update_policy SET target_version_code=100 WHERE app_id='com.sweetapps.pocketchord.debug';` | 재시작 |
-| 강제모드 해제 | `UPDATE update_policy SET is_force_update=false,max_later_count=3 WHERE app_id='com.sweetapps.pocketchord.debug';` | prefs 초기화 |
+| 정책 비활성 | `UPDATE update_policy SET is_active=true WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');` | 재시작 |
+| 팝업 미표시 | `UPDATE update_policy SET target_version_code=100 WHERE app_id='kr.sweetapps.alcoholictimer.debug';` | 재시작 |
+| 강제모드 해제 | `UPDATE update_policy SET is_force_update=false,max_later_count=3 WHERE app_id='kr.sweetapps.alcoholictimer.debug';` | prefs 초기화 |
 
 ---
 ## 6. 완료 조건

@@ -41,7 +41,7 @@ SET is_active = true,
     is_force_update = true,
     release_notes = '중요 업데이트',
     download_url = 'https://play.google.com/'
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 
 #### 검증
@@ -61,7 +61,7 @@ SET is_active = true,
     download_url = 'https://play.google.com/',
     reshow_interval_seconds = 60,
     max_later_count = 3
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 
 #### 회차별 검증 요약
@@ -79,8 +79,8 @@ WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
 
 | 방법 | 명령 |
 |------|------|
-| 전체 삭제(권장) | `adb -s emulator-5554 shell pm clear com.sweetapps.pocketchord.debug` |
-| prefs만 삭제 | `adb -s emulator-5554 shell run-as com.sweetapps.pocketchord.debug rm -r /data/data/com.sweetapps.pocketchord.debug/shared_prefs/` |
+| 전체 삭제(권장) | `adb -s emulator-5554 shell pm clear kr.sweetapps.alcoholictimer.debug` |
+| prefs만 삭제 | `adb -s emulator-5554 shell run-as kr.sweetapps.alcoholictimer.debug rm -r /data/data/kr.sweetapps.alcoholictimer.debug/shared_prefs/` |
 
 #### 검증
 - [ ] 초기화 후 재실행 → 재표시
@@ -101,7 +101,7 @@ WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
 UPDATE update_policy
 SET is_active = false,
     target_version_code = 1
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 (검증) 재실행 → 재표시 없음
 

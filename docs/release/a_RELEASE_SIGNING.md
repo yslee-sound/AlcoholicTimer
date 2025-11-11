@@ -1,5 +1,7 @@
 # Release Signing & Play App Signing Guide - PocketChord
 
+> **주의 (중요)**: 이 문서는 과거 프로젝트 "PocketChord"의 릴리즈 서명 가이드를 기반으로 작성되었습니다. 문서에 나오는 keystore 파일명(`pocketchord-key.jks`, `pocketchord-upload-key.jks`), AAB 네이밍(`pocketchord-v...`) 등은 레거시 예시입니다. 현재 프로젝트(`kr.sweetapps.alcoholictimer`)에 적용하려면 실제 keystore 파일명, alias, 경로 및 아카이브 네이밍을 운영 정책에 맞게 변경하세요. 절대 keystore 파일이나 비밀번호를 저장소에 커밋하지 마십시오.
+
 최소/반복 방지를 위한 릴리즈 서명 운영 요약.
 
 ## 1. 환경 변수 (CI/로컬 동일)

@@ -18,6 +18,8 @@ playServicesAds = "23.4.0"
 ump = "2.2.0"
 constraintlayout = "2.2.1"
 orgJson = "20250517"
+supabase = "3.0.2"
+ktor = "3.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -45,8 +47,13 @@ google-ads = { group = "com.google.android.gms", name = "play-services-ads", ver
 ump = { group = "com.google.android.ump", name = "user-messaging-platform", version.ref = "ump" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 org-json = { group = "org.json", name = "json", version.ref = "orgJson" }
+supabase-postgrest = { group = "io.github.jan-tennert.supabase", name = "postgrest-kt-jvm", version.ref = "supabase" }
+ktor-client-android = { group = "io.ktor", name = "ktor-client-android", version.ref = "ktor" }
+ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.7.3" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

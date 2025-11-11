@@ -20,8 +20,8 @@
 
 | 빌드 타입 | app_id | 용도 |
 |----------|--------|------|
-| 릴리즈 | `com.sweetapps.pocketchord` | 실제 사용자 환경 검증 |
-| 디버그 | `com.sweetapps.pocketchord.debug` | 빠른 테스트 |
+| 릴리즈 | `kr.sweetapps.alcoholictimer` | 실제 사용자 환경 검증 |
+| 디버그 | `kr.sweetapps.alcoholictimer.debug` | 빠른 테스트 |
 
 ### 준비 사항
 - [ ] Supabase 접속, Android Studio/Logcat 준비(tag:HomeScreen | AppPolicyRepo)
@@ -29,13 +29,13 @@
 
 ### 초기 상태 확인(SQL, release+debug 병기)
 ```sql
-SELECT 'emergency' t, app_id, is_active::text, LEFT(content,30) preview FROM emergency_policy WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug')
+SELECT 'emergency' t, app_id, is_active::text, LEFT(content,30) preview FROM emergency_policy WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug')
 UNION ALL
-SELECT 'update', app_id, is_active::text, CONCAT('target:',target_version_code,' force:',is_force_update) FROM update_policy WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug')
+SELECT 'update', app_id, is_active::text, CONCAT('target:',target_version_code,' force:',is_force_update) FROM update_policy WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug')
 UNION ALL
-SELECT 'notice', app_id, is_active::text, CONCAT('v',notice_version,': ',LEFT(COALESCE(title,''),20)) FROM notice_policy WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug')
+SELECT 'notice', app_id, is_active::text, CONCAT('v',notice_version,': ',LEFT(COALESCE(title,''),20)) FROM notice_policy WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug')
 UNION ALL
-SELECT 'ad', app_id, is_active::text, CONCAT('open:',ad_app_open_enabled,' inter:',ad_interstitial_enabled,' banner:',ad_banner_enabled) FROM ad_policy WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug')
+SELECT 'ad', app_id, is_active::text, CONCAT('open:',ad_app_open_enabled,' inter:',ad_interstitial_enabled,' banner:',ad_banner_enabled) FROM ad_policy WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug')
 ORDER BY 1,2;
 ```
 기록:
@@ -146,7 +146,7 @@ FROM pg_policies WHERE tablename='ad_policy';
 SELECT app_id,is_active,ad_app_open_enabled,ad_interstitial_enabled,ad_banner_enabled,
        ad_interstitial_max_per_hour,ad_interstitial_max_per_day
 FROM ad_policy
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug')
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug')
 ORDER BY app_id;
 ```
 
@@ -193,11 +193,11 @@ ORDER BY app_id;
 
 ```sql
 -- 평상시 상태 초기화 (release+debug 병기)
-UPDATE emergency_policy SET is_active=false WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
-UPDATE update_policy SET target_version_code=1,is_force_update=false WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
-UPDATE notice_policy SET is_active=true, title='환영합니다! 🎉', content='PocketChord를 이용해 주셔서 감사합니다!', notice_version=1 WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+UPDATE emergency_policy SET is_active=false WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
+UPDATE update_policy SET target_version_code=1,is_force_update=false WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
+UPDATE notice_policy SET is_active=true, title='환영합니다! 🎉', content='PocketChord를 이용해 주셔서 감사합니다!', notice_version=1 WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 앱 데이터 초기화(디버그):
 ```bash
-adb shell pm clear com.sweetapps.pocketchord.debug
+adb shell pm clear kr.sweetapps.alcoholictimer.debug
 ```

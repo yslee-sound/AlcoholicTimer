@@ -43,7 +43,7 @@ ORDER BY column_name;
 SELECT app_id,is_active,target_version_code,is_force_update,
        reshow_interval_hours,reshow_interval_minutes,reshow_interval_seconds,max_later_count
 FROM update_policy
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug')
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug')
 ORDER BY app_id;
 ```
 기대:
@@ -123,27 +123,27 @@ Release:
 ```sql
 UPDATE update_policy
 SET reshow_interval_hours=48, reshow_interval_minutes=NULL, reshow_interval_seconds=NULL
-WHERE app_id='com.sweetapps.pocketchord';
+WHERE app_id='kr.sweetapps.alcoholictimer';
 ```
 Debug:
 ```sql
 UPDATE update_policy
 SET reshow_interval_seconds=120  -- 2분
-WHERE app_id='com.sweetapps.pocketchord.debug';
+WHERE app_id='kr.sweetapps.alcoholictimer.debug';
 ```
 테스트: 60초 경과시 미표시 / 120초 경과 후 재표시.
 
 ### S6-2 최대 횟수 변경
 Release / Debug:
 ```sql
-UPDATE update_policy SET max_later_count=1 WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+UPDATE update_policy SET max_later_count=1 WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 테스트: 첫 "나중에" 후 재표시 → 즉시 강제.
 
 ### S6-3 즉시 강제 전환
 Release / Debug:
 ```sql
-UPDATE update_policy SET is_force_update=true WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+UPDATE update_policy SET is_force_update=true WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 테스트: 재실행 즉시 강제 팝업 (나중에 없음).
 

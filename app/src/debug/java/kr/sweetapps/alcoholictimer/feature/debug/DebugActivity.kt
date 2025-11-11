@@ -2,33 +2,33 @@ package kr.sweetapps.alcoholictimer.feature.debug
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
+import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
-import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 import kr.sweetapps.alcoholictimer.core.ui.AdmobBanner
+import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
 import kr.sweetapps.alcoholictimer.core.ui.DebugAdHelper
+import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
+import kr.sweetapps.alcoholictimer.data.supabase.model.PopupDecision
 import kr.sweetapps.alcoholictimer.ui.dialogs.EmergencyRedirectDialog
 import kr.sweetapps.alcoholictimer.ui.dialogs.NoticeDialog
 import kr.sweetapps.alcoholictimer.ui.dialogs.OptionalUpdateDialog
 
 class DebugActivity : BaseActivity() {
+    private val viewModel: DebugViewModel by viewModels()
+
     override fun getScreenTitleResId(): Int? = null
     @Suppress("OVERRIDE_DEPRECATION")
     override fun getScreenTitle(): String = "디버그 모드"
@@ -37,19 +37,33 @@ class DebugActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             BaseScreen(bottomAd = { AdmobBanner() }) {
-                DebugScreen()
+                DebugScreen(viewModel)
             }
         }
     }
 }
 
 @Composable
-private fun DebugScreen() {
+private fun DebugScreen(viewModel: DebugViewModel) {
     val safePadding = LocalSafeContentPadding.current
+    val context = LocalContext.current
+
     var showSplashDialog by remember { mutableStateOf(false) }
     var showEmergencyDialog by remember { mutableStateOf(false) }
     var showOptionalUpdateDialog by remember { mutableStateOf(false) }
     var showNoticeDialog by remember { mutableStateOf(false) }
+
+    // Supabase 정책 상태
+    val emergencyPolicy by viewModel.emergencyPolicy.collectAsState()
+    val noticePolicy by viewModel.noticePolicy.collectAsState()
+    val updatePolicy by viewModel.updatePolicy.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+
+    // 초기 정책 로드
+    LaunchedEffect(Unit) {
+        viewModel.loadPolicies()
+    }
 
     Column(
         modifier = Modifier
@@ -79,24 +93,86 @@ private fun DebugScreen() {
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text(
-                    text = "공지사항",
+                    text = "공지사항 (Supabase 연동)",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
+
+                // 로딩 상태 표시
+                if (isLoading) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("정책 로딩 중...", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+
+                // 오류 메시지
+                errorMessage?.let { message ->
+                    Text(
+                        text = message,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
                 HorizontalDivider()
-                EmergencyNoticeToggleRow(
+
+                // 긴급 공지
+                EmergencyNoticeRow(
+                    policy = emergencyPolicy,
                     showDialog = showEmergencyDialog,
                     onToggle = { showEmergencyDialog = it }
                 )
                 HorizontalDivider()
-                NoticeToggleRow(
+
+                // 일반 공지
+                NoticeRow(
+                    policy = noticePolicy,
                     showDialog = showNoticeDialog,
                     onToggle = { showNoticeDialog = it }
                 )
                 HorizontalDivider()
-                OptionalUpdateToggleRow(
+
+                // 업데이트 공지
+                OptionalUpdateRow(
+                    policy = updatePolicy,
                     showDialog = showOptionalUpdateDialog,
                     onToggle = { showOptionalUpdateDialog = it }
+                )
+                HorizontalDivider()
+
+                // 정책 결정 버튼
+                PolicyDecisionButton(
+                    onClick = {
+                        viewModel.decidePopup { decision ->
+                            when (decision) {
+                                is PopupDecision.ShowEmergency -> showEmergencyDialog = true
+                                is PopupDecision.ShowNotice -> showNoticeDialog = true
+                                is PopupDecision.ShowUpdate -> showOptionalUpdateDialog = true
+                                is PopupDecision.None -> {
+                                    // 표시할 팝업 없음을 알림
+                                    android.widget.Toast.makeText(
+                                        context,
+                                        "표시할 팝업이 없습니다",
+                                        android.widget.Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        }
+                    },
+                    enabled = !isLoading
+                )
+                HorizontalDivider()
+
+                // 기록 초기화 버튼
+                ClearRecordsButton(
+                    onClick = { viewModel.clearAllRecords() },
+                    enabled = !isLoading
                 )
             }
         }
@@ -108,51 +184,54 @@ private fun DebugScreen() {
         )
     }
 
+    // 다이얼로그들
     if (showSplashDialog) {
         SplashDialog(onDismiss = { showSplashDialog = false })
     }
 
-    if (showEmergencyDialog) {
+    if (showEmergencyDialog && emergencyPolicy != null) {
+        val policy = emergencyPolicy!!
         EmergencyRedirectDialog(
-            title = "중요 안내",
-            description = "AlcoholicTimer 서비스가 종료됩니다.\n\n새로운 앱 'DrinkTracker'에서 기존 데이터를 모두 이어서 사용하실 수 있습니다.",
-            newAppName = "DrinkTracker",
-            newAppPackage = "kr.sweetapps.drinktracker",
-            buttonText = "새 앱 설치하기",
-            supportUrl = "https://example.com/migration-guide",
-            supportButtonText = "이전 가이드 보기",
-            canMigrateData = true,
-            isDismissible = true,
+            title = policy.title,
+            description = policy.description,
+            newAppName = policy.newAppName,
+            newAppPackage = policy.newAppPackage ?: "",
+            buttonText = policy.buttonText,
+            supportUrl = policy.supportUrl,
+            supportButtonText = policy.supportButtonText ?: "자세히 보기",
+            canMigrateData = policy.canMigrateData,
+            isDismissible = policy.isDismissible,
             onDismiss = { showEmergencyDialog = false },
-            badgeText = "서비스 종료",
-            migrationMessage = "DrinkTracker에서 기존 계정과 데이터를 그대로 사용할 수 있습니다."
+            badgeText = policy.badgeText,
+            migrationMessage = policy.migrationMessage
         )
     }
 
-    if (showNoticeDialog) {
+    if (showNoticeDialog && noticePolicy != null) {
+        val policy = noticePolicy!!
         NoticeDialog(
-            title = "테스트: 새 공지 UI",
-            description = "음주 기록을 더욱 편리하게 관리할 수 있도록 새로운 기능이 추가되었습니다.\n\n지금 바로 확인해 보세요!",
-            buttonText = "확인했습니다",
+            title = policy.title,
+            description = policy.description,
+            buttonText = policy.buttonText,
             onDismiss = { showNoticeDialog = false },
             onButtonClick = { showNoticeDialog = false }
         )
     }
 
-    if (showOptionalUpdateDialog) {
+    if (showOptionalUpdateDialog && updatePolicy != null) {
+        val policy = updatePolicy!!
         OptionalUpdateDialog(
-            title = "새 버전 사용 가능",
-            description = "더 나은 경험을 위해 최신 버전으로 업데이트하는 것을 권장합니다.",
-            updateButtonText = "지금 업데이트",
-            laterButtonText = "나중에",
-            features = listOf(
-                "새로운 음주 통계 기능",
-                "UI/UX 개선",
-                "버그 수정 및 안정성 향상"
-            ),
-            version = "2.0.0",
+            title = policy.title,
+            description = policy.description,
+            updateButtonText = policy.updateButtonText,
+            laterButtonText = policy.laterButtonText ?: "나중에",
+            features = policy.features,
+            version = policy.version,
             onUpdateClick = { showOptionalUpdateDialog = false },
-            onLaterClick = { showOptionalUpdateDialog = false }
+            onLaterClick = {
+                viewModel.dismissUpdate(policy.version)
+                showOptionalUpdateDialog = false
+            }
         )
     }
 }
@@ -207,7 +286,8 @@ private fun SplashScreenButton(onShowSplash: () -> Unit) {
 }
 
 @Composable
-private fun EmergencyNoticeToggleRow(
+private fun EmergencyNoticeRow(
+    policy: kr.sweetapps.alcoholictimer.data.supabase.model.EmergencyPolicy?,
     showDialog: Boolean,
     onToggle: (Boolean) -> Unit
 ) {
@@ -217,22 +297,28 @@ private fun EmergencyNoticeToggleRow(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column(Modifier.weight(1f)) {
-            Text(text = "긴급상황 팝업 보기", style = MaterialTheme.typography.bodyLarge)
+            Text(text = "긴급상황 팝업", style = MaterialTheme.typography.bodyLarge)
             Text(
-                text = if (showDialog) "현재: 표시 중" else "현재: 숨김",
+                text = if (policy != null) {
+                    "정책: ${policy.title} (우선순위: ${policy.priority})"
+                } else {
+                    "정책 없음"
+                },
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = if (policy != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         Switch(
             checked = showDialog,
-            onCheckedChange = onToggle
+            onCheckedChange = onToggle,
+            enabled = policy != null
         )
     }
 }
 
 @Composable
-private fun NoticeToggleRow(
+private fun NoticeRow(
+    policy: kr.sweetapps.alcoholictimer.data.supabase.model.NoticePolicy?,
     showDialog: Boolean,
     onToggle: (Boolean) -> Unit
 ) {
@@ -242,22 +328,28 @@ private fun NoticeToggleRow(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column(Modifier.weight(1f)) {
-            Text(text = "일반 공지사항 팝업 보기", style = MaterialTheme.typography.bodyLarge)
+            Text(text = "일반 공지사항 팝업", style = MaterialTheme.typography.bodyLarge)
             Text(
-                text = if (showDialog) "현재: 표시 중" else "현재: 숨김",
+                text = if (policy != null) {
+                    "정책: ${policy.title} (우선순위: ${policy.priority})"
+                } else {
+                    "정책 없음"
+                },
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = if (policy != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         Switch(
             checked = showDialog,
-            onCheckedChange = onToggle
+            onCheckedChange = onToggle,
+            enabled = policy != null
         )
     }
 }
 
 @Composable
-private fun OptionalUpdateToggleRow(
+private fun OptionalUpdateRow(
+    policy: kr.sweetapps.alcoholictimer.data.supabase.model.UpdatePolicy?,
     showDialog: Boolean,
     onToggle: (Boolean) -> Unit
 ) {
@@ -267,17 +359,81 @@ private fun OptionalUpdateToggleRow(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column(Modifier.weight(1f)) {
-            Text(text = "선택적 업데이트 팝업 보기", style = MaterialTheme.typography.bodyLarge)
+            Text(text = "업데이트 팝업", style = MaterialTheme.typography.bodyLarge)
             Text(
-                text = if (showDialog) "현재: 표시 중" else "현재: 숨김",
+                text = if (policy != null) {
+                    "정책: v${policy.version} (${if (policy.isForceUpdate) "강제" else "선택"})"
+                } else {
+                    "정책 없음"
+                },
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = if (policy != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         Switch(
             checked = showDialog,
-            onCheckedChange = onToggle
+            onCheckedChange = onToggle,
+            enabled = policy != null
         )
+    }
+}
+
+@Composable
+private fun PolicyDecisionButton(
+    onClick: () -> Unit,
+    enabled: Boolean
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(text = "우선순위대로 팝업 표시", style = MaterialTheme.typography.bodyLarge)
+            Text(
+                text = "긴급 → 강제 업데이트 → 공지 → 선택적 업데이트 순서",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Button(
+            onClick = onClick,
+            enabled = enabled,
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            Text("실행", style = MaterialTheme.typography.bodyMedium)
+        }
+    }
+}
+
+@Composable
+private fun ClearRecordsButton(
+    onClick: () -> Unit,
+    enabled: Boolean
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(text = "표시 기록 초기화", style = MaterialTheme.typography.bodyLarge)
+            Text(
+                text = "모든 팝업 표시 기록을 지웁니다",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Button(
+            onClick = onClick,
+            enabled = enabled,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.error
+            ),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            Text("초기화", style = MaterialTheme.typography.bodyMedium)
+        }
     }
 }
 
@@ -305,3 +461,4 @@ private fun SplashDialog(onDismiss: () -> Unit) {
         }
     }
 }
+

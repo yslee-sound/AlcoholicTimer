@@ -27,7 +27,7 @@
 1) OFF
 ```sql
 UPDATE ad_policy SET ad_app_open_enabled=false
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 2) 검증
 - 앱 완전 종료 → 재실행
@@ -38,7 +38,7 @@ WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
 3) 복구
 ```sql
 UPDATE ad_policy SET ad_app_open_enabled=true
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 
 ---
@@ -49,7 +49,7 @@ WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
 1) OFF
 ```sql
 UPDATE ad_policy SET ad_interstitial_enabled=false
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 2) 검증
 - 앱 재실행 후 패턴 충족(예: 상세→홈 3회, 60초 대기) 시도
@@ -59,7 +59,7 @@ WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
 3) 복구
 ```sql
 UPDATE ad_policy SET ad_interstitial_enabled=true
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 
 ---
@@ -68,7 +68,7 @@ WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
 1) OFF
 ```sql
 UPDATE ad_policy SET ad_banner_enabled=false
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 2) 검증
 - 앱 재실행, 배너 위치 확인 → 미표시
@@ -78,7 +78,7 @@ WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
 3) 복구
 ```sql
 UPDATE ad_policy SET ad_banner_enabled=true
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 
 ---
@@ -87,12 +87,12 @@ WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
 - is_active로 전체 차단(권장):
 ```sql
 UPDATE ad_policy SET is_active=false
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 - 개별 플래그로 특정 광고만 차단:
 ```sql
 UPDATE ad_policy SET ad_banner_enabled=false
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 반영 시간: 재시작 즉시 / 실행 중 최대 3분.
 
@@ -105,4 +105,4 @@ Phase 5.3: 빈도 제한(시간당/일일) 및 최종 검증, 배포 준비(내�
 **문서 작성**: GitHub Copilot  
 **최종 업데이트**: 2025-11-11  
 **버전**: v3.1  
-**Phase 5.2 완료**: ☐ PASS / ☐ FAIL
+**Phase 5.2 완료**: ⬜ PASS / ⬜ FAIL

@@ -64,7 +64,7 @@ SET is_active = true,
     title = '긴급공지',
     content = '긴급 테스트입니다. X 버튼으로 닫을 수 있습니다.',
     button_text = '확인'
-WHERE app_id = 'com.sweetapps.pocketchord.debug';
+WHERE app_id = 'kr.sweetapps.alcoholictimer.debug';
 ```
 
 #### 검증
@@ -87,7 +87,7 @@ SET is_active = true,
     content = '이 앱은 더 이상 지원되지 않습니다. 새 앱을 설치하세요.',
     button_text = '새 앱 설치',
     redirect_url = 'https://play.google.com/'
-WHERE app_id = 'com.sweetapps.pocketchord.debug';
+WHERE app_id = 'kr.sweetapps.alcoholictimer.debug';
 ```
 
 #### 검증
@@ -105,7 +105,7 @@ WHERE app_id = 'com.sweetapps.pocketchord.debug';
 ```sql
 UPDATE emergency_policy
 SET is_active = false
-WHERE app_id = 'com.sweetapps.pocketchord.debug';
+WHERE app_id = 'kr.sweetapps.alcoholictimer.debug';
 ```
 
 #### 검증
@@ -128,4 +128,3 @@ WHERE app_id = 'com.sweetapps.pocketchord.debug';
 
 **문서 버전**: v3.0
 **마지막 수정**: 2025-11-10
-

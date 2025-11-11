@@ -37,39 +37,39 @@
 ```sql
 UPDATE emergency_policy 
 SET is_active = true, content = '🚨 긴급 우선순위 테스트', button_text = '확인'
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 
 UPDATE update_policy 
 SET is_active = true, target_version_code = 100, is_force_update = true, release_notes = '• 업데이트 테스트'
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 검증: Emergency만 표시, Update 미표시, 로그 "EMERGENCY"
 
 ### 시나리오 2: Update가 Notice보다 우선
 ```sql
 UPDATE emergency_policy SET is_active = false 
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 
 UPDATE update_policy 
 SET is_active = true, target_version_code = 100, is_force_update = false, release_notes = '• 선택적 업데이트'
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 
 UPDATE notice_policy 
 SET is_active = true, title = '공지 테스트', content = '공지 내용', notice_version = 251109 
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 검증: Update만 표시, Notice 미표시, 로그 "UPDATE"
 
 ### 시나리오 3: 모두 비활성화
 ```sql
 UPDATE emergency_policy SET is_active = false 
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 
 UPDATE update_policy SET is_active = false, target_version_code = 1
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 
 UPDATE notice_policy SET is_active = false 
-WHERE app_id IN ('com.sweetapps.pocketchord','com.sweetapps.pocketchord.debug');
+WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 검증: 팝업 없음, 홈 화면 즉시, Phase 4 완료
 

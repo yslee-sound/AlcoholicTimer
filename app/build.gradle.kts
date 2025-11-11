@@ -1,9 +1,18 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
+}
+
+// local.properties 읽기
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use { localProperties.load(it) }
 }
 
 // release 관련 태스크 실행 여부 (configuration 시점에 1회 계산)
@@ -34,6 +43,16 @@ android {
             // Play Console 경고 대응: 네이티브 심볼 업로드용 심볼 테이블 생성 (FULL 은 용량↑)
             debugSymbolLevel = "SYMBOL_TABLE"
         }
+
+        // Supabase 설정 (local.properties → 환경변수 → 기본값 순)
+        val supabaseUrl = localProperties.getProperty("supabase.url")
+            ?: System.getenv("SUPABASE_URL")
+            ?: "https://your-project.supabase.co"
+        val supabaseKey = localProperties.getProperty("supabase.key")
+            ?: System.getenv("SUPABASE_KEY")
+            ?: "your-anon-key"
+        buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
+        buildConfigField("String", "SUPABASE_KEY", "\"$supabaseKey\"")
     }
 
     signingConfigs {
@@ -130,6 +149,12 @@ dependencies {
 
     // ConstraintLayout for native ad layout (카탈로그 참조)
     implementation(libs.androidx.constraintlayout)
+
+    // Supabase
+    implementation(libs.supabase.postgrest)
+    implementation(libs.ktor.client.android)
+    implementation(libs.ktor.client.core)
+    implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit)
     testImplementation(libs.androidx.ui.test.junit4)
