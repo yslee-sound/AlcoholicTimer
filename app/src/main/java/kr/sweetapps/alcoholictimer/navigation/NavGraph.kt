@@ -6,7 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import kr.sweetapps.alcoholictimer.feature.start.StartScreen
-import kr.sweetapps.alcoholictimer.feature.run.RunScreen
+import kr.sweetapps.alcoholictimer.feature.run.RunScreenComposable
 
 /**
  * Navigation Graph
@@ -26,7 +26,7 @@ fun AlcoholicTimerNavGraph(
         composable(Screen.Start.route) {
             StartScreen(
                 gateNavigation = true, // Navigation 사용 중
-                onNavigateToRun = {
+                onStart = {
                     navController.navigate(Screen.Run.route) {
                         popUpTo(Screen.Start.route) { inclusive = true }
                     }
@@ -36,19 +36,7 @@ fun AlcoholicTimerNavGraph(
 
         // 금주 진행 화면 ✅ 구현 완료
         composable(Screen.Run.route) {
-            RunScreen(
-                onNavigateToStart = {
-                    navController.navigate(Screen.Start.route) {
-                        popUpTo(Screen.Run.route) { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        // 금주 진행 화면
-        composable(Screen.Run.route) {
-            // TODO: RunScreen Composable 구현
-            Text("Run Screen - 구현 예정")
+            RunScreenComposable()
         }
 
         // 기록 목록 화면
@@ -88,4 +76,3 @@ fun AlcoholicTimerNavGraph(
         }
     }
 }
-

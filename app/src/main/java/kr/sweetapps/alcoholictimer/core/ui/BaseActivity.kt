@@ -68,28 +68,18 @@ abstract class BaseActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         // 시스템 바를 항상 표시하고 윈도우가 시스템 인셋에 맞춰 레이아웃되도록 설정
         WindowCompat.setDecorFitsSystemWindows(window, true)
-
-        // 시스템 바 색상을 명시적으로 흰색으로 설정
         window.statusBarColor = android.graphics.Color.WHITE
         window.navigationBarColor = android.graphics.Color.WHITE
-
-        // 시스템 바 아이콘을 어둡게 설정 (흰 배경에서 보이도록)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            androidx.core.view.WindowInsetsControllerCompat(window, window.decorView).apply {
+            WindowInsetsControllerCompat(window, window.decorView).apply {
                 isAppearanceLightStatusBars = true
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                    isAppearanceLightNavigationBars = true
-                }
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) isAppearanceLightNavigationBars = true
             }
         }
-
         nicknameState.value = getNickname()
-
-        // 디버그 배너 숨김 상태 초기화
-        DebugAdHelper.initialize(this)
+        // 디버그 배너 숨김 초기화 제거 (항상 표시)
     }
 
     override fun onResume() {
@@ -130,30 +120,9 @@ abstract class BaseActivity : ComponentActivity() {
         val activityName = this@BaseActivity.javaClass.simpleName
         android.util.Log.e("BaseActivity", "[$activityName] BaseScreen called - ENTRY POINT")
 
-        // 디버그 모드에서만 배너 숨김 상태 확인 (릴리즈에서는 항상 false)
-        var shouldHideBanner by remember {
-            mutableStateOf(if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) DebugAdHelper.bannerHiddenFlow.value else false).also {
-                android.util.Log.e("BaseActivity", "[$activityName] remember initial value: ${if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) DebugAdHelper.bannerHiddenFlow.value else false}")
-            }
-        }
-
-        // Flow 변경사항을 LaunchedEffect로 명시적으로 구독 (디버그 빌드에서만)
-        if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
-            LaunchedEffect(Unit) {
-                android.util.Log.e("BaseActivity", "[$activityName] LaunchedEffect started, collecting flow...")
-                DebugAdHelper.bannerHiddenFlow.collect { hidden ->
-                    android.util.Log.e("BaseActivity", "[$activityName] Flow collected: hidden=$hidden")
-                    shouldHideBanner = hidden
-                }
-            }
-        }
-
+        // 디버그 모드 배너 숨김 로직 제거: 항상 표시
+        val shouldHideBanner = false
         val effectiveBottomAd = if (shouldHideBanner) null else bottomAd
-
-        // 매 recomposition마다 로깅 (SideEffect 사용)
-        SideEffect {
-            android.util.Log.e("BaseActivity", "[$activityName] SideEffect: shouldHideBanner=$shouldHideBanner, bottomAd=${bottomAd != null}, effectiveBottomAd=${effectiveBottomAd != null}")
-        }
 
         AlcoholicTimerTheme(darkTheme = false, applySystemBars = applySystemBars) {
             val drawerState = rememberDrawerState(DrawerValue.Closed)
