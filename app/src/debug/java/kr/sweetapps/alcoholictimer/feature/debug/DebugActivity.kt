@@ -26,7 +26,7 @@ import kr.sweetapps.alcoholictimer.core.ui.AdmobBanner
 import kr.sweetapps.alcoholictimer.core.ui.DebugAdHelper
 import kr.sweetapps.alcoholictimer.ui.dialogs.EmergencyRedirectDialog
 import kr.sweetapps.alcoholictimer.ui.dialogs.NoticeDialog
-import kr.sweetapps.alcoholictimer.ui.screens.OptionalUpdateDialog
+import kr.sweetapps.alcoholictimer.ui.dialogs.OptionalUpdateDialog
 
 class DebugActivity : BaseActivity() {
     override fun getScreenTitleResId(): Int? = null

@@ -22,10 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.sweetapps.pocketchord.R
-import kotlin.collections.forEach
-import kotlin.collections.isNullOrEmpty
-import kotlin.let
+import kr.sweetapps.alcoholictimer.R
 
 /**
  * 업데이트 팝업 컴포넌트 (강제/선택적 통합)
@@ -40,9 +37,12 @@ import kotlin.let
 fun OptionalUpdateDialog(
     isForce: Boolean = false,
     title: String = "앱 업데이트",
+    // 추가: 설명과 버전 파라미터을 허용하여 호출부와 호환되도록 함
+    description: String = "",
     updateButtonText: String = "지금 업데이트",
     laterButtonText: String = "나중에",
     features: List<String>? = null,
+    version: String? = null,
     estimatedTime: String? = null,
     onUpdateClick: () -> Unit,
     onLaterClick: (() -> Unit)? = null
@@ -91,7 +91,7 @@ fun OptionalUpdateDialog(
                                 .clip(RoundedCornerShape(12.dp))
                         ) {
                             Image(
-                                painter = painterResource(id = R.drawable.update_sample),
+                                painter = painterResource(id = R.drawable.ic_splash_logo),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxSize()
@@ -100,6 +100,23 @@ fun OptionalUpdateDialog(
 
                         Spacer(modifier = Modifier.height(20.dp))
 
+
+                        // 버전 배지 (옵션)
+                        version?.let {
+                            Surface(
+                                color = Color(0xFFEFF6FF),
+                                shape = RoundedCornerShape(20.dp)
+                            ) {
+                                Text(
+                                    text = "v$it",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color(0xFF1976D2),
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
 
                         // 제목
                         Text(
@@ -110,11 +127,24 @@ fun OptionalUpdateDialog(
                             textAlign = TextAlign.Center
                         )
 
+                        // 설명 (선택)
+                        if (description.isNotBlank()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = description,
+                                fontSize = 15.sp,
+                                color = Color(0xFF666666),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
                         val hasFeatures = !features.isNullOrEmpty()
                         if (hasFeatures) {
                             Spacer(modifier = Modifier.height(16.dp))
                             Column(modifier = Modifier.fillMaxWidth()) {
-                                features!!.forEach { feature ->
+                                val list = features!!
+                                list.forEach { feature ->
                                     FeatureItem(feature)
                                     Spacer(modifier = Modifier.height(8.dp))
                                 }
