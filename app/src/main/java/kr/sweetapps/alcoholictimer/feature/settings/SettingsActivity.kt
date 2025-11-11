@@ -42,7 +42,8 @@ class SettingsActivity : BaseActivity() {
                 navigateToMainHome()
             }
 
-            BaseScreen(bottomAd = { AdmobBanner() }) { SettingsScreen() }
+            // AdmobBanner is moved to MainActivity's BaseScaffold during Phase-1 migration
+            BaseScreen(content = { SettingsScreen() })
         }
     }
 }

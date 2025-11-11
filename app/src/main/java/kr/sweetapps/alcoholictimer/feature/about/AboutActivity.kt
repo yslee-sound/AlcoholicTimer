@@ -22,7 +22,6 @@ import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
-import kr.sweetapps.alcoholictimer.core.ui.AdmobBanner
 
 class AboutActivity : BaseActivity() {
     @Suppress("OVERRIDE_DEPRECATION")
@@ -34,12 +33,13 @@ class AboutActivity : BaseActivity() {
             // 뒤로가기 버튼: 메인 홈(Start/Run)으로 이동
             BackHandler(enabled = true) { navigateToMainHome() }
 
-            BaseScreen(bottomAd = { AdmobBanner() }) {
+            // AdmobBanner centralized in MainActivity BaseScaffold during Phase-1 migration
+            BaseScreen(content = {
                 AboutListScreen(
                     onOpenLicenses = { openLicenses() },
                     onOpenDebug = { openDebug() }
                 )
-            }
+            })
         }
     }
 

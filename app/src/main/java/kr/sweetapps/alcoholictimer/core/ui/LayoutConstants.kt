@@ -16,4 +16,7 @@ object LayoutConstants {
     val BANNER_MIN_HEIGHT = 50.dp
     // 전역 배너 위 간격 — 기본 8dp로 완충(기존 0dp)
     val BANNER_TOP_GAP = 8.dp
+    // 고정 배너 높이: 안정적 레이아웃을 위해 한 번 결정된 높이를 모든 화면에서 사용
+    // Anchored Adaptive가 대부분 50~70dp 사이 → 약간 넉넉하게 64dp 고정
+    val BANNER_FIXED_HEIGHT = 64.dp
 }

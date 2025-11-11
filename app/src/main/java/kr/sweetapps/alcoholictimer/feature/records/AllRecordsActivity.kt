@@ -17,7 +17,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.res.stringResource
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.core.ui.AdmobBanner
 
 class AllRecordsActivity : BaseActivity() {
 
@@ -46,16 +45,15 @@ class AllRecordsActivity : BaseActivity() {
                     IconButton(onClick = { showDeleteAll.value = true }) {
                         Icon(imageVector = Icons.Outlined.Close, contentDescription = stringResource(R.string.all_records_delete_title))
                     }
-                },
-                bottomAd = { AdmobBanner() }
-            ) {
+                }
+            , content = {
                 kr.sweetapps.alcoholictimer.feature.records.components.AllRecordsScreen(
                     externalRefreshTrigger = externalRefreshTriggerState.intValue,
                     onNavigateBack = { finish() },
                     onNavigateToDetail = { record -> handleRecordClick(record) },
                     externalDeleteDialog = showDeleteAll
                 )
-            }
+            })
         }
     }
 

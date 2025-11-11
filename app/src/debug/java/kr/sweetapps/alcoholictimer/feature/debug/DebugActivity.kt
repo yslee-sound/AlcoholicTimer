@@ -34,9 +34,7 @@ class DebugActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            BaseScreen(bottomAd = { AdmobBanner() }) {
-                DebugScreen(viewModel)
-            }
+            BaseScreen(bottomAd = { AdmobBanner() }, content = { DebugScreen(viewModel) })
         }
     }
 }
@@ -433,4 +431,3 @@ private fun SplashDialog(onDismiss: () -> Unit) {
         }
     }
 }
-

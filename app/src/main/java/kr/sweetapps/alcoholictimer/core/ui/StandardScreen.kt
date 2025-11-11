@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Text
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -54,8 +55,25 @@ fun StandardScreenWithBottomButton(
     imePaddingEnabled: Boolean = false,
     backgroundDecoration: @Composable BoxScope.() -> Unit = {},
     bottomAd: (@Composable () -> Unit)? = null,
-    reserveSpaceForBottomAd: Boolean = false
+    reserveSpaceForBottomAd: Boolean = false,
+    showDebugOverlay: Boolean = false
 ) {
+    // 디버그 모드에서만 배너 숨김 상태 확인 (릴리즈에서는 항상 false)
+    var shouldHideBanner by remember { mutableStateOf(if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) DebugAdHelper.bannerHiddenFlow.value else false) }
+
+    // Flow 변경사항을 LaunchedEffect로 명시적으로 구독 (디버그 빌드에서만)
+    if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
+        LaunchedEffect(Unit) {
+            DebugAdHelper.bannerHiddenFlow.collect { hidden ->
+                android.util.Log.e("StandardScreen", "Flow collected: hidden=$hidden")
+                shouldHideBanner = hidden
+            }
+        }
+    }
+
+    val effectiveBottomAd = if (shouldHideBanner) null else bottomAd
+
+    android.util.Log.e("StandardScreen", "StandardScreenWithBottomButton: shouldHideBanner=$shouldHideBanner, bottomAd=${bottomAd != null}, effectiveBottomAd=${effectiveBottomAd != null}")
 
     val rootModifier = Modifier
         .fillMaxSize()
@@ -66,21 +84,54 @@ fun StandardScreenWithBottomButton(
     val navBarBottom = navBarPaddingValues.calculateBottomPadding()
     val imeBottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
     val effectiveBottom = if (navBarBottom > imeBottom) navBarBottom else imeBottom
+    // Global safe padding provided by BaseActivity (may be 0 when manageBottomAreaExternally=true)
+    val globalSafeBottom = LocalSafeContentPadding.current.calculateBottomPadding()
+    // Use the larger of effectiveBottom and globalSafeBottom to avoid double-counting
+    val effectiveBottomAdjusted = if (effectiveBottom > globalSafeBottom) effectiveBottom else globalSafeBottom
 
     val buttonSize = 96.dp
     val buttonBottomGap = 24.dp
     val adTopGap = LayoutConstants.BANNER_TOP_GAP
 
     // 모든 화면에서 동일한 버튼 위치를 보장하기 위해 예측 높이를 사용해 공간 예약
-    val predictedBannerH = predictAnchoredBannerHeightDp()
-    val reservedBannerH = if (bottomAd != null || reserveSpaceForBottomAd) predictedBannerH else 0.dp
+    val predictedBannerH = LayoutConstants.BANNER_FIXED_HEIGHT
+    val reservedBannerH = if (effectiveBottomAd != null || reserveSpaceForBottomAd) predictedBannerH else 0.dp
 
-    val reservedBottom by remember(reservedBannerH, adTopGap, effectiveBottom) {
-        mutableStateOf((buttonSize / 2) + buttonBottomGap + adTopGap + reservedBannerH + effectiveBottom)
+    // Compute a minimal content bottom padding so the main content doesn't overlap the floating button.
+    // The content should NOT reserve the banner + system inset space; that space is handled by the
+    // banner container and the button positioning. This avoids double-reserving the bottom area.
+    val reservedBottom by remember(buttonSize, buttonBottomGap, adTopGap) {
+        mutableStateOf((buttonSize / 2) + buttonBottomGap + adTopGap)
+    }
+
+    SideEffect {
+        try {
+            android.util.Log.e("StandardScreen", "computed: effectiveBottom=$effectiveBottom, globalSafeBottom=$globalSafeBottom, effectiveBottomAdjusted=$effectiveBottomAdjusted, reservedBannerH=$reservedBannerH, reservedBottom=$reservedBottom")
+        } catch (_: Throwable) {}
     }
 
     Box(modifier = rootModifier) {
         backgroundDecoration()
+
+        // Debug overlay: show computed padding values on-screen for quick verification
+        if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG && showDebugOverlay) {
+            Surface(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .wrapContentWidth()
+                    .wrapContentHeight()
+                    .align(Alignment.TopEnd),
+                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.9f),
+                shadowElevation = 4.dp,
+                tonalElevation = 0.dp
+            ) {
+                Text(
+                    text = "rb=${reservedBottom}, gb=${globalSafeBottom}, eb=${effectiveBottomAdjusted}, bh=${reservedBannerH}",
+                    modifier = Modifier.padding(6.dp),
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+        }
 
         Column(
             modifier = Modifier
@@ -105,7 +156,7 @@ fun StandardScreenWithBottomButton(
             )
         }
 
-        if (bottomAd != null) {
+        if (effectiveBottomAd != null) {
             // 배너 상단 간격을 회색으로 채워 구분감 부여
             if (adTopGap > 0.dp) {
                 Box(
@@ -128,18 +179,20 @@ fun StandardScreenWithBottomButton(
                 shadowElevation = 0.dp,
                 tonalElevation = 0.dp
             ) {
+                val bannerBottomPadding = if (globalSafeBottom > 0.dp) globalSafeBottom else effectiveBottomAdjusted
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = effectiveBottom)
+                        .padding(bottom = bannerBottomPadding)
                         .height(predictedBannerH),
                     contentAlignment = Alignment.Center
-                ) { bottomAd() }
+                ) { effectiveBottomAd() }
             }
         }
 
-        val buttonBottomPadding by remember(reservedBannerH, adTopGap, effectiveBottom) {
-            mutableStateOf(effectiveBottom + (reservedBannerH + adTopGap) + buttonBottomGap)
+        val insetForReservation = if (globalSafeBottom > 0.dp) 0.dp else effectiveBottomAdjusted
+        val buttonBottomPadding by remember(reservedBannerH, adTopGap, insetForReservation) {
+            mutableStateOf(insetForReservation + (reservedBannerH + adTopGap) + buttonBottomGap)
         }
         Box(
             modifier = Modifier

@@ -22,21 +22,18 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
-import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
-import kr.sweetapps.alcoholictimer.core.ui.AdmobBanner
 
 class NicknameEditActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.profile_edit_title)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            // AdmobBanner moved to MainActivity BaseScaffold during Phase-1 migration
             BaseScreen(
                 showBackButton = true,
                 onBackClick = { finish() },
-                bottomAd = { AdmobBanner() }
-            ) {
-                NicknameEditScreen()
-            }
+                content = { NicknameEditScreen() }
+            )
         }
     }
 

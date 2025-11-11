@@ -42,7 +42,6 @@ import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import androidx.compose.foundation.BorderStroke
 import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 import kr.sweetapps.alcoholictimer.core.ui.components.MainLevelCardFrame
-import kr.sweetapps.alcoholictimer.core.ui.AdmobBanner
 
 class LevelActivity : BaseActivity() {
 
@@ -54,9 +53,8 @@ class LevelActivity : BaseActivity() {
                 navigateToMainHome()
             }
 
-            BaseScreen(
-                bottomAd = { AdmobBanner() }
-            ) { LevelScreen() }
+            // AdmobBanner centralized in MainActivity BaseScaffold during Phase-1 migration
+            BaseScreen(content = { LevelScreen() })
         }
     }
 

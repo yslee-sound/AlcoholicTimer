@@ -36,18 +36,17 @@ class RecordsActivity : BaseActivity() {
 
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = density.fontScale * 0.9f)) {
-                BaseScreen(
-                    bottomAd = { AdmobBanner() }
-                ) {
+                // AdmobBanner centralized in MainActivity BaseScaffold during Phase-1 migration
+                BaseScreen(content = {
                     RecordsScreen(
                         externalRefreshTrigger = refreshTrigger,
                         onNavigateToDetail = { record -> handleCardClick(record) },
                         onNavigateToAllRecords = { navigateToAllRecords() }
                     )
-                }
-            }
-        }
-    }
+                })
+             }
+         }
+     }
 
     override fun onResume() {
         super.onResume()

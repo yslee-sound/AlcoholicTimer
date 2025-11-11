@@ -32,7 +32,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.content.edit
 import kr.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
-import kr.sweetapps.alcoholictimer.core.ui.AdmobBanner
 import kr.sweetapps.alcoholictimer.core.ui.LayoutConstants
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.predictAnchoredBannerHeightDp
@@ -356,8 +355,8 @@ private fun AddRecordScreen(
                     .height(predictAnchoredBannerHeightDp()),
                 contentAlignment = Alignment.Center
             ) {
-                AdmobBanner()
+                // AdmobBanner() removed here - centralized in MainActivity BaseScaffold during Phase-1
             }
-        }
-    }
-}
+         }
+     }
+ }

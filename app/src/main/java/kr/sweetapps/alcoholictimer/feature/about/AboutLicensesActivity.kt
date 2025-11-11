@@ -31,14 +31,15 @@ import android.content.ClipboardManager
 import androidx.core.content.ContextCompat
 import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
-import kr.sweetapps.alcoholictimer.core.ui.AdmobBanner
 
 class AboutLicensesActivity : BaseActivity() {
+    @Deprecated("Use getScreenTitleResId() instead")
     override fun getScreenTitle(): String = getString(R.string.about_open_license_notice)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { BaseScreen(showBackButton = true, bottomAd = { AdmobBanner() }) { AboutLicensesScreen() } }
+        // AdmobBanner centralized in MainActivity BaseScaffold during Phase-1 migration
+        setContent { BaseScreen(showBackButton = true, content = { AboutLicensesScreen() }) }
     }
 }
 

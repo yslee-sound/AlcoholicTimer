@@ -55,7 +55,7 @@ class QuitActivity : BaseActivity() {
     override fun getScreenTitle(): String = getString(R.string.quit_title)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { BaseScreen(applyBottomInsets = false, manageBottomAreaExternally = true) { QuitScreen() } }
+        setContent { BaseScreen(applyBottomInsets = false, manageBottomAreaExternally = true, content = { QuitScreen() }) }
         // 전면광고 프리로드(이미 로드된 경우 내부에서 무시됨)
         InterstitialAdManager.preload(applicationContext)
     }
@@ -222,8 +222,6 @@ fun QuitScreen() {
                                                     }
                                                 }
 
-                                                // ...existing ad code...
-
                                                 // 전면광고 노출 시도: 성공 시 닫힌 후 navigateToStart 수행, 실패/차단 시 즉시 전환
                                                 val actForAd = activity
                                                 if (actForAd != null) {
@@ -290,8 +288,8 @@ fun QuitScreen() {
                     } }
                 }
             }
-        },
-        bottomAd = { AdmobBanner() }
+        }
+        // bottomAd = { AdmobBanner() } // moved to MainActivity BaseScaffold during Phase-1
     )
 }
 
