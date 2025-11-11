@@ -9,8 +9,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kr.sweetapps.alcoholictimer.core.ui.BaseScaffold
 import androidx.compose.material3.ModalNavigationDrawer
@@ -35,6 +33,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.systemBars
+import kr.sweetapps.alcoholictimer.navigation.AlcoholicTimerNavGraph
+import kr.sweetapps.alcoholictimer.navigation.Screen
+import kr.sweetapps.alcoholictimer.navigation.getTitleResId
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -97,24 +98,26 @@ fun AppContent() {
         }
     ) {
         val backStackEntry = navController.currentBackStackEntryAsState().value
-        val currentRoute = backStackEntry?.destination?.route ?: "start"
-        val titleRes = when (currentRoute) {
-            "start" -> R.string.start_screen_title
-            "run" -> R.string.run_title
-            "records" -> R.string.records_title
-            "all_records" -> R.string.records_title
-            "level" -> R.string.level_title
-            "settings" -> R.string.settings_title
-            "about" -> R.string.about_title
-            else -> R.string.start_screen_title
+        val currentRoute = backStackEntry?.destination?.route ?: Screen.Start.route
+        val currentScreen = when (currentRoute) {
+            Screen.Start.route -> Screen.Start
+            Screen.Run.route -> Screen.Run
+            Screen.Records.route -> Screen.Records
+            Screen.AllRecords.route -> Screen.AllRecords
+            Screen.Level.route -> Screen.Level
+            Screen.Settings.route -> Screen.Settings
+            Screen.About.route -> Screen.About
+            Screen.NicknameEdit.route -> Screen.NicknameEdit
+            else -> Screen.Start
         }
+        val titleRes = currentScreen.getTitleResId()
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = Color.White,
             topBar = {
                 TopAppBar(
-                    title = { Text(stringResource(id = titleRes)) },
+                    title = { Text(titleRes?.let { stringResource(it) } ?: "") },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Filled.Menu, contentDescription = stringResource(id = R.string.cd_menu))
@@ -139,15 +142,7 @@ fun AppContent() {
         ) { innerPadding ->
             Box(Modifier.padding(innerPadding)) {
                 BaseScaffold {
-                    NavHost(navController = navController, startDestination = "start") {
-                        composable("start") { kr.sweetapps.alcoholictimer.feature.start.StartScreen(onStart = { navController.navigate("run") }) }
-                        composable("run") { kr.sweetapps.alcoholictimer.feature.run.RunScreenComposable() }
-                        composable("records") { kr.sweetapps.alcoholictimer.feature.records.components.RecordsScreen(externalRefreshTrigger = 0, onNavigateToAllRecords = { navController.navigate("all_records") }, onNavigateToDetail = { _ -> /* TODO: navigate to detail route */ }) }
-                        composable("all_records") { kr.sweetapps.alcoholictimer.feature.records.components.AllRecordsScreen(onNavigateToDetail = { /* TODO */ }) }
-                        composable("level") { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Level (todo)") } }
-                        composable("settings") { kr.sweetapps.alcoholictimer.feature.settings.SettingsScreen() }
-                        composable("about") { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("About (todo)") } }
-                    }
+                    AlcoholicTimerNavGraph(navController, Screen.Start.route)
                 }
             }
         }

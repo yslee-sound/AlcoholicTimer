@@ -7,6 +7,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import kr.sweetapps.alcoholictimer.feature.start.StartScreen
 import kr.sweetapps.alcoholictimer.feature.run.RunScreenComposable
+import kr.sweetapps.alcoholictimer.feature.records.components.AllRecordsScreen
+import kr.sweetapps.alcoholictimer.feature.records.components.RecordsScreen
+import kr.sweetapps.alcoholictimer.feature.settings.SettingsScreen
 
 /**
  * Navigation Graph
@@ -41,38 +44,36 @@ fun AlcoholicTimerNavGraph(
 
         // 기록 목록 화면
         composable(Screen.Records.route) {
-            // TODO: RecordsScreen Composable 구현
-            Text("Records Screen - 구현 예정")
+            RecordsScreen(
+                externalRefreshTrigger = 0,
+                onNavigateToAllRecords = { navController.navigate(Screen.AllRecords.route) },
+                onNavigateToDetail = { /* TODO detail route */ }
+            )
         }
 
         // 전체 기록 화면
         composable(Screen.AllRecords.route) {
-            // TODO: AllRecordsScreen Composable 구현
-            Text("All Records Screen - 구현 예정")
+            AllRecordsScreen(onNavigateToDetail = { /* TODO detail */ })
         }
 
         // 레벨 화면
         composable(Screen.Level.route) {
-            // TODO: LevelScreen Composable 구현
-            Text("Level Screen - 구현 예정")
+            Text("Level (TODO)")
         }
 
         // 설정 화면
         composable(Screen.Settings.route) {
-            // TODO: SettingsScreen Composable 구현
-            Text("Settings Screen - 구현 예정")
+            SettingsScreen()
         }
 
         // 정보 화면
         composable(Screen.About.route) {
-            // TODO: AboutScreen Composable 구현
-            Text("About Screen - 구현 예정")
+            Text("About (TODO)")
         }
 
         // 닉네임 편집 화면
         composable(Screen.NicknameEdit.route) {
-            // TODO: NicknameEditScreen Composable 구현
-            Text("Nickname Edit Screen - 구현 예정")
+            Text("Nickname Edit (TODO)")
         }
     }
 }

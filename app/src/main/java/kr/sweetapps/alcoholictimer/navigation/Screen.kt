@@ -74,7 +74,7 @@ sealed class Screen(val route: String) {
  */
 fun Screen.getTitleResId(): Int? = when (this) {
     is Screen.Start -> kr.sweetapps.alcoholictimer.R.string.start_screen_title
-    is Screen.Run -> kr.sweetapps.alcoholictimer.R.string.start_screen_title
+    is Screen.Run -> kr.sweetapps.alcoholictimer.R.string.run_title
     is Screen.Records -> null // kr.sweetapps.alcoholictimer.R.string.records_title
     is Screen.AllRecords -> kr.sweetapps.alcoholictimer.R.string.all_records_title
     is Screen.Level -> kr.sweetapps.alcoholictimer.R.string.level_title
@@ -85,4 +85,3 @@ fun Screen.getTitleResId(): Int? = when (this) {
     is Screen.Detail -> null // 커스텀 제목 사용
     is Screen.Debug -> null // 커스텀 제목 사용
 }
-
