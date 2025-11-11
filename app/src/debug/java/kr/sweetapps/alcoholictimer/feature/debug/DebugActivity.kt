@@ -28,7 +28,6 @@ import kr.sweetapps.alcoholictimer.ui.dialogs.OptionalUpdateDialog
 class DebugActivity : BaseActivity() {
     private val viewModel: DebugViewModel by viewModels()
 
-    override fun getScreenTitleResId(): Int? = null
     @Suppress("OVERRIDE_DEPRECATION")
     override fun getScreenTitle(): String = "디버그 모드"
 

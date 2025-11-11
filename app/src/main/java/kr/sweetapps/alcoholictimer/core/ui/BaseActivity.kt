@@ -440,7 +440,7 @@ abstract class BaseActivity : ComponentActivity() {
                         }
                         startActivity(intent)
                         @Suppress("DEPRECATION")
-                        overridePendingTransition(0, 0)
+                        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
                         // 현재 화면을 스택에서 제거
                         // finish()  // 원복: 여기서 종료하지 않음
                     }
@@ -464,7 +464,9 @@ abstract class BaseActivity : ComponentActivity() {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         }
         startActivity(intent)
-        overridePendingTransition(0, 0)
+        // 크로스페이드 애니메이션: 새 화면이 페이드인되면서 이전 화면이 페이드아웃
+        // 광고 영역의 깜빡임이 부드럽게 처리됨
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         // 현재 화면을 스택에서 제거하여 뒤로가기 스택 누적 방지
         // finish() // 원복: 호출자에 따라 종료 여부 결정
     }
@@ -473,8 +475,7 @@ abstract class BaseActivity : ComponentActivity() {
     private fun navigateToNicknameEdit() {
         val intent = Intent(this, NicknameEditActivity::class.java)
         startActivity(intent)
-        overridePendingTransition(0, 0)
-        // finish() // 원복: 강제 종료하지 않음
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
     }
 
     /**

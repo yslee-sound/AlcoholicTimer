@@ -22,9 +22,9 @@
         android:theme="@style/Theme.AlcoholicTimer"
         tools:targetApi="31">
 
-        <!-- 메인 액티비티 (시작 화면) -->
+        <!-- 🎯 Single Activity 아키텍처 -->
         <activity
-            android:name="kr.sweetapps.alcoholictimer.feature.start.StartActivity"
+            android:name="kr.sweetapps.alcoholictimer.MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
             android:theme="@style/Theme.AlcoholicTimer.Splash"
@@ -34,6 +34,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- 기존 Activity들은 점진적으로 제거 예정 -->
+        <!-- 일단 호환성을 위해 유지 -->
+
+        <!-- 메인 액티비티 (시작 화면) - 호환성 유지 -->
+        <activity
+            android:name="kr.sweetapps.alcoholictimer.feature.start.StartActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.AlcoholicTimer.Splash"
+            android:windowSoftInputMode="adjustPan" />
 
         <!-- 기록 화면 -->
         <activity

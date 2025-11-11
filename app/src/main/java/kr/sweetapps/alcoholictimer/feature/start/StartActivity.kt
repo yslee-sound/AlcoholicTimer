@@ -353,7 +353,10 @@ fun StartScreenWithUpdate(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StartScreen(gateNavigation: Boolean = false) {
+fun StartScreen(
+    gateNavigation: Boolean = false,
+    onNavigateToRun: () -> Unit = {}
+) {
     val context = LocalContext.current
     val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
 
@@ -371,9 +374,14 @@ fun StartScreen(gateNavigation: Boolean = false) {
     // timer_completed가 true이거나 start_time이 0이면 이동하지 않음
     if (!gateNavigation && startTime != 0L && !timerCompleted) {
         LaunchedEffect(Unit) {
-            context.startActivity(Intent(context, RunActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            })
+            // Navigation 사용 시 callback 호출, 아니면 기존 Activity 방식
+            if (onNavigateToRun != {}) {
+                onNavigateToRun()
+            } else {
+                context.startActivity(Intent(context, RunActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                })
+            }
         }
         return
     }
@@ -466,9 +474,14 @@ fun StartScreen(gateNavigation: Boolean = false) {
                                 putBoolean("timer_completed", false)
                             }
                             val launchRun: () -> Unit = {
-                                context.startActivity(Intent(context, RunActivity::class.java))
-                                // 백스택 정리: StartActivity 종료
-                                (context as? android.app.Activity)?.finish()
+                                // Navigation 사용 시 callback 호출, 아니면 기존 Activity 방식
+                                if (onNavigateToRun != {}) {
+                                    onNavigateToRun()
+                                } else {
+                                    context.startActivity(Intent(context, RunActivity::class.java))
+                                    // 백스택 정리: StartActivity 종료
+                                    (context as? android.app.Activity)?.finish()
+                                }
                             }
                             // 메인 화면의 “앞으로 진행” 제스처에서만 Interstitial 시도
                             val act = activity

@@ -1,5 +1,6 @@
 package kr.sweetapps.alcoholictimer.feature.run
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -65,9 +66,11 @@ class RunActivity : BaseActivity() {
 }
 
 @Composable
-private fun RunScreen() {
+fun RunScreen(
+    onNavigateToStart: () -> Unit = {}
+) {
     val context = LocalContext.current
-    val activity = context as? RunActivity
+    val activity = context as? Activity
 
     // 금주 진행 중에는 뒤로가기로 StartActivity로 돌아가지 않도록 방지
     // 뒤로가기 시 앱을 백그라운드로 이동
@@ -82,12 +85,17 @@ private fun RunScreen() {
 
     LaunchedEffect(startTime, timerCompleted) {
         if (timerCompleted || startTime == 0L) {
-            context.startActivity(Intent(context, StartActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                // 스플래시 화면 스킵 플래그 추가 (내부 네비게이션)
-                putExtra("skip_splash", true)
-            })
-            (context as? RunActivity)?.finish()
+            // Navigation 사용 시 callback 호출, 아니면 기존 Activity 방식
+            if (onNavigateToStart != {}) {
+                onNavigateToStart()
+            } else {
+                context.startActivity(Intent(context, StartActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    // 스플래시 화면 스킵 플래그 추가 (내부 네비게이션)
+                    putExtra("skip_splash", true)
+                })
+                (context as? RunActivity)?.finish()
+            }
         }
     }
 
