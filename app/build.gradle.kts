@@ -72,20 +72,14 @@ android {
             buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"ca-app-pub-8420908105703273/3187272865\"")
             // 빌드타입별 전면 광고 유닛ID (릴리즈 실제 ID)
             buildConfigField("String", "ADMOB_INTERSTITIAL_UNIT_ID", "\"ca-app-pub-8420908105703273/2270912481\"")
-            // 빌드타입별 앱 오프닝 광고 유닛ID (릴리즈 실제 ID)
-            buildConfigField("String", "ADMOB_APP_OPEN_UNIT_ID", "\"ca-app-pub-8420908105703273/4469985826\"")
             // 네이티브 광고는 사용하지 않으므로 빈 문자열 (폐기됨)
             buildConfigField("String", "ADMOB_NATIVE_UNIT_ID", "\"\"")
         }
         // debug 설정 변경 없음
         getByName("debug") {
-            // 디버그는 항상 테스트 유닛ID 사용 (Google 샘플 ID)
             buildConfigField("String", "ADMOB_INTERSTITIAL_UNIT_ID", "\"ca-app-pub-3940256099942544/1033173712\"")
             buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"ca-app-pub-3940256099942544/6300978111\"")
-            // 네이티브 Advanced 테스트 유닛ID
             buildConfigField("String", "ADMOB_NATIVE_UNIT_ID", "\"ca-app-pub-3940256099942544/2247696110\"")
-            // 앱 오프닝 테스트 유닛ID
-            buildConfigField("String", "ADMOB_APP_OPEN_UNIT_ID", "\"ca-app-pub-3940256099942544/9257395921\"")
         }
     }
 
@@ -130,21 +124,18 @@ dependencies {
     implementation(libs.app.update.ktx)
     implementation(libs.kotlinx.coroutines.play.services)
 
-    // Lifecycle Process (앱 오프닝 광고용)
-    implementation("androidx.lifecycle:lifecycle-process:2.9.4")
+    // AdMob & UMP (명시 버전 사용) -> 버전 카탈로그 참조로 변경
+    implementation(libs.google.ads)
+    implementation(libs.ump)
 
-    // AdMob & UMP (명시 버전 사용)
-    implementation("com.google.android.gms:play-services-ads:23.4.0")
-    implementation("com.google.android.ump:user-messaging-platform:2.2.0")
-
-    // ConstraintLayout for native ad layout
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    // ConstraintLayout for native ad layout (카탈로그 참조)
+    implementation(libs.androidx.constraintlayout)
 
     testImplementation(libs.junit)
     testImplementation(libs.androidx.ui.test.junit4)
     testImplementation(libs.androidx.test.core.ktx)
     testImplementation(libs.robolectric)
-    testImplementation("org.json:json:20240303")
+    testImplementation(libs.org.json)
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -283,12 +274,6 @@ tasks.register("verifyReleaseAdConfig") {
             warnings.add("⚠️  WARNING: 릴리즈 INTERSTITIAL 광고 유닛 ID가 올바르지 않을 수 있습니다")
         }
 
-        if (buildContent.contains("ca-app-pub-8420908105703273/4469985826")) {
-            checks.add("✓ 릴리즈 APP_OPEN 광고 유닛 ID 설정됨")
-        } else {
-            warnings.add("⚠️  WARNING: 릴리즈 APP_OPEN 광고 유닛 ID가 올바르지 않을 수 있습니다")
-        }
-
         // 결과 출력
         println("\n✅ 통과한 검증:")
         checks.forEach { println("  $it") }
@@ -332,4 +317,3 @@ tasks.configureEach {
         dependsOn("verifyReleaseAdConfig")
     }
 }
-

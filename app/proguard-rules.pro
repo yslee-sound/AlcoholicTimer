@@ -21,44 +21,34 @@
 #-renamesourcefileattribute SourceFile
 
 # ===================================================
-# Google AdMob & Play Services Ads
+# Google AdMob & Play Services Ads (축소된 keep)
 # ===================================================
-# AdMob SDK 클래스 보호 (난독화 시 광고 로드 실패 방지)
--keep class com.google.android.gms.ads.** { *; }
+-keep class com.google.android.gms.ads.AdView { *; }
+-keep class com.google.android.gms.ads.InterstitialAd { *; }
+-keep class com.google.android.gms.ads.AdRequest { *; }
+-keep class com.google.android.gms.ads.LoadAdError { *; }
+-keep class com.google.android.gms.ads.AdError { *; }
+-keep class com.google.android.gms.ads.FullScreenContentCallback { *; }
 -dontwarn com.google.android.gms.ads.**
 
-# 앱 오프닝 광고
--keep class com.google.android.gms.ads.appopen.** { *; }
-
-# UMP (User Messaging Platform) - GDPR 동의
+# UMP (동의 폼 안정성 위해 전체 유지)
 -keep class com.google.android.ump.** { *; }
 -dontwarn com.google.android.ump.**
 
-# Play Services Ads 기본
--keep class com.google.android.gms.internal.ads.** { *; }
--dontwarn com.google.android.gms.internal.ads.**
+# Compose (runtime/ui 핵심 public API만)
+-keep class androidx.compose.runtime.* { *; }
+-keep class androidx.compose.ui.* { *; }
+# 과도한 ** 제거로 범위 축소
 
-# ===================================================
-# Kotlin Coroutines (광고 SDK에서 사용)
-# ===================================================
+# 코루틴 (필요 클래스만)
 -keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
 -keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
--keepclassmembers class kotlinx.** {
-    volatile <fields>;
-}
-
-# ===================================================
-# Compose (UI 프레임워크)
-# ===================================================
--keep class androidx.compose.runtime.** { *; }
--keep class androidx.compose.ui.** { *; }
+-keepclassmembers class kotlinx.coroutines.** { volatile <fields>; }
 
 # ===================================================
 # 앱 커스텀 광고 관련 클래스
 # ===================================================
-# 광고 매니저 클래스 보호
--keep class com.sweetapps.alcoholictimer.core.ads.** { *; }
+-keep class kr.sweetapps.alcoholictimer.core.ads.** { *; }
 
-# BuildConfig 보호 (광고 유닛 ID 포함)
--keep class com.sweetapps.alcoholictimer.BuildConfig { *; }
-
+# BuildConfig 보존 (광고 유닛 ID 포함 가능)
+-keep class kr.sweetapps.alcoholictimer.BuildConfig { *; }
