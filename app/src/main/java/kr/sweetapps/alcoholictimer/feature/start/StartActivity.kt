@@ -103,6 +103,23 @@ class StartActivity : BaseActivity() {
 
         super.onCreate(savedInstanceState)
 
+        // 시스템 바를 항상 표시하고 윈도우가 시스템 인셋에 맞춰 레이아웃되도록 설정
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, true)
+
+        // 시스템 바 색상을 명시적으로 흰색으로 설정 (스플래시 테마 색상 덮어쓰기)
+        window.statusBarColor = android.graphics.Color.WHITE
+        window.navigationBarColor = android.graphics.Color.WHITE
+
+        // 시스템 바 아이콘을 어둡게 설정 (흰 배경에서 보이도록)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            androidx.core.view.WindowInsetsControllerCompat(window, window.decorView).apply {
+                isAppearanceLightStatusBars = true
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    isAppearanceLightNavigationBars = true
+                }
+            }
+        }
+
         // DecorView 렌더링 에러 방지 (BackgroundFallback NullPointerException 회피)
         try {
             window.decorView.setWillNotDraw(false)

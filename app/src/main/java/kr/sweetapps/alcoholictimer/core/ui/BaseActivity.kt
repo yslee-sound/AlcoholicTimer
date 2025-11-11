@@ -45,6 +45,7 @@ import kr.sweetapps.alcoholictimer.feature.about.AboutActivity
 import kr.sweetapps.alcoholictimer.feature.about.AboutLicensesActivity
 import kotlinx.coroutines.launch
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import kotlinx.coroutines.delay
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.unit.Dp
@@ -67,7 +68,24 @@ abstract class BaseActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 시스템바 색/아이콘은 XML 테마에서만 관리 (코드로 설정하지 않음)
+
+        // 시스템 바를 항상 표시하고 윈도우가 시스템 인셋에 맞춰 레이아웃되도록 설정
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+
+        // 시스템 바 색상을 명시적으로 흰색으로 설정
+        window.statusBarColor = android.graphics.Color.WHITE
+        window.navigationBarColor = android.graphics.Color.WHITE
+
+        // 시스템 바 아이콘을 어둡게 설정 (흰 배경에서 보이도록)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            androidx.core.view.WindowInsetsControllerCompat(window, window.decorView).apply {
+                isAppearanceLightStatusBars = true
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    isAppearanceLightNavigationBars = true
+                }
+            }
+        }
+
         nicknameState.value = getNickname()
 
         // 디버그 배너 숨김 상태 초기화
