@@ -1,9 +1,10 @@
-package kr.sweetapps.alcoholictimer.ui.screens
+package kr.sweetapps.alcoholictimer.ui.dialogs
 
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
+import android.util.Log
+import androidx.core.net.toUri
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -33,25 +34,32 @@ import androidx.compose.ui.window.DialogProperties
 import kr.sweetapps.alcoholictimer.R
 
 /**
- * 긴급 상황 앱 전환 안내 팝업
- * 앱 스토어 출시 중지, 서비스 종료 등 긴급 상황에서 사용
+ * 긴급 상황 앱 전환 안내 팝업 (dialogs 스타일)
+ * - 원래 dialogs 구현 스타일을 복원했습니다.
+ * - DebugActivity 같은 기존 호출부와 호환되도록 파라미터를 확장(호환성 유지).
  */
 @Composable
 fun EmergencyRedirectDialog(
-    title: String = "중요 안내",
+    title: String = "공지",
     description: String,
-    newAppName: String,
+    // 호환성을 위해 newAppName도 허용(예: 기존 screens에서 사용)
+    newAppName: String? = null,
+    // play store 패키지
     newAppPackage: String,
-    buttonText: String = "새 앱 설치하기",
+    // 외부 리다이렉트 URL(있으면 웹으로 이동)
+    redirectUrl: String? = null,
+    buttonText: String = "확인",
     supportUrl: String? = null,
-    supportButtonText: String = "자세한 내용 보기",
+    supportButtonText: String = "자세히 보기",
+    // 기존 파라미터 유지 (미사용 가능)
     canMigrateData: Boolean = false,
     isDismissible: Boolean = false,
     onDismiss: (() -> Unit)? = null,
-    badgeText: String? = "서비스 종료",
+    badgeText: String? = null,
     migrationMessage: String? = null
 ) {
     val context = LocalContext.current
+    Log.d("EmergencyRedirectDialog", "Showing dialog with title: $title, description: $description")
     Dialog(
         onDismissRequest = { if (isDismissible) onDismiss?.invoke() },
         properties = DialogProperties(
@@ -75,9 +83,7 @@ fun EmergencyRedirectDialog(
                 colors = CardDefaults.cardColors(
                     containerColor = Color.White
                 ),
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = 16.dp
-                )
+                elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
             ) {
                 Box {
                     Column(
@@ -88,78 +94,49 @@ fun EmergencyRedirectDialog(
                             .padding(32.dp)
                             .padding(top = if (isDismissible) 16.dp else 0.dp)
                     ) {
-                        // 상단 아이콘(교체 가능 리소스)
+                        // dialogs 스타일: 경고 아이콘/이미지
                         Image(
-                            painter = painterResource(id = R.drawable.ic_splash_logo),
+                            painter = painterResource(id = R.drawable.emergency_notice),
                             contentDescription = null,
                             modifier = Modifier.size(96.dp)
                         )
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        // 제목
+                        // 제목 — 기존 dialogs는 이모티콘 제거
                         Text(
-                            text = title,
+                            text = title.replace("🚨", "").trim(),
                             fontSize = 26.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1A1A1A),
                             textAlign = TextAlign.Center
                         )
 
-                        // 배지(옵션) — "서비스 종료" 등
-                        badgeText?.let {
-                            Spacer(modifier = Modifier.height(10.dp))
-                            Surface(
-                                color = Color(0xFFFFEBEE), // 연한 레드
-                                shape = RoundedCornerShape(999.dp)
-                            ) {
-                                Text(
-                                    text = it,
-                                    color = Color(0xFFD32F2F),
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                                )
-                            }
-                        }
-
                         Spacer(modifier = Modifier.height(14.dp))
 
-                        // 설명
+                        // 설명 — dialogs 스타일은 왼쪽 정렬, 전체 너비 사용
                         Text(
                             text = description,
                             fontSize = 15.sp,
                             color = Color(0xFF666666),
-                            textAlign = TextAlign.Center,
+                            textAlign = TextAlign.Start,
                             lineHeight = 22.sp,
-                            modifier = Modifier.padding(horizontal = 8.dp)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp)
                         )
 
-                        Spacer(modifier = Modifier.height(18.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                        // 파란 안내 박스 — 데이터 이전 메시지
-                        val infoText = migrationMessage ?: "${newAppName}에서 기존 계정과 데이터를 그대로 사용할 수 있습니다."
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            color = Color(0xFFD6E4FF),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text(
-                                text = infoText,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color(0xFF1F2A44),
-                                textAlign = TextAlign.Center,
-                                lineHeight = 22.sp,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        // 설치 버튼
+                        // 버튼: redirectUrl이 우선, 아니면 Play Store로
                         Button(
-                            onClick = { openPlayStore(context, newAppPackage) },
+                            onClick = {
+                                if (!redirectUrl.isNullOrBlank()) {
+                                    openWebPage(context, redirectUrl)
+                                } else {
+                                    openPlayStore(context, newAppPackage)
+                                }
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(54.dp),
@@ -174,7 +151,7 @@ fun EmergencyRedirectDialog(
                             )
                         }
 
-                        // 하단 링크(옵션) – 링크 스타일(리플 제거 + 눌림 시 밑줄/색상 변화)
+                        // 하단 링크(옵션)
                         supportUrl?.let { url ->
                             Spacer(modifier = Modifier.height(10.dp))
                             val interaction = remember { MutableInteractionSource() }
@@ -223,20 +200,20 @@ fun EmergencyRedirectDialog(
 
 private fun openPlayStore(context: Context, packageName: String) {
     val intent = Intent(Intent.ACTION_VIEW).apply {
-        data = Uri.parse("market://details?id=$packageName")
+        data = "market://details?id=$packageName".toUri()
         setPackage("com.android.vending")
     }
     try {
         context.startActivity(intent)
-    } catch (e: ActivityNotFoundException) {
+    } catch (_: ActivityNotFoundException) {
         val webIntent = Intent(Intent.ACTION_VIEW).apply {
-            data = Uri.parse("https://play.google.com/store/apps/details?id=$packageName")
+            data = "https://play.google.com/store/apps/details?id=$packageName".toUri()
         }
         context.startActivity(webIntent)
     }
 }
 
 private fun openWebPage(context: Context, url: String) {
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+    val intent = Intent(Intent.ACTION_VIEW, url.toUri())
     context.startActivity(intent)
 }

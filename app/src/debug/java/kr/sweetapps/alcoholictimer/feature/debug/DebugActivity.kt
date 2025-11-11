@@ -24,8 +24,7 @@ import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
 import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 import kr.sweetapps.alcoholictimer.core.ui.AdmobBanner
 import kr.sweetapps.alcoholictimer.core.ui.DebugAdHelper
-import kr.sweetapps.alcoholictimer.ui.screens.EmergencyRedirectDialog
-import kr.sweetapps.alcoholictimer.ui.screens.ForceUpdateDialog
+import kr.sweetapps.alcoholictimer.ui.dialogs.EmergencyRedirectDialog
 import kr.sweetapps.alcoholictimer.ui.screens.NoticeDialog
 import kr.sweetapps.alcoholictimer.ui.screens.OptionalUpdateDialog
 
@@ -49,7 +48,6 @@ private fun DebugScreen() {
     val safePadding = LocalSafeContentPadding.current
     var showSplashDialog by remember { mutableStateOf(false) }
     var showEmergencyDialog by remember { mutableStateOf(false) }
-    var showForceUpdateDialog by remember { mutableStateOf(false) }
     var showOptionalUpdateDialog by remember { mutableStateOf(false) }
     var showNoticeDialog by remember { mutableStateOf(false) }
 
@@ -91,11 +89,6 @@ private fun DebugScreen() {
                     onToggle = { showEmergencyDialog = it }
                 )
                 HorizontalDivider()
-                ForceUpdateToggleRow(
-                    showDialog = showForceUpdateDialog,
-                    onToggle = { showForceUpdateDialog = it }
-                )
-                HorizontalDivider()
                 NoticeToggleRow(
                     showDialog = showNoticeDialog,
                     onToggle = { showNoticeDialog = it }
@@ -133,21 +126,6 @@ private fun DebugScreen() {
             onDismiss = { showEmergencyDialog = false },
             badgeText = "서비스 종료",
             migrationMessage = "DrinkTracker에서 기존 계정과 데이터를 그대로 사용할 수 있습니다."
-        )
-    }
-
-    if (showForceUpdateDialog) {
-        ForceUpdateDialog(
-            title = "앱 업데이트 필요",
-            description = "더 나은 서비스를 위해 앱을 최신 버전으로 업데이트해 주세요.",
-            buttonText = "지금 업데이트",
-            features = listOf(
-                "새로운 기능 추가",
-                "성능 개선",
-                "버그 수정"
-            ),
-            estimatedTime = "약 1분",
-            onUpdateClick = { showForceUpdateDialog = false }
         )
     }
 
@@ -254,31 +232,6 @@ private fun EmergencyNoticeToggleRow(
 }
 
 @Composable
-private fun ForceUpdateToggleRow(
-    showDialog: Boolean,
-    onToggle: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text(text = "강제 업데이트 팝업 보기", style = MaterialTheme.typography.bodyLarge)
-            Text(
-                text = if (showDialog) "현재: 표시 중" else "현재: 숨김",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        Switch(
-            checked = showDialog,
-            onCheckedChange = onToggle
-        )
-    }
-}
-
-@Composable
 private fun NoticeToggleRow(
     showDialog: Boolean,
     onToggle: (Boolean) -> Unit
@@ -352,4 +305,3 @@ private fun SplashDialog(onDismiss: () -> Unit) {
         }
     }
 }
-
