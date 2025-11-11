@@ -25,7 +25,7 @@ import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 import kr.sweetapps.alcoholictimer.core.ui.AdmobBanner
 import kr.sweetapps.alcoholictimer.core.ui.DebugAdHelper
 import kr.sweetapps.alcoholictimer.ui.dialogs.EmergencyRedirectDialog
-import kr.sweetapps.alcoholictimer.ui.screens.NoticeDialog
+import kr.sweetapps.alcoholictimer.ui.dialogs.NoticeDialog
 import kr.sweetapps.alcoholictimer.ui.screens.OptionalUpdateDialog
 
 class DebugActivity : BaseActivity() {
@@ -131,7 +131,7 @@ private fun DebugScreen() {
 
     if (showNoticeDialog) {
         NoticeDialog(
-            title = "새로운 기능 추가!",
+            title = "테스트: 새 공지 UI",
             description = "음주 기록을 더욱 편리하게 관리할 수 있도록 새로운 기능이 추가되었습니다.\n\n지금 바로 확인해 보세요!",
             buttonText = "확인했습니다",
             onDismiss = { showNoticeDialog = false },

@@ -1,8 +1,11 @@
 package kr.sweetapps.alcoholictimer.ui.dialogs
 
+import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -12,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -21,13 +25,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.sweetapps.pocketchord.R
-import com.sweetapps.pocketchord.data.supabase.model.Announcement
-import kotlin.let
+import kr.sweetapps.alcoholictimer.R
 
 /**
- * 공지사항 팝업 컴포넌트
- * 우측 상단에 닫기 버튼이 있는 재사용 가능한 공지사항 다이얼로그
+ * 공지사항 팝업 컴포넌트 (업데이트된 UI)
  */
 @Composable
 fun NoticeDialog(
@@ -40,112 +41,92 @@ fun NoticeDialog(
     titleColor: Color = Color(0xFF1A1A1A),
     descriptionColor: Color = Color(0xFF666666)
 ) {
+    Log.d("NoticeDialog", "NoticeDialog called with title: $title, description: $description")
+
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
-            dismissOnBackPress = true,          // 백 버튼으로는 닫기 가능
-            dismissOnClickOutside = false,      // 외부 클릭으로는 닫기 불가 ✅
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true,
             usePlatformDefaultWidth = false
         )
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp)
+                .fillMaxSize()
+                .padding(24.dp),
+            contentAlignment = Alignment.Center
         ) {
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .shadow(8.dp, RoundedCornerShape(20.dp)),
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = backgroundColor
-                ),
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = 8.dp
-                )
+                colors = CardDefaults.cardColors(containerColor = backgroundColor)
             ) {
-                Box {
+                Box(modifier = Modifier.padding(20.dp)) {
                     Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(20.dp)
-                            .padding(top = 16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // 상단 샘플 이미지(16:9, 라운드, crop) - 스크롤 안 됨
-                        val shape = RoundedCornerShape(12.dp)
+                        // 상단 큰 이미지 박스 (라운드 배경 + inner image)
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .aspectRatio(16f / 9f)
-                                .clip(shape)
+                                .height(160.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFFF7F2EE)), // 연한 베이지 톤 배경
+                            contentAlignment = Alignment.Center
                         ) {
+                            // inner image (로고/샘플)
                             Image(
-                                painter = painterResource(id = R.drawable.notice_sample),
+                                painter = painterResource(id = R.drawable.ic_splash_logo),
                                 contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier
+                                    .fillMaxHeight(0.85f)
+                                    .padding(horizontal = 12.dp)
                             )
                         }
-                        Spacer(modifier = Modifier.height(20.dp))
 
-                        // 제목 - 스크롤 안 됨
+                        Spacer(modifier = Modifier.height(18.dp))
+
+                        // 제목
                         Text(
                             text = title,
-                            fontSize = 24.sp,
+                            fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
                             color = titleColor,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
+                            textAlign = TextAlign.Center
                         )
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // 설명 - 이 부분만 스크롤 ✅
-                        Box(
+                        // 설명
+                        Text(
+                            text = description,
+                            fontSize = 14.sp,
+                            color = descriptionColor,
+                            textAlign = TextAlign.Start,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .weight(1f, fill = false)  // 남은 공간 차지하되 필수 아님
-                                .heightIn(max = 300.dp)    // 최대 높이 제한
-                        ) {
-                            Text(
-                                text = description,
-                                fontSize = 16.sp,
-                                color = descriptionColor,
-                                textAlign = TextAlign.Start,
-                                lineHeight = 24.sp,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .verticalScroll(rememberScrollState())  // 내용만 스크롤 ✅
-                            )
-                        }
+                                .padding(horizontal = 8.dp)
+                        )
 
-                        // 버튼 (옵션) - 스크롤 안 됨
-                        buttonText?.let {
-                            Spacer(modifier = Modifier.height(24.dp))
-                            Button(
-                                onClick = { onButtonClick?.invoke() },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(52.dp),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Text(
-                                    text = it,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = Color.White
-                                )
-                            }
-                        }
+                        // 버튼 제거: 새 공지사항 팝업에는 버튼이 없음
+                        Spacer(modifier = Modifier.height(18.dp))
                     }
 
-                    // X 닫기 버튼 (우측 상단)
+                    // 우측 상단 원형 닫기 버튼 (오버랩)
                     IconButton(
                         onClick = onDismiss,
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .padding(8.dp)
                             .size(40.dp)
+                            .background(Color.White, shape = CircleShape)
+                            .clip(CircleShape)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
@@ -160,9 +141,6 @@ fun NoticeDialog(
 }
 
 
-/**
- * 다크 테마 공지사항 다이얼로그
- */
 @Composable
 fun NoticeDialogDark(
     title: String,
@@ -183,9 +161,7 @@ fun NoticeDialogDark(
     )
 }
 
-/**
- * 간단한 텍스트 전용 공지사항 다이얼로그
- */
+
 @Composable
 fun SimpleNoticeDialog(
     title: String,
@@ -198,145 +174,5 @@ fun SimpleNoticeDialog(
         buttonText = null,
         onDismiss = onDismiss,
         onButtonClick = null
-    )
-}
-
-// ==================== Supabase 연동 ====================
-
-/**
- * Supabase Announcement 모델을 사용하는 공지사항 다이얼로그
- * Flutter의 AnnouncementDialog와 동일한 기능
- *
- * 사용 예시:
- * ```kotlin
- * AnnouncementDialog(
- *     announcement = announcement,
- *     onDismiss = { }
- * )
- * ```
- */
-@Composable
-fun AnnouncementDialog(
-    announcement: Announcement,
-    onDismiss: () -> Unit,
-    showImage: Boolean = true
-) {
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(
-            dismissOnBackPress = true,          // 백 버튼으로는 닫기 가능
-            dismissOnClickOutside = false,      // 외부 클릭으로는 닫기 불가 ✅
-            usePlatformDefaultWidth = false
-        )
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp)
-        ) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White
-                ),
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = 8.dp
-                )
-            ) {
-                Box {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(20.dp)
-                            .padding(top = 16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        // 이미지 (옵션) - 스크롤 안 됨
-                        if (showImage) {
-                            val shape = RoundedCornerShape(12.dp)
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .aspectRatio(16f / 9f)
-                                    .clip(shape)
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.notice_sample),
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(20.dp))
-                        }
-
-                        // 제목 (Supabase의 title 필드) - 스크롤 안 됨
-                        Text(
-                            text = announcement.title,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1A1A1A),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // 내용 (Supabase의 content 필드) - 이 부분만 스크롤 ✅
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f, fill = false)  // 남은 공간 차지하되 필수 아님
-                                .heightIn(max = 300.dp)    // 최대 높이 제한
-                        ) {
-                            Text(
-                                text = announcement.content,
-                                fontSize = 16.sp,
-                                color = Color(0xFF666666),
-                                textAlign = TextAlign.Start,
-                                lineHeight = 24.sp,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .verticalScroll(rememberScrollState())  // 내용만 스크롤 ✅
-                            )
-                        }
-
-                        // 하단 여백 (버튼 없이 깔끔하게)
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-
-                    // X 닫기 버튼 (우측 상단) - 유일한 닫기 수단
-                    IconButton(
-                        onClick = onDismiss,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(8.dp)
-                            .size(40.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "닫기",
-                            tint = Color(0xFF666666)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-/**
- * 간단한 텍스트 전용 Announcement 다이얼로그 (이미지 없음)
- */
-@Composable
-fun SimpleAnnouncementDialog(
-    announcement: Announcement,
-    onDismiss: () -> Unit
-) {
-    AnnouncementDialog(
-        announcement = announcement,
-        onDismiss = onDismiss,
-        showImage = false
     )
 }
