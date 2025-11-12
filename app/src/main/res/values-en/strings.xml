@@ -114,8 +114,10 @@
     <string name="profile_edit_title">Edit Profile</string>
     <string name="profile_edit_instruction">Please enter your new nickname</string>
     <string name="profile_nickname_label">Nickname</string>
+    <string name="profile_nickname_placeholder">Enter nickname</string>
     <string name="profile_save">Save</string>
     <string name="profile_cancel">Cancel</string>
+    <string name="cd_clear_text">Clear text</string>
 
     <!-- Records screen -->
     <string name="records_title">Sobriety Records</string>

@@ -1,13 +1,13 @@
 package kr.sweetapps.alcoholictimer.feature.about
 
+import android.content.SharedPreferences
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -25,9 +25,18 @@ fun AboutScreen(
     onNavigateEditNickname: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val nickname = remember {
-        val sp = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
-        sp.getString("nickname", context.getString(R.string.default_nickname)) ?: context.getString(R.string.default_nickname)
+    val sp = remember { context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE) }
+    var nickname by remember { mutableStateOf(sp.getString("nickname", context.getString(R.string.default_nickname)) ?: context.getString(R.string.default_nickname)) }
+
+    // SharedPreferences listener로 닉네임 실시간 반영
+    DisposableEffect(sp) {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == "nickname") {
+                nickname = sp.getString("nickname", context.getString(R.string.default_nickname)) ?: context.getString(R.string.default_nickname)
+            }
+        }
+        sp.registerOnSharedPreferenceChangeListener(listener)
+        onDispose { sp.unregisterOnSharedPreferenceChangeListener(listener) }
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 12.dp)) {

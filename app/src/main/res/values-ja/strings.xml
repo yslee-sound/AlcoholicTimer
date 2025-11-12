@@ -114,8 +114,10 @@
     <string name="profile_edit_title">プロフィール編集</string>
     <string name="profile_edit_instruction">新しいニックネームを入力してください</string>
     <string name="profile_nickname_label">ニックネーム</string>
+    <string name="profile_nickname_placeholder">ニックネームを入力</string>
     <string name="profile_save">保存</string>
     <string name="profile_cancel">キャンセル</string>
+    <string name="cd_clear_text">テキストをクリア</string>
 
     <!-- Records screen -->
     <string name="records_title">禁酒記録</string>

@@ -114,8 +114,10 @@
     <string name="profile_edit_title">Editar Perfil</string>
     <string name="profile_edit_instruction">Por favor ingrese un nuevo apodo</string>
     <string name="profile_nickname_label">Apodo</string>
+    <string name="profile_nickname_placeholder">Ingresa un apodo</string>
     <string name="profile_save">Guardar</string>
     <string name="profile_cancel">Cancelar</string>
+    <string name="cd_clear_text">Borrar texto</string>
 
     <!-- Records screen (pantalla de registros) -->
     <string name="records_title">Registros de Sobriedad</string>

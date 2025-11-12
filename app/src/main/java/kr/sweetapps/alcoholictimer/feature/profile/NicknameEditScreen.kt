@@ -3,8 +3,11 @@ package kr.sweetapps.alcoholictimer.feature.profile
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -29,9 +32,16 @@ fun NicknameEditScreen(
     val context = LocalContext.current
     val sp = remember { context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE) }
     val currentNickname = remember { sp.getString("nickname", context.getString(R.string.default_nickname)) ?: context.getString(R.string.default_nickname) }
-    var nicknameText by remember { mutableStateOf(currentNickname) }
+    var nicknameText by rememberSaveable { mutableStateOf(currentNickname) }
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    val maxLen = 20
+    val trimmed = nicknameText.trim()
+    val isOnlySpaces = nicknameText.isNotEmpty() && trimmed.isEmpty()
+    val isTooLong = nicknameText.length > maxLen
+    val isUnchanged = trimmed == currentNickname
+    val isValid = trimmed.isNotEmpty() && !isTooLong
 
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
@@ -51,17 +61,43 @@ fun NicknameEditScreen(
         )
         OutlinedTextField(
             value = nicknameText,
-            onValueChange = { nicknameText = it },
+            onValueChange = {
+                // 공백만 무한 입력 방지: 앞뒤 스페이스 허용은 하되 전체 공백만 되지 않게 유지
+                nicknameText = if (it.length <= maxLen) it else it.take(maxLen)
+            },
             label = { Text(stringResource(R.string.profile_nickname_label)) },
             singleLine = true,
+            supportingText = {
+                val countText = "${nicknameText.length}/$maxLen"
+                val err = when {
+                    isOnlySpaces -> stringResource(R.string.error_only_spaces)
+                    isTooLong -> stringResource(R.string.error_too_long)
+                    else -> null
+                }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(text = err ?: "\u00A0", color = if (err != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = countText, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            },
+            isError = isOnlySpaces || isTooLong,
+            placeholder = { Text(text = stringResource(R.string.profile_nickname_placeholder)) },
+            trailingIcon = {
+                if (nicknameText.isNotEmpty()) {
+                    IconButton(onClick = { nicknameText = "" }) {
+                        Icon(imageVector = Icons.Default.Clear, contentDescription = stringResource(R.string.cd_clear_text))
+                    }
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .focusRequester(focusRequester),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = {
-                keyboardController?.hide()
-                saveNickname(sp, nicknameText.trim())
-                onDone()
+                if (isValid) {
+                    keyboardController?.hide()
+                    saveNickname(sp, trimmed)
+                    onDone()
+                }
             })
         )
         Spacer(modifier = Modifier.height(32.dp))
@@ -72,19 +108,15 @@ fun NicknameEditScreen(
             OutlinedButton(
                 onClick = { onCancel() },
                 modifier = Modifier.weight(1f).height(48.dp)
-            ) {
-                Text(text = stringResource(R.string.profile_cancel), fontSize = 16.sp, fontWeight = FontWeight.Medium)
-            }
+            ) { Text(text = stringResource(R.string.profile_cancel), fontSize = 16.sp, fontWeight = FontWeight.Medium) }
             Button(
                 onClick = {
-                    saveNickname(sp, nicknameText.trim())
+                    saveNickname(sp, trimmed)
                     onDone()
                 },
                 modifier = Modifier.weight(1f).height(48.dp),
-                enabled = nicknameText.isNotBlank()
-            ) {
-                Text(text = stringResource(R.string.profile_save), fontSize = 16.sp, fontWeight = FontWeight.Medium)
-            }
+                enabled = isValid && !isUnchanged
+            ) { Text(text = stringResource(R.string.profile_save), fontSize = 16.sp, fontWeight = FontWeight.Medium) }
         }
     }
 }
@@ -94,4 +126,3 @@ private fun saveNickname(sp: android.content.SharedPreferences, nickname: String
         sp.edit { putString("nickname", nickname) }
     }
 }
-

@@ -114,8 +114,10 @@
     <string name="profile_edit_title">프로필 편집</string>
     <string name="profile_edit_instruction">새로운 별명을 입력해주세요</string>
     <string name="profile_nickname_label">별명</string>
+    <string name="profile_nickname_placeholder">별명을 입력하세요</string>
     <string name="profile_save">저장</string>
     <string name="profile_cancel">취소</string>
+    <string name="cd_clear_text">텍스트 지우기</string>
 
     <!-- Records screen (기록 화면) -->
     <string name="records_title">금주 기록</string>
@@ -265,4 +267,8 @@
     <string name="update_dialog_later">나중에</string>
     <string name="update_dialog_update">업데이트</string>
     <string name="update_dialog_icon_description">업데이트 아이콘</string>
+
+    <!-- Nickname error messages -->
+    <string name="error_only_spaces">공백만 입력할 수 없어요</string>
+    <string name="error_too_long">입력 가능한 최대 길이를 초과했어요</string>
 </resources>
