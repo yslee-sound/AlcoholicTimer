@@ -208,3 +208,25 @@ object InterstitialAdManager {
         hasShownThisColdStart.set(false)
     }
 }
+
+object AdHelpers {
+    /** 전면광고가 표시되면 onAfterShown, 아니면 fallback 실행 */
+    fun showOr(activity: Activity, fallback: () -> Unit) {
+        val showed = InterstitialAdManager.maybeShowIfEligible(activity) { fallback() }
+        if (!showed) fallback()
+    }
+
+    /** 전면 미로드 시 짧게 프리로드 시도 후 fallback */
+    fun preloadThenShowOr(activity: Activity, timeoutMs: Long = 1200, fallback: () -> Unit) {
+        if (InterstitialAdManager.isLoaded()) { showOr(activity, fallback); return }
+        var handled = false
+        InterstitialAdManager.addLoadListener { success ->
+            if (!handled) {
+                handled = true
+                if (success) showOr(activity, fallback) else fallback()
+            }
+        }
+        InterstitialAdManager.preload(activity.applicationContext)
+        activity.window?.decorView?.postDelayed({ if (!handled) { handled = true; fallback() } }, timeoutMs)
+    }
+}

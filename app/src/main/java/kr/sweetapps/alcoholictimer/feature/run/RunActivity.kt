@@ -1,12 +1,11 @@
 package kr.sweetapps.alcoholictimer.feature.run
 
 import android.content.Context
-import android.content.Intent
-import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.compose.setContent
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -32,60 +31,37 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.core.content.edit
 import java.util.Locale
-import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
 import kr.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
-import kr.sweetapps.alcoholictimer.core.ui.AdmobBanner
 import kr.sweetapps.alcoholictimer.core.util.Constants
 import kr.sweetapps.alcoholictimer.feature.level.LevelDefinitions
 import kr.sweetapps.alcoholictimer.core.util.FormatUtils
 import kotlinx.coroutines.delay
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.feature.start.StartActivity
-import kr.sweetapps.alcoholictimer.feature.detail.DetailActivity
+import kr.sweetapps.alcoholictimer.core.ads.AdHelpers
+import kr.sweetapps.alcoholictimer.navigation.Screen
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
-import androidx.compose.foundation.BorderStroke
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
-import kotlinx.coroutines.launch
-import kr.sweetapps.alcoholictimer.core.util.AppUpdateManager
-import kr.sweetapps.alcoholictimer.core.ads.InterstitialAdManager
-import androidx.activity.compose.BackHandler
-
-class RunActivity : BaseActivity() {
-
-    override fun getScreenTitle(): String = getString(R.string.run_title)
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            BaseScreen(applyBottomInsets = false, manageBottomAreaExternally = true, content = { RunScreenComposable() })
-        }
-    }
-}
 
 @Composable
-fun RunScreenComposable() {
+fun RunScreenComposable(
+    onRequestQuit: (() -> Unit)? = null,
+    onCompletedNavigateToDetail: ((String) -> Unit)? = null,
+    onRequireBackToStart: (() -> Unit)? = null
+) {
     val context = LocalContext.current
-    val activity = context as? RunActivity
 
-    // 금주 진행 중에는 뒤로가기로 StartActivity로 돌아가지 않도록 방지
-    // 뒤로가기 시 앱을 백그라운드로 이동
     BackHandler(enabled = true) {
-        activity?.moveTaskToBack(true)
+        // NavHost 내에서는 뒤로가기를 소비해 백그라운드 이동 대신 유지
     }
 
-    val sp = remember { context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE) }
-    val startTime = remember { sp.getLong(Constants.PREF_START_TIME, 0L) }
-    val targetDays = remember { sp.getFloat(Constants.PREF_TARGET_DAYS, 30f) }
-    val timerCompleted = remember { sp.getBoolean(Constants.PREF_TIMER_COMPLETED, false) }
+    val sp = context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
+    val startTime = sp.getLong(Constants.PREF_START_TIME, 0L)
+    val targetDays = sp.getFloat(Constants.PREF_TARGET_DAYS, 30f)
+    val timerCompleted = sp.getBoolean(Constants.PREF_TIMER_COMPLETED, false)
 
     LaunchedEffect(startTime, timerCompleted) {
         if (timerCompleted || startTime == 0L) {
-            context.startActivity(Intent(context, StartActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                // 스플래시 화면 스킵 플래그 추가 (내부 네비게이션)
-                putExtra("skip_splash", true)
-            })
-            (context as? RunActivity)?.finish()
+            onRequireBackToStart?.invoke()
         }
     }
 
@@ -101,11 +77,9 @@ fun RunScreenComposable() {
         derivedStateOf { if (startTime > 0) now - startTime else 0L }
     }
     val elapsedDaysFloat = remember(elapsedMillis) { elapsedMillis / Constants.DAY_IN_MILLIS.toFloat() }
-    val elapsedDays = remember(elapsedDaysFloat) { elapsedDaysFloat.toInt() }
 
     val levelDays = remember(elapsedMillis) { Constants.calculateLevelDays(elapsedMillis) }
     val levelInfo = remember(levelDays) { LevelDefinitions.getLevelInfo(levelDays) }
-    val levelName = context.getString(levelInfo.nameResId)
     val levelNumber = remember(levelDays) { LevelDefinitions.getLevelNumber(levelDays) + 1 } // +1 for display (1-indexed)
     val levelDisplayText = "Lv.$levelNumber"
 
@@ -155,20 +129,20 @@ fun RunScreenComposable() {
                 Toast.makeText(context, context.getString(R.string.toast_goal_completed), Toast.LENGTH_SHORT).show()
 
                 val goDetail: () -> Unit = {
-                    DetailActivity.start(
-                        context = context,
+                    val route = Screen.Detail.createRoute(
                         startTime = startTime,
                         endTime = System.currentTimeMillis(),
                         targetDays = targetDays,
                         actualDays = (elapsedMillis / Constants.DAY_IN_MILLIS).toInt(),
                         isCompleted = true
                     )
-                    (context as? RunActivity)?.finish()
+                    onCompletedNavigateToDetail?.invoke(route)
                 }
 
                 val activity = context as? android.app.Activity
-                val showed = activity?.let { InterstitialAdManager.maybeShowIfEligible(it) { goDetail() } } ?: false
-                if (!showed) {
+                if (activity != null) {
+                    AdHelpers.showOr(activity) { goDetail() }
+                } else {
                     goDetail()
                 }
             } catch (_: Exception) { }
@@ -207,8 +181,6 @@ fun RunScreenComposable() {
                         val labelBoxH = 36.dp; val valueBoxH = 66.dp; val hintBoxH = 20.dp; val gapSmall = 6.dp; val gapMedium = 8.dp
 
                         // Life Expectancy 값을 일/시간으로 분리
-                        val lifeGainDaysInt = lifeGainDays.toInt()
-                        val lifeGainHoursRemainder = (lifeGainDays - lifeGainDaysInt) * 24.0
 
                         val (label, valueText, valueColor) = when (currentIndicator) {
                             0 -> Triple(stringResource(id = R.string.indicator_title_days), String.format(Locale.getDefault(), "%.1f", elapsedDaysFloat), colorResource(id = R.color.color_indicator_days))
@@ -355,18 +327,7 @@ fun RunScreenComposable() {
             },
             bottomButton = {
                 ModernStopButtonSimple(onStop = {
-                    val intent = Intent(context, QuitActivity::class.java).apply {
-                        putExtra("elapsed_days", elapsedDays)
-                        putExtra("elapsed_hours", elapsedHours)
-                        putExtra("elapsed_minutes", elapsedMinutes)
-                        putExtra("saved_money", savedMoney)
-                        putExtra("saved_hours", savedHours)
-                        putExtra("life_gain_days", lifeGainDays)
-                        putExtra("level_name", levelName)
-                        putExtra("level_color", levelInfo.color.value.toLong())
-                        putExtra("quit_timestamp", System.currentTimeMillis())
-                    }
-                    context.startActivity(intent)
+                    onRequestQuit?.invoke()
                 })
             },
             // bottomAd = { AdmobBanner() } // moved to MainActivity BaseScaffold during Phase-1
@@ -413,6 +374,7 @@ private fun ModernStopButtonSimple(onStop: () -> Unit, modifier: Modifier = Modi
 }
 
 @Composable
+@Suppress("UNUSED_VALUE")
 private fun AutoResizeSingleLineText(
     text: String,
     baseStyle: TextStyle,

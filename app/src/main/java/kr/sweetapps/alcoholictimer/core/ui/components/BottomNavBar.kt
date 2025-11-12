@@ -5,7 +5,7 @@ import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.ListAlt
+import androidx.compose.material.icons.automirrored.outlined.ListAlt
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -31,10 +31,10 @@ private data class BottomItem(
 
 private val bottomItems: List<BottomItem> = listOf(
     BottomItem(Screen.Start, Icons.Outlined.Home, R.string.drawer_menu_sobriety, R.string.drawer_menu_sobriety),
-    BottomItem(Screen.Records, Icons.Outlined.ListAlt, R.string.drawer_menu_records, R.string.drawer_menu_records),
+    BottomItem(Screen.Records, Icons.AutoMirrored.Outlined.ListAlt, R.string.drawer_menu_records, R.string.drawer_menu_records),
     BottomItem(Screen.Level, Icons.Outlined.BarChart, R.string.drawer_menu_level, R.string.drawer_menu_level),
-    BottomItem(Screen.About, Icons.Outlined.Info, R.string.drawer_menu_about, R.string.drawer_menu_about),
-    BottomItem(Screen.Settings, Icons.Outlined.Settings, R.string.drawer_menu_settings, R.string.drawer_menu_settings)
+    BottomItem(Screen.Settings, Icons.Outlined.Settings, R.string.drawer_menu_settings, R.string.drawer_menu_settings),
+    BottomItem(Screen.About, Icons.Outlined.Info, R.string.drawer_menu_about, R.string.drawer_menu_about)
 )
 
 @Composable
@@ -51,9 +51,7 @@ fun BottomNavBar(navController: NavHostController, modifier: Modifier = Modifier
                     navController.navigate(item.screen.route) {
                         launchSingleTop = true
                         restoreState = true
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                     }
                 },
                 icon = {

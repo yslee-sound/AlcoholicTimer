@@ -16,6 +16,11 @@ sealed class Screen(val route: String) {
     data object Run : Screen("run")
 
     /**
+     * 종료 확인 화면
+     */
+    data object Quit : Screen("quit")
+
+    /**
      * 기록 목록 화면 (최근 3개)
      */
     data object Records : Screen("records")
@@ -75,6 +80,7 @@ sealed class Screen(val route: String) {
 fun Screen.getTitleResId(): Int? = when (this) {
     is Screen.Start -> kr.sweetapps.alcoholictimer.R.string.start_screen_title
     is Screen.Run -> kr.sweetapps.alcoholictimer.R.string.run_title
+    is Screen.Quit -> kr.sweetapps.alcoholictimer.R.string.quit_title
     is Screen.Records -> null // kr.sweetapps.alcoholictimer.R.string.records_title
     is Screen.AllRecords -> kr.sweetapps.alcoholictimer.R.string.all_records_title
     is Screen.Level -> kr.sweetapps.alcoholictimer.R.string.level_title

@@ -1,6 +1,7 @@
 package kr.sweetapps.alcoholictimer.feature.about
 
-import android.content.Intent
+// Legacy AboutActivity removed. Use Compose route Screen.About.
+
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
@@ -43,20 +44,12 @@ class AboutActivity : BaseActivity() {
         }
     }
 
-    @Suppress("DEPRECATION")
     private fun openLicenses() {
-        startActivity(Intent(this, AboutLicensesActivity::class.java))
-        overridePendingTransition(0, 0)
+        // No-op
     }
 
-    @Suppress("DEPRECATION")
     private fun openDebug() {
-        if (!BuildConfig.DEBUG) return
-        try {
-            val clazz = Class.forName("kr.sweetapps.alcoholictimer.feature.debug.DebugActivity")
-            startActivity(Intent(this, clazz))
-            overridePendingTransition(0, 0)
-        } catch (_: Throwable) { /* 디버그 빌드가 아니거나 Activity 미존재: 무시 */ }
+        // No-op (Compose NavHost로 통합됨)
     }
 }
 

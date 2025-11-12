@@ -35,62 +35,8 @@
             </intent-filter>
         </activity>
 
-        <!-- 기존 StartActivity: 내부 레거시 용도 (런처 제거) -->
-        <activity
-            android:name="kr.sweetapps.alcoholictimer.feature.start.StartActivity"
-            android:exported="false"
-            android:launchMode="singleTask"
-            android:theme="@style/Theme.AlcoholicTimer.Splash"
-            android:windowSoftInputMode="adjustPan" />
-
-        <!-- 기록 화면 -->
-        <activity
-            android:name="kr.sweetapps.alcoholictimer.feature.records.RecordsActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AlcoholicTimer" />
-
-        <!-- 모든 기록 화면 -->
-        <activity
-            android:name="kr.sweetapps.alcoholictimer.feature.records.AllRecordsActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AlcoholicTimer" />
-
-        <!-- 레벨 화면 -->
-        <activity
-            android:name="kr.sweetapps.alcoholictimer.feature.level.LevelActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AlcoholicTimer" />
-
-        <!-- 설정 화면 -->
-        <activity
-            android:name="kr.sweetapps.alcoholictimer.feature.settings.SettingsActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AlcoholicTimer" />
-
-        <!-- 금주 진행 화면 -->
-        <activity
-            android:name="kr.sweetapps.alcoholictimer.feature.run.RunActivity"
-            android:exported="false"
-            android:launchMode="singleTask"
-            android:theme="@style/Theme.AlcoholicTimer" />
-
-        <!-- 금주 종료 확인 화면 -->
-        <activity
-            android:name="kr.sweetapps.alcoholictimer.feature.run.QuitActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AlcoholicTimer" />
-
-        <!-- 세부 기록 화면 -->
-        <activity
-            android:name="kr.sweetapps.alcoholictimer.feature.detail.DetailActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AlcoholicTimer" />
+        <!-- Compose NavHost 전환에 따라 기존 개별 Activity 제거 -->
+        <!-- RecordsActivity / AllRecordsActivity / SettingsActivity / DetailActivity 제거 -->
 
         <!-- 별명 편집 화면 -->
         <activity
@@ -102,20 +48,6 @@
         <!-- 사용자 기록 추가 화면 -->
         <activity
             android:name="kr.sweetapps.alcoholictimer.feature.addrecord.AddRecordActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AlcoholicTimer" />
-
-        <!-- 앱 정보 화면 -->
-        <activity
-            android:name="kr.sweetapps.alcoholictimer.feature.about.AboutActivity"
-            android:exported="false"
-            android:launchMode="singleTask"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AlcoholicTimer" />
-        <!-- 오픈 라이선스 상세 화면 -->
-        <activity
-            android:name="kr.sweetapps.alcoholictimer.feature.about.AboutLicensesActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />

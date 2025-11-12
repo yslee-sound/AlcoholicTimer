@@ -36,13 +36,9 @@ import androidx.compose.ui.unit.dp
 import kr.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
 import kr.sweetapps.alcoholictimer.feature.level.LevelActivity
 import kr.sweetapps.alcoholictimer.feature.profile.NicknameEditActivity
-import kr.sweetapps.alcoholictimer.feature.run.RunActivity
 import kr.sweetapps.alcoholictimer.feature.settings.SettingsActivity
 import kr.sweetapps.alcoholictimer.feature.start.StartActivity
-import kr.sweetapps.alcoholictimer.feature.records.RecordsActivity
-import kr.sweetapps.alcoholictimer.feature.records.AllRecordsActivity
-import kr.sweetapps.alcoholictimer.feature.about.AboutActivity
-import kr.sweetapps.alcoholictimer.feature.about.AboutLicensesActivity
+import kr.sweetapps.alcoholictimer.MainActivity
 import kotlinx.coroutines.launch
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -68,10 +64,8 @@ abstract class BaseActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 시스템 바를 항상 표시하고 윈도우가 시스템 인셋에 맞춰 레이아웃되도록 설정
+        // 시스템 바 레이아웃 정책만 설정하고 색상은 테마/InsetsController에 위임
         WindowCompat.setDecorFitsSystemWindows(window, true)
-        window.statusBarColor = android.graphics.Color.WHITE
-        window.navigationBarColor = android.graphics.Color.WHITE
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
             WindowInsetsControllerCompat(window, window.decorView).apply {
                 isAppearanceLightStatusBars = true
@@ -79,7 +73,6 @@ abstract class BaseActivity : ComponentActivity() {
             }
         }
         nicknameState.value = getNickname()
-        // 디버그 배너 숨김 초기화 제거 (항상 표시)
     }
 
     override fun onResume() {
@@ -89,14 +82,10 @@ abstract class BaseActivity : ComponentActivity() {
 
     // Returns the drawer menu title that matches current screen, or null if none
     private fun currentDrawerSelection(): String? = when (this) {
-        is RunActivity, is StartActivity,
-        is kr.sweetapps.alcoholictimer.feature.run.QuitActivity -> getString(R.string.drawer_menu_sobriety)
-        is RecordsActivity,
-        is AllRecordsActivity -> getString(R.string.drawer_menu_records)
+        // RunActivity 제거 → Compose NavHost로 일원화. StartActivity만 레거시 매핑 유지
+        is StartActivity -> getString(R.string.drawer_menu_sobriety)
         is LevelActivity -> getString(R.string.drawer_menu_level)
         is SettingsActivity -> getString(R.string.drawer_menu_settings)
-        is AboutActivity,
-        is AboutLicensesActivity -> getString(R.string.drawer_menu_about)
         else -> null
     }
 
@@ -268,7 +257,10 @@ abstract class BaseActivity : ComponentActivity() {
                                                 CompositionLocalProvider(
                                                     LocalDensity provides Density(LocalDensity.current.density, fontScale = 1.2f)
                                                 ) {
-                                                    val titleText = getScreenTitleResId()?.let { stringResource(it) } ?: getScreenTitle()
+                                                    val titleText = getScreenTitleResId()?.let { stringResource(it) } ?: run {
+                                                        @Suppress("DEPRECATION")
+                                                        getScreenTitle()
+                                                    }
                                                     Text(
                                                         text = titleText,
                                                         color = Color(0xFF2C3E50),
@@ -425,33 +417,9 @@ abstract class BaseActivity : ComponentActivity() {
         val aboutMenu = getString(R.string.drawer_menu_about)
 
         when (menuItem) {
-            sobrietyMenu -> {
-                val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
-                val startTime = sharedPref.getLong("start_time", 0L)
-                if (startTime > 0) {
-                    if (this !is RunActivity) navigateToActivity(RunActivity::class.java)
-                } else {
-                    if (this !is StartActivity) {
-                        // 드로어 내비게이션: StartActivity 진입 시 스플래시 생략 플래그 전달(API<31)
-                        val intent = Intent(this, StartActivity::class.java).apply {
-                            putExtra("skip_splash", true)
-                            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                        }
-                        startActivity(intent)
-                        @Suppress("DEPRECATION")
-                        overridePendingTransition(0, 0)
-                        // 현재 화면을 스택에서 제거
-                        // finish()  // 원복: 여기서 종료하지 않음
-                    }
-                }
-            }
-            recordsMenu -> if (this !is RecordsActivity) {
-                navigateToActivity(RecordsActivity::class.java)
-            }
-            levelMenu -> if (this !is LevelActivity) navigateToActivity(LevelActivity::class.java)
-            settingsMenu -> if (this !is SettingsActivity) navigateToActivity(SettingsActivity::class.java)
-            aboutMenu -> if (this !is AboutActivity) {
-                navigateToActivity(AboutActivity::class.java)
+            sobrietyMenu, recordsMenu, levelMenu, settingsMenu, aboutMenu -> {
+                // Compose NavHost(MainActivity)에서 모든 라우팅을 통제
+                navigateToMainHome()
             }
         }
     }
@@ -478,27 +446,13 @@ abstract class BaseActivity : ComponentActivity() {
 
     /**
      * 메인 홈 화면으로 이동
-     * - 금주 진행 중: RunActivity
-     * - 금주 진행 전: StartActivity
+     * - Compose NavHost(MainActivity)로 통합
      */
     @Suppress("DEPRECATION")
     protected fun navigateToMainHome() {
-        val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
-        val startTime = sharedPref.getLong("start_time", 0L)
-        val isRunning = startTime > 0
-
-        val targetActivity = if (isRunning) RunActivity::class.java else StartActivity::class.java
-
-        // 이미 메인 홈 화면이면 아무것도 하지 않음
-        if ((isRunning && this is RunActivity) || (!isRunning && this is StartActivity)) {
-            return
-        }
-
-        val intent = Intent(this, targetActivity).apply {
+        if (this is MainActivity) return
+        val intent = Intent(this, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            if (targetActivity == StartActivity::class.java) {
-                putExtra("skip_splash", true)
-            }
         }
         startActivity(intent)
         overridePendingTransition(0, 0)

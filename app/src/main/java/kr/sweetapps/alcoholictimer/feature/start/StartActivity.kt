@@ -15,7 +15,7 @@ import kr.sweetapps.alcoholictimer.core.ads.UmpConsentManager
 import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
 import kr.sweetapps.alcoholictimer.core.util.AppUpdateManager
 import kr.sweetapps.alcoholictimer.core.util.Constants
-import kr.sweetapps.alcoholictimer.feature.run.RunActivity
+import kr.sweetapps.alcoholictimer.MainActivity
 import android.graphics.Color as AndroidColor
 
 class StartActivity : BaseActivity() {
@@ -60,13 +60,14 @@ class StartActivity : BaseActivity() {
         Constants.initializeUserSettings(this)
         Constants.ensureInstallMarkerAndResetIfReinstalled(this)
 
-        // 진행 중 세션이면 RunActivity로 즉시 이동
+        // 진행 중 세션이면 MainActivity로 즉시 이동
         val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
         val startTime = sharedPref.getLong("start_time", 0L)
         if (startTime > 0L) {
-            startActivity(Intent(this, RunActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            })
+            // 진행 중 세션: MainActivity가 startDestination=Run 으로 처리
+            val i = Intent(this, MainActivity::class.java)
+            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            startActivity(i)
             finish()
             return
         }
@@ -119,9 +120,9 @@ class StartActivity : BaseActivity() {
         val startTime = sharedPref.getLong("start_time", 0L)
         val timerCompleted = sharedPref.getBoolean("timer_completed", false)
         if (startTime > 0L && !timerCompleted) {
-            startActivity(Intent(this, RunActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            })
+            val i = Intent(this, MainActivity::class.java)
+            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            startActivity(i)
             finish()
         }
     }
