@@ -25,3 +25,12 @@ keys/
 signing/
 
 # Generated reports / coverage (향후 도입 시)
+
+# Log files and debug outputs
+*.log
+log_*.txt
+logdump*.txt
+nul
+
+# Build output logs
+build_log.txt
