@@ -34,3 +34,4 @@ nul
 
 # Build output logs
 build_log.txt
+/.idea/markdown.xml
