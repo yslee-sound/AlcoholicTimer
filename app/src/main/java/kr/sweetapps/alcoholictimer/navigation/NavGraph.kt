@@ -28,10 +28,11 @@ fun AlcoholicTimerNavGraph(
         // 금주 시작 화면 ✅ 구현 완료
         composable(Screen.Start.route) {
             StartScreen(
-                gateNavigation = true, // Navigation 사용 중
+                gateNavigation = false, // Navigation 사용 허용
                 onStart = {
                     navController.navigate(Screen.Run.route) {
                         popUpTo(Screen.Start.route) { inclusive = true }
+                        launchSingleTop = true
                     }
                 }
             )

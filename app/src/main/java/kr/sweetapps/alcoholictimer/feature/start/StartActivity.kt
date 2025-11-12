@@ -26,23 +26,12 @@ class StartActivity : BaseActivity() {
         kr.sweetapps.alcoholictimer.core.util.CurrencyManager.initializeDefaultCurrency(this)
 
         val splashStart = SystemClock.uptimeMillis()
-        val minShowMillis = 300L
+        val minShowMillis = 0L // 페이드/딜레이 제거
         val splash = if (Build.VERSION.SDK_INT >= 31) installSplashScreen() else null
 
         if (Build.VERSION.SDK_INT >= 31) {
-            splash?.setKeepOnScreenCondition { (SystemClock.uptimeMillis() - splashStart) < minShowMillis }
-            splash?.setOnExitAnimationListener { provider ->
-                val icon = runCatching { provider.iconView }.getOrNull()
-                if (icon != null) {
-                    icon.animate()
-                        .alpha(0f)
-                        .setDuration(150)
-                        .withEndAction { runCatching { provider.remove() } }
-                        .start()
-                } else {
-                    runCatching { provider.remove() }
-                }
-            }
+            splash?.setKeepOnScreenCondition { false } // 즉시 제거
+            // 종료 애니메이션 리스너 제거(기존 페이드 삭제)
         }
 
         super.onCreate(savedInstanceState)

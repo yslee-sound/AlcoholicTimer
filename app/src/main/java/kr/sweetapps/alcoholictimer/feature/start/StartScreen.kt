@@ -5,11 +5,8 @@ import android.content.Intent
 import android.os.Handler
 import android.os.Looper
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -37,6 +34,7 @@ import androidx.core.content.edit
 import com.google.android.play.core.appupdate.AppUpdateInfo
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kr.sweetapps.alcoholictimer.MainActivity
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ads.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
@@ -45,7 +43,6 @@ import kr.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
 import kr.sweetapps.alcoholictimer.core.ui.WatermarkTokens
 import kr.sweetapps.alcoholictimer.core.util.AppUpdateManager
 import kr.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
-import kr.sweetapps.alcoholictimer.feature.run.RunActivity
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -117,8 +114,8 @@ fun StartScreenWithUpdate(
 
         AnimatedVisibility(
             visible = showSplashOverlay,
-            enter = fadeIn(tween(220)) + scaleIn(initialScale = 0.98f, animationSpec = tween(220)),
-            exit = fadeOut(tween(220)) + scaleOut(targetScale = 1.02f, animationSpec = tween(220))
+            enter = EnterTransition.None,
+            exit = ExitTransition.None
         ) {
             Box(
                 modifier = Modifier
@@ -164,11 +161,14 @@ fun StartScreen(gateNavigation: Boolean = false, onStart: (() -> Unit)? = null) 
     if (!gateNavigation && startTime != 0L && !timerCompleted) {
         LaunchedEffect(Unit) {
             if (onStart != null) {
+                // NavHost 내부 이동: Activity 종료 금지 (스플래시 재등장 방지)
                 onStart()
             } else {
-                context.startActivity(Intent(context, RunActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                })
+                val intent = Intent(context, MainActivity::class.java)
+                intent.putExtra("route", "run")
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                context.startActivity(intent)
+                (context as? android.app.Activity)?.finish()
             }
         }
         return
@@ -266,11 +266,15 @@ fun StartScreen(gateNavigation: Boolean = false, onStart: (() -> Unit)? = null) 
                             }
                             val launchRun: () -> Unit = {
                                 if (onStart != null) {
+                                    // NavHost 내부 이동만 수행, Activity 종료 금지
                                     onStart()
                                 } else {
-                                    context.startActivity(Intent(context, RunActivity::class.java))
+                                    val intent = Intent(context, MainActivity::class.java)
+                                    intent.putExtra("route", "run")
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                    context.startActivity(intent)
+                                    (context as? android.app.Activity)?.finish()
                                 }
-                                (context as? android.app.Activity)?.finish()
                             }
                             val act = activity
                             if (act != null) {

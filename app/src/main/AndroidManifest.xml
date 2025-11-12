@@ -22,9 +22,9 @@
         android:theme="@style/Theme.AlcoholicTimer"
         tools:targetApi="31">
 
-        <!-- 메인 액티비티 (시작 화면) -->
+        <!-- 새 메인 진입점: Compose 기반 MainActivity -->
         <activity
-            android:name="kr.sweetapps.alcoholictimer.feature.start.StartActivity"
+            android:name="kr.sweetapps.alcoholictimer.MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
             android:theme="@style/Theme.AlcoholicTimer.Splash"
@@ -34,6 +34,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- 기존 StartActivity: 내부 레거시 용도 (런처 제거) -->
+        <activity
+            android:name="kr.sweetapps.alcoholictimer.feature.start.StartActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.AlcoholicTimer.Splash"
+            android:windowSoftInputMode="adjustPan" />
 
         <!-- 기록 화면 -->
         <activity

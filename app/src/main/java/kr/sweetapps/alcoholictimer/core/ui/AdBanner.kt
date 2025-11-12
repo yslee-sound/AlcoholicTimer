@@ -2,16 +2,22 @@ package kr.sweetapps.alcoholictimer.core.ui
 
 import android.util.Log
 import android.view.ViewGroup
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
@@ -24,12 +30,13 @@ import kr.sweetapps.alcoholictimer.core.ads.AdLoadState
 
 private const val TAG = "AdmobBanner"
 
+private sealed class BannerLoadState { object Loading: BannerLoadState(); object Success: BannerLoadState(); data class Failed(val code:Int, val message:String): BannerLoadState() }
+
 @Composable
 fun AdmobBanner(modifier: Modifier = Modifier) {
-    // 배너 로드 시도 여부 (동의가 늦게 true가 되는 경우 update에서 최초 1회 로드)
-    // local state using delegated MutableState (simple and idiomatic)
     var hasRequested by remember { mutableStateOf(false) }
     var adViewRef by remember { mutableStateOf<AdView?>(null) }
+    var loadState by remember { mutableStateOf<BannerLoadState>(BannerLoadState.Loading) }
 
     Box(modifier = modifier.fillMaxWidth().heightIn(min = LayoutConstants.BANNER_MIN_HEIGHT)) {
         androidx.compose.ui.viewinterop.AndroidView(
@@ -62,15 +69,14 @@ fun AdmobBanner(modifier: Modifier = Modifier) {
                     }
 
                     adListener = object : AdListener() {
-                        override fun onAdLoaded() { Log.d(TAG, "Banner onAdLoaded") }
+                        override fun onAdLoaded() {
+                            Log.d(TAG, "Banner onAdLoaded")
+                            loadState = BannerLoadState.Success
+                        }
                         override fun onAdFailedToLoad(error: com.google.android.gms.ads.LoadAdError) {
                             Log.w(TAG, "Banner onAdFailedToLoad code=${error.code} message=${error.message}")
-                            // 실패 시 재시도를 무한히 하지 않기 위해 hasRequested는 그대로 유지
+                            loadState = BannerLoadState.Failed(error.code, error.message ?: "")
                         }
-                        override fun onAdOpened() { Log.d(TAG, "Banner onAdOpened") }
-                        override fun onAdClicked() { Log.d(TAG, "Banner onAdClicked") }
-                        override fun onAdClosed() { Log.d(TAG, "Banner onAdClosed") }
-                        override fun onAdImpression() { Log.d(TAG, "Banner onAdImpression") }
                     }
 
                     // 공장 단계에서는 로드를 수행하지 않음 (동의가 늦게 확보될 수 있으므로 update/Effect에서 처리)
@@ -104,14 +110,26 @@ fun AdmobBanner(modifier: Modifier = Modifier) {
             }
         )
 
-        // Debug overlay removed during cleanup — do not display debug ad text on screen
+        when (val state = loadState) {
+            is BannerLoadState.Loading -> {
+                Box(Modifier.matchParentSize().background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(strokeWidth = 2.dp)
+                }
+            }
+            is BannerLoadState.Failed -> {
+                Box(Modifier.matchParentSize().background(Color(0xFFECECEC)), contentAlignment = Alignment.Center) {
+                    Text(text = "배너 로딩 실패", style = MaterialTheme.typography.bodySmall, color = Color.DarkGray)
+                }
+            }
+            BannerLoadState.Success -> { /* No overlay */ }
+        }
     }
 
     // 폴백: 업데이트가 발생하지 않더라도 동의 완료 후 일정 시간 내 자동 로드되도록 주기 확인
     LaunchedEffect(adViewRef) {
         val view = adViewRef ?: return@LaunchedEffect
         var attempts = 0
-        while (!hasRequested && attempts < 20) { // 최대 약 20초 대기
+        while (!hasRequested && attempts < 15) {
             val consentInfo = runCatching { UserMessagingPlatform.getConsentInformation(view.context) }.getOrNull()
             val canRequest = consentInfo?.canRequestAds() == true
             if (canRequest) {
@@ -123,6 +141,7 @@ fun AdmobBanner(modifier: Modifier = Modifier) {
                         Log.d(TAG, "Banner load requested from effect (consent granted)")
                     }.onFailure { e ->
                         Log.w(TAG, "Banner load request failed in effect: ${e.message}")
+                        loadState = BannerLoadState.Failed(-1, e.message ?: "")
                     }
                 } else {
                     Log.d(TAG, "Banner load skipped in effect: global bannerRequested=true")
@@ -133,8 +152,8 @@ fun AdmobBanner(modifier: Modifier = Modifier) {
             attempts++
             delay(1000)
         }
-        if (!hasRequested) {
-            Log.d(TAG, "Banner load skipped after waiting: consent not granted within timeout")
+        if (!hasRequested && loadState is BannerLoadState.Loading) {
+            loadState = BannerLoadState.Failed(-2, "consent timeout")
         }
     }
 }
