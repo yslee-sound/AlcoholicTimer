@@ -18,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
@@ -34,6 +35,19 @@ private sealed class BannerLoadState { object Loading: BannerLoadState(); object
 
 @Composable
 fun AdmobBanner(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+
+    // AdController로 배너 광고 활성화 여부 확인
+    val isBannerEnabled = remember { kr.sweetapps.alcoholictimer.ads.AdController.isBannerEnabled() }
+
+    if (!isBannerEnabled) {
+        // 배너 비활성화 시 빈 Box 반환
+        Box(modifier = modifier.fillMaxWidth().height(LayoutConstants.BANNER_FIXED_HEIGHT)) {
+            // 빈 공간 유지 (레이아웃 깨짐 방지)
+        }
+        return
+    }
+
     var hasRequested by remember { mutableStateOf(false) }
     var adViewRef by remember { mutableStateOf<AdView?>(null) }
     var loadState by remember { mutableStateOf<BannerLoadState>(BannerLoadState.Loading) }

@@ -4,11 +4,15 @@ import android.app.Application
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
 import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
+import kr.sweetapps.alcoholictimer.ads.AdController
 
 class MainApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        // AdController 초기화 (Supabase 기반 광고 제어)
+        AdController.initialize(this)
 
         // 릴리즈에서도 본인 기기는 항상 테스트로 유지 + 디버그에서만 샘플 테스트 ID 추가
         // 중복 가능성 대비하여 distinct() 적용

@@ -210,15 +210,42 @@ object InterstitialAdManager {
 }
 
 object AdHelpers {
-    /** 전면광고가 표시되면 onAfterShown, 아니면 fallback 실행 */
+    private const val TAG = "AdHelpers"
+
+    /** 전면광고가 표시되면 onAfterShown, 아니면 fallback 실행 (AdController 빈도 제한 포함) */
     fun showOr(activity: Activity, fallback: () -> Unit) {
-        val showed = InterstitialAdManager.maybeShowIfEligible(activity) { fallback() }
-        if (!showed) fallback()
+        // AdController로 빈도 제한 체크
+        if (!AdController.canShowInterstitial(activity)) {
+            Log.d(TAG, "Cannot show interstitial (frequency limit or disabled)")
+            fallback()
+            return
+        }
+
+        val showed = InterstitialAdManager.maybeShowIfEligible(activity) {
+            // 광고 표시 성공 시 기록
+            AdController.recordInterstitialShown(activity)
+            fallback()
+        }
+
+        if (!showed) {
+            fallback()
+        }
     }
 
-    /** 전면 미로드 시 짧게 프리로드 시도 후 fallback */
+    /** 전면 미로드 시 짧게 프리로드 시도 후 fallback (AdController 빈도 제한 포함) */
     fun preloadThenShowOr(activity: Activity, timeoutMs: Long = 1200, fallback: () -> Unit) {
-        if (InterstitialAdManager.isLoaded()) { showOr(activity, fallback); return }
+        // AdController로 빈도 제한 체크
+        if (!AdController.canShowInterstitial(activity)) {
+            Log.d(TAG, "Cannot show interstitial (frequency limit or disabled)")
+            fallback()
+            return
+        }
+
+        if (InterstitialAdManager.isLoaded()) {
+            showOr(activity, fallback)
+            return
+        }
+
         var handled = false
         InterstitialAdManager.addLoadListener { success ->
             if (!handled) {
