@@ -1,6 +1,5 @@
 package kr.sweetapps.alcoholictimer.feature.start
 
-import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -17,6 +16,7 @@ import kr.sweetapps.alcoholictimer.core.util.AppUpdateManager
 import kr.sweetapps.alcoholictimer.core.util.Constants
 import kr.sweetapps.alcoholictimer.MainActivity
 import android.graphics.Color as AndroidColor
+import kr.sweetapps.alcoholictimer.ads.HomeAdTrigger
 
 class StartActivity : BaseActivity() {
     private lateinit var appUpdateManager: AppUpdateManager
@@ -61,7 +61,7 @@ class StartActivity : BaseActivity() {
         Constants.ensureInstallMarkerAndResetIfReinstalled(this)
 
         // 진행 중 세션이면 MainActivity로 즉시 이동
-        val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+        val sharedPref = getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
         val startTime = sharedPref.getLong("start_time", 0L)
         if (startTime > 0L) {
             // 진행 중 세션: MainActivity가 startDestination=Run 으로 처리
@@ -111,12 +111,19 @@ class StartActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
+        // 진행 중 세션으로 리다이렉트되지 않은 실제 홈 화면 노출 시 방문 기록
+        val sharedPref = getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+        val startTime = sharedPref.getLong("start_time", 0L)
+        val timerCompleted = sharedPref.getBoolean("timer_completed", false)
+        if (startTime == 0L || timerCompleted) {
+            HomeAdTrigger.registerHomeVisit(this)
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+        val sharedPref = getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
         val startTime = sharedPref.getLong("start_time", 0L)
         val timerCompleted = sharedPref.getBoolean("timer_completed", false)
         if (startTime > 0L && !timerCompleted) {

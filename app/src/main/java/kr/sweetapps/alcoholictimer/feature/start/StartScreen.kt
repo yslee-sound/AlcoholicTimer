@@ -22,7 +22,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -191,78 +190,80 @@ fun StartScreen(gateNavigation: Boolean = false, onStart: (() -> Unit)? = null) 
     Box(modifier = Modifier.fillMaxSize()) {
         StandardScreenWithBottomButton(
             topContent = {
-                // 앱 브랜드 타이틀 바
-                AppBrandTitleBar()
-                Spacer(modifier = Modifier.height(12.dp))
+                Column { // 내부 전용 Column: spacing 없음 -> 지정한 12dp 그대로 유지
+                    Spacer(modifier = Modifier.height(LayoutConstants.START_BRAND_TITLE_TOP_GAP))
+                    AppBrandTitleBar()
+                    Spacer(modifier = Modifier.height(LayoutConstants.START_BRAND_TITLE_BOTTOM_GAP))
 
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-                    border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(LayoutConstants.FIRST_CARD_TOP_INNER_PADDING),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+                        border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
                     ) {
-                        Text(
-                            text = stringResource(R.string.target_days_title),
-                            style = MaterialTheme.typography.titleLarge,
-                            color = colorResource(id = R.color.color_title_primary),
-                            modifier = Modifier
-                                .align(Alignment.CenterHorizontally)
-                                .padding(bottom = 24.dp)
-                        )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = 24.dp)
+                                .padding(LayoutConstants.FIRST_CARD_TOP_INNER_PADDING),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Card(
-                                modifier = Modifier
-                                    .width(120.dp)
-                                    .height(56.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.color_bg_card_light)),
-                                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(12.dp)
-                                        .clickable(
-                                            interactionSource = remember { MutableInteractionSource() },
-                                            indication = null
-                                        ) { showDaysPicker = true },
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = targetDays.toString(),
-                                        style = MaterialTheme.typography.headlineLarge,
-                                        color = colorResource(id = R.color.color_indicator_days),
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.width(16.dp))
                             Text(
-                                text = stringResource(R.string.target_days_unit),
+                                text = stringResource(R.string.target_days_title),
                                 style = MaterialTheme.typography.titleLarge,
-                                color = colorResource(id = R.color.color_indicator_label_gray)
+                                color = colorResource(id = R.color.color_title_primary),
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(bottom = 24.dp)
+                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 24.dp)
+                            ) {
+                                Card(
+                                    modifier = Modifier
+                                        .width(120.dp)
+                                        .height(56.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.color_bg_card_light)),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(12.dp)
+                                            .clickable(
+                                                interactionSource = remember { MutableInteractionSource() },
+                                                indication = null
+                                            ) { showDaysPicker = true },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = targetDays.toString(),
+                                            style = MaterialTheme.typography.headlineLarge,
+                                            color = colorResource(id = R.color.color_indicator_days),
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text(
+                                    text = stringResource(R.string.target_days_unit),
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = colorResource(id = R.color.color_indicator_label_gray)
+                                )
+                            }
+                            Text(
+                                text = stringResource(R.string.target_days_hint),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = colorResource(id = R.color.color_hint_gray),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
                             )
                         }
-                        Text(
-                            text = stringResource(R.string.target_days_hint),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = colorResource(id = R.color.color_hint_gray),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
-                        )
                     }
                 }
             },
@@ -336,8 +337,7 @@ fun StartScreen(gateNavigation: Boolean = false, onStart: (() -> Unit)? = null) 
 
 @Composable
 private fun AppBrandTitleBar() {
-    // 로고 이미지 (가로 폭이 클 수 있으므로 부모 폭에 맞추고 세로 높이 제한)
-    androidx.compose.foundation.Image(
+    Image(
         painter = painterResource(id = R.drawable.alcoholic_timer_logo),
         contentDescription = stringResource(id = R.string.app_name),
         modifier = Modifier

@@ -7,6 +7,10 @@ object LayoutConstants {
     val RECORDS_SCREEN_HORIZONTAL_PADDING = 10.dp // 2번째 화면
     val LEVEL_SCREEN_HORIZONTAL_PADDING = 10.dp // 3번째 화면
 
+    // 시작 화면 브랜드 타이틀 상단/하단 여백
+    val START_BRAND_TITLE_TOP_GAP = 12.dp
+    val START_BRAND_TITLE_BOTTOM_GAP = 12.dp
+
 
     // 공통 외부 간격(첫 카드)
     val FIRST_CARD_EXTERNAL_GAP = 10.dp // 시작/진행/기록 통계 기본값
