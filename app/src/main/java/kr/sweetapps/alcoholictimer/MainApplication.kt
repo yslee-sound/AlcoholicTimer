@@ -3,7 +3,7 @@ package kr.sweetapps.alcoholictimer
 import android.app.Application
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
-import kr.sweetapps.alcoholictimer.core.ads.InterstitialAdManager
+import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
 
 class MainApplication : Application() {
 

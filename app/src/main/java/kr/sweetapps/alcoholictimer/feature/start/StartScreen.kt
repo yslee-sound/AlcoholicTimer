@@ -36,7 +36,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.MainActivity
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.core.ads.InterstitialAdManager
+import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton

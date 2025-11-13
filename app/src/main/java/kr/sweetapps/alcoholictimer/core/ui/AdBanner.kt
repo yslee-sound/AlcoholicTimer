@@ -26,7 +26,7 @@ import com.google.android.gms.ads.AdView
 import com.google.android.ump.UserMessagingPlatform
 import kr.sweetapps.alcoholictimer.BuildConfig
 import kotlinx.coroutines.delay
-import kr.sweetapps.alcoholictimer.core.ads.AdLoadState
+import kr.sweetapps.alcoholictimer.ads.AdLoadState
 
 private const val TAG = "AdmobBanner"
 

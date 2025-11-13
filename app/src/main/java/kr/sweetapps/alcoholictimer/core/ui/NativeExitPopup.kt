@@ -19,8 +19,8 @@ import android.view.LayoutInflater
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.core.ads.NativeAdManager
-import kr.sweetapps.alcoholictimer.core.ads.NativeViewBinder
+import kr.sweetapps.alcoholictimer.ads.NativeAdManager
+import kr.sweetapps.alcoholictimer.ads.NativeViewBinder
 
 /**
  * 뒤로가기 시 표시되는 네이티브 광고 포함 종료 확인 팝업

@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.core.ads
+package kr.sweetapps.alcoholictimer.ads
 
 import java.util.concurrent.atomic.AtomicBoolean
 

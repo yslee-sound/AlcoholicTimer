@@ -9,9 +9,9 @@ import androidx.activity.compose.setContent
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.core.ads.InterstitialAdManager
-import kr.sweetapps.alcoholictimer.core.ads.NativeAdManager
-import kr.sweetapps.alcoholictimer.core.ads.UmpConsentManager
+import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
+import kr.sweetapps.alcoholictimer.ads.NativeAdManager
+import kr.sweetapps.alcoholictimer.ads.UmpConsentManager
 import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
 import kr.sweetapps.alcoholictimer.core.util.AppUpdateManager
 import kr.sweetapps.alcoholictimer.core.util.Constants

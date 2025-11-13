@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.core.ads
+package kr.sweetapps.alcoholictimer.ads
 
 import android.app.Activity
 import android.content.Context

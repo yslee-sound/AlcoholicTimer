@@ -37,7 +37,7 @@ import kr.sweetapps.alcoholictimer.feature.level.LevelDefinitions
 import kr.sweetapps.alcoholictimer.core.util.FormatUtils
 import kotlinx.coroutines.delay
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.core.ads.AdHelpers
+import kr.sweetapps.alcoholictimer.ads.AdHelpers
 import kr.sweetapps.alcoholictimer.navigation.Screen
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder

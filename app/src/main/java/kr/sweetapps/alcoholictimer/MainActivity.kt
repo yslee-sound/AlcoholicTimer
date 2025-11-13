@@ -12,9 +12,9 @@ import androidx.navigation.compose.rememberNavController
 import kr.sweetapps.alcoholictimer.core.ui.BaseScaffold
 import kr.sweetapps.alcoholictimer.navigation.AlcoholicTimerNavGraph
 import kr.sweetapps.alcoholictimer.navigation.Screen
-import kr.sweetapps.alcoholictimer.core.ads.InterstitialAdManager
-import kr.sweetapps.alcoholictimer.core.ads.NativeAdManager
-import kr.sweetapps.alcoholictimer.core.ads.UmpConsentManager
+import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
+import kr.sweetapps.alcoholictimer.ads.NativeAdManager
+import kr.sweetapps.alcoholictimer.ads.UmpConsentManager
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
