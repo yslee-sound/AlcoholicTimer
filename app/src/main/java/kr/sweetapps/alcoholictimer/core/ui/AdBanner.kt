@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,7 +38,7 @@ fun AdmobBanner(modifier: Modifier = Modifier) {
     var adViewRef by remember { mutableStateOf<AdView?>(null) }
     var loadState by remember { mutableStateOf<BannerLoadState>(BannerLoadState.Loading) }
 
-    Box(modifier = modifier.fillMaxWidth().heightIn(min = LayoutConstants.BANNER_MIN_HEIGHT)) {
+    Box(modifier = modifier.fillMaxWidth().height(LayoutConstants.BANNER_FIXED_HEIGHT)) {
         androidx.compose.ui.viewinterop.AndroidView(
             modifier = Modifier.fillMaxWidth(),
             factory = { context ->
