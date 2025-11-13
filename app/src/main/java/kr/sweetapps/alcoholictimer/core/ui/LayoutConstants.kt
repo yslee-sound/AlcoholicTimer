@@ -3,7 +3,13 @@ package kr.sweetapps.alcoholictimer.core.ui
 import androidx.compose.ui.unit.dp
 
 object LayoutConstants {
-    val SCREEN_HORIZONTAL_PADDING = 10.dp
+    val SCREEN_HORIZONTAL_PADDING = 10.dp // 1번째 화면
+
+    // 2번째 화면(금주 기록) 전용: 화면 수평 패딩(카드 공통 좌우 여백)
+    val RECORDS_SCREEN_HORIZONTAL_PADDING = 10.dp
+
+    // 3번째 화면(레벨) 전용: 화면 수평 패딩(카드 공통 좌우 여백)
+    val LEVEL_SCREEN_HORIZONTAL_PADDING = 10.dp
 
     // 공통 외부 간격(첫 카드)
     val FIRST_CARD_EXTERNAL_GAP = 10.dp // 시작/진행/기록 통계 기본값

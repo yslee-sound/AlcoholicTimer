@@ -27,6 +27,7 @@ import kr.sweetapps.alcoholictimer.R
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
+import kr.sweetapps.alcoholictimer.core.ui.LayoutConstants
 import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,7 +82,7 @@ fun AllRecordsScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(horizontal = LayoutConstants.RECORDS_SCREEN_HORIZONTAL_PADDING, vertical = 8.dp),
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -129,7 +130,7 @@ fun AllRecordsScreen(
                     val bottomPadding = safePadding.calculateBottomPadding() + 12.dp
 
                     LazyColumn(
-                        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                        modifier = Modifier.fillMaxSize().padding(horizontal = LayoutConstants.RECORDS_SCREEN_HORIZONTAL_PADDING),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(top = 16.dp, bottom = bottomPadding)
                     ) {

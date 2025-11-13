@@ -231,7 +231,7 @@ fun RecordsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = LayoutConstants.RECORDS_SCREEN_HORIZONTAL_PADDING)
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
