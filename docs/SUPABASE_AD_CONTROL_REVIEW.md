@@ -327,13 +327,45 @@ D/AdController: ❌ Interstitial limit reached: 2/2 per hour
 
 ### 문제 1: Debug 버전에서 배너 광고가 꺼지지 않음
 
-**증상**: Supabase에서 `kr.sweetapps.alcoholictimer.debug`의 `ad_banner_enabled = false` 설정해도 배너가 계속 표시됨
+**증상**: Debug 빌드인데도 `kr.sweetapps.alcoholictimer` (Release app_id)로 초기화됨
 
-**원인**: AdController에서 `appId = "alcoholictimer"`로 하드코딩되어 있어 Debug/Release 분기가 안됨
+**로그**:
+```
+D/AdController: 🔧 Initializing with app_id: kr.sweetapps.alcoholictimer  ← Release!
+D/AdController: 📋 AdPolicy loaded:
+D/AdController:   - Banner: true  ← Row 3 (Release) 정책을 읽고 있음
+```
 
-**해결 방법**: ✅ **BuildConfig.APPLICATION_ID 사용**
+**원인**: 
+1. `build.gradle.kts`에 `applicationIdSuffix = ".debug"` 설정 누락
+2. Debug/Release 빌드 모두 동일한 `applicationId` 사용
+3. AdController에서 `appId = "alcoholictimer"`로 하드코딩 ~~(해결됨)~~
 
-**변경 사항**:
+**해결 방법**: ✅ **applicationIdSuffix + BuildConfig.APPLICATION_ID 사용**
+
+**변경 사항 1: build.gradle.kts**
+```kotlin
+buildTypes {
+    release {
+        // ...
+    }
+    
+    // ❌ 이전 (문제)
+    getByName("debug") {
+        // applicationIdSuffix 없음!
+        buildConfigField(...)
+    }
+    
+    // ✅ 현재 (해결)
+    getByName("debug") {
+        applicationIdSuffix = ".debug"  // kr.sweetapps.alcoholictimer.debug
+        versionNameSuffix = "-debug"
+        buildConfigField(...)
+    }
+}
+```
+
+**변경 사항 2: AdController.kt**
 ```kotlin
 // ❌ 이전 (문제)
 repository = AdPolicyRepository(client, appId = "alcoholictimer")
@@ -351,12 +383,22 @@ Log.d(TAG, "🔧 Initializing with app_id: $appId")
 - ✅ Release 빌드: `kr.sweetapps.alcoholictimer` (Row 3)
 - ✅ 자동으로 올바른 정책 로드
 
-**로그 확인**:
+**올바른 로그 (Debug)**:
 ```
-D/AdController: 🔧 Initializing with app_id: kr.sweetapps.alcoholictimer.debug
+D/AdController: 🔧 Initializing with app_id: kr.sweetapps.alcoholictimer.debug  ← 올바름!
 D/AdPolicyRepository: 🔍 Fetching AdPolicy for app: kr.sweetapps.alcoholictimer.debug
 D/AdController: 📋 AdPolicy loaded:
-D/AdController:   - Banner: false
+D/AdController:   - Banner: false  ← Row 4 (Debug) 정책을 읽음!
+D/AdmobBanner: 🔍 Banner enabled: false
+D/AdmobBanner: ❌ Banner disabled by policy
+```
+
+**올바른 로그 (Release)**:
+```
+D/AdController: 🔧 Initializing with app_id: kr.sweetapps.alcoholictimer  ← 올바름!
+D/AdPolicyRepository: 🔍 Fetching AdPolicy for app: kr.sweetapps.alcoholictimer
+D/AdController: 📋 AdPolicy loaded:
+D/AdController:   - Banner: true  ← Row 3 (Release) 정책을 읽음!
 ```
 
 ### 문제 2: 배너 광고가 꺼지지 않음 (Compose State 문제)

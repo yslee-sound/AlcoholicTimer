@@ -94,8 +94,10 @@ android {
             // 네이티브 광고는 사용하지 않으므로 빈 문자열 (폐기됨)
             buildConfigField("String", "ADMOB_NATIVE_UNIT_ID", "\"\"")
         }
-        // debug 설정 변경 없음
+        // debug 빌드 타입: 테스트용 광고 ID + .debug suffix
         getByName("debug") {
+            applicationIdSuffix = ".debug"  // kr.sweetapps.alcoholictimer.debug
+            versionNameSuffix = "-debug"
             buildConfigField("String", "ADMOB_INTERSTITIAL_UNIT_ID", "\"ca-app-pub-3940256099942544/1033173712\"")
             buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"ca-app-pub-3940256099942544/6300978111\"")
             buildConfigField("String", "ADMOB_NATIVE_UNIT_ID", "\"ca-app-pub-3940256099942544/2247696110\"")
