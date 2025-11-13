@@ -130,40 +130,28 @@ private fun BottomNavItem(
     // 아이콘 색상 - 검은색 계열
     val iconColor = if (isSelected) Color.Black else Color(0xFF666666)
 
-    Column(
+    Box(
         modifier = Modifier
+            .size(56.dp) // 고정 크기로 레이아웃 안정화
             .clip(RoundedCornerShape(12.dp))
             .clickable(
                 interactionSource = interactionSource,
                 indication = ripple(
                     bounded = true,
-                    radius = 32.dp,
+                    radius = 28.dp,
                     color = Color.Gray
                 ),
                 onClick = onClick
-            )
-            .padding(horizontal = 8.dp, vertical = 12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            ),
+        contentAlignment = Alignment.Center
     ) {
         // 아이콘 - 선택 시 filled, 미선택 시 outlined
         Icon(
             imageVector = if (isSelected) item.iconSelected else item.iconUnselected,
             contentDescription = stringResource(id = item.contentDescriptionRes),
             tint = iconColor,
-            modifier = Modifier.size(28.dp) // 아이콘 크기 증가
+            modifier = Modifier.size(32.dp) // 아이콘 크기 증가 (28dp → 32dp)
         )
-
-        // 라벨 - 선택 시만 표시
-        if (isSelected) {
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = stringResource(id = item.labelRes),
-                fontSize = 11.sp,
-                color = Color.Black,
-                fontWeight = FontWeight.Medium
-            )
-        }
     }
 }
 
