@@ -21,6 +21,7 @@ object HomeAdTrigger {
 
     /** 홈 그룹으로 실제 진입했을 때 호출. source는 라우트명("start"|"run"|"quit") 등 식별자 */
     fun registerHomeVisit(activity: Activity, source: String) {
+        // NavGraph에서 최초 이벤트는 이미 스킵되므로 여기서는 별도 스킵 처리 없음
         if (!AdController.isInterstitialEnabled()) {
             resetIfDayChanged(activity)
             return

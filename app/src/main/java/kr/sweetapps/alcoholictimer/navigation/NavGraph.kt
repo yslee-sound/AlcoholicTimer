@@ -36,12 +36,21 @@ fun AlcoholicTimerNavGraph(
 ) {
     val activity = (LocalView.current.context as? Activity)
     // 홈 그룹 진입 이벤트 기반 카운트: 비홈→홈으로 전환될 때만 1회 증가
-    // Unit 키로 단 한 번만 시작하여 중복 구독 방지
+    // 최초 앱 진입의 첫 이벤트(대개 홈)는 카운트에서 제외한다.
     LaunchedEffect(Unit) {
         var wasHome = false
+        var firstEmissionSkipped = false
         navController.currentBackStackEntryFlow.collect { entry ->
             val route = entry.destination.route
             val isHome = isHomeRoute(route)
+
+            // 앱 시작 직후 첫 이벤트 스킵 (초기 홈 진입을 카운트하지 않음)
+            if (!firstEmissionSkipped) {
+                firstEmissionSkipped = true
+                wasHome = isHome
+                return@collect
+            }
+
             if (activity != null && isHome && !wasHome) {
                 HomeAdTrigger.registerHomeVisit(activity, source = route ?: "home")
             }
