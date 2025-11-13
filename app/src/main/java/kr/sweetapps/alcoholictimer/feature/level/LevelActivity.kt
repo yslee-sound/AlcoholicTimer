@@ -100,7 +100,7 @@ fun LevelScreen() {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .verticalScroll(rememberScrollState())
-            .padding(start = 16.dp, end = 16.dp, top = LayoutConstants.LEVEL_FIRST_CARD_EXTERNAL_GAP)
+            .padding(start = LayoutConstants.LEVEL_SCREEN_HORIZONTAL_PADDING, end = LayoutConstants.LEVEL_SCREEN_HORIZONTAL_PADDING, top = LayoutConstants.LEVEL_FIRST_CARD_EXTERNAL_GAP)
             .padding(safePadding)
             // 마지막 카드가 배너와 너무 붙지 않도록 내부 하단 여백 추가
             .padding(bottom = 8.dp),
