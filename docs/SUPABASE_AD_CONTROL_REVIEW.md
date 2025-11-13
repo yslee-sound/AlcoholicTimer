@@ -214,9 +214,10 @@ USING (is_active = TRUE);
 
 Supabase 대시보드에서 `ad_policy` 테이블에 데이터 추가:
 
+**Release 버전** (일반 사용자):
 ```json
 {
-  "app_id": "alcoholictimer",
+  "app_id": "kr.sweetapps.alcoholictimer",
   "is_active": true,
   "ad_app_open_enabled": true,
   "ad_interstitial_enabled": true,
@@ -225,6 +226,24 @@ Supabase 대시보드에서 `ad_policy` 테이블에 데이터 추가:
   "ad_interstitial_max_per_day": 10
 }
 ```
+
+**Debug 버전** (개발/테스트):
+```json
+{
+  "app_id": "kr.sweetapps.alcoholictimer.debug",
+  "is_active": true,
+  "ad_app_open_enabled": true,
+  "ad_interstitial_enabled": true,
+  "ad_banner_enabled": false,  // 테스트 시 광고 비활성화 가능
+  "ad_interstitial_max_per_hour": 100,  // 테스트 시 제한 완화
+  "ad_interstitial_max_per_day": 1000
+}
+```
+
+**중요**: 
+- ✅ Debug와 Release용 정책을 **별도로 관리**
+- ✅ Debug에서는 광고를 끄거나 빈도 제한을 높여서 테스트 용이
+- ✅ `BuildConfig.APPLICATION_ID`로 자동 분기되므로 코드 수정 불필요
 
 ### 3. 앱 실행
 
@@ -306,7 +325,41 @@ D/AdController: ❌ Interstitial limit reached: 2/2 per hour
 
 ## 🐛 트러블슈팅
 
-### 문제: 배너 광고가 꺼지지 않음
+### 문제 1: Debug 버전에서 배너 광고가 꺼지지 않음
+
+**증상**: Supabase에서 `kr.sweetapps.alcoholictimer.debug`의 `ad_banner_enabled = false` 설정해도 배너가 계속 표시됨
+
+**원인**: AdController에서 `appId = "alcoholictimer"`로 하드코딩되어 있어 Debug/Release 분기가 안됨
+
+**해결 방법**: ✅ **BuildConfig.APPLICATION_ID 사용**
+
+**변경 사항**:
+```kotlin
+// ❌ 이전 (문제)
+repository = AdPolicyRepository(client, appId = "alcoholictimer")
+
+// ✅ 현재 (해결)
+val appId = BuildConfig.APPLICATION_ID  
+// Debug: "kr.sweetapps.alcoholictimer.debug"
+// Release: "kr.sweetapps.alcoholictimer"
+repository = AdPolicyRepository(client, appId = appId)
+Log.d(TAG, "🔧 Initializing with app_id: $appId")
+```
+
+**결과**:
+- ✅ Debug 빌드: `kr.sweetapps.alcoholictimer.debug` (Row 4)
+- ✅ Release 빌드: `kr.sweetapps.alcoholictimer` (Row 3)
+- ✅ 자동으로 올바른 정책 로드
+
+**로그 확인**:
+```
+D/AdController: 🔧 Initializing with app_id: kr.sweetapps.alcoholictimer.debug
+D/AdPolicyRepository: 🔍 Fetching AdPolicy for app: kr.sweetapps.alcoholictimer.debug
+D/AdController: 📋 AdPolicy loaded:
+D/AdController:   - Banner: false
+```
+
+### 문제 2: 배너 광고가 꺼지지 않음 (Compose State 문제)
 
 **증상**: Supabase에서 `ad_banner_enabled = false` 설정해도 배너가 계속 표시됨
 

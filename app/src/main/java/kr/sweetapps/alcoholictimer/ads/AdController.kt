@@ -64,7 +64,11 @@ object AdController {
 
         try {
             val client = SupabaseProvider.getClient(context)
-            repository = AdPolicyRepository(client, appId = "alcoholictimer")
+            // BuildConfig.APPLICATION_ID를 사용하여 Debug/Release 자동 분기
+            val appId = kr.sweetapps.alcoholictimer.BuildConfig.APPLICATION_ID
+            repository = AdPolicyRepository(client, appId = appId)
+
+            Log.d(TAG, "🔧 Initializing with app_id: $appId")
 
             // 백그라운드에서 정책 로드
             scope.launch {
