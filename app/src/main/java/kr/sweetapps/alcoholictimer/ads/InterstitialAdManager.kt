@@ -29,7 +29,8 @@ object InterstitialAdManager {
 
     // Policy defaults (can be wired to Remote Config later)
     private const val DEFAULT_DAILY_CAP = 3
-    private const val DEFAULT_COOLDOWN_MS = 2 * 60 * 1000L // 2 minutes
+    private const val DEFAULT_COOLDOWN_MS = 60 * 1000L // 60 seconds
+    private const val INITIAL_PROTECTION_MS = 60 * 1000L // 60 seconds after cold start
 
     private const val PREFS = "ad_prefs"
     private const val KEY_LAST_SHOWN_MS = "interstitial_last_shown_ms"
@@ -38,7 +39,14 @@ object InterstitialAdManager {
 
     private var interstitialAd: InterstitialAd? = null
     private val isLoading = AtomicBoolean(false)
+
+    // Deprecated: cold start once-per-session gate (disabled)
+    @Deprecated("Cold start one-time gate is disabled. Use initial protection window instead.")
     private val hasShownThisColdStart = AtomicBoolean(false)
+
+    // Initial protection: record app start time to block interstitials briefly after cold start
+    private var appStartMs: Long = 0L
+    fun noteAppStart() { appStartMs = System.currentTimeMillis() }
 
     // simple listeners to notify callers when load succeeds/fails
     private val loadListeners = mutableListOf<(Boolean) -> Unit>()
@@ -117,12 +125,19 @@ object InterstitialAdManager {
 
     private fun passesPolicy(context: Context): Pair<Boolean, String?> {
         val state = readPolicyState(context)
+        // Initial protection after cold start
+        val now = System.currentTimeMillis()
+        if (appStartMs > 0L) {
+            val sinceStart = now - appStartMs
+            if (sinceStart < INITIAL_PROTECTION_MS) {
+                return false to "initial_protection"
+            }
+        }
         // Daily cap
         if (state.dailyCount >= DEFAULT_DAILY_CAP) {
             return false to "dailycap"
         }
-        // Cooldown
-        val now = System.currentTimeMillis()
+        // Cooldown after shown
         val since = now - state.lastShownMs
         if (state.lastShownMs > 0L && since < DEFAULT_COOLDOWN_MS) {
             return false to "cooldown"
@@ -144,10 +159,7 @@ object InterstitialAdManager {
         onDismiss: (() -> Unit)? = null
     ): Boolean {
         val bypass = isPolicyBypassed()
-        if (!bypass && hasShownThisColdStart.get()) {
-            Log.d(TAG, "Blocked: already shown this cold start")
-            return false
-        }
+        // Cold start once-per-session gate disabled
         val ad = interstitialAd
         if (ad == null) {
             Log.d(TAG, "Blocked: ad not loaded${if (bypass) " (debug: will just return)" else ""}")
@@ -180,7 +192,6 @@ object InterstitialAdManager {
                 Log.d(TAG, "onAdDismissedFullScreenContent")
                 AdController.setInterstitialShowing(false)  // 배너 다시 표시
                 interstitialAd = null
-                hasShownThisColdStart.set(true)
                 onDismiss?.invoke()
                 // 다음 기회 대비 즉시 프리로드
                 preload(activity.applicationContext)
@@ -207,9 +218,8 @@ object InterstitialAdManager {
         return true
     }
 
-    fun resetColdStartGate() {
-        hasShownThisColdStart.set(false)
-    }
+    @Deprecated("No-op: Cold start one-time gate removed.")
+    fun resetColdStartGate() { /* no-op */ }
 }
 
 object AdHelpers {

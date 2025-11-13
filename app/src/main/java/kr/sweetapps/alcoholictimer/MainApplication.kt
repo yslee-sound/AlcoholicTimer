@@ -29,6 +29,7 @@ class MainApplication : Application() {
             android.util.Log.d("MainApplication", "MobileAds initialized: $initStatus")
         }
 
-        InterstitialAdManager.resetColdStartGate()
+        // 앱 시작 시각 기록: 콜드 스타트 직후 초기 보호 창 동작
+        InterstitialAdManager.noteAppStart()
     }
 }
