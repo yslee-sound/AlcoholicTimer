@@ -127,8 +127,8 @@ private fun BottomNavItem(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
 
-    // 아이콘 색상 - 검은색 계열
-    val iconColor = if (isSelected) Color.Black else Color(0xFF666666)
+    // 아이콘 색상 - 선택됨: 검은색, 비활성: 연한 회색
+    val iconColor = if (isSelected) Color.Black else Color(0xFFBBBBBB)
 
     Box(
         modifier = Modifier
