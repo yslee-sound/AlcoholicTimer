@@ -4,8 +4,15 @@ import androidx.compose.ui.unit.dp
 
 object LayoutConstants {
     val SCREEN_HORIZONTAL_PADDING = 10.dp
-    // 공통(시작/진행) 기본 외부 간격
-    val FIRST_CARD_EXTERNAL_GAP = 50.dp // 시작 -> 진행 -> 종료 의 첫카드
+
+
+    val FIRST_CARD_EXTERNAL_GAP = 10.dp // # 시작 -> 진행 -> 종료 의 첫카드
+    val LEVEL_FIRST_CARD_EXTERNAL_GAP = 10.dp // # 레벨 화면
+    val RECORDS_TOP_SECTION_EXTERNAL_GAP = 10.dp // - 배너/상단으로부터 탭 카드까지의 외부 간격
+
+    // 시작 화면
+
+
     @Deprecated("Use FIRST_CARD_EXTERNAL_GAP instead")
     val HEADER_TO_FIRST_CARD_GAP = FIRST_CARD_EXTERNAL_GAP
     // 첫 카드 내부 상단 패딩(콘텐츠와 카드 상단 테두리 간격) - 필요 시 줄여 시각적 상단 밀착 효과
@@ -15,11 +22,10 @@ object LayoutConstants {
     val START_FIRST_CARD_EXTERNAL_GAP = FIRST_CARD_EXTERNAL_GAP
     val RUN_FIRST_CARD_EXTERNAL_GAP = FIRST_CARD_EXTERNAL_GAP
     val RECORDS_FIRST_CARD_EXTERNAL_GAP = FIRST_CARD_EXTERNAL_GAP
-    val LEVEL_FIRST_CARD_EXTERNAL_GAP = FIRST_CARD_EXTERNAL_GAP
+    // 레벨 화면은 공통값과 독립적으로 조절할 수 있도록 별도의 기본값 사용
+
 
     // Records 화면 최상단 섹션(탭 카드) 상단 여백과 내부 간격 제어용 상수
-    // - 배너/상단으로부터 탭 카드까지의 외부 간격
-    val RECORDS_TOP_SECTION_EXTERNAL_GAP = 16.dp
     // - 탭 카드와 아래 기간 선택 카드(드롭다운) 사이 간격
     val RECORDS_SELECTION_TO_PICKER_GAP = 8.dp
 
