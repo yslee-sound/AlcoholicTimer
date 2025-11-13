@@ -18,7 +18,7 @@ object LayoutConstants {
     val RECORDS_TOP_SECTION_EXTERNAL_GAP = 10.dp
 
     // 시작 화면 내부 패딩(첫 카드 상단 내부)
-    val FIRST_CARD_TOP_INNER_PADDING = 40.dp
+    val FIRST_CARD_TOP_INNER_PADDING = 50.dp
 
     // 기록 화면: 탭 카드와 기간 선택 카드 사이 간격
     val RECORDS_SELECTION_TO_PICKER_GAP = 8.dp
