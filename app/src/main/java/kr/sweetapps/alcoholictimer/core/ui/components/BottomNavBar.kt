@@ -4,15 +4,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.automirrored.outlined.ListAlt
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -20,7 +23,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -36,17 +38,48 @@ import kr.sweetapps.alcoholictimer.navigation.Screen
 
 private data class BottomItem(
     val screen: Screen,
-    val icon: ImageVector,
+    val iconSelected: ImageVector,
+    val iconUnselected: ImageVector,
     val labelRes: Int,
     val contentDescriptionRes: Int
 )
 
 private val bottomItems: List<BottomItem> = listOf(
-    BottomItem(Screen.Start, Icons.Outlined.Home, R.string.drawer_menu_sobriety, R.string.drawer_menu_sobriety),
-    BottomItem(Screen.Records, Icons.AutoMirrored.Outlined.ListAlt, R.string.drawer_menu_records, R.string.drawer_menu_records),
-    BottomItem(Screen.Level, Icons.Outlined.BarChart, R.string.drawer_menu_level, R.string.drawer_menu_level),
-    BottomItem(Screen.Settings, Icons.Outlined.Settings, R.string.drawer_menu_settings, R.string.drawer_menu_settings),
-    BottomItem(Screen.About, Icons.Outlined.Info, R.string.drawer_menu_about, R.string.drawer_menu_about)
+    BottomItem(
+        Screen.Start,
+        Icons.Filled.Home,
+        Icons.Outlined.Home,
+        R.string.drawer_menu_sobriety,
+        R.string.drawer_menu_sobriety
+    ),
+    BottomItem(
+        Screen.Records,
+        Icons.AutoMirrored.Filled.ListAlt,
+        Icons.AutoMirrored.Outlined.ListAlt,
+        R.string.drawer_menu_records,
+        R.string.drawer_menu_records
+    ),
+    BottomItem(
+        Screen.Level,
+        Icons.Filled.BarChart,
+        Icons.Outlined.BarChart,
+        R.string.drawer_menu_level,
+        R.string.drawer_menu_level
+    ),
+    BottomItem(
+        Screen.Settings,
+        Icons.Filled.Settings,
+        Icons.Outlined.Settings,
+        R.string.drawer_menu_settings,
+        R.string.drawer_menu_settings
+    ),
+    BottomItem(
+        Screen.About,
+        Icons.Filled.Info,
+        Icons.Outlined.Info,
+        R.string.drawer_menu_about,
+        R.string.drawer_menu_about
+    )
 )
 
 @Composable
@@ -94,66 +127,43 @@ private fun BottomNavItem(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
 
-    // 테마 색상 (앱의 primary 색상 사용)
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val primaryVariant = Color(0xFF8B5CF6) // 보라색 그라데이션
+    // 아이콘 색상 - 검은색 계열
+    val iconColor = if (isSelected) Color.Black else Color(0xFF666666)
 
     Column(
         modifier = Modifier
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(12.dp))
             .clickable(
                 interactionSource = interactionSource,
                 indication = ripple(
                     bounded = true,
-                    radius = 40.dp,
-                    color = primaryColor
+                    radius = 32.dp,
+                    color = Color.Gray
                 ),
                 onClick = onClick
             )
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .padding(horizontal = 8.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Icon Container with gradient background when selected
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(
-                    if (isSelected) {
-                        Brush.linearGradient(
-                            colors = listOf(
-                                primaryColor,
-                                primaryVariant
-                            )
-                        )
-                    } else {
-                        Brush.linearGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                Color.Transparent
-                            )
-                        )
-                    }
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = item.icon,
-                contentDescription = stringResource(id = item.contentDescriptionRes),
-                tint = if (isSelected) Color.White else Color(0xFF9CA3AF),
-                modifier = Modifier.size(22.dp)
+        // 아이콘 - 선택 시 filled, 미선택 시 outlined
+        Icon(
+            imageVector = if (isSelected) item.iconSelected else item.iconUnselected,
+            contentDescription = stringResource(id = item.contentDescriptionRes),
+            tint = iconColor,
+            modifier = Modifier.size(28.dp) // 아이콘 크기 증가
+        )
+
+        // 라벨 - 선택 시만 표시
+        if (isSelected) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = stringResource(id = item.labelRes),
+                fontSize = 11.sp,
+                color = Color.Black,
+                fontWeight = FontWeight.Medium
             )
         }
-
-        // Label
-        Text(
-            text = stringResource(id = item.labelRes),
-            fontSize = 11.sp,
-            color = if (isSelected) primaryColor else Color(0xFF9CA3AF),
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-            modifier = Modifier.padding(top = 4.dp)
-        )
     }
 }
 
@@ -165,3 +175,4 @@ private fun isDestinationSelected(current: NavDestination?, screen: Screen): Boo
         else -> route == screen.route
     }
 }
+
