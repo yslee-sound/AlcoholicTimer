@@ -111,12 +111,11 @@ class StartActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
-        // 진행 중 세션으로 리다이렉트되지 않은 실제 홈 화면 노출 시 방문 기록
         val sharedPref = getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
         val startTime = sharedPref.getLong("start_time", 0L)
         val timerCompleted = sharedPref.getBoolean("timer_completed", false)
         if (startTime == 0L || timerCompleted) {
-            HomeAdTrigger.registerHomeVisit(this)
+            kr.sweetapps.alcoholictimer.ads.HomeAdTrigger.registerHomeVisit(this, source = "startActivity")
         }
     }
 
