@@ -161,7 +161,7 @@ fun StatisticsCardsSection(
             }
         }
 
-        Spacer(modifier = Modifier.height(LayoutConstants.HEADER_TO_FIRST_CARD_GAP))
+        Spacer(modifier = Modifier.height(LayoutConstants.RECORDS_FIRST_CARD_EXTERNAL_GAP))
 
         Row(
             modifier = Modifier.fillMaxWidth(),

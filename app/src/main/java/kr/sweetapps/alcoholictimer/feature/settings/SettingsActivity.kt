@@ -27,9 +27,7 @@ import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
 import kr.sweetapps.alcoholictimer.core.util.Constants
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
-import kr.sweetapps.alcoholictimer.core.ui.LayoutConstants
 import androidx.compose.material3.RadioButtonDefaults
-import kr.sweetapps.alcoholictimer.core.ui.AdmobBanner
 
 class SettingsActivity : BaseActivity() {
     override fun getScreenTitleResId(): Int = R.string.settings_title
@@ -70,11 +68,7 @@ fun SettingsScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(
-                    start = LayoutConstants.SCREEN_HORIZONTAL_PADDING,
-                    end = LayoutConstants.SCREEN_HORIZONTAL_PADDING,
-                    top = 8.dp
-                )
+                .padding(top = 8.dp)
                 .padding(safePadding)
                 // 배너 바로 위 최소 8dp 완충
                 .padding(bottom = 8.dp),

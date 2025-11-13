@@ -9,7 +9,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Text
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
@@ -20,19 +19,6 @@ import androidx.compose.foundation.verticalScroll
 
 private val MaxContentWidth: Dp = 600.dp
 
-@Composable
-fun StandardScreen(
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(LayoutConstants.SCREEN_HORIZONTAL_PADDING),
-        verticalArrangement = Arrangement.spacedBy(LayoutConstants.CARD_SPACING),
-        content = content
-    )
-}
 
 @Composable
 fun predictAnchoredBannerHeightDp(): Dp {

@@ -129,7 +129,7 @@ object AdController {
         return if (policy != null && policy.isActive) {
             policy.adBannerEnabled
         } else {
-            true // 기본값: 활성화
+            false // 기본값: 비활성화
         }
     }
 
@@ -143,7 +143,7 @@ object AdController {
         return if (policy != null && policy.isActive) {
             policy.adInterstitialEnabled
         } else {
-            true // 기본값: 활성화
+            false // 기본값: 비활성화
         }
     }
 
@@ -222,7 +222,7 @@ object AdController {
         return if (policy != null && policy.isActive) {
             policy.adAppOpenEnabled
         } else {
-            true // 기본값: 활성화
+            false // 기본값: 비활성화
         }
     }
 
@@ -252,4 +252,3 @@ object AdController {
         Log.d(TAG, "🔄 Interstitial history cleared")
     }
 }
-

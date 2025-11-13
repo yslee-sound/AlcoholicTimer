@@ -160,8 +160,8 @@ fun RunScreenComposable(
                     elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
                     border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
                 ) {
-                    Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = LayoutConstants.RUN_TOP_CARD_HORIZONTAL_PADDING, vertical = LayoutConstants.RUN_TOP_CARD_VERTICAL_PADDING)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(LayoutConstants.RUN_STAT_CHIP_SPACING)) {
                             RunStatChip(title = stringResource(id = R.string.stat_goal_days), value = goalDaysText, color = colorResource(id = R.color.color_stat_goal), modifier = Modifier.weight(1f))
                             RunStatChip(title = stringResource(id = R.string.stat_level), value = levelDisplayText, color = levelInfo.color, modifier = Modifier.weight(1f))
                             RunStatChip(title = stringResource(id = R.string.stat_time), value = progressTimeTextHM, color = colorResource(id = R.color.color_stat_time), modifier = Modifier.weight(1f))
