@@ -41,7 +41,6 @@ import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.LayoutConstants
 import kr.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
-import kr.sweetapps.alcoholictimer.core.ui.WatermarkTokens
 import kr.sweetapps.alcoholictimer.core.util.AppUpdateManager
 import kr.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
 import java.util.Locale
@@ -192,6 +191,10 @@ fun StartScreen(gateNavigation: Boolean = false, onStart: (() -> Unit)? = null) 
     Box(modifier = Modifier.fillMaxSize()) {
         StandardScreenWithBottomButton(
             topContent = {
+                // 앱 브랜드 타이틀 바
+                AppBrandTitleBar()
+                Spacer(modifier = Modifier.height(12.dp))
+
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
@@ -318,20 +321,7 @@ fun StartScreen(gateNavigation: Boolean = false, onStart: (() -> Unit)? = null) 
                     }
                 )
             },
-            backgroundDecoration = {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Image(
-                        painter = painterResource(id = R.drawable.splash_app_icon),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .size(WatermarkTokens.IconSize)
-                            .alpha(WatermarkTokens.IconAlpha)
-                    )
-                }
-            },
-            showDebugOverlay = false,
-            reserveSpaceForBottomAd = true
+            // bottomAd = { AdmobBanner() } // moved to MainActivity BaseScaffold during Phase-1
         )
     }
 
@@ -345,7 +335,20 @@ fun StartScreen(gateNavigation: Boolean = false, onStart: (() -> Unit)? = null) 
 }
 
 @Composable
-fun ModernStartButton(isEnabled: Boolean = true, onStart: () -> Unit, modifier: Modifier = Modifier) {
+private fun AppBrandTitleBar() {
+    // 로고 이미지 (가로 폭이 클 수 있으므로 부모 폭에 맞추고 세로 높이 제한)
+    androidx.compose.foundation.Image(
+        painter = painterResource(id = R.drawable.alcoholic_timer_logo),
+        contentDescription = stringResource(id = R.string.app_name),
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(max = 54.dp)
+            .padding(horizontal = LayoutConstants.SCREEN_HORIZONTAL_PADDING)
+    )
+}
+
+@Composable
+fun ModernStartButton(modifier: Modifier = Modifier, isEnabled: Boolean = true, onStart: () -> Unit) {
     Card(
         onClick = { if (isEnabled) onStart() },
         modifier = modifier.size(96.dp),
