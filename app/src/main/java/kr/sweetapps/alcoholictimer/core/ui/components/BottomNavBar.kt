@@ -5,17 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.automirrored.filled.ListAlt
-import androidx.compose.material.icons.outlined.BarChart
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.PlayArrow
-import androidx.compose.material.icons.automirrored.outlined.ListAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,7 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,8 +27,7 @@ import kr.sweetapps.alcoholictimer.navigation.Screen
 
 private data class BottomItem(
     val screen: Screen,
-    val iconSelected: ImageVector,
-    val iconUnselected: ImageVector,
+    val iconRes: Int,  // 커스텀 아이콘 drawable 리소스 ID
     val labelRes: Int,
     val contentDescriptionRes: Int
 )
@@ -47,36 +35,31 @@ private data class BottomItem(
 private val bottomItems: List<BottomItem> = listOf(
     BottomItem(
         Screen.Start,
-        Icons.Filled.PlayArrow,
-        Icons.Outlined.PlayArrow,
+        R.drawable.ic_bottom_start,
         R.string.drawer_menu_sobriety,
         R.string.drawer_menu_sobriety
     ),
     BottomItem(
         Screen.Records,
-        Icons.AutoMirrored.Filled.ListAlt,
-        Icons.AutoMirrored.Outlined.ListAlt,
+        R.drawable.ic_bottom_records,
         R.string.drawer_menu_records,
         R.string.drawer_menu_records
     ),
     BottomItem(
         Screen.Level,
-        Icons.Filled.BarChart,
-        Icons.Outlined.BarChart,
+        R.drawable.ic_bottom_level,
         R.string.drawer_menu_level,
         R.string.drawer_menu_level
     ),
     BottomItem(
         Screen.Settings,
-        Icons.Filled.Settings,
-        Icons.Outlined.Settings,
+        R.drawable.ic_bottom_settings,
         R.string.drawer_menu_settings,
         R.string.drawer_menu_settings
     ),
     BottomItem(
         Screen.About,
-        Icons.Filled.Info,
-        Icons.Outlined.Info,
+        R.drawable.ic_bottom_info,
         R.string.drawer_menu_about,
         R.string.drawer_menu_about
     )
@@ -145,12 +128,12 @@ private fun BottomNavItem(
             ),
         contentAlignment = Alignment.Center
     ) {
-        // 아이콘 - 선택 시 filled, 미선택 시 outlined
+        // 커스텀 아이콘 (stroke 색상으로 선택/비선택 구분)
         Icon(
-            imageVector = if (isSelected) item.iconSelected else item.iconUnselected,
+            painter = painterResource(id = item.iconRes),
             contentDescription = stringResource(id = item.contentDescriptionRes),
             tint = iconColor,
-            modifier = Modifier.size(32.dp) // 아이콘 크기 증가 (28dp → 32dp)
+            modifier = Modifier.size(32.dp)
         )
     }
 }
