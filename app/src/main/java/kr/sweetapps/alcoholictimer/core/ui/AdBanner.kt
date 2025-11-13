@@ -89,6 +89,7 @@ fun AdmobBanner(
     val isPolicyEnabled = kr.sweetapps.alcoholictimer.ads.AdController.isBannerEnabledState()
     val isInterstitialShowing = kr.sweetapps.alcoholictimer.ads.AdController.isInterstitialShowingState()
     val shouldShowBanner = isPolicyEnabled && !isInterstitialShowing
+    val placeholderColor = if (isInterstitialShowing) Color.Black else MaterialTheme.colorScheme.surface
     LaunchedEffect(shouldShowBanner) { Log.d(TAG, "banner visible=$shouldShowBanner h=$predictedHeight") }
 
     // 비표시 시에도 공간 예약 여부
@@ -96,7 +97,7 @@ fun AdmobBanner(
         if (reserveSpaceWhenDisabled) {
             androidx.compose.material3.Surface(
                 modifier = modifier.fillMaxWidth().height(predictedHeight),
-                color = Color.Black, // 전면 표시 중에도 흰색 깜빡임 방지
+                color = placeholderColor,
                 tonalElevation = 0.dp,
                 shadowElevation = 0.dp
             ) { }
@@ -118,7 +119,7 @@ fun AdmobBanner(
     // 컨테이너: Anchored Adaptive height로 고정 (레이아웃 시프트 방지 + 잘림 방지)
     androidx.compose.material3.Surface(
         modifier = modifier.fillMaxWidth().height(predictedHeight),
-        color = if (shouldShowBanner) MaterialTheme.colorScheme.surface else Color.Black,
+        color = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp
     ) {
