@@ -23,12 +23,12 @@ fun BaseScaffold(
 ) {
     AlcoholicTimerTheme(darkTheme = false, applySystemBars = true) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // 상단 배너 - 고정 높이로 설정하여 로딩 중에도 크기 변화 없음
+            // 상단 배너 - 자식의 실제 높이에 맞춤(고정 높이 제거)
             Surface(
                 modifier = Modifier
                     .windowInsetsPadding(WindowInsets.statusBars)
                     .fillMaxWidth()
-                    .height(LayoutConstants.BANNER_FIXED_HEIGHT),
+                    .wrapContentHeight(),
                 color = MaterialTheme.colorScheme.surface,
                 tonalElevation = 0.dp,
                 shadowElevation = 0.dp

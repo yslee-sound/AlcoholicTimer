@@ -47,6 +47,7 @@ import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.LocalRequestGlobalLock
 import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
+import kr.sweetapps.alcoholictimer.core.ui.LayoutConstants
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -277,7 +278,7 @@ fun RecordsScreen(
                             records = filteredRecords,
                             selectedPeriod = selectedPeriod,
                             selectedDetailPeriod = selectedDetailPeriod,
-                            modifier = Modifier.padding(vertical = 8.dp),
+                            modifier = Modifier.padding(vertical = LayoutConstants.RECORDS_FIRST_CARD_EXTERNAL_GAP),
                             weekRange = selectedWeekRange,
                             onAddRecord = {
                                 val intent = Intent(context, AddRecordActivity::class.java)
@@ -638,14 +639,14 @@ private fun PeriodStatisticsSection(
                 .padding(20.dp)
         ) {
             // 헤더(Row + +버튼)는 PeriodHeaderRow로 이동하여 항상 노출되므로 여기서는 제거
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(LayoutConstants.RECORDS_STATS_INTERNAL_TOP_GAP))
 
             val dayUnit = stringResource(R.string.records_day_unit)
             val percentUnit = stringResource(R.string.records_percent_unit)
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(LayoutConstants.RECORDS_CARD_IN_ROW_SPACING)
             ) {
                 val statsScale = 1.3f
 
@@ -675,7 +676,7 @@ private fun PeriodStatisticsSection(
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(LayoutConstants.RECORDS_STATS_ROW_SPACING))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

@@ -2,6 +2,8 @@ package kr.sweetapps.alcoholictimer.core.ui
 
 import android.util.Log
 import android.view.ViewGroup
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,16 +11,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
@@ -27,153 +27,191 @@ import com.google.android.gms.ads.AdView
 import com.google.android.ump.UserMessagingPlatform
 import kr.sweetapps.alcoholictimer.BuildConfig
 import kotlinx.coroutines.delay
-import kr.sweetapps.alcoholictimer.ads.AdLoadState
 
 private const val TAG = "AdmobBanner"
 
 private sealed class BannerLoadState { object Loading: BannerLoadState(); object Success: BannerLoadState(); data class Failed(val code:Int, val message:String): BannerLoadState() }
 
+/**
+ * Admob 배너 컴포저블.
+ *
+ * 정책(원격 설정, 사용자 동의 거부, 내부 AdPolicy, 프리미엄 결제, 나이/민감 카테고리 제한 등)으로 인해
+ * 실제 광고 로드 자체를 시도하지 말아야 하는 경우 배너를 "정책상 숨김" 처리한다고 표현합니다.
+ * 즉, 광고 SDK에 불필요한 요청을 하지 않고 UI 레벨에서만 배너가 없는 형태로 표시합니다.
+ *
+ * reserveSpaceWhenDisabled=true 로 주면 정책상 숨김이어도(광고 비활성) 동일한 높이 placeholder 를 유지하여
+ * 화면 전환/동적 토글 시 레이아웃 점프(위·아래 콘텐츠 밀림)를 방지할 수 있습니다.
+ */
 @Composable
-fun AdmobBanner(modifier: Modifier = Modifier) {
+fun AdmobBanner(
+    modifier: Modifier = Modifier,
+    reserveSpaceWhenDisabled: Boolean = true, // 항상 공간 확보 기본값으로 변경
+) {
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val density = LocalDensity.current
 
-    // AdController로 배너 광고 활성화 여부 확인 (remember 제거하여 실시간 업데이트)
-    val isBannerEnabled = kr.sweetapps.alcoholictimer.ads.AdController.isBannerEnabled()
+    // 화면 폭(dp)
+    val screenWidthDp = configuration.screenWidthDp
 
-    // 디버그 로그
-    LaunchedEffect(isBannerEnabled) {
-        android.util.Log.d("AdmobBanner", "🔍 Banner enabled: $isBannerEnabled")
+    // Adaptive Anchored 예측 높이 (비활성화라도 placeholder 용으로 필요할 수 있어 선계산)
+    val predictedHeight: Dp = remember(screenWidthDp) {
+        try {
+            val adaptive = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, screenWidthDp)
+            with(density) { adaptive.getHeightInPixels(context).toDp() }
+        } catch (_: Throwable) { 50.dp }
     }
 
+    // 정책/동의 등으로 실제 광고 노출 여부
+    val isBannerEnabled = kr.sweetapps.alcoholictimer.ads.AdController.isBannerEnabled()
+    LaunchedEffect(isBannerEnabled) { Log.d(TAG, "🔍 Banner enabled: $isBannerEnabled (reserveSpaceWhenDisabled=$reserveSpaceWhenDisabled)") }
+
     if (!isBannerEnabled) {
-        // 배너 비활성화 시 빈 Box 반환
-        android.util.Log.d("AdmobBanner", "❌ Banner disabled by policy")
-        Box(modifier = modifier.fillMaxWidth().height(LayoutConstants.BANNER_FIXED_HEIGHT)) {
-            // 빈 공간 유지 (레이아웃 깨짐 방지)
+        if (reserveSpaceWhenDisabled) {
+            // 공간만 확보 (시각적 위치 안정성)
+            Box(modifier = modifier.fillMaxWidth().height(predictedHeight))
+        } else {
+            // 완전 제거
+            Box(modifier = modifier.fillMaxWidth())
         }
         return
     }
 
-    var hasRequested by remember { mutableStateOf(false) }
+    // 로컬 상태들
     var adViewRef by remember { mutableStateOf<AdView?>(null) }
     var loadState by remember { mutableStateOf<BannerLoadState>(BannerLoadState.Loading) }
+    var realHeight by remember { mutableStateOf(predictedHeight) }
+    var retryCount by remember { mutableStateOf(0) }
+    val maxRetry = 3
+    val retryDelays = listOf(2000L, 5000L, 10000L) // ms
+    var hasSuccessfulLoad by remember { mutableStateOf(false) }
 
-    Box(modifier = modifier.fillMaxWidth().height(LayoutConstants.BANNER_FIXED_HEIGHT)) {
+    // 높이 애니메이션 목표 계산 (성공 후 더 크게만 확장, 축소는 별도 Effect 로 처리)
+    val targetHeight = remember(predictedHeight, realHeight) {
+        if (realHeight > predictedHeight + 1.dp) realHeight else predictedHeight
+    }
+    val animatedHeight by animateDpAsState(
+        targetValue = targetHeight,
+        animationSpec = spring(dampingRatio = 0.85f, stiffness = 400f),
+        label = "bannerHeightAnim"
+    )
+
+    Box(modifier = modifier.fillMaxWidth().height(animatedHeight)) {
         androidx.compose.ui.viewinterop.AndroidView(
             modifier = Modifier.fillMaxWidth(),
-            factory = { context ->
-                AdView(context).apply {
+            factory = { ctx ->
+                AdView(ctx).apply {
                     layoutParams = ViewGroup.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
                     )
-
                     val resolvedUnitId = BuildConfig.ADMOB_BANNER_UNIT_ID
                     val unitId = if (resolvedUnitId.isNullOrBlank() || resolvedUnitId.contains("REPLACE_WITH_REAL_BANNER")) {
                         "ca-app-pub-3940256099942544/6300978111"
                     } else resolvedUnitId
                     setAdUnitId(unitId)
 
-                    // 화면 풀폭 기준으로 Adaptive 사이즈 계산(상한/좌우 패딩 제거)
                     try {
-                        val dm = context.resources.displayMetrics
-                        val density = dm.density
-                        val screenWidthDp = (dm.widthPixels / density).toInt()
-                        val adWidthDp = screenWidthDp.coerceAtLeast(0)
-                        val adaptiveSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, adWidthDp)
-                        setAdSize(adaptiveSize)
+                        val adaptive = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(ctx, screenWidthDp)
+                        setAdSize(adaptive)
                     } catch (_: Throwable) {
-                        try { setAdSize(AdSize.BANNER) } catch (ignored: Throwable) {
-                            Log.w(TAG, "Failed to set ad size in factory: ${ignored.message}")
-                        }
+                        try { setAdSize(AdSize.BANNER) } catch (ignored: Throwable) { Log.w(TAG, "Fallback setAdSize failed: ${ignored.message}") }
                     }
 
                     adListener = object : AdListener() {
                         override fun onAdLoaded() {
-                            Log.d(TAG, "Banner onAdLoaded")
+                            Log.d(TAG, "Banner onAdLoaded (retryCount=$retryCount)")
+                            hasSuccessfulLoad = true
+                            runCatching {
+                                val hPx = adSize?.getHeightInPixels(ctx) ?: 0
+                                val hDp = with(density) { hPx.toDp() }
+                                if (hDp > 0.dp) realHeight = hDp
+                            }
                             loadState = BannerLoadState.Success
                         }
                         override fun onAdFailedToLoad(error: com.google.android.gms.ads.LoadAdError) {
-                            Log.w(TAG, "Banner onAdFailedToLoad code=${error.code} message=${error.message}")
-                            loadState = BannerLoadState.Failed(error.code, error.message ?: "")
+                            val msg = error.message ?: "error"
+                            Log.w(TAG, "Banner onAdFailedToLoad code=${error.code} message=$msg retryCount=$retryCount")
+                            loadState = BannerLoadState.Failed(error.code, msg)
+                            if (!hasSuccessfulLoad && retryCount < maxRetry) {
+                                retryCount += 1
+                            }
                         }
                     }
-
-                    // 공장 단계에서는 로드를 수행하지 않음 (동의가 늦게 확보될 수 있으므로 update/Effect에서 처리)
                     adViewRef = this
                 }
             },
             update = { adView ->
-                // 필요 시 회전 등에서 크기 재계산/재로딩 로직을 여기에 둘 수 있음.
-                try {
-                    val current = try { adView.adSize } catch (_: Throwable) { null }
-                    Log.d(TAG, "AdView update; currentAdSize=$current")
-                } catch (_: Throwable) { }
-
-                // UMP 동의 상태가 true가 되는 시점에 최초 1회 로드를 시도 (업데이트로 들어오는 경우)
-                val consentInfo = try { UserMessagingPlatform.getConsentInformation(adView.context) } catch (_: Throwable) { null }
+                // 최초/재시도 로드 조건: 성공 전 && 현재 Loading/Fault 상태 && 동의 가능 && 아직 재시도 직후 대기 아님
+                val consentInfo = runCatching { UserMessagingPlatform.getConsentInformation(adView.context) }.getOrNull()
                 val canRequest = consentInfo?.canRequestAds() == true
-                if (canRequest && !hasRequested && !AdLoadState.bannerRequested.get()) {
-                    runCatching {
-                        adView.loadAd(AdRequest.Builder().build())
-                        hasRequested = true
-                        AdLoadState.bannerRequested.set(true)
-                        Log.d(TAG, "Banner load requested from update (consent granted)")
-                    }.onFailure { e ->
-                        Log.w(TAG, "Banner load request failed in update: ${e.message}")
-                    }
-                } else if (canRequest && AdLoadState.bannerRequested.get() && !hasRequested) {
-                    // 전역 플래그가 이미 true라면 로드를 건너뛰었다는 로그를 남겨 추적 가능하게 함
-                    Log.d(TAG, "Banner load skipped in update: global bannerRequested=true")
-                    hasRequested = true // 로컬은 재시도 방지를 위해 true로 설정
+                if (canRequest && !hasSuccessfulLoad && loadState is BannerLoadState.Loading) {
+                    Log.d(TAG, "Issuing initial banner loadAd")
+                    runCatching { adView.loadAd(AdRequest.Builder().build()) }
                 }
             }
         )
 
-        when (val state = loadState) {
-            is BannerLoadState.Loading -> {
-                Box(Modifier.matchParentSize().background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(strokeWidth = 2.dp)
-                }
-            }
-            is BannerLoadState.Failed -> {
-                Box(Modifier.matchParentSize().background(Color(0xFFECECEC)), contentAlignment = Alignment.Center) {
-                    Text(text = "배너 로딩 실패", style = MaterialTheme.typography.bodySmall, color = Color.DarkGray)
-                }
-            }
-            BannerLoadState.Success -> { /* No overlay */ }
+        when (loadState) {
+            BannerLoadState.Loading -> Box(
+                Modifier.matchParentSize().background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)),
+                contentAlignment = Alignment.Center
+            ) { CircularProgressIndicator(strokeWidth = 2.dp) }
+            is BannerLoadState.Failed -> Box(
+                Modifier.matchParentSize().background(Color(0xFFECECEC)),
+                contentAlignment = Alignment.Center
+            ) { Text("배너 로딩 실패 재시도 중(${retryCount}/${maxRetry})", style = MaterialTheme.typography.bodySmall, color = Color.DarkGray) }
+            BannerLoadState.Success -> Unit
         }
     }
 
-    // 폴백: 업데이트가 발생하지 않더라도 동의 완료 후 일정 시간 내 자동 로드되도록 주기 확인
+    // 재시도 루프 (실패했을 때만 동작)
+    LaunchedEffect(retryCount, loadState) {
+        if (retryCount in 1..maxRetry && !hasSuccessfulLoad) {
+            // 직전 실패 후 대기 → Loading 으로 전환하여 update 블록이 다시 load 하지 않도록 방지, 직접 요청
+            val delayMs = retryDelays.getOrElse(retryCount - 1) { 10000L }
+            Log.d(TAG, "Retry #$retryCount scheduled in ${delayMs}ms")
+            delay(delayMs)
+            val view = adViewRef
+            if (view != null) {
+                val consentInfo = runCatching { UserMessagingPlatform.getConsentInformation(view.context) }.getOrNull()
+                val canRequest = consentInfo?.canRequestAds() == true
+                if (canRequest && !hasSuccessfulLoad) {
+                    loadState = BannerLoadState.Loading
+                    runCatching { view.loadAd(AdRequest.Builder().build()) }.onFailure { e ->
+                        val msg = e.message ?: "error"
+                        Log.w(TAG, "Retry loadAd threw: $msg")
+                        loadState = BannerLoadState.Failed(-3, msg)
+                    }
+                }
+            }
+        }
+    }
+
+    // 동의 지연 폴백 (최초 시나리오): 기존 로직 단순화 → 동의 가능해질 때까지 15초(1s 간격) 폴링 후 자동 로드
     LaunchedEffect(adViewRef) {
         val view = adViewRef ?: return@LaunchedEffect
         var attempts = 0
-        while (!hasRequested && attempts < 15) {
+        while (!hasSuccessfulLoad && loadState is BannerLoadState.Loading && attempts < 15) {
             val consentInfo = runCatching { UserMessagingPlatform.getConsentInformation(view.context) }.getOrNull()
             val canRequest = consentInfo?.canRequestAds() == true
             if (canRequest) {
-                if (!AdLoadState.bannerRequested.get()) {
-                    runCatching {
-                        view.loadAd(AdRequest.Builder().build())
-                        hasRequested = true
-                        AdLoadState.bannerRequested.set(true)
-                        Log.d(TAG, "Banner load requested from effect (consent granted)")
-                    }.onFailure { e ->
-                        Log.w(TAG, "Banner load request failed in effect: ${e.message}")
-                        loadState = BannerLoadState.Failed(-1, e.message ?: "")
-                    }
-                } else {
-                    Log.d(TAG, "Banner load skipped in effect: global bannerRequested=true")
-                    hasRequested = true
-                }
+                Log.d(TAG, "Consent became available in fallback loop; issuing loadAd")
+                runCatching { view.loadAd(AdRequest.Builder().build()) }
                 break
             }
             attempts++
             delay(1000)
         }
-        if (!hasRequested && loadState is BannerLoadState.Loading) {
+        if (!hasSuccessfulLoad && loadState is BannerLoadState.Loading && attempts >= 15) {
             loadState = BannerLoadState.Failed(-2, "consent timeout")
+        }
+    }
+
+    // AdView 자원 정리 (메모리 누수 방지)
+    DisposableEffect(adViewRef) {
+        onDispose {
+            try { adViewRef?.destroy(); Log.d(TAG, "AdView destroyed") } catch (_: Throwable) {}
         }
     }
 }

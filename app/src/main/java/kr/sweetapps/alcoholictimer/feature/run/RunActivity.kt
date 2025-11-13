@@ -41,6 +41,7 @@ import kr.sweetapps.alcoholictimer.ads.AdHelpers
 import kr.sweetapps.alcoholictimer.navigation.Screen
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
+import kr.sweetapps.alcoholictimer.core.ui.LayoutConstants
 
 @Composable
 fun RunScreenComposable(
@@ -168,7 +169,7 @@ fun RunScreenComposable(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(LayoutConstants.RUN_SCREEN_CARD_SPACING))
 
                 Card(
                     modifier = Modifier.fillMaxWidth().height(168.dp).clickable { toggleIndicator() },
@@ -313,7 +314,7 @@ fun RunScreenComposable(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(LayoutConstants.RUN_SCREEN_CARD_SPACING))
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -322,7 +323,9 @@ fun RunScreenComposable(
                     elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
                     border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
                 ) {
-                    Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) { ModernProgressIndicatorSimple(progress = progress) }
+                    Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        ModernProgressIndicatorSimple(progress = progress)
+                    }
                 }
             },
             bottomButton = {

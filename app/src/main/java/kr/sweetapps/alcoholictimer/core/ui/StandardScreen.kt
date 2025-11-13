@@ -11,11 +11,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import com.google.android.gms.ads.AdSize
 import androidx.compose.material3.Surface
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 private val MaxContentWidth: Dp = 600.dp
 
@@ -89,59 +90,38 @@ fun StandardScreenWithBottomButton(
     // Use the larger of effectiveBottom and globalSafeBottom to avoid double-counting
     val effectiveBottomAdjusted = if (effectiveBottom > globalSafeBottom) effectiveBottom else globalSafeBottom
 
+    // 버튼과 콘텐츠 사이 여유: 버튼 전체 높이 + 추가 여백(중첩 방지)
     val buttonSize = 96.dp
-    val buttonBottomGap = 24.dp
     val adTopGap = LayoutConstants.BANNER_TOP_GAP
 
     // 모든 화면에서 동일한 버튼 위치를 보장하기 위해 예측 높이를 사용해 공간 예약
     val predictedBannerH = LayoutConstants.BANNER_FIXED_HEIGHT
     val reservedBannerH = if (effectiveBottomAd != null || reserveSpaceForBottomAd) predictedBannerH else 0.dp
 
-    // Compute a minimal content bottom padding so the main content doesn't overlap the floating button.
-    // The content should NOT reserve the banner + system inset space; that space is handled by the
-    // banner container and the button positioning. This avoids double-reserving the bottom area.
-    val reservedBottom by remember(buttonSize, buttonBottomGap, adTopGap) {
-        mutableStateOf((buttonSize / 2) + buttonBottomGap + adTopGap)
+    val insetForReservation = if (globalSafeBottom > 0.dp) 0.dp else effectiveBottomAdjusted
+    val buttonBottomPadding by remember(reservedBannerH, adTopGap, insetForReservation) {
+        mutableStateOf(insetForReservation + (reservedBannerH + adTopGap) + LayoutConstants.BUTTON_BOTTOM_OFFSET)
     }
 
-    SideEffect {
-        try {
-            android.util.Log.e("StandardScreen", "computed: effectiveBottom=$effectiveBottom, globalSafeBottom=$globalSafeBottom, effectiveBottomAdjusted=$effectiveBottomAdjusted, reservedBannerH=$reservedBannerH, reservedBottom=$reservedBottom")
-        } catch (_: Throwable) {}
+    // 콘텐츠 하단 보호 패딩: 버튼 상단과 마지막 카드 사이 여유를 버튼 반높이 + CLEARANCE 로 보장
+    val reservedBottom by remember(buttonSize, buttonBottomPadding) {
+        mutableStateOf(buttonBottomPadding + (buttonSize / 2) + LayoutConstants.CLEARANCE_ABOVE_BUTTON)
     }
 
     Box(modifier = rootModifier) {
         backgroundDecoration()
 
-        // Debug overlay: show computed padding values on-screen for quick verification
-        if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG && showDebugOverlay) {
-            Surface(
-                modifier = Modifier
-                    .padding(8.dp)
-                    .wrapContentWidth()
-                    .wrapContentHeight()
-                    .align(Alignment.TopEnd),
-                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.9f),
-                shadowElevation = 4.dp,
-                tonalElevation = 0.dp
-            ) {
-                Text(
-                    text = "rb=${reservedBottom}, gb=${globalSafeBottom}, eb=${effectiveBottomAdjusted}, bh=${reservedBannerH}",
-                    modifier = Modifier.padding(6.dp),
-                    style = MaterialTheme.typography.labelSmall
-                )
-            }
-        }
-
+        // 스크롤 가능한 콘텐츠 컬럼 (작은 화면에서 잘림 방지)
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
                     start = LayoutConstants.SCREEN_HORIZONTAL_PADDING,
                     end = LayoutConstants.SCREEN_HORIZONTAL_PADDING,
-                    top = LayoutConstants.SCREEN_HORIZONTAL_PADDING,
+                    top = LayoutConstants.FIRST_CARD_EXTERNAL_GAP,
                     bottom = reservedBottom
-                ),
+                )
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(LayoutConstants.CARD_SPACING)
         ) {
@@ -151,7 +131,7 @@ fun StandardScreenWithBottomButton(
                     .wrapContentWidth(Alignment.CenterHorizontally)
                     .widthIn(max = MaxContentWidth),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(LayoutConstants.CARD_SPACING),
+                verticalArrangement = Arrangement.Top,
                 content = topContent
             )
         }
@@ -190,10 +170,7 @@ fun StandardScreenWithBottomButton(
             }
         }
 
-        val insetForReservation = if (globalSafeBottom > 0.dp) 0.dp else effectiveBottomAdjusted
-        val buttonBottomPadding by remember(reservedBannerH, adTopGap, insetForReservation) {
-            mutableStateOf(insetForReservation + (reservedBannerH + adTopGap) + buttonBottomGap)
-        }
+        // 버튼 배치 (계산된 padding 사용)
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)

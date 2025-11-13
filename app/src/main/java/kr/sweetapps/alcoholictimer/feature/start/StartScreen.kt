@@ -39,6 +39,7 @@ import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
+import kr.sweetapps.alcoholictimer.core.ui.LayoutConstants
 import kr.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
 import kr.sweetapps.alcoholictimer.core.ui.WatermarkTokens
 import kr.sweetapps.alcoholictimer.core.util.AppUpdateManager
@@ -191,7 +192,7 @@ fun StartScreen(gateNavigation: Boolean = false, onStart: (() -> Unit)? = null) 
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(24.dp),
+                            .padding(LayoutConstants.FIRST_CARD_TOP_INNER_PADDING),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
@@ -253,62 +254,59 @@ fun StartScreen(gateNavigation: Boolean = false, onStart: (() -> Unit)? = null) 
                 }
             },
             bottomButton = {
-                val activity = context as? android.app.Activity
-                Box(modifier = Modifier.size(96.dp), contentAlignment = Alignment.Center) {
-                    ModernStartButton(
-                        isEnabled = isValid,
-                        onStart = {
-                            val formatted = String.format(Locale.US, "%.6f", targetDays.toFloat()).toFloat()
-                            sharedPref.edit {
-                                putFloat("target_days", formatted)
-                                putLong("start_time", System.currentTimeMillis())
-                                putBoolean("timer_completed", false)
+                ModernStartButton(
+                    isEnabled = isValid,
+                    onStart = {
+                        val formatted = String.format(Locale.US, "%.6f", targetDays.toFloat()).toFloat()
+                        sharedPref.edit {
+                            putFloat("target_days", formatted)
+                            putLong("start_time", System.currentTimeMillis())
+                            putBoolean("timer_completed", false)
+                        }
+                        val launchRun: () -> Unit = {
+                            if (onStart != null) {
+                                // NavHost 내부 이동만 수행, Activity 종료 금지
+                                onStart()
+                            } else {
+                                val intent = Intent(context, MainActivity::class.java)
+                                intent.putExtra("route", "run")
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                context.startActivity(intent)
+                                (context as? android.app.Activity)?.finish()
                             }
-                            val launchRun: () -> Unit = {
-                                if (onStart != null) {
-                                    // NavHost 내부 이동만 수행, Activity 종료 금지
-                                    onStart()
-                                } else {
-                                    val intent = Intent(context, MainActivity::class.java)
-                                    intent.putExtra("route", "run")
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                                    context.startActivity(intent)
-                                    (context as? android.app.Activity)?.finish()
+                        }
+                        val act: android.app.Activity? = (context as? android.app.Activity)
+                        if (act != null) {
+                            if (InterstitialAdManager.isLoaded()) {
+                                val showed = InterstitialAdManager.maybeShowIfEligible(act) { launchRun() }
+                                if (!showed) launchRun()
+                            } else {
+                                val done = AtomicBoolean(false)
+                                val handler = Handler(Looper.getMainLooper())
+                                val timeoutMs = 800L
+                                val timeout = Runnable {
+                                    if (done.compareAndSet(false, true)) { launchRun() }
                                 }
-                            }
-                            val act = activity
-                            if (act != null) {
-                                if (InterstitialAdManager.isLoaded()) {
+                                handler.postDelayed(timeout, timeoutMs)
+                                InterstitialAdManager.addLoadListener { success ->
+                                    if (done.compareAndSet(false, true)) {
+                                        handler.removeCallbacks(timeout)
+                                        if (success) {
+                                            val showed = InterstitialAdManager.maybeShowIfEligible(act) { launchRun() }
+                                            if (!showed) launchRun()
+                                        } else launchRun()
+                                    }
+                                }
+                                InterstitialAdManager.preload(context.applicationContext)
+                                if (InterstitialAdManager.isLoaded() && done.compareAndSet(false, true)) {
+                                    handler.removeCallbacks(timeout)
                                     val showed = InterstitialAdManager.maybeShowIfEligible(act) { launchRun() }
                                     if (!showed) launchRun()
-                                } else {
-                                    val done = AtomicBoolean(false)
-                                    val handler = Handler(Looper.getMainLooper())
-                                    val timeoutMs = 800L
-                                    val timeout = Runnable {
-                                        if (done.compareAndSet(false, true)) { launchRun() }
-                                    }
-                                    handler.postDelayed(timeout, timeoutMs)
-                                    InterstitialAdManager.addLoadListener { success ->
-                                        if (done.compareAndSet(false, true)) {
-                                            handler.removeCallbacks(timeout)
-                                            if (success) {
-                                                val showed = InterstitialAdManager.maybeShowIfEligible(act) { launchRun() }
-                                                if (!showed) launchRun()
-                                            } else launchRun()
-                                        }
-                                    }
-                                    InterstitialAdManager.preload(act.applicationContext)
-                                    if (InterstitialAdManager.isLoaded() && done.compareAndSet(false, true)) {
-                                        handler.removeCallbacks(timeout)
-                                        val showed = InterstitialAdManager.maybeShowIfEligible(act) { launchRun() }
-                                        if (!showed) launchRun()
-                                    }
                                 }
-                            } else launchRun()
-                        }
-                    )
-                }
+                            }
+                        } else launchRun()
+                    }
+                )
             },
             backgroundDecoration = {
                 Box(modifier = Modifier.fillMaxSize()) {
@@ -337,7 +335,7 @@ fun StartScreen(gateNavigation: Boolean = false, onStart: (() -> Unit)? = null) 
 }
 
 @Composable
-fun ModernStartButton(isEnabled: Boolean, onStart: () -> Unit, modifier: Modifier = Modifier) {
+fun ModernStartButton(isEnabled: Boolean = true, onStart: () -> Unit, modifier: Modifier = Modifier) {
     Card(
         onClick = { if (isEnabled) onStart() },
         modifier = modifier.size(96.dp),

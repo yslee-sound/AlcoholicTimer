@@ -40,6 +40,7 @@ import kotlinx.coroutines.delay
 import java.util.Locale
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import androidx.compose.foundation.BorderStroke
+import kr.sweetapps.alcoholictimer.core.ui.LayoutConstants
 import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 import kr.sweetapps.alcoholictimer.core.ui.components.MainLevelCardFrame
 
@@ -99,7 +100,7 @@ fun LevelScreen() {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .verticalScroll(rememberScrollState())
-            .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+            .padding(start = 16.dp, end = 16.dp, top = LayoutConstants.LEVEL_FIRST_CARD_EXTERNAL_GAP)
             .padding(safePadding)
             // 마지막 카드가 배너와 너무 붙지 않도록 내부 하단 여백 추가
             .padding(bottom = 8.dp),
