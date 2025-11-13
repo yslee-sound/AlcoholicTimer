@@ -42,8 +42,8 @@ class AddRecordActivity : ComponentActivity() {
         setContent {
             // 앱은 라이트 모드 고정 정책: 다크 모드 진입 방지
             AlcoholicTimerTheme(darkTheme = false) {
-                // 전역 배경을 연회색으로, 내부 주요 Surface는 흰색 유지
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceVariant) {
+                // 전체 화면 배경을 흰색으로 유지
+                Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
                     AddRecordScreen(
                         onSave = { record ->
                             val success = saveRecord(record)
@@ -197,8 +197,8 @@ private fun AddRecordScreen(
                 }
             }
         },
-        // 전역 배경은 연회색으로 설정
-        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        // 전체 화면 배경을 흰색으로 고정
+        containerColor = Color.White,
         contentColor = MaterialTheme.colorScheme.onSurface
     ) { innerPadding ->
         // 하단 고정 배너 컨테이너를 위한 Column 구성
@@ -214,8 +214,8 @@ private fun AddRecordScreen(
                         .padding(innerPadding)
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
-                        // 화면 배경도 연회색 유지
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        // 화면 배경 흰색 유지
+                        .background(Color.White)
                         .padding(horizontal = 16.dp)
                 ) {
                     Spacer(Modifier.height(8.dp))
@@ -343,9 +343,9 @@ private fun AddRecordScreen(
             // 하단 고정 배너 컨테이너(항상 고정 공간 확보)
             Spacer(modifier = Modifier.height(LayoutConstants.BANNER_TOP_GAP))
             // 배너 상단 헤어라인
-            androidx.compose.material3.HorizontalDivider(
+            HorizontalDivider(
                 thickness = AppBorder.Hairline,
-                color = androidx.compose.ui.graphics.Color(0xFFE0E0E0)
+                color = Color(0xFFE0E0E0)
             )
             Box(
                 modifier = Modifier

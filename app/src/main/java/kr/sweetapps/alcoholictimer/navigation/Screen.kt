@@ -56,6 +56,11 @@ sealed class Screen(val route: String) {
     data object NicknameEdit : Screen("nickname_edit")
 
     /**
+     * 통화 설정 화면
+     */
+    data object CurrencySettings : Screen("currency_settings")
+
+    /**
      * 기록 상세 화면
      */
     data object Detail : Screen("detail/{startTime}/{endTime}/{targetDays}/{actualDays}/{isCompleted}") {
@@ -88,6 +93,7 @@ fun Screen.getTitleResId(): Int? = when (this) {
     is Screen.About -> kr.sweetapps.alcoholictimer.R.string.about_title
     is Screen.AboutLicenses -> null // 리소스 없음
     is Screen.NicknameEdit -> null // 커스텀 제목 사용
+    is Screen.CurrencySettings -> kr.sweetapps.alcoholictimer.R.string.settings_currency
     is Screen.Detail -> null // 커스텀 제목 사용
     is Screen.Debug -> null // 커스텀 제목 사용
 }

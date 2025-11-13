@@ -147,7 +147,8 @@ fun AlcoholicTimerNavGraph(
                 onNavigateLicenses = { navController.navigate(Screen.AboutLicenses.route) },
                 showDebug = kr.sweetapps.alcoholictimer.BuildConfig.DEBUG,
                 onNavigateDebug = {},
-                onNavigateEditNickname = { navController.navigate(Screen.NicknameEdit.route) }
+                onNavigateEditNickname = { navController.navigate(Screen.NicknameEdit.route) },
+                onNavigateCurrencySettings = { navController.navigate(Screen.CurrencySettings.route) }
             )
         }
 
@@ -160,6 +161,11 @@ fun AlcoholicTimerNavGraph(
                 onDone = { navController.popBackStack() },
                 onCancel = { navController.popBackStack() }
             )
+        }
+
+        // 통화 설정 화면
+        composable(Screen.CurrencySettings.route) {
+            kr.sweetapps.alcoholictimer.feature.about.CurrencySettingsScreen()
         }
 
         // 기록 상세 화면 (Compose)

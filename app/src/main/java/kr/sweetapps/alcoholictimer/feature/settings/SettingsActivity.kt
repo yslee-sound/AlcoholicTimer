@@ -55,9 +55,6 @@ fun SettingsScreen() {
     var selectedCost by remember { mutableStateOf(initialCost) }
     var selectedFrequency by remember { mutableStateOf(initialFrequency) }
     var selectedDuration by remember { mutableStateOf(initialDuration) }
-    var selectedCurrency by remember {
-        mutableStateOf(kr.sweetapps.alcoholictimer.core.util.CurrencyManager.getSelectedCurrency(context).code)
-    }
 
     val safePadding = LocalSafeContentPadding.current
     val scrollState = rememberScrollState()
@@ -135,17 +132,6 @@ fun SettingsScreen() {
                     }
                 )
             }
-            SectionDivider()
-
-            SettingsSection(title = stringResource(R.string.settings_currency), titleColor = colorResource(id = R.color.color_indicator_money)) {
-                SettingsCurrencyGroup(
-                    selectedCurrency = selectedCurrency,
-                    onCurrencySelected = { newCurrency ->
-                        selectedCurrency = newCurrency
-                        kr.sweetapps.alcoholictimer.core.util.CurrencyManager.saveCurrency(context, newCurrency)
-                    }
-                )
-            }
         }
     }
 }
@@ -190,21 +176,6 @@ fun SettingsOptionGroup(
     }
 }
 
-@Composable
-fun SettingsCurrencyGroup(
-    selectedCurrency: String,
-    onCurrencySelected: (String) -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        kr.sweetapps.alcoholictimer.core.util.CurrencyManager.supportedCurrencies.forEach { currency ->
-            SettingsOptionItem(
-                isSelected = selectedCurrency == currency.code,
-                label = stringResource(currency.nameResId),
-                onSelected = { onCurrencySelected(currency.code) }
-            )
-        }
-    }
-}
 
 @Composable
 fun SettingsOptionItem(
