@@ -97,8 +97,8 @@ fun BottomNavBar(navController: NavHostController, modifier: Modifier = Modifier
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+                .padding(horizontal = 24.dp, vertical = 12.dp), // 좌우 패딩 증가 (8dp → 24dp)
+            horizontalArrangement = Arrangement.SpaceBetween, // SpaceEvenly → SpaceBetween으로 변경
             verticalAlignment = Alignment.CenterVertically
         ) {
             bottomItems.forEach { item ->
