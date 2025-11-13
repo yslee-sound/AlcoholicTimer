@@ -97,8 +97,8 @@ fun BottomNavBar(navController: NavHostController, modifier: Modifier = Modifier
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 12.dp), // 좌우 패딩 증가 (8dp → 24dp)
-            horizontalArrangement = Arrangement.SpaceBetween, // SpaceEvenly → SpaceBetween으로 변경
+                .padding(horizontal = 16.dp, vertical = 12.dp), // 좌우 패딩을 16dp로 줄여서 아이콘을 더 넓게 펼침
+            horizontalArrangement = Arrangement.SpaceBetween, // 양 끝에 배치하여 최대한 넓게 펼침
             verticalAlignment = Alignment.CenterVertically
         ) {
             bottomItems.forEach { item ->
