@@ -37,11 +37,17 @@ private sealed class BannerLoadState { object Loading: BannerLoadState(); object
 fun AdmobBanner(modifier: Modifier = Modifier) {
     val context = LocalContext.current
 
-    // AdController로 배너 광고 활성화 여부 확인
-    val isBannerEnabled = remember { kr.sweetapps.alcoholictimer.ads.AdController.isBannerEnabled() }
+    // AdController로 배너 광고 활성화 여부 확인 (remember 제거하여 실시간 업데이트)
+    val isBannerEnabled = kr.sweetapps.alcoholictimer.ads.AdController.isBannerEnabled()
+
+    // 디버그 로그
+    LaunchedEffect(isBannerEnabled) {
+        android.util.Log.d("AdmobBanner", "🔍 Banner enabled: $isBannerEnabled")
+    }
 
     if (!isBannerEnabled) {
         // 배너 비활성화 시 빈 Box 반환
+        android.util.Log.d("AdmobBanner", "❌ Banner disabled by policy")
         Box(modifier = modifier.fillMaxWidth().height(LayoutConstants.BANNER_FIXED_HEIGHT)) {
             // 빈 공간 유지 (레이아웃 깨짐 방지)
         }

@@ -267,11 +267,25 @@ D/AdController:   - Interstitial: true
 D/AdController:   - App Open: true
 D/AdController:   - Max/hour: 2
 D/AdController:   - Max/day: 10
+
+D/AdmobBanner: 🔍 Banner enabled: true
 ```
 
 ### 2. 광고 차단 테스트
 
-Supabase에서 `ad_interstitial_enabled = false` 설정 후:
+Supabase에서 `ad_banner_enabled = false` 설정 후 **앱 재실행**:
+```
+D/AdController: 📋 AdPolicy loaded:
+D/AdController:   - Banner: false
+D/AdmobBanner: 🔍 Banner enabled: false
+D/AdmobBanner: ❌ Banner disabled by policy
+```
+
+**중요**: 배너 광고는 앱 재실행 시에만 정책이 적용됩니다.
+- 3분 캐싱으로 인해 앱 실행 중에는 최대 3분까지 이전 정책 유지
+- 확실한 테스트를 위해 앱을 완전히 종료 후 재실행 권장
+
+전면 광고는 `ad_interstitial_enabled = false` 설정 후:
 ```
 D/AdHelpers: ❌ Cannot show interstitial (frequency limit or disabled)
 ```
@@ -282,6 +296,62 @@ D/AdHelpers: ❌ Cannot show interstitial (frequency limit or disabled)
 ```
 D/AdController: ❌ Interstitial limit reached: 2/2 per hour
 ```
+
+### 4. 실시간 업데이트 확인
+
+배너 광고는 `AdController`의 Compose State를 사용하여 구현되었습니다:
+- ✅ AdPolicy가 변경되면 UI가 자동으로 재구성됨
+- ✅ `remember` 제거로 캐시 문제 해결
+- ✅ 앱 재실행 시 최신 정책 즉시 적용
+
+## 🐛 트러블슈팅
+
+### 문제: 배너 광고가 꺼지지 않음
+
+**증상**: Supabase에서 `ad_banner_enabled = false` 설정해도 배너가 계속 표시됨
+
+**원인**:
+1. ~~`remember { }` 사용으로 첫 값이 캐시됨~~ ✅ **해결됨**
+2. 3분 캐싱으로 인한 지연
+3. 앱이 정책을 로드하기 전에 배너가 먼저 표시됨
+
+**해결 방법**:
+1. ✅ **AdController State 사용**: `mutableStateOf`로 변경하여 자동 UI 업데이트
+2. ✅ **remember 제거**: `AdBanner`에서 직접 `isBannerEnabled()` 호출
+3. ✅ **디버그 로그 추가**: 정책 로드 및 배너 활성화 상태 확인
+
+**변경 사항**:
+```kotlin
+// ❌ 이전 (문제 있음)
+val isBannerEnabled = remember { AdController.isBannerEnabled() }
+
+// ✅ 현재 (해결됨)
+val isBannerEnabled = AdController.isBannerEnabled()
+```
+
+**AdController 변경**:
+```kotlin
+// ❌ 이전
+private var cachedPolicy: AdPolicy? = null
+
+// ✅ 현재
+private val _cachedPolicy = mutableStateOf<AdPolicy?>(null)
+private val cachedPolicy: AdPolicy?
+    get() = _cachedPolicy.value
+```
+
+**테스트 방법**:
+1. Supabase에서 `ad_banner_enabled = false` 설정
+2. 앱 완전 종료
+3. 앱 재실행
+4. 로그 확인:
+   ```
+   D/AdController: 📋 AdPolicy loaded:
+   D/AdController:   - Banner: false
+   D/AdmobBanner: 🔍 Banner enabled: false
+   D/AdmobBanner: ❌ Banner disabled by policy
+   ```
+5. 배너 광고 영역이 비어있지만 공간은 유지됨 (64dp)
 
 ## 📝 향후 개선 사항
 

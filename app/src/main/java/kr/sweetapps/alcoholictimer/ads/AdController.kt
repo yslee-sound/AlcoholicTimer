@@ -3,6 +3,7 @@ package kr.sweetapps.alcoholictimer.ads
 import android.app.Activity
 import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -43,7 +44,12 @@ object AdController {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var repository: AdPolicyRepository? = null
-    private var cachedPolicy: AdPolicy? = null
+
+    // Compose State로 변경하여 UI 자동 업데이트
+    private val _cachedPolicy = mutableStateOf<AdPolicy?>(null)
+    private val cachedPolicy: AdPolicy?
+        get() = _cachedPolicy.value
+
     private var isInitialized = false
 
     /**
@@ -79,7 +85,7 @@ object AdController {
         try {
             val result = repository?.getPolicy()
             result?.onSuccess { policy ->
-                cachedPolicy = policy
+                _cachedPolicy.value = policy // State 업데이트
                 if (policy != null) {
                     Log.d(TAG, "📋 AdPolicy loaded:")
                     Log.d(TAG, "  - Active: ${policy.isActive}")
