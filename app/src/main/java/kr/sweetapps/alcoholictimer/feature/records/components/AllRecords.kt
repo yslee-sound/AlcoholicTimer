@@ -1,5 +1,7 @@
 package kr.sweetapps.alcoholictimer.feature.records.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -70,7 +72,9 @@ fun AllRecordsScreen(
         )
     ) {
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
             // 외부 액션버튼(상단 앱바)이 제공되지 않는 경우에만 내부 X 버튼 노출
             if (externalDeleteDialog == null) {
