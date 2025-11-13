@@ -7,14 +7,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.outlined.BarChart
-import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.automirrored.outlined.ListAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -47,8 +47,8 @@ private data class BottomItem(
 private val bottomItems: List<BottomItem> = listOf(
     BottomItem(
         Screen.Start,
-        Icons.Filled.Home,
-        Icons.Outlined.Home,
+        Icons.Filled.PlayArrow,
+        Icons.Outlined.PlayArrow,
         R.string.drawer_menu_sobriety,
         R.string.drawer_menu_sobriety
     ),
@@ -97,8 +97,8 @@ fun BottomNavBar(navController: NavHostController, modifier: Modifier = Modifier
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp), // 좌우 패딩을 16dp로 줄여서 아이콘을 더 넓게 펼침
-            horizontalArrangement = Arrangement.SpaceBetween, // 양 끝에 배치하여 최대한 넓게 펼침
+                .padding(horizontal = 8.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             bottomItems.forEach { item ->
