@@ -170,6 +170,7 @@ object InterstitialAdManager {
         ad.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdShowedFullScreenContent() {
                 Log.d(TAG, "onAdShowedFullScreenContent")
+                AdController.setInterstitialShowing(true)  // 배너 숨김
                 if (!bypass) {
                     // 표시 성공 기록은 릴리즈 정책에서만 반영
                     recordShown(activity)
@@ -177,6 +178,7 @@ object InterstitialAdManager {
             }
             override fun onAdDismissedFullScreenContent() {
                 Log.d(TAG, "onAdDismissedFullScreenContent")
+                AdController.setInterstitialShowing(false)  // 배너 다시 표시
                 interstitialAd = null
                 hasShownThisColdStart.set(true)
                 onDismiss?.invoke()
@@ -185,6 +187,7 @@ object InterstitialAdManager {
             }
             override fun onAdFailedToShowFullScreenContent(adError: com.google.android.gms.ads.AdError) {
                 Log.w(TAG, "onAdFailedToShowFullScreenContent: $adError")
+                AdController.setInterstitialShowing(false)  // 실패 시에도 배너 복구
                 interstitialAd = null
                 onDismiss?.invoke()
                 // 실패 시에도 다음 기회 대비 프리로드

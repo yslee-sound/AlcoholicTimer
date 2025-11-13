@@ -101,11 +101,23 @@ fun AdmobBanner(
         } catch (_: Throwable) { 50.dp }
     }
 
-    val isBannerEnabled = kr.sweetapps.alcoholictimer.ads.AdController.isBannerEnabled()
-    LaunchedEffect(isBannerEnabled) { Log.d(TAG, "🔍 Banner enabled: $isBannerEnabled reserve=$reserveSpaceWhenDisabled") }
+    // 정책 체크 (초기 한 번)
+    val isPolicyEnabled = remember {
+        kr.sweetapps.alcoholictimer.ads.AdController.isBannerEnabled()
+    }
 
-    if (!isBannerEnabled) {
-        if (reserveSpaceWhenDisabled) Box(modifier = modifier.fillMaxWidth().height(predictedHeight)) else Box(modifier = modifier.fillMaxWidth())
+    // 전면광고 표시 상태 직접 구독 (리컴포지션 트리거)
+    val isInterstitialShowing = kr.sweetapps.alcoholictimer.ads.AdController.isInterstitialShowingState()
+
+    // 배너 표시 여부: 정책 활성화 && 전면광고 미표시
+    val shouldShowBanner = isPolicyEnabled && !isInterstitialShowing
+
+    LaunchedEffect(shouldShowBanner, isInterstitialShowing) {
+        Log.d(TAG, "🔍 Banner: policy=$isPolicyEnabled, interstitial=$isInterstitialShowing, show=$shouldShowBanner")
+    }
+
+    // 배너를 표시하지 않을 경우: 아예 렌더링하지 않음 (전면광고와 겹치지 않도록)
+    if (!shouldShowBanner) {
         return
     }
 

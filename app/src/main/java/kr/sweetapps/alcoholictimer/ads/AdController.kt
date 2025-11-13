@@ -3,6 +3,8 @@ package kr.sweetapps.alcoholictimer.ads
 import android.app.Activity
 import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,23 +21,6 @@ import kr.sweetapps.alcoholictimer.data.supabase.repository.AdPolicyRepository
  * - 배너 광고 ON/OFF
  * - 전면 광고 ON/OFF 및 빈도 제한
  * - 앱 오픈 광고 ON/OFF
- *
- * 사용법:
- * ```kotlin
- * // 초기화 (Application.onCreate)
- * AdController.initialize(context)
- *
- * // 광고 표시 전 체크
- * if (AdController.isBannerEnabled()) {
- *     // 배너 광고 표시
- * }
- *
- * if (AdController.canShowInterstitial()) {
- *     InterstitialAdManager.maybeShowIfEligible(activity) {
- *         // 완료 콜백
- *     }
- * }
- * ```
  */
 object AdController {
     private const val TAG = "AdController"
@@ -51,6 +36,17 @@ object AdController {
         get() = _cachedPolicy.value
 
     private var isInitialized = false
+
+    // 전면광고 표시 중 배너 일시 숨김 상태
+    private val _isInterstitialShowing = mutableStateOf(false)
+
+    /**
+     * 전면광고 표시 상태 읽기 (Composable에서 사용)
+     */
+    @Composable
+    fun isInterstitialShowingState(): Boolean {
+        return _isInterstitialShowing.value
+    }
 
     /**
      * AdController 초기화
@@ -123,8 +119,13 @@ object AdController {
 
     /**
      * 배너 광고 활성화 여부
+     * 전면광고 표시 중에는 배너를 숨김
      */
     fun isBannerEnabled(): Boolean {
+        if (_isInterstitialShowing.value) {
+            Log.d(TAG, "Banner disabled: interstitial is showing")
+            return false
+        }
         val policy = cachedPolicy
         return if (policy != null && policy.isActive) {
             policy.adBannerEnabled
@@ -250,5 +251,13 @@ object AdController {
             .remove(KEY_INTERSTITIAL_TIMESTAMPS)
             .apply()
         Log.d(TAG, "🔄 Interstitial history cleared")
+    }
+
+    /**
+     * 전면광고 표시 시작 시 호출 (배너 숨김)
+     */
+    internal fun setInterstitialShowing(showing: Boolean) {
+        _isInterstitialShowing.value = showing
+        Log.d(TAG, "Interstitial showing state: $showing")
     }
 }

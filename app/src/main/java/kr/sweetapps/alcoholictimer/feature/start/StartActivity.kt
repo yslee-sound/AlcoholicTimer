@@ -111,12 +111,8 @@ class StartActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
-        val sharedPref = getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
-        val startTime = sharedPref.getLong("start_time", 0L)
-        val timerCompleted = sharedPref.getBoolean("timer_completed", false)
-        if (startTime == 0L || timerCompleted) {
-            kr.sweetapps.alcoholictimer.ads.HomeAdTrigger.registerHomeVisit(this, source = "startActivity")
-        }
+        // HomeAdTrigger 호출 제거: NavGraph의 중앙 관찰자에서 홈 그룹 진입을 일괄 처리
+        // (StartActivity는 레거시 진입점이며, 진행 중 세션이면 즉시 MainActivity로 이동)
     }
 
     override fun onNewIntent(intent: Intent) {
