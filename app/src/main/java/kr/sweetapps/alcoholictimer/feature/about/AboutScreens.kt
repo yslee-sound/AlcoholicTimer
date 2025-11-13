@@ -1,7 +1,9 @@
 package kr.sweetapps.alcoholictimer.feature.about
 
 import android.content.SharedPreferences
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -39,7 +41,12 @@ fun AboutScreen(
         onDispose { sp.unregisterOnSharedPreferenceChangeListener(listener) }
     }
 
-    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 12.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
         Surface(
             color = MaterialTheme.colorScheme.surface,
             shape = MaterialTheme.shapes.medium,
@@ -89,6 +96,7 @@ fun AboutLicensesScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
