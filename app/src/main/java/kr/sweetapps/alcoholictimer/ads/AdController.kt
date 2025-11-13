@@ -118,8 +118,23 @@ object AdController {
     // ===== 배너 광고 =====
 
     /**
-     * 배너 광고 활성화 여부
-     * 전면광고 표시 중에는 배너를 숨김
+     * 배너 광고 활성화 여부 (Composable에서 사용)
+     */
+    @Composable
+    fun isBannerEnabledState(): Boolean {
+        if (_isInterstitialShowing.value) {
+            return false
+        }
+        val policy = _cachedPolicy.value  // State 직접 읽기로 구독
+        return if (policy != null && policy.isActive) {
+            policy.adBannerEnabled
+        } else {
+            false
+        }
+    }
+
+    /**
+     * 배너 광고 활성화 여부 (비-Composable에서 사용)
      */
     fun isBannerEnabled(): Boolean {
         if (_isInterstitialShowing.value) {

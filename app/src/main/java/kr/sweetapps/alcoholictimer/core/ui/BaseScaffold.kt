@@ -33,21 +33,18 @@ fun BaseScaffold(
     AlcoholicTimerTheme(darkTheme = false, applySystemBars = true) {
         Box(modifier = Modifier.fillMaxSize()) {
             // 기본 UI
-            Column(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.statusBars)
+            ) {
                 // 전면광고 표시 중이 아닐 때만 배너 영역 렌더링
                 if (!isInterstitialShowing) {
                     // 상단 배너
-                    Surface(
-                        modifier = Modifier
-                            .windowInsetsPadding(WindowInsets.statusBars)
-                            .fillMaxWidth()
-                            .wrapContentHeight(),
-                        color = MaterialTheme.colorScheme.surface,
-                        tonalElevation = 0.dp,
-                        shadowElevation = 0.dp
-                    ) {
-                        AdmobBanner(modifier = Modifier.fillMaxWidth())
-                    }
+                    AdmobBanner(
+                        modifier = Modifier.fillMaxWidth(),
+                        reserveSpaceWhenDisabled = true
+                    )
 
                     // 구분선
                     HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
