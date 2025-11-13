@@ -166,7 +166,7 @@ fun SettingsSection(title: String, titleColor: Color, content: @Composable () ->
             text = title,
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = titleColor,
-            modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 4.dp)
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 4.dp)
         )
         content()
     }
@@ -221,7 +221,7 @@ fun SettingsOptionItem(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
             ) { onSelected() }
-            .padding(horizontal = 4.dp, vertical = 2.dp),
+            .padding(horizontal = 16.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         RadioButton(
