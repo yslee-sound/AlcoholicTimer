@@ -239,7 +239,7 @@ fun RecordsScreen(
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 item {
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(LayoutConstants.RECORDS_TOP_SECTION_EXTERNAL_GAP))
                     PeriodSelectionSection(
                         selectedPeriod = selectedPeriod,
                         onPeriodSelected = { period: String ->
@@ -274,11 +274,22 @@ fun RecordsScreen(
                 }
                 item {
                     if (!isLoading) {
+                        val week = stringResource(R.string.records_period_week)
+                        val month = stringResource(R.string.records_period_month)
+                        val year = stringResource(R.string.records_period_year)
+                        val all = stringResource(R.string.records_period_all)
+                        val firstCardGap = when (selectedPeriod) {
+                            week -> LayoutConstants.RECORDS_WEEK_FIRST_CARD_EXTERNAL_GAP
+                            month -> LayoutConstants.RECORDS_MONTH_FIRST_CARD_EXTERNAL_GAP
+                            year -> LayoutConstants.RECORDS_YEAR_FIRST_CARD_EXTERNAL_GAP
+                            all -> LayoutConstants.RECORDS_ALL_FIRST_CARD_EXTERNAL_GAP
+                            else -> LayoutConstants.RECORDS_FIRST_CARD_EXTERNAL_GAP
+                        }
                         PeriodStatisticsSection(
                             records = filteredRecords,
                             selectedPeriod = selectedPeriod,
                             selectedDetailPeriod = selectedDetailPeriod,
-                            modifier = Modifier.padding(vertical = LayoutConstants.RECORDS_FIRST_CARD_EXTERNAL_GAP),
+                            modifier = Modifier.padding(vertical = firstCardGap),
                             weekRange = selectedWeekRange,
                             onAddRecord = {
                                 val intent = Intent(context, AddRecordActivity::class.java)

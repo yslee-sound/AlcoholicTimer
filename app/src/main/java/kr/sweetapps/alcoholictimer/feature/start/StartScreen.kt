@@ -74,6 +74,16 @@ fun StartScreenWithUpdate(
     var updateInfo by remember { mutableStateOf<AppUpdateInfo?>(null) }
     var availableVersionName by remember { mutableStateOf("") }
 
+    // 안전 타임아웃: 업데이트 확인이 비정상 지연될 경우 자동 해제 (디폴트 3초)
+    LaunchedEffect(Unit) {
+        val timeoutMs = 3000L
+        delay(timeoutMs)
+        if (isCheckingUpdate && !showUpdateDialog) {
+            android.util.Log.w("StartScreenWithUpdate", "Update check timeout. Releasing gate.")
+            isCheckingUpdate = false
+        }
+    }
+
     LaunchedEffect(Unit) {
         scope.launch {
             appUpdateManager.checkForUpdate(

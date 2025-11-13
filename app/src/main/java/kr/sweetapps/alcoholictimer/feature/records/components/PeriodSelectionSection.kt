@@ -23,6 +23,7 @@ import java.util.*
 import androidx.compose.foundation.BorderStroke
 import android.os.SystemClock
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
+import kr.sweetapps.alcoholictimer.core.ui.LayoutConstants
 
 @Composable
 fun PeriodSelectionSection(
@@ -86,7 +87,7 @@ fun PeriodSelectionSection(
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(LayoutConstants.RECORDS_SELECTION_TO_PICKER_GAP))
         Card(
             modifier = Modifier
                 .fillMaxWidth()

@@ -5,17 +5,29 @@ import androidx.compose.ui.unit.dp
 object LayoutConstants {
     val SCREEN_HORIZONTAL_PADDING = 10.dp
     // 공통(시작/진행) 기본 외부 간격
-    val FIRST_CARD_EXTERNAL_GAP = 10.dp
+    val FIRST_CARD_EXTERNAL_GAP = 50.dp // 시작 -> 진행 -> 종료 의 첫카드
     @Deprecated("Use FIRST_CARD_EXTERNAL_GAP instead")
     val HEADER_TO_FIRST_CARD_GAP = FIRST_CARD_EXTERNAL_GAP
     // 첫 카드 내부 상단 패딩(콘텐츠와 카드 상단 테두리 간격) - 필요 시 줄여 시각적 상단 밀착 효과
-    val FIRST_CARD_TOP_INNER_PADDING = 12.dp
+    val FIRST_CARD_TOP_INNER_PADDING = 40.dp // 12.dp, start 화면의 대형 카드
 
     // 화면별 커스터마이즈 가능 상수 추가 (초기값은 공통값과 동일하게 설정)
     val START_FIRST_CARD_EXTERNAL_GAP = FIRST_CARD_EXTERNAL_GAP
     val RUN_FIRST_CARD_EXTERNAL_GAP = FIRST_CARD_EXTERNAL_GAP
     val RECORDS_FIRST_CARD_EXTERNAL_GAP = FIRST_CARD_EXTERNAL_GAP
     val LEVEL_FIRST_CARD_EXTERNAL_GAP = FIRST_CARD_EXTERNAL_GAP
+
+    // Records 화면 최상단 섹션(탭 카드) 상단 여백과 내부 간격 제어용 상수
+    // - 배너/상단으로부터 탭 카드까지의 외부 간격
+    val RECORDS_TOP_SECTION_EXTERNAL_GAP = 16.dp
+    // - 탭 카드와 아래 기간 선택 카드(드롭다운) 사이 간격
+    val RECORDS_SELECTION_TO_PICKER_GAP = 8.dp
+
+    // Records 화면: 기간(주/월/년/전체)별 첫 카드 외부(top) 간격 개별 제어 (통계 카드에 적용)
+    val RECORDS_WEEK_FIRST_CARD_EXTERNAL_GAP = RECORDS_FIRST_CARD_EXTERNAL_GAP
+    val RECORDS_MONTH_FIRST_CARD_EXTERNAL_GAP = RECORDS_FIRST_CARD_EXTERNAL_GAP
+    val RECORDS_YEAR_FIRST_CARD_EXTERNAL_GAP = RECORDS_FIRST_CARD_EXTERNAL_GAP
+    val RECORDS_ALL_FIRST_CARD_EXTERNAL_GAP = RECORDS_FIRST_CARD_EXTERNAL_GAP
 
     val RECORDS_FIRST_CARD_TOP_INNER_PADDING = FIRST_CARD_TOP_INNER_PADDING
     val LEVEL_FIRST_CARD_TOP_INNER_PADDING = FIRST_CARD_TOP_INNER_PADDING
