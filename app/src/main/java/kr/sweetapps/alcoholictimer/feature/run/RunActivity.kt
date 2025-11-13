@@ -37,7 +37,6 @@ import kr.sweetapps.alcoholictimer.feature.level.LevelDefinitions
 import kr.sweetapps.alcoholictimer.core.util.FormatUtils
 import kotlinx.coroutines.delay
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.ads.AdHelpers
 import kr.sweetapps.alcoholictimer.navigation.Screen
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
@@ -140,12 +139,10 @@ fun RunScreenComposable(
                     onCompletedNavigateToDetail?.invoke(route)
                 }
 
-                val activity = context as? android.app.Activity
-                if (activity != null) {
-                    AdHelpers.showOr(activity) { goDetail() }
-                } else {
-                    goDetail()
-                }
+                // 직접 전면광고 호출 제거: 홈 전환 3회 규칙 준수
+                goDetail()
+                // 다음 기회 대비 프리로드만 유지
+                kr.sweetapps.alcoholictimer.ads.InterstitialAdManager.preload(context.applicationContext)
             } catch (_: Exception) { }
         }
     }

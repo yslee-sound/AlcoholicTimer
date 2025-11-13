@@ -1,10 +1,6 @@
 package kr.sweetapps.alcoholictimer.core.ui
 
 import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.HorizontalDivider
@@ -34,17 +30,16 @@ fun BaseScaffold(
         Log.d("BaseScaffold", "🎬 isInterstitialShowing changed: $isInterstitialShowing")
     }
 
-    // 전면광고 종료 시 살짝의 완충을 위해 오버레이를 짧게 유지 후 페이드아웃
-    var overlayVisible by remember { mutableStateOf(false) }
+    // 전면광고 종료 후 짧은 홀드로 시각적 슬라이드를 완충 (애니메이션 제거)
+    var overlayHoldActive by remember { mutableStateOf(false) }
     LaunchedEffect(isInterstitialShowing) {
-        if (isInterstitialShowing) {
-            overlayVisible = true
-        } else {
-            // 광고 종료 직후 잠깐 유지하여 시스템 기본 애니메이션의 시각적 슬라이드를 완충
+        if (!isInterstitialShowing) {
+            overlayHoldActive = true
             delay(120)
-            overlayVisible = false
+            overlayHoldActive = false
         }
     }
+    val overlayVisible = isInterstitialShowing || overlayHoldActive
 
     AlcoholicTimerTheme(darkTheme = false, applySystemBars = true) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -86,12 +81,8 @@ fun BaseScaffold(
                 }
             }
 
-            // 전면광고 표시 중/종료 직후: 검은 오버레이로 부드러운 페이드 처리
-            AnimatedVisibility(
-                visible = overlayVisible,
-                enter = fadeIn(),
-                exit = fadeOut(animationSpec = tween(durationMillis = 120))
-            ) {
+            // 전면광고 표시 중/종료 직후: 검은 오버레이로 즉시 덮기 (애니메이션 없음)
+            if (overlayVisible) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()

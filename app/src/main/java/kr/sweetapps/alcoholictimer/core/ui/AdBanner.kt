@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -95,7 +96,7 @@ fun AdmobBanner(
         if (reserveSpaceWhenDisabled) {
             androidx.compose.material3.Surface(
                 modifier = modifier.fillMaxWidth().height(predictedHeight),
-                color = MaterialTheme.colorScheme.surface,
+                color = Color.Black, // 전면 표시 중에도 흰색 깜빡임 방지
                 tonalElevation = 0.dp,
                 shadowElevation = 0.dp
             ) { }
@@ -117,7 +118,7 @@ fun AdmobBanner(
     // 컨테이너: Anchored Adaptive height로 고정 (레이아웃 시프트 방지 + 잘림 방지)
     androidx.compose.material3.Surface(
         modifier = modifier.fillMaxWidth().height(predictedHeight),
-        color = MaterialTheme.colorScheme.surface,
+        color = if (shouldShowBanner) MaterialTheme.colorScheme.surface else Color.Black,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp
     ) {

@@ -289,36 +289,10 @@ fun StartScreen(gateNavigation: Boolean = false, onStart: (() -> Unit)? = null) 
                                 (context as? android.app.Activity)?.finish()
                             }
                         }
-                        val act: android.app.Activity? = (context as? android.app.Activity)
-                        if (act != null) {
-                            if (InterstitialAdManager.isLoaded()) {
-                                val showed = InterstitialAdManager.maybeShowIfEligible(act) { launchRun() }
-                                if (!showed) launchRun()
-                            } else {
-                                val done = AtomicBoolean(false)
-                                val handler = Handler(Looper.getMainLooper())
-                                val timeoutMs = 800L
-                                val timeout = Runnable {
-                                    if (done.compareAndSet(false, true)) { launchRun() }
-                                }
-                                handler.postDelayed(timeout, timeoutMs)
-                                InterstitialAdManager.addLoadListener { success ->
-                                    if (done.compareAndSet(false, true)) {
-                                        handler.removeCallbacks(timeout)
-                                        if (success) {
-                                            val showed = InterstitialAdManager.maybeShowIfEligible(act) { launchRun() }
-                                            if (!showed) launchRun()
-                                        } else launchRun()
-                                    }
-                                }
-                                InterstitialAdManager.preload(context.applicationContext)
-                                if (InterstitialAdManager.isLoaded() && done.compareAndSet(false, true)) {
-                                    handler.removeCallbacks(timeout)
-                                    val showed = InterstitialAdManager.maybeShowIfEligible(act) { launchRun() }
-                                    if (!showed) launchRun()
-                                }
-                            }
-                        } else launchRun()
+                        // 전면광고 직접 호출 제거: 홈 전환 3회 규칙 준수
+                        launchRun()
+                        // 다음 기회 대비 조용히 프리로드만 유지
+                        InterstitialAdManager.preload(context.applicationContext)
                     }
                 )
             },
