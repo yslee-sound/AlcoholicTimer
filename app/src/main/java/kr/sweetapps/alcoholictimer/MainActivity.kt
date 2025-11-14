@@ -34,35 +34,51 @@ class MainActivity : ComponentActivity() {
             android.util.Log.d("MainActivity", "splash timeout fired -> releasing holdSplashState")
             holdSplashState.value = false
         }
-        window.decorView.postDelayed(timeoutRunnable, 5000)
+        window.decorView.postDelayed(timeoutRunnable, 7000)
+
+        // Helper to change holdSplashState with logging
+        val setHoldSplash: (Boolean) -> Unit = { v ->
+            runOnUiThread { android.util.Log.d("MainActivity", "holdSplashState -> $v (thread=${Thread.currentThread().name})"); holdSplashState.value = v }
+        }
 
         // AppOpenAd 동기화: 자동 라이프사이클 노출은 suppressed 상태로 설계되어 있으므로
         // MainActivity에서 수동으로 광고 로드를 표시하도록 리스너 등록
+        android.util.Log.d("MainActivity", "disabling auto-show on AppOpenAdManager")
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setAutoShowEnabled(false)
+        android.util.Log.d("MainActivity", "auto-show disabled")
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdFinishedListener {
-            // 광고가 닫히거나 실패하면 오버레이를 해제
+            // 광고가 닫히거나 실패하면 오버레이를 해제 (fallback)
+            android.util.Log.d("MainActivity", "onAdFinishedListener invoked")
             kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setAutoShowEnabled(true)
-            runOnUiThread { android.util.Log.d("MainActivity", "Ad finished -> releasing holdSplashState"); holdSplashState.value = false }
+            runOnUiThread {
+                android.util.Log.d("MainActivity", "Ad finished -> releasing holdSplashState (fallback)")
+                setHoldSplash(false)
+            }
         }
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdLoadedListener {
             runOnUiThread {
                 // 광고 로드 성공: 안전 타임아웃 취소 후 수동으로 광고 표시
                 android.util.Log.d("MainActivity", "Ad loaded -> manual show requested (cancelling timeout)")
                 window.decorView.removeCallbacks(timeoutRunnable)
-                // 타임아웃으로 인해 스플래시가 이미 해제되었을 수 있으므로
-                // 광고가 표시되기 전까지 스플래시를 다시 유지합니다.
-                holdSplashState.value = true
-                try { kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this@MainActivity) } catch (t: Throwable) { android.util.Log.w("MainActivity", "manual show failed: $t") }
+                // 타임아웃으로 인해 스플래시가 이미 해제되었을 수 있으므로 광고가 표시되기 전까지 스플래시를 다시 유지합니다.
+                android.util.Log.d("MainActivity", "holding splash prior to showing ad")
+                setHoldSplash(true)
+                try {
+                    android.util.Log.d("MainActivity", "attempting to show ad via AppOpenAdManager.showIfAvailable")
+                    kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this@MainActivity)
+                } catch (t: Throwable) {
+                    android.util.Log.w("MainActivity", "manual show failed: $t")
+                }
             }
         }
 
         // 광고가 실제로 화면에 나타나는 시점에 스플래시를 해제하여 검은 화면 간격을 제거
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdShownListener {
             runOnUiThread {
-                android.util.Log.d("MainActivity", "Ad shown -> releasing holdSplashState")
+                android.util.Log.d("MainActivity", "onAdShownListener invoked: ad is visible; releasing holdSplashState")
                 // 안전 타임아웃 제거
                 window.decorView.removeCallbacks(timeoutRunnable)
-                holdSplashState.value = false
+                setHoldSplash(false)
             }
         }
 
@@ -95,6 +111,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        android.util.Log.d("MainActivity", "Setting content and entering Compose UI")
         setContent { AppContentWithStart(startDestinationRoute, holdSplashState) }
     }
 
