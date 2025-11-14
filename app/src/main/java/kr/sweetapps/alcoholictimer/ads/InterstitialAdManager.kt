@@ -193,6 +193,14 @@ object InterstitialAdManager {
                     // 표시 성공 기록은 릴리즈 정책에서만 반영
                     recordShown(activity)
                 }
+                // 시스템바 재적용 (일부 기기/광고가 SystemUI를 덮어쓸 수 있음)
+                try {
+                    if (activity is kr.sweetapps.alcoholictimer.core.ui.BaseActivity) {
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            try { activity.reapplySystemBars() } catch (_: Throwable) {}
+                        }, 150)
+                    }
+                } catch (_: Throwable) {}
             }
             override fun onAdDismissedFullScreenContent() {
                 isShowing.set(false)
@@ -202,6 +210,14 @@ object InterstitialAdManager {
                 try { AdController.setInterstitialLoaded(false); AdController.setInterstitialLastError(null) } catch (_: Throwable) {}
                 interstitialAd = null
                 onDismiss?.invoke()
+                // 광고가 닫힌 직후 시스템바를 재적용
+                try {
+                    if (activity is kr.sweetapps.alcoholictimer.core.ui.BaseActivity) {
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            try { activity.reapplySystemBars() } catch (_: Throwable) {}
+                        }, 150)
+                    }
+                } catch (_: Throwable) {}
                 // 다음 기회 대비 즉시 프리로드
                 preload(activity.applicationContext)
             }
@@ -213,6 +229,14 @@ object InterstitialAdManager {
                 try { AdController.setInterstitialLastError(adError.toString()) } catch (_: Throwable) {}
                 interstitialAd = null
                 onDismiss?.invoke()
+                // 실패 시에도 시스템바 재적용
+                try {
+                    if (activity is kr.sweetapps.alcoholictimer.core.ui.BaseActivity) {
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            try { activity.reapplySystemBars() } catch (_: Throwable) {}
+                        }, 150)
+                    }
+                } catch (_: Throwable) {}
                 // 실패 시에도 다음 기회 대비 프리로드
                 preload(activity.applicationContext)
             }

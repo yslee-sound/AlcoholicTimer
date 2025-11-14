@@ -76,13 +76,37 @@ abstract class BaseActivity : ComponentActivity() {
         // Enable edge-to-edge: let the app draw behind system bars and control their look via Compose
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        // Clear translucent flags if any
-        window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+        // Ensure window draws system bar backgrounds so we can control their color
+        try { window.addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS) } catch (_: Throwable) {}
 
-        // Use WindowInsetsControllerCompat to manage system bar colors
+        // Force status and navigation bars to opaque white
+        try { window.statusBarColor = android.graphics.Color.WHITE } catch (_: Throwable) {}
+        try { window.navigationBarColor = android.graphics.Color.WHITE } catch (_: Throwable) {}
+
+        // Disable navigation bar contrast enforcement (API 29+), and make divider transparent (API 28+)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            try { window.isNavigationBarContrastEnforced = false } catch (_: Throwable) {}
+        }
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            try { window.navigationBarDividerColor = android.graphics.Color.TRANSPARENT } catch (_: Throwable) {}
+        }
+
+        // WindowInsetsControllerCompat to set icon/text appearance (dark icons on light background)
         val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
-        windowInsetsController.isAppearanceLightStatusBars = true
-        windowInsetsController.isAppearanceLightNavigationBars = true
+        try { windowInsetsController.isAppearanceLightStatusBars = true } catch (_: Throwable) {}
+        try { windowInsetsController.isAppearanceLightNavigationBars = true } catch (_: Throwable) {}
+
+        // Compatibility fallback: set legacy systemUiVisibility flags for some OEMs/devices
+        try {
+            val decor = window.decorView
+            var vis = decor.systemUiVisibility
+            // Light status bar (dark icons)
+            @Suppress("DEPRECATION")
+            vis = vis or android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            // Light navigation bar (dark icons) - available API 26+
+            try { vis = vis or android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR } catch (_: Throwable) {}
+            decor.systemUiVisibility = vis
+        } catch (_: Throwable) {}
 
         // Ensure window background under navigation bar is opaque white to avoid showing other content
         try {
