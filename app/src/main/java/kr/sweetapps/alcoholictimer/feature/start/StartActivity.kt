@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import kr.sweetapps.alcoholictimer.R
+import kr.sweetapps.alcoholictimer.ads.AppOpenAdManager
 import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.ads.UmpConsentManager
 import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
@@ -98,6 +99,19 @@ class StartActivity : BaseActivity() {
                 )
             }
         } // <-- closes launchContent lambda
+
+        // 스플래시에서 앱 오프닝 광고 노출 시도
+        var adShown = false
+        AppOpenAdManager.showIfAvailable(this)
+        // 광고가 닫히거나 실패하면 메인 화면으로 이동
+        window.decorView.postDelayed({
+            if (!adShown) {
+                val i = Intent(this, MainActivity::class.java)
+                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                startActivity(i)
+                finish()
+            }
+        }, 2000) // 광고가 없거나 실패 시 2초 후 자동 진입
 
         if (Build.VERSION.SDK_INT < 31) {
             window.setBackgroundDrawable(AndroidColor.WHITE.toDrawable())

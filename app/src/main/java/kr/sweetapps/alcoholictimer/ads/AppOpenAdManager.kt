@@ -149,8 +149,8 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
         )
     }
 
-    private fun showIfAvailable(activity: Activity) {
-        Log.d(TAG, "showIfAvailable called @${System.currentTimeMillis()} adLoaded=${appOpenAd!=null} isShowing=${isShowing.get()} activityFinishing=${activity.isFinishing}")
+    fun showIfAvailable(activity: Activity) {
+        Log.d(TAG, "showIfAvailable called @${System.currentTimeMillis()} adLoaded=${appOpenAd!=null} isShowing=${isShowing.get()} activityFinishing=${activity.isFinishing}")
         if (!canShowNow()) {
             Log.d(TAG, "showIfAvailable abort: canShowNow=false")
             preload(activity.applicationContext)
