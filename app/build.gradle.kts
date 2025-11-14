@@ -91,8 +91,9 @@ android {
             buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"ca-app-pub-8420908105703273/3187272865\"")
             // 빌드타입별 전면 광고 유닛ID (릴리즈 실제 ID)
             buildConfigField("String", "ADMOB_INTERSTITIAL_UNIT_ID", "\"ca-app-pub-8420908105703273/2270912481\"")
-            // 네이티브 광고는 사용하지 않으므로 빈 문자열 (폐기됨)
-            buildConfigField("String", "ADMOB_NATIVE_UNIT_ID", "\"\"")
+            // 앱 오프닝 광고 유닛 ID
+            buildConfigField("String", "ADMOB_APP_OPEN_UNIT_ID", "\"ca-app-pub-8420908105703273/3419835294\"") // 운영용 앱 오프닝 광고 단위 ID로 교체
+            manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-8420908105703273~7175986319"
         }
         // debug 빌드 타입: 테스트용 광고 ID + .debug suffix
         getByName("debug") {
@@ -100,7 +101,9 @@ android {
             versionNameSuffix = "-debug"
             buildConfigField("String", "ADMOB_INTERSTITIAL_UNIT_ID", "\"ca-app-pub-3940256099942544/1033173712\"")
             buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"ca-app-pub-3940256099942544/6300978111\"")
-            buildConfigField("String", "ADMOB_NATIVE_UNIT_ID", "\"ca-app-pub-3940256099942544/2247696110\"")
+            // 앱 오프닝 광고 유닛 ID
+            buildConfigField("String", "ADMOB_APP_OPEN_UNIT_ID", "\"ca-app-pub-3940256099942544/3419835294\"") // 테스트용 앱 오프닝 광고 단위 ID
+            manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-3940256099942544~3347511713"
         }
     }
 

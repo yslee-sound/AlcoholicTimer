@@ -28,6 +28,7 @@ import kr.sweetapps.alcoholictimer.core.util.Constants
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 import androidx.compose.material3.RadioButtonDefaults
+import kr.sweetapps.alcoholictimer.ads.UmpConsentManager
 
 class SettingsActivity : BaseActivity() {
     override fun getScreenTitleResId(): Int = R.string.settings_title
@@ -58,6 +59,9 @@ fun SettingsScreen() {
 
     val safePadding = LocalSafeContentPadding.current
     val scrollState = rememberScrollState()
+
+    // Privacy options 노출 여부(필요 시 권장 노출; 항상 노출해도 무방)
+    val showPrivacyEntry by remember { mutableStateOf(UmpConsentManager.isPrivacyOptionsRequired(context)) }
 
     // 전체 바탕 흰색 + 스크롤 가능한 목록형 레이아웃
     Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
@@ -131,6 +135,29 @@ fun SettingsScreen() {
                         sharedPref.edit { putString(Constants.PREF_SELECTED_DURATION, newValue) }
                     }
                 )
+            }
+
+            // Privacy options 섹션
+            if (showPrivacyEntry) {
+                SectionDivider()
+                SettingsSection(
+                    title = stringResource(R.string.settings_privacy_section_title),
+                    titleColor = colorResource(id = R.color.color_indicator_days)
+                ) {
+                    Text(
+                        text = stringResource(R.string.settings_privacy_description),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colorResource(id = R.color.color_text_primary_dark),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Button(
+                        onClick = { UmpConsentManager.showPrivacyOptionsForm(activity = context as? androidx.activity.ComponentActivity ?: return@Button) },
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    ) {
+                        Text(text = stringResource(R.string.settings_privacy_open_button))
+                    }
+                }
             }
         }
     }

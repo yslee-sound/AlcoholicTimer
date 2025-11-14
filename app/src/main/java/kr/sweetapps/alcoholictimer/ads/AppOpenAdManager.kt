@@ -13,6 +13,7 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.appopen.AppOpenAd
 import com.google.android.ump.UserMessagingPlatform
+import kr.sweetapps.alcoholictimer.BuildConfig
 import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -26,10 +27,10 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
 
     // Google's sample App Open Ad unit id (테스트/폴백)
     private const val GOOGLE_TEST_APP_OPEN_ID = "ca-app-pub-3940256099942544/3419835294"
+    private const val PROD_APP_OPEN_ID = "여기에_운영_광고_단위_ID_입력" // 실제 운영 광고 단위 ID로 교체
 
     private fun currentUnitId(): String {
-        // TODO: 실제 단위 ID 연결 시 교체. 현재는 테스트 ID로 동작
-        return GOOGLE_TEST_APP_OPEN_ID
+        return BuildConfig.ADMOB_APP_OPEN_UNIT_ID
     }
 
     private var app: Application? = null

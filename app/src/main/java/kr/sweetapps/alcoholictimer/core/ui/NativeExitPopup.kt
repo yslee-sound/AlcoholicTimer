@@ -8,19 +8,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import android.view.LayoutInflater
-import com.google.android.gms.ads.nativead.NativeAd
-import com.google.android.gms.ads.nativead.NativeAdView
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.ads.NativeAdManager
-import kr.sweetapps.alcoholictimer.ads.NativeViewBinder
 
 /**
  * 뒤로가기 시 표시되는 네이티브 광고 포함 종료 확인 팝업
@@ -35,42 +28,6 @@ fun NativeExitPopup(
     onDismiss: () -> Unit
 ) {
     if (!visible) return
-
-    val context = LocalContext.current
-    var nativeAd by remember { mutableStateOf<NativeAd?>(null) }
-    var nativeAdView by remember { mutableStateOf<NativeAdView?>(null) }
-
-    // 정책 체크 및 광고 로드
-    val canShowAd = NativeAdManager.canShowAd(context)
-
-    LaunchedEffect(visible) {
-        if (visible && canShowAd) {
-            android.util.Log.d("NativeExitPopup", "Attempting to acquire native ad...")
-            nativeAd = NativeAdManager.acquire(context)
-            if (nativeAd != null) {
-                android.util.Log.d("NativeExitPopup", "✅ Native ad acquired successfully")
-                NativeAdManager.recordShown(context)
-            } else {
-                android.util.Log.w("NativeExitPopup", "⚠️ No native ad available")
-            }
-        } else {
-            if (!visible) {
-                android.util.Log.d("NativeExitPopup", "Popup not visible")
-            } else {
-                android.util.Log.d("NativeExitPopup", "Cannot show ad (policy restriction)")
-            }
-        }
-    }
-
-    // 클린업: 다이얼로그 닫힐 때 NativeAd 해제
-    DisposableEffect(visible) {
-        onDispose {
-            nativeAdView?.destroy()
-            nativeAd?.destroy()
-            nativeAd = null
-            nativeAdView = null
-        }
-    }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -104,62 +61,28 @@ fun NativeExitPopup(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // 네이티브 광고 영역
-                if (nativeAd != null) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 20.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color.White
-                        ),
-                        border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light)),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                // 광고 영역: 항상 플레이스홀더만 표시
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                        .padding(bottom = 20.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = colorResource(id = R.color.color_bg_card_light)
+                    ),
+                    border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        AndroidView(
-                            factory = { ctx ->
-                                val inflater = LayoutInflater.from(ctx)
-                                val adView = inflater.inflate(
-                                    R.layout.include_native_exit_ad,
-                                    null,
-                                    false
-                                ) as NativeAdView
-
-                                nativeAd?.let { ad ->
-                                    NativeViewBinder.bind(adView, ad)
-                                }
-
-                                nativeAdView = adView
-                                adView
-                            },
-                            modifier = Modifier.fillMaxWidth()
+                        Text(
+                            text = "금주의 여정을 응원합니다! 💪",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = colorResource(id = R.color.color_hint_gray),
+                            textAlign = TextAlign.Center
                         )
-                    }
-                } else {
-                    // 광고 없을 때 플레이스홀더 (선택사항)
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(100.dp)
-                            .padding(bottom = 20.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = colorResource(id = R.color.color_bg_card_light)
-                        ),
-                        border = BorderStroke(1.dp, colorResource(id = R.color.color_border_light))
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "금주의 여정을 응원합니다! 💪",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = colorResource(id = R.color.color_hint_gray),
-                                textAlign = TextAlign.Center
-                            )
-                        }
                     }
                 }
 
@@ -197,4 +120,3 @@ fun NativeExitPopup(
         }
     }
 }
-

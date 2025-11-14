@@ -23,6 +23,43 @@
 - 구 UI: AdMob 콘솔 → Privacy & messaging → Funding Choices → Create
 - 직접 접속: https://fundingchoices.google.com (동일한 Google 계정으로 로그인)
 
+### 앱 선택 화면의 “광고 단위 배포” 스위치
+- 의미: 선택한 앱의 모든 광고 단위(ad unit)에 해당 메시지를 일괄 적용/배포할지 여부입니다. 켜면 기존·신규 광고 단위가 자동 포함됩니다.
+- ON 권장 시점: 검증이 끝나고 운영에 전체 배포할 때.
+- OFF 권장 시점: 초기 설정/테스트 단계(디버그 지리/테스트 디바이스로만 확인). 메시지는 게시되지만 배포를 보류해 단계적 롤아웃이 가능합니다.
+- 주의: 이 스위치 상태와 무관하게 SDK 연동(UMP→GMA)은 정상 동작합니다. 다만 콘솔에서 메시지 적용/집계 범위를 일괄 관리하려면 ON이 편리합니다.
+
+#### “취소 링크 추가” 경고의 의미와 대응(필수)
+- 의미: 광고 단위 배포를 켜면, 사용자가 나중에 동의를 변경/철회할 수 있도록 앱 내부에 “개인정보/광고 설정(Privacy options)” 진입점을 제공해야 합니다.
+- 구현: UMP의 Privacy Options 폼을 열어주는 버튼/메뉴를 앱 설정 화면 등에 노출합니다.
+  - 표시 조건: `ConsentInformation.privacyOptionsRequirementStatus == REQUIRED` 인 경우 버튼을 보여주는 것을 권장(항상 보여줘도 무방).
+  - 호출 API(UMP): `UserMessagingPlatform.showPrivacyOptionsForm(activity) { formError -> ... }`
+- 예시(Kotlin)
+  - 표시 여부 판단:
+    ```kotlin
+    import com.google.android.ump.ConsentInformation
+    import com.google.android.ump.UserMessagingPlatform
+
+    val ci = UserMessagingPlatform.getConsentInformation(context)
+    val showPrivacyEntry = ci.privacyOptionsRequirementStatus == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
+    ```
+  - 폼 열기(설정 버튼 클릭 시):
+    ```kotlin
+    UserMessagingPlatform.showPrivacyOptionsForm(activity) { formError ->
+        // formError != null 이면 로그로 원인 확인
+    }
+    ```
+  - Compose 버튼 예시:
+    ```kotlin
+    if (showPrivacyEntry) {
+        Button(onClick = { UserMessagingPlatform.showPrivacyOptionsForm(activity) { /* handle */ } }) {
+            Text("광고/개인정보 설정")
+        }
+    }
+    ```
+- UI 위치 권장: 설정 > 개인정보/광고, 또는 앱 정보 화면 하단에 고정 링크로 노출
+- 스토어 반영: 이 링크(버튼)를 포함한 앱 버전을 스토어에 게시해야 정책 충족으로 간주됩니다.
+
 ## 2) 앱 연결 상태 확인
 - 동의 메시지 생성 플로우에서 앱을 선택합니다(Android). 목록에 보이지 않으면 [앱 추가]로 패키지명을 등록하고 AdMob 앱 ID와 연결합니다.
 
@@ -54,6 +91,10 @@
 ## 6) 디버그 테스트(선택)
 - EU 규제 환경 강제 테스트: 로그의 `addTestDeviceHashedId("...")` 해시를 복사해 UMP Debug 설정 적용(개발 빌드 전용)
 - 테스트 순서: 앱 데이터 삭제 → 실행/동의 → 광고 로드 확인
+- Privacy options 검증:
+  1) 설정 화면에 ‘광고/개인정보 설정’ 버튼이 보이는지(EEA 테스트 지리에서 REQUIRED 확인)
+  2) 버튼 터치 시 Privacy Options 폼이 열리는지
+  3) 동의 변경 후 App Open/Interstitial/Banner 요청이 정책에 맞게 동작하는지
 
 ## 7) 자주 발생하는 오류와 해결
 - code=3 Publisher misconfiguration

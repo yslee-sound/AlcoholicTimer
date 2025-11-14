@@ -1,6 +1,7 @@
 package kr.sweetapps.alcoholictimer.ads
 
 import android.app.Activity
+import android.content.Context
 import android.util.Log
 import com.google.android.ump.ConsentInformation
 import com.google.android.ump.ConsentRequestParameters
@@ -15,6 +16,34 @@ import com.google.android.ump.UserMessagingPlatform
  */
 object UmpConsentManager {
     private const val TAG = "UmpConsentManager"
+
+    /** Returns true if the app must provide a privacy options entry point (EEA regions, etc.). */
+    fun isPrivacyOptionsRequired(context: Context): Boolean {
+        return try {
+            val status = UserMessagingPlatform.getConsentInformation(context).privacyOptionsRequirementStatus
+            status == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
+        } catch (t: Throwable) {
+            Log.w(TAG, "isPrivacyOptionsRequired check failed: ${t.message}")
+            false
+        }
+    }
+
+    /** Opens the UMP privacy options form. Safe to call from UI thread. */
+    fun showPrivacyOptionsForm(activity: Activity, onClosed: (error: FormError?) -> Unit = {}) {
+        try {
+            UserMessagingPlatform.showPrivacyOptionsForm(activity) { formError ->
+                if (formError != null) {
+                    Log.w(TAG, "Privacy options form error: code=${formError.errorCode}, msg=${formError.message}")
+                } else {
+                    Log.d(TAG, "Privacy options form closed successfully")
+                }
+                onClosed(formError)
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "showPrivacyOptionsForm failed: ${t.message}")
+            onClosed(null)
+        }
+    }
 
     /**
      * Requests consent flow and returns whether ads can be requested afterwards.
