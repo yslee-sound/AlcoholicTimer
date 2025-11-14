@@ -12,7 +12,6 @@ import kr.sweetapps.alcoholictimer.ads.AppOpenAdManager
 import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.ads.UmpConsentManager
 import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
-import kr.sweetapps.alcoholictimer.core.util.AppUpdateManager
 import kr.sweetapps.alcoholictimer.core.util.Constants
 import kr.sweetapps.alcoholictimer.MainActivity
 import android.graphics.Color as AndroidColor
@@ -22,7 +21,6 @@ import androidx.core.view.WindowInsetsControllerCompat
 import android.view.WindowManager
 
 class StartActivity : BaseActivity() {
-    private lateinit var appUpdateManager: AppUpdateManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // 기본 초기화
@@ -65,7 +63,6 @@ class StartActivity : BaseActivity() {
         }
 
         val skipSplash = intent.getBooleanExtra("skip_splash", false)
-        appUpdateManager = AppUpdateManager(this)
 
         // Compose로 전달할 스플래시 유지 상태 (초기 true: 스플래시는 광고가 끝날 때까지 유지)
         val holdSplashState = mutableStateOf(true)
@@ -111,10 +108,7 @@ class StartActivity : BaseActivity() {
                         // 추후: 설정 바로가기 아이콘 등 추가 가능
                     },
                     content = {
-                        StartScreenWithUpdate(
-                            appUpdateManager = appUpdateManager,
-                            initialMinRemainMillis = if (skipSplash) 0L else initialRemain,
-                            usesComposeOverlay = usesComposeOverlay,
+                        StartScreen(
                             holdSplashState = holdSplashState,
                             onSplashFinished = {
                                 // 광고가 닫히고 Compose에서 스플래시가 해제될 때 호출됩니다.

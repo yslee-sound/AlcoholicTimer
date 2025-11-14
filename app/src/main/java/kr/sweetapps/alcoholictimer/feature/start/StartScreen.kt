@@ -30,9 +30,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
-import com.google.android.play.core.appupdate.AppUpdateInfo
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.MainActivity
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
@@ -40,130 +37,18 @@ import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.LayoutConstants
 import kr.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
-import kr.sweetapps.alcoholictimer.core.util.AppUpdateManager
 import kr.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StartScreenWithUpdate(
-    appUpdateManager: AppUpdateManager,
-    initialMinRemainMillis: Long = 0L,
-    usesComposeOverlay: Boolean = true,
-    holdSplashState: MutableState<Boolean>, // Activity에서 제어하는 스플래시 유지 상태
-    onSplashFinished: () -> Unit = {}
+fun StartScreen(
+    gateNavigation: Boolean = false,
+    onStart: (() -> Unit)? = null,
+    holdSplashState: MutableState<Boolean>? = null,
+    onSplashFinished: (() -> Unit)? = null
 ) {
-    val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    val restartPromptText = stringResource(R.string.update_downloaded_restart_prompt)
-    val actionRestartText = stringResource(R.string.action_restart)
-
-    var keepMinOverlay by remember { mutableStateOf(initialMinRemainMillis > 0L) }
-    LaunchedEffect(initialMinRemainMillis) {
-        if (initialMinRemainMillis > 0L) {
-            delay(initialMinRemainMillis)
-            keepMinOverlay = false
-        }
-    }
-
-    var showUpdateDialog by remember { mutableStateOf(false) }
-    var isCheckingUpdate by remember { mutableStateOf(true) }
-    var updateInfo by remember { mutableStateOf<AppUpdateInfo?>(null) }
-    var availableVersionName by remember { mutableStateOf("") }
-
-    // 안전 타임아웃: 업데이트 확인이 비정상 지연될 경우 자동 해제 (디폴트 3초)
-    LaunchedEffect(Unit) {
-        val timeoutMs = 3000L
-        delay(timeoutMs)
-        if (isCheckingUpdate && !showUpdateDialog) {
-            android.util.Log.w("StartScreenWithUpdate", "Update check timeout. Releasing gate.")
-            isCheckingUpdate = false
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        scope.launch {
-            appUpdateManager.checkForUpdate(
-                forceCheck = false,
-                onUpdateAvailable = { info ->
-                    updateInfo = info
-                    availableVersionName = "v${info.availableVersionCode()}"
-                    showUpdateDialog = true
-                    isCheckingUpdate = false
-                },
-                onNoUpdate = { isCheckingUpdate = false }
-            )
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        appUpdateManager.registerInstallStateListener {
-            scope.launch {
-                val result = snackbarHostState.showSnackbar(
-                    message = restartPromptText,
-                    actionLabel = actionRestartText,
-                    duration = SnackbarDuration.Indefinite
-                )
-                if (result == SnackbarResult.ActionPerformed) {
-                    appUpdateManager.completeFlexibleUpdate()
-                }
-            }
-        }
-    }
-    DisposableEffect(Unit) { onDispose { appUpdateManager.unregisterInstallStateListener() } }
-
-    val gateNavigation = isCheckingUpdate || showUpdateDialog
-
-    val showSplashOverlay = usesComposeOverlay && (keepMinOverlay || isCheckingUpdate || holdSplashState.value) && !showUpdateDialog
-
-    // 스플래시 오버레이가 해제될 때(onSplashFinished)만 앱으로 진입
-    LaunchedEffect(showSplashOverlay) {
-        if (!showSplashOverlay) onSplashFinished()
-    }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        StartScreen(gateNavigation = gateNavigation)
-
-        AnimatedVisibility(
-            visible = showSplashOverlay,
-            enter = EnterTransition.None,
-            exit = ExitTransition.None
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
-                    .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {},
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.splash_app_icon),
-                    contentDescription = null,
-                    modifier = Modifier.size(240.dp)
-                )
-            }
-        }
-        SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
-
-        kr.sweetapps.alcoholictimer.core.ui.components.AppUpdateDialog(
-            isVisible = showUpdateDialog,
-            versionName = if (availableVersionName.isNotBlank()) availableVersionName else "vNext",
-            updateMessageResourceId = R.string.update_dialog_default_message,
-            onUpdateClick = { updateInfo?.let { appUpdateManager.startFlexibleUpdate(it) }; showUpdateDialog = false },
-            onDismiss = { showUpdateDialog = false; appUpdateManager.markUserPostpone() },
-            canDismiss = !appUpdateManager.isMaxPostponeReached()
-        )
-
-        // 광고가 닫히거나 실패하면 StartActivity에 등록된 콜백이 holdSplash를 해제하여
-        // 이 LaunchedEffect를 통해 onSplashFinished가 호출됩니다.
-     }
- }
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun StartScreen(gateNavigation: Boolean = false, onStart: (() -> Unit)? = null) {
     val context = LocalContext.current
     val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
 
@@ -194,6 +79,13 @@ fun StartScreen(gateNavigation: Boolean = false, onStart: (() -> Unit)? = null) 
     var targetDays by rememberSaveable { mutableIntStateOf(30) }
     val isValid by remember { derivedStateOf { targetDays > 0 } }
     var showDaysPicker by remember { mutableStateOf(false) }
+
+    val showSplashOverlay = holdSplashState != null && holdSplashState.value
+
+    // 스플래시 오버레이가 해제될 때(onSplashFinished)만 앱으로 진입
+    LaunchedEffect(showSplashOverlay) {
+        if (!showSplashOverlay && onSplashFinished != null) onSplashFinished()
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         StandardScreenWithBottomButton(
@@ -306,6 +198,26 @@ fun StartScreen(gateNavigation: Boolean = false, onStart: (() -> Unit)? = null) 
             },
             // bottomAd = { AdmobBanner() } // moved to MainActivity BaseScaffold during Phase-1
         )
+
+        AnimatedVisibility(
+            visible = showSplashOverlay,
+            enter = EnterTransition.None,
+            exit = ExitTransition.None
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {},
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.splash_app_icon),
+                    contentDescription = null,
+                    modifier = Modifier.size(240.dp)
+                )
+            }
+        }
     }
 
     if (showDaysPicker) {
