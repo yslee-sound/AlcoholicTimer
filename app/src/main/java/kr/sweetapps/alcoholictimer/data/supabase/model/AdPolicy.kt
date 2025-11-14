@@ -60,6 +60,12 @@ data class AdPolicy(
     val adInterstitialMaxPerHour: Int = 2,
 
     @SerialName("ad_interstitial_max_per_day")
-    val adInterstitialMaxPerDay: Int = 15
-)
+    val adInterstitialMaxPerDay: Int = 15,
 
+    // App Open 광고 빈도 제한 (Supabase에 추가된 필드)
+    @SerialName("app_open_max_per_hour")
+    val appOpenMaxPerHour: Int = 2,
+
+    @SerialName("app_open_max_per_day")
+    val appOpenMaxPerDay: Int = 15
+)

@@ -62,10 +62,13 @@ fun StartScreen(
 
     if (!gateNavigation && startTime != 0L && !timerCompleted) {
         LaunchedEffect(Unit) {
+            android.util.Log.d("StartScreen", "Immediate navigation path taken: startTime=$startTime timerCompleted=$timerCompleted onStart=${onStart!=null}")
             if (onStart != null) {
                 // NavHost 내부 이동: Activity 종료 금지 (스플래시 재등장 방지)
+                android.util.Log.d("StartScreen", "Calling onStart() for in-app navigation")
                 onStart()
             } else {
+                android.util.Log.d("StartScreen", "Starting MainActivity directly (run route)")
                 val intent = Intent(context, MainActivity::class.java)
                 intent.putExtra("route", "run")
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
@@ -84,7 +87,9 @@ fun StartScreen(
 
     // 스플래시 오버레이가 해제될 때(onSplashFinished)만 앱으로 진입
     LaunchedEffect(showSplashOverlay) {
+        android.util.Log.d("StartScreen", "LaunchedEffect showSplashOverlay changed: $showSplashOverlay")
         if (!showSplashOverlay && onSplashFinished != null) onSplashFinished()
+        if (!showSplashOverlay) android.util.Log.d("StartScreen", "onSplashFinished invoked: ${onSplashFinished != null}")
     }
 
     Box(modifier = Modifier.fillMaxSize()) {

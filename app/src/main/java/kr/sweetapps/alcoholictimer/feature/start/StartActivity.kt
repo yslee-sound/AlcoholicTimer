@@ -28,15 +28,29 @@ class StartActivity : BaseActivity() {
 
         val skipSplash = intent.getBooleanExtra("skip_splash", false)
 
-        // Compose로 전달할 스플래시 유지 상태 (초기 true: 스플래시는 광고가 끝날 때까지 유지)
-        val holdSplashState = mutableStateOf(true)
+        // 스플래시 유지 상태: installSplashScreen에는 AtomicBoolean을 사용하고,
+        // Compose에는 MutableState를 동기화하여 setKeepOnScreenCondition의 타이밍 이슈를 방지합니다.
+        val holdSplashAtomic = java.util.concurrent.atomic.AtomicBoolean(true)
+        val holdSplashState = mutableStateOf(holdSplashAtomic.get())
+
+        fun releaseSplash() {
+            try {
+                holdSplashAtomic.set(false)
+            } catch (_: Throwable) {}
+            try {
+                holdSplashState.value = false
+            } catch (_: Throwable) {}
+            android.util.Log.d("StartActivity", "releaseSplash() called -> atomic=${holdSplashAtomic.get()} compose=${holdSplashState.value}")
+        }
 
         val splashStart = SystemClock.uptimeMillis()
         val minShowMillis = 0L // 페이드/딜레이 제거
+        val AD_WAIT_MS = 500L // 광고 로드를 기다리는 최대 시간 (ms)
         val splash = if (Build.VERSION.SDK_INT >= 31 && !skipSplash) installSplashScreen() else null
 
         if (Build.VERSION.SDK_INT >= 31 && splash != null) {
-            splash.setKeepOnScreenCondition { holdSplashState.value } // holdSplashState로 제어
+            // installSplashScreen은 Compose보다 먼저 호출될 수 있으므로 AtomicBoolean을 사용
+            splash.setKeepOnScreenCondition { holdSplashAtomic.get() }
             // 종료 애니메이션 리스너 제거(기존 페이드 삭제)
         }
 
@@ -45,6 +59,25 @@ class StartActivity : BaseActivity() {
         // DecorView 안정화
         runCatching { window.decorView.setWillNotDraw(false) }
 
+        // 광고 로드 관련 리스너를 먼저 등록하여 이벤트를 놓치지 않도록 함
+        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdLoadedListener {
+            runOnUiThread {
+                android.util.Log.d("StartActivity", "Ad loaded -> manual show requested (listener)")
+                try {
+                    val elapsed = SystemClock.uptimeMillis() - splashStart
+                    if (kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.isLoaded() && holdSplashState.value && elapsed <= AD_WAIT_MS) {
+                        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this@StartActivity)
+                        window.decorView.post { applySystemBarAppearance() }
+                        return@runOnUiThread
+                    }
+                    releaseSplash()
+                    android.util.Log.d("StartActivity", "Ad loaded but conditions not met -> releaseSplash() called")
+                } catch (t: Throwable) {
+                    android.util.Log.w("StartActivity", "manual show failed: $t")
+                    releaseSplash()
+                }
+            }
+        }
         // 광고 사전 로드 (동의 후)
         UmpConsentManager.requestAndLoadIfRequired(this) { canRequest ->
             if (canRequest) {
@@ -52,6 +85,39 @@ class StartActivity : BaseActivity() {
                 // NativeAdManager.preload(this) // removed: native ads not used
             }
         }
+
+        // 정책 조회 완료 시 스플래시 해제 보장: 정책이 비활성화이면 즉시 release
+        try {
+            kr.sweetapps.alcoholictimer.ads.AdController.addPolicyFetchListener { policy ->
+                runOnUiThread {
+                    try {
+                        android.util.Log.d("StartActivity", "Policy fetch listener invoked: policy=${policy?.isActive}")
+                        if (policy == null || !policy.isActive) {
+                            android.util.Log.d("StartActivity", "Policy indicates ads disabled -> releaseSplash()")
+                            releaseSplash()
+                        }
+                    } catch (_: Throwable) {}
+                }
+            }
+            // 정책으로 인해 즉시 스플래시 해제가 필요할 때를 위한 리스너도 등록
+            kr.sweetapps.alcoholictimer.ads.AdController.addSplashReleaseListener {
+                runOnUiThread {
+                    try {
+                        android.util.Log.d("StartActivity", "splashReleaseListener invoked -> releaseSplash()")
+                        releaseSplash()
+                    } catch (_: Throwable) {}
+                }
+            }
+            // 이미 정책 조회가 완료된 상태라면 즉시 검사하여 스플래시 해제
+            try {
+                if (kr.sweetapps.alcoholictimer.ads.AdController.isPolicyFetchCompleted()) {
+                    val enabled = try { kr.sweetapps.alcoholictimer.ads.AdController.isAppOpenEnabled() } catch (_: Throwable) { true }
+                    android.util.Log.d("StartActivity", "Policy already fetched at onCreate -> appOpenEnabled=$enabled")
+                    if (!enabled) releaseSplash()
+                }
+            } catch (_: Throwable) {}
+        } catch (_: Throwable) {}
+
         Constants.initializeUserSettings(this)
         Constants.ensureInstallMarkerAndResetIfReinstalled(this)
 
@@ -75,23 +141,9 @@ class StartActivity : BaseActivity() {
             kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setAutoShowEnabled(true)
             runOnUiThread {
                 android.util.Log.d("StartActivity", "Ad finished -> releasing holdSplashState")
-                holdSplashState.value = false
+                releaseSplash()
                 // 광고가 종료되면 시스템바 외형 재적용
                 applySystemBarAppearance()
-            }
-        }
-        // 광고가 로드되면 수동으로 표시하도록 리스너 등록
-        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdLoadedListener {
-            runOnUiThread {
-                android.util.Log.d("StartActivity", "Ad loaded -> manual show requested")
-                try {
-                    kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this@StartActivity)
-                    // 광고가 나타난 직후 시스템바가 변경될 수 있으므로 재적용 예약
-                    window.decorView.post { applySystemBarAppearance() }
-                } catch (t: Throwable) {
-                    android.util.Log.w("StartActivity", "manual show failed: $t")
-                    holdSplashState.value = false // 광고 표시 실패 시 즉시 해제
-                }
             }
         }
 
@@ -124,14 +176,42 @@ class StartActivity : BaseActivity() {
             }
         } // <-- closes launchContent lambda
 
-        // 스플래시 overlay가 시작될 때 광고를 바로 띄움 (리스너 등록 및 auto-show 비활성화 후 호출)
-        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this)
-
-        // 광고가 없거나 실패 등으로 콜백이 불리지 않을 경우를 대비한 안전 타임아웃
-        // 직접 Activity 전환하지 말고 holdSplashState를 해제하여 Compose에서 onSplashFinished가 호출되게 함
-        window.decorView.postDelayed({
-            holdSplashState.value = false
-        }, 1000) // 광고가 없거나 실패 시 1초 후 자동 진입
+        // 스플래시 overlay가 시작될 때 즉시 광고를 강제로 띄우지 않음.
+        // 대신 사전 로드된 광고가 있으면 onAdLoadedListener에서 처리하고,
+        // 그렇지 않으면 짧은 대기 후 스플래시를 해제합니다.
+        val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+        // Short timeout runnable
+        val shortTimeout = Runnable {
+            android.util.Log.d("StartActivity", "Short splash timeout reached (${AD_WAIT_MS}ms)")
+            android.util.Log.d("StartActivity", "Setting holdSplashState=false (short timeout)")
+            releaseSplash()
+        }
+        // Safety timeout runnable
+        val SAFETY_TIMEOUT_MS = 3000L
+        val safetyTimeout = Runnable {
+            android.util.Log.w("StartActivity", "Safety splash timeout reached (${SAFETY_TIMEOUT_MS}ms) -> forcing release")
+            android.util.Log.d("StartActivity", "Setting holdSplashState=false (safety timeout)")
+            releaseSplash()
+        }
+        // Schedule
+        mainHandler.postDelayed(shortTimeout, AD_WAIT_MS)
+        mainHandler.postDelayed(safetyTimeout, SAFETY_TIMEOUT_MS)
+        // Cancel scheduled runnables when splash state changes to false
+        // (observe via a simple coroutine-esque loop polling the state once it's false)
+        val cancelWatcher = object : Runnable {
+            override fun run() {
+                if (!holdSplashState.value) {
+                    try {
+                        mainHandler.removeCallbacks(shortTimeout)
+                        mainHandler.removeCallbacks(safetyTimeout)
+                        android.util.Log.d("StartActivity", "Cancelled scheduled splash timeouts because holdSplashState=false")
+                    } catch (_: Throwable) {}
+                } else {
+                    mainHandler.postDelayed(this, 200)
+                }
+            }
+        }
+        mainHandler.postDelayed(cancelWatcher, 200)
 
         if (Build.VERSION.SDK_INT < 31) {
             window.setBackgroundDrawable(AndroidColor.WHITE.toDrawable())

@@ -26,6 +26,7 @@ object AdController {
     private const val TAG = "AdController"
     private const val PREFS_NAME = "ad_controller_prefs"
     private const val KEY_INTERSTITIAL_TIMESTAMPS = "interstitial_timestamps"
+    private const val KEY_APP_OPEN_TIMESTAMPS = "app_open_timestamps"
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var repository: AdPolicyRepository? = null
@@ -36,6 +37,47 @@ object AdController {
         get() = _cachedPolicy.value
 
     private var isInitialized = false
+
+    // 정책 조회 완료 플래그: null(초기) 또는 fetch 완료 여부를 나타냄
+    private var policyFetchCompleted: Boolean = false
+
+    /** 정책 조회 완료 여부 반환 (외부에서 대기 로직에 사용) */
+    fun isPolicyFetchCompleted(): Boolean = policyFetchCompleted
+
+    // 정책 로드 완료 리스너 (UI가 구독해서 스플래시 등 동작을 제어할 수 있음)
+    private val policyFetchListeners = mutableListOf<(AdPolicy?) -> Unit>()
+    fun addPolicyFetchListener(listener: (AdPolicy?) -> Unit) { policyFetchListeners.add(listener) }
+    private fun notifyPolicyFetchListeners(policy: AdPolicy?) {
+        val copy = ArrayList(policyFetchListeners)
+        for (l in copy) {
+            try { l(policy) } catch (t: Throwable) { Log.w(TAG, "policyFetchListener threw: $t") }
+        }
+    }
+
+    // 스플래시 즉시 해제 리스너 (정책 비활성화 등 긴급 상황에서 StartActivity가 등록하여 즉시 해제할 수 있음)
+    private val splashReleaseListeners = mutableListOf<() -> Unit>()
+    fun addSplashReleaseListener(listener: () -> Unit) {
+        splashReleaseListeners.add(listener)
+        Log.d(TAG, "addSplashReleaseListener: listener registered (total=${splashReleaseListeners.size})")
+         // 이미 정책 조회가 끝났고 정책이 비활성이라면 즉시 호출하여 늦게 등록된 리스너도 처리되게 함
+         try {
+             if (policyFetchCompleted) {
+                 val policy = _cachedPolicy.value
+                 if (policy == null || !policy.isActive) {
+                    try {
+                        Log.d(TAG, "addSplashReleaseListener: immediate-invoking listener because policyFetchCompleted and policy inactive")
+                        listener()
+                    } catch (t: Throwable) { Log.w(TAG, "splashReleaseListener immediate invoke failed: $t") }
+                 }
+             }
+         } catch (t: Throwable) { Log.w(TAG, "addSplashReleaseListener check failed: $t") }
+    }
+    private fun notifySplashReleaseListeners() {
+        val copy = ArrayList(splashReleaseListeners)
+        for (l in copy) {
+            try { l() } catch (t: Throwable) { Log.w(TAG, "splashReleaseListener threw: $t") }
+        }
+    }
 
     // 전면광고 표시 중 배너 일시 숨김 상태
     private val _isInterstitialShowing = mutableStateOf(false)
@@ -138,16 +180,26 @@ object AdController {
                         try {
                             kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.clearLoadedAd()
                         } catch (_: Throwable) { Log.w(TAG, "Failed to clear app-open on policy change") }
-                    }
-                } else {
-                    Log.d(TAG, "⚠️ No AdPolicy found, using defaults")
-                }
+                        // 정책이 비활성화이면 스플래시가 있다면 즉시 해제하도록 알림
+                        try {
+                            Log.d(TAG, "Policy inactive -> notifying splash release listeners (count=${splashReleaseListeners.size})")
+                            notifySplashReleaseListeners()
+                        } catch (_: Throwable) { Log.w(TAG, "Failed to notify splash release listeners") }
+                     }
+                 } else {
+                     Log.d(TAG, "⚠️ No AdPolicy found, using defaults")
+                 }
             }?.onFailure { error ->
                 Log.e(TAG, "❌ Failed to load AdPolicy", error)
             }
         } catch (e: Exception) {
             Log.e(TAG, "❌ Exception while loading AdPolicy", e)
-        }
+        } finally {
+            // 정책 조회 시도가 끝났음을 표시
+            policyFetchCompleted = true
+            // 리스너에게 알림
+            notifyPolicyFetchListeners(_cachedPolicy.value)
+         }
     }
 
     /**
@@ -270,6 +322,41 @@ object AdController {
             Log.d(TAG, "📝 Interstitial shown recorded (total: ${trimmed.size})")
         } catch (e: Exception) {
             Log.e(TAG, "Error recording interstitial", e)
+        }
+    }
+
+    /**
+     * AppOpen 표시 가능 여부 (정책 기반 시간/일 제한 포함)
+     */
+    fun canShowAppOpen(context: Context): Boolean {
+        val policy = cachedPolicy
+        val maxPerHour = policy?.appOpenMaxPerHour ?: 2
+        val maxPerDay = policy?.appOpenMaxPerDay ?: 15
+
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val timestampsJson = prefs.getString(KEY_APP_OPEN_TIMESTAMPS, "[]") ?: "[]"
+        try {
+            val timestamps = parseTimestamps(timestampsJson)
+            val now = System.currentTimeMillis()
+            val valid = timestamps.filter { now - it < 24 * 60 * 60 * 1000 }
+            val recentHour = valid.filter { now - it < 60 * 60 * 1000 }
+            if (recentHour.size >= maxPerHour) return false
+            if (valid.size >= maxPerDay) return false
+            return true
+        } catch (_: Exception) { return true }
+    }
+
+    fun recordAppOpenShown(context: Context) {
+        try {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val timestampsJson = prefs.getString(KEY_APP_OPEN_TIMESTAMPS, "[]") ?: "[]"
+            val timestamps = parseTimestamps(timestampsJson).toMutableList()
+            timestamps.add(System.currentTimeMillis())
+            val trimmed = timestamps.takeLast(100)
+            prefs.edit().putString(KEY_APP_OPEN_TIMESTAMPS, formatTimestamps(trimmed)).apply()
+            Log.d(TAG, "📝 AppOpen shown recorded (total: ${trimmed.size})")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error recording app open shown", e)
         }
     }
 

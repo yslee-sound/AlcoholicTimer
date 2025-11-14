@@ -61,7 +61,15 @@ class MainActivity : BaseActivity() {
         }
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdLoadedListener {
             runOnUiThread {
-                // 광고 로드 성공: 안전 타임아웃 취소 후 수동으로 광고 표시
+                // 광고 로드 성공: 하지만 정책이 비활성화되었을 수 있음.
+                val policyEnabled = try { kr.sweetapps.alcoholictimer.ads.AdController.isAppOpenEnabled() } catch (_: Throwable) { true }
+                if (!policyEnabled) {
+                    android.util.Log.d("MainActivity", "Ad loaded callback received but policy disabled -> release splash immediately")
+                    // 정책이 비활성인 경우 스플래시를 즉시 해제
+                    setHoldSplash(false)
+                    return@runOnUiThread
+                }
+                // 정책 허용된 경우에만 타임아웃을 취소하고 수동으로 광고 표시
                 android.util.Log.d("MainActivity", "Ad loaded -> manual show requested (cancelling timeout)")
                 window.decorView.removeCallbacks(timeoutRunnable)
                 // 타임아웃으로 인해 스플래시가 이미 해제되었을 수 있으므로 광고가 표시되기 전까지 스플래시를 다시 유지합니다.
@@ -75,6 +83,16 @@ class MainActivity : BaseActivity() {
                 }
             }
         }
+
+        // 정책이 비활성화될 때 스플래시를 즉시 해제할 수 있도록 리스너 등록
+        try {
+            kr.sweetapps.alcoholictimer.ads.AdController.addSplashReleaseListener {
+                runOnUiThread {
+                    android.util.Log.d("MainActivity", "AdController splashReleaseListener invoked -> release splash")
+                    setHoldSplash(false)
+                }
+            }
+        } catch (_: Throwable) {}
 
         // 광고가 실제로 화면에 나타나는 시점에 스플래시를 해제하여 검은 화면 간격을 제거
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdShownListener {

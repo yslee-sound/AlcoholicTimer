@@ -170,24 +170,36 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
             request,
             object : AppOpenAd.AppOpenAdLoadCallback() {
                 override fun onAdLoaded(ad: AppOpenAd) {
-                    appOpenAd = ad
-                    isLoading.set(false)
-                    // 중앙 상태 업데이트: 로드 성공
-                    try { AdController.setAppOpenLoaded(true); AdController.setAppOpenLoading(false); AdController.setAppOpenLastError(null) } catch (_: Throwable) {}
-                    lastLoadedAt = System.currentTimeMillis()
-                    Log.d(TAG, "onAdLoaded app-open @${lastLoadedAt}")
-                    // 포어그라운드 상태라면 즉시 표시 시도
-                    currentActivityRef?.get()?.let { act ->
-                        if (allowAutoShow.get()) {
-                            Log.d(TAG, "onAdLoaded: auto-show enabled -> showing ad")
-                            showIfAvailable(act)
-                        } else {
-                            Log.d(TAG, "onAdLoaded: auto-show suppressed, waiting for manual show")
-                            // 알림: 수동 표시를 위해 등록된 리스너 호출
-                            onAdLoadedListener?.invoke()
-                        }
-                    } ?: Log.d(TAG, "show skip: no current activity ref")
-                }
+                    // 정책 상태를 확인: 정책이 비활성화이면 로드된 광고를 보관하지 않고 리스너만 호출
+                    val policyEnabled = try { kr.sweetapps.alcoholictimer.ads.AdController.isPolicyFetchCompleted() && kr.sweetapps.alcoholictimer.ads.AdController.isAppOpenEnabled() } catch (_: Throwable) { true }
+                    if (!policyEnabled) {
+                        appOpenAd = null
+                        isLoading.set(false)
+                        try { AdController.setAppOpenLoaded(false); AdController.setAppOpenLoading(false); AdController.setAppOpenLastError(null) } catch (_: Throwable) {}
+                        lastLoadedAt = System.currentTimeMillis()
+                        Log.d(TAG, "onAdLoaded app-open but discarded due to policy at @$lastLoadedAt")
+                        // 알림만 전달하여 StartActivity가 스플래시를 해제하도록 함
+                        onAdLoadedListener?.invoke()
+                        return
+                    }
+                     appOpenAd = ad
+                     isLoading.set(false)
+                     // 중앙 상태 업데이트: 로드 성공
+                     try { AdController.setAppOpenLoaded(true); AdController.setAppOpenLoading(false); AdController.setAppOpenLastError(null) } catch (_: Throwable) {}
+                     lastLoadedAt = System.currentTimeMillis()
+                     Log.d(TAG, "onAdLoaded app-open @${lastLoadedAt}")
+                     // 포어그라운드 상태라면 즉시 표시 시도
+                     currentActivityRef?.get()?.let { act ->
+                         if (allowAutoShow.get()) {
+                             Log.d(TAG, "onAdLoaded: auto-show enabled -> showing ad")
+                             showIfAvailable(act)
+                         } else {
+                             Log.d(TAG, "onAdLoaded: auto-show suppressed, waiting for manual show")
+                             // 알림: 수동 표시를 위해 등록된 리스너 호출
+                             onAdLoadedListener?.invoke()
+                         }
+                     } ?: Log.d(TAG, "show skip: no current activity ref")
+                 }
                 // 광고 로딩 실패 시에도 콜백 호출
                 override fun onAdFailedToLoad(error: LoadAdError) {
                     appOpenAd = null
@@ -213,6 +225,8 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
             isShowing.set(false)
             try { AdController.setAppOpenLoaded(false); AdController.setAppOpenLoading(false); AdController.setAppOpenLastError(null) } catch (_: Throwable) {}
             Log.d(TAG, "clearLoadedAd: app-open cleared by policy change")
+            // 정책으로 인해 광고가 제거되었음을 StartActivity 등 리스너에 알림
+            try { onAdLoadedListener?.invoke() } catch (_: Throwable) {}
         } catch (t: Throwable) {
             Log.w(TAG, "clearLoadedAd failed: $t")
         }
@@ -243,6 +257,13 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
             preload(activity.applicationContext)
             return
         }
+        // AppOpen 빈도 제한 확인 (시간/일 기준)
+        try {
+            if (!kr.sweetapps.alcoholictimer.ads.AdController.canShowAppOpen(activity.applicationContext)) {
+                Log.d(TAG, "showIfAvailable abort: AppOpen limit reached by policy")
+                return
+            }
+        } catch (_: Throwable) {}
         val ad = appOpenAd
         if (ad == null) {
             Log.d(TAG, "showIfAvailable abort: ad=null -> preload")
@@ -264,6 +285,12 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
                 lastShownAt = System.currentTimeMillis()
                 // notify listeners that ad is now visible
                 onAdShownListener?.invoke()
+                // 기록: 광고가 실제로 보였음을 기록(시간/일 제한 계산용)
+                try {
+                    currentActivityRef?.get()?.let { act ->
+                        kr.sweetapps.alcoholictimer.ads.AdController.recordAppOpenShown(act.applicationContext)
+                    }
+                } catch (_: Throwable) {}
                 // Ensure system bars are re-applied shortly after ad shows (SystemUI may alter them)
                 try {
                     currentActivityRef?.get()?.let { a ->
@@ -362,4 +389,8 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
 
     // 광고가 현재 표시 중인지 여부 반환
     fun isShowingAd(): Boolean = isShowing.get()
+
+    /** 현재 AppOpen 광고가 로드되어 있는지 여부 */
+    fun isLoaded(): Boolean = appOpenAd != null
+
 }
