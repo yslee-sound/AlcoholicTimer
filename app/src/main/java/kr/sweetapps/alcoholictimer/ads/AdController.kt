@@ -129,7 +129,7 @@ object AdController {
         return if (policy != null && policy.isActive) {
             policy.adBannerEnabled
         } else {
-            false
+            true // Fallback: 정책 미로딩 시 배너는 표시 (초기 체감 속도 개선)
         }
     }
 
@@ -145,7 +145,7 @@ object AdController {
         return if (policy != null && policy.isActive) {
             policy.adBannerEnabled
         } else {
-            false // 기본값: 비활성화
+            true // Fallback: 정책 미로딩 시 배너는 표시
         }
     }
 
@@ -238,7 +238,7 @@ object AdController {
         return if (policy != null && policy.isActive) {
             policy.adAppOpenEnabled
         } else {
-            false // 기본값: 비활성화
+            true // Fallback: 정책 미로딩 시 앱오픈 허용(초기 표시 확률 개선)
         }
     }
 

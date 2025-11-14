@@ -13,7 +13,6 @@ import kr.sweetapps.alcoholictimer.core.ui.BaseScaffold
 import kr.sweetapps.alcoholictimer.navigation.AlcoholicTimerNavGraph
 import kr.sweetapps.alcoholictimer.navigation.Screen
 import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
-import kr.sweetapps.alcoholictimer.ads.NativeAdManager
 import kr.sweetapps.alcoholictimer.ads.UmpConsentManager
 
 class MainActivity : ComponentActivity() {
@@ -41,10 +40,11 @@ class MainActivity : ComponentActivity() {
         val timerCompleted = sharedPref.getBoolean("timer_completed", false)
         val startDestinationRoute = if (startTime > 0L && !timerCompleted) Screen.Run.route else Screen.Start.route
 
+        android.util.Log.d("MainActivity", "About to call UmpConsentManager.requestAndLoadIfRequired")
         UmpConsentManager.requestAndLoadIfRequired(this) { canRequest ->
+            android.util.Log.d("MainActivity", "UMP callback: canRequest=$canRequest")
             if (canRequest) {
                 InterstitialAdManager.preload(this)
-                NativeAdManager.preload(this)
             }
         }
 

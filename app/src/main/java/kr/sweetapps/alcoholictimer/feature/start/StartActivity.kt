@@ -9,7 +9,6 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
-import kr.sweetapps.alcoholictimer.ads.NativeAdManager
 import kr.sweetapps.alcoholictimer.ads.UmpConsentManager
 import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
 import kr.sweetapps.alcoholictimer.core.util.AppUpdateManager
@@ -54,7 +53,7 @@ class StartActivity : BaseActivity() {
         UmpConsentManager.requestAndLoadIfRequired(this) { canRequest ->
             if (canRequest) {
                 InterstitialAdManager.preload(this)
-                NativeAdManager.preload(this)
+                // NativeAdManager.preload(this) // removed: native ads not used
             }
         }
         Constants.initializeUserSettings(this)
