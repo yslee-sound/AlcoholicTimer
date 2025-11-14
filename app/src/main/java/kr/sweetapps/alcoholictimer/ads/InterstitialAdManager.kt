@@ -39,6 +39,7 @@ object InterstitialAdManager {
 
     private var interstitialAd: InterstitialAd? = null
     private val isLoading = AtomicBoolean(false)
+    private val isShowing = AtomicBoolean(false)
 
     // Deprecated: cold start once-per-session gate (disabled)
     @Deprecated("Cold start one-time gate is disabled. Use initial protection window instead.")
@@ -57,6 +58,7 @@ object InterstitialAdManager {
         if (isLoading.get()) return
         if (interstitialAd != null) return
         isLoading.set(true)
+        try { AdController.setInterstitialLoading(true) } catch (_: Throwable) {}
         val adRequest = AdRequest.Builder().build()
         val unitId = currentUnitId()
         Log.d(TAG, "Loading interstitial with unitId=$unitId (debug=${BuildConfig.DEBUG})")
@@ -68,6 +70,7 @@ object InterstitialAdManager {
                 override fun onAdLoaded(ad: InterstitialAd) {
                     interstitialAd = ad
                     isLoading.set(false)
+                    try { AdController.setInterstitialLoaded(true); AdController.setInterstitialLoading(false); AdController.setInterstitialLastError(null) } catch (_: Throwable) {}
                     Log.d(TAG, "onAdLoaded")
                     // notify listeners
                     notifyLoadListeners(true)
@@ -75,6 +78,7 @@ object InterstitialAdManager {
                 override fun onAdFailedToLoad(error: LoadAdError) {
                     interstitialAd = null
                     isLoading.set(false)
+                    try { AdController.setInterstitialLastError(error.toString()); AdController.setInterstitialLoading(false) } catch (_: Throwable) {}
                     Log.w(TAG, "onAdFailedToLoad: $error")
                     notifyLoadListeners(false)
                 }
@@ -181,24 +185,32 @@ object InterstitialAdManager {
         // 콜백 주입
         ad.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdShowedFullScreenContent() {
+                isShowing.set(true)
                 Log.d(TAG, "onAdShowedFullScreenContent")
                 AdController.setInterstitialShowing(true)  // 배너 숨김
+                AdController.setFullScreenAdShowing(true)
                 if (!bypass) {
                     // 표시 성공 기록은 릴리즈 정책에서만 반영
                     recordShown(activity)
                 }
             }
             override fun onAdDismissedFullScreenContent() {
+                isShowing.set(false)
                 Log.d(TAG, "onAdDismissedFullScreenContent")
                 AdController.setInterstitialShowing(false)  // 배너 다시 표시
+                AdController.setFullScreenAdShowing(false)
+                try { AdController.setInterstitialLoaded(false); AdController.setInterstitialLastError(null) } catch (_: Throwable) {}
                 interstitialAd = null
                 onDismiss?.invoke()
                 // 다음 기회 대비 즉시 프리로드
                 preload(activity.applicationContext)
             }
             override fun onAdFailedToShowFullScreenContent(adError: com.google.android.gms.ads.AdError) {
+                isShowing.set(false)
                 Log.w(TAG, "onAdFailedToShowFullScreenContent: $adError")
                 AdController.setInterstitialShowing(false)  // 실패 시에도 배너 복구
+                AdController.setFullScreenAdShowing(false)
+                try { AdController.setInterstitialLastError(adError.toString()) } catch (_: Throwable) {}
                 interstitialAd = null
                 onDismiss?.invoke()
                 // 실패 시에도 다음 기회 대비 프리로드
@@ -218,55 +230,9 @@ object InterstitialAdManager {
         return true
     }
 
+    // 광고가 현재 표시 중인지 여부 반환
+    fun isShowingAd(): Boolean = isShowing.get()
+
     @Deprecated("No-op: Cold start one-time gate removed.")
     fun resetColdStartGate() { /* no-op */ }
-}
-
-object AdHelpers {
-    private const val TAG = "AdHelpers"
-
-    /** 전면광고가 표시되면 onAfterShown, 아니면 fallback 실행 (AdController 빈도 제한 포함) */
-    fun showOr(activity: Activity, fallback: () -> Unit) {
-        // AdController로 빈도 제한 체크
-        if (!AdController.canShowInterstitial(activity)) {
-            Log.d(TAG, "Cannot show interstitial (frequency limit or disabled)")
-            fallback()
-            return
-        }
-
-        val showed = InterstitialAdManager.maybeShowIfEligible(activity) {
-            // 광고 표시 성공 시 기록
-            AdController.recordInterstitialShown(activity)
-            fallback()
-        }
-
-        if (!showed) {
-            fallback()
-        }
-    }
-
-    /** 전면 미로드 시 짧게 프리로드 시도 후 fallback (AdController 빈도 제한 포함) */
-    fun preloadThenShowOr(activity: Activity, timeoutMs: Long = 1200, fallback: () -> Unit) {
-        // AdController로 빈도 제한 체크
-        if (!AdController.canShowInterstitial(activity)) {
-            Log.d(TAG, "Cannot show interstitial (frequency limit or disabled)")
-            fallback()
-            return
-        }
-
-        if (InterstitialAdManager.isLoaded()) {
-            showOr(activity, fallback)
-            return
-        }
-
-        var handled = false
-        InterstitialAdManager.addLoadListener { success ->
-            if (!handled) {
-                handled = true
-                if (success) showOr(activity, fallback) else fallback()
-            }
-        }
-        InterstitialAdManager.preload(activity.applicationContext)
-        activity.window?.decorView?.postDelayed({ if (!handled) { handled = true; fallback() } }, timeoutMs)
-    }
 }

@@ -152,8 +152,8 @@ dependencies {
     implementation(libs.app.update.ktx)
     implementation(libs.kotlinx.coroutines.play.services)
 
-    // AdMob & UMP (명시 버전 사용) -> 버전 카탈로그 참조로 변경
-    implementation(libs.google.ads)
+    // AdMob & UMP (명시 버전 사용)
+    implementation("com.google.android.gms:play-services-ads:23.6.0") // upgraded to newer Ads SDK
     implementation(libs.ump)
 
     // ConstraintLayout for native ad layout (카탈로그 참조)

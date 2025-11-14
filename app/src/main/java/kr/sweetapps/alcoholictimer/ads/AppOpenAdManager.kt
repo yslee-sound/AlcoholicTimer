@@ -41,9 +41,6 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
     private val isLoading = AtomicBoolean(false)
     private val isShowing = AtomicBoolean(false)
     // 라이프사이클 기반 자동 표시를 제어하는 플래그
-    // 기본값을 false로 설정하여, 앱이 여러 Activity를 시작하는 시점에 의도치 않게
-    // MainActivity 등에서 자동으로 광고가 뜨지 않도록 합니다.
-    // StartActivity에서 수동으로 showIfAvailable을 호출하도록 설계합니다.
     private val allowAutoShow = AtomicBoolean(false)
 
     fun setAutoShowEnabled(enabled: Boolean) {
@@ -93,7 +90,25 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
         }
     }
 
+    private var isOtherAdShowing = AtomicBoolean(false)
+
+    fun setOtherAdShowing(showing: Boolean) {
+        isOtherAdShowing.set(showing)
+        Log.d(TAG, "setOtherAdShowing: $showing")
+    }
+
     private fun canShowNow(): Boolean {
+        // 중앙 상태에서 이미 전체 광고가 표시 중이면 차단
+        try {
+            if (AdController.isFullScreenAdShowing()) {
+                Log.d(TAG, "AppOpen blocked: AdController reports full-screen ad showing")
+                return false
+            }
+        } catch (_: Throwable) {}
+        if (isOtherAdShowing.get()) {
+            Log.d(TAG, "AppOpen blocked: another ad is showing")
+            return false
+        }
         // 정책 확인
         val enabled = try { AdController.isAppOpenEnabled() } catch (_: Throwable) { false }
         if (!enabled) {
@@ -138,6 +153,8 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
         }
 
         isLoading.set(true)
+        // 중앙 상태 업데이트: AppOpen 로드 시작
+        try { AdController.setAppOpenLoading(true) } catch (_: Throwable) {}
         val unitId = currentUnitId()
         Log.d(TAG, "preload start: unitId=$unitId @${System.currentTimeMillis()}")
         val request = AdRequest.Builder().build()
@@ -145,11 +162,12 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
             context,
             unitId,
             request,
-            AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT,
             object : AppOpenAd.AppOpenAdLoadCallback() {
                 override fun onAdLoaded(ad: AppOpenAd) {
                     appOpenAd = ad
                     isLoading.set(false)
+                    // 중앙 상태 업데이트: 로드 성공
+                    try { AdController.setAppOpenLoaded(true); AdController.setAppOpenLoading(false); AdController.setAppOpenLastError(null) } catch (_: Throwable) {}
                     lastLoadedAt = System.currentTimeMillis()
                     Log.d(TAG, "onAdLoaded app-open @${lastLoadedAt}")
                     // 포어그라운드 상태라면 즉시 표시 시도
@@ -168,6 +186,8 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
                 override fun onAdFailedToLoad(error: LoadAdError) {
                     appOpenAd = null
                     isLoading.set(false)
+                    // 중앙 상태 업데이트: 로드 실패
+                    try { AdController.setAppOpenLastError(error.toString()); AdController.setAppOpenLoading(false) } catch (_: Throwable) {}
                     Log.w(TAG, "onAdFailedToLoad app-open: $error @${System.currentTimeMillis()}")
                     // 403 등 서버 거부 시 지연 재시도 (30초)
                     Handler(Looper.getMainLooper()).postDelayed({
@@ -198,7 +218,7 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
     }
 
     fun showIfAvailable(activity: Activity) {
-        Log.d(TAG, "showIfAvailable called @${System.currentTimeMillis()} adLoaded=${appOpenAd!=null} isShowing=${isShowing.get()} activityFinishing=${activity.isFinishing}")
+        Log.d(TAG, "showIfAvailable called @${System.currentTimeMillis()} adLoaded=${appOpenAd!=null} isShowing=${isShowing.get()} activityFinishing=${activity.isFinishing}")
         if (!canShowNow()) {
             Log.d(TAG, "showIfAvailable abort: canShowNow=false")
             preload(activity.applicationContext)
@@ -219,6 +239,9 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
                 Log.d(TAG, "onAdShowedFullScreenContent @${System.currentTimeMillis()}")
                 // 배너 겹침 방지: 전면 상태로 간주
                 AdController.setInterstitialShowing(true)
+                AdController.setFullScreenAdShowing(true)
+                // 광고를 실제로 보여줄 때는 더 이상 로드된 상태가 아님
+                try { AdController.setAppOpenLoaded(false); AdController.setAppOpenLoading(false) } catch (_: Throwable) {}
                 lastShownAt = System.currentTimeMillis()
                 // notify listeners that ad is now visible
                 onAdShownListener?.invoke()
@@ -236,6 +259,8 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
             override fun onAdDismissedFullScreenContent() {
                 Log.d(TAG, "onAdDismissedFullScreenContent @${System.currentTimeMillis()}")
                 AdController.setInterstitialShowing(false)
+                AdController.setFullScreenAdShowing(false)
+                try { AdController.setAppOpenLoaded(false); AdController.setAppOpenLastError(null) } catch (_: Throwable) {}
                 appOpenAd = null
                 isShowing.set(false)
                 preload(activity.applicationContext)
@@ -254,6 +279,8 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
             override fun onAdFailedToShowFullScreenContent(adError: com.google.android.gms.ads.AdError) {
                 Log.w(TAG, "onAdFailedToShowFullScreenContent: $adError @${System.currentTimeMillis()}")
                 AdController.setInterstitialShowing(false)
+                AdController.setFullScreenAdShowing(false)
+                try { AdController.setAppOpenLastError(adError.toString()) } catch (_: Throwable) {}
                 appOpenAd = null
                 isShowing.set(false)
                 preload(activity.applicationContext)
@@ -313,4 +340,7 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
     override fun onActivityStopped(activity: Activity) {}
     override fun onActivitySaveInstanceState(activity: Activity, outState: android.os.Bundle) {}
     override fun onActivityDestroyed(activity: Activity) {}
+
+    // 광고가 현재 표시 중인지 여부 반환
+    fun isShowingAd(): Boolean = isShowing.get()
 }

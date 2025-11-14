@@ -40,12 +40,47 @@ object AdController {
     // 전면광고 표시 중 배너 일시 숨김 상태
     private val _isInterstitialShowing = mutableStateOf(false)
 
+    // 전체(full-screen) 광고(앱오픈/전면)를 나타내는 단일 소스 오브 트루스
+    private val _isFullScreenAdShowing = mutableStateOf(false)
+
+    // 광고 로드 상태 및 실패 이유 통합 관리
+    private val _appOpenLoading = mutableStateOf(false)
+    private val _appOpenLoaded = mutableStateOf(false)
+    private val _appOpenLastError = mutableStateOf<String?>(null)
+
+    private val _interstitialLoading = mutableStateOf(false)
+    private val _interstitialLoaded = mutableStateOf(false)
+    private val _interstitialLastError = mutableStateOf<String?>(null)
+
     /**
      * 전면광고 표시 상태 읽기 (Composable에서 사용)
      */
     @Composable
     fun isInterstitialShowingState(): Boolean {
         return _isInterstitialShowing.value
+    }
+
+    /**
+     * 전체(full-screen) 광고가 표시 중인지 여부 (Composable에서 사용)
+     */
+    @Composable
+    fun isFullScreenAdShowingState(): Boolean {
+        return _isFullScreenAdShowing.value
+    }
+
+    /**
+     * 전체(full-screen) 광고가 표시 중인지 여부 (비-Composable)
+     */
+    fun isFullScreenAdShowing(): Boolean {
+        return _isFullScreenAdShowing.value
+    }
+
+    /**
+     * 전체(full-screen) 광고 표시 상태 설정(앱 내부에서만 사용)
+     */
+    fun setFullScreenAdShowing(showing: Boolean) {
+        _isFullScreenAdShowing.value = showing
+        Log.d(TAG, "Full-screen ad showing state set: $showing")
     }
 
     /**
@@ -275,4 +310,68 @@ object AdController {
         _isInterstitialShowing.value = showing
         Log.d(TAG, "Interstitial showing state: $showing")
     }
+
+    // App Open getters/setters
+    @Composable
+    fun isAppOpenLoadingState(): Boolean = _appOpenLoading.value
+
+    fun isAppOpenLoading(): Boolean = _appOpenLoading.value
+
+    fun setAppOpenLoading(loading: Boolean) {
+        _appOpenLoading.value = loading
+        if (loading) {
+            _appOpenLastError.value = null
+            _appOpenLoaded.value = false
+        }
+        Log.d(TAG, "AppOpen loading state: $loading")
+    }
+
+    fun setAppOpenLoaded(loaded: Boolean) {
+        _appOpenLoaded.value = loaded
+        if (loaded) _appOpenLoading.value = false
+        Log.d(TAG, "AppOpen loaded state: $loaded")
+    }
+
+    fun setAppOpenLastError(message: String?) {
+        _appOpenLastError.value = message
+        if (message != null) {
+            _appOpenLoaded.value = false
+            _appOpenLoading.value = false
+        }
+        Log.d(TAG, "AppOpen last error: $message")
+    }
+
+    fun getAppOpenLastError(): String? = _appOpenLastError.value
+
+    // Interstitial getters/setters
+    @Composable
+    fun isInterstitialLoadingState(): Boolean = _interstitialLoading.value
+
+    fun isInterstitialLoading(): Boolean = _interstitialLoading.value
+
+    fun setInterstitialLoading(loading: Boolean) {
+        _interstitialLoading.value = loading
+        if (loading) {
+            _interstitialLastError.value = null
+            _interstitialLoaded.value = false
+        }
+        Log.d(TAG, "Interstitial loading state: $loading")
+    }
+
+    fun setInterstitialLoaded(loaded: Boolean) {
+        _interstitialLoaded.value = loaded
+        if (loaded) _interstitialLoading.value = false
+        Log.d(TAG, "Interstitial loaded state: $loaded")
+    }
+
+    fun setInterstitialLastError(message: String?) {
+        _interstitialLastError.value = message
+        if (message != null) {
+            _interstitialLoaded.value = false
+            _interstitialLoading.value = false
+        }
+        Log.d(TAG, "Interstitial last error: $message")
+    }
+
+    fun getInterstitialLastError(): String? = _interstitialLastError.value
 }

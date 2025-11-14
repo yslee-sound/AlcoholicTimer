@@ -1,6 +1,5 @@
 package kr.sweetapps.alcoholictimer
 
-import android.content.Context.MODE_PRIVATE
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -18,11 +17,10 @@ import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.ads.UmpConsentManager
 import androidx.compose.runtime.Composable
 
-class MainActivity : BaseActivity() {
-    private val systemBarHandler = Handler(Looper.getMainLooper())
-    private var systemBarReapplyAttempts = 0
-    private val systemBarMaxReapply = 3
+// small noop comment to trigger reindex
+// MainActivity integrity check
 
+class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -133,6 +131,7 @@ class MainActivity : BaseActivity() {
     }
 
     // BaseActivity의 추상 함수 구현
+    @Deprecated("Overrides deprecated API from BaseActivity")
     override fun getScreenTitle(): String = getString(R.string.app_name)
 }
 

@@ -47,8 +47,15 @@ abstract class BaseActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         applySystemBarAppearance()
-        // Some OEM/system UIs or splash/ads can change system bars after onResume;
-        // schedule a few delayed reapply attempts to override late changes.
+
+        // Check and prevent simultaneous ad displays
+        if (kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.isShowingAd() ||
+            kr.sweetapps.alcoholictimer.ads.InterstitialAdManager.isShowingAd()) {
+            android.util.Log.d("BaseActivity", "Ad display suppressed: another ad is already showing")
+            return
+        }
+
+        // Schedule delayed reapply attempts to override late changes
         val delays = listOf(200L, 800L, 2000L)
         delays.forEach { d ->
             try { window.decorView.postDelayed({ applySystemBarAppearance() }, d) } catch (_: Throwable) {}
@@ -70,55 +77,14 @@ abstract class BaseActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         // Clear translucent flags if any
-        window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS or android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION)
-        // Make status bar transparent (app draws behind it) but force navigation bar to opaque white
-        window.statusBarColor = android.graphics.Color.TRANSPARENT
-        window.navigationBarColor = android.graphics.Color.WHITE
-        // API 29+ navigation bar contrast enforcement can force a different color; disable it
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-            try { window.isNavigationBarContrastEnforced = false } catch (_: Throwable) {}
-        }
-        // API 28+ divider color can introduce a visible strip; make it transparent
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-            try { window.navigationBarDividerColor = android.graphics.Color.TRANSPARENT } catch (_: Throwable) {}
-        }
+        window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
 
-        // 주석 처리된 레거시 systemUiVisibility
-        // window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-        //     or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-
-        // WindowInsetsControllerCompat만 사용하도록 정리
+        // Use WindowInsetsControllerCompat to manage system bar colors
         val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
         windowInsetsController.isAppearanceLightStatusBars = true
         windowInsetsController.isAppearanceLightNavigationBars = true
 
-        // Diagnostic logs
-        try {
-            android.util.Log.d("BaseActivity", "statusBarColor=#${Integer.toHexString(window.statusBarColor)} navBarColor=#${Integer.toHexString(window.navigationBarColor)} vis=${window.decorView.systemUiVisibility} isLightStatus=${windowInsetsController.isAppearanceLightStatusBars} isLightNav=${if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) windowInsetsController.isAppearanceLightNavigationBars else "N/A"}")
-        } catch (t: Throwable) {
-            android.util.Log.w("BaseActivity", "log system bar state failed: $t")
-        }
-
-        // Append diagnostic trace to app-private file for post-mortem analysis (debug-only, best-effort)
-        try {
-            val fn = "navbar-debug.txt"
-            val msg = java.lang.String.format(
-                "%d BaseActivity status=#%s nav=#%s vis=%d isLightStatus=%s isLightNav=%s\n",
-                System.currentTimeMillis(),
-                Integer.toHexString(window.statusBarColor),
-                Integer.toHexString(window.navigationBarColor),
-                window.decorView.systemUiVisibility,
-                windowInsetsController.isAppearanceLightStatusBars.toString(),
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) windowInsetsController.isAppearanceLightNavigationBars.toString() else "N/A"
-            )
-            try {
-                val f = java.io.File(filesDir, fn)
-                f.appendText(msg)
-            } catch (_: Throwable) { /* ignore file errors on restricted devices */ }
-        } catch (_: Throwable) { }
-
         // Ensure window background under navigation bar is opaque white to avoid showing other content
-        // (With edge-to-edge we draw app background to system bars; keep white background drawable as fallback)
         try {
             window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.WHITE))
         } catch (_: Throwable) {}
