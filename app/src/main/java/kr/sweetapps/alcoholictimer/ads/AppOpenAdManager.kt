@@ -136,6 +136,12 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
     }
 
     fun preload(context: Context) {
+        // 정책 확인: 정책이 비활성화되어 있으면 프리로드 차단
+        val policyEnabled = try { kr.sweetapps.alcoholictimer.ads.AdController.isAppOpenEnabled() } catch (_: Throwable) { true }
+        if (!policyEnabled) {
+            Log.d(TAG, "preload skipped: app-open disabled by policy")
+            return
+        }
         if (isLoading.get()) { Log.d(TAG, "preload skipped: already loading @${System.currentTimeMillis()}"); return }
         if (appOpenAd != null) { Log.d(TAG, "preload skipped: already have ad @${System.currentTimeMillis()}"); return }
 
@@ -197,6 +203,19 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
                 }
             }
         )
+    }
+
+    /** 정책 비활성화 시 이미 로드된 AppOpen 광고 제거 */
+    fun clearLoadedAd() {
+        try {
+            appOpenAd = null
+            isLoading.set(false)
+            isShowing.set(false)
+            try { AdController.setAppOpenLoaded(false); AdController.setAppOpenLoading(false); AdController.setAppOpenLastError(null) } catch (_: Throwable) {}
+            Log.d(TAG, "clearLoadedAd: app-open cleared by policy change")
+        } catch (t: Throwable) {
+            Log.w(TAG, "clearLoadedAd failed: $t")
+        }
     }
 
     // 광고 종료/실패 시 호출되는 콜백

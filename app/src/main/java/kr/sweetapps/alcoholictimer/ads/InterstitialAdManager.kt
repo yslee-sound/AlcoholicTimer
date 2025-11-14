@@ -52,9 +52,13 @@ object InterstitialAdManager {
     // simple listeners to notify callers when load succeeds/fails
     private val loadListeners = mutableListOf<(Boolean) -> Unit>()
 
-    private fun isPolicyBypassed(): Boolean = BuildConfig.DEBUG
+    private fun isPolicyBypassed(): Boolean = false // 변경: 더 이상 디버그에서 정책 우회하지 않음
 
     fun preload(context: Context) {
+        if (!tryPolicyEnabled()) {
+            Log.d(TAG, "preload skipped: interstitial disabled by policy")
+            return
+        }
         if (isLoading.get()) return
         if (interstitialAd != null) return
         isLoading.set(true)
@@ -86,6 +90,16 @@ object InterstitialAdManager {
         )
     }
 
+    // 정책 허용 여부를 안전하게 확인
+    private fun tryPolicyEnabled(): Boolean {
+        return try {
+            kr.sweetapps.alcoholictimer.ads.AdController.isInterstitialEnabled()
+        } catch (t: Throwable) {
+            Log.w(TAG, "Policy check failed, defaulting to disabled: $t")
+            false
+        }
+    }
+
     private fun notifyLoadListeners(success: Boolean) {
         val copy = ArrayList(loadListeners)
         loadListeners.clear()
@@ -99,6 +113,20 @@ object InterstitialAdManager {
     }
 
     fun isLoaded(): Boolean = interstitialAd != null
+
+    /** 정책 비활성화 시 이미 로드된 광고 제거 */
+    fun clearLoadedAd() {
+        try {
+            interstitialAd = null
+            isLoading.set(false)
+            isShowing.set(false)
+            // 중앙 상태 업데이트
+            try { AdController.setInterstitialLoaded(false); AdController.setInterstitialLoading(false); AdController.setInterstitialLastError(null) } catch (_: Throwable) {}
+            Log.d(TAG, "clearLoadedAd: interstitial cleared by policy change")
+        } catch (t: Throwable) {
+            Log.w(TAG, "clearLoadedAd failed: $t")
+        }
+    }
 
     private fun currentDayKey(): String = SimpleDateFormat("yyyyMMdd", Locale.US).format(Date())
 
@@ -162,46 +190,51 @@ object InterstitialAdManager {
         activity: Activity,
         onDismiss: (() -> Unit)? = null
     ): Boolean {
+        // 정책이 비활성화 되어 있으면 즉시 차단
+        if (!tryPolicyEnabled()) {
+            Log.d(TAG, "❌ Interstitial disabled by policy")
+            return false
+        }
         val bypass = isPolicyBypassed()
-        // Cold start once-per-session gate disabled
-        val ad = interstitialAd
-        if (ad == null) {
-            Log.d(TAG, "Blocked: ad not loaded${if (bypass) " (debug: will just return)" else ""}")
-            return false
-        }
-        if (activity.isFinishing || activity.isDestroyed) {
-            Log.d(TAG, "Blocked: invalid activity state")
-            return false
-        }
-        if (!bypass) {
-            val (pass, reason) = passesPolicy(activity)
-            if (!pass) {
-                Log.d(TAG, "Blocked by policy: $reason")
-                return false
-            }
-        } else {
-            Log.d(TAG, "Policy bypassed (debug): always show if loaded")
-        }
-        // 콜백 주입
-        ad.fullScreenContentCallback = object : FullScreenContentCallback() {
-            override fun onAdShowedFullScreenContent() {
-                isShowing.set(true)
-                Log.d(TAG, "onAdShowedFullScreenContent")
-                AdController.setInterstitialShowing(true)  // 배너 숨김
-                AdController.setFullScreenAdShowing(true)
-                if (!bypass) {
-                    // 표시 성공 기록은 릴리즈 정책에서만 반영
-                    recordShown(activity)
-                }
-                // 시스템바 재적용 (일부 기기/광고가 SystemUI를 덮어쓸 수 있음)
-                try {
-                    if (activity is kr.sweetapps.alcoholictimer.core.ui.BaseActivity) {
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            try { activity.reapplySystemBars() } catch (_: Throwable) {}
-                        }, 150)
-                    }
-                } catch (_: Throwable) {}
-            }
+         // Cold start once-per-session gate disabled
+         val ad = interstitialAd
+         if (ad == null) {
+             Log.d(TAG, "Blocked: ad not loaded${if (bypass) " (debug: will just return)" else ""}")
+             return false
+         }
+         if (activity.isFinishing || activity.isDestroyed) {
+             Log.d(TAG, "Blocked: invalid activity state")
+             return false
+         }
+         if (!bypass) {
+             val (pass, reason) = passesPolicy(activity)
+             if (!pass) {
+                 Log.d(TAG, "Blocked by policy: $reason")
+                 return false
+             }
+         } else {
+             Log.d(TAG, "Policy bypassed (debug): always show if loaded")
+         }
+         // 콜백 주입
+         ad.fullScreenContentCallback = object : FullScreenContentCallback() {
+             override fun onAdShowedFullScreenContent() {
+                 isShowing.set(true)
+                 Log.d(TAG, "onAdShowedFullScreenContent")
+                 AdController.setInterstitialShowing(true)  // 배너 숨김
+                 AdController.setFullScreenAdShowing(true)
+                 if (!bypass) {
+                     // 표시 성공 기록은 릴리즈 정책에서만 반영
+                     recordShown(activity)
+                 }
+                 // 시스템바 재적용 (일부 기기/광고가 SystemUI를 덮어쓸 수 있음)
+                 try {
+                     if (activity is kr.sweetapps.alcoholictimer.core.ui.BaseActivity) {
+                         Handler(Looper.getMainLooper()).postDelayed({
+                             try { activity.reapplySystemBars() } catch (_: Throwable) {}
+                         }, 150)
+                     }
+                 } catch (_: Throwable) {}
+             }
             override fun onAdDismissedFullScreenContent() {
                 isShowing.set(false)
                 Log.d(TAG, "onAdDismissedFullScreenContent")

@@ -129,6 +129,16 @@ object AdController {
                     Log.d(TAG, "  - App Open: ${policy.adAppOpenEnabled}")
                     Log.d(TAG, "  - Max/hour: ${policy.adInterstitialMaxPerHour}")
                     Log.d(TAG, "  - Max/day: ${policy.adInterstitialMaxPerDay}")
+
+                    // 정책이 비활성화된 경우 이미 로드된 광고를 제거
+                    if (!policy.isActive) {
+                        try {
+                            kr.sweetapps.alcoholictimer.ads.InterstitialAdManager.clearLoadedAd()
+                        } catch (_: Throwable) { Log.w(TAG, "Failed to clear interstitial on policy change") }
+                        try {
+                            kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.clearLoadedAd()
+                        } catch (_: Throwable) { Log.w(TAG, "Failed to clear app-open on policy change") }
+                    }
                 } else {
                     Log.d(TAG, "⚠️ No AdPolicy found, using defaults")
                 }
@@ -161,10 +171,10 @@ object AdController {
             return false
         }
         val policy = _cachedPolicy.value  // State 직접 읽기로 구독
-        return if (policy != null && policy.isActive) {
-            policy.adBannerEnabled
-        } else {
-            true // Fallback: 정책 미로딩 시 배너는 표시 (초기 체감 속도 개선)
+        return when {
+            policy == null -> true // 문서 기준: 정책 미존재 -> 기본 허용
+            !policy.isActive -> false // 정책이 존재하고 비활성화 되어 있으면 전체 차단
+            else -> policy.adBannerEnabled
         }
     }
 
@@ -177,10 +187,10 @@ object AdController {
             return false
         }
         val policy = cachedPolicy
-        return if (policy != null && policy.isActive) {
-            policy.adBannerEnabled
-        } else {
-            true // Fallback: 정책 미로딩 시 배너는 표시
+        return when {
+            policy == null -> true // 문서 기준: 정책 미존재 -> 기본 허용
+            !policy.isActive -> false // 정책이 존재하고 비활성화 되어 있으면 전체 차단
+            else -> policy.adBannerEnabled
         }
     }
 
@@ -270,10 +280,10 @@ object AdController {
      */
     fun isAppOpenEnabled(): Boolean {
         val policy = cachedPolicy
-        return if (policy != null && policy.isActive) {
-            policy.adAppOpenEnabled
-        } else {
-            true // Fallback: 정책 미로딩 시 앱오픈 허용(초기 표시 확률 개선)
+        return when {
+            policy == null -> true // 문서 기준: 정책 미존재 -> 기본 허용
+            !policy.isActive -> false // 정책이 존재하고 비활성화 되어 있으면 전체 차단
+            else -> policy.adAppOpenEnabled
         }
     }
 

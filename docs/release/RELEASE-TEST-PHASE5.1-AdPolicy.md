@@ -19,7 +19,6 @@ RLS 수정으로 is_active 정상화 + is_active 테스트 + 3분 캐싱 이해.
 **캐싱 구분**
 ```
 ad_policy: 3분 (이 문서)
-app_policy: 5분
 ```
 
 ### 1.2 테이블 구조
