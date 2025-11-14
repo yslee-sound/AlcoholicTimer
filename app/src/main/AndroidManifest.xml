@@ -38,6 +38,13 @@
         <!-- Compose NavHost 전환에 따라 기존 개별 Activity 제거 -->
         <!-- RecordsActivity / AllRecordsActivity / SettingsActivity / DetailActivity 제거 -->
 
+        <!-- Ensure AdActivity uses the splash theme to avoid black background gap when showing ads -->
+        <activity
+            android:name="com.google.android.gms.ads.AdActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AlcoholicTimer.Splash"
+            tools:replace="android:theme" />
+
         <!-- 별명 편집 화면 -->
         <activity
             android:name="kr.sweetapps.alcoholictimer.feature.profile.NicknameEditActivity"

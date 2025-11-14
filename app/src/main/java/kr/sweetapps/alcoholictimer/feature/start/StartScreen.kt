@@ -51,6 +51,7 @@ fun StartScreenWithUpdate(
     appUpdateManager: AppUpdateManager,
     initialMinRemainMillis: Long = 0L,
     usesComposeOverlay: Boolean = true,
+    holdSplashState: MutableState<Boolean>, // Activity에서 제어하는 스플래시 유지 상태
     onSplashFinished: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
@@ -115,11 +116,15 @@ fun StartScreenWithUpdate(
 
     val gateNavigation = isCheckingUpdate || showUpdateDialog
 
+    val showSplashOverlay = usesComposeOverlay && (keepMinOverlay || isCheckingUpdate || holdSplashState.value) && !showUpdateDialog
+
+    // 스플래시 오버레이가 해제될 때(onSplashFinished)만 앱으로 진입
+    LaunchedEffect(showSplashOverlay) {
+        if (!showSplashOverlay) onSplashFinished()
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         StartScreen(gateNavigation = gateNavigation)
-
-        val showSplashOverlay = usesComposeOverlay && (keepMinOverlay || isCheckingUpdate) && !showUpdateDialog
-        LaunchedEffect(showSplashOverlay) { if (!showSplashOverlay) onSplashFinished() }
 
         AnimatedVisibility(
             visible = showSplashOverlay,
@@ -150,8 +155,11 @@ fun StartScreenWithUpdate(
             onDismiss = { showUpdateDialog = false; appUpdateManager.markUserPostpone() },
             canDismiss = !appUpdateManager.isMaxPostponeReached()
         )
-    }
-}
+
+        // 광고가 닫히거나 실패하면 StartActivity에 등록된 콜백이 holdSplash를 해제하여
+        // 이 LaunchedEffect를 통해 onSplashFinished가 호출됩니다.
+     }
+ }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

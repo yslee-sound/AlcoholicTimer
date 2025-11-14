@@ -27,10 +27,11 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
 
     // Google's sample App Open Ad unit id (테스트/폴백)
     private const val GOOGLE_TEST_APP_OPEN_ID = "ca-app-pub-3940256099942544/3419835294"
-    private const val PROD_APP_OPEN_ID = "여기에_운영_광고_단위_ID_입력" // 실제 운영 광고 단위 ID로 교체
+    private const val PROD_APP_OPEN_ID = "ca-app-pub-3940256099942544/9257395921" // 실제 운영 광고 단위 ID로 교체
 
     private fun currentUnitId(): String {
-        return BuildConfig.ADMOB_APP_OPEN_UNIT_ID
+        // 운영 광고 단위 ID를 항상 반환
+        return PROD_APP_OPEN_ID
     }
 
     private var app: Application? = null
@@ -39,6 +40,16 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
     private var appOpenAd: AppOpenAd? = null
     private val isLoading = AtomicBoolean(false)
     private val isShowing = AtomicBoolean(false)
+    // 라이프사이클 기반 자동 표시를 제어하는 플래그
+    // 기본값을 false로 설정하여, 앱이 여러 Activity를 시작하는 시점에 의도치 않게
+    // MainActivity 등에서 자동으로 광고가 뜨지 않도록 합니다.
+    // StartActivity에서 수동으로 showIfAvailable을 호출하도록 설계합니다.
+    private val allowAutoShow = AtomicBoolean(false)
+
+    fun setAutoShowEnabled(enabled: Boolean) {
+        allowAutoShow.set(enabled)
+        Log.d(TAG, "setAutoShowEnabled=$enabled")
+    }
 
     private var lastLoadedAt: Long = 0L
     private var lastShownAt: Long = 0L
@@ -60,16 +71,26 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
         }
     }
 
-    fun initialize(application: Application) {
+    fun initialize(application: Application, registerLifecycle: Boolean = true) {
         if (app != null) return
         app = application
-        Log.d(TAG, "initialize: application set. starting lifecycle hooks")
-        application.registerActivityLifecycleCallbacks(this)
-        ProcessLifecycleOwner.get().lifecycle.addObserver(this)
+        Log.d(TAG, "initialize: application set. registerLifecycle=$registerLifecycle")
+        if (registerLifecycle) startLifecycleMonitoring(application)
         // 초기 preload는 UMP 동의 전이므로 스킵, UMP 완료 후 onConsentUpdated에서 시작
         Log.d(TAG, "✅ Initialized (preload deferred until UMP consent)")
         healthCheckHandler = Handler(Looper.getMainLooper())
         healthCheckHandler?.postDelayed(healthRunnable, 30_000)
+    }
+
+    fun startLifecycleMonitoring(application: Application) {
+        if (app == null) app = application
+        try {
+            Log.d(TAG, "startLifecycleMonitoring: registering lifecycle callbacks")
+            application.registerActivityLifecycleCallbacks(this)
+            ProcessLifecycleOwner.get().lifecycle.addObserver(this)
+        } catch (t: Throwable) {
+            Log.w(TAG, "startLifecycleMonitoring failed: $t")
+        }
     }
 
     private fun canShowNow(): Boolean {
@@ -133,9 +154,17 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
                     Log.d(TAG, "onAdLoaded app-open @${lastLoadedAt}")
                     // 포어그라운드 상태라면 즉시 표시 시도
                     currentActivityRef?.get()?.let { act ->
-                        showIfAvailable(act)
+                        if (allowAutoShow.get()) {
+                            Log.d(TAG, "onAdLoaded: auto-show enabled -> showing ad")
+                            showIfAvailable(act)
+                        } else {
+                            Log.d(TAG, "onAdLoaded: auto-show suppressed, waiting for manual show")
+                            // 알림: 수동 표시를 위해 등록된 리스너 호출
+                            onAdLoadedListener?.invoke()
+                        }
                     } ?: Log.d(TAG, "show skip: no current activity ref")
                 }
+                // 광고 로딩 실패 시에도 콜백 호출
                 override fun onAdFailedToLoad(error: LoadAdError) {
                     appOpenAd = null
                     isLoading.set(false)
@@ -144,9 +173,28 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
                     Handler(Looper.getMainLooper()).postDelayed({
                         if (appOpenAd == null && !isLoading.get()) preload(context.applicationContext)
                     }, 30_000)
+                    onAdFinishedListener?.invoke()
                 }
             }
         )
+    }
+
+    // 광고 종료/실패 시 호출되는 콜백
+    private var onAdFinishedListener: (() -> Unit)? = null
+    fun setOnAdFinishedListener(listener: (() -> Unit)?) {
+        onAdFinishedListener = listener
+    }
+
+    // 광고 로드 완료 시 호출되는 콜백 (StartActivity가 리스너로 등록하여 수동 표시 가능)
+    private var onAdLoadedListener: (() -> Unit)? = null
+    fun setOnAdLoadedListener(listener: (() -> Unit)?) {
+        onAdLoadedListener = listener
+    }
+
+    // 광고가 실제로 화면에 나타날 때 호출되는 콜백
+    private var onAdShownListener: (() -> Unit)? = null
+    fun setOnAdShownListener(listener: (() -> Unit)?) {
+        onAdShownListener = listener
     }
 
     fun showIfAvailable(activity: Activity) {
@@ -172,6 +220,8 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
                 // 배너 겹침 방지: 전면 상태로 간주
                 AdController.setInterstitialShowing(true)
                 lastShownAt = System.currentTimeMillis()
+                // notify listeners that ad is now visible
+                onAdShownListener?.invoke()
             }
             override fun onAdDismissedFullScreenContent() {
                 Log.d(TAG, "onAdDismissedFullScreenContent @${System.currentTimeMillis()}")
@@ -179,6 +229,7 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
                 appOpenAd = null
                 isShowing.set(false)
                 preload(activity.applicationContext)
+                onAdFinishedListener?.invoke()
             }
             override fun onAdFailedToShowFullScreenContent(adError: com.google.android.gms.ads.AdError) {
                 Log.w(TAG, "onAdFailedToShowFullScreenContent: $adError @${System.currentTimeMillis()}")
@@ -186,6 +237,7 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
                 appOpenAd = null
                 isShowing.set(false)
                 preload(activity.applicationContext)
+                onAdFinishedListener?.invoke()
             }
         }
         Handler(Looper.getMainLooper()).post {
@@ -204,11 +256,11 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
         Log.d(TAG, "ProcessLifecycle onStart @${System.currentTimeMillis()}")
         val act = currentActivityRef?.get()
         if (act != null) {
-            showIfAvailable(act)
+            if (allowAutoShow.get()) showIfAvailable(act) else Log.d(TAG, "onStart: auto-show suppressed")
         } else {
             // Activity 참조가 아직 세팅 전일 수 있으므로 짧은 지연 후 재시도
             Handler(Looper.getMainLooper()).postDelayed({
-                currentActivityRef?.get()?.let { showIfAvailable(it) } ?: Log.d(TAG, "Delayed onStart retry: still no activity")
+                currentActivityRef?.get()?.let { if (allowAutoShow.get()) showIfAvailable(it) else Log.d(TAG, "Delayed onStart retry: auto-show suppressed") } ?: Log.d(TAG, "Delayed onStart retry: still no activity")
             }, 300)
         }
     }
@@ -218,13 +270,13 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
         Log.d(TAG, "onActivityStarted ${activity::class.java.simpleName} @${System.currentTimeMillis()}")
         currentActivityRef = WeakReference(activity)
         // 포어그라운드 진입 시점에 즉시 시도 (중복 방지는 isShowing/cooldown으로 해결)
-        showIfAvailable(activity)
+        if (allowAutoShow.get()) showIfAvailable(activity) else Log.d(TAG, "onActivityStarted: auto-show suppressed for ${activity::class.java.simpleName}")
     }
     override fun onActivityResumed(activity: Activity) {
         Log.d(TAG, "onActivityResumed ${activity::class.java.simpleName} @${System.currentTimeMillis()}")
         currentActivityRef = WeakReference(activity)
         // 재개 시에도 한 번 더 시도 (조건 불충족 시 내부에서 빠르게 return)
-        showIfAvailable(activity)
+        if (allowAutoShow.get()) showIfAvailable(activity) else Log.d(TAG, "onActivityResumed: auto-show suppressed for ${activity::class.java.simpleName}")
     }
     override fun onActivityCreated(activity: Activity, savedInstanceState: android.os.Bundle?) {}
     override fun onActivityPaused(activity: Activity) {}

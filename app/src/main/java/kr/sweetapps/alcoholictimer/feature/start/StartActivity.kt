@@ -17,6 +17,7 @@ import kr.sweetapps.alcoholictimer.core.util.Constants
 import kr.sweetapps.alcoholictimer.MainActivity
 import android.graphics.Color as AndroidColor
 import kr.sweetapps.alcoholictimer.ads.HomeAdTrigger
+import androidx.compose.runtime.mutableStateOf
 
 class StartActivity : BaseActivity() {
     private lateinit var appUpdateManager: AppUpdateManager
@@ -75,10 +76,36 @@ class StartActivity : BaseActivity() {
         val skipSplash = intent.getBooleanExtra("skip_splash", false)
         appUpdateManager = AppUpdateManager(this)
 
+        // Compose로 전달할 스플래시 유지 상태 (초기 true: 스플래시는 광고가 끝날 때까지 유지)
+        val holdSplashState = mutableStateOf(true)
+
+        // AppOpenAd 완료/실패 시 스플래시 해제 트리거
+        // 자동 라이프사이클 기반 노출은 StartActivity에서 직접 제어(일시 중단)합니다.
+        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setAutoShowEnabled(false)
+        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdFinishedListener {
+            // 광고 종료 시 자동 노출을 다시 허용하고 스플래시를 해제
+            kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setAutoShowEnabled(true)
+            runOnUiThread {
+                android.util.Log.d("StartActivity", "Ad finished -> releasing holdSplashState")
+                holdSplashState.value = false
+            }
+        }
+        // 광고가 로드되면 수동으로 표시하도록 리스너 등록
+        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdLoadedListener {
+            runOnUiThread {
+                android.util.Log.d("StartActivity", "Ad loaded -> manual show requested")
+                try {
+                    kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this@StartActivity)
+                } catch (t: Throwable) {
+                    android.util.Log.w("StartActivity", "manual show failed: $t")
+                }
+            }
+        }
+
         val launchContent = {
             val elapsed = SystemClock.uptimeMillis() - splashStart
             val initialRemain = (minShowMillis - elapsed).coerceAtLeast(0L)
-            val usesComposeOverlay = false
+            val usesComposeOverlay = true
             setContent {
                 BaseScreen(
                     applyBottomInsets = true,
@@ -93,24 +120,27 @@ class StartActivity : BaseActivity() {
                             appUpdateManager = appUpdateManager,
                             initialMinRemainMillis = if (skipSplash) 0L else initialRemain,
                             usesComposeOverlay = usesComposeOverlay,
-                            onSplashFinished = { /* keep watermark background */ }
+                            holdSplashState = holdSplashState,
+                            onSplashFinished = {
+                                // 광고가 닫히고 Compose에서 스플래시가 해제될 때 호출됩니다.
+                                val i = Intent(this@StartActivity, MainActivity::class.java)
+                                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                                startActivity(i)
+                                finish()
+                            }
                         )
                     }
                 )
             }
         } // <-- closes launchContent lambda
 
-        // 스플래시에서 앱 오프닝 광고 노출 시도
-        var adShown = false
-        AppOpenAdManager.showIfAvailable(this)
-        // 광고가 닫히거나 실패하면 메인 화면으로 이동
+        // 스플래시 overlay가 시작될 때 광고를 바로 띄움 (리스너 등록 및 auto-show 비활성화 후 호출)
+        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this)
+
+        // 광고가 없거나 실패 등으로 콜백이 불리지 않을 경우를 대비한 안전 타임아웃
+        // 직접 Activity 전환하지 말고 holdSplashState를 해제하여 Compose에서 onSplashFinished가 호출되게 함
         window.decorView.postDelayed({
-            if (!adShown) {
-                val i = Intent(this, MainActivity::class.java)
-                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                startActivity(i)
-                finish()
-            }
+            holdSplashState.value = false
         }, 2000) // 광고가 없거나 실패 시 2초 후 자동 진입
 
         if (Build.VERSION.SDK_INT < 31) {
@@ -140,6 +170,13 @@ class StartActivity : BaseActivity() {
             startActivity(i)
             finish()
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // 리스너 해제
+        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdFinishedListener(null)
+        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdLoadedListener(null)
     }
 
     override fun getScreenTitleResId(): Int = R.string.start_screen_title
