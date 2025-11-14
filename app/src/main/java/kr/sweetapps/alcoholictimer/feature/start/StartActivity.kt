@@ -18,9 +18,24 @@ import kr.sweetapps.alcoholictimer.MainActivity
 import android.graphics.Color as AndroidColor
 import kr.sweetapps.alcoholictimer.ads.HomeAdTrigger
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.view.WindowInsetsControllerCompat
+import android.view.WindowManager
 
 class StartActivity : BaseActivity() {
     private lateinit var appUpdateManager: AppUpdateManager
+
+    private fun applySystemBarAppearance() {
+        try {
+            // 투명 플래그 제거
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS or WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION)
+            window.statusBarColor = AndroidColor.WHITE
+            window.navigationBarColor = AndroidColor.WHITE
+            // appearance 설정
+            val controller = WindowInsetsControllerCompat(window, window.decorView)
+            controller.isAppearanceLightStatusBars = true
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) controller.isAppearanceLightNavigationBars = true
+        } catch (t: Throwable) { android.util.Log.w("StartActivity", "applySystemBarAppearance failed: $t") }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // 기본 초기화
@@ -88,6 +103,8 @@ class StartActivity : BaseActivity() {
             runOnUiThread {
                 android.util.Log.d("StartActivity", "Ad finished -> releasing holdSplashState")
                 holdSplashState.value = false
+                // 광고가 종료되면 시스템바 외형 재적용
+                applySystemBarAppearance()
             }
         }
         // 광고가 로드되면 수동으로 표시하도록 리스너 등록
@@ -96,6 +113,8 @@ class StartActivity : BaseActivity() {
                 android.util.Log.d("StartActivity", "Ad loaded -> manual show requested")
                 try {
                     kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this@StartActivity)
+                    // 광고가 나타난 직후 시스템바가 변경될 수 있으므로 재적용 예약
+                    window.decorView.post { applySystemBarAppearance() }
                 } catch (t: Throwable) {
                     android.util.Log.w("StartActivity", "manual show failed: $t")
                 }
@@ -154,6 +173,7 @@ class StartActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
+        applySystemBarAppearance()
         // HomeAdTrigger 호출 제거: NavGraph의 중앙 관찰자에서 홈 그룹 진입을 일괄 처리
         // (StartActivity는 레거시 진입점이며, 진행 중 세션이면 즉시 MainActivity로 이동)
     }

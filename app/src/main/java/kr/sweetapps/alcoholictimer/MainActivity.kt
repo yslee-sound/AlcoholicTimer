@@ -9,14 +9,25 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.Composable
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
+import android.os.Build
+import android.graphics.Color
 import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.ads.UmpConsentManager
 import kr.sweetapps.alcoholictimer.core.ui.BaseScaffold
 import kr.sweetapps.alcoholictimer.navigation.AlcoholicTimerNavGraph
 import kr.sweetapps.alcoholictimer.navigation.Screen
 import androidx.navigation.compose.rememberNavController
+import androidx.core.view.WindowInsetsControllerCompat
+import android.os.Handler
+import android.os.Looper
+import android.view.View
+import android.view.WindowManager
 
 class MainActivity : ComponentActivity() {
+    private val systemBarHandler = Handler(Looper.getMainLooper())
+    private var systemBarReapplyAttempts = 0
+    private val systemBarMaxReapply = 3
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -34,7 +45,7 @@ class MainActivity : ComponentActivity() {
             android.util.Log.d("MainActivity", "splash timeout fired -> releasing holdSplashState")
             holdSplashState.value = false
         }
-        window.decorView.postDelayed(timeoutRunnable, 7000)
+        window.decorView.postDelayed(timeoutRunnable, 5000)
 
         // Helper to change holdSplashState with logging
         val setHoldSplash: (Boolean) -> Unit = { v ->
@@ -79,6 +90,8 @@ class MainActivity : ComponentActivity() {
                 // 안전 타임아웃 제거
                 window.decorView.removeCallbacks(timeoutRunnable)
                 setHoldSplash(false)
+                // 광고가 나타난 후/사라진 직후 시스템바가 덮어써질 수 있으므로 재적용
+                applySystemBarAppearance()
             }
         }
 
@@ -87,6 +100,10 @@ class MainActivity : ComponentActivity() {
 
         // Edge-to-Edge 활성화
         enableEdgeToEdge()
+
+        // enableEdgeToEdge()는 decorFitsSystemWindows를 false로 변경할 수 있으므로
+        // 시스템바 배경을 윈도우가 직접 그리도록 유지하려면 true로 재설정합니다.
+        WindowCompat.setDecorFitsSystemWindows(window, true)
 
         // 시스템 바 색상을 흰색으로 설정
         window.statusBarColor = android.graphics.Color.WHITE
@@ -97,6 +114,9 @@ class MainActivity : ComponentActivity() {
             isAppearanceLightStatusBars = true
             isAppearanceLightNavigationBars = true
         }
+
+        // Ensure system bars appearance is reapplied if any overlay (splash/ad) changes it
+        applySystemBarAppearance()
 
         val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
         val startTime = sharedPref.getLong("start_time", 0L)
@@ -121,6 +141,46 @@ class MainActivity : ComponentActivity() {
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdLoadedListener(null)
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdFinishedListener(null)
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdShownListener(null)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 액티비티 재개 시 시스템바 외형 보장
+        applySystemBarAppearance()
+    }
+
+    private fun applySystemBarAppearance() {
+        try {
+            android.util.Log.d("MainActivity", "applySystemBarAppearance attempt=$systemBarReapplyAttempts")
+            // 투명 플래그 제거(일부 오버레이가 이 플래그를 설정할 수 있음)
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS or WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION)
+
+            // 강제 색상 적용
+            window.statusBarColor = Color.WHITE
+            window.navigationBarColor = Color.WHITE
+
+            // 호환용: 레거시 systemUiVisibility로 라이트 상태바 플래그 설정 (API 23+)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val vis = window.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                window.decorView.systemUiVisibility = vis
+            }
+
+            // WindowInsetsControllerCompat를 이용해 appearance를 명시적으로 설정
+            val controller = WindowInsetsControllerCompat(window, window.decorView)
+            // 호환성 있게 appearance 속성 설정
+            controller.isAppearanceLightStatusBars = true
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) controller.isAppearanceLightNavigationBars = true
+
+            // 재시도: 일부 오버레이(광고/스플래시)가 시스템바를 덮어쓸 수 있으므로 최대 몇회 재적용
+            if (systemBarReapplyAttempts < systemBarMaxReapply) {
+                systemBarReapplyAttempts++
+                systemBarHandler.postDelayed({ applySystemBarAppearance() }, (if (systemBarReapplyAttempts == 1) 100L else 300L))
+            } else {
+                systemBarReapplyAttempts = 0
+            }
+        } catch (t: Throwable) {
+            android.util.Log.w("MainActivity", "applySystemBarAppearance failed: $t")
+        }
     }
 }
 

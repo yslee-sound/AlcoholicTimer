@@ -3,6 +3,7 @@
     <!-- Android 12+ Main theme overrides to avoid duplicate splash background -->
     <style name="Theme.AlcoholicTimer" parent="@android:style/Theme.DeviceDefault.NoActionBar">
         <item name="android:windowFullscreen">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:statusBarColor">@android:color/white</item>
         <item name="android:navigationBarColor">@android:color/white</item>
         <item name="android:windowLightStatusBar">true</item>
@@ -28,13 +29,15 @@
         <!-- 스플래시 종료 애니메이션 지속시간 -->
         <item name="android:windowSplashScreenAnimationDuration">200</item>
 
-        <!-- 시스템 바 색상 -->
+        <!-- 시스템 바 색상: 스플래시 중에도 흰 배경과 라이트 아이콘 유지 -->
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:statusBarColor">#f28090</item>
-        <item name="android:navigationBarColor">#f28090</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:statusBarColor">@android:color/white</item>
+        <item name="android:navigationBarColor">@android:color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
         <item name="android:enforceStatusBarContrast">false</item>
         <item name="android:enforceNavigationBarContrast">false</item>
+        <!-- 스플래시가 끝난 뒤 적용할 테마 명시 (Android 12+ 권장) -->
+        <item name="postSplashScreenTheme">@style/Theme.AlcoholicTimer</item>
     </style>
 </resources>

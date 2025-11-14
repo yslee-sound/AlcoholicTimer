@@ -18,8 +18,8 @@
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
         <item name="windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
         <item name="postSplashScreenTheme">@style/Theme.AlcoholicTimer</item>
-        <item name="android:statusBarColor">#f28090</item>
-        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">@android:color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
         <!-- 상단 경계선(오버레이) 제거 -->
         <item name="android:windowContentOverlay">@null</item>
     </style>
