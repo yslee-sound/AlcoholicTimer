@@ -2,28 +2,23 @@ package kr.sweetapps.alcoholictimer
 
 import android.content.Context.MODE_PRIVATE
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import android.os.Handler
+import android.os.Looper
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.runtime.Composable
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
-import android.os.Build
-import android.graphics.Color
-import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
-import kr.sweetapps.alcoholictimer.ads.UmpConsentManager
+import androidx.navigation.compose.rememberNavController
+import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
 import kr.sweetapps.alcoholictimer.core.ui.BaseScaffold
 import kr.sweetapps.alcoholictimer.navigation.AlcoholicTimerNavGraph
 import kr.sweetapps.alcoholictimer.navigation.Screen
-import androidx.navigation.compose.rememberNavController
-import androidx.core.view.WindowInsetsControllerCompat
-import android.os.Handler
-import android.os.Looper
-import android.view.View
-import android.view.WindowManager
+import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
+import kr.sweetapps.alcoholictimer.ads.UmpConsentManager
+import androidx.compose.runtime.Composable
 
-class MainActivity : ComponentActivity() {
+class MainActivity : BaseActivity() {
     private val systemBarHandler = Handler(Looper.getMainLooper())
     private var systemBarReapplyAttempts = 0
     private val systemBarMaxReapply = 3
@@ -105,18 +100,7 @@ class MainActivity : ComponentActivity() {
         // 시스템바 배경을 윈도우가 직접 그리도록 유지하려면 true로 재설정합니다.
         WindowCompat.setDecorFitsSystemWindows(window, true)
 
-        // 시스템 바 색상을 흰색으로 설정
-        window.statusBarColor = android.graphics.Color.WHITE
-        window.navigationBarColor = android.graphics.Color.WHITE
-
-        // 시스템 바 아이콘을 어두운 색으로 설정 (라이트 배경용)
-        WindowCompat.getInsetsController(window, window.decorView).apply {
-            isAppearanceLightStatusBars = true
-            isAppearanceLightNavigationBars = true
-        }
-
-        // Ensure system bars appearance is reapplied if any overlay (splash/ad) changes it
-        applySystemBarAppearance()
+        // 시스템 바 색상/appearance 직접 설정 코드 제거됨 (BaseActivity에서 일괄 적용)
 
         val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
         val startTime = sharedPref.getLong("start_time", 0L)
@@ -145,43 +129,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        // 액티비티 재개 시 시스템바 외형 보장
-        applySystemBarAppearance()
+        // 시스템바 appearance 직접 재적용 코드 제거됨 (BaseActivity에서 일괄 적용)
     }
 
-    private fun applySystemBarAppearance() {
-        try {
-            android.util.Log.d("MainActivity", "applySystemBarAppearance attempt=$systemBarReapplyAttempts")
-            // 투명 플래그 제거(일부 오버레이가 이 플래그를 설정할 수 있음)
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS or WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION)
-
-            // 강제 색상 적용
-            window.statusBarColor = Color.WHITE
-            window.navigationBarColor = Color.WHITE
-
-            // 호환용: 레거시 systemUiVisibility로 라이트 상태바 플래그 설정 (API 23+)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                val vis = window.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                window.decorView.systemUiVisibility = vis
-            }
-
-            // WindowInsetsControllerCompat를 이용해 appearance를 명시적으로 설정
-            val controller = WindowInsetsControllerCompat(window, window.decorView)
-            // 호환성 있게 appearance 속성 설정
-            controller.isAppearanceLightStatusBars = true
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) controller.isAppearanceLightNavigationBars = true
-
-            // 재시도: 일부 오버레이(광고/스플래시)가 시스템바를 덮어쓸 수 있으므로 최대 몇회 재적용
-            if (systemBarReapplyAttempts < systemBarMaxReapply) {
-                systemBarReapplyAttempts++
-                systemBarHandler.postDelayed({ applySystemBarAppearance() }, (if (systemBarReapplyAttempts == 1) 100L else 300L))
-            } else {
-                systemBarReapplyAttempts = 0
-            }
-        } catch (t: Throwable) {
-            android.util.Log.w("MainActivity", "applySystemBarAppearance failed: $t")
-        }
-    }
+    // BaseActivity의 추상 함수 구현
+    override fun getScreenTitle(): String = getString(R.string.app_name)
 }
 
 @Composable

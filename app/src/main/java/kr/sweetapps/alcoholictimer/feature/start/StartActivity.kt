@@ -24,19 +24,6 @@ import android.view.WindowManager
 class StartActivity : BaseActivity() {
     private lateinit var appUpdateManager: AppUpdateManager
 
-    private fun applySystemBarAppearance() {
-        try {
-            // 투명 플래그 제거
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS or WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION)
-            window.statusBarColor = AndroidColor.WHITE
-            window.navigationBarColor = AndroidColor.WHITE
-            // appearance 설정
-            val controller = WindowInsetsControllerCompat(window, window.decorView)
-            controller.isAppearanceLightStatusBars = true
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) controller.isAppearanceLightNavigationBars = true
-        } catch (t: Throwable) { android.util.Log.w("StartActivity", "applySystemBarAppearance failed: $t") }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         // 기본 초기화
         kr.sweetapps.alcoholictimer.core.util.CurrencyManager.initializeDefaultCurrency(this)
@@ -51,17 +38,6 @@ class StartActivity : BaseActivity() {
         }
 
         super.onCreate(savedInstanceState)
-
-        // 시스템바 설정 (추후 테마로 이전 가능)
-        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, true)
-        window.statusBarColor = AndroidColor.WHITE
-        window.navigationBarColor = AndroidColor.WHITE
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            androidx.core.view.WindowInsetsControllerCompat(window, window.decorView).apply {
-                isAppearanceLightStatusBars = true
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) isAppearanceLightNavigationBars = true
-            }
-        }
 
         // DecorView 안정화
         runCatching { window.decorView.setWillNotDraw(false) }

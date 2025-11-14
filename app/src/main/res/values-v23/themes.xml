@@ -5,9 +5,7 @@
         <item name="android:windowFullscreen">false</item>
         <item name="android:statusBarColor">@android:color/white</item>
         <item name="android:windowLightStatusBar">true</item>
-        <!-- Splash와 동일 배경으로 전환 깜빡임 제거 -->
-        <item name="android:windowBackground">@drawable/splash_screen</item>
-        <!-- 상단 경계선(오버레이) 제거 -->
+        <item name="android:windowBackground">@android:color/white</item>
         <item name="android:windowContentOverlay">@null</item>
     </style>
 

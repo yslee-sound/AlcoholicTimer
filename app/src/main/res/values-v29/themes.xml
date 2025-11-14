@@ -8,8 +8,8 @@
         <item name="android:navigationBarColor">@android:color/white</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar">true</item>
-        <!-- Splash와 동일 배경으로 전환 깜빡임 제거 -->
-        <item name="android:windowBackground">@drawable/splash_screen</item>
+        <!-- 배경을 흰색으로 통일 -->
+        <item name="android:windowBackground">@android:color/white</item>
         <!-- 대비 강제 해제: 얇은 상단/하단 구분선 제거 -->
         <item name="android:enforceStatusBarContrast">false</item>
         <item name="android:enforceNavigationBarContrast">false</item>

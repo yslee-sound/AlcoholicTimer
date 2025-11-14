@@ -41,14 +41,74 @@ val LocalSafeContentPadding = compositionLocalOf { PaddingValues(bottom = 0.dp) 
 abstract class BaseActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 시스템 바 레이아웃 정책만 설정하고 색상은 테마/InsetsController에 위임
-        WindowCompat.setDecorFitsSystemWindows(window, true)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            WindowInsetsControllerCompat(window, window.decorView).apply {
-                isAppearanceLightStatusBars = true
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) isAppearanceLightNavigationBars = true
-            }
+        applySystemBarAppearance()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        applySystemBarAppearance()
+        // Some OEM/system UIs or splash/ads can change system bars after onResume;
+        // schedule a few delayed reapply attempts to override late changes.
+        val delays = listOf(200L, 800L, 2000L)
+        delays.forEach { d ->
+            try { window.decorView.postDelayed({ applySystemBarAppearance() }, d) } catch (_: Throwable) {}
         }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            // Reapply immediately when window gains focus (helps with overlays/ads)
+            try { applySystemBarAppearance() } catch (_: Throwable) {}
+            // and once more shortly after to cover delayed system changes
+            try { window.decorView.postDelayed({ applySystemBarAppearance() }, 150) } catch (_: Throwable) {}
+        }
+    }
+
+    protected fun applySystemBarAppearance() {
+        // Enable edge-to-edge: let the app draw behind system bars and control their look via Compose
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        // Clear translucent flags if any
+        window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS or android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION)
+        // Make status bar transparent (app draws behind it) but force navigation bar to opaque white
+        window.statusBarColor = android.graphics.Color.TRANSPARENT
+        window.navigationBarColor = android.graphics.Color.WHITE
+        // API 29+ navigation bar contrast enforcement can force a different color; disable it
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            try { window.isNavigationBarContrastEnforced = false } catch (_: Throwable) {}
+        }
+        // API 28+ divider color can introduce a visible strip; make it transparent
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            try { window.navigationBarDividerColor = android.graphics.Color.TRANSPARENT } catch (_: Throwable) {}
+        }
+
+        // 레거시 systemUiVisibility로 라이트 상태바 플래그 설정 (API 23+)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            var vis = window.decorView.systemUiVisibility or android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            // API 26+에서 네비게이션 바 라이트 플래그 추가
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                vis = vis or android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+            }
+            window.decorView.systemUiVisibility = vis
+        }
+        // WindowInsetsControllerCompat appearance 설정
+        val controller = WindowInsetsControllerCompat(window, window.decorView)
+        controller.isAppearanceLightStatusBars = true
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) controller.isAppearanceLightNavigationBars = true
+
+        // Diagnostic logs
+        try {
+            android.util.Log.d("BaseActivity", "statusBarColor=#${Integer.toHexString(window.statusBarColor)} navBarColor=#${Integer.toHexString(window.navigationBarColor)} vis=${window.decorView.systemUiVisibility} isLightStatus=${controller.isAppearanceLightStatusBars} isLightNav=${if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) controller.isAppearanceLightNavigationBars else "N/A"}")
+        } catch (t: Throwable) {
+            android.util.Log.w("BaseActivity", "log system bar state failed: $t")
+        }
+
+        // Ensure window background under navigation bar is opaque white to avoid showing other content
+        // (With edge-to-edge we draw app background to system bars; keep white background drawable as fallback)
+        try {
+            window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.WHITE))
+        } catch (_: Throwable) {}
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
