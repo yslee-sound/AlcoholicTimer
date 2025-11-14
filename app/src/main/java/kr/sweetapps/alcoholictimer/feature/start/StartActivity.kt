@@ -26,12 +26,17 @@ class StartActivity : BaseActivity() {
         // 기본 초기화
         kr.sweetapps.alcoholictimer.core.util.CurrencyManager.initializeDefaultCurrency(this)
 
+        val skipSplash = intent.getBooleanExtra("skip_splash", false)
+
+        // Compose로 전달할 스플래시 유지 상태 (초기 true: 스플래시는 광고가 끝날 때까지 유지)
+        val holdSplashState = mutableStateOf(true)
+
         val splashStart = SystemClock.uptimeMillis()
         val minShowMillis = 0L // 페이드/딜레이 제거
-        val splash = if (Build.VERSION.SDK_INT >= 31) installSplashScreen() else null
+        val splash = if (Build.VERSION.SDK_INT >= 31 && !skipSplash) installSplashScreen() else null
 
-        if (Build.VERSION.SDK_INT >= 31) {
-            splash?.setKeepOnScreenCondition { false } // 즉시 제거
+        if (Build.VERSION.SDK_INT >= 31 && splash != null) {
+            splash.setKeepOnScreenCondition { holdSplashState.value } // holdSplashState로 제어
             // 종료 애니메이션 리스너 제거(기존 페이드 삭제)
         }
 
@@ -62,11 +67,6 @@ class StartActivity : BaseActivity() {
             return
         }
 
-        val skipSplash = intent.getBooleanExtra("skip_splash", false)
-
-        // Compose로 전달할 스플래시 유지 상태 (초기 true: 스플래시는 광고가 끝날 때까지 유지)
-        val holdSplashState = mutableStateOf(true)
-
         // AppOpenAd 완료/실패 시 스플래시 해제 트리거
         // 자동 라이프사이클 기반 노출은 StartActivity에서 직접 제어(일시 중단)합니다.
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setAutoShowEnabled(false)
@@ -90,6 +90,7 @@ class StartActivity : BaseActivity() {
                     window.decorView.post { applySystemBarAppearance() }
                 } catch (t: Throwable) {
                     android.util.Log.w("StartActivity", "manual show failed: $t")
+                    holdSplashState.value = false // 광고 표시 실패 시 즉시 해제
                 }
             }
         }
@@ -130,7 +131,7 @@ class StartActivity : BaseActivity() {
         // 직접 Activity 전환하지 말고 holdSplashState를 해제하여 Compose에서 onSplashFinished가 호출되게 함
         window.decorView.postDelayed({
             holdSplashState.value = false
-        }, 2000) // 광고가 없거나 실패 시 2초 후 자동 진입
+        }, 1000) // 광고가 없거나 실패 시 1초 후 자동 진입
 
         if (Build.VERSION.SDK_INT < 31) {
             window.setBackgroundDrawable(AndroidColor.WHITE.toDrawable())
