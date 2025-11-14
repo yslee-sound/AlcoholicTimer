@@ -28,18 +28,17 @@ WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debu
 2) 테스트
 - 재실행(캐시 초기화) → 전면광고 표시 조건 충족(상세→홈 3회, 필요 시 60초 대기) → 1회 표시 ✅
 - 다시 시도(동일 절차 + 60초 대기) → 시간당 제한으로 미표시 ❌
-3) 로그(요약)
+- 로그(요약)
 - 필터: `tag:InterstitialAdManager | tag:AdPolicyRepo`
 - 성공: `✅ 빈도 제한 통과: 시간당 0/1, 일일 0/3` → 표시/닫힘 로그
 - 차단: `⚠️ 시간당 빈도 제한 초과: 1/1` → 미표시
-4) 복구(SQL)
-```sql
-UPDATE ad_policy
-SET ad_interstitial_max_per_hour = 2,
-    ad_interstitial_max_per_day = 15
-WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
-```
-체크: max_per_hour=2, max_per_day=15.
+- 복구: `UPDATE ad_policy SET ad_interstitial_max_per_hour = 2, ad_interstitial_max_per_day = 15`
+3) App Open 빈도 제한 테스트(추가)
+ - Supabase에서 `app_open_max_per_hour`와 `app_open_max_per_day`를 낮춰 테스트합니다 (예: 1/3).
+ - 앱을 재실행한 후 App Open을 여러 번 트리거(앱 백그라운드→포그라운드 반복)하여 초과 시 `AppOpenAdManager` 로그에서 `showIfAvailable abort: AppOpen limit reached by policy`를 확인합니다.
+ - 성공 로그: `📝 AppOpen shown recorded (total: N)` (AdController)
+ - 차단 로그: `showIfAvailable abort: AppOpen limit reached by policy` (AppOpenAdManager)
+ - 복구: Supabase에서 값을 원래대로 변경하거나 기본값 2/15로 복원
 
 ---
 ## 3 최종 검증

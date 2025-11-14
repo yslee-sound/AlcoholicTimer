@@ -41,6 +41,12 @@ UPDATE ad_policy SET ad_app_open_enabled=true
 WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 
+4) App Open 빈도 제한 테스트 추가
+ - Supabase에서 `app_open_max_per_hour` / `app_open_max_per_day` 값을 조정하여 클라이언트의 로컬 제한 동작을 확인합니다.
+ - 예: `app_open_max_per_hour=1`, `app_open_max_per_day=3`로 설정하고 앱을 재실행하여 AppOpen을 여러 번 트리거한 뒤 로그에서 제한 초과 메시지(`showIfAvailable abort: AppOpen limit reached by policy`)를 확인합니다.
+ - 로그 위치: `AppOpenAdManager`, `AdController`.
+ - 주의: 현재 구현은 클라이언트 로컬 기록(SharedPreferences) 기반입니다. 여러 기기에서의 전역 집계는 서버 API 필요.
+
 ---
 ## 3 Interstitial 광고 제어
 

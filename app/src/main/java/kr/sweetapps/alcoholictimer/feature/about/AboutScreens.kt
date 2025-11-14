@@ -4,6 +4,12 @@ import android.content.SharedPreferences
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -18,14 +24,11 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.R
 
 @Composable
 fun AboutScreen(
     onNavigateLicenses: () -> Unit,
-    showDebug: Boolean = BuildConfig.DEBUG,
-    onNavigateDebug: () -> Unit = {},
     onNavigateEditNickname: () -> Unit = {},
     onNavigateCurrencySettings: () -> Unit = {}
 ) {
@@ -49,17 +52,49 @@ fun AboutScreen(
             .fillMaxSize()
             .background(androidx.compose.ui.graphics.Color.White)
     ) {
-        // 닉네임 편집 행 (상단 고정)
-        SimpleAboutRow(
-            title = stringResource(id = R.string.profile_nickname_label) + ": " + nickname,
-            onClick = onNavigateEditNickname
-        )
-        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
+        // 상단 프로필 블록: 아바타 + 닉네임 (클릭 시 닉네임 편집 화면으로 이동)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onNavigateEditNickname() }
+                .padding(horizontal = 16.dp, vertical = 20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                shape = MaterialTheme.shapes.medium,
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                modifier = Modifier.size(56.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Outlined.Person,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(28.dp).padding(8.dp)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = nickname.ifEmpty { "로그인" },
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(text = ">", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+
+        // 통화 설정 단일 버튼
         SimpleAboutRow(
             title = stringResource(id = R.string.settings_currency),
             onClick = onNavigateCurrencySettings
         )
+
         HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
+
+        // 버전 정보
         SimpleAboutRow(
             title = stringResource(id = R.string.about_version_info),
             trailing = {
@@ -76,14 +111,19 @@ fun AboutScreen(
             }
         )
         HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
+
+        // Open Source License - 오른쪽 화살표 표시
         SimpleAboutRow(
             title = stringResource(id = R.string.about_open_license_notice),
-            onClick = onNavigateLicenses
+            onClick = onNavigateLicenses,
+            trailing = {
+                Icon(
+                    imageVector = Icons.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         )
-        if (showDebug) {
-            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
-            SimpleAboutRow(title = "디버그 모드", onClick = onNavigateDebug)
-        }
     }
 }
 
@@ -121,7 +161,7 @@ fun AboutLicensesScreen() {
 }
 
 @Composable
-fun CurrencySettingsScreen() {
+fun CurrencySettingsScreen(onBack: () -> Unit = {}) {
     val context = LocalContext.current
     var selectedCurrency by remember {
         mutableStateOf(kr.sweetapps.alcoholictimer.core.util.CurrencyManager.getSelectedCurrency(context).code)
@@ -132,6 +172,24 @@ fun CurrencySettingsScreen() {
             .fillMaxSize()
             .background(androidx.compose.ui.graphics.Color.White)
     ) {
+        // Top bar with back button
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 8.dp, top = 8.dp, bottom = 4.dp, end = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = { onBack() }) {
+                Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = stringResource(id = R.string.cd_navigate_back))
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = stringResource(id = R.string.settings_currency),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+
         kr.sweetapps.alcoholictimer.core.util.CurrencyManager.supportedCurrencies.forEachIndexed { index, currency ->
             CurrencyOptionRow(
                 isSelected = selectedCurrency == currency.code,

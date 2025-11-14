@@ -28,14 +28,18 @@ ad_policy: 3분 (이 문서)
 | ad_app_open_enabled | true | App Open 광고 |
 | ad_interstitial_enabled | true | Interstitial 광고 |
 | ad_banner_enabled | true | Banner 광고 |
-| ad_interstitial_max_per_hour | 2 | 시간당 제한 |
-| ad_interstitial_max_per_day | 15 | 일일 제한 |
+| ad_interstitial_max_per_hour | 2 | 시간당 제한 (Interstitial) |
+| ad_interstitial_max_per_day | 15 | 일일 제한 (Interstitial) |
+| app_open_max_per_hour | 2 | 시간당 제한 (App Open) — 새로 추가된 필드 |
+| app_open_max_per_day | 15 | 일일 제한 (App Open) — 새로 추가된 필드 |
 
 ### 1.3 제어 방식 요약
 - is_active=false → 전체 OFF, true → 개별 플래그 확인
 - 정책 없음 → 기본 true (장애 대응)
 - 앱 재시작 즉시 반영 / 실행 중 최대 3분 내 반영
 - 3분: 대응 속도 + 배터리/네트워크 균형(1분 대비 요청 66%↓)
+
+참고: App Open 빈도 제한(app_open_max_per_hour/app_open_max_per_day)은 클라이언트 측에서 로컬 기록(SharedPreferences)에 기반해 적용됩니다. 복수 디바이스 간의 전역 집계가 필요한 경우 서버 측 집계 또는 별도 API가 필요합니다.
 
 ---
 ## 2 중요: RLS 정책 수정 (최초 1회)

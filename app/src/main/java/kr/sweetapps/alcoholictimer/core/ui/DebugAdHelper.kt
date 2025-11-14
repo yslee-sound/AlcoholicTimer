@@ -5,9 +5,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Debug 빌드에서만 배너 숨김 토글을 제공하기 위한 헬퍼.
- * 릴리스 빌드에서는 항상 false 를 유지합니다.
+ * Debug 빌드에서만 배너 숨김 토글을 제공하던 헬퍼입니다.
+ * 현재 앱 UI에서 디버그 메뉴를 제거했으므로 더 이상 기본 경로에서 사용되지 않습니다.
+ * 필요시 debug 빌드에서만 다시 활성화할 수 있습니다.
  */
+@Deprecated("디버그 메뉴 제거로 인해 기본 사용 경로에서 사용되지 않음")
 object DebugAdHelper {
     // 디버그 전용 토글 상태. 기본 false(표시)
     private val _bannerHiddenFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -21,4 +23,3 @@ object DebugAdHelper {
     // 테스트/디버그용 토글 API (debug 빌드에서만 사용 권장)
     fun setBannerHidden(hidden: Boolean) { _bannerHiddenFlow.value = hidden }
 }
-

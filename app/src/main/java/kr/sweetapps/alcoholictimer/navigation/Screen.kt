@@ -72,11 +72,6 @@ sealed class Screen(val route: String) {
             isCompleted: Boolean
         ) = "detail/$startTime/$endTime/$targetDays/$actualDays/$isCompleted"
     }
-
-    /**
-     * 디버그 화면 (debug 빌드만)
-     */
-    data object Debug : Screen("debug")
 }
 
 /**
@@ -95,5 +90,4 @@ fun Screen.getTitleResId(): Int? = when (this) {
     is Screen.NicknameEdit -> null // 커스텀 제목 사용
     is Screen.CurrencySettings -> kr.sweetapps.alcoholictimer.R.string.settings_currency
     is Screen.Detail -> null // 커스텀 제목 사용
-    is Screen.Debug -> null // 커스텀 제목 사용
 }
