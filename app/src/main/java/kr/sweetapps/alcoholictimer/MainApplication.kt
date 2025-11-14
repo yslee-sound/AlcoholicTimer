@@ -35,5 +35,24 @@ class MainApplication : Application() {
 
         // App Open Ad 초기화
         AppOpenAdManager.initialize(this)
+
+        // Debug-time: ensure system bar appearance is re-applied after activity resume
+        if (BuildConfig.DEBUG) {
+            registerActivityLifecycleCallbacks(object : android.app.Application.ActivityLifecycleCallbacks {
+                override fun onActivityCreated(activity: android.app.Activity, savedInstanceState: android.os.Bundle?) {}
+                override fun onActivityStarted(activity: android.app.Activity) {}
+                override fun onActivityResumed(activity: android.app.Activity) {
+                    try {
+                        if (activity is kr.sweetapps.alcoholictimer.core.ui.BaseActivity) {
+                            activity.reapplySystemBars()
+                        }
+                    } catch (_: Throwable) {}
+                }
+                override fun onActivityPaused(activity: android.app.Activity) {}
+                override fun onActivityStopped(activity: android.app.Activity) {}
+                override fun onActivitySaveInstanceState(activity: android.app.Activity, outState: android.os.Bundle) {}
+                override fun onActivityDestroyed(activity: android.app.Activity) {}
+            })
+        }
     }
 }

@@ -141,7 +141,9 @@ class StartActivity : BaseActivity() {
         if (Build.VERSION.SDK_INT < 31) {
             window.setBackgroundDrawable(AndroidColor.WHITE.toDrawable())
             launchContent()
-            window.decorView.post { window.setBackgroundDrawable(null) }
+            // Do not clear the window background here. Clearing it can cause the
+            // system to show its own navigation bar background (semi-transparent/gray)
+            // during the transition. Keep the white background as a stable fallback.
         } else {
             launchContent()
         }

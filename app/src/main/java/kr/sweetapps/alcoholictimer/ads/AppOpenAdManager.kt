@@ -222,6 +222,16 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
                 lastShownAt = System.currentTimeMillis()
                 // notify listeners that ad is now visible
                 onAdShownListener?.invoke()
+                // Ensure system bars are re-applied shortly after ad shows (SystemUI may alter them)
+                try {
+                    currentActivityRef?.get()?.let { a ->
+                        if (a is kr.sweetapps.alcoholictimer.core.ui.BaseActivity) {
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                try { a.reapplySystemBars() } catch (_: Throwable) {}
+                            }, 150)
+                        }
+                    }
+                } catch (_: Throwable) {}
             }
             override fun onAdDismissedFullScreenContent() {
                 Log.d(TAG, "onAdDismissedFullScreenContent @${System.currentTimeMillis()}")
@@ -230,6 +240,16 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
                 isShowing.set(false)
                 preload(activity.applicationContext)
                 onAdFinishedListener?.invoke()
+                // Re-apply system bars after ad is dismissed to override any SystemUI changes
+                try {
+                    currentActivityRef?.get()?.let { a ->
+                        if (a is kr.sweetapps.alcoholictimer.core.ui.BaseActivity) {
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                try { a.reapplySystemBars() } catch (_: Throwable) {}
+                            }, 150)
+                        }
+                    }
+                } catch (_: Throwable) {}
             }
             override fun onAdFailedToShowFullScreenContent(adError: com.google.android.gms.ads.AdError) {
                 Log.w(TAG, "onAdFailedToShowFullScreenContent: $adError @${System.currentTimeMillis()}")
@@ -238,6 +258,16 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
                 isShowing.set(false)
                 preload(activity.applicationContext)
                 onAdFinishedListener?.invoke()
+                // Ensure system bars are re-applied after failure as well
+                try {
+                    currentActivityRef?.get()?.let { a ->
+                        if (a is kr.sweetapps.alcoholictimer.core.ui.BaseActivity) {
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                try { a.reapplySystemBars() } catch (_: Throwable) {}
+                            }, 150)
+                        }
+                    }
+                } catch (_: Throwable) {}
             }
         }
         Handler(Looper.getMainLooper()).post {

@@ -83,32 +83,51 @@ abstract class BaseActivity : ComponentActivity() {
             try { window.navigationBarDividerColor = android.graphics.Color.TRANSPARENT } catch (_: Throwable) {}
         }
 
-        // 레거시 systemUiVisibility로 라이트 상태바 플래그 설정 (API 23+)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            var vis = window.decorView.systemUiVisibility or android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-            // API 26+에서 네비게이션 바 라이트 플래그 추가
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                vis = vis or android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
-            }
-            window.decorView.systemUiVisibility = vis
-        }
-        // WindowInsetsControllerCompat appearance 설정
-        val controller = WindowInsetsControllerCompat(window, window.decorView)
-        controller.isAppearanceLightStatusBars = true
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) controller.isAppearanceLightNavigationBars = true
+        // 주석 처리된 레거시 systemUiVisibility
+        // window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+        //     or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+
+        // WindowInsetsControllerCompat만 사용하도록 정리
+        val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
+        windowInsetsController.isAppearanceLightStatusBars = true
+        windowInsetsController.isAppearanceLightNavigationBars = true
 
         // Diagnostic logs
         try {
-            android.util.Log.d("BaseActivity", "statusBarColor=#${Integer.toHexString(window.statusBarColor)} navBarColor=#${Integer.toHexString(window.navigationBarColor)} vis=${window.decorView.systemUiVisibility} isLightStatus=${controller.isAppearanceLightStatusBars} isLightNav=${if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) controller.isAppearanceLightNavigationBars else "N/A"}")
+            android.util.Log.d("BaseActivity", "statusBarColor=#${Integer.toHexString(window.statusBarColor)} navBarColor=#${Integer.toHexString(window.navigationBarColor)} vis=${window.decorView.systemUiVisibility} isLightStatus=${windowInsetsController.isAppearanceLightStatusBars} isLightNav=${if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) windowInsetsController.isAppearanceLightNavigationBars else "N/A"}")
         } catch (t: Throwable) {
             android.util.Log.w("BaseActivity", "log system bar state failed: $t")
         }
+
+        // Append diagnostic trace to app-private file for post-mortem analysis (debug-only, best-effort)
+        try {
+            val fn = "navbar-debug.txt"
+            val msg = java.lang.String.format(
+                "%d BaseActivity status=#%s nav=#%s vis=%d isLightStatus=%s isLightNav=%s\n",
+                System.currentTimeMillis(),
+                Integer.toHexString(window.statusBarColor),
+                Integer.toHexString(window.navigationBarColor),
+                window.decorView.systemUiVisibility,
+                windowInsetsController.isAppearanceLightStatusBars.toString(),
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) windowInsetsController.isAppearanceLightNavigationBars.toString() else "N/A"
+            )
+            try {
+                val f = java.io.File(filesDir, fn)
+                f.appendText(msg)
+            } catch (_: Throwable) { /* ignore file errors on restricted devices */ }
+        } catch (_: Throwable) { }
 
         // Ensure window background under navigation bar is opaque white to avoid showing other content
         // (With edge-to-edge we draw app background to system bars; keep white background drawable as fallback)
         try {
             window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.WHITE))
         } catch (_: Throwable) {}
+    }
+
+    // Public helper to allow Application or other components to request a reapply
+    // without exposing internal implementation details.
+    fun reapplySystemBars() {
+        try { applySystemBarAppearance() } catch (_: Throwable) { }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
