@@ -190,12 +190,19 @@ object InterstitialAdManager {
         activity: Activity,
         onDismiss: (() -> Unit)? = null
     ): Boolean {
-        // 정책이 비활성화 되어 있으면 즉시 차단
-        if (!tryPolicyEnabled()) {
-            Log.d(TAG, "❌ Interstitial disabled by policy")
-            return false
-        }
-        val bypass = isPolicyBypassed()
+        // 충돌 방지: 다른 전체 광고(AppOpen 등)가 이미 표시 중이면 차단
+        try {
+            if (AdController.isFullScreenAdShowing()) {
+                Log.d(TAG, "Blocked: full-screen ad already showing (AdController)")
+                return false
+            }
+        } catch (_: Throwable) {}
+         // 정책이 비활성화 되어 있으면 즉시 차단
+         if (!tryPolicyEnabled()) {
+             Log.d(TAG, "❌ Interstitial disabled by policy")
+             return false
+         }
+         val bypass = isPolicyBypassed()
          // Cold start once-per-session gate disabled
          val ad = interstitialAd
          if (ad == null) {

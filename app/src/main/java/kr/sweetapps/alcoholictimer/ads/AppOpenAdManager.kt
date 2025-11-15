@@ -97,6 +97,19 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
         Log.d(TAG, "setOtherAdShowing: $showing")
     }
 
+    // 세션 당 자동 표시를 한 번만 시도하도록 하는 플래그 (콜드 스타트에서만 자동으로 시도)
+    private val hasAutoShown = AtomicBoolean(false)
+
+    private fun tryAutoShowIfFirstTime(activity: Activity) {
+        // auto-show 경로는 콜드 스타트(프로세스 시작 후 첫 포어그라운드 진입)에서만 1회 시도
+        if (!hasAutoShown.compareAndSet(false, true)) {
+            Log.d(TAG, "auto-show skipped: already attempted this session")
+            return
+        }
+        Log.d(TAG, "auto-show attempt (first session attempt) @${System.currentTimeMillis()}")
+        showIfAvailable(activity)
+    }
+
     private fun canShowNow(): Boolean {
         // 중앙 상태에서 이미 전체 광고가 표시 중이면 차단
         try {
@@ -347,9 +360,13 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
             }
         }
         Handler(Looper.getMainLooper()).post {
-            try { ad.show(activity) } catch (t: Throwable) {
+            try {
+                // mark full-screen intent to avoid concurrent full-screen ads
+                try { AdController.setFullScreenAdShowing(true); AdController.setInterstitialShowing(true) } catch (_: Throwable) {}
+                ad.show(activity)
+            } catch (t: Throwable) {
                 Log.w(TAG, "show exception: $t @${System.currentTimeMillis()}")
-                AdController.setInterstitialShowing(false)
+                try { AdController.setInterstitialShowing(false); AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
                 appOpenAd = null
                 isShowing.set(false)
                 preload(activity.applicationContext)
@@ -362,11 +379,11 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
         Log.d(TAG, "ProcessLifecycle onStart @${System.currentTimeMillis()}")
         val act = currentActivityRef?.get()
         if (act != null) {
-            if (allowAutoShow.get()) showIfAvailable(act) else Log.d(TAG, "onStart: auto-show suppressed")
+            if (allowAutoShow.get()) tryAutoShowIfFirstTime(act) else Log.d(TAG, "onStart: auto-show suppressed")
         } else {
             // Activity 참조가 아직 세팅 전일 수 있으므로 짧은 지연 후 재시도
             Handler(Looper.getMainLooper()).postDelayed({
-                currentActivityRef?.get()?.let { if (allowAutoShow.get()) showIfAvailable(it) else Log.d(TAG, "Delayed onStart retry: auto-show suppressed") } ?: Log.d(TAG, "Delayed onStart retry: still no activity")
+                currentActivityRef?.get()?.let { if (allowAutoShow.get()) tryAutoShowIfFirstTime(it) else Log.d(TAG, "Delayed onStart retry: auto-show suppressed") } ?: Log.d(TAG, "Delayed onStart retry: still no activity")
             }, 300)
         }
     }
@@ -376,13 +393,13 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
         Log.d(TAG, "onActivityStarted ${activity::class.java.simpleName} @${System.currentTimeMillis()}")
         currentActivityRef = WeakReference(activity)
         // 포어그라운드 진입 시점에 즉시 시도 (중복 방지는 isShowing/cooldown으로 해결)
-        if (allowAutoShow.get()) showIfAvailable(activity) else Log.d(TAG, "onActivityStarted: auto-show suppressed for ${activity::class.java.simpleName}")
+        if (allowAutoShow.get()) tryAutoShowIfFirstTime(activity) else Log.d(TAG, "onActivityStarted: auto-show suppressed for ${activity::class.java.simpleName}")
     }
     override fun onActivityResumed(activity: Activity) {
         Log.d(TAG, "onActivityResumed ${activity::class.java.simpleName} @${System.currentTimeMillis()}")
         currentActivityRef = WeakReference(activity)
         // 재개 시에도 한 번 더 시도 (조건 불충족 시 내부에서 빠르게 return)
-        if (allowAutoShow.get()) showIfAvailable(activity) else Log.d(TAG, "onActivityResumed: auto-show suppressed for ${activity::class.java.simpleName}")
+        if (allowAutoShow.get()) tryAutoShowIfFirstTime(activity) else Log.d(TAG, "onActivityResumed: auto-show suppressed for ${activity::class.java.simpleName}")
     }
     override fun onActivityCreated(activity: Activity, savedInstanceState: android.os.Bundle?) {}
     override fun onActivityPaused(activity: Activity) {}
