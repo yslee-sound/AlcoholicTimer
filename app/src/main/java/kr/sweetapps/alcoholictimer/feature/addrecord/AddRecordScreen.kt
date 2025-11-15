@@ -16,34 +16,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Offset
-import kotlinx.coroutines.delay
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import kotlinx.coroutines.delay
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
 import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.content.edit
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.TextRange
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.ui.layout.boundsInWindow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,12 +48,6 @@ fun AddRecordScreenComposable(
     var endDate by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var startTime by remember { mutableStateOf(Pair(9, 0)) }
     var endTime by remember { mutableStateOf(Pair(18, 0)) }
-
-    // 인라인 편집: 읽기 모드와 편집 모드 토글
-    var isEditingTarget by remember { mutableStateOf(false) }
-    // use TextFieldValue so we can control cursor/selection reliably
-    var editableTargetText by remember { mutableStateOf(TextFieldValue(text = targetDays, selection = TextRange(targetDays.length))) }
-    val targetFocusRequester = remember { FocusRequester() }
 
     val dateFormat = remember {
         val locale = Locale.getDefault()
@@ -105,7 +90,6 @@ fun AddRecordScreenComposable(
     val actualDays = remember(startMillis, endMillis) {
         ((endMillis - startMillis).coerceAtLeast(0L) / (24 * 60 * 60 * 1000L)).toInt()
     }
-    val isCompleted = !isOngoing && !isRangeInvalid && isTargetValid && actualDays >= targetDaysInt
 
     fun pickDateThenTime(initialDateMillis: Long, initialHour: Int, initialMinute: Int, onPicked: (dateMillis: Long, hour: Int, minute: Int) -> Unit) {
         val cal = Calendar.getInstance().apply { timeInMillis = initialDateMillis }
@@ -151,23 +135,7 @@ fun AddRecordScreenComposable(
         }
     }
 
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val focusManager = LocalFocusManager.current
-
-    // track bounds so we can detect taps outside the field
-    var rootBounds by remember { mutableStateOf(Rect(0f, 0f, 0f, 0f)) }
-    var fieldBounds by remember { mutableStateOf(Rect(0f, 0f, 0f, 0f)) }
-    var editRequestedAt by remember { mutableStateOf(0L) }
-
-    // when entering edit mode, request focus and show keyboard immediately (use LaunchedEffect to ensure focus is granted)
-    LaunchedEffect(isEditingTarget) {
-        if (isEditingTarget) {
-            // small suspend to ensure the field is composed and focus can be granted
-            delay(120)
-            targetFocusRequester.requestFocus()
-            keyboardController?.show()
-        }
-    }
+    // keyboard/focus behavior for inline editing removed — no-op here
 
     Scaffold(
         topBar = {
@@ -178,17 +146,8 @@ fun AddRecordScreenComposable(
     ) { innerPadding ->
         Column(modifier = Modifier
             .fillMaxSize()
-            .onGloballyPositioned { coords -> rootBounds = coords.boundsInWindow() }
-            .pointerInput(Unit) {
-                detectTapGestures { localOffset ->
-                    val tapGlobal = Offset(rootBounds.left + localOffset.x, rootBounds.top + localOffset.y)
-                    val now = System.currentTimeMillis()
-                    if (!fieldBounds.contains(tapGlobal) && (now - editRequestedAt >= 300L)) {
-                        focusManager.clearFocus()
-                        isEditingTarget = false
-                    }
-                }
-            }
+            .pointerInput(Unit) { detectTapGestures { /* no-op: outside-tap handling removed for inline field */ } }
+
         ) {
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 Column(
@@ -237,88 +196,91 @@ fun AddRecordScreenComposable(
 
                     HorizontalDivider()
 
+                    val keyboardController = LocalSoftwareKeyboardController.current
+                    val targetDaysFocusRequester = remember { FocusRequester() }
+                    var targetDaysText by remember { mutableStateOf(TextFieldValue(targetDays)) }
+                    var isTargetDaysFocused by remember { mutableStateOf(false) }
+
+                    // When field receives focus, ensure keyboard is shown and initial '0' is cleared so first digit replaces it
+                    LaunchedEffect(isTargetDaysFocused) {
+                        if (isTargetDaysFocused) {
+                            // small backoff for IME timing
+                            delay(80)
+                            keyboardController?.show()
+                        }
+                    }
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(min = 56.dp),
+                            .heightIn(min = 56.dp)
+                            .clickable {
+                                // Prepare the editable text immediately so first keypress replaces the placeholder 0
+                                if (targetDays == "0") {
+                                    targetDaysText = TextFieldValue(text = "", selection = TextRange(0))
+                                } else {
+                                    targetDaysText = TextFieldValue(text = targetDays, selection = TextRange(targetDays.length))
+                                }
+                                // request focus and show keyboard immediately
+                                targetDaysFocusRequester.requestFocus()
+                                keyboardController?.show()
+                            },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(stringResource(R.string.add_record_target_days), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
-
-                        // 인라인 편집 모드: 클릭하면 바로 편집 모드로 전환 (actual focus/keyboard handled in LaunchedEffect)
-                        if (!isEditingTarget) {
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
-                                val initial = if (targetDays == "0") "" else targetDays
-                                editableTargetText = TextFieldValue(text = initial, selection = TextRange(initial.length))
-                                isEditingTarget = true
-                                editRequestedAt = System.currentTimeMillis()
-                                // request focus synchronously to ensure keyboard appears on first tap
-                                targetFocusRequester.requestFocus()
-                                keyboardController?.show()
-                            }) {
-                                Text(text = "$targetDays${stringResource(R.string.add_record_days_unit)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Spacer(Modifier.width(8.dp))
-                                IconButton(onClick = {
-                                    val initial = if (targetDays == "0") "" else targetDays
-                                    editableTargetText = TextFieldValue(text = initial, selection = TextRange(initial.length))
-                                    isEditingTarget = true
-                                    editRequestedAt = System.currentTimeMillis()
-                                    targetFocusRequester.requestFocus()
-                                    keyboardController?.show()
-                                }) {
-                                    Icon(imageVector = Icons.Default.Edit, contentDescription = stringResource(R.string.cd_navigate_back))
+                        TextField(
+                            value = targetDaysText,
+                            onValueChange = { newText ->
+                                // Only allow numeric input, backspace, and limited navigation
+                                if (newText.text.all { it.isDigit() } || newText == TextFieldValue("")) {
+                                    targetDaysText = newText.copy(
+                                        text = newText.text.take(3),
+                                        selection = TextRange(newText.text.length) // Move cursor to end
+                                    )
                                 }
-                            }
-                        } else {
-                            val keyboard = keyboardController
-                            var targetFieldHadFocus by remember { mutableStateOf(false) }
-                            OutlinedTextField(
-                                value = editableTargetText,
-                                onValueChange = { newTf: TextFieldValue ->
-                                    // accept only digits, max 3
-                                    val filtered = newTf.text.filter { it.isDigit() }.take(3)
-                                    editableTargetText = TextFieldValue(text = filtered, selection = TextRange(filtered.length))
-                                },
-                                singleLine = true,
-                                modifier = Modifier
-                                    .width(96.dp)
-                                    .focusRequester(targetFocusRequester)
-                                    .onGloballyPositioned { coords -> fieldBounds = coords.boundsInWindow() }
-                                    .onFocusChanged { state ->
-                                        // mark when field actually received focus; only commit on loss if it had focus
-                                        if (state.isFocused) {
-                                            targetFieldHadFocus = true
-                                            // ensure cursor at end when field receives focus
-                                            editableTargetText = editableTargetText.copy(selection = TextRange(editableTargetText.text.length))
-                                        } else if (!state.isFocused && targetFieldHadFocus) {
-                                            val parsed = editableTargetText.text.toIntOrNull()
-                                            if (parsed != null && parsed in 1..999) {
-                                                targetDays = parsed.toString()
-                                            } else {
-                                                // invalid target: ignore
-                                            }
-                                            targetFieldHadFocus = false
-                                            isEditingTarget = false
-                                            keyboard?.hide()
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .focusRequester(targetDaysFocusRequester)
+                                .onFocusChanged { focusState ->
+                                    if (focusState.isFocused) {
+                                        isTargetDaysFocused = true
+                                        // if current stored value was "0", clear text so first key replaces it
+                                        if (targetDays == "0") {
+                                            targetDaysText = TextFieldValue(text = "", selection = TextRange(0))
+                                        } else {
+                                            targetDaysText = TextFieldValue(text = targetDays, selection = TextRange(targetDays.length))
                                         }
-                                    },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
-                                keyboardActions = KeyboardActions(onDone = {
-                                    // 확인: 1..999만 허용
-                                    val parsed = editableTargetText.text.toIntOrNull()
-                                    if (parsed != null && parsed in 1..999) {
-                                        targetDays = parsed.toString()
                                     } else {
-                                        // invalid target: ignore
+                                        isTargetDaysFocused = false
+                                        // Commit value on focus loss
+                                        val newTargetDays = targetDaysText.text.toIntOrNull()?.coerceIn(0, 999) ?: 0
+                                        targetDays = newTargetDays.toString()
+                                        targetDaysText = TextFieldValue(targetDays)
                                     }
-                                    isEditingTarget = false
-                                    keyboard?.hide()
-                                }),
-                                // 간단한 스타일과 placeholder
-                                shape = MaterialTheme.shapes.medium,
-                                placeholder = { Text(text = "목표 일수 입력", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                                },
+                            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                keyboardType = KeyboardType.Number,
+                                imeAction = ImeAction.Done
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onDone = {
+                                    // Commit value on IME Done
+                                    val newTargetDays = targetDaysText.text.toIntOrNull()?.coerceIn(0, 999) ?: 0
+                                    targetDays = newTargetDays.toString()
+                                    targetDaysText = TextFieldValue(targetDays)
+                                    // Hide keyboard
+                                    keyboardController?.hide()
+                                }
+                            ),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                disabledContainerColor = Color.Transparent,
+                                errorContainerColor = Color.Transparent
                             )
-                        }
+                        )
                     }
 
                     HorizontalDivider()
@@ -335,14 +297,16 @@ fun AddRecordScreenComposable(
                             onClick = {
                                 if (!isRangeInvalid && !isOngoing && isTargetValid) {
                                     val id = "rec_${System.currentTimeMillis()}"
-                                    val status = if (!isOngoing && !isRangeInvalid && actualDays >= targetDaysInt) "성공" else "실패"
+                                    // outer if already guarantees valid, so determine success by actualDays >= targetDaysInt
+                                    val completed = actualDays >= targetDaysInt
+                                    val status = if (completed) "성공" else "실패"
                                     val record = SobrietyRecord(
                                         id = id,
                                         startTime = startMillis,
                                         endTime = endMillis,
                                         targetDays = targetDaysInt,
                                         actualDays = actualDays,
-                                        isCompleted = (!isOngoing && !isRangeInvalid && actualDays >= targetDaysInt),
+                                        isCompleted = completed,
                                         status = status,
                                         createdAt = System.currentTimeMillis()
                                     )
