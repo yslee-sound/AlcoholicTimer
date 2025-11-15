@@ -75,7 +75,7 @@ fun SettingsScreen() {
                 .padding(bottom = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            SettingsSection(title = stringResource(R.string.settings_drinking_cost), titleColor = colorResource(id = R.color.color_indicator_money)) {
+            SettingsSection(title = stringResource(R.string.settings_drinking_cost), titleColor = Color.Black) {
                 SettingsOptionGroup(
                     selectedOption = selectedCost,
                     options = listOf(
@@ -96,7 +96,7 @@ fun SettingsScreen() {
             }
             SectionDivider()
 
-            SettingsSection(title = stringResource(R.string.settings_drinking_frequency), titleColor = colorResource(id = R.color.color_progress_primary)) {
+            SettingsSection(title = stringResource(R.string.settings_drinking_frequency), titleColor = Color.Black) {
                 SettingsOptionGroup(
                     selectedOption = selectedFrequency,
                     options = listOf(
@@ -117,7 +117,7 @@ fun SettingsScreen() {
             }
             SectionDivider()
 
-            SettingsSection(title = stringResource(R.string.settings_drinking_duration), titleColor = colorResource(id = R.color.color_indicator_hours)) {
+            SettingsSection(title = stringResource(R.string.settings_drinking_duration), titleColor = Color.Black) {
                 SettingsOptionGroup(
                     selectedOption = selectedDuration,
                     options = listOf(

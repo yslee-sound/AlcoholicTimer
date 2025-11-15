@@ -90,7 +90,7 @@ fun AboutScreen(
 
         // 프로필 섹션 아래 경계선 (이미지처럼 바로 아래에 라인)
         Spacer(modifier = Modifier.height(nicknameDividerSpacing))
-        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 12.dp)
+        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 10.dp)
 
         // 통화 설정 단일 버튼 (오른쪽 화살표 추가) - 클릭 시 ripple 제거
         SimpleAboutRow(
