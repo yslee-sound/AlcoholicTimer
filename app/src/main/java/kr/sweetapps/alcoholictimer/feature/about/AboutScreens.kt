@@ -39,6 +39,9 @@ fun AboutScreen(
     val sp = remember { context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE) }
     var nickname by remember { mutableStateOf(sp.getString("nickname", context.getString(R.string.default_nickname)) ?: context.getString(R.string.default_nickname)) }
 
+    // 로컬: 닉네임 섹션 아래 간격 — AboutScreen 내부에서만 제어
+    val nicknameDividerSpacing = 0.dp
+
     // SharedPreferences listener로 닉네임 실시간 반영
     DisposableEffect(sp) {
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
@@ -86,7 +89,8 @@ fun AboutScreen(
         }
 
         // 프로필 섹션 아래 경계선 (이미지처럼 바로 아래에 라인)
-        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
+        Spacer(modifier = Modifier.height(nicknameDividerSpacing))
+        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 12.dp)
 
         // 통화 설정 단일 버튼 (오른쪽 화살표 추가) - 클릭 시 ripple 제거
         SimpleAboutRow(
