@@ -111,11 +111,14 @@ abstract class BaseActivity : ComponentActivity() {
             // Control system bars from Compose using Accompanist SystemUiController
             if (applySystemBars) {
                 val systemUiController = com.google.accompanist.systemuicontroller.rememberSystemUiController()
-                val useDarkIcons = true
+                val isSystemDark = (androidx.compose.ui.platform.LocalContext.current.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+                val statusBarColor = if (isSystemDark) Color.Black else Color.White
+                val navigationBarColor = if (isSystemDark) Color.Black else Color.White
+                val useDarkIcons = !isSystemDark
                 androidx.compose.runtime.SideEffect {
                     try {
-                        systemUiController.setStatusBarColor(color = Color.White, darkIcons = useDarkIcons)
-                        systemUiController.setNavigationBarColor(color = Color.White, darkIcons = useDarkIcons)
+                        systemUiController.setStatusBarColor(color = statusBarColor, darkIcons = useDarkIcons)
+                        systemUiController.setNavigationBarColor(color = navigationBarColor, darkIcons = useDarkIcons)
                     } catch (_: Throwable) {}
                 }
             }
