@@ -1,6 +1,5 @@
 package kr.sweetapps.alcoholictimer.core.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -15,9 +14,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -35,31 +32,31 @@ private data class BottomItem(
 private val bottomItems: List<BottomItem> = listOf(
     BottomItem(
         Screen.Start,
-        R.drawable.ic_bottom_start,
+        R.drawable.ic_nav_play,
         R.string.drawer_menu_sobriety,
         R.string.drawer_menu_sobriety
     ),
     BottomItem(
         Screen.Records,
-        R.drawable.ic_bottom_records,
+        R.drawable.ic_nav_calendardots,
         R.string.drawer_menu_records,
         R.string.drawer_menu_records
     ),
     BottomItem(
         Screen.Level,
-        R.drawable.ic_bottom_level,
+        R.drawable.ic_nav_medal,
         R.string.drawer_menu_level,
         R.string.drawer_menu_level
     ),
     BottomItem(
         Screen.Settings,
-        R.drawable.ic_bottom_settings,
+        R.drawable.ic_nav_gearsix,
         R.string.drawer_menu_settings,
         R.string.drawer_menu_settings
     ),
     BottomItem(
         Screen.About,
-        R.drawable.ic_bottom_info,
+        R.drawable.ic_nav_user,
         R.string.drawer_menu_about,
         R.string.drawer_menu_about
     )
@@ -146,4 +143,3 @@ private fun isDestinationSelected(current: NavDestination?, screen: Screen): Boo
         else -> route == screen.route
     }
 }
-
