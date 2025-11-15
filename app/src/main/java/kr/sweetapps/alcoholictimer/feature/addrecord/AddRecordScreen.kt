@@ -198,14 +198,34 @@ fun AddRecordScreenComposable(
 
                     val keyboardController = LocalSoftwareKeyboardController.current
                     val targetDaysFocusRequester = remember { FocusRequester() }
-                    var targetDaysText by remember { mutableStateOf(TextFieldValue(targetDays)) }
+                    // initialize selection at end so caret is placed after text by default
+                    var targetDaysText by remember { mutableStateOf(TextFieldValue(text = targetDays, selection = TextRange(targetDays.length))) }
                     var isTargetDaysFocused by remember { mutableStateOf(false) }
+                    var clearOnFocus by remember { mutableStateOf(false) }
+                    // click trigger to reliably request focus from a LaunchedEffect (works better across devices)
+                    var focusRequestTrigger by remember { mutableStateOf(0) }
 
-                    // When field receives focus, ensure keyboard is shown and initial '0' is cleared so first digit replaces it
+                    // When field should request focus (triggered by click), request focus and show keyboard with short retries
+                    LaunchedEffect(focusRequestTrigger) {
+                        if (focusRequestTrigger > 0) {
+                            repeat(3) { attempt ->
+                                try {
+                                    targetDaysFocusRequester.requestFocus()
+                                    keyboardController?.show()
+                                } catch (_: Exception) { }
+                                delay(60L + attempt * 40L)
+                            }
+                        }
+                    }
+
+                    // When focus is actually acquired, enforce clearing/select behavior to ensure first key replaces '0'
                     LaunchedEffect(isTargetDaysFocused) {
                         if (isTargetDaysFocused) {
-                            // small backoff for IME timing
-                            delay(80)
+                            if (clearOnFocus || targetDays == "0" || targetDaysText.text == "0") {
+                                targetDaysText = TextFieldValue(text = "", selection = TextRange(0))
+                                clearOnFocus = false
+                            }
+                            // ensure keyboard visible
                             keyboardController?.show()
                         }
                     }
@@ -215,15 +235,17 @@ fun AddRecordScreenComposable(
                             .fillMaxWidth()
                             .heightIn(min = 56.dp)
                             .clickable {
-                                // Prepare the editable text immediately so first keypress replaces the placeholder 0
-                                if (targetDays == "0") {
-                                    targetDaysText = TextFieldValue(text = "", selection = TextRange(0))
+                                // If value is "0", prepare empty text so first keypress replaces it reliably
+                                clearOnFocus = (targetDays == "0")
+                                targetDaysText = if (targetDays == "0") {
+                                    TextFieldValue(text = "", selection = TextRange(0))
                                 } else {
-                                    targetDaysText = TextFieldValue(text = targetDays, selection = TextRange(targetDays.length))
+                                    TextFieldValue(text = targetDays, selection = TextRange(targetDays.length))
                                 }
-                                // request focus and show keyboard immediately
+                                // request focus and show keyboard immediately and also trigger the retry launcher
                                 targetDaysFocusRequester.requestFocus()
                                 keyboardController?.show()
+                                focusRequestTrigger++
                             },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -245,10 +267,12 @@ fun AddRecordScreenComposable(
                                 .onFocusChanged { focusState ->
                                     if (focusState.isFocused) {
                                         isTargetDaysFocused = true
-                                        // if current stored value was "0", clear text so first key replaces it
-                                        if (targetDays == "0") {
+                                        // If we flagged clearOnFocus or stored value is "0", clear the editable text so the first keystroke replaces it
+                                        if (clearOnFocus || targetDays == "0" || targetDaysText.text == "0") {
                                             targetDaysText = TextFieldValue(text = "", selection = TextRange(0))
+                                            clearOnFocus = false
                                         } else {
+                                            // ensure caret at end of existing value
                                             targetDaysText = TextFieldValue(text = targetDays, selection = TextRange(targetDays.length))
                                         }
                                     } else {
@@ -256,7 +280,7 @@ fun AddRecordScreenComposable(
                                         // Commit value on focus loss
                                         val newTargetDays = targetDaysText.text.toIntOrNull()?.coerceIn(0, 999) ?: 0
                                         targetDays = newTargetDays.toString()
-                                        targetDaysText = TextFieldValue(targetDays)
+                                        targetDaysText = TextFieldValue(text = targetDays, selection = TextRange(targetDays.length))
                                     }
                                 },
                             textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
@@ -279,7 +303,9 @@ fun AddRecordScreenComposable(
                                 unfocusedContainerColor = Color.Transparent,
                                 disabledContainerColor = Color.Transparent,
                                 errorContainerColor = Color.Transparent
-                            )
+                            ),
+                            singleLine = true,
+                            maxLines = 1
                         )
                     }
 
