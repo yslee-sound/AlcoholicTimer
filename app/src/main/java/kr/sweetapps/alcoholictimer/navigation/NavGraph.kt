@@ -4,6 +4,9 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalView
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -25,6 +28,7 @@ import kr.sweetapps.alcoholictimer.feature.profile.NicknameEditScreen
 import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.ads.HomeAdTrigger
 import android.app.Activity
+import androidx.compose.runtime.mutableStateOf
 import kr.sweetapps.alcoholictimer.feature.addrecord.AddRecordScreenComposable
 
 /**
@@ -35,6 +39,8 @@ fun AlcoholicTimerNavGraph(
     navController: NavHostController,
     startDestination: String
 ) {
+    // Records immediate refresh counter. Increase when AddRecord finishes.
+    var recordsRefreshCounter by remember { mutableStateOf<Int>(0) }
     val activity = (LocalView.current.context as? Activity)
     // 홈 그룹 진입 이벤트 기반 카운트: 비홈→홈으로 전환될 때만 1회 증가
     // 최초 앱 진입의 첫 이벤트(대개 홈)는 카운트에서 제외한다.
@@ -115,7 +121,7 @@ fun AlcoholicTimerNavGraph(
         // 기록 목록 화면
         composable(Screen.Records.route) {
             RecordsScreen(
-                externalRefreshTrigger = 0,
+                externalRefreshTrigger = recordsRefreshCounter,
                 onNavigateToAllRecords = { navController.navigate(Screen.AllRecords.route) },
                 onNavigateToDetail = { record: SobrietyRecord ->
                     val route = Screen.Detail.createRoute(
@@ -134,7 +140,11 @@ fun AlcoholicTimerNavGraph(
         // 기록 추가 화면 (Compose 하위 페이지)
         composable(Screen.AddRecord.route) {
             AddRecordScreenComposable(
-                onFinished = { navController.popBackStack() },
+                onFinished = {
+                    // signal RecordsScreen to refresh
+                    recordsRefreshCounter = recordsRefreshCounter + 1
+                    navController.popBackStack()
+                },
                 onCancel = { navController.popBackStack() }
             )
         }

@@ -13,7 +13,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,10 +25,17 @@ import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.content.edit
-import kr.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
-import kr.sweetapps.alcoholictimer.constants.UiConstants
-import kr.sweetapps.alcoholictimer.core.ui.predictAnchoredBannerHeightDp
-import kr.sweetapps.alcoholictimer.core.ui.AppBorder
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,8 +50,10 @@ fun AddRecordScreenComposable(
     var startTime by remember { mutableStateOf(Pair(9, 0)) }
     var endTime by remember { mutableStateOf(Pair(18, 0)) }
 
-    var showTargetSheet by remember { mutableStateOf(false) }
-    var tempTarget by remember(targetDays) { mutableIntStateOf(targetDays.toIntOrNull()?.coerceIn(0, 999) ?: 0) }
+    // 인라인 편집: 읽기 모드와 편집 모드 토글
+    var isEditingTarget by remember { mutableStateOf(false) }
+    var editableTargetText by rememberSaveable { mutableStateOf(targetDays) }
+    val targetFocusRequester = remember { FocusRequester() }
 
     val dateFormat = remember {
         val locale = Locale.getDefault()
@@ -131,6 +142,8 @@ fun AddRecordScreenComposable(
         }
     }
 
+    val keyboardController = LocalSoftwareKeyboardController.current
+
     Scaffold(
         topBar = {
             kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = stringResource(R.string.add_record_title), onBack = onCancel)
@@ -189,15 +202,68 @@ fun AddRecordScreenComposable(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(min = 56.dp)
-                            .clickable {
-                                tempTarget = targetDays.toIntOrNull()?.coerceIn(0, 999) ?: 0
-                                showTargetSheet = true
-                            },
+                            .heightIn(min = 56.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(stringResource(R.string.add_record_target_days), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
-                        Text(text = "$targetDays${stringResource(R.string.add_record_days_unit)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+                        // 인라인 편집 모드
+                        if (!isEditingTarget) {
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
+                                editableTargetText = targetDays
+                                isEditingTarget = true
+                            }) {
+                                Text(text = "$targetDays${stringResource(R.string.add_record_days_unit)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Spacer(Modifier.width(8.dp))
+                                IconButton(onClick = { editableTargetText = targetDays; isEditingTarget = true }) {
+                                    Icon(imageVector = Icons.Default.Edit, contentDescription = stringResource(R.string.cd_navigate_back))
+                                }
+                            }
+                        } else {
+                            val keyboard = keyboardController
+                            var targetFieldHadFocus by remember { mutableStateOf(false) }
+                            OutlinedTextField(
+                                value = editableTargetText,
+                                onValueChange = { new: String ->
+                                    val filtered = new.filter { ch -> ch.isDigit() }.take(3)
+                                    editableTargetText = filtered
+                                },
+                                singleLine = true,
+                                modifier = Modifier
+                                    .width(96.dp)
+                                    .focusRequester(targetFocusRequester)
+                                    .onFocusChanged { state ->
+                                        // mark when field actually received focus; only commit on loss if it had focus
+                                        if (state.isFocused) {
+                                            targetFieldHadFocus = true
+                                        } else if (!state.isFocused && targetFieldHadFocus) {
+                                            val parsed = editableTargetText.toIntOrNull()
+                                            if (parsed != null && parsed in 1..999) {
+                                                targetDays = parsed.toString()
+                                            } else {
+                                                Toast.makeText(context, context.getString(R.string.add_record_error_set_target), Toast.LENGTH_SHORT).show()
+                                            }
+                                            targetFieldHadFocus = false
+                                            isEditingTarget = false
+                                            keyboard?.hide()
+                                        }
+                                    },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                                keyboardActions = KeyboardActions(onDone = {
+                                    // 확인: 1..999만 허용
+                                    val parsed = editableTargetText.toIntOrNull()
+                                    if (parsed != null && parsed in 1..999) {
+                                        targetDays = parsed.toString()
+                                    } else {
+                                        Toast.makeText(context, context.getString(R.string.add_record_error_set_target), Toast.LENGTH_SHORT).show()
+                                    }
+                                    isEditingTarget = false
+                                    keyboard?.hide()
+                                }),
+                                // 간단한 스타일과 placeholder
+                                shape = MaterialTheme.shapes.medium
+                            )
+                        }
                     }
 
                     HorizontalDivider()
@@ -240,17 +306,6 @@ fun AddRecordScreenComposable(
                     }
 
                     Spacer(Modifier.height(24.dp))
-                }
-
-                if (showTargetSheet) {
-                    TargetDaysBottomSheet(
-                        initialValue = tempTarget,
-                        onConfirm = { picked: Int ->
-                            targetDays = picked.toString()
-                            showTargetSheet = false
-                        },
-                        onDismiss = { showTargetSheet = false }
-                    )
                 }
             }
         }
