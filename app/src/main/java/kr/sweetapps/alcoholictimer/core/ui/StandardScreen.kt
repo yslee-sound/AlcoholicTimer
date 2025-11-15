@@ -12,6 +12,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalWindowInfo
 import com.google.android.gms.ads.AdSize
 import androidx.compose.material3.Surface
 import androidx.compose.foundation.rememberScrollState
@@ -26,11 +27,13 @@ fun predictAnchoredBannerHeightDp(): Dp {
     val conf = LocalConfiguration.current
     val density = LocalDensity.current
     // Prefer LocalWindowInfo.containerSize when available for accurate container width
-    val availableWidthDp = try {
-        val windowInfo = androidx.compose.ui.platform.LocalWindowInfo.current
+    val windowInfo = LocalWindowInfo.current
+    // Fallback: use displayMetrics width (pixels -> dp) instead of Configuration.screenWidthDp
+    val fallbackWidthDp = (context.resources.displayMetrics.widthPixels / density.density).toInt()
+    val availableWidthDp = if (windowInfo.containerSize.width > 0) {
         (windowInfo.containerSize.width / density.density).toInt()
-    } catch (_: Throwable) {
-        conf.screenWidthDp
+    } else {
+        fallbackWidthDp
     }
     return try {
         val adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, availableWidthDp)

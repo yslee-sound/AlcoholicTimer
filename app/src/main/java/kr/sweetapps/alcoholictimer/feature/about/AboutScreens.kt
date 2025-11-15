@@ -53,7 +53,10 @@ fun AboutScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onNavigateEditNickname() }
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                ) { onNavigateEditNickname() }
                 .padding(horizontal = 16.dp, vertical = 20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
