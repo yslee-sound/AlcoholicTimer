@@ -53,7 +53,7 @@ fun DetailScreen(
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
-    var showDeleteDialog by remember { mutableStateOf(false) }
+    val showDeleteDialog = remember { mutableStateOf(false) }
     val accentColor = if (isCompleted) BluePrimaryLight else AmberSecondaryLight
 
     var shouldHideBanner by remember { mutableStateOf(false) } // DebugAdHelper removed: banner is always shown (supabase remote control handles visibility)
@@ -146,7 +146,7 @@ fun DetailScreen(
                                 .size(48.dp)
                                 .clip(CircleShape)
                                 .background(Color.White)
-                                .clickable { showDeleteDialog = true }
+                                .clickable { showDeleteDialog.value = true }
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.Delete,
@@ -288,9 +288,9 @@ fun DetailScreen(
                 ) { /* AdmobBanner centralized - no-op */ }
             }
         }
-        if (showDeleteDialog) {
+        if (showDeleteDialog.value) {
             AlertDialog(
-                onDismissRequest = { showDeleteDialog = false },
+                onDismissRequest = { showDeleteDialog.value = false },
                 title = {
                     Text(text = stringResource(id = R.string.dialog_delete_title), style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
                 },
@@ -298,14 +298,14 @@ fun DetailScreen(
                 confirmButton = {
                     TextButton(onClick = {
                         deleteRecord(context, startTime, endTime)
-                        showDeleteDialog = false
+                        // no need to set showDeleteDialog false before navigating back
                         onBack()
                     }) {
                         Text(text = stringResource(id = R.string.dialog_delete_confirm), color = Color(0xFFE53E3E), fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showDeleteDialog = false }) {
+                    TextButton(onClick = { showDeleteDialog.value = false }) {
                         Text(text = stringResource(id = R.string.dialog_cancel), color = Color(0xFF718096))
                     }
                 }

@@ -25,8 +25,13 @@ fun predictAnchoredBannerHeightDp(): Dp {
     val context = LocalContext.current
     val conf = LocalConfiguration.current
     val density = LocalDensity.current
-    // 컨테이너는 화면 풀폭으로 사용하므로 screenWidthDp 전체 사용
-    val availableWidthDp = conf.screenWidthDp
+    // Prefer LocalWindowInfo.containerSize when available for accurate container width
+    val availableWidthDp = try {
+        val windowInfo = androidx.compose.ui.platform.LocalWindowInfo.current
+        (windowInfo.containerSize.width / density.density).toInt()
+    } catch (_: Throwable) {
+        conf.screenWidthDp
+    }
     return try {
         val adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, availableWidthDp)
         with(density) { adSize.getHeightInPixels(context).toDp() }.coerceAtLeast(LayoutConstants.BANNER_MIN_HEIGHT)
@@ -42,8 +47,7 @@ fun StandardScreenWithBottomButton(
     imePaddingEnabled: Boolean = false,
     backgroundDecoration: @Composable BoxScope.() -> Unit = {},
     bottomAd: (@Composable () -> Unit)? = null,
-    reserveSpaceForBottomAd: Boolean = false,
-    showDebugOverlay: Boolean = false
+    reserveSpaceForBottomAd: Boolean = false
 ) {
     // DebugAdHelper removed: banner is controlled remotely; always show by default
     var shouldHideBanner by remember { mutableStateOf(false) }
