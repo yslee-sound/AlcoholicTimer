@@ -85,7 +85,7 @@ fun AddRecordScreenComposable(
     val isRangeInvalid = endMillis <= startMillis
     val isOngoing = endMillis > nowMillis
     val targetDaysInt = targetDays.toIntOrNull() ?: 0
-    val isTargetValid = targetDays.isNotBlank() && targetDaysInt in 1..999
+    val isTargetValid = targetDays.isNotBlank() && targetDaysInt in 1..9999
 
     val actualDays = remember(startMillis, endMillis) {
         ((endMillis - startMillis).coerceAtLeast(0L) / (24 * 60 * 60 * 1000L)).toInt()
@@ -256,7 +256,7 @@ fun AddRecordScreenComposable(
                                 // Only allow numeric input, backspace, and limited navigation
                                 if (newText.text.all { it.isDigit() } || newText == TextFieldValue("")) {
                                     targetDaysText = newText.copy(
-                                        text = newText.text.take(3),
+                                        text = newText.text.take(4),
                                         selection = TextRange(newText.text.length) // Move cursor to end
                                     )
                                 }
@@ -278,7 +278,7 @@ fun AddRecordScreenComposable(
                                     } else {
                                         isTargetDaysFocused = false
                                         // Commit value on focus loss
-                                        val newTargetDays = targetDaysText.text.toIntOrNull()?.coerceIn(0, 999) ?: 0
+                                        val newTargetDays = targetDaysText.text.toIntOrNull()?.coerceIn(0, 9999) ?: 0
                                         targetDays = newTargetDays.toString()
                                         targetDaysText = TextFieldValue(text = targetDays, selection = TextRange(targetDays.length))
                                     }
@@ -291,7 +291,7 @@ fun AddRecordScreenComposable(
                             keyboardActions = KeyboardActions(
                                 onDone = {
                                     // Commit value on IME Done
-                                    val newTargetDays = targetDaysText.text.toIntOrNull()?.coerceIn(0, 999) ?: 0
+                                    val newTargetDays = targetDaysText.text.toIntOrNull()?.coerceIn(0, 9999) ?: 0
                                     targetDays = newTargetDays.toString()
                                     targetDaysText = TextFieldValue(targetDays)
                                     // Hide keyboard
@@ -312,47 +312,38 @@ fun AddRecordScreenComposable(
                     HorizontalDivider()
 
                     if (isRangeInvalid) Text(stringResource(R.string.add_record_error_invalid_range), color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
-                    if (!isTargetValid) Text(stringResource(R.string.add_record_error_set_target), color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
 
                     Spacer(Modifier.height(16.dp))
 
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        OutlinedButton(onClick = onCancel, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.add_record_cancel)) }
+                        // When the user has typed any digit in the editable field, enable the save button immediately.
+                        val hasAnyDigitInput = targetDaysText.text.isNotBlank() && targetDaysText.text.all { it.isDigit() }
 
                         Button(
                             onClick = {
-                                if (!isRangeInvalid && !isOngoing && isTargetValid) {
+                                // Determine commit value: prefer the current editable text if present
+                                val commitTarget = targetDaysText.text.toIntOrNull()?.coerceIn(0, 9999) ?: targetDaysInt
+                                if (!isRangeInvalid && !isOngoing && commitTarget in 1..9999) {
                                     val id = "rec_${System.currentTimeMillis()}"
-                                    // outer if already guarantees valid, so determine success by actualDays >= targetDaysInt
-                                    val completed = actualDays >= targetDaysInt
+                                    val completed = actualDays >= commitTarget
                                     val status = if (completed) "성공" else "실패"
                                     val record = SobrietyRecord(
                                         id = id,
                                         startTime = startMillis,
                                         endTime = endMillis,
-                                        targetDays = targetDaysInt,
+                                        targetDays = commitTarget,
                                         actualDays = actualDays,
                                         isCompleted = completed,
                                         status = status,
                                         createdAt = System.currentTimeMillis()
                                     )
                                     val ok = persistRecord(record)
-                                    if (ok) {
-                                        // success: proceed without toast
-                                        onFinished()
-                                    } else {
-                                        // conflict: proceed without toast
-                                    }
+                                    if (ok) onFinished()
                                 }
                             },
-                            enabled = !isRangeInvalid && !isOngoing && isTargetValid,
-                            modifier = Modifier.weight(1f)
-                        ) { Text(stringResource(R.string.add_record_save)) }
+                            enabled = !isRangeInvalid && !isOngoing && (hasAnyDigitInput || targetDaysInt in 1..9999),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(R.string.add_record_save))
+                        }
                     }
-
-                    Spacer(Modifier.height(24.dp))
-                }
-            }
-        }
-    }
-}
