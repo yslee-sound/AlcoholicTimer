@@ -248,7 +248,8 @@ fun AddRecordScreenComposable(
                         // 인라인 편집 모드: 클릭하면 바로 편집 모드로 전환 (actual focus/keyboard handled in LaunchedEffect)
                         if (!isEditingTarget) {
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
-                                editableTargetText = TextFieldValue(text = targetDays, selection = TextRange(targetDays.length))
+                                val initial = if (targetDays == "0") "" else targetDays
+                                editableTargetText = TextFieldValue(text = initial, selection = TextRange(initial.length))
                                 isEditingTarget = true
                                 editRequestedAt = System.currentTimeMillis()
                                 // request focus synchronously to ensure keyboard appears on first tap
@@ -258,7 +259,8 @@ fun AddRecordScreenComposable(
                                 Text(text = "$targetDays${stringResource(R.string.add_record_days_unit)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Spacer(Modifier.width(8.dp))
                                 IconButton(onClick = {
-                                    editableTargetText = TextFieldValue(text = targetDays, selection = TextRange(targetDays.length))
+                                    val initial = if (targetDays == "0") "" else targetDays
+                                    editableTargetText = TextFieldValue(text = initial, selection = TextRange(initial.length))
                                     isEditingTarget = true
                                     editRequestedAt = System.currentTimeMillis()
                                     targetFocusRequester.requestFocus()
@@ -275,14 +277,7 @@ fun AddRecordScreenComposable(
                                 onValueChange = { newTf: TextFieldValue ->
                                     // accept only digits, max 3
                                     val filtered = newTf.text.filter { it.isDigit() }.take(3)
-                                    // if starting from "0" and user types a digit, replace it
-                                    val next = if (editableTargetText.text == "0" && filtered.length == 1) {
-                                        TextFieldValue(text = filtered, selection = TextRange(filtered.length))
-                                    } else {
-                                        // preserve cursor at end of filtered text
-                                        TextFieldValue(text = filtered, selection = TextRange(filtered.length))
-                                    }
-                                    editableTargetText = next
+                                    editableTargetText = TextFieldValue(text = filtered, selection = TextRange(filtered.length))
                                 },
                                 singleLine = true,
                                 modifier = Modifier
