@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -133,8 +134,11 @@ fun AddRecordScreenComposable(
         }
     }
 
-    // keyboard/focus behavior for inline editing removed — no-op here
+    // focus/keyboard helpers
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
 
+    // no per-field bounds tracking required; taps anywhere will clear focus
     Scaffold(
         topBar = {
             kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = stringResource(R.string.add_record_title), onBack = onCancel)
@@ -144,14 +148,14 @@ fun AddRecordScreenComposable(
     ) { innerPadding ->
         Column(modifier = Modifier
             .fillMaxSize()
-            .pointerInput(Unit) { detectTapGestures { /* no-op: outside-tap handling removed for inline field */ } }
-
+            .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus(); keyboardController?.hide() }) }
         ) {
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 Column(
                     modifier = Modifier
                         .padding(innerPadding)
                         .fillMaxSize()
+                        .pointerInput(Unit) { detectTapGestures { focusManager.clearFocus(); keyboardController?.hide() } }
                         .verticalScroll(rememberScrollState())
                         .background(Color.White)
                         .padding(horizontal = 16.dp)
@@ -163,6 +167,8 @@ fun AddRecordScreenComposable(
                             .fillMaxWidth()
                             .heightIn(min = 56.dp)
                             .clickable {
+                                // ensure any editing focus is cleared before opening picker
+                                focusManager.clearFocus(); keyboardController?.hide()
                                 pickDateThenTime(startDate, startTime.first, startTime.second) { newDate, h, m ->
                                     startDate = newDate
                                     startTime = h to m
@@ -181,6 +187,8 @@ fun AddRecordScreenComposable(
                             .fillMaxWidth()
                             .heightIn(min = 56.dp)
                             .clickable {
+                                // ensure any editing focus is cleared before opening picker
+                                focusManager.clearFocus(); keyboardController?.hide()
                                 pickDateThenTime(endDate, endTime.first, endTime.second) { newDate, h, m ->
                                     endDate = newDate
                                     endTime = h to m
@@ -194,7 +202,6 @@ fun AddRecordScreenComposable(
 
                     HorizontalDivider()
 
-                    val keyboardController = LocalSoftwareKeyboardController.current
                     val targetDaysFocusRequester = remember { FocusRequester() }
                     // initialize selection at end so caret is placed after text by default
                     var targetDaysText by remember { mutableStateOf(TextFieldValue(text = targetDays, selection = TextRange(targetDays.length))) }
