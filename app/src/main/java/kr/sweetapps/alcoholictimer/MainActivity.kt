@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
@@ -110,11 +109,11 @@ class MainActivity : BaseActivity() {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
         // Edge-to-Edge 활성화
-        enableEdgeToEdge()
+        // enableEdgeToEdge() // Removed to follow single source strategy for system bars
 
         // enableEdgeToEdge()는 decorFitsSystemWindows를 false로 변경할 수 있으므로
         // 시스템바 배경을 윈도우가 직접 그리도록 유지하려면 true로 재설정합니다.
-        WindowCompat.setDecorFitsSystemWindows(window, true)
+        // WindowCompat.setDecorFitsSystemWindows(window, true) // Now handled in BaseActivity
 
         // 시스템 바 색상/appearance 직접 설정 코드 제거됨 (BaseActivity에서 일괄 적용)
 

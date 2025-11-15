@@ -73,7 +73,7 @@ abstract class BaseActivity : ComponentActivity() {
     @Suppress("DEPRECATION")
     protected fun applySystemBarAppearance() {
         // Enable edge-to-edge: let the app draw behind system bars and control their look via Compose
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowCompat.setDecorFitsSystemWindows(window, true)
 
         // Ensure window draws system bar backgrounds so we can control their color
         try { window.addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS) } catch (_: Throwable) {}
@@ -107,21 +107,6 @@ abstract class BaseActivity : ComponentActivity() {
     ) {
         AlcoholicTimerTheme(darkTheme = false, applySystemBars = applySystemBars) {
             val blurRadius = animateFloatAsState(0f, tween(0), label = "blur").value
-
-            // Control system bars from Compose using Accompanist SystemUiController
-            if (applySystemBars) {
-                val systemUiController = com.google.accompanist.systemuicontroller.rememberSystemUiController()
-                val isSystemDark = (androidx.compose.ui.platform.LocalContext.current.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
-                val statusBarColor = if (isSystemDark) Color.Black else Color.White
-                val navigationBarColor = if (isSystemDark) Color.Black else Color.White
-                val useDarkIcons = !isSystemDark
-                androidx.compose.runtime.SideEffect {
-                    try {
-                        systemUiController.setStatusBarColor(color = statusBarColor, darkIcons = useDarkIcons)
-                        systemUiController.setNavigationBarColor(color = navigationBarColor, darkIcons = useDarkIcons)
-                    } catch (_: Throwable) {}
-                }
-            }
 
             // 하단 패딩 계산(내비/IME + 추가 여백)
             val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
