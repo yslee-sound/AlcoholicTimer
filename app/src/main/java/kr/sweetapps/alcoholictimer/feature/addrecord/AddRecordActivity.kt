@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -181,18 +182,24 @@ private fun AddRecordScreen(
                 color = MaterialTheme.colorScheme.surface
             ) {
                 Column {
-                    TopAppBar(
-                        title = { Text(stringResource(R.string.add_record_title), fontWeight = FontWeight.Bold) },
-                        navigationIcon = {
-                            IconButton(onClick = onCancel) {
-                                androidx.compose.foundation.Image(
-                                    painter = painterResource(id = R.drawable.ic_caret_left),
-                                    contentDescription = stringResource(R.string.cd_navigate_back),
-                                    modifier = Modifier.size(24.dp)
-                                )
+                    // Custom top bar: back icon fixed left, title aligned to 16.dp
+                    Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
+                        Box(modifier = Modifier.align(Alignment.CenterStart).padding(start = 8.dp).size(48.dp)) {
+                            Surface(modifier = Modifier.fillMaxSize(), shape = CircleShape, color = Color(0xFFF8F9FA), shadowElevation = 2.dp) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    IconButton(onClick = onCancel) {
+                                        androidx.compose.foundation.Image(
+                                            painter = painterResource(id = R.drawable.ic_caret_left),
+                                            contentDescription = stringResource(R.string.cd_navigate_back),
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    }
+                                }
                             }
                         }
-                    )
+                        Text(stringResource(R.string.add_record_title), fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.CenterStart).padding(start = 16.dp))
+                    }
+
                     HorizontalDivider(
                         thickness = 1.5.dp,
                         color = Color(0xFFE0E0E0)

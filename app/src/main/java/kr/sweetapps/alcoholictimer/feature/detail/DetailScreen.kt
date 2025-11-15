@@ -111,48 +111,33 @@ fun DetailScreen(
                         .padding(16.dp)
                         .statusBarsPadding()
                 ) {
-                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.White)
-                                    .clickable { onBack() }
-                            ) {
-                                androidx.compose.foundation.Image(
-                                    painter = painterResource(id = R.drawable.ic_caret_left),
-                                    contentDescription = stringResource(id = R.string.cd_navigate_back),
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(4.dp))
-                            CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1f)) {
-                                val base = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-                                val scaled = base.copy(fontSize = (base.fontSize.value * 1.3f).sp)
-                                Text(
-                                    text = stringResource(id = R.string.detail_title),
-                                    style = scaled,
-                                    color = Color(0xFF2D3748),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            }
+                    // Top bar: back icon at left, title aligned to list padding (16.dp)
+                    Box(modifier = Modifier.fillMaxWidth().height(56.dp).padding(top = 8.dp, bottom = 8.dp)) {
+                        Box(modifier = Modifier.align(Alignment.CenterStart).padding(start = 8.dp).size(48.dp).clickable { onBack() }, contentAlignment = Alignment.Center) {
+                            androidx.compose.foundation.Image(
+                                painter = painterResource(id = R.drawable.ic_caret_left),
+                                contentDescription = stringResource(id = R.string.cd_navigate_back),
+                                modifier = Modifier.size(24.dp)
+                            )
                         }
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .background(Color.White)
-                                .clickable { showDeleteDialog.value = true }
-                        ) {
+                        CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1f)) {
+                            val base = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                            val scaled = base.copy(fontSize = (base.fontSize.value * 1.3f).sp)
+                            Text(
+                                text = stringResource(id = R.string.detail_title),
+                                style = scaled,
+                                color = Color(0xFF2D3748),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.align(Alignment.CenterStart).padding(start = 16.dp)
+                            )
+                        }
+                        Box(modifier = Modifier.align(Alignment.CenterEnd).padding(end = 8.dp).size(48.dp), contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.Outlined.Delete,
                                 contentDescription = stringResource(id = R.string.dialog_delete_title),
                                 tint = Color(0xFFE53E3E),
-                                modifier = Modifier.size(24.dp)
+                                modifier = Modifier.size(24.dp).clickable { showDeleteDialog.value = true }
                             )
                         }
                     }

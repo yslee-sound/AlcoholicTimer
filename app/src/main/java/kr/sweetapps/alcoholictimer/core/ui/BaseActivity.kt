@@ -1,18 +1,15 @@
-@file:Suppress("KotlinConstantConditions")
+@file:Suppress("KotlinConstantConditions", "DEPRECATION")
 
 package kr.sweetapps.alcoholictimer.core.ui
 
-import android.R.attr.contentDescription
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -29,7 +26,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import kr.sweetapps.alcoholictimer.MainActivity
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
@@ -74,6 +70,7 @@ abstract class BaseActivity : ComponentActivity() {
         }
     }
 
+    @Suppress("DEPRECATION")
     protected fun applySystemBarAppearance() {
         // Enable edge-to-edge: let the app draw behind system bars and control their look via Compose
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -81,39 +78,10 @@ abstract class BaseActivity : ComponentActivity() {
         // Ensure window draws system bar backgrounds so we can control their color
         try { window.addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS) } catch (_: Throwable) {}
 
-        // Force status and navigation bars to opaque white
-        try { window.statusBarColor = android.graphics.Color.WHITE } catch (_: Throwable) {}
-        try { window.navigationBarColor = android.graphics.Color.WHITE } catch (_: Throwable) {}
-
-        // Disable navigation bar contrast enforcement (API 29+), and make divider transparent (API 28+)
+        // Keep minimal window flags; actual colors/icons are controlled from Compose via SystemUiController
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
             try { window.isNavigationBarContrastEnforced = false } catch (_: Throwable) {}
         }
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-            try { window.navigationBarDividerColor = android.graphics.Color.TRANSPARENT } catch (_: Throwable) {}
-        }
-
-        // WindowInsetsControllerCompat to set icon/text appearance (dark icons on light background)
-        val windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
-        try { windowInsetsController.isAppearanceLightStatusBars = true } catch (_: Throwable) {}
-        try { windowInsetsController.isAppearanceLightNavigationBars = true } catch (_: Throwable) {}
-
-        // Compatibility fallback: set legacy systemUiVisibility flags for some OEMs/devices
-        try {
-            val decor = window.decorView
-            var vis = decor.systemUiVisibility
-            // Light status bar (dark icons)
-            @Suppress("DEPRECATION")
-            vis = vis or android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-            // Light navigation bar (dark icons) - available API 26+
-            try { vis = vis or android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR } catch (_: Throwable) {}
-            decor.systemUiVisibility = vis
-        } catch (_: Throwable) {}
-
-        // Ensure window background under navigation bar is opaque white to avoid showing other content
-        try {
-            window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.WHITE))
-        } catch (_: Throwable) {}
     }
 
     // Public helper to allow Application or other components to request a reapply
@@ -140,6 +108,18 @@ abstract class BaseActivity : ComponentActivity() {
         AlcoholicTimerTheme(darkTheme = false, applySystemBars = applySystemBars) {
             val blurRadius = animateFloatAsState(0f, tween(0), label = "blur").value
 
+            // Control system bars from Compose using Accompanist SystemUiController
+            if (applySystemBars) {
+                val systemUiController = com.google.accompanist.systemuicontroller.rememberSystemUiController()
+                val useDarkIcons = true
+                androidx.compose.runtime.SideEffect {
+                    try {
+                        systemUiController.setStatusBarColor(color = Color.White, darkIcons = useDarkIcons)
+                        systemUiController.setNavigationBarColor(color = Color.White, darkIcons = useDarkIcons)
+                    } catch (_: Throwable) {}
+                }
+            }
+
             // 하단 패딩 계산(내비/IME + 추가 여백)
             val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
             val imeBottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
@@ -154,60 +134,52 @@ abstract class BaseActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     containerColor = Color.White,
                     topBar = {
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            shadowElevation = 0.dp,
-                            tonalElevation = 0.dp,
-                            color = Color.White
-                        ) {
-                            Column {
-                                TopAppBar(
-                                    title = {
-                                        CompositionLocalProvider(
-                                            LocalDensity provides Density(LocalDensity.current.density, fontScale = 1.2f)
-                                        ) {
-                                            val titleText = getScreenTitleResId()?.let { stringResource(it) } ?: run {
-                                                @Suppress("DEPRECATION") getScreenTitle()
-                                            }
-                                            Text(
-                                                text = titleText,
-                                                color = Color(0xFF2C3E50),
-                                                fontWeight = FontWeight.SemiBold,
-                                                style = MaterialTheme.typography.titleMedium
-                                            )
-                                        }
-                                    },
-                                    colors = TopAppBarDefaults.topAppBarColors(
-                                        containerColor = Color.Transparent,
-                                        titleContentColor = Color(0xFF2C3E50),
-                                        navigationIconContentColor = Color(0xFF2C3E50),
-                                        actionIconContentColor = Color(0xFF2C3E50)
-                                    ),
-                                    navigationIcon = {
-                                        if (showBackButton) {
-                                            Surface(
-                                                modifier = Modifier.padding(8.dp).size(48.dp),
-                                                shape = CircleShape,
-                                                color = Color(0xFFF8F9FA),
-                                                shadowElevation = 2.dp
-                                            ) {
-                                                IconButton(onClick = { onBackClick?.invoke() ?: run { this@BaseActivity.onBackPressedDispatcher.onBackPressed() } }) {
-                                                    Icon(
-                                                        painter = painterResource(id = R.drawable.ic_caret_left),
-                                                        contentDescription = getString(R.string.cd_navigate_back),
-                                                        tint = Color(0xFF2C3E50),
-                                                        modifier = Modifier.size(24.dp)
-                                                    )
-                                                }
+                        // Custom top bar: back icon fixed at screen left, title starts at 16.dp (aligned with list items)
+                        Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
+                            // Back icon area (left)
+                            if (showBackButton) {
+                                Box(modifier = Modifier
+                                    .align(Alignment.CenterStart)
+                                    .padding(start = 8.dp)
+                                    .size(48.dp)
+                                ) {
+                                    Surface(
+                                        modifier = Modifier.fillMaxSize(),
+                                        shape = CircleShape,
+                                        color = Color(0xFFF8F9FA),
+                                        shadowElevation = 2.dp
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            IconButton(onClick = { onBackClick?.invoke() ?: run { this@BaseActivity.onBackPressedDispatcher.onBackPressed() } }) {
+                                                Icon(
+                                                    painter = painterResource(id = R.drawable.ic_caret_left),
+                                                    contentDescription = getString(R.string.cd_navigate_back),
+                                                    tint = Color(0xFF2C3E50),
+                                                    modifier = Modifier.size(24.dp)
+                                                )
                                             }
                                         }
-                                    },
-                                    actions = { topBarActions() }
-                                )
-                                // Global subtle divider under app bar
-                                HorizontalDivider(thickness = 1.5.dp, color = Color(0xFFE0E0E0))
+                                    }
+                                }
                             }
+                            // Title aligned to list item padding (start = 16.dp)
+                            CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, 1.2f)) {
+                                val titleText = getScreenTitleResId()?.let { stringResource(it) } ?: run {
+                                    @Suppress("DEPRECATION") getScreenTitle()
+                                }
+                                Text(
+                                    text = titleText,
+                                    color = Color(0xFF2C3E50),
+                                    fontWeight = FontWeight.SemiBold,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.align(Alignment.CenterStart).padding(start = 16.dp)
+                                )
+                            }
+                            // Actions aligned to end (use Row to provide RowScope for topBarActions)
+                            Row(modifier = Modifier.align(Alignment.CenterEnd), verticalAlignment = Alignment.CenterVertically) { topBarActions() }
                         }
+                        // Global subtle divider under app bar
+                        HorizontalDivider(thickness = 1.5.dp, color = Color(0xFFE0E0E0))
                     },
                     contentWindowInsets = WindowInsets(0, 0, 0, 0)
                 ) { paddingValues ->

@@ -50,14 +50,15 @@ fun NicknameEditScreen(
     // Scaffold with white background and top app bar (back)
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { /* empty title for edit screen */ },
-                navigationIcon = {
+            // Custom top bar: back icon at left, title aligned to 16.dp
+            Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
+                Box(modifier = Modifier.align(Alignment.CenterStart).padding(start = 8.dp).size(48.dp)) {
                     IconButton(onClick = { onCancel() }) {
                         Image(painter = painterResource(R.drawable.ic_caret_left), contentDescription = stringResource(R.string.cd_navigate_back))
                     }
                 }
-            )
+                Text(text = stringResource(R.string.profile_edit_title), modifier = Modifier.align(Alignment.CenterStart).padding(start = 16.dp), fontWeight = FontWeight.SemiBold)
+            }
         },
         containerColor = Color.White
     ) { innerPadding ->

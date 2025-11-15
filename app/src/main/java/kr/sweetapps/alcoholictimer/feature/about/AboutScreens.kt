@@ -91,7 +91,7 @@ fun AboutScreen(
         // 프로필 섹션 아래 경계선 (이미지처럼 바로 아래에 라인)
         HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
 
-        // 통화 설정 단일 버튼 (오른쪽 화살표 추가)
+        // 통화 설정 단일 버튼 (오른쪽 화살표 추가) - 클릭 시 ripple 제거
         SimpleAboutRow(
             title = stringResource(id = R.string.settings_currency),
             onClick = onNavigateCurrencySettings,
@@ -146,25 +146,35 @@ fun AboutLicensesScreen(onBack: () -> Unit = {}) {
             .fillMaxSize()
             .background(androidx.compose.ui.graphics.Color.White)
     ) {
-        // Top bar with back button
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 8.dp, top = 8.dp, bottom = 4.dp, end = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+        // Top bar: overlay so title text aligns with list items (start = 16.dp) while back icon stays at left
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .padding(top = 8.dp, bottom = 4.dp)
         ) {
-            IconButton(onClick = { onBack() }) {
+            // Back icon at absolute left
+            Box(modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = 8.dp)
+                .size(40.dp)
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                ) { onBack() },
+                contentAlignment = Alignment.Center
+            ) {
                 Image(
                     painter = painterResource(id = R.drawable.ic_caret_left),
                     contentDescription = stringResource(id = R.string.cd_navigate_back),
                     modifier = Modifier.size(24.dp)
                 )
             }
-            Spacer(modifier = Modifier.width(8.dp))
+            // Title aligned to the same left padding as list items (16.dp)
             Text(
                 text = stringResource(id = R.string.about_open_license_notice),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.align(Alignment.CenterStart).padding(start = 16.dp)
             )
         }
 
@@ -176,7 +186,11 @@ fun AboutLicensesScreen(onBack: () -> Unit = {}) {
             SimpleAboutRow(title = stringResource(id = R.string.about_value_icon_author), trailing = null)
             HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
             SimpleAboutRow(title = stringResource(id = R.string.about_value_source_url), trailing = {
-                IconButton(onClick = { /* copy or open link */ }) {
+                // small icon button without ripple
+                Box(modifier = Modifier.size(36.dp).clickable(
+                    indication = null,
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                ) { /* copy or open link */ }, contentAlignment = Alignment.Center) {
                     Image(painter = painterResource(id = R.drawable.ic_caret_right), contentDescription = null, modifier = Modifier.size(18.dp))
                 }
             })
@@ -200,25 +214,27 @@ fun CurrencySettingsScreen(onBack: () -> Unit = {}) {
             .fillMaxSize()
             .background(androidx.compose.ui.graphics.Color.White)
     ) {
-        // Top bar with back button
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 8.dp, top = 8.dp, bottom = 4.dp, end = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+        // Top bar for currency settings: overlay so title aligns with list items (start = 16.dp)
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .padding(top = 8.dp, bottom = 4.dp)
         ) {
-            IconButton(onClick = { onBack() }) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_caret_left),
-                    contentDescription = stringResource(id = R.string.cd_navigate_back),
-                    modifier = Modifier.size(24.dp)
-                )
+            Box(modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = 8.dp)
+                .size(40.dp)
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                ) { onBack() }, contentAlignment = Alignment.Center) {
+                Image(painter = painterResource(id = R.drawable.ic_caret_left), contentDescription = stringResource(id = R.string.cd_navigate_back), modifier = Modifier.size(24.dp))
             }
-            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = stringResource(id = R.string.settings_currency),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.align(Alignment.CenterStart).padding(start = 16.dp)
             )
         }
 
@@ -247,7 +263,10 @@ private fun CurrencyOptionRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onSelected() }
+            .clickable(
+                indication = null,
+                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+            ) { onSelected() }
             .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -276,7 +295,10 @@ private fun SimpleAboutRow(
 ) {
     val base = Modifier
         .fillMaxWidth()
-        .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
+        .then(if (onClick != null) Modifier.clickable(
+            indication = null,
+            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+        ) { onClick() } else Modifier)
         .padding(horizontal = 16.dp, vertical = 16.dp)
     Row(modifier = base, verticalAlignment = Alignment.CenterVertically) {
         Text(
