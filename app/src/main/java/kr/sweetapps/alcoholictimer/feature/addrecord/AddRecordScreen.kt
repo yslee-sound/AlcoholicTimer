@@ -84,8 +84,6 @@ fun AddRecordScreenComposable(
 
     val isRangeInvalid = endMillis <= startMillis
     val isOngoing = endMillis > nowMillis
-    val targetDaysInt = targetDays.toIntOrNull() ?: 0
-    val isTargetValid = targetDays.isNotBlank() && targetDaysInt in 1..9999
 
     val actualDays = remember(startMillis, endMillis) {
         ((endMillis - startMillis).coerceAtLeast(0L) / (24 * 60 * 60 * 1000L)).toInt()
@@ -316,14 +314,46 @@ fun AddRecordScreenComposable(
                     Spacer(Modifier.height(16.dp))
 
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        // When the user has typed any digit in the editable field, enable the save button immediately.
-                        val hasAnyDigitInput = targetDaysText.text.isNotBlank() && targetDaysText.text.all { it.isDigit() }
+                        // Determine the display source: prefer editable text when non-blank, otherwise use stored targetDays
+                        val displayRaw = if (targetDaysText.text.isNotBlank()) targetDaysText.text.trim() else targetDays
+                        val displayInt = displayRaw.toIntOrNull() ?: -1
+
+                        // Pre-check for time conflict with existing records (use remember so it's recomputed only when dates change)
+                        val hasTimeConflict = remember(startMillis, endMillis) {
+                            try {
+                                val records = RecordsDataLoader.loadSobrietyRecords(context)
+                                records.any { existing ->
+                                    val existingStart = existing.startTime
+                                    val existingEnd = existing.endTime
+                                    (startMillis < existingEnd && endMillis > existingStart)
+                                }
+                            } catch (_: Exception) {
+                                false
+                            }
+                        }
+
+                        val canSave = !isRangeInvalid && !isOngoing && (displayInt in 1..9999) && !hasTimeConflict
 
                         Button(
                             onClick = {
-                                // Determine commit value: prefer the current editable text if present
-                                val commitTarget = targetDaysText.text.toIntOrNull()?.coerceIn(0, 9999) ?: targetDaysInt
-                                if (!isRangeInvalid && !isOngoing && commitTarget in 1..9999) {
+                                // Recompute same way to avoid any mismatch
+                                val displayRawClick = if (targetDaysText.text.isNotBlank()) targetDaysText.text.trim() else targetDays
+                                val displayIntClick = displayRawClick.toIntOrNull() ?: -1
+                                val hasConflictClick = try {
+                                    val records = RecordsDataLoader.loadSobrietyRecords(context)
+                                    records.any { existing ->
+                                        val existingStart = existing.startTime
+                                        val existingEnd = existing.endTime
+                                        (startMillis < existingEnd && endMillis > existingStart)
+                                    }
+                                } catch (_: Exception) { false }
+
+                                if (!isRangeInvalid && !isOngoing && displayIntClick in 1..9999 && !hasConflictClick) {
+                                    val commitTarget = displayIntClick
+                                    // reflect committed value in local state to keep UI consistent
+                                    targetDays = commitTarget.toString()
+                                    targetDaysText = TextFieldValue(text = targetDays, selection = TextRange(targetDays.length))
+
                                     val id = "rec_${System.currentTimeMillis()}"
                                     val completed = actualDays >= commitTarget
                                     val status = if (completed) "성공" else "실패"
@@ -341,9 +371,16 @@ fun AddRecordScreenComposable(
                                     if (ok) onFinished()
                                 }
                             },
-                            enabled = !isRangeInvalid && !isOngoing && (hasAnyDigitInput || targetDaysInt in 1..9999),
+                            enabled = canSave,
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(stringResource(R.string.add_record_save))
                         }
                     }
+
+                    Spacer(Modifier.height(24.dp))
+                }
+            }
+        }
+    }
+}
