@@ -33,9 +33,10 @@ WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debu
 - 성공: `✅ 빈도 제한 통과: 시간당 0/1, 일일 0/3` → 표시/닫힘 로그
 - 차단: `⚠️ 시간당 빈도 제한 초과: 1/1` → 미표시
 - 복구: `UPDATE ad_policy SET ad_interstitial_max_per_hour = 2, ad_interstitial_max_per_day = 15`
-3) App Open 빈도 제한 테스트(추가)
+3) App Open 빈도 제한 테스트(추가, 콜드 스타트 기준)
  - Supabase에서 `app_open_max_per_hour`와 `app_open_max_per_day`를 낮춰 테스트합니다 (예: 1/3).
- - 앱을 재실행한 후 App Open을 여러 번 트리거(앱 백그라운드→포그라운드 반복)하여 초과 시 `AppOpenAdManager` 로그에서 `showIfAvailable abort: AppOpen limit reached by policy`를 확인합니다.
+ - 주의: App Open은 이제 "앱 시작(콜드 스타트)" 시에만 트리거됩니다. 따라서 App Open 빈도 제한 테스트는 반드시 앱 프로세스를 완전 종료한 뒤 재실행(cold start)을 반복하여 수행하세요.
+ - 앱을 재실행한 후 App Open을 여러 번 트리거(콜드 스타트 반복)하여 초과 시 `AppOpenAdManager` 로그에서 `showIfAvailable abort: AppOpen limit reached by policy`를 확인합니다.
  - 성공 로그: `📝 AppOpen shown recorded (total: N)` (AdController)
  - 차단 로그: `showIfAvailable abort: AppOpen limit reached by policy` (AppOpenAdManager)
  - 복구: Supabase에서 값을 원래대로 변경하거나 기본값 2/15로 복원

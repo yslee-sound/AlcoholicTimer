@@ -39,7 +39,11 @@ ad_policy: 3분 (이 문서)
 - 앱 재시작 즉시 반영 / 실행 중 최대 3분 내 반영
 - 3분: 대응 속도 + 배터리/네트워크 균형(1분 대비 요청 66%↓)
 
-참고: App Open 빈도 제한(app_open_max_per_hour/app_open_max_per_day)은 클라이언트 측에서 로컬 기록(SharedPreferences)에 기반해 적용됩니다. 복수 디바이스 간의 전역 집계가 필요한 경우 서버 측 집계 또는 별도 API가 필요합니다.
++<!-- App Open 동작 변경 안내 -->
++**참고: App Open 광고 동작 변경**
++- App Open 광고는 이제 "앱 시작(콜드 스타트)" 시에만 트리거됩니다. 일반적인 백그라운드→포그라운드 전환에서는 기본적으로 노출되지 않습니다.
++- App Open 관련 토글(`ad_app_open_enabled`)과 빈도 제한(`app_open_max_per_hour`, `app_open_max_per_day`)은 Supabase의 `ad_policy` 테이블에서 관리됩니다. 테스트 시에는 Supabase 설정을 조작한 뒤 "앱 완전 종료 → 재실행"(cold start)로 동작을 검증하세요.
++
 
 ---
 ## 2 중요: RLS 정책 수정 (최초 1회)
@@ -66,6 +70,8 @@ SELECT app_id,is_active,ad_app_open_enabled,ad_interstitial_enabled,ad_banner_en
 FROM ad_policy WHERE app_id IN ('kr.sweetapps.alcoholictimer','kr.sweetapps.alcoholictimer.debug');
 ```
 기대: 모든 광고 ON, per_hour=2, per_day=15.
++
++// 테스트 주의사항: App Open은 콜드 스타트 전용임을 염두에 두고, App Open 동작을 확인하려면 반드시 앱 프로세스를 완전 종료한 뒤 재실행하세요.
 
 ---
 ## 4 is_active 전체 광고 제어 테스트
