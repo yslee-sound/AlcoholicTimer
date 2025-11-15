@@ -224,7 +224,7 @@ object AdController {
         }
         val policy = _cachedPolicy.value  // State 직접 읽기로 구독
         return when {
-            policy == null -> true // 문서 기준: 정책 미존재 -> 기본 허용
+            policy == null -> false // 변경: 정책 미존재는 기본 비허용으로 변경 (서버 RLS로 행이 숨겨질 수 있음)
             !policy.isActive -> false // 정책이 존재하고 비활성화 되어 있으면 전체 차단
             else -> policy.adBannerEnabled
         }
@@ -240,7 +240,7 @@ object AdController {
         }
         val policy = cachedPolicy
         return when {
-            policy == null -> true // 문서 기준: 정책 미존재 -> 기본 허용
+            policy == null -> false // 변경: 정책 미존재는 기본 비허용
             !policy.isActive -> false // 정책이 존재하고 비활성화 되어 있으면 전체 차단
             else -> policy.adBannerEnabled
         }
@@ -368,7 +368,7 @@ object AdController {
     fun isAppOpenEnabled(): Boolean {
         val policy = cachedPolicy
         return when {
-            policy == null -> true // 문서 기준: 정책 미존재 -> 기본 허용
+            policy == null -> false // 변경: 정책 미존재는 기본 비허용으로 처리하여 서버에서 행이 숨겨질 때 광고가 잘못 허용되는 것을 방지
             !policy.isActive -> false // 정책이 존재하고 비활성화 되어 있으면 전체 차단
             else -> policy.adAppOpenEnabled
         }
