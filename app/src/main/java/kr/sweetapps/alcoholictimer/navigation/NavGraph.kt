@@ -132,6 +132,7 @@ fun AlcoholicTimerNavGraph(
         // 전체 기록 화면
         composable(Screen.AllRecords.route) {
             AllRecordsScreen(
+                onNavigateBack = { if (!navController.popBackStack()) navController.navigate(Screen.Records.route) },
                 onNavigateToDetail = { record: SobrietyRecord ->
                     val route = Screen.Detail.createRoute(
                         startTime = record.startTime,

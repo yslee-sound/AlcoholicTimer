@@ -29,6 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
+import kr.sweetapps.alcoholictimer.core.ui.BackTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,27 +78,25 @@ fun AllRecordsScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
-            // 외부 액션버튼(상단 앱바)이 제공되지 않는 경우에만 내부 X 버튼 노출
-            if (externalDeleteDialog == null) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = UiConstants.RECORDS_SCREEN_HORIZONTAL_PADDING, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(
-                        onClick = { dialogState.value = true },
-                        enabled = !isLoading && records.isNotEmpty()
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Close,
-                            contentDescription = stringResource(id = R.string.cd_delete_all_records),
-                            tint = if (!isLoading && records.isNotEmpty()) Color(0xFFE53E3E) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                        )
+            // 상단 공통 BackTopBar: 뒤로가기 및 삭제 버튼(옵션)을 오른쪽에 배치
+            BackTopBar(
+                title = stringResource(id = R.string.all_records_title),
+                onBack = onNavigateBack,
+                trailingContent = if (externalDeleteDialog == null) {
+                    {
+                        IconButton(
+                            onClick = { dialogState.value = true },
+                            enabled = !isLoading && records.isNotEmpty()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Close,
+                                contentDescription = stringResource(id = R.string.cd_delete_all_records),
+                                tint = if (!isLoading && records.isNotEmpty()) Color(0xFFE53E3E) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                            )
+                        }
                     }
-                }
-            }
+                } else null
+            )
 
             when {
                 isLoading -> {

@@ -33,17 +33,19 @@ fun BackTopBar(
         .height(56.dp)
         .background(MaterialTheme.colorScheme.surface)
     ) {
+        val noRipple = remember { MutableInteractionSource() }
+        // Make the whole touch area clickable (not just the icon) to improve hit target
         Box(modifier = Modifier
             .align(Alignment.CenterStart)
             .width(UiConstants.BackIconTouchArea)
-            .padding(start = UiConstants.BackIconInnerPadding), contentAlignment = Alignment.CenterStart) {
-            val noRipple = remember { MutableInteractionSource() }
+            .padding(start = UiConstants.BackIconInnerPadding)
+            .clickable(indication = null, interactionSource = noRipple) { onBack() },
+            contentAlignment = Alignment.CenterStart
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.ic_caret_left),
                 contentDescription = stringResource(id = R.string.cd_navigate_back),
-                modifier = Modifier
-                    .size(24.dp)
-                    .clickable(indication = null, interactionSource = noRipple) { onBack() }
+                modifier = Modifier.size(24.dp)
             )
         }
 

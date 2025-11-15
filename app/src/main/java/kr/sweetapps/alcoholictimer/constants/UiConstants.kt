@@ -10,7 +10,7 @@ object UiConstants {
     val BackIconInnerPadding: Dp = 14.dp // 14 픽스
 
     // Layout-related constants (migrated from core.ui/LayoutConstants)
-    val SCREEN_HORIZONTAL_PADDING: Dp = 10.dp
+    val SCREEN_HORIZONTAL_PADDING: Dp = 12.dp // 12가 적당함
     val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 10.dp
     val LEVEL_SCREEN_HORIZONTAL_PADDING: Dp = 10.dp
 

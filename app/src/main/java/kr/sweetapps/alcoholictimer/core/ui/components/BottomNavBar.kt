@@ -1,5 +1,6 @@
 package kr.sweetapps.alcoholictimer.core.ui.components
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -26,7 +27,8 @@ private data class BottomItem(
     val screen: Screen,
     val iconRes: Int,  // 커스텀 아이콘 drawable 리소스 ID
     val labelRes: Int,
-    val contentDescriptionRes: Int
+    val contentDescriptionRes: Int,
+    val associatedRoutes: Set<String> = setOf(screen.route)
 )
 
 private val bottomItems: List<BottomItem> = listOf(
@@ -40,7 +42,8 @@ private val bottomItems: List<BottomItem> = listOf(
         Screen.Records,
         R.drawable.ic_nav_calendardots,
         R.string.drawer_menu_records,
-        R.string.drawer_menu_records
+        R.string.drawer_menu_records,
+        associatedRoutes = setOf(Screen.Records.route, "detail/")
     ),
     BottomItem(
         Screen.Level,
@@ -58,7 +61,8 @@ private val bottomItems: List<BottomItem> = listOf(
         Screen.About,
         R.drawable.ic_nav_user,
         R.string.drawer_menu_about,
-        R.string.drawer_menu_about
+        R.string.drawer_menu_about,
+        associatedRoutes = setOf(Screen.About.route, Screen.AboutLicenses.route, Screen.NicknameEdit.route, Screen.CurrencySettings.route)
     )
 )
 
@@ -66,6 +70,13 @@ private val bottomItems: List<BottomItem> = listOf(
 fun BottomNavBar(navController: NavHostController, modifier: Modifier = Modifier) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
+
+    val currentRoute = currentDestination?.route ?: backStackEntry?.destination?.id?.toString() ?: "<null>"
+
+    // 먼저 각 아이템의 매칭 결과를 계산하여, 가장 먼저 매칭되는 인덱스만 선택하도록 결정합니다.
+    val matchedIndex = bottomItems.indexOfFirst { isDestinationSelected(currentRoute, currentDestination, it) }
+    // Debug: 어떤 route가 선택되었는지 확인용 로그 (선택 인덱스)
+    Log.d("BottomNavBar", "currentRoute=$currentRoute destId=${backStackEntry?.destination?.id} selectedIndex=$matchedIndex")
 
     Surface(
         modifier = modifier
@@ -86,8 +97,8 @@ fun BottomNavBar(navController: NavHostController, modifier: Modifier = Modifier
                     horizontalArrangement = Arrangement.spacedBy(kr.sweetapps.alcoholictimer.constants.UiConstants.BOTTOM_NAV_ITEM_GAP),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    bottomItems.forEach { item ->
-                        val selected = isDestinationSelected(currentDestination, item.screen)
+                    bottomItems.forEachIndexed { index, item ->
+                        val selected = index == matchedIndex
                         BottomNavItem(
                             item = item,
                             isSelected = selected,
@@ -142,11 +153,36 @@ private fun BottomNavItem(
     }
 }
 
-private fun isDestinationSelected(current: NavDestination?, screen: Screen): Boolean {
-    val route = current?.route ?: return screen == Screen.Start
-    // Run 화면은 Home(Start) 탭으로 귀속
-    return when (screen) {
-        Screen.Start -> route == Screen.Start.route || route == Screen.Run.route
-        else -> route == screen.route
+private fun isDestinationSelected(currentRoute: String?, current: NavDestination?, item: BottomItem): Boolean {
+    // 우선 currentRoute 문자열 자체에서 간단 검사
+    var matchedReason: String? = null
+    if (currentRoute != null) {
+        val cr = currentRoute
+        // associatedRoutes 검사: 정확 일치 또는 prefix(예: "detail/")만 허용
+        val assocMatch = item.associatedRoutes.any { ar -> if (ar.endsWith("/")) cr.startsWith(ar) else cr == ar }
+        if (assocMatch) {
+            matchedReason = "associatedMatch"
+            Log.d("BottomNavBar", "match reason for ${item.screen.route}: $matchedReason (currentRoute=$cr, associated=${item.associatedRoutes})")
+            return true
+        }
     }
+
+    // fallback: NavDestination의 parent를 따라 올라가며 route 검사
+    var dest: NavDestination? = current
+    while (dest != null) {
+        val r = dest.route
+        if (r != null) {
+            val assocMatchParent = item.associatedRoutes.any { ar -> if (ar.endsWith("/")) r.startsWith(ar) else r == ar }
+            if (assocMatchParent) {
+                matchedReason = "parentAssociatedMatch"
+                Log.d("BottomNavBar", "match reason for ${item.screen.route}: $matchedReason (parentRoute=$r, associated=${item.associatedRoutes})")
+                return true
+            }
+         }
+         dest = dest.parent
+     }
+
+     val defaultMatch = item.screen == Screen.Start && (currentRoute == null || currentRoute == "<null>")
+     if (defaultMatch) Log.d("BottomNavBar", "match reason for ${item.screen.route}: defaultStartMatch")
+     return defaultMatch
 }
