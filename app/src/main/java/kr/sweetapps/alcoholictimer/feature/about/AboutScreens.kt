@@ -264,7 +264,8 @@ fun CurrencySettingsScreen(onBack: () -> Unit = {}) {
         // Top bar for currency settings: overlay so title aligns with list items (start = 16.dp)
         Box(modifier = Modifier.fillMaxWidth().height(56.dp).padding(top = 8.dp, bottom = 4.dp)) {
             Box(modifier = Modifier.align(Alignment.CenterStart).width(UiConstants.BackIconTouchArea).padding(start = 8.dp), contentAlignment = Alignment.CenterStart) {
-                Image(painter = painterResource(id = R.drawable.ic_caret_left), contentDescription = stringResource(id = R.string.cd_navigate_back), modifier = Modifier.size(24.dp).clickable { onBack() })
+                val noRipple = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                Image(painter = painterResource(id = R.drawable.ic_caret_left), contentDescription = stringResource(id = R.string.cd_navigate_back), modifier = Modifier.size(24.dp).clickable(indication = null, interactionSource = noRipple) { onBack() })
             }
             Text(
                 text = stringResource(id = R.string.settings_currency),

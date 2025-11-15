@@ -3,9 +3,11 @@ package kr.sweetapps.alcoholictimer.core.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -35,12 +37,13 @@ fun BackTopBar(
             .align(Alignment.CenterStart)
             .width(UiConstants.BackIconTouchArea)
             .padding(start = 8.dp), contentAlignment = Alignment.CenterStart) {
+            val noRipple = remember { MutableInteractionSource() }
             Image(
                 painter = painterResource(id = R.drawable.ic_caret_left),
                 contentDescription = stringResource(id = R.string.cd_navigate_back),
                 modifier = Modifier
                     .size(24.dp)
-                    .clickable { onBack() }
+                    .clickable(indication = null, interactionSource = noRipple) { onBack() }
             )
         }
 
@@ -58,4 +61,3 @@ fun BackTopBar(
         }
     }
 }
-

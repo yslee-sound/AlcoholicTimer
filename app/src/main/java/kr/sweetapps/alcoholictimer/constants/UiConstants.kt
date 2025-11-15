@@ -4,10 +4,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 object UiConstants {
-    val BackIconStartPadding: Dp = 42.dp
+    val BackIconStartPadding: Dp = 42.dp // 42, 이건 제목을 오른쪽으로
     val BackIconTouchArea: Dp = 56.dp
 
-    // Layout-related constants (migrated from core.ui.LayoutConstants)
+    // Layout-related constants (migrated from core.ui/LayoutConstants)
     val SCREEN_HORIZONTAL_PADDING: Dp = 10.dp
     val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 10.dp
     val LEVEL_SCREEN_HORIZONTAL_PADDING: Dp = 10.dp
