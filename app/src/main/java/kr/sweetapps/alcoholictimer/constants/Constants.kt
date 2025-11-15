@@ -36,8 +36,7 @@ object Constants {
     const val DEFAULT_FREQUENCY = KEY_FREQUENCY_LOW
     const val DEFAULT_DURATION = KEY_DURATION_SHORT
 
-    const val BACK_ICON_START_PADDING_DP = 42
-    const val BACK_ICON_TOUCH_AREA_DP = 56
+    // UI 관련 상수는 `UiConstants.kt`로 이동했습니다.
 
     object DrinkingSettings {
         const val COST_LOW = 10000
@@ -157,4 +156,3 @@ object Constants {
         try { markerFile.writeText("1") } catch (_: Exception) { }
     }
 }
-

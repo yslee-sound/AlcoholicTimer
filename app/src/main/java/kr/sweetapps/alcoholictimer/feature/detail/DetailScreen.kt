@@ -7,7 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -31,8 +30,6 @@ import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
-import kr.sweetapps.alcoholictimer.core.ui.LayoutConstants
-import kr.sweetapps.alcoholictimer.constants.Constants
 import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.core.util.FormatUtils
 import java.text.SimpleDateFormat
@@ -81,15 +78,15 @@ fun DetailScreen(
         }
     }
 
-    val totalDurationMillis = if (startTime > 0) endTime - startTime else actualDays * Constants.DAY_IN_MILLIS
+    val totalDurationMillis = if (startTime > 0) endTime - startTime else actualDays * kr.sweetapps.alcoholictimer.constants.Constants.DAY_IN_MILLIS
     val totalHours = totalDurationMillis / (60 * 60 * 1000.0)
     val totalDays = totalHours / 24.0
 
-    val (selectedCost, selectedFrequency, selectedDuration) = Constants.getUserSettings(context)
-    val costVal = Constants.DrinkingSettings.getCostValue(selectedCost)
-    val freqVal = Constants.DrinkingSettings.getFrequencyValue(selectedFrequency)
-    val drinkHoursVal = Constants.DrinkingSettings.getDurationValue(selectedDuration)
-    val hangoverHoursVal = Constants.DrinkingSettings.HANGOVER_HOURS
+    val (selectedCost, selectedFrequency, selectedDuration) = kr.sweetapps.alcoholictimer.constants.Constants.getUserSettings(context)
+    val costVal = kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.getCostValue(selectedCost)
+    val freqVal = kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.getFrequencyValue(selectedFrequency)
+    val drinkHoursVal = kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.getDurationValue(selectedDuration)
+    val hangoverHoursVal = kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.HANGOVER_HOURS
 
     val exactWeeks = totalHours / (24.0 * 7.0)
     val savedMoney = (exactWeeks * freqVal * costVal).roundToInt()
@@ -112,36 +109,14 @@ fun DetailScreen(
                         .padding(16.dp)
                         .statusBarsPadding()
                 ) {
-                    // Top bar: keep Box layout so title uses parent-relative start padding
-                    Box(modifier = Modifier.fillMaxWidth().height(56.dp).padding(top = 8.dp, bottom = 8.dp)) {
-                        Box(modifier = Modifier.align(Alignment.CenterStart).width(UiConstants.BackIconTouchArea).padding(start = 8.dp), contentAlignment = Alignment.CenterStart) {
-                            androidx.compose.foundation.Image(
-                                painter = painterResource(id = R.drawable.ic_caret_left),
-                                contentDescription = stringResource(id = R.string.cd_navigate_back),
-                                modifier = Modifier.size(24.dp).clickable { onBack() }
-                            )
-                        }
-                        CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1f)) {
-                            val base = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-                            val scaled = base.copy(fontSize = (base.fontSize.value * 1.3f).sp)
-                            Text(
-                                text = stringResource(id = R.string.detail_title),
-                                style = scaled,
-                                color = Color(0xFF2D3748),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.align(Alignment.CenterStart).padding(start = UiConstants.BackIconStartPadding)
-                            )
-                        }
-                        Box(modifier = Modifier.align(Alignment.CenterEnd).width(UiConstants.BackIconTouchArea).padding(end = 8.dp), contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Outlined.Delete,
-                                contentDescription = stringResource(id = R.string.dialog_delete_title),
-                                tint = Color(0xFFE53E3E),
-                                modifier = Modifier.size(24.dp).clickable { showDeleteDialog.value = true }
-                            )
-                        }
-                    }
+                    kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = stringResource(id = R.string.detail_title), onBack = onBack, trailingContent = {
+                        Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = stringResource(id = R.string.dialog_delete_title),
+                            tint = Color(0xFFE53E3E),
+                            modifier = Modifier.size(24.dp).clickable { showDeleteDialog.value = true }
+                        )
+                    })
                     Spacer(modifier = Modifier.height(24.dp))
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -221,7 +196,7 @@ fun DetailScreen(
                     Spacer(modifier = Modifier.height(24.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
+                        horizontalArrangement = Arrangement.spacedBy(UiConstants.STAT_ROW_SPACING)
                     ) {
                         DetailStatCard(
                             value = stringResource(R.string.unit_days_format, totalDays),
@@ -239,7 +214,7 @@ fun DetailScreen(
                     Spacer(modifier = Modifier.height(12.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(LayoutConstants.STAT_ROW_SPACING)
+                        horizontalArrangement = Arrangement.spacedBy(UiConstants.STAT_ROW_SPACING)
                     ) {
                         DetailStatCard(
                             value = stringResource(R.string.unit_hours_format, savedHoursExact),
@@ -258,9 +233,9 @@ fun DetailScreen(
                 }
             }
             if (!shouldHideBanner) {
-                if (LayoutConstants.BANNER_TOP_GAP > 0.dp) {
+                if (UiConstants.BANNER_TOP_GAP > 0.dp) {
                     Box(
-                        modifier = Modifier.fillMaxWidth().height(LayoutConstants.BANNER_TOP_GAP).background(MaterialTheme.colorScheme.surfaceVariant)
+                        modifier = Modifier.fillMaxWidth().height(UiConstants.BANNER_TOP_GAP).background(MaterialTheme.colorScheme.surfaceVariant)
                     )
                 }
                 HorizontalDivider(thickness = AppBorder.Hairline, color = Color(0xFFE0E0E0))

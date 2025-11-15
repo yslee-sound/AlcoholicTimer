@@ -53,7 +53,9 @@ fun AboutScreen(
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // 상단 프로필 블록: 아바타 + 닉네임 (클릭 시 닉네임 편집 화면으로 이동)
+        // 상단 블록: 공통 BackTopBar로 통일. 프로필 영역은 탭 가능한 콘텐츠로 대체.
+        kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = nickname.ifEmpty { context.getString(R.string.default_nickname) }, onBack = {})
+        // 프로필 클릭 영역: 백버튼과 제목과 별도로 눌러서 닉네임 편집으로 이동하도록 유지
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -61,36 +63,20 @@ fun AboutScreen(
                     indication = null,
                     interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
                 ) { onNavigateEditNickname() }
-                // Reduce start padding so avatar center aligns with top-bar arrow center
-                .padding(start = 10.dp, top = 20.dp, end = 16.dp, bottom = 20.dp),
+                .padding(start = 10.dp, top = 12.dp, end = 16.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 터치 영역은 56dp로 유지. 내부 이미지는 가운데 정렬하여 박스 중심이 화면에서의 기준 좌표와 일치하게 합니다.
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.size(56.dp) // touch area preserved
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_user_circle),
-                    contentDescription = null,
-                    modifier = Modifier.size(56.dp)
-                )
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(56.dp)) {
+                Image(painter = painterResource(id = R.drawable.ic_user_circle), contentDescription = null, modifier = Modifier.size(56.dp))
             }
-            Spacer(modifier = Modifier.width(5.dp)) // 12.dp
-            Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                // 아이콘과 글자 사이 간격을 좁히고 텍스트를 조금 키움
-                Text(
-                    text = nickname.ifEmpty { "로그인" },
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Image(
-                    painter = painterResource(id = R.drawable.ic_caret_right),
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = nickname.ifEmpty { "로그인" },
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
+            )
+            Image(painter = painterResource(id = R.drawable.ic_caret_right), contentDescription = null, modifier = Modifier.size(20.dp))
         }
 
         // 프로필 섹션 아래 경계선 (이미지처럼 바로 아래에 라인)
@@ -157,17 +143,7 @@ fun AboutLicensesScreen(onBack: () -> Unit = {}) {
     }
 
     Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
-        Box(modifier = Modifier.fillMaxWidth().height(56.dp).padding(top = 8.dp, bottom = 4.dp)) {
-            Box(modifier = Modifier.align(Alignment.CenterStart).width(UiConstants.BackIconTouchArea).padding(start = 8.dp), contentAlignment = Alignment.CenterStart) {
-                Image(painter = painterResource(id = R.drawable.ic_caret_left), contentDescription = stringResource(id = R.string.cd_navigate_back), modifier = Modifier.size(24.dp).clickable { onBack() })
-            }
-            Text(
-                text = stringResource(id = R.string.about_open_license_notice),
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = Color.Black,
-                modifier = Modifier.align(Alignment.CenterStart).padding(start = UiConstants.BackIconStartPadding)
-            )
-        }
+        kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = stringResource(id = R.string.about_open_license_notice), onBack = onBack, titleColor = Color.Black)
 
         // 파일 전체 텍스트를 스크롤 가능한 컬럼에 표시
         rememberScrollState()

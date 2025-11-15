@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
 import java.util.Locale
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
-import kr.sweetapps.alcoholictimer.core.ui.LayoutConstants
+import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.constants.Constants
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
@@ -52,13 +52,13 @@ fun QuitScreenComposable(
         topContent = {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(LayoutConstants.CARD_CORNER_RADIUS),
+                shape = RoundedCornerShape(UiConstants.CARD_CORNER_RADIUS),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
                 border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(LayoutConstants.CARD_PADDING),
+                    modifier = Modifier.fillMaxWidth().padding(UiConstants.CARD_PADDING),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, 1f)) {

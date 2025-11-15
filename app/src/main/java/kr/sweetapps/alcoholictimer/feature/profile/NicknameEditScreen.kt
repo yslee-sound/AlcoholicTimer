@@ -50,19 +50,7 @@ fun NicknameEditScreen(
     // Scaffold with white background and top app bar (back)
     Scaffold(
         topBar = {
-            // Custom top bar: keep Box layout so title position remains parent-relative (preserve original placement)
-            Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
-                Box(modifier = Modifier.align(Alignment.CenterStart).width(UiConstants.BackIconTouchArea).padding(start = 8.dp), contentAlignment = Alignment.CenterStart) {
-                    // No background circle: keep touch area and center the IconButton
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(UiConstants.BackIconTouchArea)) {
-                        IconButton(onClick = { onCancel() }) {
-                            Icon(painter = painterResource(id = R.drawable.ic_caret_left), contentDescription = stringResource(R.string.cd_navigate_back), tint = Color(0xFF2C3E50), modifier = Modifier.size(24.dp))
-                        }
-                    }
-                }
-
-                Text(text = stringResource(R.string.profile_edit_title), modifier = Modifier.align(Alignment.CenterStart).padding(start = UiConstants.BackIconStartPadding), fontWeight = FontWeight.SemiBold)
-            }
+            kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = stringResource(R.string.profile_edit_title), onBack = onCancel)
         },
         containerColor = Color.White
     ) { innerPadding ->

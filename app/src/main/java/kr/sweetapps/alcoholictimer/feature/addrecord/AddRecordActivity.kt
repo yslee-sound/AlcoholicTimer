@@ -32,10 +32,9 @@ import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.content.edit
 import kr.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
-import kr.sweetapps.alcoholictimer.core.ui.LayoutConstants
-import kr.sweetapps.alcoholictimer.core.ui.AppBorder
-import kr.sweetapps.alcoholictimer.core.ui.predictAnchoredBannerHeightDp
 import kr.sweetapps.alcoholictimer.constants.UiConstants
+import kr.sweetapps.alcoholictimer.core.ui.predictAnchoredBannerHeightDp
+import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 
 class AddRecordActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -174,39 +173,7 @@ private fun AddRecordScreen(
 
     Scaffold(
         topBar = {
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .windowInsetsPadding(WindowInsets.statusBars),
-                shadowElevation = 0.dp,
-                tonalElevation = 0.dp,
-                color = MaterialTheme.colorScheme.surface
-            ) {
-                Column {
-                    // Custom top bar: keep Box layout so title position remains parent-relative
-                    Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
-                        Box(modifier = Modifier.align(Alignment.CenterStart).width(UiConstants.BackIconTouchArea).padding(start = 8.dp), contentAlignment = Alignment.CenterStart) {
-                            Surface(modifier = Modifier.size(UiConstants.BackIconTouchArea), shape = CircleShape, color = Color(0xFFF8F9FA), shadowElevation = 2.dp) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    IconButton(onClick = onCancel) {
-                                        androidx.compose.foundation.Image(
-                                            painter = painterResource(id = R.drawable.ic_caret_left),
-                                            contentDescription = stringResource(R.string.cd_navigate_back),
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        Text(stringResource(R.string.add_record_title), fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.CenterStart).padding(start = UiConstants.BackIconStartPadding))
-                    }
-
-                    HorizontalDivider(
-                        thickness = 1.5.dp,
-                        color = Color(0xFFE0E0E0)
-                    )
-                }
-            }
+            kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = stringResource(R.string.add_record_title), onBack = onCancel)
         },
         // 전체 화면 배경을 흰색으로 고정
         containerColor = Color.White,
@@ -352,7 +319,7 @@ private fun AddRecordScreen(
             }
 
             // 하단 고정 배너 컨테이너(항상 고정 공간 확보)
-            Spacer(modifier = Modifier.height(LayoutConstants.BANNER_TOP_GAP))
+            Spacer(modifier = Modifier.height(UiConstants.BANNER_TOP_GAP))
             // 배너 상단 헤어라인
             HorizontalDivider(
                 thickness = AppBorder.Hairline,

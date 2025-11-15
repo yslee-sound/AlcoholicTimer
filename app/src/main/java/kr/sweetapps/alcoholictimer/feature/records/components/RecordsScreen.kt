@@ -47,7 +47,7 @@ import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.LocalRequestGlobalLock
 import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
-import kr.sweetapps.alcoholictimer.core.ui.LayoutConstants
+import kr.sweetapps.alcoholictimer.constants.UiConstants
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -231,7 +231,7 @@ fun RecordsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(horizontal = LayoutConstants.RECORDS_SCREEN_HORIZONTAL_PADDING)
+                .padding(horizontal = UiConstants.RECORDS_SCREEN_HORIZONTAL_PADDING)
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -239,7 +239,7 @@ fun RecordsScreen(
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 item {
-                    Spacer(modifier = Modifier.height(LayoutConstants.RECORDS_TOP_SECTION_EXTERNAL_GAP))
+                    Spacer(modifier = Modifier.height(UiConstants.RECORDS_TOP_SECTION_EXTERNAL_GAP))
                     PeriodSelectionSection(
                         selectedPeriod = selectedPeriod,
                         onPeriodSelected = { period: String ->
@@ -279,11 +279,11 @@ fun RecordsScreen(
                         val year = stringResource(R.string.records_period_year)
                         val all = stringResource(R.string.records_period_all)
                         val firstCardGap = when (selectedPeriod) {
-                            week -> LayoutConstants.RECORDS_WEEK_FIRST_CARD_EXTERNAL_GAP
-                            month -> LayoutConstants.RECORDS_MONTH_FIRST_CARD_EXTERNAL_GAP
-                            year -> LayoutConstants.RECORDS_YEAR_FIRST_CARD_EXTERNAL_GAP
-                            all -> LayoutConstants.RECORDS_ALL_FIRST_CARD_EXTERNAL_GAP
-                            else -> LayoutConstants.RECORDS_FIRST_CARD_EXTERNAL_GAP
+                            week -> UiConstants.RECORDS_WEEK_FIRST_CARD_EXTERNAL_GAP
+                            month -> UiConstants.RECORDS_MONTH_FIRST_CARD_EXTERNAL_GAP
+                            year -> UiConstants.RECORDS_YEAR_FIRST_CARD_EXTERNAL_GAP
+                            all -> UiConstants.RECORDS_ALL_FIRST_CARD_EXTERNAL_GAP
+                            else -> UiConstants.RECORDS_FIRST_CARD_EXTERNAL_GAP
                         }
                         PeriodStatisticsSection(
                             records = filteredRecords,
@@ -650,14 +650,14 @@ private fun PeriodStatisticsSection(
                 .padding(20.dp)
         ) {
             // 헤더(Row + +버튼)는 PeriodHeaderRow로 이동하여 항상 노출되므로 여기서는 제거
-            Spacer(modifier = Modifier.height(LayoutConstants.RECORDS_STATS_INTERNAL_TOP_GAP))
+            Spacer(modifier = Modifier.height(UiConstants.RECORDS_STATS_INTERNAL_TOP_GAP))
 
             val dayUnit = stringResource(R.string.records_day_unit)
             val percentUnit = stringResource(R.string.records_percent_unit)
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(LayoutConstants.RECORDS_CARD_IN_ROW_SPACING)
+                horizontalArrangement = Arrangement.spacedBy(UiConstants.RECORDS_CARD_IN_ROW_SPACING)
             ) {
                 val statsScale = 1.3f
 
@@ -687,7 +687,7 @@ private fun PeriodStatisticsSection(
                 )
             }
 
-            Spacer(modifier = Modifier.height(LayoutConstants.RECORDS_STATS_ROW_SPACING))
+            Spacer(modifier = Modifier.height(UiConstants.RECORDS_STATS_ROW_SPACING))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

@@ -35,7 +35,7 @@ import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
-import kr.sweetapps.alcoholictimer.core.ui.LayoutConstants
+import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
 import kr.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
 import java.util.Locale
@@ -96,9 +96,9 @@ fun StartScreen(
         StandardScreenWithBottomButton(
             topContent = {
                 Column { // 내부 전용 Column: spacing 없음 -> 지정한 12dp 그대로 유지
-                    Spacer(modifier = Modifier.height(LayoutConstants.START_BRAND_TITLE_TOP_GAP))
+                    Spacer(modifier = Modifier.height(UiConstants.START_BRAND_TITLE_TOP_GAP))
                     AppBrandTitleBar()
-                    Spacer(modifier = Modifier.height(LayoutConstants.START_BRAND_TITLE_BOTTOM_GAP))
+                    Spacer(modifier = Modifier.height(UiConstants.START_BRAND_TITLE_BOTTOM_GAP))
 
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -110,7 +110,7 @@ fun StartScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(LayoutConstants.FIRST_CARD_TOP_INNER_PADDING),
+                                .padding(UiConstants.FIRST_CARD_TOP_INNER_PADDING),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
@@ -242,7 +242,7 @@ private fun AppBrandTitleBar() {
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(max = 54.dp)
-            .padding(horizontal = LayoutConstants.SCREEN_HORIZONTAL_PADDING)
+            .padding(horizontal = UiConstants.SCREEN_HORIZONTAL_PADDING)
     )
 }
 

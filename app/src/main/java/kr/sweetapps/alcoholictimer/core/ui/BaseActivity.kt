@@ -102,7 +102,7 @@ abstract class BaseActivity : ComponentActivity() {
         topBarActions: @Composable RowScope.() -> Unit = {},
         bottomAd: (@Composable () -> Unit)? = null,
         reserveSpaceForBottomAd: Boolean = false,
-        bannerTopGap: Dp = LayoutConstants.BANNER_TOP_GAP,
+        bannerTopGap: Dp = UiConstants.BANNER_TOP_GAP,
         manageBottomAreaExternally: Boolean = false,
         content: @Composable () -> Unit
     ) {
