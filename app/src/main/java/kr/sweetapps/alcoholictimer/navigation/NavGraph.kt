@@ -25,6 +25,7 @@ import kr.sweetapps.alcoholictimer.feature.profile.NicknameEditScreen
 import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.ads.HomeAdTrigger
 import android.app.Activity
+import kr.sweetapps.alcoholictimer.feature.addrecord.AddRecordScreenComposable
 
 /**
  * Navigation Graph
@@ -125,7 +126,16 @@ fun AlcoholicTimerNavGraph(
                         isCompleted = record.isCompleted
                     )
                     navController.navigate(route)
-                }
+                },
+                onAddRecord = { navController.navigate(Screen.AddRecord.route) }
+            )
+        }
+
+        // 기록 추가 화면 (Compose 하위 페이지)
+        composable(Screen.AddRecord.route) {
+            AddRecordScreenComposable(
+                onFinished = { navController.popBackStack() },
+                onCancel = { navController.popBackStack() }
             )
         }
 

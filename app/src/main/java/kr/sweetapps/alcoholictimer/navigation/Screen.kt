@@ -72,6 +72,9 @@ sealed class Screen(val route: String) {
             isCompleted: Boolean
         ) = "detail/$startTime/$endTime/$targetDays/$actualDays/$isCompleted"
     }
+
+    /** 기록 추가 화면 (하위 페이지로 표시) */
+    data object AddRecord : Screen("add_record")
 }
 
 /**
@@ -90,4 +93,6 @@ fun Screen.getTitleResId(): Int? = when (this) {
     is Screen.NicknameEdit -> null // 커스텀 제목 사용
     is Screen.CurrencySettings -> kr.sweetapps.alcoholictimer.R.string.settings_currency
     is Screen.Detail -> null // 커스텀 제목 사용
+    is Screen.AddRecord -> kr.sweetapps.alcoholictimer.R.string.add_record_title
+    else -> null
 }

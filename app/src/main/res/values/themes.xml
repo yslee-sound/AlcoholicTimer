@@ -26,4 +26,12 @@
         <item name="android:statusBarColor">@android:color/white</item>
         <item name="android:navigationBarColor">@android:color/white</item>
     </style>
+
+    <!-- 불투명 테마 변형: 활동이 반투명하지 않도록 보장 -->
+    <style name="Theme.AlcoholicTimer.Opaque" parent="@style/Theme.AlcoholicTimer">
+        <!-- 반투명 플래그가 없도록 윈도우 배경을 흰색으로 강제 설정 -->
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:windowIsTranslucent">false</item>
+    </style>
 </resources>

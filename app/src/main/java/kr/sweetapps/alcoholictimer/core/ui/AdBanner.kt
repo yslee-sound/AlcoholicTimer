@@ -88,7 +88,8 @@ fun AdmobBanner(
     // 정책/전면 상태 구독
     val isPolicyEnabled = kr.sweetapps.alcoholictimer.ads.AdController.isBannerEnabledState()
     val isInterstitialShowing = kr.sweetapps.alcoholictimer.ads.AdController.isInterstitialShowingState()
-    val shouldShowBanner = isPolicyEnabled && !isInterstitialShowing
+    val isFullScreenAdShowing = kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowingState()
+    val shouldShowBanner = isPolicyEnabled && !isInterstitialShowing && !isFullScreenAdShowing
     val placeholderColor = if (isInterstitialShowing) Color.Black else MaterialTheme.colorScheme.surface
     LaunchedEffect(shouldShowBanner) { Log.d(TAG, "banner visible=$shouldShowBanner h=$predictedHeight") }
 

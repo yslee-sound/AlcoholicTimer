@@ -36,14 +36,17 @@ private val bottomItems: List<BottomItem> = listOf(
         Screen.Start,
         R.drawable.ic_nav_play,
         R.string.drawer_menu_sobriety,
-        R.string.drawer_menu_sobriety
+        R.string.drawer_menu_sobriety,
+        // 1번째 버튼 그룹: 금주시작(Start), 금주 진행(Run), 금주 종료(Quit)
+        associatedRoutes = setOf(Screen.Start.route, Screen.Run.route, Screen.Quit.route)
     ),
     BottomItem(
         Screen.Records,
         R.drawable.ic_nav_calendardots,
         R.string.drawer_menu_records,
         R.string.drawer_menu_records,
-        associatedRoutes = setOf(Screen.Records.route, "detail/")
+        // 2번째 버튼 그룹: 금주 기록(Records), 모든 기록(AllRecords), 기록 상세(Detail)
+        associatedRoutes = setOf(Screen.Records.route, Screen.AllRecords.route, "detail/")
     ),
     BottomItem(
         Screen.Level,
@@ -103,10 +106,13 @@ fun BottomNavBar(navController: NavHostController, modifier: Modifier = Modifier
                             item = item,
                             isSelected = selected,
                             onClick = {
-                                navController.navigate(item.screen.route) {
-                                    launchSingleTop = true
-                                    restoreState = true
-                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                // 같은 화면/그룹이면 아무 동작도 하지 않음 (무의미한 네비게이션 방지)
+                                if (!selected) {
+                                    navController.navigate(item.screen.route) {
+                                        launchSingleTop = true
+                                        restoreState = true
+                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                    }
                                 }
                             }
                         )
@@ -155,14 +161,12 @@ private fun BottomNavItem(
 
 private fun isDestinationSelected(currentRoute: String?, current: NavDestination?, item: BottomItem): Boolean {
     // 우선 currentRoute 문자열 자체에서 간단 검사
-    var matchedReason: String? = null
     if (currentRoute != null) {
         val cr = currentRoute
         // associatedRoutes 검사: 정확 일치 또는 prefix(예: "detail/")만 허용
         val assocMatch = item.associatedRoutes.any { ar -> if (ar.endsWith("/")) cr.startsWith(ar) else cr == ar }
         if (assocMatch) {
-            matchedReason = "associatedMatch"
-            Log.d("BottomNavBar", "match reason for ${item.screen.route}: $matchedReason (currentRoute=$cr, associated=${item.associatedRoutes})")
+            Log.d("BottomNavBar", "match reason for ${item.screen.route}: associatedMatch (currentRoute=$cr, associated=${item.associatedRoutes})")
             return true
         }
     }
@@ -174,15 +178,14 @@ private fun isDestinationSelected(currentRoute: String?, current: NavDestination
         if (r != null) {
             val assocMatchParent = item.associatedRoutes.any { ar -> if (ar.endsWith("/")) r.startsWith(ar) else r == ar }
             if (assocMatchParent) {
-                matchedReason = "parentAssociatedMatch"
-                Log.d("BottomNavBar", "match reason for ${item.screen.route}: $matchedReason (parentRoute=$r, associated=${item.associatedRoutes})")
+                Log.d("BottomNavBar", "match reason for ${item.screen.route}: parentAssociatedMatch (parentRoute=$r, associated=${item.associatedRoutes})")
                 return true
             }
-         }
-         dest = dest.parent
-     }
+        }
+        dest = dest.parent
+    }
 
-     val defaultMatch = item.screen == Screen.Start && (currentRoute == null || currentRoute == "<null>")
-     if (defaultMatch) Log.d("BottomNavBar", "match reason for ${item.screen.route}: defaultStartMatch")
-     return defaultMatch
+    val defaultMatch = item.screen == Screen.Start && (currentRoute == null || currentRoute == "<null>")
+    if (defaultMatch) Log.d("BottomNavBar", "match reason for ${item.screen.route}: defaultStartMatch")
+    return defaultMatch
 }

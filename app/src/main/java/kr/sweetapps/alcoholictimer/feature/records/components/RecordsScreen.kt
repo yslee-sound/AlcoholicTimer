@@ -1,10 +1,6 @@
 package kr.sweetapps.alcoholictimer.feature.records.components
 
-import android.app.Activity
-import android.content.Intent
 import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke as FBorderStroke
 import androidx.compose.foundation.layout.*
@@ -36,7 +32,6 @@ import kr.sweetapps.alcoholictimer.core.util.DateOverlapUtils
 import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
 import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
 import java.util.*
-import kr.sweetapps.alcoholictimer.feature.addrecord.AddRecordActivity
 import kr.sweetapps.alcoholictimer.core.util.PercentUtils
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
@@ -55,6 +50,7 @@ fun RecordsScreen(
     externalRefreshTrigger: Int,
     onNavigateToDetail: (SobrietyRecord) -> Unit = {},
     onNavigateToAllRecords: () -> Unit = {},
+    onAddRecord: () -> Unit = {},
     fontScale: Float = 1.06f
 ) {
     val context = LocalContext.current
@@ -215,13 +211,7 @@ fun RecordsScreen(
     // 다중 탭 방지: AddRecordActivity 런치 진행 상태
     var isLaunchingAddRecord by remember { mutableStateOf(false) }
 
-    val addRecordLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        // 결과 수신 시에는 무조건 재활성화
-        isLaunchingAddRecord = false
-        if (result.resultCode == Activity.RESULT_OK) { loadRecords() }
-    }
+    // onAddRecord 콜백을 통해 NavController로 이동하도록 부모에게 위임
 
     CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = LocalDensity.current.fontScale * fontScale)) {
         // BaseScreen에서 제공하는 하단 안전 패딩 사용
@@ -260,15 +250,7 @@ fun RecordsScreen(
                 item {
                     PeriodHeaderRow(
                         selectedPeriod = selectedPeriod,
-                        onAddRecord = {
-                            if (!isLaunchingAddRecord) {
-                                // 전역 입력 잠금: 액티비티 전환 중 중복 탭 방지
-                                requestGlobalLock(300)
-                                isLaunchingAddRecord = true
-                                val intent = Intent(context, AddRecordActivity::class.java)
-                                addRecordLauncher.launch(intent)
-                            }
-                        },
+                        onAddRecord = { onAddRecord() },
                         enabled = !isLaunchingAddRecord
                     )
                 }
@@ -291,10 +273,7 @@ fun RecordsScreen(
                             selectedDetailPeriod = selectedDetailPeriod,
                             modifier = Modifier.padding(vertical = firstCardGap),
                             weekRange = selectedWeekRange,
-                            onAddRecord = {
-                                val intent = Intent(context, AddRecordActivity::class.java)
-                                addRecordLauncher.launch(intent)
-                            }
+                            onAddRecord = { onAddRecord() }
                         )
                     }
                 }

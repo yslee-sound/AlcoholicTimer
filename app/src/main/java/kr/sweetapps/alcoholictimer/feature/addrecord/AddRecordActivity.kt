@@ -2,8 +2,10 @@ package kr.sweetapps.alcoholictimer.feature.addrecord
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,7 +13,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,9 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.R
@@ -35,10 +34,12 @@ import kr.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBottom
 import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.core.ui.predictAnchoredBannerHeightDp
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
+import androidx.core.view.WindowCompat
 
 class AddRecordActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // No special window flags here; this Activity may be used as a legacy fallback.
         setContent {
             // 앱은 라이트 모드 고정 정책: 다크 모드 진입 방지
             AlcoholicTimerTheme(darkTheme = false) {
@@ -61,6 +62,8 @@ class AddRecordActivity : ComponentActivity() {
             }
         }
     }
+
+    // Activity lifecycle hooks not used for ad control any more
 
     private fun saveRecord(record: SobrietyRecord): Boolean {
         return try {
@@ -177,164 +180,163 @@ private fun AddRecordScreen(
         },
         // 전체 화면 배경을 흰색으로 고정
         containerColor = Color.White,
-        contentColor = MaterialTheme.colorScheme.onSurface
-    ) { innerPadding ->
-        // 하단 고정 배너 컨테이너를 위한 Column 구성
-        val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-        val imeBottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
-        val effectiveBottom = maxOf(navBottom, imeBottom)
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        // bottomBar에 배너를 넣어 스캐폴드가 공간을 자동으로 예약하게 함
+        bottomBar = {
+            // 예측 배너 높이만 사용 (padding은 modifier로 처리)
+            val predictedBannerH = predictAnchoredBannerHeightDp()
 
-        Column(modifier = Modifier.fillMaxSize()) {
-            // 상단 스크롤 콘텐츠 영역
-            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                Column(
+            Column {
+                Spacer(modifier = Modifier.height(UiConstants.BANNER_TOP_GAP))
+                HorizontalDivider(thickness = AppBorder.Hairline, color = Color(0xFFE0E0E0))
+                Box(
                     modifier = Modifier
-                        .padding(innerPadding)
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        // 화면 배경 흰색 유지
-                        .background(Color.White)
+                        .fillMaxWidth()
                         .padding(horizontal = 16.dp)
+                        .navigationBarsPadding()
+                        .imePadding()
+                        .height(predictedBannerH),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Spacer(Modifier.height(8.dp))
-
-                    // 시작일 및 시간
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 56.dp)
-                            .clickable {
-                                pickDateThenTime(startDate, startTime.first, startTime.second) { newDate, h, m ->
-                                    startDate = newDate
-                                    startTime = h to m
-                                }
-                            },
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(stringResource(R.string.add_record_start_date_time), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
-                        Text(
-                            text = "${dateFormat.format(Date(startDate))} - ${String.format(Locale.getDefault(), "%02d:%02d", startTime.first, startTime.second)}",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    HorizontalDivider()
-
-                    // 종료일 및 시간
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 56.dp)
-                            .clickable {
-                                pickDateThenTime(endDate, endTime.first, endTime.second) { newDate, h, m ->
-                                    endDate = newDate
-                                    endTime = h to m
-                                }
-                            },
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(stringResource(R.string.add_record_end_date_time), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
-                        Text(
-                            text = "${dateFormat.format(Date(endDate))} - ${String.format(Locale.getDefault(), "%02d:%02d", endTime.first, endTime.second)}",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    HorizontalDivider()
-
-                    // 목표 일수 (행 형식 + 바텀시트 휠 피커)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 56.dp)
-                            .clickable {
-                                tempTarget = targetDays.toIntOrNull()?.coerceIn(0, 999) ?: 0
-                                showTargetSheet = true
-                            },
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(stringResource(R.string.add_record_target_days), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
-                        Text(
-                            text = "$targetDays${stringResource(R.string.add_record_days_unit)}",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    HorizontalDivider()
-
-                    // 경고/안내
-                    if (isRangeInvalid) {
-                        Text(stringResource(R.string.add_record_error_invalid_range), color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
-                    }
-                    if (!isTargetValid) {
-                        Text(stringResource(R.string.add_record_error_set_target), color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
-                    }
-
-                    Spacer(Modifier.height(16.dp))
-
-                    // 저장/취소
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        OutlinedButton(
-                            onClick = onCancel,
-                            modifier = Modifier.weight(1f)
-                        ) { Text(stringResource(R.string.add_record_cancel)) }
-
-                        Button(
-                            onClick = {
-                                if (!isRangeInvalid && !isOngoing && isTargetValid) {
-                                    val id = "rec_${System.currentTimeMillis()}"
-                                    val status = if (isCompleted) "성공" else "실패"
-                                    val record = SobrietyRecord(
-                                        id = id,
-                                        startTime = startMillis,
-                                        endTime = endMillis,
-                                        targetDays = targetDaysInt,
-                                        actualDays = actualDays,
-                                        isCompleted = isCompleted,
-                                        status = status,
-                                        createdAt = System.currentTimeMillis()
-                                    )
-                                    onSave(record)
-                                }
-                            },
-                            enabled = !isRangeInvalid && !isOngoing && isTargetValid,
-                            modifier = Modifier.weight(1f)
-                        ) { Text(stringResource(R.string.add_record_save)) }
-                    }
-
-                    Spacer(Modifier.height(24.dp))
-                }
-
-                if (showTargetSheet) {
-                    // 바텀시트는 핵심 대화형 요소이므로 흰색 Surface 유지
-                    TargetDaysBottomSheet(
-                        initialValue = tempTarget,
-                        onConfirm = { picked: Int ->
-                            targetDays = picked.toString()
-                            showTargetSheet = false
-                        },
-                        onDismiss = { showTargetSheet = false }
-                    )
+                    // AdmobBanner() centralized in MainActivity BaseScaffold; keep placeholder
                 }
             }
+        },
+     ) { innerPadding ->
+        // 상단 스크롤 콘텐츠 영역
+        Column(modifier = Modifier.fillMaxSize()) {
+             // 상단 스크롤 콘텐츠 영역
+             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                 Column(
+                     modifier = Modifier
+                         .padding(innerPadding)
+                         .fillMaxSize()
+                         .verticalScroll(rememberScrollState())
+                         // 화면 배경 흰색 유지
+                         .background(Color.White)
+                         .padding(horizontal = 16.dp)
+                 ) {
+                     Spacer(Modifier.height(8.dp))
 
-            // 하단 고정 배너 컨테이너(항상 고정 공간 확보)
-            Spacer(modifier = Modifier.height(UiConstants.BANNER_TOP_GAP))
-            // 배너 상단 헤어라인
-            HorizontalDivider(
-                thickness = AppBorder.Hairline,
-                color = Color(0xFFE0E0E0)
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = effectiveBottom)
-                    .height(predictAnchoredBannerHeightDp()),
-                contentAlignment = Alignment.Center
-            ) {
-                // AdmobBanner() removed here - centralized in MainActivity BaseScaffold during Phase-1
-            }
-         }
-     }
- }
+                     // 시작일 및 시간
+                     Row(
+                         modifier = Modifier
+                             .fillMaxWidth()
+                             .heightIn(min = 56.dp)
+                             .clickable {
+                                 pickDateThenTime(startDate, startTime.first, startTime.second) { newDate, h, m ->
+                                     startDate = newDate
+                                     startTime = h to m
+                                 }
+                             },
+                         verticalAlignment = Alignment.CenterVertically
+                     ) {
+                         Text(stringResource(R.string.add_record_start_date_time), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
+                         Text(
+                             text = "${dateFormat.format(Date(startDate))} - ${String.format(Locale.getDefault(), "%02d:%02d", startTime.first, startTime.second)}",
+                             color = MaterialTheme.colorScheme.onSurfaceVariant
+                         )
+                     }
+
+                     HorizontalDivider()
+
+                     // 종료일 및 시간
+                     Row(
+                         modifier = Modifier
+                             .fillMaxWidth()
+                             .heightIn(min = 56.dp)
+                             .clickable {
+                                 pickDateThenTime(endDate, endTime.first, endTime.second) { newDate, h, m ->
+                                     endDate = newDate
+                                     endTime = h to m
+                                 }
+                             },
+                         verticalAlignment = Alignment.CenterVertically
+                     ) {
+                         Text(stringResource(R.string.add_record_end_date_time), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
+                         Text(
+                             text = "${dateFormat.format(Date(endDate))} - ${String.format(Locale.getDefault(), "%02d:%02d", endTime.first, endTime.second)}",
+                             color = MaterialTheme.colorScheme.onSurfaceVariant
+                         )
+                     }
+
+                     HorizontalDivider()
+
+                     // 목표 일수 (행 형식 + 바텀시트 휠 피커)
+                     Row(
+                         modifier = Modifier
+                             .fillMaxWidth()
+                             .heightIn(min = 56.dp)
+                             .clickable {
+                                 tempTarget = targetDays.toIntOrNull()?.coerceIn(0, 999) ?: 0
+                                 showTargetSheet = true
+                             },
+                         verticalAlignment = Alignment.CenterVertically
+                     ) {
+                         Text(stringResource(R.string.add_record_target_days), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
+                         Text(
+                             text = "$targetDays${stringResource(R.string.add_record_days_unit)}",
+                             color = MaterialTheme.colorScheme.onSurfaceVariant
+                         )
+                     }
+
+                     HorizontalDivider()
+
+                     // 경고/안내
+                     if (isRangeInvalid) {
+                         Text(stringResource(R.string.add_record_error_invalid_range), color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                     }
+                     if (!isTargetValid) {
+                         Text(stringResource(R.string.add_record_error_set_target), color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                     }
+
+                     Spacer(Modifier.height(16.dp))
+
+                     // 저장/취소
+                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                         OutlinedButton(
+                             onClick = onCancel,
+                             modifier = Modifier.weight(1f)
+                         ) { Text(stringResource(R.string.add_record_cancel)) }
+
+                         Button(
+                             onClick = {
+                                 if (!isRangeInvalid && !isOngoing && isTargetValid) {
+                                     val id = "rec_${System.currentTimeMillis()}"
+                                     val status = if (isCompleted) "성공" else "실패"
+                                     val record = SobrietyRecord(
+                                         id = id,
+                                         startTime = startMillis,
+                                         endTime = endMillis,
+                                         targetDays = targetDaysInt,
+                                         actualDays = actualDays,
+                                         isCompleted = isCompleted,
+                                         status = status,
+                                         createdAt = System.currentTimeMillis()
+                                     )
+                                     onSave(record)
+                                 }
+                             },
+                             enabled = !isRangeInvalid && !isOngoing && isTargetValid,
+                             modifier = Modifier.weight(1f)
+                         ) { Text(stringResource(R.string.add_record_save)) }
+                     }
+
+                     Spacer(Modifier.height(24.dp))
+                 }
+
+                 if (showTargetSheet) {
+                     // 바텀시트는 핵심 대화형 요소이므로 흰색 Surface 유지
+                     TargetDaysBottomSheet(
+                         initialValue = tempTarget,
+                         onConfirm = { picked: Int ->
+                             targetDays = picked.toString()
+                             showTargetSheet = false
+                         },
+                         onDismiss = { showTargetSheet = false }
+                     )
+                 }
+             }
+        }
+  }
+}

@@ -1,0 +1,258 @@
+package kr.sweetapps.alcoholictimer.feature.addrecord
+
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
+import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kr.sweetapps.alcoholictimer.R
+import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
+import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
+import java.text.SimpleDateFormat
+import java.util.*
+import androidx.core.content.edit
+import kr.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
+import kr.sweetapps.alcoholictimer.constants.UiConstants
+import kr.sweetapps.alcoholictimer.core.ui.predictAnchoredBannerHeightDp
+import kr.sweetapps.alcoholictimer.core.ui.AppBorder
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddRecordScreenComposable(
+    onFinished: () -> Unit,
+    onCancel: () -> Unit
+) {
+    val context = LocalContext.current
+    var targetDays by remember { mutableStateOf("0") }
+    var startDate by remember { mutableLongStateOf(System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000L)) }
+    var endDate by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    var startTime by remember { mutableStateOf(Pair(9, 0)) }
+    var endTime by remember { mutableStateOf(Pair(18, 0)) }
+
+    var showTargetSheet by remember { mutableStateOf(false) }
+    var tempTarget by remember(targetDays) { mutableIntStateOf(targetDays.toIntOrNull()?.coerceIn(0, 999) ?: 0) }
+
+    val dateFormat = remember {
+        val locale = Locale.getDefault()
+        when (locale.language) {
+            "ko" -> SimpleDateFormat("yyyy년 MM월 dd일", locale)
+            "ja" -> SimpleDateFormat("yyyy年MM月dd日", locale)
+            else -> SimpleDateFormat("MMM dd, yyyy", Locale.ENGLISH)
+        }
+    }
+
+    val startMillis by remember(startDate, startTime) {
+        mutableLongStateOf(
+            Calendar.getInstance().apply {
+                timeInMillis = startDate
+                set(Calendar.HOUR_OF_DAY, startTime.first)
+                set(Calendar.MINUTE, startTime.second)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
+        )
+    }
+    val endMillis by remember(endDate, endTime) {
+        mutableLongStateOf(
+            Calendar.getInstance().apply {
+                timeInMillis = endDate
+                set(Calendar.HOUR_OF_DAY, endTime.first)
+                set(Calendar.MINUTE, endTime.second)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
+        )
+    }
+    val nowMillis = System.currentTimeMillis()
+
+    val isRangeInvalid = endMillis <= startMillis
+    val isOngoing = endMillis > nowMillis
+    val targetDaysInt = targetDays.toIntOrNull() ?: 0
+    val isTargetValid = targetDays.isNotBlank() && targetDaysInt in 1..999
+
+    val actualDays = remember(startMillis, endMillis) {
+        ((endMillis - startMillis).coerceAtLeast(0L) / (24 * 60 * 60 * 1000L)).toInt()
+    }
+    val isCompleted = !isOngoing && !isRangeInvalid && isTargetValid && actualDays >= targetDaysInt
+
+    fun pickDateThenTime(initialDateMillis: Long, initialHour: Int, initialMinute: Int, onPicked: (dateMillis: Long, hour: Int, minute: Int) -> Unit) {
+        val cal = Calendar.getInstance().apply { timeInMillis = initialDateMillis }
+        DatePickerDialog(
+            context,
+            { _, y, m, d ->
+                val pickedCal = Calendar.getInstance().apply { set(y, m, d) }
+                TimePickerDialog(
+                    context,
+                    { _, h, min -> onPicked(pickedCal.timeInMillis, h, min) },
+                    initialHour,
+                    initialMinute,
+                    true
+                ).show()
+            },
+            cal.get(Calendar.YEAR),
+            cal.get(Calendar.MONTH),
+            cal.get(Calendar.DAY_OF_MONTH)
+        ).show()
+    }
+
+    // 저장 로직: SharedPreferences에 기존 로직과 동일하게 저장
+    fun persistRecord(record: SobrietyRecord): Boolean {
+        return try {
+            val currentRecords = RecordsDataLoader.loadSobrietyRecords(context).toMutableList()
+            val hasTimeConflict = currentRecords.any { existing ->
+                val newStart = record.startTime
+                val newEnd = record.endTime
+                val existingStart = existing.startTime
+                val existingEnd = existing.endTime
+                (newStart < existingEnd && newEnd > existingStart)
+            }
+            if (hasTimeConflict) return false
+            currentRecords.add(record)
+            currentRecords.sortByDescending { it.endTime }
+            val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+            val jsonString = SobrietyRecord.toJsonArray(currentRecords)
+            sharedPref.edit { putString("sobriety_records", jsonString) }
+            true
+        } catch (e: Exception) {
+            android.util.Log.e("AddRecordComposable", "기록 저장 실패", e)
+            false
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = stringResource(R.string.add_record_title), onBack = onCancel)
+        },
+        containerColor = Color.White,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+    ) { innerPadding ->
+        Column(modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                Column(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .background(Color.White)
+                        .padding(horizontal = 16.dp)
+                ) {
+                    Spacer(Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 56.dp)
+                            .clickable {
+                                pickDateThenTime(startDate, startTime.first, startTime.second) { newDate, h, m ->
+                                    startDate = newDate
+                                    startTime = h to m
+                                }
+                            },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(stringResource(R.string.add_record_start_date_time), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
+                        Text(text = "${dateFormat.format(Date(startDate))} - ${String.format(Locale.getDefault(), "%02d:%02d", startTime.first, startTime.second)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+
+                    HorizontalDivider()
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 56.dp)
+                            .clickable {
+                                pickDateThenTime(endDate, endTime.first, endTime.second) { newDate, h, m ->
+                                    endDate = newDate
+                                    endTime = h to m
+                                }
+                            },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(stringResource(R.string.add_record_end_date_time), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
+                        Text(text = "${dateFormat.format(Date(endDate))} - ${String.format(Locale.getDefault(), "%02d:%02d", endTime.first, endTime.second)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+
+                    HorizontalDivider()
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 56.dp)
+                            .clickable {
+                                tempTarget = targetDays.toIntOrNull()?.coerceIn(0, 999) ?: 0
+                                showTargetSheet = true
+                            },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(stringResource(R.string.add_record_target_days), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
+                        Text(text = "$targetDays${stringResource(R.string.add_record_days_unit)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+
+                    HorizontalDivider()
+
+                    if (isRangeInvalid) Text(stringResource(R.string.add_record_error_invalid_range), color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                    if (!isTargetValid) Text(stringResource(R.string.add_record_error_set_target), color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+
+                    Spacer(Modifier.height(16.dp))
+
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        OutlinedButton(onClick = onCancel, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.add_record_cancel)) }
+
+                        Button(
+                            onClick = {
+                                if (!isRangeInvalid && !isOngoing && isTargetValid) {
+                                    val id = "rec_${System.currentTimeMillis()}"
+                                    val status = if (isCompleted) "성공" else "실패"
+                                    val record = SobrietyRecord(
+                                        id = id,
+                                        startTime = startMillis,
+                                        endTime = endMillis,
+                                        targetDays = targetDaysInt,
+                                        actualDays = actualDays,
+                                        isCompleted = isCompleted,
+                                        status = status,
+                                        createdAt = System.currentTimeMillis()
+                                    )
+                                    val ok = persistRecord(record)
+                                    if (ok) {
+                                        Toast.makeText(context, context.getString(R.string.add_record_toast_success), Toast.LENGTH_SHORT).show()
+                                        onFinished()
+                                    } else {
+                                        Toast.makeText(context, context.getString(R.string.add_record_toast_conflict), Toast.LENGTH_LONG).show()
+                                    }
+                                }
+                            },
+                            enabled = !isRangeInvalid && !isOngoing && isTargetValid,
+                            modifier = Modifier.weight(1f)
+                        ) { Text(stringResource(R.string.add_record_save)) }
+                    }
+
+                    Spacer(Modifier.height(24.dp))
+                }
+
+                if (showTargetSheet) {
+                    TargetDaysBottomSheet(
+                        initialValue = tempTarget,
+                        onConfirm = { picked: Int ->
+                            targetDays = picked.toString()
+                            showTargetSheet = false
+                        },
+                        onDismiss = { showTargetSheet = false }
+                    )
+                }
+            }
+        }
+    }
+}
