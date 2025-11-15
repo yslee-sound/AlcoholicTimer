@@ -13,14 +13,13 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.appopen.AppOpenAd
 import com.google.android.ump.UserMessagingPlatform
-import kr.sweetapps.alcoholictimer.BuildConfig
 import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * App Open Ad Manager
- * - 앱이 포어그라운드로 돌아올 때(App onStart) App Open Ad를 표시합니다.
- * - AdController의 정책을 준수합니다.
+ * - 콜드 스타트 및 조건부 Resume 경로에서 AppOpen을 제어
+ * - AdController 정책을 준수하고 Interstitial과 충돌을 방지
  */
 object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecycleObserver {
     private const val TAG = "AppOpenAdManager"
@@ -36,6 +35,7 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
 
     private var app: Application? = null
     private var currentActivityRef: WeakReference<Activity>? = null
+
     // App start timestamp to limit AppOpen display to immediate startup window
     private var appStartMs: Long = 0L
     fun noteAppStart() {
@@ -114,74 +114,6 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
         }
     }
 
-    private var isOtherAdShowing = AtomicBoolean(false)
-
-    fun setOtherAdShowing(showing: Boolean) {
-        isOtherAdShowing.set(showing)
-        Log.d(TAG, "setOtherAdShowing: $showing")
-    }
-
-    // 세션 당 자동 표시를 한 번만 시도하도록 하는 플래그 (콜드 스타트에서만 자동으로 시도)
-    private val hasAutoShown = AtomicBoolean(false)
-
-    private fun tryAutoShowIfFirstTime(activity: Activity) {
-        // auto-show 경로는 콜드 스타트(프로세스 시작 후 첫 포어그라운드 진입)에서만 1회 시도
-        if (!hasAutoShown.compareAndSet(false, true)) {
-            Log.d(TAG, "auto-show skipped: already attempted this session")
-            return
-        }
-        Log.d(TAG, "auto-show attempt (first session attempt) @${System.currentTimeMillis()}")
-        showIfAvailable(activity)
-    }
-
-    private fun canShowNow(): Boolean {
-        // Only allow AppOpen within startup window after cold start
-        try {
-            if (appStartMs > 0L) {
-                val sinceStart = System.currentTimeMillis() - appStartMs
-                if (sinceStart > APP_OPEN_ALLOWED_WINDOW_MS) {
-                    Log.d(TAG, "AppOpen blocked: outside startup window (sinceStart=${sinceStart}ms)")
-                    return false
-                }
-            }
-        } catch (_: Throwable) {}
-        // 중앙 상태에서 이미 전체 광고가 표시 중이면 차단
-        try {
-            if (AdController.isFullScreenAdShowing()) {
-                Log.d(TAG, "AppOpen blocked: AdController reports full-screen ad showing")
-                return false
-            }
-        } catch (_: Throwable) {}
-        if (isOtherAdShowing.get()) {
-            Log.d(TAG, "AppOpen blocked: another ad is showing")
-            return false
-        }
-        // 정책 확인
-        val enabled = try { AdController.isAppOpenEnabled() } catch (_: Throwable) { false }
-        if (!enabled) {
-            Log.d(TAG, "AppOpen disabled by policy")
-            return false
-        }
-        // 최근 표시 쿨다운
-        val now = System.currentTimeMillis()
-        if (lastShownAt > 0 && now - lastShownAt < SHOW_COOLDOWN_MS) {
-            Log.d(TAG, "AppOpen cooldown: ${(SHOW_COOLDOWN_MS - (now - lastShownAt))}ms remain")
-            return false
-        }
-        Log.d(TAG, "AppOpen canShowNow = true (policy enabled, cooldown ok)")
-        return true
-    }
-
-    fun onConsentUpdated(canRequestAds: Boolean) {
-        Log.d(TAG, "onConsentUpdated canRequestAds=$canRequestAds adLoaded=${appOpenAd!=null} isLoading=${isLoading.get()}")
-        if (canRequestAds) {
-            // 즉시 프리로드 시도 (이미 로드/로딩 아니면)
-            if (appOpenAd == null && !isLoading.get()) {
-                app?.let { preload(it.applicationContext) }
-            }
-        }
-    }
-
     fun preload(context: Context) {
         // 정책 확인: 정책이 비활성화되어 있으면 프리로드 차단
         val policyEnabled = try { kr.sweetapps.alcoholictimer.ads.AdController.isAppOpenEnabled() } catch (_: Throwable) { true }
@@ -197,23 +129,18 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
         Log.d(TAG, "preload attempt @${System.currentTimeMillis()} canRequest=$canRequest consentStatus=${consentInfo?.consentStatus}")
         if (!canRequest) {
             Log.d(TAG, "preload skipped: consent not granted (will recheck in 10s)")
-            // 짧은 지연 후 재확인 시도
             Handler(Looper.getMainLooper()).postDelayed({
-                // 재귀 호출 전에 로드 상태 다시 확인
                 if (appOpenAd == null && !isLoading.get()) preload(context.applicationContext)
             }, 10_000)
             return
         }
 
         isLoading.set(true)
-        // 중앙 상태 업데이트: AppOpen 로드 시작
         try { AdController.setAppOpenLoading(true) } catch (_: Throwable) {}
-        val unitId = currentUnitId()
-        Log.d(TAG, "preload start: unitId=$unitId @${System.currentTimeMillis()}")
         val request = AdRequest.Builder().build()
         AppOpenAd.load(
             context,
-            unitId,
+            currentUnitId(),
             request,
             object : AppOpenAd.AppOpenAdLoadCallback() {
                 override fun onAdLoaded(ad: AppOpenAd) {
@@ -223,7 +150,6 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
                             val sinceStart = System.currentTimeMillis() - appStartMs
                             if (sinceStart > APP_OPEN_ALLOWED_WINDOW_MS) {
                                 Log.d(TAG, "onAdLoaded: discarding app-open ad because outside startup window (sinceStart=${sinceStart}ms)")
-                                // update state and notify listeners so UI can proceed
                                 isLoading.set(false)
                                 lastLoadedAt = System.currentTimeMillis()
                                 try { AdController.setAppOpenLoaded(false); AdController.setAppOpenLoading(false); AdController.setAppOpenLastError(null) } catch (_: Throwable) {}
@@ -232,44 +158,36 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
                             }
                         }
                     } catch (_: Throwable) {}
-                     // 정책 상태를 확인: 정책이 비활성화이면 로드된 광고를 보관하지 않고 리스너만 호출
-                     val policyEnabled = try { kr.sweetapps.alcoholictimer.ads.AdController.isPolicyFetchCompleted() && kr.sweetapps.alcoholictimer.ads.AdController.isAppOpenEnabled() } catch (_: Throwable) { true }
-                     if (!policyEnabled) {
-                         appOpenAd = null
-                         isLoading.set(false)
-                         try { AdController.setAppOpenLoaded(false); AdController.setAppOpenLoading(false); AdController.setAppOpenLastError(null) } catch (_: Throwable) {}
-                         lastLoadedAt = System.currentTimeMillis()
-                         Log.d(TAG, "onAdLoaded app-open but discarded due to policy at @$lastLoadedAt")
-                         // 알림만 전달하여 StartActivity가 스플래시를 해제하도록 함
-                         onAdLoadedListener?.invoke()
-                         return
-                     }
-                     appOpenAd = ad
-                     isLoading.set(false)
-                     // 중앙 상태 업데이트: 로드 성공
-                     try { AdController.setAppOpenLoaded(true); AdController.setAppOpenLoading(false); AdController.setAppOpenLastError(null) } catch (_: Throwable) {}
-                     lastLoadedAt = System.currentTimeMillis()
-                     Log.d(TAG, "onAdLoaded app-open @${lastLoadedAt}")
-                     // 포어그라운드 상태라면 즉시 표시 시도
-                     currentActivityRef?.get()?.let { act ->
-                         if (allowAutoShow.get()) {
-                             Log.d(TAG, "onAdLoaded: auto-show enabled -> showing ad")
-                             showIfAvailable(act)
-                         } else {
-                             Log.d(TAG, "onAdLoaded: auto-show suppressed, waiting for manual show")
-                             // 알림: 수동 표시를 위해 등록된 리스너 호출
-                             onAdLoadedListener?.invoke()
-                         }
-                     } ?: Log.d(TAG, "show skip: no current activity ref")
-                 }
-                // 광고 로딩 실패 시에도 콜백 호출
+                    val policyOk = try { kr.sweetapps.alcoholictimer.ads.AdController.isPolicyFetchCompleted() && kr.sweetapps.alcoholictimer.ads.AdController.isAppOpenEnabled() } catch (_: Throwable) { true }
+                    if (!policyOk) {
+                        appOpenAd = null
+                        isLoading.set(false)
+                        try { AdController.setAppOpenLoaded(false); AdController.setAppOpenLoading(false); AdController.setAppOpenLastError(null) } catch (_: Throwable) {}
+                        lastLoadedAt = System.currentTimeMillis()
+                        Log.d(TAG, "onAdLoaded app-open but discarded due to policy at @$lastLoadedAt")
+                        onAdLoadedListener?.invoke()
+                        return
+                    }
+                    appOpenAd = ad
+                    isLoading.set(false)
+                    try { AdController.setAppOpenLoaded(true); AdController.setAppOpenLoading(false); AdController.setAppOpenLastError(null) } catch (_: Throwable) {}
+                    lastLoadedAt = System.currentTimeMillis()
+                    Log.d(TAG, "onAdLoaded app-open @${lastLoadedAt}")
+                    currentActivityRef?.get()?.let { act ->
+                        if (allowAutoShow.get()) {
+                            Log.d(TAG, "onAdLoaded: auto-show enabled -> showing ad")
+                            showIfAvailable(act)
+                        } else {
+                            Log.d(TAG, "onAdLoaded: auto-show suppressed, waiting for manual show")
+                            onAdLoadedListener?.invoke()
+                        }
+                    } ?: Log.d(TAG, "show skip: no current activity ref")
+                }
                 override fun onAdFailedToLoad(error: LoadAdError) {
                     appOpenAd = null
                     isLoading.set(false)
-                    // 중앙 상태 업데이트: 로드 실패
                     try { AdController.setAppOpenLastError(error.toString()); AdController.setAppOpenLoading(false) } catch (_: Throwable) {}
                     Log.w(TAG, "onAdFailedToLoad app-open: $error @${System.currentTimeMillis()}")
-                    // 403 등 서버 거부 시 지연 재시도 (30초)
                     Handler(Looper.getMainLooper()).postDelayed({
                         if (appOpenAd == null && !isLoading.get()) preload(context.applicationContext)
                     }, 30_000)
@@ -279,86 +197,68 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
         )
     }
 
-    /** 정책 비활성화 시 이미 로드된 AppOpen 광고 제거 */
-    fun clearLoadedAd() {
+    private val hasAutoShown = AtomicBoolean(false)
+
+    private fun canShowNow(startupWindowRequired: Boolean = true): Boolean {
         try {
-            appOpenAd = null
-            isLoading.set(false)
-            isShowing.set(false)
-            try { AdController.setAppOpenLoaded(false); AdController.setAppOpenLoading(false); AdController.setAppOpenLastError(null) } catch (_: Throwable) {}
-            Log.d(TAG, "clearLoadedAd: app-open cleared by policy change")
-            // 정책으로 인해 광고가 제거되었음을 StartActivity 등 리스너에 알림
-            try { onAdLoadedListener?.invoke() } catch (_: Throwable) {}
-        } catch (t: Throwable) {
-            Log.w(TAG, "clearLoadedAd failed: $t")
-        }
-    }
-
-    // 광고 종료/실패 시 호출되는 콜백
-    private var onAdFinishedListener: (() -> Unit)? = null
-    fun setOnAdFinishedListener(listener: (() -> Unit)?) {
-        onAdFinishedListener = listener
-    }
-
-    // 광고 로드 완료 시 호출되는 콜백 (StartActivity가 리스너로 등록하여 수동 표시 가능)
-    private var onAdLoadedListener: (() -> Unit)? = null
-    fun setOnAdLoadedListener(listener: (() -> Unit)?) {
-        onAdLoadedListener = listener
-    }
-
-    // 광고가 실제로 화면에 나타날 때 호출되는 콜백
-    private var onAdShownListener: (() -> Unit)? = null
-    fun setOnAdShownListener(listener: (() -> Unit)?) {
-        onAdShownListener = listener
-    }
-
-    fun showIfAvailable(activity: Activity) {
-        Log.d(TAG, "showIfAvailable called @${System.currentTimeMillis()} adLoaded=${appOpenAd!=null} isShowing=${isShowing.get()} activityFinishing=${activity.isFinishing}")
-        // Safety check: AppOpen should only be shown from the splash/start activity.
-        // If called from any other Activity, abort to avoid showing AppOpen during normal navigation.
-        try {
-            val className = activity::class.qualifiedName ?: activity::class.java.name
-            if (!className.contains(".feature.start.StartActivity") && !className.endsWith("StartActivity") && !className.contains(".ui.screens.SplashScreen") && !className.endsWith("SplashScreen")) {
-                Log.w(TAG, "showIfAvailable blocked: activity ($className) is not StartActivity/SplashScreen. AppOpen must only show on splash.")
-                // Do not notify onAdFinishedListener here because non-splash callers shouldn't be holding splash.
-                // Trigger a preload so next opportunity (splash) can still get an ad.
-                preload(activity.applicationContext)
-                return
-            }
-        } catch (_: Throwable) {
-            Log.w(TAG, "showIfAvailable: failed to verify caller activity class; aborting safe-show")
-            preload(activity.applicationContext)
-            return
-        }
-
-        if (!canShowNow()) {
-            Log.d(TAG, "showIfAvailable abort: canShowNow=false")
-            preload(activity.applicationContext)
-            onAdFinishedListener?.invoke() // abort 시에도 리스너 호출하여 스플래시 해제
-            return
-        }
-        // AppOpen 빈도 제한 확인 (시간/일 기준)
-        try {
-            if (!kr.sweetapps.alcoholictimer.ads.AdController.canShowAppOpen(activity.applicationContext)) {
-                Log.d(TAG, "showIfAvailable abort: AppOpen limit reached by policy")
-                onAdFinishedListener?.invoke() // abort 시에도 리스너 호출하여 스플래시 해제
-                return
+            if (startupWindowRequired && appStartMs > 0L) {
+                val sinceStart = System.currentTimeMillis() - appStartMs
+                if (sinceStart > APP_OPEN_ALLOWED_WINDOW_MS) { Log.d(TAG, "AppOpen blocked: outside startup window (sinceStart=$sinceStart)"); return false }
             }
         } catch (_: Throwable) {}
-        val ad = appOpenAd
-        if (ad == null) {
-            Log.d(TAG, "showIfAvailable abort: ad=null -> preload")
-            preload(activity.applicationContext)
-            onAdFinishedListener?.invoke() // abort 시에도 리스너 호출하여 스플래시 해제
-            return
+        try { if (AdController.isFullScreenAdShowing()) { Log.d(TAG, "AppOpen blocked: full-screen ad showing"); return false } } catch (_: Throwable) {}
+        if (isOtherAdShowing.get()) { Log.d(TAG, "AppOpen blocked: another ad is showing"); return false }
+        val enabled = try { AdController.isAppOpenEnabled() } catch (_: Throwable) { false }
+        if (!enabled) { Log.d(TAG, "AppOpen disabled by policy"); return false }
+        val now = System.currentTimeMillis()
+        if (lastShownAt > 0 && now - lastShownAt < SHOW_COOLDOWN_MS) { Log.d(TAG, "AppOpen cooldown active"); return false }
+        return true
+    }
+
+    private var isOtherAdShowing = AtomicBoolean(false)
+    fun setOtherAdShowing(showing: Boolean) { isOtherAdShowing.set(showing); Log.d(TAG, "setOtherAdShowing: $showing") }
+
+    fun showIfAvailable(activity: Activity) {
+        showIfAvailableInternal(activity, allowNonSplash = false, bypassAutoShowGate = false, allowOutsideStartupWindow = false)
+    }
+
+    private fun showIfAvailableInternal(activity: Activity, allowNonSplash: Boolean, bypassAutoShowGate: Boolean, allowOutsideStartupWindow: Boolean) {
+        Log.d(TAG, "showIfAvailableInternal allowNonSplash=$allowNonSplash bypassAutoShowGate=$bypassAutoShowGate allowOutsideStartupWindow=$allowOutsideStartupWindow")
+        // Safety check: only allow non-splash callers if explicitly allowed
+        if (!allowNonSplash) {
+            try {
+                val className = activity::class.qualifiedName ?: activity::class.java.name
+                if (!className.contains(".feature.start.StartActivity") && !className.endsWith("StartActivity") && !className.contains(".ui.screens.SplashScreen") && !className.endsWith("SplashScreen")) {
+                    Log.w(TAG, "showIfAvailable blocked: caller not StartActivity/SplashScreen")
+                    preload(activity.applicationContext)
+                    return
+                }
+            } catch (_: Throwable) { preload(activity.applicationContext); return }
         }
+
+        if (!allowOutsideStartupWindow) {
+            if (!canShowNow(true)) { Log.d(TAG, "showIfAvailable abort: canShowNow=false"); preload(activity.applicationContext); onAdFinishedListener?.invoke(); return }
+        } else {
+            if (!canShowNow(false)) { Log.d(TAG, "showIfAvailable abort: canShowNow(bypass)=false"); preload(activity.applicationContext); onAdFinishedListener?.invoke(); return }
+        }
+
+        // Policy-based per-hour/day check
+        try { if (!kr.sweetapps.alcoholictimer.ads.AdController.canShowAppOpen(activity.applicationContext)) { Log.d(TAG, "showIfAvailable abort: AppOpen limit reached by policy"); onAdFinishedListener?.invoke(); return } } catch (_: Throwable) {}
+
+        val ad = appOpenAd
+        if (ad == null) { Log.d(TAG, "showIfAvailable abort: ad=null -> preload"); preload(activity.applicationContext); onAdFinishedListener?.invoke(); return }
         if (isShowing.get()) { Log.d(TAG, "showIfAvailable abort: already showing"); return }
-        if (activity.isFinishing || activity.isDestroyed) { Log.d(TAG, "showIfAvailable abort: activity finishing/destroyed"); return }
+        if (activity.isFinishing || activity.isDestroyed) { Log.d(TAG, "showIfAvailable abort: activity invalid"); return }
+
+        // If bypassAutoShowGate=false, enforce the one-time auto-show per session
+        if (!bypassAutoShowGate) {
+            if (!hasAutoShown.compareAndSet(false, true)) { Log.d(TAG, "auto-show skipped: already attempted this session"); return }
+        }
 
         isShowing.set(true)
         ad.fullScreenContentCallback = object : com.google.android.gms.ads.FullScreenContentCallback() {
             override fun onAdShowedFullScreenContent() {
-                Log.d(TAG, "onAdShowedFullScreenContent @${System.currentTimeMillis()}")
+                Log.d(TAG, "onAdShowedFullScreenContent")
                 // 배너 겹침 방지: 전면 상태로 간주
                 AdController.setInterstitialShowing(true)
                 AdController.setFullScreenAdShowing(true)
@@ -373,19 +273,9 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
                         kr.sweetapps.alcoholictimer.ads.AdController.recordAppOpenShown(act.applicationContext)
                     }
                 } catch (_: Throwable) {}
-                // Ensure system bars are re-applied shortly after ad shows (SystemUI may alter them)
-                try {
-                    currentActivityRef?.get()?.let { a ->
-                        if (a is kr.sweetapps.alcoholictimer.core.ui.BaseActivity) {
-                            Handler(Looper.getMainLooper()).postDelayed({
-                                try { a.reapplySystemBars() } catch (_: Throwable) {}
-                            }, 150)
-                        }
-                    }
-                } catch (_: Throwable) {}
             }
             override fun onAdDismissedFullScreenContent() {
-                Log.d(TAG, "onAdDismissedFullScreenContent @${System.currentTimeMillis()}")
+                Log.d(TAG, "onAdDismissedFullScreenContent")
                 AdController.setInterstitialShowing(false)
                 AdController.setFullScreenAdShowing(false)
                 try { AdController.setAppOpenLoaded(false); AdController.setAppOpenLastError(null) } catch (_: Throwable) {}
@@ -393,19 +283,9 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
                 isShowing.set(false)
                 preload(activity.applicationContext)
                 onAdFinishedListener?.invoke()
-                // Re-apply system bars after ad is dismissed to override any SystemUI changes
-                try {
-                    currentActivityRef?.get()?.let { a ->
-                        if (a is kr.sweetapps.alcoholictimer.core.ui.BaseActivity) {
-                            Handler(Looper.getMainLooper()).postDelayed({
-                                try { a.reapplySystemBars() } catch (_: Throwable) {}
-                            }, 150)
-                        }
-                    }
-                } catch (_: Throwable) {}
             }
             override fun onAdFailedToShowFullScreenContent(adError: com.google.android.gms.ads.AdError) {
-                Log.w(TAG, "onAdFailedToShowFullScreenContent: $adError @${System.currentTimeMillis()}")
+                Log.w(TAG, "onAdFailedToShowFullScreenContent: $adError")
                 AdController.setInterstitialShowing(false)
                 AdController.setFullScreenAdShowing(false)
                 try { AdController.setAppOpenLastError(adError.toString()) } catch (_: Throwable) {}
@@ -413,16 +293,6 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
                 isShowing.set(false)
                 preload(activity.applicationContext)
                 onAdFinishedListener?.invoke()
-                // Ensure system bars are re-applied after failure as well
-                try {
-                    currentActivityRef?.get()?.let { a ->
-                        if (a is kr.sweetapps.alcoholictimer.core.ui.BaseActivity) {
-                            Handler(Looper.getMainLooper()).postDelayed({
-                                try { a.reapplySystemBars() } catch (_: Throwable) {}
-                            }, 150)
-                        }
-                    }
-                } catch (_: Throwable) {}
             }
         }
         Handler(Looper.getMainLooper()).post {
@@ -431,7 +301,7 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
                 try { AdController.setFullScreenAdShowing(true); AdController.setInterstitialShowing(true) } catch (_: Throwable) {}
                 ad.show(activity)
             } catch (t: Throwable) {
-                Log.w(TAG, "show exception: $t @${System.currentTimeMillis()}")
+                Log.w(TAG, "show exception: $t")
                 try { AdController.setInterstitialShowing(false); AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
                 appOpenAd = null
                 isShowing.set(false)
@@ -440,32 +310,58 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
         }
     }
 
-    // Lifecycle hooks
-    override fun onStart(owner: LifecycleOwner) {
-        Log.d(TAG, "ProcessLifecycle onStart @${System.currentTimeMillis()}")
-        val act = currentActivityRef?.get()
-        if (act != null) {
-            if (allowAutoShow.get()) tryAutoShowIfFirstTime(act) else Log.d(TAG, "onStart: auto-show suppressed")
-        } else {
-            // Activity 참조가 아직 세팅 전일 수 있으므로 짧은 지연 후 재시도
-            Handler(Looper.getMainLooper()).postDelayed({
-                currentActivityRef?.get()?.let { if (allowAutoShow.get()) tryAutoShowIfFirstTime(it) else Log.d(TAG, "Delayed onStart retry: auto-show suppressed") } ?: Log.d(TAG, "Delayed onStart retry: still no activity")
-            }, 300)
-        }
+    // Resume-path: show on background->foreground if eligible and no conflict
+    fun showOnResumeIfEligible(activity: Activity) {
+        Log.d(TAG, "showOnResumeIfEligible called @${System.currentTimeMillis()}")
+        // If other full-screen ad or interstitial is showing, skip
+        try {
+            if (AdController.isFullScreenAdShowing()) {
+                Log.d(TAG, "showOnResumeIfEligible: blocked - full-screen ad already showing")
+                return
+            }
+        } catch (_: Throwable) {}
+        // If an interstitial is loaded and likely to be shown, avoid showing AppOpen to prevent conflict
+        try {
+            if (kr.sweetapps.alcoholictimer.ads.InterstitialAdManager.isLoaded()) {
+                Log.d(TAG, "showOnResumeIfEligible: blocked - interstitial loaded, prefer to avoid conflict")
+                return
+            }
+        } catch (_: Throwable) {}
+
+        // Try to show ignoring the cold-start-only gate but honoring cooldown and policy
+        showIfAvailableInternal(activity, allowNonSplash = true, bypassAutoShowGate = true, allowOutsideStartupWindow = true)
     }
 
-    // Track current activity
+    // Lifecycle
+    override fun onStart(owner: LifecycleOwner) {
+        Log.d(TAG, "ProcessLifecycle onStart")
+        currentActivityRef?.get()?.let { act -> if (allowAutoShow.get()) tryAutoShowIfFirstTime(act) }
+    }
+
+    private fun tryAutoShowIfFirstTime(activity: Activity) {
+        if (!hasAutoShown.compareAndSet(false, true)) return
+        showIfAvailable(activity)
+    }
+
     override fun onActivityStarted(activity: Activity) {
         Log.d(TAG, "onActivityStarted ${activity::class.java.simpleName} @${System.currentTimeMillis()}")
         currentActivityRef = WeakReference(activity)
         // 포어그라운드 진입 시점에 즉시 시도 (중복 방지는 isShowing/cooldown으로 해결)
         if (allowAutoShow.get()) tryAutoShowIfFirstTime(activity) else Log.d(TAG, "onActivityStarted: auto-show suppressed for ${activity::class.java.simpleName}")
+        // Also attempt resume-path show when coming from background
+        try {
+            showOnResumeIfEligible(activity)
+        } catch (_: Throwable) { Log.w(TAG, "showOnResumeIfEligible failed: ${'$'}_") }
     }
     override fun onActivityResumed(activity: Activity) {
         Log.d(TAG, "onActivityResumed ${activity::class.java.simpleName} @${System.currentTimeMillis()}")
         currentActivityRef = WeakReference(activity)
         // 재개 시에도 한 번 더 시도 (조건 불충족 시 내부에서 빠르게 return)
         if (allowAutoShow.get()) tryAutoShowIfFirstTime(activity) else Log.d(TAG, "onActivityResumed: auto-show suppressed for ${activity::class.java.simpleName}")
+        // Try resume-path show as well
+        try {
+            showOnResumeIfEligible(activity)
+        } catch (_: Throwable) { Log.w(TAG, "showOnResumeIfEligible failed: ${'$'}_") }
     }
     override fun onActivityCreated(activity: Activity, savedInstanceState: android.os.Bundle?) {}
     override fun onActivityPaused(activity: Activity) {}
@@ -473,7 +369,54 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
     override fun onActivitySaveInstanceState(activity: Activity, outState: android.os.Bundle) {}
     override fun onActivityDestroyed(activity: Activity) {}
 
-    // 광고가 현재 표시 중인지 여부 반환
+    // 광고 종료/실패 시 호출되는 콜백
+    private var onAdFinishedListener: (() -> Unit)? = null
+    fun setOnAdFinishedListener(listener: (() -> Unit)?) {
+        onAdFinishedListener = listener
+    }
+
+    // 광고 로드 완료 시 호출되는 콜백 (StartActivity가 리스너로 등록하여 수동 표시 가능)
+    private var onAdLoadedListener: (() -> Unit)? = null
+    fun setOnAdLoadedListener(listener: (() -> Unit)?) { onAdLoadedListener = listener }
+
+    // 광고가 실제로 화면에 나타날 때 호출되는 콜백
+    private var onAdShownListener: (() -> Unit)? = null
+    fun setOnAdShownListener(listener: (() -> Unit)?) { onAdShownListener = listener }
+
+    // 정책 비활성화 등에서 이미 로드된 AppOpen을 안전하게 제거
+    fun clearLoadedAd() {
+        try {
+            appOpenAd = null
+            isLoading.set(false)
+            isShowing.set(false)
+            try { AdController.setAppOpenLoaded(false); AdController.setAppOpenLoading(false); AdController.setAppOpenLastError(null) } catch (_: Throwable) {}
+            Log.d(TAG, "clearLoadedAd: app-open cleared by policy change")
+        } catch (t: Throwable) {
+            Log.w(TAG, "clearLoadedAd failed: $t")
+        }
+    }
+
+    // Called by UMP consent manager when consent status changes.
+    // If consent is granted, attempt to preload AppOpen; if revoked, clear any loaded AppOpen.
+    fun onConsentUpdated(canRequestAds: Boolean) {
+        Log.d(TAG, "onConsentUpdated: canRequestAds=$canRequestAds")
+        try {
+            if (canRequestAds) {
+                // If we have an Application reference, try to preload immediately
+                app?.applicationContext?.let { ctx ->
+                    if (appOpenAd == null && !isLoading.get()) {
+                        Log.d(TAG, "onConsentUpdated: consent granted -> preload")
+                        preload(ctx)
+                    }
+                }
+            } else {
+                // Consent revoked: clear any loaded/queued AppOpen and update state
+                Log.d(TAG, "onConsentUpdated: consent revoked -> clear loaded ad and reset state")
+                clearLoadedAd()
+            }
+        } catch (_: Throwable) { Log.w(TAG, "onConsentUpdated handling failed") }
+    }
+
     fun isShowingAd(): Boolean = isShowing.get()
 
     /** 현재 AppOpen 광고가 로드되어 있는지 여부 */

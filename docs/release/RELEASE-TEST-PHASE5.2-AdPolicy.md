@@ -30,8 +30,12 @@ body {
 ---
 ## 2 App Open 광고 제어
 
-> 변경 요지: App Open 광고는 더 이상 일반적인 포그라운드 복귀마다 자동으로 노출되지 않습니다. App Open은 "앱 시작(콜드 스타트)" 시점에만 트리거되도록 정책이 변경되었고, Supabase의 `ad_app_open_enabled` 및 빈도 제한 필드(`app_open_max_per_hour`, `app_open_max_per_day`)로 제어됩니다. 따라서 테스트/검증 시에는 "앱 완전 종료 → 재실행"(cold start)을 사용하여 App Open 동작을 확인해야 합니다.
+> 변경 요지: App Open 광고는 기본적으로 "앱 시작(콜드 스타트)" 시점에서 우선 트리거됩니다. 이번 변경으로 "백그라운드 → 포그라운드 복귀(Resume)" 시에도 조건부로 App Open을 표시할 수 있게 되었습니다. 다만 다음 우선순위/충돌 규칙을 엄격히 적용합니다:
+- 우선순위: 이미 전면(full-screen) 광고(Interstitial 또는 AppOpen)가 표시 중이면 추가 AppOpen 노출을 차단합니다.
+- 충돌 방지: Resume 경로에서 AppOpen 표시 시에는 Interstitial이 로드되어 있거나 즉시 표시될 가능성이 있으면 AppOpen을 억제합니다(클라이언트 로직에서 상호 확인).
+- 콜드 스타트 우선권: 콜드 스타트에서는 기존처럼 AppOpen이 우선 시도되며, Resume 경로는 쿨다운/정책 검사를 거쳐 표시됩니다.
 
+따라서 테스트/검증 시에는 다음을 확인하세요.
 1) OFF (Supabase)
 ```sql
 UPDATE ad_policy SET ad_app_open_enabled=false
