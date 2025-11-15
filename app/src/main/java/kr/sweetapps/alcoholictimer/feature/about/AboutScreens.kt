@@ -5,12 +5,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,7 +18,13 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.graphics.Color
 import kr.sweetapps.alcoholictimer.R
 
 @Composable
@@ -141,18 +145,22 @@ fun AboutScreen(
 
 @Composable
 fun AboutLicensesScreen(onBack: () -> Unit = {}) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(androidx.compose.ui.graphics.Color.White)
-    ) {
-        // Top bar: overlay so title text aligns with list items (start = 16.dp) while back icon stays at left
+    // assets/LICENSE.txt 파일을 읽어 전체 텍스트를 그대로 표시합니다.
+    val context = LocalContext.current
+    val licenseText = remember {
+        try {
+            context.assets.open("LICENSE.txt").bufferedReader().use { it.readText() }
+        } catch (t: Throwable) {
+            "라이선스 파일을 읽을 수 없습니다."
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
         Box(modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
             .padding(top = 8.dp, bottom = 4.dp)
         ) {
-            // Back icon at absolute left
             Box(modifier = Modifier
                 .align(Alignment.CenterStart)
                 .padding(start = 8.dp)
@@ -160,46 +168,114 @@ fun AboutLicensesScreen(onBack: () -> Unit = {}) {
                 .clickable(
                     indication = null,
                     interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                ) { onBack() },
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_caret_left),
-                    contentDescription = stringResource(id = R.string.cd_navigate_back),
-                    modifier = Modifier.size(24.dp)
-                )
+                ) { onBack() }, contentAlignment = Alignment.Center) {
+                Image(painter = painterResource(id = R.drawable.ic_caret_left), contentDescription = stringResource(id = R.string.cd_navigate_back), modifier = Modifier.size(24.dp))
             }
-            // Title aligned to the same left padding as list items (16.dp)
             Text(
                 text = stringResource(id = R.string.about_open_license_notice),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = MaterialTheme.colorScheme.onSurface,
+                color = Color.Black,
                 modifier = Modifier.align(Alignment.CenterStart).padding(start = 16.dp)
             )
         }
 
-        // 목록형 라이선스 항목 (흰 배경)
-        Column(modifier = Modifier.fillMaxSize()) {
-            // 첫 번째: 아이콘/저작권 정보 같은 항목들을 SimpleAboutRow로 나열
-            SimpleAboutRow(title = stringResource(id = R.string.about_value_icon_name), trailing = null)
-            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
-            SimpleAboutRow(title = stringResource(id = R.string.about_value_icon_author), trailing = null)
-            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
-            SimpleAboutRow(title = stringResource(id = R.string.about_value_source_url), trailing = {
-                // small icon button without ripple
-                Box(modifier = Modifier.size(36.dp).clickable(
-                    indication = null,
-                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                ) { /* copy or open link */ }, contentAlignment = Alignment.Center) {
-                    Image(painter = painterResource(id = R.drawable.ic_caret_right), contentDescription = null, modifier = Modifier.size(18.dp))
-                }
-            })
-            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
-            SimpleAboutRow(title = stringResource(id = R.string.about_value_license_cc_by), trailing = null)
-            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
-            SimpleAboutRow(title = stringResource(id = R.string.about_value_change_desc), trailing = null)
+        // 파일 전체 텍스트를 스크롤 가능한 컬럼에 표시
+        androidx.compose.foundation.rememberScrollState()
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(androidx.compose.foundation.rememberScrollState())
+        ) {
+            Text(text = licenseText, color = Color.Black, style = MaterialTheme.typography.bodyMedium)
         }
     }
+}
+
+// 간단한 데이터 클래스: 확장 시 리스트 관리에 유리
+data class LicenseData(
+    val name: String,
+    val author: String,
+    val sourceUrl: String,
+    val license: String,
+    val licenseUrl: String,
+    val changes: String
+)
+
+@Composable
+fun LicenseItem(
+     name: String,
+     author: String,
+     sourceUrl: String,
+     license: String,
+     licenseUrl: String,
+    changes: String
+ ) {
+     val context = LocalContext.current
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+        // 라이선스 이름 (제목)
+        Text(
+            text = name,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+            color = Color.Black
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 저작자 (평문)
+        Text(
+            text = "저작자: $author",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.Black
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // 출처: URL 전체를 노출하지 않고 '링크' 라벨로 표시
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "출처: ",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Black
+            )
+            Text(
+                text = "링크",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Black,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier.clickable {
+                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(sourceUrl))
+                    context.startActivity(intent)
+                }
+            )
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // 라이선스: 이름은 보이되 URL은 링크로 표시
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "라이선스: ",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Black
+            )
+            Text(
+                text = license,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Black,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier.clickable {
+                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(licenseUrl))
+                    context.startActivity(intent)
+                }
+            )
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // 변경 사항 (풀어쓴 문장)
+        Text(
+            text = "변경 사항: $changes",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.Black
+        )
+    }
+     HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
 }
 
 @Composable
