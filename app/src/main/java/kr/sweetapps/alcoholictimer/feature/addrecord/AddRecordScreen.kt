@@ -30,6 +30,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
 import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
@@ -92,22 +93,42 @@ fun AddRecordScreenComposable(
 
     fun pickDateThenTime(initialDateMillis: Long, initialHour: Int, initialMinute: Int, onPicked: (dateMillis: Long, hour: Int, minute: Int) -> Unit) {
         val cal = Calendar.getInstance().apply { timeInMillis = initialDateMillis }
-        DatePickerDialog(
-            context,
-            { _, y, m, d ->
-                val pickedCal = Calendar.getInstance().apply { set(y, m, d) }
-                TimePickerDialog(
-                    context,
-                    { _, h, min -> onPicked(pickedCal.timeInMillis, h, min) },
-                    initialHour,
-                    initialMinute,
-                    true
-                ).show()
-            },
-            cal.get(Calendar.YEAR),
-            cal.get(Calendar.MONTH),
-            cal.get(Calendar.DAY_OF_MONTH)
-        ).show()
+        // Prefer Activity context for showing dialogs; fall back to showing a Toast if not available
+        val activity = (context as? android.app.Activity)
+            ?: (context as? android.content.ContextWrapper)?.baseContext as? android.app.Activity
+
+        if (activity == null) {
+            android.util.Log.w("AddRecordComposable", "No Activity context available to show date/time picker")
+            android.widget.Toast.makeText(context, "날짜 선택을 열 수 없습니다", android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        try {
+            DatePickerDialog(
+                activity,
+                { _, y, m, d ->
+                    val pickedCal = Calendar.getInstance().apply { set(y, m, d) }
+                    try {
+                        TimePickerDialog(
+                            activity,
+                            { _, h, min -> onPicked(pickedCal.timeInMillis, h, min) },
+                            initialHour,
+                            initialMinute,
+                            true
+                        ).show()
+                    } catch (e: Exception) {
+                        android.util.Log.e("AddRecordComposable", "TimePickerDialog show failed", e)
+                        android.widget.Toast.makeText(context, "시간 선택을 열 수 없습니다", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                },
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH),
+                cal.get(Calendar.DAY_OF_MONTH)
+            ).show()
+        } catch (e: Exception) {
+            android.util.Log.e("AddRecordComposable", "DatePickerDialog show failed", e)
+            android.widget.Toast.makeText(context, "날짜 선택을 열 수 없습니다", android.widget.Toast.LENGTH_SHORT).show()
+        }
     }
 
     // 저장 로직: SharedPreferences에 기존 로직과 동일하게 저장
@@ -138,11 +159,17 @@ fun AddRecordScreenComposable(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    // snackbar + coroutine for async save and feedback
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    var isSaving by remember { mutableStateOf(false) }
+
     // no per-field bounds tracking required; taps anywhere will clear focus
     Scaffold(
         topBar = {
             kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = stringResource(R.string.add_record_title), onBack = onCancel)
         },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         containerColor = Color.White,
         contentColor = MaterialTheme.colorScheme.onSurface,
     ) { innerPadding ->
@@ -298,9 +325,16 @@ fun AddRecordScreenComposable(
                                     // Commit value on IME Done
                                     val newTargetDays = targetDaysText.text.toIntOrNull()?.coerceIn(0, 9999) ?: 0
                                     targetDays = newTargetDays.toString()
-                                    targetDaysText = TextFieldValue(targetDays)
-                                    // Hide keyboard
+                                    // update editable text and place caret at end for consistency
+                                    targetDaysText = TextFieldValue(targetDays, selection = TextRange(targetDays.length))
+                                    // Hide keyboard and clear focus so the field becomes inactive
                                     keyboardController?.hide()
+                                    focusManager.clearFocus()
+                                    // ensure internal focus flags are cleared to prevent re-requesting focus
+                                    isTargetDaysFocused = false
+                                    clearOnFocus = false
+                                    // reset the click-trigger so LaunchedEffect won't retry focusing
+                                    focusRequestTrigger = 0
                                 }
                             ),
                             colors = TextFieldDefaults.colors(
@@ -320,44 +354,54 @@ fun AddRecordScreenComposable(
 
                     Spacer(Modifier.height(16.dp))
 
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        // Determine the display source: prefer editable text when non-blank, otherwise use stored targetDays
-                        val displayRaw = if (targetDaysText.text.isNotBlank()) targetDaysText.text.trim() else targetDays
-                        val displayInt = displayRaw.toIntOrNull() ?: -1
-
-                        // Pre-check for time conflict with existing records (use remember so it's recomputed only when dates change)
-                        val hasTimeConflict = remember(startMillis, endMillis) {
-                            try {
-                                val records = RecordsDataLoader.loadSobrietyRecords(context)
-                                records.any { existing ->
-                                    val existingStart = existing.startTime
-                                    val existingEnd = existing.endTime
-                                    (startMillis < existingEnd && endMillis > existingStart)
-                                }
-                            } catch (_: Exception) {
-                                false
+                    // Save button row: compute current editable value, validate, and persist with feedback
+                    val displayRaw = if (targetDaysText.text.isNotBlank()) targetDaysText.text.trim() else targetDays
+                    val displayInt = displayRaw.toIntOrNull() ?: -1
+                    val hasTimeConflictNow = remember(startMillis, endMillis) {
+                        try {
+                            val records = RecordsDataLoader.loadSobrietyRecords(context)
+                            records.any { existing ->
+                                val existingStart = existing.startTime
+                                val existingEnd = existing.endTime
+                                (startMillis < existingEnd && endMillis > existingStart)
                             }
-                        }
+                        } catch (_: Exception) { false }
+                    }
 
-                        val canSave = !isRangeInvalid && !isOngoing && (displayInt in 1..9999) && !hasTimeConflict
+                    val canSaveNow = !isRangeInvalid && !isOngoing && (displayInt in 1..9999) && !hasTimeConflictNow
 
+                    Box(modifier = Modifier.fillMaxWidth()) {
                         Button(
                             onClick = {
-                                // Recompute same way to avoid any mismatch
-                                val displayRawClick = if (targetDaysText.text.isNotBlank()) targetDaysText.text.trim() else targetDays
-                                val displayIntClick = displayRawClick.toIntOrNull() ?: -1
-                                val hasConflictClick = try {
-                                    val records = RecordsDataLoader.loadSobrietyRecords(context)
-                                    records.any { existing ->
-                                        val existingStart = existing.startTime
-                                        val existingEnd = existing.endTime
-                                        (startMillis < existingEnd && endMillis > existingStart)
-                                    }
-                                } catch (_: Exception) { false }
+                                coroutineScope.launch {
+                                    if (isSaving) return@launch
+                                    isSaving = true
 
-                                if (!isRangeInvalid && !isOngoing && displayIntClick in 1..9999 && !hasConflictClick) {
+                                    // re-evaluate before commit
+                                    val displayRawClick = if (targetDaysText.text.isNotBlank()) targetDaysText.text.trim() else targetDays
+                                    val displayIntClick = displayRawClick.toIntOrNull() ?: -1
+                                    val hasConflictClick = try {
+                                        val records = RecordsDataLoader.loadSobrietyRecords(context)
+                                        records.any { existing ->
+                                            val existingStart = existing.startTime
+                                            val existingEnd = existing.endTime
+                                            (startMillis < existingEnd && endMillis > existingStart)
+                                        }
+                                    } catch (_: Exception) { false }
+
+                                    if (isRangeInvalid || isOngoing || displayIntClick !in 1..9999) {
+                                        snackbarHostState.showSnackbar("입력값이 올바르지 않습니다")
+                                        isSaving = false
+                                        return@launch
+                                    }
+
+                                    if (hasConflictClick) {
+                                        snackbarHostState.showSnackbar("선택한 시간이 기존 기록과 겹칩니다")
+                                        isSaving = false
+                                        return@launch
+                                    }
+
                                     val commitTarget = displayIntClick
-                                    // reflect committed value in local state to keep UI consistent
                                     targetDays = commitTarget.toString()
                                     targetDaysText = TextFieldValue(text = targetDays, selection = TextRange(targetDays.length))
 
@@ -374,14 +418,29 @@ fun AddRecordScreenComposable(
                                         status = status,
                                         createdAt = System.currentTimeMillis()
                                     )
+
                                     val ok = persistRecord(record)
-                                    if (ok) onFinished()
+                                    if (ok) {
+                                        onFinished()
+                                    } else {
+                                        snackbarHostState.showSnackbar("저장에 실패했습니다")
+                                    }
+
+                                    isSaving = false
                                 }
                             },
-                            enabled = canSave,
+                            enabled = canSaveNow && !isSaving,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(stringResource(R.string.add_record_save))
+                            if (isSaving) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(stringResource(R.string.add_record_saving))
+                                }
+                            } else {
+                                Text(stringResource(R.string.add_record_save))
+                            }
                         }
                     }
 
