@@ -161,7 +161,7 @@ fun AlcoholicTimerNavGraph(
         }
 
         // 라이센스 화면
-        composable(Screen.AboutLicenses.route) { AboutLicensesScreen() }
+        composable(Screen.AboutLicenses.route) { AboutLicensesScreen(onBack = { navController.popBackStack() }) }
 
         // 닉네임 편집 화면
         composable(Screen.NicknameEdit.route) {

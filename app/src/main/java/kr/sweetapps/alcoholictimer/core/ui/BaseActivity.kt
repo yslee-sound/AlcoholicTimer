@@ -2,16 +2,17 @@
 
 package kr.sweetapps.alcoholictimer.core.ui
 
+import android.R.attr.contentDescription
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
@@ -191,7 +193,7 @@ abstract class BaseActivity : ComponentActivity() {
                                             ) {
                                                 IconButton(onClick = { onBackClick?.invoke() ?: run { this@BaseActivity.onBackPressedDispatcher.onBackPressed() } }) {
                                                     Icon(
-                                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                                        painter = painterResource(id = R.drawable.ic_caret_left),
                                                         contentDescription = getString(R.string.cd_navigate_back),
                                                         tint = Color(0xFF2C3E50),
                                                         modifier = Modifier.size(24.dp)

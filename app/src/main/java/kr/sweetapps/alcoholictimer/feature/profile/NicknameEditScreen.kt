@@ -1,5 +1,6 @@
 package kr.sweetapps.alcoholictimer.feature.profile
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -15,6 +16,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -45,78 +47,94 @@ fun NicknameEditScreen(
 
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
-    ) {
-        Text(
-            text = stringResource(R.string.profile_edit_instruction),
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color.Gray,
-            modifier = Modifier.padding(bottom = 32.dp)
-        )
-        OutlinedTextField(
-            value = nicknameText,
-            onValueChange = {
-                // 공백만 무한 입력 방지: 앞뒤 스페이스 허용은 하되 전체 공백만 되지 않게 유지
-                nicknameText = if (it.length <= maxLen) it else it.take(maxLen)
-            },
-            label = { Text(stringResource(R.string.profile_nickname_label)) },
-            singleLine = true,
-            supportingText = {
-                val countText = "${nicknameText.length}/$maxLen"
-                val err = when {
-                    isOnlySpaces -> stringResource(R.string.error_only_spaces)
-                    isTooLong -> stringResource(R.string.error_too_long)
-                    else -> null
-                }
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(text = err ?: "\u00A0", color = if (err != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(text = countText, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            },
-            isError = isOnlySpaces || isTooLong,
-            placeholder = { Text(text = stringResource(R.string.profile_nickname_placeholder)) },
-            trailingIcon = {
-                if (nicknameText.isNotEmpty()) {
-                    IconButton(onClick = { nicknameText = "" }) {
-                        Icon(imageVector = Icons.Default.Clear, contentDescription = stringResource(R.string.cd_clear_text))
+    // Scaffold with white background and top app bar (back)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { /* empty title for edit screen */ },
+                navigationIcon = {
+                    IconButton(onClick = { onCancel() }) {
+                        Image(painter = painterResource(R.drawable.ic_caret_left), contentDescription = stringResource(R.string.cd_navigate_back))
                     }
                 }
-            },
+            )
+        },
+        containerColor = Color.White
+    ) { innerPadding ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .focusRequester(focusRequester),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(onDone = {
-                if (isValid) {
-                    keyboardController?.hide()
-                    saveNickname(sp, trimmed)
-                    onDone()
-                }
-            })
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
         ) {
-            OutlinedButton(
-                onClick = { onCancel() },
-                modifier = Modifier.weight(1f).height(48.dp)
-            ) { Text(text = stringResource(R.string.profile_cancel), fontSize = 16.sp, fontWeight = FontWeight.Medium) }
-            Button(
-                onClick = {
-                    saveNickname(sp, trimmed)
-                    onDone()
+            Text(
+                text = stringResource(R.string.profile_edit_instruction),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Gray,
+                modifier = Modifier.padding(bottom = 32.dp)
+            )
+            OutlinedTextField(
+                value = nicknameText,
+                onValueChange = {
+                    // 공백만 무한 입력 방지: 앞뒤 스페이스 허용은 하되 전체 공백만 되지 않게 유지
+                    nicknameText = if (it.length <= maxLen) it else it.take(maxLen)
                 },
-                modifier = Modifier.weight(1f).height(48.dp),
-                enabled = isValid && !isUnchanged
-            ) { Text(text = stringResource(R.string.profile_save), fontSize = 16.sp, fontWeight = FontWeight.Medium) }
+                label = { Text(stringResource(R.string.profile_nickname_label)) },
+                singleLine = true,
+                supportingText = {
+                    val countText = "${nicknameText.length}/$maxLen"
+                    val err = when {
+                        isOnlySpaces -> stringResource(R.string.error_only_spaces)
+                        isTooLong -> stringResource(R.string.error_too_long)
+                        else -> null
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(text = err ?: "\u00A0", color = if (err != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(text = countText, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                },
+                isError = isOnlySpaces || isTooLong,
+                placeholder = { Text(text = stringResource(R.string.profile_nickname_placeholder)) },
+                trailingIcon = {
+                    if (nicknameText.isNotEmpty()) {
+                        IconButton(onClick = { nicknameText = "" }) {
+                            Icon(imageVector = Icons.Default.Clear, contentDescription = stringResource(R.string.cd_clear_text))
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = {
+                    if (isValid) {
+                        keyboardController?.hide()
+                        saveNickname(sp, trimmed)
+                        onDone()
+                    }
+                })
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedButton(
+                    onClick = { onCancel() },
+                    modifier = Modifier.weight(1f).height(48.dp)
+                ) { Text(text = stringResource(R.string.profile_cancel), fontSize = 16.sp, fontWeight = FontWeight.Medium) }
+                Button(
+                    onClick = {
+                        saveNickname(sp, trimmed)
+                        onDone()
+                    },
+                    modifier = Modifier.weight(1f).height(48.dp),
+                    enabled = isValid && !isUnchanged
+                ) { Text(text = stringResource(R.string.profile_save), fontSize = 16.sp, fontWeight = FontWeight.Medium) }
+            }
         }
     }
 }

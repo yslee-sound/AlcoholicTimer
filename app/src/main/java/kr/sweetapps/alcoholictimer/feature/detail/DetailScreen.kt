@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -32,7 +32,6 @@ import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.LayoutConstants
-import kr.sweetapps.alcoholictimer.core.ui.DebugAdHelper
 import kr.sweetapps.alcoholictimer.core.util.Constants
 import kr.sweetapps.alcoholictimer.core.util.FormatUtils
 import java.text.SimpleDateFormat
@@ -57,15 +56,7 @@ fun DetailScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     val accentColor = if (isCompleted) BluePrimaryLight else AmberSecondaryLight
 
-    var shouldHideBanner by remember { mutableStateOf(if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) DebugAdHelper.bannerHiddenFlow.value else false) }
-    if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
-        LaunchedEffect(Unit) {
-            DebugAdHelper.bannerHiddenFlow.collect { hidden ->
-                Log.e("DetailScreen", "Flow collected: hidden=$hidden")
-                shouldHideBanner = hidden
-            }
-        }
-    }
+    var shouldHideBanner by remember { mutableStateOf(false) } // DebugAdHelper removed: banner is always shown (supabase remote control handles visibility)
 
     val dateTimeFormat = remember {
         SimpleDateFormat(
@@ -130,10 +121,9 @@ fun DetailScreen(
                                     .background(Color.White)
                                     .clickable { onBack() }
                             ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                                androidx.compose.foundation.Image(
+                                    painter = painterResource(id = R.drawable.ic_caret_left),
                                     contentDescription = stringResource(id = R.string.cd_navigate_back),
-                                    tint = Color(0xFF2D3748),
                                     modifier = Modifier.size(24.dp)
                                 )
                             }
