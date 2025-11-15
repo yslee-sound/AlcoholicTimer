@@ -35,6 +35,7 @@ import kr.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBottom
 import kr.sweetapps.alcoholictimer.core.ui.LayoutConstants
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.predictAnchoredBannerHeightDp
+import kr.sweetapps.alcoholictimer.core.ui.UiConstants
 
 class AddRecordActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -182,10 +183,10 @@ private fun AddRecordScreen(
                 color = MaterialTheme.colorScheme.surface
             ) {
                 Column {
-                    // Custom top bar: back icon fixed left, title aligned to 16.dp
+                    // Custom top bar: keep Box layout so title position remains parent-relative
                     Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
-                        Box(modifier = Modifier.align(Alignment.CenterStart).padding(start = 8.dp).size(48.dp)) {
-                            Surface(modifier = Modifier.fillMaxSize(), shape = CircleShape, color = Color(0xFFF8F9FA), shadowElevation = 2.dp) {
+                        Box(modifier = Modifier.align(Alignment.CenterStart).width(UiConstants.BackIconTouchArea).padding(start = 8.dp), contentAlignment = Alignment.CenterStart) {
+                            Surface(modifier = Modifier.size(UiConstants.BackIconTouchArea), shape = CircleShape, color = Color(0xFFF8F9FA), shadowElevation = 2.dp) {
                                 Box(contentAlignment = Alignment.Center) {
                                     IconButton(onClick = onCancel) {
                                         androidx.compose.foundation.Image(
@@ -197,7 +198,7 @@ private fun AddRecordScreen(
                                 }
                             }
                         }
-                        Text(stringResource(R.string.add_record_title), fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.CenterStart).padding(start = 16.dp))
+                        Text(stringResource(R.string.add_record_title), fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.CenterStart).padding(start = UiConstants.BackIconStartPadding))
                     }
 
                     HorizontalDivider(

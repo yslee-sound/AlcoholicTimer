@@ -42,6 +42,7 @@ import kr.sweetapps.alcoholictimer.core.ui.theme.AmberSecondaryLight
 import kr.sweetapps.alcoholictimer.core.ui.theme.BluePrimaryLight
 import kr.sweetapps.alcoholictimer.core.ui.predictAnchoredBannerHeightDp
 import kr.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard
+import kr.sweetapps.alcoholictimer.core.ui.UiConstants
 
 @Composable
 fun DetailScreen(
@@ -111,13 +112,13 @@ fun DetailScreen(
                         .padding(16.dp)
                         .statusBarsPadding()
                 ) {
-                    // Top bar: back icon at left, title aligned to list padding (16.dp)
+                    // Top bar: keep Box layout so title uses parent-relative start padding
                     Box(modifier = Modifier.fillMaxWidth().height(56.dp).padding(top = 8.dp, bottom = 8.dp)) {
-                        Box(modifier = Modifier.align(Alignment.CenterStart).padding(start = 8.dp).size(48.dp).clickable { onBack() }, contentAlignment = Alignment.Center) {
+                        Box(modifier = Modifier.align(Alignment.CenterStart).width(UiConstants.BackIconTouchArea).padding(start = 8.dp), contentAlignment = Alignment.CenterStart) {
                             androidx.compose.foundation.Image(
                                 painter = painterResource(id = R.drawable.ic_caret_left),
                                 contentDescription = stringResource(id = R.string.cd_navigate_back),
-                                modifier = Modifier.size(24.dp)
+                                modifier = Modifier.size(24.dp).clickable { onBack() }
                             )
                         }
                         CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1f)) {
@@ -129,10 +130,10 @@ fun DetailScreen(
                                 color = Color(0xFF2D3748),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.align(Alignment.CenterStart).padding(start = 16.dp)
+                                modifier = Modifier.align(Alignment.CenterStart).padding(start = UiConstants.BackIconStartPadding)
                             )
                         }
-                        Box(modifier = Modifier.align(Alignment.CenterEnd).padding(end = 8.dp).size(48.dp), contentAlignment = Alignment.Center) {
+                        Box(modifier = Modifier.align(Alignment.CenterEnd).width(UiConstants.BackIconTouchArea).padding(end = 8.dp), contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.Outlined.Delete,
                                 contentDescription = stringResource(id = R.string.dialog_delete_title),

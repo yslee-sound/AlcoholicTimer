@@ -58,28 +58,22 @@ class MainActivity : BaseActivity() {
                 setHoldSplash(false)
             }
         }
+        // In MainActivity we do NOT show AppOpen ads; AppOpen should be displayed only from StartActivity (splash).
+        // Keep a no-op listener that simply releases splash if policy disables ads. This avoids showing
+        // app-open ads during normal in-app navigation which would violate policy.
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdLoadedListener {
             runOnUiThread {
-                // 광고 로드 성공: 하지만 정책이 비활성화되었을 수 있음.
                 val policyEnabled = try { kr.sweetapps.alcoholictimer.ads.AdController.isAppOpenEnabled() } catch (_: Throwable) { true }
                 if (!policyEnabled) {
-                    android.util.Log.d("MainActivity", "Ad loaded callback received but policy disabled -> release splash immediately")
-                    // 정책이 비활성인 경우 스플래시를 즉시 해제
+                    android.util.Log.d("MainActivity", "Ad loaded but policy disabled -> release splash immediately (MainActivity)")
                     setHoldSplash(false)
                     return@runOnUiThread
                 }
-                // 정책 허용된 경우에만 타임아웃을 취소하고 수동으로 광고 표시
-                android.util.Log.d("MainActivity", "Ad loaded -> manual show requested (cancelling timeout)")
+                // If ad loaded while in MainActivity, do not present it here. StartActivity (splash) is responsible
+                // for showing AppOpen ads. Just cancel the startup timeout and release the splash so app proceeds.
+                android.util.Log.d("MainActivity", "Ad loaded in MainActivity -> not showing here (splash-only). Releasing splash if held")
                 window.decorView.removeCallbacks(timeoutRunnable)
-                // 타임아웃으로 인해 스플래시가 이미 해제되었을 수 있으므로 광고가 표시되기 전까지 스플래시를 다시 유지합니다.
-                android.util.Log.d("MainActivity", "holding splash prior to showing ad")
-                setHoldSplash(true)
-                try {
-                    android.util.Log.d("MainActivity", "attempting to show ad via AppOpenAdManager.showIfAvailable")
-                    kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this@MainActivity)
-                } catch (t: Throwable) {
-                    android.util.Log.w("MainActivity", "manual show failed: $t")
-                }
+                setHoldSplash(false)
             }
         }
 

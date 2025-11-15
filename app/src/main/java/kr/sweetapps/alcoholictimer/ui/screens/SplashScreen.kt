@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.feature.start
+package kr.sweetapps.alcoholictimer.ui.screens
 
 import android.content.Intent
 import android.os.Build
@@ -19,8 +19,13 @@ import kr.sweetapps.alcoholictimer.ads.HomeAdTrigger
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.view.WindowInsetsControllerCompat
 import android.view.WindowManager
+import kr.sweetapps.alcoholictimer.feature.start.StartScreen
 
-class StartActivity : BaseActivity() {
+/**
+ * 이전 `StartActivity`의 역할을 그대로 옮긴 스플래시 전용 액티비티입니다.
+ * 파일명 및 패키지를 `ui.screens`로 이동했습니다.
+ */
+class SplashScreen : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // 기본 초기화
@@ -40,7 +45,7 @@ class StartActivity : BaseActivity() {
             try {
                 holdSplashState.value = false
             } catch (_: Throwable) {}
-            android.util.Log.d("StartActivity", "releaseSplash() called -> atomic=${holdSplashAtomic.get()} compose=${holdSplashState.value}")
+            android.util.Log.d("SplashScreen", "releaseSplash() called -> atomic=${holdSplashAtomic.get()} compose=${holdSplashState.value}")
         }
 
         val splashStart = SystemClock.uptimeMillis()
@@ -62,18 +67,18 @@ class StartActivity : BaseActivity() {
         // 광고 로드 관련 리스너를 먼저 등록하여 이벤트를 놓치지 않도록 함
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdLoadedListener {
             runOnUiThread {
-                android.util.Log.d("StartActivity", "Ad loaded -> manual show requested (listener)")
+                android.util.Log.d("SplashScreen", "Ad loaded -> manual show requested (listener)")
                 try {
                     val elapsed = SystemClock.uptimeMillis() - splashStart
                     if (kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.isLoaded() && holdSplashState.value && elapsed <= AD_WAIT_MS) {
-                        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this@StartActivity)
+                        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this@SplashScreen)
                         window.decorView.post { applySystemBarAppearance() }
                         return@runOnUiThread
                     }
                     releaseSplash()
-                    android.util.Log.d("StartActivity", "Ad loaded but conditions not met -> releaseSplash() called")
+                    android.util.Log.d("SplashScreen", "Ad loaded but conditions not met -> releaseSplash() called")
                 } catch (t: Throwable) {
-                    android.util.Log.w("StartActivity", "manual show failed: $t")
+                    android.util.Log.w("SplashScreen", "manual show failed: $t")
                     releaseSplash()
                 }
             }
@@ -91,9 +96,9 @@ class StartActivity : BaseActivity() {
             kr.sweetapps.alcoholictimer.ads.AdController.addPolicyFetchListener { policy ->
                 runOnUiThread {
                     try {
-                        android.util.Log.d("StartActivity", "Policy fetch listener invoked: policy=${policy?.isActive}")
+                        android.util.Log.d("SplashScreen", "Policy fetch listener invoked: policy=${policy?.isActive}")
                         if (policy == null || !policy.isActive) {
-                            android.util.Log.d("StartActivity", "Policy indicates ads disabled -> releaseSplash()")
+                            android.util.Log.d("SplashScreen", "Policy indicates ads disabled -> releaseSplash()")
                             releaseSplash()
                         }
                     } catch (_: Throwable) {}
@@ -103,7 +108,7 @@ class StartActivity : BaseActivity() {
             kr.sweetapps.alcoholictimer.ads.AdController.addSplashReleaseListener {
                 runOnUiThread {
                     try {
-                        android.util.Log.d("StartActivity", "splashReleaseListener invoked -> releaseSplash()")
+                        android.util.Log.d("SplashScreen", "splashReleaseListener invoked -> releaseSplash()")
                         releaseSplash()
                     } catch (_: Throwable) {}
                 }
@@ -112,7 +117,7 @@ class StartActivity : BaseActivity() {
             try {
                 if (kr.sweetapps.alcoholictimer.ads.AdController.isPolicyFetchCompleted()) {
                     val enabled = try { kr.sweetapps.alcoholictimer.ads.AdController.isAppOpenEnabled() } catch (_: Throwable) { true }
-                    android.util.Log.d("StartActivity", "Policy already fetched at onCreate -> appOpenEnabled=$enabled")
+                    android.util.Log.d("SplashScreen", "Policy already fetched at onCreate -> appOpenEnabled=$enabled")
                     if (!enabled) releaseSplash()
                 }
             } catch (_: Throwable) {}
@@ -140,7 +145,7 @@ class StartActivity : BaseActivity() {
             // 광고 종료 시 자동 노출을 다시 허용하고 스플래시를 해제
             kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setAutoShowEnabled(true)
             runOnUiThread {
-                android.util.Log.d("StartActivity", "Ad finished -> releasing holdSplashState")
+                android.util.Log.d("SplashScreen", "Ad finished -> releasing holdSplashState")
                 releaseSplash()
                 // 광고가 종료되면 시스템바 외형 재적용
                 applySystemBarAppearance()
@@ -165,7 +170,7 @@ class StartActivity : BaseActivity() {
                             holdSplashState = holdSplashState,
                             onSplashFinished = {
                                 // 광고가 닫히고 Compose에서 스플래시가 해제될 때 호출됩니다.
-                                val i = Intent(this@StartActivity, MainActivity::class.java)
+                                val i = Intent(this@SplashScreen, MainActivity::class.java)
                                 i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                                 startActivity(i)
                                 finish()
@@ -182,15 +187,15 @@ class StartActivity : BaseActivity() {
         val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
         // Short timeout runnable
         val shortTimeout = Runnable {
-            android.util.Log.d("StartActivity", "Short splash timeout reached (${AD_WAIT_MS}ms)")
-            android.util.Log.d("StartActivity", "Setting holdSplashState=false (short timeout)")
+            android.util.Log.d("SplashScreen", "Short splash timeout reached (${AD_WAIT_MS}ms)")
+            android.util.Log.d("SplashScreen", "Setting holdSplashState=false (short timeout)")
             releaseSplash()
         }
         // Safety timeout runnable
         val SAFETY_TIMEOUT_MS = 3000L
         val safetyTimeout = Runnable {
-            android.util.Log.w("StartActivity", "Safety splash timeout reached (${SAFETY_TIMEOUT_MS}ms) -> forcing release")
-            android.util.Log.d("StartActivity", "Setting holdSplashState=false (safety timeout)")
+            android.util.Log.w("SplashScreen", "Safety splash timeout reached (${SAFETY_TIMEOUT_MS}ms) -> forcing release")
+            android.util.Log.d("SplashScreen", "Setting holdSplashState=false (safety timeout)")
             releaseSplash()
         }
         // Schedule
@@ -204,7 +209,7 @@ class StartActivity : BaseActivity() {
                     try {
                         mainHandler.removeCallbacks(shortTimeout)
                         mainHandler.removeCallbacks(safetyTimeout)
-                        android.util.Log.d("StartActivity", "Cancelled scheduled splash timeouts because holdSplashState=false")
+                        android.util.Log.d("SplashScreen", "Cancelled scheduled splash timeouts because holdSplashState=false")
                     } catch (_: Throwable) {}
                 } else {
                     mainHandler.postDelayed(this, 200)

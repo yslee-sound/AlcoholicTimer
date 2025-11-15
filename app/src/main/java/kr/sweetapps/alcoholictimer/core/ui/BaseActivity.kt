@@ -122,17 +122,13 @@ abstract class BaseActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     containerColor = Color.White,
                     topBar = {
-                        // Custom top bar: back icon fixed at screen left, title starts at 16.dp (aligned with list items)
+                        // Custom top bar: keep Box layout so title position remains unchanged (parent-relative start)
                         Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
-                            // Back icon area (left)
                             if (showBackButton) {
-                                Box(modifier = Modifier
-                                    .align(Alignment.CenterStart)
-                                    .padding(start = 8.dp)
-                                    .size(48.dp)
-                                ) {
+                                // fixed touch area width, visual padding inside keeps icon centered
+                                Box(modifier = Modifier.align(Alignment.CenterStart).width(UiConstants.BackIconTouchArea).padding(start = 8.dp), contentAlignment = Alignment.CenterStart) {
                                     Surface(
-                                        modifier = Modifier.fillMaxSize(),
+                                        modifier = Modifier.size(UiConstants.BackIconTouchArea),
                                         shape = CircleShape,
                                         color = Color(0xFFF8F9FA),
                                         shadowElevation = 2.dp
@@ -149,8 +145,12 @@ abstract class BaseActivity : ComponentActivity() {
                                         }
                                     }
                                 }
+                            } else {
+                                // ensure same occupied width when back button hidden
+                                Spacer(modifier = Modifier.align(Alignment.CenterStart).width(UiConstants.BackIconTouchArea))
                             }
-                            // Title aligned to list item padding (start = 16.dp)
+
+                            // Title aligned to parent start with fixed padding (preserves previous placement)
                             CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, 1.2f)) {
                                 val titleText = getScreenTitleResId()?.let { stringResource(it) } ?: run {
                                     @Suppress("DEPRECATION") getScreenTitle()
@@ -160,10 +160,11 @@ abstract class BaseActivity : ComponentActivity() {
                                     color = Color(0xFF2C3E50),
                                     fontWeight = FontWeight.SemiBold,
                                     style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.align(Alignment.CenterStart).padding(start = 16.dp)
+                                    modifier = Modifier.align(Alignment.CenterStart).padding(start = UiConstants.BackIconStartPadding)
                                 )
                             }
-                            // Actions aligned to end (use Row to provide RowScope for topBarActions)
+
+                            // Actions aligned to end
                             Row(modifier = Modifier.align(Alignment.CenterEnd), verticalAlignment = Alignment.CenterVertically) { topBarActions() }
                         }
                         // Global subtle divider under app bar

@@ -39,6 +39,11 @@ object Constants {
     const val DEFAULT_FREQUENCY = KEY_FREQUENCY_LOW
     const val DEFAULT_DURATION = KEY_DURATION_SHORT
 
+    // UI 관련 상수 (정수 dp 값) - Compose 쪽에서 `.dp`로 변환하여 사용합니다.
+    const val BACK_ICON_START_PADDING_DP = 42 // 42
+    // Back icon touch area width (includes left padding + icon size). 사용처: top-bar의 아이콘 터치/정렬 기준
+    const val BACK_ICON_TOUCH_AREA_DP = 56
+
     // 음주 설정 값 상수
     object DrinkingSettings {
         // 음주 비용 (원)

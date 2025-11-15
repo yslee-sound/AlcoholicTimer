@@ -20,11 +20,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.graphics.Color
+import kr.sweetapps.alcoholictimer.core.ui.UiConstants
+
 import kr.sweetapps.alcoholictimer.R
 
 @Composable
@@ -51,7 +51,7 @@ fun AboutScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(androidx.compose.ui.graphics.Color.White)
+            .background(Color.White)
     ) {
         // 상단 프로필 블록: 아바타 + 닉네임 (클릭 시 닉네임 편집 화면으로 이동)
         Row(
@@ -61,13 +61,14 @@ fun AboutScreen(
                     indication = null,
                     interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
                 ) { onNavigateEditNickname() }
-                .padding(horizontal = 16.dp, vertical = 20.dp),
+                // Reduce start padding so avatar center aligns with top-bar arrow center
+                .padding(start = 10.dp, top = 20.dp, end = 16.dp, bottom = 20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 박스 배경을 제거하고 아이콘만 표시 (터치 영역은 동일하게 유지)
+            // 터치 영역은 56dp로 유지. 내부 이미지는 가운데 정렬하여 박스 중심이 화면에서의 기준 좌표와 일치하게 합니다.
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.size(56.dp)
+                modifier = Modifier.size(56.dp) // touch area preserved
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.ic_user_circle),
@@ -150,41 +151,30 @@ fun AboutLicensesScreen(onBack: () -> Unit = {}) {
     val licenseText = remember {
         try {
             context.assets.open("LICENSE.txt").bufferedReader().use { it.readText() }
-        } catch (t: Throwable) {
+        } catch (_: Throwable) {
             "라이선스 파일을 읽을 수 없습니다."
         }
     }
 
     Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
-        Box(modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .padding(top = 8.dp, bottom = 4.dp)
-        ) {
-            Box(modifier = Modifier
-                .align(Alignment.CenterStart)
-                .padding(start = 8.dp)
-                .size(40.dp)
-                .clickable(
-                    indication = null,
-                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                ) { onBack() }, contentAlignment = Alignment.Center) {
-                Image(painter = painterResource(id = R.drawable.ic_caret_left), contentDescription = stringResource(id = R.string.cd_navigate_back), modifier = Modifier.size(24.dp))
+        Box(modifier = Modifier.fillMaxWidth().height(56.dp).padding(top = 8.dp, bottom = 4.dp)) {
+            Box(modifier = Modifier.align(Alignment.CenterStart).width(kr.sweetapps.alcoholictimer.core.ui.UiConstants.BackIconTouchArea).padding(start = 8.dp), contentAlignment = Alignment.CenterStart) {
+                Image(painter = painterResource(id = R.drawable.ic_caret_left), contentDescription = stringResource(id = R.string.cd_navigate_back), modifier = Modifier.size(24.dp).clickable { onBack() })
             }
             Text(
                 text = stringResource(id = R.string.about_open_license_notice),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                 color = Color.Black,
-                modifier = Modifier.align(Alignment.CenterStart).padding(start = 16.dp)
+                modifier = Modifier.align(Alignment.CenterStart).padding(start = kr.sweetapps.alcoholictimer.core.ui.UiConstants.BackIconStartPadding)
             )
         }
 
         // 파일 전체 텍스트를 스크롤 가능한 컬럼에 표시
-        androidx.compose.foundation.rememberScrollState()
+        rememberScrollState()
         Column(modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .verticalScroll(androidx.compose.foundation.rememberScrollState())
+            .verticalScroll(rememberScrollState())
         ) {
             Text(text = licenseText, color = Color.Black, style = MaterialTheme.typography.bodyMedium)
         }
@@ -248,7 +238,6 @@ fun LicenseItem(
         }
         Spacer(modifier = Modifier.height(6.dp))
 
-        // 라이선스: 이름은 보이되 URL은 링크로 표시
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = "라이선스: ",
@@ -288,29 +277,18 @@ fun CurrencySettingsScreen(onBack: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(androidx.compose.ui.graphics.Color.White)
+            .background(Color.White)
     ) {
         // Top bar for currency settings: overlay so title aligns with list items (start = 16.dp)
-        Box(modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .padding(top = 8.dp, bottom = 4.dp)
-        ) {
-            Box(modifier = Modifier
-                .align(Alignment.CenterStart)
-                .padding(start = 8.dp)
-                .size(40.dp)
-                .clickable(
-                    indication = null,
-                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                ) { onBack() }, contentAlignment = Alignment.Center) {
-                Image(painter = painterResource(id = R.drawable.ic_caret_left), contentDescription = stringResource(id = R.string.cd_navigate_back), modifier = Modifier.size(24.dp))
+        Box(modifier = Modifier.fillMaxWidth().height(56.dp).padding(top = 8.dp, bottom = 4.dp)) {
+            Box(modifier = Modifier.align(Alignment.CenterStart).width(kr.sweetapps.alcoholictimer.core.ui.UiConstants.BackIconTouchArea).padding(start = 8.dp), contentAlignment = Alignment.CenterStart) {
+                Image(painter = painterResource(id = R.drawable.ic_caret_left), contentDescription = stringResource(id = R.string.cd_navigate_back), modifier = Modifier.size(24.dp).clickable { onBack() })
             }
             Text(
                 text = stringResource(id = R.string.settings_currency),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.align(Alignment.CenterStart).padding(start = 16.dp)
+                modifier = Modifier.align(Alignment.CenterStart).padding(start = kr.sweetapps.alcoholictimer.core.ui.UiConstants.BackIconStartPadding)
             )
         }
 

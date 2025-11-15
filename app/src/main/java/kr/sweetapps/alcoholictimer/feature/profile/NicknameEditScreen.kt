@@ -1,6 +1,5 @@
 package kr.sweetapps.alcoholictimer.feature.profile
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -24,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import kr.sweetapps.alcoholictimer.R
+import kr.sweetapps.alcoholictimer.core.ui.UiConstants
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,14 +50,18 @@ fun NicknameEditScreen(
     // Scaffold with white background and top app bar (back)
     Scaffold(
         topBar = {
-            // Custom top bar: back icon at left, title aligned to 16.dp
+            // Custom top bar: keep Box layout so title position remains parent-relative (preserve original placement)
             Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
-                Box(modifier = Modifier.align(Alignment.CenterStart).padding(start = 8.dp).size(48.dp)) {
-                    IconButton(onClick = { onCancel() }) {
-                        Image(painter = painterResource(R.drawable.ic_caret_left), contentDescription = stringResource(R.string.cd_navigate_back))
+                Box(modifier = Modifier.align(Alignment.CenterStart).width(UiConstants.BackIconTouchArea).padding(start = 8.dp), contentAlignment = Alignment.CenterStart) {
+                    // No background circle: keep touch area and center the IconButton
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(UiConstants.BackIconTouchArea)) {
+                        IconButton(onClick = { onCancel() }) {
+                            Icon(painter = painterResource(id = R.drawable.ic_caret_left), contentDescription = stringResource(R.string.cd_navigate_back), tint = Color(0xFF2C3E50), modifier = Modifier.size(24.dp))
+                        }
                     }
                 }
-                Text(text = stringResource(R.string.profile_edit_title), modifier = Modifier.align(Alignment.CenterStart).padding(start = 16.dp), fontWeight = FontWeight.SemiBold)
+
+                Text(text = stringResource(R.string.profile_edit_title), modifier = Modifier.align(Alignment.CenterStart).padding(start = UiConstants.BackIconStartPadding), fontWeight = FontWeight.SemiBold)
             }
         },
         containerColor = Color.White
@@ -119,22 +123,16 @@ fun NicknameEditScreen(
                 })
             )
             Spacer(modifier = Modifier.height(32.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            // Only Save button (full-width)
+            Button(
+                onClick = {
+                    saveNickname(sp, trimmed)
+                    onDone()
+                },
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                enabled = isValid && !isUnchanged
             ) {
-                OutlinedButton(
-                    onClick = { onCancel() },
-                    modifier = Modifier.weight(1f).height(48.dp)
-                ) { Text(text = stringResource(R.string.profile_cancel), fontSize = 16.sp, fontWeight = FontWeight.Medium) }
-                Button(
-                    onClick = {
-                        saveNickname(sp, trimmed)
-                        onDone()
-                    },
-                    modifier = Modifier.weight(1f).height(48.dp),
-                    enabled = isValid && !isUnchanged
-                ) { Text(text = stringResource(R.string.profile_save), fontSize = 16.sp, fontWeight = FontWeight.Medium) }
+                Text(text = stringResource(R.string.profile_save), fontSize = 16.sp, fontWeight = FontWeight.Medium)
             }
         }
     }

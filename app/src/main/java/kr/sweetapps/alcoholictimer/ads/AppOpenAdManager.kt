@@ -314,6 +314,23 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
 
     fun showIfAvailable(activity: Activity) {
         Log.d(TAG, "showIfAvailable called @${System.currentTimeMillis()} adLoaded=${appOpenAd!=null} isShowing=${isShowing.get()} activityFinishing=${activity.isFinishing}")
+        // Safety check: AppOpen should only be shown from the splash/start activity.
+        // If called from any other Activity, abort to avoid showing AppOpen during normal navigation.
+        try {
+            val className = activity::class.qualifiedName ?: activity::class.java.name
+            if (!className.contains(".feature.start.StartActivity") && !className.endsWith("StartActivity") && !className.contains(".ui.screens.SplashScreen") && !className.endsWith("SplashScreen")) {
+                Log.w(TAG, "showIfAvailable blocked: activity ($className) is not StartActivity/SplashScreen. AppOpen must only show on splash.")
+                // Do not notify onAdFinishedListener here because non-splash callers shouldn't be holding splash.
+                // Trigger a preload so next opportunity (splash) can still get an ad.
+                preload(activity.applicationContext)
+                return
+            }
+        } catch (_: Throwable) {
+            Log.w(TAG, "showIfAvailable: failed to verify caller activity class; aborting safe-show")
+            preload(activity.applicationContext)
+            return
+        }
+
         if (!canShowNow()) {
             Log.d(TAG, "showIfAvailable abort: canShowNow=false")
             preload(activity.applicationContext)
