@@ -31,7 +31,9 @@ import kr.sweetapps.alcoholictimer.R
 fun AboutScreen(
     onNavigateLicenses: () -> Unit,
     onNavigateEditNickname: () -> Unit = {},
-    onNavigateCurrencySettings: () -> Unit = {}
+    onNavigateCurrencySettings: () -> Unit = {},
+    showBack: Boolean = false,
+    onBack: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val sp = remember { context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE) }
@@ -53,8 +55,11 @@ fun AboutScreen(
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // 상단 블록: 공통 BackTopBar로 통일. 프로필 영역은 탭 가능한 콘텐츠로 대체.
-        kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = nickname.ifEmpty { context.getString(R.string.default_nickname) }, onBack = {})
+        // 상단 블록: 뒤로가기 표시 여부에 따라 공통 BackTopBar를 렌더링하거나 아무 것도 렌더링하지 않습니다.
+        if (showBack) {
+            kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = nickname.ifEmpty { context.getString(R.string.default_nickname) }, onBack = onBack)
+        }
+
         // 프로필 클릭 영역: 백버튼과 제목과 별도로 눌러서 닉네임 편집으로 이동하도록 유지
         Row(
             modifier = Modifier
@@ -63,7 +68,8 @@ fun AboutScreen(
                     indication = null,
                     interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
                 ) { onNavigateEditNickname() }
-                .padding(start = 10.dp, top = 12.dp, end = 16.dp, bottom = 12.dp),
+                // top/bottom padding은 상단에 BackTopBar가 렌더링되는 경우와 메인 탭(타이틀 없음)인 경우에 다르게 적용
+                .padding(start = 10.dp, top = if (showBack) 12.dp else 20.dp, end = 16.dp, bottom = if (showBack) 12.dp else 20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(contentAlignment = Alignment.Center, modifier = Modifier.size(56.dp)) {

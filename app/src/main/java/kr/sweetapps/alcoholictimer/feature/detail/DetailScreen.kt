@@ -100,153 +100,158 @@ fun DetailScreen(
         val imeBottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
         val effectiveBottom = maxOf(navBottom, imeBottom)
 
-        Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant)) {
-            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(16.dp)
-                        .statusBarsPadding()
-                ) {
-                    kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = stringResource(id = R.string.detail_title), onBack = onBack, trailingContent = {
-                        Icon(
-                            imageVector = Icons.Outlined.Delete,
-                            contentDescription = stringResource(id = R.string.dialog_delete_title),
-                            tint = Color(0xFFE53E3E),
-                            modifier = Modifier.size(24.dp).clickable { showDeleteDialog.value = true }
-                        )
-                    })
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-                        border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
+        Scaffold(
+            topBar = { kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = stringResource(id = R.string.detail_title), onBack = onBack, trailingContent = {
+                Icon(
+                    imageVector = Icons.Outlined.Delete,
+                    contentDescription = stringResource(id = R.string.dialog_delete_title),
+                    tint = Color(0xFFE53E3E),
+                    modifier = Modifier.size(24.dp).clickable { showDeleteDialog.value = true }
+                )
+            }) },
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ) { paddingValues ->
+            Column(modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)) {
+                Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(16.dp)
                     ) {
-                        Column(modifier = Modifier.padding(20.dp)) {
-                            Text(
-                                text = "${stringResource(id = R.string.detail_start_label)} $displayDateTime",
-                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                                color = Color(0xFF718096)
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "${stringResource(id = R.string.detail_end_label)} ${dateTimeFormat.format(Date(endTime))}",
-                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                                color = Color(0xFF718096)
-                            )
-                            Spacer(modifier = Modifier.height(24.dp))
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(
-                                        text = String.format(Locale.getDefault(), "%.1f", totalDays),
-                                        style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.ExtraBold),
-                                        color = accentColor
-                                    )
-                                    Text(
-                                        text = stringResource(id = R.string.unit_day),
-                                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
-                                        color = Color(0xFF718096)
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(24.dp))
-                            Column(modifier = Modifier.fillMaxWidth()) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = stringResource(id = R.string.detail_progress_rate),
-                                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                                        color = Color(0xFF718096)
-                                    )
-                                    Text(
-                                        text = String.format(Locale.getDefault(), "%.1f%%", achievementRate),
-                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                        color = accentColor
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(8.dp))
-                                LinearProgressIndicator(
-                                    progress = { (achievementRate / 100.0).toFloat().coerceIn(0f, 1f) },
-                                    modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
-                                    color = accentColor,
-                                    trackColor = Color(0xFFE2E8F0)
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+                            border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
+                        ) {
+                            Column(modifier = Modifier.padding(20.dp)) {
+                                Text(
+                                    text = "${stringResource(id = R.string.detail_start_label)} $displayDateTime",
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                                    color = Color(0xFF718096)
                                 )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text(
-                                        text = stringResource(id = R.string.detail_progress_current, String.format(Locale.getDefault(), "%.1f", totalDays)),
-                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                                        color = Color(0xFF718096)
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "${stringResource(id = R.string.detail_end_label)} ${dateTimeFormat.format(Date(endTime))}",
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                                    color = Color(0xFF718096)
+                                )
+                                Spacer(modifier = Modifier.height(24.dp))
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text(
+                                            text = String.format(Locale.getDefault(), "%.1f", totalDays),
+                                            style = MaterialTheme.typography.displayLarge.copy(fontWeight = FontWeight.ExtraBold),
+                                            color = accentColor
+                                        )
+                                        Text(
+                                            text = stringResource(id = R.string.unit_day),
+                                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                                            color = Color(0xFF718096)
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(24.dp))
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = stringResource(id = R.string.detail_progress_rate),
+                                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                                            color = Color(0xFF718096)
+                                        )
+                                        Text(
+                                            text = String.format(Locale.getDefault(), "%.1f%%", achievementRate),
+                                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                            color = accentColor
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    LinearProgressIndicator(
+                                        progress = { (achievementRate / 100.0).toFloat().coerceIn(0f, 1f) },
+                                        modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+                                        color = accentColor,
+                                        trackColor = Color(0xFFE2E8F0)
                                     )
-                                    Text(
-                                        text = stringResource(id = R.string.detail_progress_target, targetDays.toInt()),
-                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                                        color = Color(0xFF718096)
-                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                        Text(
+                                            text = stringResource(id = R.string.detail_progress_current, String.format(Locale.getDefault(), "%.1f", totalDays)),
+                                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                                            color = Color(0xFF718096)
+                                        )
+                                        Text(
+                                            text = stringResource(id = R.string.detail_progress_target, targetDays.toInt()),
+                                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                                            color = Color(0xFF718096)
+                                        )
+                                    }
                                 }
                             }
                         }
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(UiConstants.STAT_ROW_SPACING)
+                        ) {
+                            DetailStatCard(
+                                value = stringResource(R.string.unit_days_format, totalDays),
+                                label = stringResource(id = R.string.stat_total_days),
+                                modifier = Modifier.weight(1f),
+                                valueColor = colorResource(id = R.color.color_indicator_days)
+                            )
+                            DetailStatCard(
+                                value = FormatUtils.formatMoney(context, savedMoney.toDouble()),
+                                label = stringResource(id = R.string.stat_saved_money_short),
+                                modifier = Modifier.weight(1f),
+                                valueColor = colorResource(id = R.color.color_indicator_money)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(UiConstants.STAT_ROW_SPACING)
+                        ) {
+                            DetailStatCard(
+                                value = stringResource(R.string.unit_hours_format, savedHoursExact),
+                                label = stringResource(id = R.string.stat_saved_hours_short),
+                                modifier = Modifier.weight(1f),
+                                valueColor = colorResource(id = R.color.color_indicator_hours)
+                            )
+                            DetailStatCard(
+                                value = FormatUtils.daysToDayHourString(context, lifeExpectancyIncrease, 2),
+                                label = stringResource(id = R.string.indicator_title_life_gain),
+                                modifier = Modifier.weight(1f),
+                                valueColor = colorResource(id = R.color.color_indicator_life)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(UiConstants.STAT_ROW_SPACING)
-                    ) {
-                        DetailStatCard(
-                            value = stringResource(R.string.unit_days_format, totalDays),
-                            label = stringResource(id = R.string.stat_total_days),
-                            modifier = Modifier.weight(1f),
-                            valueColor = colorResource(id = R.color.color_indicator_days)
-                        )
-                        DetailStatCard(
-                            value = FormatUtils.formatMoney(context, savedMoney.toDouble()),
-                            label = stringResource(id = R.string.stat_saved_money_short),
-                            modifier = Modifier.weight(1f),
-                            valueColor = colorResource(id = R.color.color_indicator_money)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(UiConstants.STAT_ROW_SPACING)
-                    ) {
-                        DetailStatCard(
-                            value = stringResource(R.string.unit_hours_format, savedHoursExact),
-                            label = stringResource(id = R.string.stat_saved_hours_short),
-                            modifier = Modifier.weight(1f),
-                            valueColor = colorResource(id = R.color.color_indicator_hours)
-                        )
-                        DetailStatCard(
-                            value = FormatUtils.daysToDayHourString(context, lifeExpectancyIncrease, 2),
-                            label = stringResource(id = R.string.indicator_title_life_gain),
-                            modifier = Modifier.weight(1f),
-                            valueColor = colorResource(id = R.color.color_indicator_life)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
-            }
-            if (!shouldHideBanner) {
-                if (UiConstants.BANNER_TOP_GAP > 0.dp) {
+                if (!shouldHideBanner) {
+                    if (UiConstants.BANNER_TOP_GAP > 0.dp) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().height(UiConstants.BANNER_TOP_GAP).background(MaterialTheme.colorScheme.surfaceVariant)
+                        )
+                    }
+                    HorizontalDivider(thickness = AppBorder.Hairline, color = Color(0xFFE0E0E0))
                     Box(
-                        modifier = Modifier.fillMaxWidth().height(UiConstants.BANNER_TOP_GAP).background(MaterialTheme.colorScheme.surfaceVariant)
-                    )
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .padding(bottom = effectiveBottom)
+                            .height(predictAnchoredBannerHeightDp()),
+                        contentAlignment = Alignment.Center
+                    ) { /* AdmobBanner centralized - no-op */ }
                 }
-                HorizontalDivider(thickness = AppBorder.Hairline, color = Color(0xFFE0E0E0))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = effectiveBottom)
-                        .height(predictAnchoredBannerHeightDp()),
-                    contentAlignment = Alignment.Center
-                ) { /* AdmobBanner centralized - no-op */ }
             }
         }
         if (showDeleteDialog.value) {

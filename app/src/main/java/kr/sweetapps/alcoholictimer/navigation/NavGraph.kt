@@ -156,7 +156,8 @@ fun AlcoholicTimerNavGraph(
             AboutScreen(
                 onNavigateLicenses = { navController.navigate(Screen.AboutLicenses.route) },
                 onNavigateEditNickname = { navController.navigate(Screen.NicknameEdit.route) },
-                onNavigateCurrencySettings = { navController.navigate(Screen.CurrencySettings.route) }
+                onNavigateCurrencySettings = { navController.navigate(Screen.CurrencySettings.route) },
+                showBack = false
             )
         }
 
