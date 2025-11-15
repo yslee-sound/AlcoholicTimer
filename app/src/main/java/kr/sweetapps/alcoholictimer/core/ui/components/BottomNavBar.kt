@@ -46,7 +46,8 @@ private val bottomItems: List<BottomItem> = listOf(
         R.string.drawer_menu_records,
         R.string.drawer_menu_records,
         // 2번째 버튼 그룹: 금주 기록(Records), 모든 기록(AllRecords), 기록 상세(Detail)
-        associatedRoutes = setOf(Screen.Records.route, Screen.AllRecords.route, "detail/")
+        // 포함: 기록 추가(add_record)도 같은 그룹으로 처리
+        associatedRoutes = setOf(Screen.Records.route, Screen.AllRecords.route, Screen.AddRecord.route, "detail/")
     ),
     BottomItem(
         Screen.Level,
