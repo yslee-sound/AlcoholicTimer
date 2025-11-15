@@ -1,7 +1,6 @@
 package kr.sweetapps.alcoholictimer.feature.run
 
 import android.content.Context
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -126,8 +125,8 @@ fun RunScreenComposable(
                 )
                 sp.edit { remove(Constants.PREF_START_TIME); putBoolean(Constants.PREF_TIMER_COMPLETED, true) }
                 hasCompleted = true
-                Toast.makeText(context, context.getString(R.string.toast_goal_completed), Toast.LENGTH_SHORT).show()
 
+                // toast suppressed per request
                 val goDetail: () -> Unit = {
                     val route = Screen.Detail.createRoute(
                         startTime = startTime,

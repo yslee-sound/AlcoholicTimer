@@ -6,7 +6,6 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.WindowManager
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -49,11 +48,11 @@ class AddRecordActivity : ComponentActivity() {
                         onSave = { record ->
                             val success = saveRecord(record)
                             if (success) {
-                                Toast.makeText(this, getString(R.string.add_record_toast_success), Toast.LENGTH_SHORT).show()
+                                // success: no toast per request
                                 setResult(RESULT_OK)
                                 finish()
                             } else {
-                                Toast.makeText(this, getString(R.string.add_record_toast_conflict), Toast.LENGTH_LONG).show()
+                                // conflict: no toast per request
                             }
                         },
                         onCancel = { finish() }

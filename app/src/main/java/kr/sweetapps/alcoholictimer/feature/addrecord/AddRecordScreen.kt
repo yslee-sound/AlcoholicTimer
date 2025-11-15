@@ -2,7 +2,6 @@ package kr.sweetapps.alcoholictimer.feature.addrecord
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -40,6 +39,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.TextRange
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.ui.layout.boundsInWindow
@@ -59,7 +60,8 @@ fun AddRecordScreenComposable(
 
     // 인라인 편집: 읽기 모드와 편집 모드 토글
     var isEditingTarget by remember { mutableStateOf(false) }
-    var editableTargetText by rememberSaveable { mutableStateOf(targetDays) }
+    // use TextFieldValue so we can control cursor/selection reliably
+    var editableTargetText by remember { mutableStateOf(TextFieldValue(text = targetDays, selection = TextRange(targetDays.length))) }
     val targetFocusRequester = remember { FocusRequester() }
 
     val dateFormat = remember {
@@ -246,7 +248,7 @@ fun AddRecordScreenComposable(
                         // 인라인 편집 모드: 클릭하면 바로 편집 모드로 전환 (actual focus/keyboard handled in LaunchedEffect)
                         if (!isEditingTarget) {
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
-                                editableTargetText = targetDays
+                                editableTargetText = TextFieldValue(text = targetDays, selection = TextRange(targetDays.length))
                                 isEditingTarget = true
                                 editRequestedAt = System.currentTimeMillis()
                                 // request focus synchronously to ensure keyboard appears on first tap
@@ -256,7 +258,7 @@ fun AddRecordScreenComposable(
                                 Text(text = "$targetDays${stringResource(R.string.add_record_days_unit)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Spacer(Modifier.width(8.dp))
                                 IconButton(onClick = {
-                                    editableTargetText = targetDays
+                                    editableTargetText = TextFieldValue(text = targetDays, selection = TextRange(targetDays.length))
                                     isEditingTarget = true
                                     editRequestedAt = System.currentTimeMillis()
                                     targetFocusRequester.requestFocus()
@@ -270,9 +272,17 @@ fun AddRecordScreenComposable(
                             var targetFieldHadFocus by remember { mutableStateOf(false) }
                             OutlinedTextField(
                                 value = editableTargetText,
-                                onValueChange = { new: String ->
-                                    val filtered = new.filter { ch -> ch.isDigit() }.take(3)
-                                    editableTargetText = filtered
+                                onValueChange = { newTf: TextFieldValue ->
+                                    // accept only digits, max 3
+                                    val filtered = newTf.text.filter { it.isDigit() }.take(3)
+                                    // if starting from "0" and user types a digit, replace it
+                                    val next = if (editableTargetText.text == "0" && filtered.length == 1) {
+                                        TextFieldValue(text = filtered, selection = TextRange(filtered.length))
+                                    } else {
+                                        // preserve cursor at end of filtered text
+                                        TextFieldValue(text = filtered, selection = TextRange(filtered.length))
+                                    }
+                                    editableTargetText = next
                                 },
                                 singleLine = true,
                                 modifier = Modifier
@@ -283,12 +293,14 @@ fun AddRecordScreenComposable(
                                         // mark when field actually received focus; only commit on loss if it had focus
                                         if (state.isFocused) {
                                             targetFieldHadFocus = true
+                                            // ensure cursor at end when field receives focus
+                                            editableTargetText = editableTargetText.copy(selection = TextRange(editableTargetText.text.length))
                                         } else if (!state.isFocused && targetFieldHadFocus) {
-                                            val parsed = editableTargetText.toIntOrNull()
+                                            val parsed = editableTargetText.text.toIntOrNull()
                                             if (parsed != null && parsed in 1..999) {
                                                 targetDays = parsed.toString()
                                             } else {
-                                                Toast.makeText(context, context.getString(R.string.add_record_error_set_target), Toast.LENGTH_SHORT).show()
+                                                // invalid target: ignore
                                             }
                                             targetFieldHadFocus = false
                                             isEditingTarget = false
@@ -298,11 +310,11 @@ fun AddRecordScreenComposable(
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
                                 keyboardActions = KeyboardActions(onDone = {
                                     // 확인: 1..999만 허용
-                                    val parsed = editableTargetText.toIntOrNull()
+                                    val parsed = editableTargetText.text.toIntOrNull()
                                     if (parsed != null && parsed in 1..999) {
                                         targetDays = parsed.toString()
                                     } else {
-                                        Toast.makeText(context, context.getString(R.string.add_record_error_set_target), Toast.LENGTH_SHORT).show()
+                                        // invalid target: ignore
                                     }
                                     isEditingTarget = false
                                     keyboard?.hide()
@@ -341,10 +353,10 @@ fun AddRecordScreenComposable(
                                     )
                                     val ok = persistRecord(record)
                                     if (ok) {
-                                        Toast.makeText(context, context.getString(R.string.add_record_toast_success), Toast.LENGTH_SHORT).show()
+                                        // success: proceed without toast
                                         onFinished()
                                     } else {
-                                        Toast.makeText(context, context.getString(R.string.add_record_toast_conflict), Toast.LENGTH_LONG).show()
+                                        // conflict: proceed without toast
                                     }
                                 }
                             },
