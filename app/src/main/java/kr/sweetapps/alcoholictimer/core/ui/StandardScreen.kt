@@ -9,11 +9,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalWindowInfo
-import com.google.android.gms.ads.AdSize
 import androidx.compose.material3.Surface
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -23,24 +18,10 @@ private val MaxContentWidth: Dp = 600.dp
 
 @Composable
 fun predictAnchoredBannerHeightDp(): Dp {
-    val context = LocalContext.current
-    val conf = LocalConfiguration.current
-    val density = LocalDensity.current
-    // Prefer LocalWindowInfo.containerSize when available for accurate container width
-    val windowInfo = LocalWindowInfo.current
-    // Fallback: use displayMetrics width (pixels -> dp) instead of Configuration.screenWidthDp
-    val fallbackWidthDp = (context.resources.displayMetrics.widthPixels / density.density).toInt()
-    val availableWidthDp = if (windowInfo.containerSize.width > 0) {
-        (windowInfo.containerSize.width / density.density).toInt()
-    } else {
-        fallbackWidthDp
-    }
-    return try {
-        val adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, availableWidthDp)
-        with(density) { adSize.getHeightInPixels(context).toDp() }.coerceAtLeast(LayoutConstants.BANNER_MIN_HEIGHT)
-    } catch (_: Throwable) {
-        LayoutConstants.BANNER_MIN_HEIGHT
-    }
+    // Use the fixed banner placeholder height to avoid UI shifts when ad size becomes available.
+    // This keeps layout stable (no vertical jumps). If you want dynamic height later,
+    // we can compute it internally and overlay without changing reserved layout space.
+    return LayoutConstants.BANNER_FIXED_HEIGHT
 }
 
 @Composable
