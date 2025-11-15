@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.core.ui.UiConstants
+import kr.sweetapps.alcoholictimer.constants.UiConstants
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

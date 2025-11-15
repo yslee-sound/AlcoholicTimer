@@ -35,7 +35,7 @@ import kr.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBottom
 import kr.sweetapps.alcoholictimer.core.ui.LayoutConstants
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.predictAnchoredBannerHeightDp
-import kr.sweetapps.alcoholictimer.core.ui.UiConstants
+import kr.sweetapps.alcoholictimer.constants.UiConstants
 
 class AddRecordActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.graphics.Color
-import kr.sweetapps.alcoholictimer.core.ui.UiConstants
+import kr.sweetapps.alcoholictimer.constants.UiConstants
 
 import kr.sweetapps.alcoholictimer.R
 
@@ -158,14 +158,14 @@ fun AboutLicensesScreen(onBack: () -> Unit = {}) {
 
     Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
         Box(modifier = Modifier.fillMaxWidth().height(56.dp).padding(top = 8.dp, bottom = 4.dp)) {
-            Box(modifier = Modifier.align(Alignment.CenterStart).width(kr.sweetapps.alcoholictimer.core.ui.UiConstants.BackIconTouchArea).padding(start = 8.dp), contentAlignment = Alignment.CenterStart) {
+            Box(modifier = Modifier.align(Alignment.CenterStart).width(UiConstants.BackIconTouchArea).padding(start = 8.dp), contentAlignment = Alignment.CenterStart) {
                 Image(painter = painterResource(id = R.drawable.ic_caret_left), contentDescription = stringResource(id = R.string.cd_navigate_back), modifier = Modifier.size(24.dp).clickable { onBack() })
             }
             Text(
                 text = stringResource(id = R.string.about_open_license_notice),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                 color = Color.Black,
-                modifier = Modifier.align(Alignment.CenterStart).padding(start = kr.sweetapps.alcoholictimer.core.ui.UiConstants.BackIconStartPadding)
+                modifier = Modifier.align(Alignment.CenterStart).padding(start = UiConstants.BackIconStartPadding)
             )
         }
 
@@ -281,14 +281,14 @@ fun CurrencySettingsScreen(onBack: () -> Unit = {}) {
     ) {
         // Top bar for currency settings: overlay so title aligns with list items (start = 16.dp)
         Box(modifier = Modifier.fillMaxWidth().height(56.dp).padding(top = 8.dp, bottom = 4.dp)) {
-            Box(modifier = Modifier.align(Alignment.CenterStart).width(kr.sweetapps.alcoholictimer.core.ui.UiConstants.BackIconTouchArea).padding(start = 8.dp), contentAlignment = Alignment.CenterStart) {
+            Box(modifier = Modifier.align(Alignment.CenterStart).width(UiConstants.BackIconTouchArea).padding(start = 8.dp), contentAlignment = Alignment.CenterStart) {
                 Image(painter = painterResource(id = R.drawable.ic_caret_left), contentDescription = stringResource(id = R.string.cd_navigate_back), modifier = Modifier.size(24.dp).clickable { onBack() })
             }
             Text(
                 text = stringResource(id = R.string.settings_currency),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.align(Alignment.CenterStart).padding(start = kr.sweetapps.alcoholictimer.core.ui.UiConstants.BackIconStartPadding)
+                modifier = Modifier.align(Alignment.CenterStart).padding(start = UiConstants.BackIconStartPadding)
             )
         }
 

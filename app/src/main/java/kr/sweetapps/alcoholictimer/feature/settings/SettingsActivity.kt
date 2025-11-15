@@ -24,7 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
-import kr.sweetapps.alcoholictimer.core.util.Constants
+import kr.sweetapps.alcoholictimer.constants.Constants
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 import androidx.compose.material3.RadioButtonDefaults

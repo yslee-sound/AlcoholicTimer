@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
-import kr.sweetapps.alcoholictimer.core.util.Constants
+import kr.sweetapps.alcoholictimer.constants.Constants
 import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
 import kotlinx.coroutines.delay
 import java.util.Locale
@@ -60,6 +60,7 @@ class LevelActivity : BaseActivity() {
     }
 
     override fun getScreenTitleResId(): Int = R.string.level_title
+    @Deprecated("Use getScreenTitleResId() instead")
     override fun getScreenTitle(): String = getString(R.string.level_title)
 }
 

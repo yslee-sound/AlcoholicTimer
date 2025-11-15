@@ -31,8 +31,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.core.content.edit
 import java.util.Locale
+import kr.sweetapps.alcoholictimer.constants.Constants
 import kr.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
-import kr.sweetapps.alcoholictimer.core.util.Constants
 import kr.sweetapps.alcoholictimer.feature.level.LevelDefinitions
 import kr.sweetapps.alcoholictimer.core.util.FormatUtils
 import kotlinx.coroutines.delay

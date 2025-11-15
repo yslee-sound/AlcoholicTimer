@@ -12,7 +12,7 @@ import kr.sweetapps.alcoholictimer.ads.AppOpenAdManager
 import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.ads.UmpConsentManager
 import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
-import kr.sweetapps.alcoholictimer.core.util.Constants
+import kr.sweetapps.alcoholictimer.constants.Constants
 import kr.sweetapps.alcoholictimer.MainActivity
 import android.graphics.Color as AndroidColor
 import kr.sweetapps.alcoholictimer.ads.HomeAdTrigger

@@ -32,7 +32,8 @@ import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.LayoutConstants
-import kr.sweetapps.alcoholictimer.core.util.Constants
+import kr.sweetapps.alcoholictimer.constants.Constants
+import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.core.util.FormatUtils
 import java.text.SimpleDateFormat
 import java.util.*
@@ -42,7 +43,6 @@ import kr.sweetapps.alcoholictimer.core.ui.theme.AmberSecondaryLight
 import kr.sweetapps.alcoholictimer.core.ui.theme.BluePrimaryLight
 import kr.sweetapps.alcoholictimer.core.ui.predictAnchoredBannerHeightDp
 import kr.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard
-import kr.sweetapps.alcoholictimer.core.ui.UiConstants
 
 @Composable
 fun DetailScreen(
