@@ -36,6 +36,14 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
 
     private var app: Application? = null
     private var currentActivityRef: WeakReference<Activity>? = null
+    // App start timestamp to limit AppOpen display to immediate startup window
+    private var appStartMs: Long = 0L
+    fun noteAppStart() {
+        appStartMs = System.currentTimeMillis()
+        Log.d(TAG, "noteAppStart: appStartMs=$appStartMs")
+    }
+    // Allow AppOpen only within this window after cold start (10s)
+    private const val APP_OPEN_ALLOWED_WINDOW_MS = 10 * 1000L // 10 seconds
 
     private var appOpenAd: AppOpenAd? = null
     private val isLoading = AtomicBoolean(false)
@@ -61,8 +69,24 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
             val canRequest = consentInfo?.canRequestAds() == true
             Log.d(TAG, "healthCheck: adLoaded=${appOpenAd!=null} isLoading=${isLoading.get()} isShowing=${isShowing.get()} canRequest=$canRequest lastLoadedAt=$lastLoadedAt lastShownAt=$lastShownAt")
             if (!isShowing.get() && appOpenAd == null && !isLoading.get() && canRequest) {
-                Log.d(TAG, "healthCheck: triggering preload")
-                app?.let { preload(it.applicationContext) }
+                // Only preload during startup window; avoid loading AppOpen long after cold start
+                try {
+                    if (appStartMs > 0L) {
+                        val sinceStart = System.currentTimeMillis() - appStartMs
+                        if (sinceStart > APP_OPEN_ALLOWED_WINDOW_MS) {
+                            Log.d(TAG, "healthCheck: skipping preload outside startup window (sinceStart=${sinceStart}ms)")
+                        } else {
+                            Log.d(TAG, "healthCheck: triggering preload (within startup window)")
+                            app?.let { preload(it.applicationContext) }
+                        }
+                    } else {
+                        Log.d(TAG, "healthCheck: triggering preload (no appStart recorded)")
+                        app?.let { preload(it.applicationContext) }
+                    }
+                } catch (_: Throwable) {
+                    Log.d(TAG, "healthCheck: triggering preload (fallback)")
+                    app?.let { preload(it.applicationContext) }
+                }
             }
             healthCheckHandler?.postDelayed(this, 30_000)
         }
@@ -111,6 +135,16 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
     }
 
     private fun canShowNow(): Boolean {
+        // Only allow AppOpen within startup window after cold start
+        try {
+            if (appStartMs > 0L) {
+                val sinceStart = System.currentTimeMillis() - appStartMs
+                if (sinceStart > APP_OPEN_ALLOWED_WINDOW_MS) {
+                    Log.d(TAG, "AppOpen blocked: outside startup window (sinceStart=${sinceStart}ms)")
+                    return false
+                }
+            }
+        } catch (_: Throwable) {}
         // 중앙 상태에서 이미 전체 광고가 표시 중이면 차단
         try {
             if (AdController.isFullScreenAdShowing()) {
@@ -183,18 +217,33 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
             request,
             object : AppOpenAd.AppOpenAdLoadCallback() {
                 override fun onAdLoaded(ad: AppOpenAd) {
-                    // 정책 상태를 확인: 정책이 비활성화이면 로드된 광고를 보관하지 않고 리스너만 호출
-                    val policyEnabled = try { kr.sweetapps.alcoholictimer.ads.AdController.isPolicyFetchCompleted() && kr.sweetapps.alcoholictimer.ads.AdController.isAppOpenEnabled() } catch (_: Throwable) { true }
-                    if (!policyEnabled) {
-                        appOpenAd = null
-                        isLoading.set(false)
-                        try { AdController.setAppOpenLoaded(false); AdController.setAppOpenLoading(false); AdController.setAppOpenLastError(null) } catch (_: Throwable) {}
-                        lastLoadedAt = System.currentTimeMillis()
-                        Log.d(TAG, "onAdLoaded app-open but discarded due to policy at @$lastLoadedAt")
-                        // 알림만 전달하여 StartActivity가 스플래시를 해제하도록 함
-                        onAdLoadedListener?.invoke()
-                        return
-                    }
+                    // If we are outside the startup window, discard the loaded AppOpen ad to avoid late presentation
+                    try {
+                        if (appStartMs > 0L) {
+                            val sinceStart = System.currentTimeMillis() - appStartMs
+                            if (sinceStart > APP_OPEN_ALLOWED_WINDOW_MS) {
+                                Log.d(TAG, "onAdLoaded: discarding app-open ad because outside startup window (sinceStart=${sinceStart}ms)")
+                                // update state and notify listeners so UI can proceed
+                                isLoading.set(false)
+                                lastLoadedAt = System.currentTimeMillis()
+                                try { AdController.setAppOpenLoaded(false); AdController.setAppOpenLoading(false); AdController.setAppOpenLastError(null) } catch (_: Throwable) {}
+                                onAdLoadedListener?.invoke()
+                                return
+                            }
+                        }
+                    } catch (_: Throwable) {}
+                     // 정책 상태를 확인: 정책이 비활성화이면 로드된 광고를 보관하지 않고 리스너만 호출
+                     val policyEnabled = try { kr.sweetapps.alcoholictimer.ads.AdController.isPolicyFetchCompleted() && kr.sweetapps.alcoholictimer.ads.AdController.isAppOpenEnabled() } catch (_: Throwable) { true }
+                     if (!policyEnabled) {
+                         appOpenAd = null
+                         isLoading.set(false)
+                         try { AdController.setAppOpenLoaded(false); AdController.setAppOpenLoading(false); AdController.setAppOpenLastError(null) } catch (_: Throwable) {}
+                         lastLoadedAt = System.currentTimeMillis()
+                         Log.d(TAG, "onAdLoaded app-open but discarded due to policy at @$lastLoadedAt")
+                         // 알림만 전달하여 StartActivity가 스플래시를 해제하도록 함
+                         onAdLoadedListener?.invoke()
+                         return
+                     }
                      appOpenAd = ad
                      isLoading.set(false)
                      // 중앙 상태 업데이트: 로드 성공
