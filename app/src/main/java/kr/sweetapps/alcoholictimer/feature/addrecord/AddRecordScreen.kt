@@ -5,6 +5,7 @@ import android.app.TimePickerDialog
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -16,6 +17,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Offset
+import kotlinx.coroutines.delay
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,6 +42,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.ui.layout.boundsInWindow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -143,6 +150,22 @@ fun AddRecordScreenComposable(
     }
 
     val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+
+    // track bounds so we can detect taps outside the field
+    var rootBounds by remember { mutableStateOf(Rect(0f, 0f, 0f, 0f)) }
+    var fieldBounds by remember { mutableStateOf(Rect(0f, 0f, 0f, 0f)) }
+    var editRequestedAt by remember { mutableStateOf(0L) }
+
+    // when entering edit mode, request focus and show keyboard immediately (use LaunchedEffect to ensure focus is granted)
+    LaunchedEffect(isEditingTarget) {
+        if (isEditingTarget) {
+            // small suspend to ensure the field is composed and focus can be granted
+            delay(120)
+            targetFocusRequester.requestFocus()
+            keyboardController?.show()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -151,7 +174,20 @@ fun AddRecordScreenComposable(
         containerColor = Color.White,
         contentColor = MaterialTheme.colorScheme.onSurface,
     ) { innerPadding ->
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .onGloballyPositioned { coords -> rootBounds = coords.boundsInWindow() }
+            .pointerInput(Unit) {
+                detectTapGestures { localOffset ->
+                    val tapGlobal = Offset(rootBounds.left + localOffset.x, rootBounds.top + localOffset.y)
+                    val now = System.currentTimeMillis()
+                    if (!fieldBounds.contains(tapGlobal) && (now - editRequestedAt >= 300L)) {
+                        focusManager.clearFocus()
+                        isEditingTarget = false
+                    }
+                }
+            }
+        ) {
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 Column(
                     modifier = Modifier
@@ -207,15 +243,25 @@ fun AddRecordScreenComposable(
                     ) {
                         Text(stringResource(R.string.add_record_target_days), fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
 
-                        // 인라인 편집 모드
+                        // 인라인 편집 모드: 클릭하면 바로 편집 모드로 전환 (actual focus/keyboard handled in LaunchedEffect)
                         if (!isEditingTarget) {
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
                                 editableTargetText = targetDays
                                 isEditingTarget = true
+                                editRequestedAt = System.currentTimeMillis()
+                                // request focus synchronously to ensure keyboard appears on first tap
+                                targetFocusRequester.requestFocus()
+                                keyboardController?.show()
                             }) {
                                 Text(text = "$targetDays${stringResource(R.string.add_record_days_unit)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Spacer(Modifier.width(8.dp))
-                                IconButton(onClick = { editableTargetText = targetDays; isEditingTarget = true }) {
+                                IconButton(onClick = {
+                                    editableTargetText = targetDays
+                                    isEditingTarget = true
+                                    editRequestedAt = System.currentTimeMillis()
+                                    targetFocusRequester.requestFocus()
+                                    keyboardController?.show()
+                                }) {
                                     Icon(imageVector = Icons.Default.Edit, contentDescription = stringResource(R.string.cd_navigate_back))
                                 }
                             }
@@ -232,6 +278,7 @@ fun AddRecordScreenComposable(
                                 modifier = Modifier
                                     .width(96.dp)
                                     .focusRequester(targetFocusRequester)
+                                    .onGloballyPositioned { coords -> fieldBounds = coords.boundsInWindow() }
                                     .onFocusChanged { state ->
                                         // mark when field actually received focus; only commit on loss if it had focus
                                         if (state.isFocused) {
@@ -261,7 +308,8 @@ fun AddRecordScreenComposable(
                                     keyboard?.hide()
                                 }),
                                 // 간단한 스타일과 placeholder
-                                shape = MaterialTheme.shapes.medium
+                                shape = MaterialTheme.shapes.medium,
+                                placeholder = { Text(text = "목표 일수 입력", color = MaterialTheme.colorScheme.onSurfaceVariant) }
                             )
                         }
                     }
@@ -280,14 +328,14 @@ fun AddRecordScreenComposable(
                             onClick = {
                                 if (!isRangeInvalid && !isOngoing && isTargetValid) {
                                     val id = "rec_${System.currentTimeMillis()}"
-                                    val status = if (isCompleted) "성공" else "실패"
+                                    val status = if (!isOngoing && !isRangeInvalid && actualDays >= targetDaysInt) "성공" else "실패"
                                     val record = SobrietyRecord(
                                         id = id,
                                         startTime = startMillis,
                                         endTime = endMillis,
                                         targetDays = targetDaysInt,
                                         actualDays = actualDays,
-                                        isCompleted = isCompleted,
+                                        isCompleted = (!isOngoing && !isRangeInvalid && actualDays >= targetDaysInt),
                                         status = status,
                                         createdAt = System.currentTimeMillis()
                                     )
