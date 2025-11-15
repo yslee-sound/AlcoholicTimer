@@ -255,12 +255,14 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
         if (!canShowNow()) {
             Log.d(TAG, "showIfAvailable abort: canShowNow=false")
             preload(activity.applicationContext)
+            onAdFinishedListener?.invoke() // abort 시에도 리스너 호출하여 스플래시 해제
             return
         }
         // AppOpen 빈도 제한 확인 (시간/일 기준)
         try {
             if (!kr.sweetapps.alcoholictimer.ads.AdController.canShowAppOpen(activity.applicationContext)) {
                 Log.d(TAG, "showIfAvailable abort: AppOpen limit reached by policy")
+                onAdFinishedListener?.invoke() // abort 시에도 리스너 호출하여 스플래시 해제
                 return
             }
         } catch (_: Throwable) {}
@@ -268,6 +270,7 @@ object AppOpenAdManager : Application.ActivityLifecycleCallbacks, DefaultLifecyc
         if (ad == null) {
             Log.d(TAG, "showIfAvailable abort: ad=null -> preload")
             preload(activity.applicationContext)
+            onAdFinishedListener?.invoke() // abort 시에도 리스너 호출하여 스플래시 해제
             return
         }
         if (isShowing.get()) { Log.d(TAG, "showIfAvailable abort: already showing"); return }

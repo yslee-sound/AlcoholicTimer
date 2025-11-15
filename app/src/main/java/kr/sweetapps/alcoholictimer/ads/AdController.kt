@@ -62,13 +62,10 @@ object AdController {
          // 이미 정책 조회가 끝났고 정책이 비활성이라면 즉시 호출하여 늦게 등록된 리스너도 처리되게 함
          try {
              if (policyFetchCompleted) {
-                 val policy = _cachedPolicy.value
-                 if (policy == null || !policy.isActive) {
-                    try {
-                        Log.d(TAG, "addSplashReleaseListener: immediate-invoking listener because policyFetchCompleted and policy inactive")
-                        listener()
-                    } catch (t: Throwable) { Log.w(TAG, "splashReleaseListener immediate invoke failed: $t") }
-                 }
+                 try {
+                     Log.d(TAG, "addSplashReleaseListener: immediate-invoking listener because policyFetchCompleted")
+                     listener()
+                 } catch (t: Throwable) { Log.w(TAG, "splashReleaseListener immediate invoke failed: $t") }
              }
          } catch (t: Throwable) { Log.w(TAG, "addSplashReleaseListener check failed: $t") }
     }
@@ -197,6 +194,8 @@ object AdController {
         } finally {
             // 정책 조회 시도가 끝났음을 표시
             policyFetchCompleted = true
+            // 정책 로드 완료 후 항상 스플래시 해제 (활성/비활성 관계없이)
+            notifySplashReleaseListeners()
             // 리스너에게 알림
             notifyPolicyFetchListeners(_cachedPolicy.value)
          }
