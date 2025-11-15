@@ -60,5 +60,24 @@ object FormatUtils {
     fun formatMoney(context: Context, amountInWon: Double): String {
         return CurrencyManager.formatMoney(amountInWon, context)
     }
-}
 
+    /**
+     * Format hours with adaptive decimals: if value < 1 -> 2 decimals, else -> 1 decimal.
+     * Returns numeric string only (no unit).
+     */
+    @JvmStatic
+    fun formatHoursValue(hours: Double, locale: Locale = Locale.getDefault()): String {
+        val safe = if (hours.isNaN() || hours.isInfinite()) 0.0 else hours.coerceAtLeast(0.0)
+        val decimals = if (safe < 1.0 && safe > 0.0) 2 else 1
+        return String.format(locale, "%.${decimals}f", safe)
+    }
+
+    /**
+     * Format hours and append localized unit (e.g., "시간"). Uses R.string.unit_hour for unit.
+     */
+    @JvmStatic
+    fun formatHoursWithUnit(context: Context, hours: Double): String {
+        val num = formatHoursValue(hours, Locale.getDefault())
+        return "$num${context.getString(R.string.unit_hour)}"
+    }
+}

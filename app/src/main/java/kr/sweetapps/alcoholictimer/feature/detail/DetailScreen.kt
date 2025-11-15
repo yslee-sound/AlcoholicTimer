@@ -20,26 +20,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.core.ui.AppElevation
-import kr.sweetapps.alcoholictimer.core.ui.AppBorder
-import kr.sweetapps.alcoholictimer.constants.UiConstants
-import kr.sweetapps.alcoholictimer.core.util.FormatUtils
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
 import androidx.core.content.edit
+import kr.sweetapps.alcoholictimer.R
+import kr.sweetapps.alcoholictimer.core.ui.AppElevation
+import kr.sweetapps.alcoholictimer.core.ui.AppBorder
+import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.core.ui.theme.AmberSecondaryLight
 import kr.sweetapps.alcoholictimer.core.ui.theme.BluePrimaryLight
 import kr.sweetapps.alcoholictimer.core.ui.predictAnchoredBannerHeightDp
 import kr.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard
+import kr.sweetapps.alcoholictimer.core.util.FormatUtils
 
 @Composable
 fun DetailScreen(
@@ -221,7 +218,7 @@ fun DetailScreen(
                             horizontalArrangement = Arrangement.spacedBy(UiConstants.STAT_ROW_SPACING)
                         ) {
                             DetailStatCard(
-                                value = stringResource(R.string.unit_hours_format, savedHoursExact),
+                                value = FormatUtils.formatHoursWithUnit(context, savedHoursExact),
                                 label = stringResource(id = R.string.stat_saved_hours_short),
                                 modifier = Modifier.weight(1f),
                                 valueColor = colorResource(id = R.color.color_indicator_hours)
