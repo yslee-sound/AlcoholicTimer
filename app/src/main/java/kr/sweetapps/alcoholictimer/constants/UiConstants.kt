@@ -6,6 +6,8 @@ import androidx.compose.ui.unit.dp
 object UiConstants {
     val BackIconStartPadding: Dp = 42.dp // 42, 이건 제목을 오른쪽으로
     val BackIconTouchArea: Dp = 56.dp
+    // 백 아이콘(시각적) 위치를 조절하는 내부 패딩: 아이콘을 터치영역 내부에서 더 왼쪽/오른쪽으로 이동시키려면 이 값을 변경하세요.
+    val BackIconInnerPadding: Dp = 12.dp // 12 픽스
 
     // Layout-related constants (migrated from core.ui/LayoutConstants)
     val SCREEN_HORIZONTAL_PADDING: Dp = 10.dp

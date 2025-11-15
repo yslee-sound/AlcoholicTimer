@@ -36,7 +36,7 @@ fun BackTopBar(
         Box(modifier = Modifier
             .align(Alignment.CenterStart)
             .width(UiConstants.BackIconTouchArea)
-            .padding(start = 8.dp), contentAlignment = Alignment.CenterStart) {
+            .padding(start = UiConstants.BackIconInnerPadding), contentAlignment = Alignment.CenterStart) {
             val noRipple = remember { MutableInteractionSource() }
             Image(
                 painter = painterResource(id = R.drawable.ic_caret_left),
