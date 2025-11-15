@@ -70,7 +70,7 @@ fun BottomNavBar(navController: NavHostController, modifier: Modifier = Modifier
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .height(80.dp),
+            .height(kr.sweetapps.alcoholictimer.constants.UiConstants.BOTTOM_NAV_BAR_HEIGHT),
         color = Color.White,
         shadowElevation = 12.dp
     ) {
@@ -78,22 +78,29 @@ fun BottomNavBar(navController: NavHostController, modifier: Modifier = Modifier
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 12.dp), // 좌우 패딩 증가 (8dp → 16dp)
-            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            bottomItems.forEach { item ->
-                val selected = isDestinationSelected(currentDestination, item.screen)
-                BottomNavItem(
-                    item = item,
-                    isSelected = selected,
-                    onClick = {
-                        navController.navigate(item.screen.route) {
-                            launchSingleTop = true
-                            restoreState = true
-                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                        }
+            // 중앙을 기준으로 아이템 그룹을 배치하기 위해 Box로 감싼 내부 Row를 사용합니다.
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(kr.sweetapps.alcoholictimer.constants.UiConstants.BOTTOM_NAV_ITEM_GAP),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    bottomItems.forEach { item ->
+                        val selected = isDestinationSelected(currentDestination, item.screen)
+                        BottomNavItem(
+                            item = item,
+                            isSelected = selected,
+                            onClick = {
+                                navController.navigate(item.screen.route) {
+                                    launchSingleTop = true
+                                    restoreState = true
+                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                }
+                            }
+                        )
                     }
-                )
+                }
             }
         }
     }
@@ -112,7 +119,7 @@ private fun BottomNavItem(
 
     Box(
         modifier = Modifier
-            .size(56.dp) // 고정 크기로 레이아웃 안정화
+            .size(kr.sweetapps.alcoholictimer.constants.UiConstants.BOTTOM_NAV_ITEM_SIZE) // 고정 크기로 레이아웃 안정화
             .clip(RoundedCornerShape(12.dp))
             .clickable(
                 interactionSource = interactionSource,
@@ -130,7 +137,7 @@ private fun BottomNavItem(
             painter = painterResource(id = item.iconRes),
             contentDescription = stringResource(id = item.contentDescriptionRes),
             tint = iconColor,
-            modifier = Modifier.size(32.dp)
+            modifier = Modifier.size(kr.sweetapps.alcoholictimer.constants.UiConstants.BOTTOM_NAV_ICON_SIZE)
         )
     }
 }

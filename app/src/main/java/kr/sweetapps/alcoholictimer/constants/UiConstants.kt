@@ -52,6 +52,10 @@ object UiConstants {
     val RECORDS_CARD_HORIZONTAL_PADDING: Dp = 8.dp
 
     // 하단 내비게이션 아이콘 관련 크기 (일괄 조절용)
-    val BOTTOM_NAV_ICON_SIZE: Dp = 32.dp
-    val BOTTOM_NAV_ITEM_SIZE: Dp = 56.dp
+    val BOTTOM_NAV_ICON_SIZE: Dp = 32.dp // 아이콘 자체의 크기 (32)
+    val BOTTOM_NAV_ITEM_SIZE: Dp = 30.dp // 아이콘을 감싸는 박스 (56)
+    // 하단 내비게이션 바 전체 높이 (Surface 높이)
+    val BOTTOM_NAV_BAR_HEIGHT: Dp = 60.dp // 아이콘 박스의 크기 (80)
+    // 하단 내비 내 아이콘 간격: 아이콘 박스 간의 수평 간격을 조절합니다
+    val BOTTOM_NAV_ITEM_GAP: Dp = 52.dp // 아이콘 사이의 간격 (중앙에서 펼치거나 좁힐 때 사용)
 }
