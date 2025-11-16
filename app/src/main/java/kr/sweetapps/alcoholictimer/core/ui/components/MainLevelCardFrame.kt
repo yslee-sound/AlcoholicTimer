@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.graphics.Color
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.AppCard
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
@@ -30,7 +31,7 @@ fun MainLevelCardFrame(
         modifier = modifier,
         elevation = AppElevation.CARD, // 플랫 기본(0dp)
         shape = RoundedCornerShape(16.dp),
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = Color(0xFFEEEDE9),
         contentColor = MaterialTheme.colorScheme.onSurface,
         contentPadding = PaddingValues(0.dp), // 내부 패딩은 콘텐츠에 위임
         border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
