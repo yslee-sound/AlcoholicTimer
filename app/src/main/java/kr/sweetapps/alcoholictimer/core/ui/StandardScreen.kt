@@ -78,7 +78,7 @@ fun StandardScreenWithBottomButton(
                 )
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_SPACING)
+            verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING)
         ) {
             Column(
                 modifier = Modifier

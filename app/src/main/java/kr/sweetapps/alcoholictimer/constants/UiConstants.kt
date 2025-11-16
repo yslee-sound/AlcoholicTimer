@@ -29,12 +29,14 @@ object UiConstants {
     val RECORDS_YEAR_FIRST_CARD_EXTERNAL_GAP: Dp = FIRST_CARD_EXTERNAL_GAP
     val RECORDS_ALL_FIRST_CARD_EXTERNAL_GAP: Dp = FIRST_CARD_EXTERNAL_GAP
 
-    val RUN_SCREEN_CARD_SPACING: Dp = 10.dp
     val RUN_STAT_CHIP_SPACING: Dp = 10.dp
     val RUN_TOP_CARD_HORIZONTAL_PADDING: Dp = 10.dp
     val RUN_TOP_CARD_VERTICAL_PADDING: Dp = 10.dp
 
-    val CARD_SPACING: Dp = 20.dp
+    // Global vertical spacing between cards across the app.
+    // Use this constant for any card-to-card vertical gap to ensure uniform spacing.
+    // To change spacing for all cards update CARD_VERTICAL_SPACING here.
+    val CARD_VERTICAL_SPACING: Dp = 24.dp // 12
     val STAT_ROW_SPACING: Dp = 12.dp
     val CARD_CORNER_RADIUS: Dp = 20.dp
     val CARD_PADDING: Dp = 20.dp

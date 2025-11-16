@@ -130,7 +130,7 @@ fun AllRecordsScreen(
 
                     LazyColumn(
                         modifier = Modifier.fillMaxSize().padding(horizontal = UiConstants.RECORDS_SCREEN_HORIZONTAL_PADDING),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING),
                         contentPadding = PaddingValues(top = 16.dp, bottom = bottomPadding)
                     ) {
                         items(items = records, key = { it.id }) { record ->

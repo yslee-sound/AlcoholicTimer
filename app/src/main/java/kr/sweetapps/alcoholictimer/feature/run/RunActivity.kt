@@ -165,7 +165,7 @@ fun RunScreenComposable(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(UiConstants.RUN_SCREEN_CARD_SPACING))
+                Spacer(modifier = Modifier.height(UiConstants.CARD_VERTICAL_SPACING))
 
                 Card(
                     modifier = Modifier.fillMaxWidth().height(168.dp).clickable { toggleIndicator() },
@@ -310,7 +310,7 @@ fun RunScreenComposable(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(UiConstants.RUN_SCREEN_CARD_SPACING))
+                Spacer(modifier = Modifier.height(UiConstants.CARD_VERTICAL_SPACING))
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),

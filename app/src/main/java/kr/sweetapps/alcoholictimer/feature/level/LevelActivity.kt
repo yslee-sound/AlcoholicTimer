@@ -105,7 +105,7 @@ fun LevelScreen() {
             .padding(safePadding)
             // 마지막 카드가 배너와 너무 붙지 않도록 내부 하단 여백 추가
             .padding(bottom = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING)
     ) {
         // 변경: float 경과 일수 전달
         CurrentLevelCard(currentLevel = currentLevel, currentDays = levelDays, elapsedDaysFloat = totalElapsedDaysFloat, startTime = startTime)
@@ -303,16 +303,14 @@ private fun LevelListCard(currentLevel: LevelDefinitions.LevelInfo, currentDays:
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
-            LevelDefinitions.levels.forEach { level ->
-                LevelItem(
-                    level = level,
-                    isCurrent = level == currentLevel,
-                    isAchieved = currentDays >= level.start,
-                    isNext = level == getNextLevel(currentLevel)
-                )
-
-                if (level != LevelDefinitions.levels.last()) {
-                    Spacer(modifier = Modifier.height(16.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING)) {
+                LevelDefinitions.levels.forEach { level ->
+                    LevelItem(
+                        level = level,
+                        isCurrent = level == currentLevel,
+                        isAchieved = currentDays >= level.start,
+                        isNext = level == getNextLevel(currentLevel)
+                    )
                 }
             }
         }

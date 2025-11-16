@@ -226,7 +226,7 @@ fun RecordsScreen(
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = safePadding,
-                verticalArrangement = Arrangement.spacedBy(0.dp)
+                verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING)
             ) {
                 item {
                     Spacer(modifier = Modifier.height(UiConstants.RECORDS_TOP_SECTION_EXTERNAL_GAP))
@@ -289,18 +289,12 @@ fun RecordsScreen(
                 }
                 if (!isLoading && latestRecords.isNotEmpty()) {
                     items(items = latestRecords, key = { it.id }) { record ->
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp)
-                        ) {
-                            RecordSummaryCard(
-                                record = record,
-                                compact = false,
-                                headerIconSizeDp = 56.dp,
-                                onClick = { onNavigateToDetail(record) }
-                            )
-                        }
+                        RecordSummaryCard(
+                            record = record,
+                            compact = false,
+                            headerIconSizeDp = 56.dp,
+                            onClick = { onNavigateToDetail(record) }
+                        )
                     }
                     if (records.isNotEmpty()) {
                         item {
