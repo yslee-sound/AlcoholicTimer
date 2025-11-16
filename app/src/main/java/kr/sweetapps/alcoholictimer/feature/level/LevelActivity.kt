@@ -174,7 +174,7 @@ fun CurrentLevelCard(
 
             Text(
                 text = context.getString(currentLevel.nameResId),
-                style = MaterialTheme.typography.headlineLarge.copy(color = currentLevel.color),
+                style = MaterialTheme.typography.headlineLarge.copy(color = Color.White),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.testTag("main_level_title")
             )
@@ -188,13 +188,13 @@ fun CurrentLevelCard(
             ) {
                 Text(
                     text = "$currentDays",
-                    style = MaterialTheme.typography.headlineLarge.copy(color = Color(0xFF1976D2)),
+                    style = MaterialTheme.typography.headlineLarge.copy(color = Color.White),
                     modifier = Modifier.testTag("main_level_days_value")
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = context.getString(R.string.level_days_label),
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium, color = Color(0xFF666666)),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium, color = Color.White),
                     modifier = Modifier.testTag("main_level_days_label")
                 )
             }
@@ -222,8 +222,6 @@ fun CurrentLevelCard(
                 }
 
                 ProgressToNextLevel(
-                    currentLevel = currentLevel,
-                    nextLevel = nextLevel,
                     progress = progress,
                     remainingDays = (nextLevel.start - currentDays).coerceAtLeast(0),
                     remainingText = remainingText,
@@ -236,8 +234,6 @@ fun CurrentLevelCard(
 
 @Composable
 private fun ProgressToNextLevel(
-    currentLevel: LevelDefinitions.LevelInfo,
-    nextLevel: LevelDefinitions.LevelInfo,
     progress: Float,
     remainingDays: Int,
     remainingText: String,
@@ -276,9 +272,11 @@ private fun ProgressToNextLevel(
             Spacer(modifier = Modifier.width(8.dp))
             Box(
                 modifier = Modifier
-                    .size(6.dp)
+                    // 인디케이터 크기를 6.dp에서 10.dp로 증가시켜 가시성 향상
+                    .size(10.dp) // 인디케이터 점
                     .clip(CircleShape)
-                    .background(if (remainingDays > 0 && isSobrietyActive) currentLevel.color.copy(alpha = alpha) else Color(0xFF999999))
+                    // 변경: 요청대로 인디케이터 색상을 #FBC528로 적용
+                    .background(if (remainingDays > 0 && isSobrietyActive) Color(0xFFFBC528).copy(alpha = alpha) else Color(0xFF999999))
             )
         }
 
@@ -297,7 +295,8 @@ private fun ProgressToNextLevel(
                 modifier = Modifier
                     .fillMaxHeight()
                     .fillMaxWidth(animatedProgress)
-                    .background(Brush.horizontalGradient(colors = listOf(nextLevel.color.copy(alpha = 0.7f), nextLevel.color)))
+                    // 변경: 진행 바 색상도 요청한 #FBC528 색상 계열로 고정
+                    .background(Brush.horizontalGradient(colors = listOf(Color(0xFFFBC528).copy(alpha = 0.7f), Color(0xFFFBC528))))
                     .testTag("main_level_progress_fill")
             )
         }
