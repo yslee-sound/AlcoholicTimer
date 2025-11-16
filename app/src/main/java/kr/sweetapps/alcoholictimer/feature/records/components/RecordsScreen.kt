@@ -214,8 +214,12 @@ fun RecordsScreen(
 
     // onAddRecord 콜백을 통해 NavController로 이동하도록 부모에게 위임
 
-    CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = LocalDensity.current.fontScale * fontScale)) {
-        // BaseScreen에서 제공하는 하단 안전 패딩 사용
+    CompositionLocalProvider(
+        LocalDensity provides Density(LocalDensity.current.density, fontScale = LocalDensity.current.fontScale * fontScale),
+        // Ignore parent's safe bottom padding here — control bottom with RECORDS_SCREEN_BOTTOM_PADDING only
+        LocalSafeContentPadding provides PaddingValues(bottom = 0.dp)
+    ) {
+        // BaseScreen may provide safe left/top/right; we'll read it below but ensure bottom is 0
         val safePadding = LocalSafeContentPadding.current
 
         Box(
