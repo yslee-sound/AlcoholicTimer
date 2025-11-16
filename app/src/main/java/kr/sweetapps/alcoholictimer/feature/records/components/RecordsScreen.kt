@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -450,23 +451,12 @@ private fun PeriodHeaderRow(
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface
         )
-        Button(
-            onClick = onAddRecord,
-            enabled = enabled,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
-            ),
-            shape = RoundedCornerShape(8.dp),
-            modifier = Modifier.size(32.dp),
-            contentPadding = PaddingValues(0.dp)
-        ) {
+        // 배경 없는 아이콘 버튼으로 변경: ic_plus 벡터 드로어블 사용
+        IconButton(onClick = onAddRecord, enabled = enabled, modifier = Modifier.size(32.dp)) {
             Icon(
-                imageVector = Icons.Filled.Add,
+                painter = painterResource(id = R.drawable.ic_plus),
                 contentDescription = stringResource(R.string.records_add),
-                tint = MaterialTheme.colorScheme.onPrimary
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -638,7 +628,9 @@ private fun PeriodStatisticsSection(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp)
+                // 개별 상/하/수평(padding)으로 조절 가능하도록 분리
+                // 상(top), 하(bottom)은 vertical로, 좌우는 horizontal로 지정합니다.
+                .padding(top = 24.dp, bottom = 24.dp, start = 16.dp, end = 16.dp)
         ) {
             // 헤더(Row + +버튼)는 PeriodHeaderRow로 이동하여 항상 노출되므로 여기서는 제거
             Spacer(modifier = Modifier.height(UiConstants.RECORDS_STATS_INTERNAL_TOP_GAP))
