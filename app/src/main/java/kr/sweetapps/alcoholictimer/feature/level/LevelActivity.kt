@@ -145,7 +145,7 @@ fun CurrentLevelCard(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    MainLevelCardFrame(modifier = modifier) {
+    MainLevelCardFrame(modifier = modifier, backgroundRes = R.drawable.for_you) {
         Column(
             modifier = Modifier
                 .padding(32.dp)
