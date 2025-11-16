@@ -19,7 +19,10 @@ object UiConstants {
 
     // Level screen specific bottom padding (overrides the generic scroll bottom padding for the level screen)
     // Use this to adjust only the Level screen's final scroll gap without affecting other screens (e.g., Records).
-    val LEVEL_SCREEN_BOTTOM_PADDING: Dp = 1.dp
+    val LEVEL_SCREEN_BOTTOM_PADDING: Dp = 20.dp
+    // Records screen specific bottom padding. Previously code used safePadding + 12.dp; expose
+    // a single constant so the Records screen can be controlled from one place.
+    val RECORDS_SCREEN_BOTTOM_PADDING: Dp = 12.dp
 
     val START_BRAND_TITLE_TOP_GAP: Dp = 12.dp
     val START_BRAND_TITLE_BOTTOM_GAP: Dp = 12.dp

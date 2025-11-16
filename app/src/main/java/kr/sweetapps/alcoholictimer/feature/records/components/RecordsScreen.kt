@@ -225,16 +225,20 @@ fun RecordsScreen(
                 .padding(start = UiConstants.RECORDS_SCREEN_HORIZONTAL_PADDING, end = UiConstants.RECORDS_SCREEN_HORIZONTAL_PADDING)
         ) {
             val layoutDirection = LocalLayoutDirection.current
-            val combinedPadding = PaddingValues(
+            // Compose a padding values that keeps safe left/top/right but uses a single constant
+            // for the bottom so Records screen bottom gap is controlled from UiConstants.
+            val recordsContentPadding = PaddingValues(
                 start = safePadding.calculateLeftPadding(layoutDirection),
                 top = safePadding.calculateTopPadding(),
                 end = safePadding.calculateRightPadding(layoutDirection),
-                bottom = safePadding.calculateBottomPadding()
+                bottom = UiConstants.RECORDS_SCREEN_BOTTOM_PADDING
             )
+            // Debug: show applied bottom padding for Records screen
+            Log.d("RecordsScreenDebug", "RECORDS_SCREEN_BOTTOM_PADDING=${UiConstants.RECORDS_SCREEN_BOTTOM_PADDING}")
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = combinedPadding,
+                contentPadding = recordsContentPadding,
                 verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING)
             ) {
                 item {
