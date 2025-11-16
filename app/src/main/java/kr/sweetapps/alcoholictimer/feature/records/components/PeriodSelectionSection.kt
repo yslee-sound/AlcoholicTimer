@@ -22,7 +22,10 @@ import java.util.*
 import androidx.compose.foundation.BorderStroke
 import android.os.SystemClock
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
-import kr.sweetapps.alcoholictimer.constants.UiConstants
+
+// Local layout constants for Records screen (screen #2). Adjust here to control spacing
+private val RECORDS_SELECTION_ROW_HEIGHT_LOCAL = 56.dp
+private val RECORDS_SCREEN_HORIZONTAL_PADDING_LOCAL = 15.dp
 
 @Composable
 fun PeriodSelectionSection(
@@ -57,7 +60,7 @@ fun PeriodSelectionSection(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .defaultMinSize(minHeight = UiConstants.RECORDS_SELECTION_ROW_HEIGHT)
+                        .defaultMinSize(minHeight = RECORDS_SELECTION_ROW_HEIGHT_LOCAL)
                         .padding(8.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
@@ -95,7 +98,7 @@ fun PeriodSelectionSection(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .defaultMinSize(minHeight = UiConstants.RECORDS_SELECTION_ROW_HEIGHT)
+                        .defaultMinSize(minHeight = RECORDS_SELECTION_ROW_HEIGHT_LOCAL)
                         .then(if (selectedPeriod == periodAll) Modifier else Modifier.clickable {
                             val now = SystemClock.elapsedRealtime()
                             if (now - lastClickAt >= debounceMs) {
@@ -103,7 +106,7 @@ fun PeriodSelectionSection(
                                 onPeriodClick(selectedPeriod)
                             }
                         })
-                        .padding(horizontal = UiConstants.RECORDS_SCREEN_HORIZONTAL_PADDING)
+                        .padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING_LOCAL)
                         .padding(vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
