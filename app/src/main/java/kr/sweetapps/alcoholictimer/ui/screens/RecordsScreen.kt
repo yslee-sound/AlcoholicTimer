@@ -49,6 +49,21 @@ import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import androidx.compose.foundation.shape.RoundedCornerShape
 
+// Local header padding for this screen (override here to change 월 통계 title margins)
+private val RECORDS_HEADER_HORIZONTAL_PADDING = 15.dp
+private val RECORDS_HEADER_VERTICAL_PADDING = 0.dp
+
+// Local gap between header and card inside this screen
+private val RECORDS_HEADER_TO_CARD_GAP = 6.dp
+
+// Local control for the card's internal top padding (reduces large default inside Card)
+private val RECORDS_CARD_INTERNAL_TOP_PADDING = 8.dp
+// Local override for the internal top gap used inside statistics rows
+private val RECORDS_STATS_INTERNAL_TOP_GAP_LOCAL = 6.dp
+
+// Local override for top section external gap (replaces UiConstants.RECORDS_TOP_SECTION_EXTERNAL_GAP for this screen)
+private val RECORDS_TOP_SECTION_EXTERNAL_GAP_LOCAL = 8.dp
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Suppress("UNUSED_PARAMETER", "UNUSED_VARIABLE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 @Composable
@@ -230,7 +245,7 @@ fun RecordsScreen(
                 verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING)
             ) {
                 item {
-                    Spacer(modifier = Modifier.height(UiConstants.RECORDS_TOP_SECTION_EXTERNAL_GAP))
+                    Spacer(modifier = Modifier.height(RECORDS_TOP_SECTION_EXTERNAL_GAP_LOCAL))
                     PeriodSelectionSection(
                         selectedPeriod = selectedPeriod,
                         onPeriodSelected = { period: String ->
@@ -241,24 +256,28 @@ fun RecordsScreen(
                         onPeriodClick = { _ -> showBottomSheet = true },
                         selectedDetailPeriod = selectedDetailPeriod
                     )
-                    Spacer(modifier = Modifier.height(UiConstants.RECORDS_TOP_SECTION_EXTERNAL_GAP))
+                    Spacer(modifier = Modifier.height(RECORDS_TOP_SECTION_EXTERNAL_GAP_LOCAL))
                 }
 
-                // 월 통계 헤더 (제목 + + 버튼)
+                // 월 통계: 헤더와 카드 통합하여 LazyColumn의 전역 간격 영향을 받지 않게 함
                 item {
-                    PeriodHeaderRow(onAddRecord = { onAddRecord() }, enabled = true)
-                }
-
-                // 통계 카드 (원본 UI 복원)
-                item {
-                    PeriodStatisticsSection(
-                        records = records,
-                        selectedPeriod = selectedPeriod,
-                        selectedDetailPeriod = selectedDetailPeriod,
-                        modifier = Modifier.padding(vertical = UiConstants.RECORDS_FIRST_CARD_EXTERNAL_GAP),
-                        weekRange = selectedWeekRange,
-                        onAddRecord = { onAddRecord() }
-                    )
+                    // cancel outer Box horizontal padding so header's local horizontal padding is absolute
+                    Column(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = -UiConstants.RECORDS_SCREEN_HORIZONTAL_PADDING, end = -UiConstants.RECORDS_SCREEN_HORIZONTAL_PADDING)
+                     ) {
+                        PeriodHeaderRow(onAddRecord = { onAddRecord() }, enabled = true)
+                        // 내부 간격은 여기서 직접 제어 (로컬 상수 사용)
+                        Spacer(modifier = Modifier.height(RECORDS_HEADER_TO_CARD_GAP))
+                        PeriodStatisticsSection(
+                            records = records,
+                            selectedPeriod = selectedPeriod,
+                            selectedDetailPeriod = selectedDetailPeriod,
+                            modifier = Modifier.fillMaxWidth(),
+                            weekRange = selectedWeekRange,
+                            onAddRecord = { onAddRecord() }
+                        )
+                    }
                 }
 
                 // 기록이 없을 때 메시지 표시
@@ -394,7 +413,7 @@ private fun PeriodHeaderRow(onAddRecord: () -> Unit, enabled: Boolean) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp),
+            .padding(horizontal = RECORDS_HEADER_HORIZONTAL_PADDING, vertical = RECORDS_HEADER_VERTICAL_PADDING),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -573,9 +592,9 @@ private fun PeriodStatisticsSection(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 24.dp, bottom = 24.dp, start = 16.dp, end = 16.dp)
+                .padding(top = RECORDS_CARD_INTERNAL_TOP_PADDING, bottom = 24.dp, start = 16.dp, end = 16.dp)
         ) {
-            Spacer(modifier = Modifier.height(UiConstants.RECORDS_STATS_INTERNAL_TOP_GAP))
+            Spacer(modifier = Modifier.height(RECORDS_STATS_INTERNAL_TOP_GAP_LOCAL))
 
             val dayUnit = stringResource(R.string.records_day_unit)
             val percentUnit = stringResource(R.string.records_percent_unit)
