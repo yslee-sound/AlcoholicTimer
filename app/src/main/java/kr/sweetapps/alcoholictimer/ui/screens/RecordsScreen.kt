@@ -50,7 +50,7 @@ import androidx.compose.ui.unit.Dp
 val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 15.dp // 15
 // header specific left/start padding (controls only the start of the "월 통계" title)
 // separate header horizontal padding so title start can be adjusted independently
-val RECORDS_STATS_INTERNAL_TOP_GAP: Dp = 12.dp // 12..
+val RECORDS_STATS_INTERNAL_TOP_GAP: Dp = 12.dp // 12
 val RECORDS_STATS_ROW_SPACING: Dp = 12.dp // 12, 3칩 하단
 val RECORDS_CARD_IN_ROW_SPACING: Dp = 12.dp // 12, 3칩 사이 공간
 val RECORDS_SELECTION_ROW_HEIGHT: Dp = 56.dp // 56
