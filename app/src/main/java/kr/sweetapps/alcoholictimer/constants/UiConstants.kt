@@ -66,6 +66,8 @@ object UiConstants {
     val RECORDS_STATS_ROW_SPACING: Dp = 12.dp
     val RECORDS_CARD_IN_ROW_SPACING: Dp = 12.dp
     val RECORDS_CARD_HORIZONTAL_PADDING: Dp = 8.dp
+    // 상단 카드 내의 각 행(기간 버튼 행 / 기간 표시 행)의 최소 높이
+    val RECORDS_SELECTION_ROW_HEIGHT: Dp = 56.dp
 
     // 하단 내비게이션 아이콘 관련 크기 (일괄 조절용)
     val BOTTOM_NAV_ICON_SIZE: Dp = 28.dp // 아이콘 자체의 크기 (32)

@@ -18,7 +18,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
-import java.text.SimpleDateFormat
 import java.util.*
 import androidx.compose.foundation.BorderStroke
 import android.os.SystemClock
@@ -45,6 +44,7 @@ fun PeriodSelectionSection(
     val debounceMs = 250L
 
     Column(modifier = modifier.fillMaxWidth()) {
+        // 통합된 카드: 상단 기간 버튼 행 + 중앙 디바이더 + 하단 기간 선택 행
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -52,86 +52,84 @@ fun PeriodSelectionSection(
             elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
             border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                periods.forEach { period ->
-                    val isSelected = period == selectedPeriod
-                    Surface(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 4.dp)
-                            .clickable {
-                                val now = SystemClock.elapsedRealtime()
-                                if (now - lastClickAt >= debounceMs) {
-                                    lastClickAt = now
-                                    onPeriodSelected(period)
-                                }
-                            },
-                        shape = RoundedCornerShape(8.dp),
-                        color = if (isSelected) Color(0xFF74B9FF) else Color.Transparent
-                    ) {
-                        Text(
-                            text = period,
-                            modifier = Modifier.padding(vertical = 12.dp),
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                            fontSize = 14.sp,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            color = if (isSelected) Color.White else Color(0xFF636E72)
-                        )
+            Column(modifier = Modifier.fillMaxWidth()) {
+                // 상단 버튼 행
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .defaultMinSize(minHeight = UiConstants.RECORDS_SELECTION_ROW_HEIGHT)
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    periods.forEach { period ->
+                        val isSelected = period == selectedPeriod
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 4.dp)
+                                .clickable {
+                                    val now = SystemClock.elapsedRealtime()
+                                    if (now - lastClickAt >= debounceMs) {
+                                        lastClickAt = now
+                                        onPeriodSelected(period)
+                                    }
+                                },
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (isSelected) Color(0xFF74B9FF) else Color.Transparent
+                        ) {
+                            Text(
+                                text = period,
+                                modifier = Modifier.padding(vertical = 12.dp),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                fontSize = 14.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isSelected) Color.White else Color(0xFF636E72)
+                            )
+                        }
                     }
                 }
-            }
-        }
 
-        Spacer(modifier = Modifier.height(UiConstants.RECORDS_SELECTION_TO_PICKER_GAP))
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .then(if (selectedPeriod == periodAll) Modifier else Modifier.clickable {
-                    val now = SystemClock.elapsedRealtime()
-                    if (now - lastClickAt >= debounceMs) {
-                        lastClickAt = now
-                        onPeriodClick(selectedPeriod)
-                    }
-                }),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-            border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = UiConstants.RECORDS_SCREEN_HORIZONTAL_PADDING)
-                    .padding(vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                val displayText = getCurrentPeriodText(
-                    selectedPeriod = selectedPeriod,
-                    selectedDetailPeriod = selectedDetailPeriod,
-                    periodWeek = periodWeek,
-                    periodMonth = periodMonth,
-                    periodYear = periodYear,
-                    periodAll = periodAll
-                )
-                Text(
-                    text = displayText,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color(0xFF2C3E50)
-                )
-                if (selectedPeriod != periodAll) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "세부 기간 선택",
-                        tint = Color(0xFF74B9FF),
-                        modifier = Modifier.size(20.dp)
+                HorizontalDivider(color = colorResource(id = R.color.color_border_light), thickness = AppBorder.Hairline)
+
+                // 하단 기간 표시/선택 행
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .defaultMinSize(minHeight = UiConstants.RECORDS_SELECTION_ROW_HEIGHT)
+                        .then(if (selectedPeriod == periodAll) Modifier else Modifier.clickable {
+                            val now = SystemClock.elapsedRealtime()
+                            if (now - lastClickAt >= debounceMs) {
+                                lastClickAt = now
+                                onPeriodClick(selectedPeriod)
+                            }
+                        })
+                        .padding(horizontal = UiConstants.RECORDS_SCREEN_HORIZONTAL_PADDING)
+                        .padding(vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    val displayText = getCurrentPeriodText(
+                        selectedPeriod = selectedPeriod,
+                        selectedDetailPeriod = selectedDetailPeriod,
+                        periodWeek = periodWeek,
+                        periodMonth = periodMonth,
+                        periodYear = periodYear,
+                        periodAll = periodAll
                     )
+                    Text(
+                        text = displayText,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF2C3E50)
+                    )
+                    if (selectedPeriod != periodAll) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = "세부 기간 선택",
+                            tint = Color(0xFF74B9FF),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
         }
