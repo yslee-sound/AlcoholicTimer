@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -221,11 +222,19 @@ fun RecordsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(horizontal = UiConstants.RECORDS_SCREEN_HORIZONTAL_PADDING)
+                .padding(start = UiConstants.RECORDS_SCREEN_HORIZONTAL_PADDING, end = UiConstants.RECORDS_SCREEN_HORIZONTAL_PADDING)
         ) {
+            val layoutDirection = LocalLayoutDirection.current
+            val combinedPadding = androidx.compose.foundation.layout.PaddingValues(
+                start = safePadding.calculateLeftPadding(layoutDirection),
+                top = safePadding.calculateTopPadding(),
+                end = safePadding.calculateRightPadding(layoutDirection),
+                bottom = safePadding.calculateBottomPadding() + UiConstants.SCROLL_SCREEN_BOTTOM_PADDING
+            )
+
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = safePadding,
+                contentPadding = combinedPadding,
                 verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING)
             ) {
                 item {

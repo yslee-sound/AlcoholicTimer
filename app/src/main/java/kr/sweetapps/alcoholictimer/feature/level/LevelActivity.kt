@@ -108,6 +108,8 @@ fun LevelScreen() {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface)
             .verticalScroll(rememberScrollState())
+            // Use a level-screen-specific bottom padding so this screen can be tuned independently
+            .padding(bottom = UiConstants.LEVEL_SCREEN_BOTTOM_PADDING)
         ) {
             Column(
                 modifier = Modifier
