@@ -50,10 +50,10 @@ import androidx.compose.ui.unit.Dp
 
 // Records screen constants (migrated from UiConstants)
 val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 15.dp
-val RECORDS_FIRST_CARD_TOP_PADDING: Dp = 15.dp
-val RECORDS_SCREEN_BOTTOM_PADDING: Dp = 15.dp
-val RECORDS_FIRST_CARD_EXTERNAL_GAP: Dp = 15.dp
-val RECORDS_TOP_SECTION_EXTERNAL_GAP: Dp = RECORDS_FIRST_CARD_TOP_PADDING
+// val RECORDS_SCREEN_BOTTOM_PADDING: Dp = 15.dp
+val RECORDS_FIRST_CARD_EXTERNAL_GAP: Dp = 100.dp
+// RECORDS_FIRST_CARD_TOP_PADDING removed (ineffective). Use this single value to control top external gap.
+val RECORDS_TOP_SECTION_EXTERNAL_GAP: Dp = 15.dp
 val RECORDS_SELECTION_TO_PICKER_GAP: Dp = 8.dp
 val RECORDS_WEEK_FIRST_CARD_EXTERNAL_GAP: Dp = RECORDS_FIRST_CARD_EXTERNAL_GAP
 val RECORDS_MONTH_FIRST_CARD_EXTERNAL_GAP: Dp = RECORDS_FIRST_CARD_EXTERNAL_GAP
@@ -69,7 +69,7 @@ val RECORDS_SELECTION_ROW_HEIGHT: Dp = 56.dp
 private val RECORDS_HEADER_TO_CARD_GAP = 6.dp
 private val RECORDS_CARD_INTERNAL_TOP_PADDING = 8.dp
 private val RECORDS_STATS_INTERNAL_TOP_GAP_LOCAL = 6.dp
-private val RECORDS_TOP_SECTION_EXTERNAL_GAP_LOCAL = 8.dp
+// use RECORDS_TOP_SECTION_EXTERNAL_GAP (based on RECORDS_FIRST_CARD_TOP_PADDING) so changes take effect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Suppress("UNUSED_PARAMETER", "UNUSED_VARIABLE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -241,9 +241,9 @@ fun RecordsScreen(
                 start = safePadding.calculateLeftPadding(layoutDirection),
                 top = safePadding.calculateTopPadding(),
                 end = safePadding.calculateRightPadding(layoutDirection),
-                bottom = RECORDS_SCREEN_BOTTOM_PADDING
+                bottom = UiConstants.CARD_VERTICAL_SPACING
             )
-            Log.d("RecordsScreenDebug", "RECORDS_SCREEN_BOTTOM_PADDING=${RECORDS_SCREEN_BOTTOM_PADDING}")
+            Log.d("RecordsScreenDebug", "Records bottom padding replaced with CARD_VERTICAL_SPACING=${UiConstants.CARD_VERTICAL_SPACING}")
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -251,7 +251,7 @@ fun RecordsScreen(
                 verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING)
             ) {
                 item {
-                    Spacer(modifier = Modifier.height(RECORDS_TOP_SECTION_EXTERNAL_GAP_LOCAL))
+                    Spacer(modifier = Modifier.height(RECORDS_TOP_SECTION_EXTERNAL_GAP))
                     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
                         PeriodSelectionSection(
                             selectedPeriod = selectedPeriod,
@@ -265,7 +265,7 @@ fun RecordsScreen(
                             horizontalPadding = RECORDS_SCREEN_HORIZONTAL_PADDING
                         )
                     }
-                    Spacer(modifier = Modifier.height(RECORDS_TOP_SECTION_EXTERNAL_GAP_LOCAL))
+                    Spacer(modifier = Modifier.height(RECORDS_TOP_SECTION_EXTERNAL_GAP))
                 }
 
                 // 월 통계: 헤더와 카드 통합하여 LazyColumn의 전역 간격 영향을 받지 않게 함
@@ -338,7 +338,7 @@ fun RecordsScreen(
                 }
 
                 item {
-                    Spacer(modifier = Modifier.height(RECORDS_SCREEN_BOTTOM_PADDING))
+                    Spacer(modifier = Modifier.height(UiConstants.CARD_VERTICAL_SPACING))
                 }
             }
 
