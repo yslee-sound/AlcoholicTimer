@@ -49,8 +49,7 @@ import androidx.compose.ui.unit.Dp
 
 // Records screen constants (migrated from UiConstants)
 val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 15.dp // 15
-// header specific horizontal padding (was referenced but missing)
-val RECORDS_HEADER_HORIZONTAL_PADDING: Dp = RECORDS_SCREEN_HORIZONTAL_PADDING
+// header specific left/start padding (controls only the start of the "월 통계" title)
 // separate header horizontal padding so title start can be adjusted independently
 val RECORDS_STATS_INTERNAL_TOP_GAP: Dp = 12.dp // 12
 val RECORDS_STATS_ROW_SPACING: Dp = 12.dp // 12, 3칩 하단
@@ -58,6 +57,7 @@ val RECORDS_CARD_IN_ROW_SPACING: Dp = 12.dp // 12, 3칩 사이 공간
 val RECORDS_SELECTION_ROW_HEIGHT: Dp = 56.dp // 56
 
 // Local small overrides used only inside this file
+val RECORDS_HEADER_START_PADDING: Dp = 17.dp // 15 + 2, 월 통계 왼쪽
 val RECORDS_TOP_SECTION_EXTERNAL_GAP: Dp = 15.dp // 15, 월 통계 상단 패딩
 private val RECORDS_HEADER_TO_CARD_GAP = 6.dp  // 6, 월 통계 <-> 3칩 그룹
 private val RECORDS_CARD_INTERNAL_TOP_PADDING = 8.dp // 8, 3칩 그룹 내부 상단
@@ -263,7 +263,7 @@ fun RecordsScreen(
                 // 월 통계: 헤더과 카드의 horizontal padding을 분리해 헤더 시작 위치를 조절할 수 있게 함
                 item {
                     // header: allow different left padding
-                    Box(modifier = Modifier.fillMaxWidth().padding(start = RECORDS_HEADER_HORIZONTAL_PADDING, end = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
+                    Box(modifier = Modifier.fillMaxWidth().padding(start = RECORDS_HEADER_START_PADDING, end = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
                         PeriodHeaderRow(onAddRecord = onAddRecord)
                     }
                     Spacer(modifier = Modifier.height(RECORDS_HEADER_TO_CARD_GAP))
