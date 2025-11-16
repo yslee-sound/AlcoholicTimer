@@ -41,7 +41,6 @@ import java.util.Locale
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import androidx.compose.foundation.BorderStroke
 import kr.sweetapps.alcoholictimer.constants.UiConstants
-import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 import kr.sweetapps.alcoholictimer.core.ui.components.MainLevelCardFrame
 
 class LevelActivity : BaseActivity() {
@@ -266,7 +265,14 @@ private fun ProgressToNextLevel(
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-            Text(text = context.getString(R.string.level_until_next), style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium, color = Color(0xFF666666)))
+            Text(
+                text = context.getString(R.string.level_until_next),
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.Medium,
+                    color = Color.White,
+                    fontSize = 18.sp
+                )
+            )
             Spacer(modifier = Modifier.width(8.dp))
             Box(
                 modifier = Modifier
@@ -299,8 +305,20 @@ private fun ProgressToNextLevel(
         Spacer(modifier = Modifier.height(8.dp))
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text(text = String.format(Locale.getDefault(), "%.1f%%", progress * 100), style = MaterialTheme.typography.labelMedium.copy(color = Color(0xFF999999)))
-            Text(text = remainingText, style = MaterialTheme.typography.labelMedium.copy(color = Color(0xFF999999)))
+            Text(
+                text = String.format(Locale.getDefault(), "%.1f%%", progress * 100),
+                style = MaterialTheme.typography.labelMedium.copy(
+                    color = Color.White,
+                    fontSize = 18.sp
+                )
+            )
+            Text(
+                text = remainingText,
+                style = MaterialTheme.typography.labelMedium.copy(
+                    color = Color.White,
+                    fontSize = 18.sp
+                )
+            )
         }
 
         Spacer(modifier = Modifier.height(12.dp))
