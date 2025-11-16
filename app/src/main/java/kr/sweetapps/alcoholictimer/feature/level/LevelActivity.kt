@@ -112,7 +112,9 @@ fun LevelScreen() {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = UiConstants.LEVEL_FIRST_CARD_EXTERNAL_GAP)
+                    // 수평 여백을 LEVEL_SCREEN_HORIZONTAL_PADDING으로 통일하여
+                    // 상단 메인카드와 하단 리스트카드의 좌우 여백을 한 곳에서 관리합니다.
+                    .padding(top = UiConstants.LEVEL_FIRST_CARD_TOP_PADDING, start = UiConstants.LEVEL_SCREEN_HORIZONTAL_PADDING, end = UiConstants.LEVEL_SCREEN_HORIZONTAL_PADDING)
                     .navigationBarsPadding(),
                 verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING)
             ) {
@@ -123,9 +125,8 @@ fun LevelScreen() {
                     currentDays = levelDays,
                     elapsedDaysFloat = totalElapsedDaysFloat,
                     startTime = startTime,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = UiConstants.LEVEL_SCREEN_HORIZONTAL_PADDING, end = UiConstants.LEVEL_SCREEN_HORIZONTAL_PADDING)
+                    // 카드 외형 폭은 부모의 LEVEL_SCREEN_HORIZONTAL_PADDING으로만 관리되도록
+                    modifier = Modifier.fillMaxWidth()
                 )
                 LevelListCard(currentLevel = currentLevel, currentDays = levelDays)
             }
@@ -145,9 +146,17 @@ fun CurrentLevelCard(
 ) {
     val context = LocalContext.current
     MainLevelCardFrame(modifier = modifier, backgroundRes = R.drawable.for_you) {
+        // 카드 자체의 폭은 부모에서 제어되므로, 첫 카드의 시각적 시작 offset은
+        // 내부 콘텐츠의 start 패딩으로만 조정합니다. 기존의 32.dp 균일 패딩은 유지하되
+        // start는 LEVEL_FIRST_CARD_START_PADDING 만큼 추가합니다.
         Column(
             modifier = Modifier
-                .padding(32.dp)
+                .padding(
+                    start = 32.dp,
+                    top = 32.dp,
+                    end = 32.dp,
+                    bottom = 32.dp
+                )
                 .testTag("main_level_card_content"),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -336,7 +345,7 @@ private fun LevelListCard(currentLevel: LevelDefinitions.LevelInfo, currentDays:
             // keep the visual grouping by using the surface color (flat, no corners)
             .background(MaterialTheme.colorScheme.surface)
     ) {
-        Column(modifier = Modifier.padding(24.dp)) {
+        Column(modifier = Modifier.padding(vertical = 24.dp)) {
             Text(
                 text = context.getString(R.string.level_all_levels),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color(0xFF333333)),
