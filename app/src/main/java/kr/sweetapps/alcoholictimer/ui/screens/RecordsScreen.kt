@@ -3,6 +3,7 @@
 package kr.sweetapps.alcoholictimer.ui.screens
 
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,39 +13,44 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
 import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
 import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
-import java.util.*
-import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
+import kr.sweetapps.alcoholictimer.core.ui.AppBorder
+import kr.sweetapps.alcoholictimer.core.ui.AppElevation
+import kr.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
 import kr.sweetapps.alcoholictimer.constants.UiConstants
+import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
+import kr.sweetapps.alcoholictimer.feature.records.components.MonthPickerBottomSheet
 import kr.sweetapps.alcoholictimer.feature.records.components.PeriodSelectionSection
 import kr.sweetapps.alcoholictimer.feature.records.components.RecordSummaryCard
 import kr.sweetapps.alcoholictimer.feature.records.components.WeekPickerBottomSheet
-import kr.sweetapps.alcoholictimer.feature.records.components.MonthPickerBottomSheet
 import kr.sweetapps.alcoholictimer.feature.records.components.YearPickerBottomSheet
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.PlatformTextStyle
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
+import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 import kr.sweetapps.alcoholictimer.core.util.PercentUtils
-import kr.sweetapps.alcoholictimer.core.ui.AppElevation
-import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.TransformOrigin
 
 // Records screen constants (migrated from UiConstants)
 val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 15.dp // 15
@@ -593,65 +599,99 @@ private fun PeriodStatisticsSection(
         elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
         border = androidx.compose.foundation.BorderStroke(AppBorder.Hairline, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = RECORDS_CARD_INTERNAL_TOP_PADDING, bottom = 24.dp, start = 16.dp, end = 16.dp)
-        ) {
-            Spacer(modifier = Modifier.height(RECORDS_STATS_INTERNAL_TOP_GAP))
+        // Make the card show the provided image as a background, then place the stats content on top
+        Box(modifier = Modifier.fillMaxWidth()) {
+            // background image stretched/cropped to card bounds
+            Image(
+                painter = painterResource(id = R.drawable.bg4),
+                contentDescription = null,
+                modifier = Modifier
+                    .matchParentSize()
+                    // scale image 1.5x and anchor transform to top-left so it appears zoomed from left
+                    .graphicsLayer {
+                        scaleX = 1.5f
+                        scaleY = 1.5f
+                        transformOrigin = TransformOrigin(0f, 0f)
+                    }
+                    .clip(MaterialTheme.shapes.medium),
+                contentScale = ContentScale.Crop,
+                alignment = Alignment.TopStart
+            )
 
-            val dayUnit = stringResource(R.string.records_day_unit)
-            val percentUnit = stringResource(R.string.records_percent_unit)
+            // subtle overlay to darken bottom area so text remains legible
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)),
+                            startY = 0.0f,
+                            endY = Float.POSITIVE_INFINITY
+                        )
+                    )
+            )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(RECORDS_CARD_IN_ROW_SPACING)
+            // The original Column content (statistics) sits on top of the image+overlay
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = RECORDS_CARD_INTERNAL_TOP_PADDING, bottom = 24.dp, start = 16.dp, end = 16.dp)
             ) {
-                val statsScale = 1.3f
+                Spacer(modifier = Modifier.height(RECORDS_STATS_INTERNAL_TOP_GAP))
 
-                StatisticItem(
-                    title = stringResource(R.string.records_success_rate) + "\n ",
-                    value = "$successRate$percentUnit",
-                    color = MaterialTheme.colorScheme.tertiary,
-                    modifier = Modifier.weight(1f),
-                    titleScale = statsScale,
-                    valueScale = statsScale
-                )
-                StatisticItem(
-                    title = stringResource(R.string.records_avg_duration),
-                    value = "$averageDaysDisplay$dayUnit",
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.weight(1f),
-                    titleScale = statsScale,
-                    valueScale = statsScale
-                )
-                StatisticItem(
-                    title = stringResource(R.string.records_max_duration),
-                    value = "$maxDaysDisplay$dayUnit",
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.weight(1f),
-                    titleScale = statsScale,
-                    valueScale = statsScale
-                )
-            }
+                val dayUnit = stringResource(R.string.records_day_unit)
+                val percentUnit = stringResource(R.string.records_percent_unit)
 
-            Spacer(modifier = Modifier.height(RECORDS_STATS_ROW_SPACING))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(RECORDS_CARD_IN_ROW_SPACING)
+                ) {
+                    val statsScale = 1.3f
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.records_total_days),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = "$totalDaysDisplay$dayUnit",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                    StatisticItem(
+                        title = stringResource(R.string.records_success_rate) + "\n ",
+                        value = "$successRate$percentUnit",
+                        color = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.weight(1f),
+                        titleScale = statsScale,
+                        valueScale = statsScale
+                    )
+                    StatisticItem(
+                        title = stringResource(R.string.records_avg_duration),
+                        value = "$averageDaysDisplay$dayUnit",
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.weight(1f),
+                        titleScale = statsScale,
+                        valueScale = statsScale
+                    )
+                    StatisticItem(
+                        title = stringResource(R.string.records_max_duration),
+                        value = "$maxDaysDisplay$dayUnit",
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.weight(1f),
+                        titleScale = statsScale,
+                        valueScale = statsScale
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(RECORDS_STATS_ROW_SPACING))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.records_total_days),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "$totalDaysDisplay$dayUnit",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
         }
     }
@@ -705,7 +745,8 @@ private fun StatisticItem(
             .fillMaxWidth()
             .defaultMinSize(minHeight = 120.dp),
         shape = MaterialTheme.shapes.small,
-        color = color.copy(alpha = 0.1f)
+        // Use a subtle translucent black background for the chips to ensure consistent look over image
+        color = Color.Black.copy(alpha = 0.10f)
     ) {
         Column(
             modifier = Modifier
