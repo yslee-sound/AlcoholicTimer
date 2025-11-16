@@ -177,10 +177,10 @@ fun CurrentLevelCard(
             val badgeColor = currentLevel.color
             val isYellowBadge = badgeColor == Color(0xFFFBC02D)
             // Radial gradient blended slightly toward white at center (less washed) — remove extra highlight overlay
-            // Increased lerp values to make the badge gradient slightly brighter
-            // (was 0.20f / 0.08f -> now 0.35f / 0.18f)
-            val centerBlend = lerp(badgeColor, Color.White, 0.35f)
-            val midBlend = lerp(badgeColor, Color.White, 0.18f)
+            // Reduced lerp values and tightened mid stop to make the badge gradient more subtle
+            // (was 0.20f / 0.08f -> then 0.35f / 0.18f; now reduced for subtler effect)
+            val centerBlend = lerp(badgeColor, Color.White, 0.12f)
+            val midBlend = lerp(badgeColor, Color.White, 0.05f)
             // Use a Surface to ensure shadow (elevation) is rendered for the badge itself.
             // shadowElevation is applied to the Surface's outline, so the inner radial gradient can remain
             // and the elevation will be visible regardless of badge color. Apply to all badges.
@@ -203,7 +203,7 @@ fun CurrentLevelCard(
                             .background(
                                 Brush.radialGradient(
                                     0.0f to centerBlend,
-                                    0.55f to midBlend,
+                                    0.35f to midBlend,
                                     1.0f to badgeColor
                                 )
                             ),

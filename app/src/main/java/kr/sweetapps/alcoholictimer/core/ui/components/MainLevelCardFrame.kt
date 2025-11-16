@@ -24,6 +24,7 @@ import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.scale
 
 @Composable
 fun MainLevelCardFrame(
@@ -52,6 +53,7 @@ fun MainLevelCardFrame(
                     contentDescription = null,
                     modifier = Modifier
                         .matchParentSize()
+                        .scale(1.1f)
                         .clip(RoundedCornerShape(16.dp)),
                     contentScale = backgroundContentScale,
                     alignment = Alignment.TopCenter,

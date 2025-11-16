@@ -2,6 +2,7 @@ package kr.sweetapps.alcoholictimer.core.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -46,7 +47,7 @@ fun AppCard(
             elevation = cardElevation,
             border = resolvedBorder
         ) {
-            Column(modifier = Modifier.padding(contentPadding), content = content)
+            Column(modifier = Modifier.padding(contentPadding), verticalArrangement = Arrangement.Top, content = content)
         }
     } else {
         Card(
@@ -56,7 +57,7 @@ fun AppCard(
             elevation = cardElevation,
             border = resolvedBorder
         ) {
-            Column(modifier = Modifier.padding(contentPadding), content = content)
+            Column(modifier = Modifier.padding(contentPadding), verticalArrangement = Arrangement.Top, content = content)
         }
     }
 }
