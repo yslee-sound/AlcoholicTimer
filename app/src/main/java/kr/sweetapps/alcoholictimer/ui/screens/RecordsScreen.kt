@@ -280,8 +280,8 @@ fun RecordsScreen(
                     }
                 }
 
-                // 기록 항목
-                items(filteredRecords) { record ->
+                // 기록 항목: 어떤 기간을 선택하든 전체 기록 목록은 항상 표시합니다.
+                items(records) { record ->
                     RecordSummaryCard(
                         record = record,
                         compact = false,
