@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED_IMPORT", "UNUSED_VARIABLE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+
 package kr.sweetapps.alcoholictimer.navigation
 
 import androidx.compose.animation.EnterTransition
@@ -13,13 +15,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import kotlinx.coroutines.flow.collect
 import kr.sweetapps.alcoholictimer.feature.about.AboutLicensesScreen
 import kr.sweetapps.alcoholictimer.feature.about.AboutScreen
 import kr.sweetapps.alcoholictimer.feature.detail.DetailScreen
 import kr.sweetapps.alcoholictimer.feature.level.LevelScreen
 import kr.sweetapps.alcoholictimer.feature.records.components.AllRecordsScreen
-import kr.sweetapps.alcoholictimer.feature.records.components.RecordsScreen
+import kr.sweetapps.alcoholictimer.ui.screens.RecordsScreen
 import kr.sweetapps.alcoholictimer.feature.run.QuitScreenComposable
 import kr.sweetapps.alcoholictimer.feature.run.RunScreenComposable
 import kr.sweetapps.alcoholictimer.feature.settings.SettingsScreen
