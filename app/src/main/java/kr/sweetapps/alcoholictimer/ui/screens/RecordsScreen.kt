@@ -32,8 +32,7 @@ import kr.sweetapps.alcoholictimer.feature.records.components.RecordSummaryCard
 import kr.sweetapps.alcoholictimer.feature.records.components.WeekPickerBottomSheet
 import kr.sweetapps.alcoholictimer.feature.records.components.MonthPickerBottomSheet
 import kr.sweetapps.alcoholictimer.feature.records.components.YearPickerBottomSheet
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
@@ -50,8 +49,9 @@ import androidx.compose.ui.unit.Dp
 
 // Records screen constants (migrated from UiConstants)
 val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 15.dp // 15
+// header specific horizontal padding (was referenced but missing)
+val RECORDS_HEADER_HORIZONTAL_PADDING: Dp = RECORDS_SCREEN_HORIZONTAL_PADDING
 // separate header horizontal padding so title start can be adjusted independently
-val RECORDS_HEADER_HORIZONTAL_PADDING: Dp = 17.dp // 15+2
 val RECORDS_STATS_INTERNAL_TOP_GAP: Dp = 12.dp // 12
 val RECORDS_STATS_ROW_SPACING: Dp = 12.dp // 12, 3칩 하단
 val RECORDS_CARD_IN_ROW_SPACING: Dp = 12.dp // 12, 3칩 사이 공간
@@ -426,7 +426,11 @@ private fun PeriodHeaderRow(onAddRecord: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurface
         )
         IconButton(onClick = onAddRecord) {
-            Icon(imageVector = Icons.Default.Add, contentDescription = stringResource(R.string.records_add))
+            androidx.compose.foundation.Image(
+                painter = painterResource(id = R.drawable.ic_plus),
+                contentDescription = stringResource(R.string.records_add),
+                modifier = Modifier.size(24.dp)
+            )
         }
     }
 }
