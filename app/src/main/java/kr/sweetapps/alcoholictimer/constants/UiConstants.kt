@@ -10,23 +10,18 @@ object UiConstants {
     val BackIconInnerPadding: Dp = 14.dp // 14 픽스
 
     // Layout-related constants (migrated from core.ui/LayoutConstants)
-    val SCREEN_HORIZONTAL_PADDING: Dp = 20.dp           // 1번 화면
-    val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 20.dp   // 2번 화면
-    val LEVEL_SCREEN_HORIZONTAL_PADDING: Dp = 20.dp     // 3번 화면
+    val SCREEN_HORIZONTAL_PADDING: Dp = 15.dp           // 1번 화면
+    val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 15.dp   // 2번 화면
+    val LEVEL_SCREEN_HORIZONTAL_PADDING: Dp = 15.dp     // 3번 화면
 
-    val FIRST_CARD_EXTERNAL_GAP: Dp = 20.dp             // 1번 화면
-    val RECORDS_FIRST_CARD_TOP_PADDING: Dp = 20.dp      // 2번 화면
-    val LEVEL_FIRST_CARD_TOP_PADDING: Dp = 20.dp        // 3번 화면
+    val FIRST_CARD_EXTERNAL_GAP: Dp = 15.dp             // 1번 화면
+    val RECORDS_FIRST_CARD_TOP_PADDING: Dp = 15.dp      // 2번 화면
+    val LEVEL_FIRST_CARD_TOP_PADDING: Dp = 15.dp        // 3번 화면
 
-
-
-
-    // Level screen specific bottom padding (overrides the generic scroll bottom padding for the level screen)
-    // Use this to adjust only the Level screen's final scroll gap without affecting other screens (e.g., Records).
-    val LEVEL_SCREEN_BOTTOM_PADDING: Dp = 20.dp
+    val RECORDS_SCREEN_BOTTOM_PADDING: Dp = 15.dp       // 2번 화면
+    val LEVEL_SCREEN_BOTTOM_PADDING: Dp = 15.dp         // 3번 화면
     // Records screen specific bottom padding. Previously code used safePadding + 12.dp; expose
     // a single constant so the Records screen can be controlled from one place.
-    val RECORDS_SCREEN_BOTTOM_PADDING: Dp = 20.dp
 
     val START_BRAND_TITLE_TOP_GAP: Dp = 12.dp
     val START_BRAND_TITLE_BOTTOM_GAP: Dp = 12.dp
