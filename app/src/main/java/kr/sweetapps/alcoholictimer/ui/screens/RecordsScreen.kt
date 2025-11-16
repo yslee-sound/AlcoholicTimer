@@ -49,27 +49,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.Dp
 
 // Records screen constants (migrated from UiConstants)
-val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 15.dp
-// val RECORDS_SCREEN_BOTTOM_PADDING: Dp = 15.dp
-val RECORDS_FIRST_CARD_EXTERNAL_GAP: Dp = 100.dp
-// RECORDS_FIRST_CARD_TOP_PADDING removed (ineffective). Use this single value to control top external gap.
-val RECORDS_TOP_SECTION_EXTERNAL_GAP: Dp = 15.dp
-val RECORDS_SELECTION_TO_PICKER_GAP: Dp = 8.dp
-val RECORDS_WEEK_FIRST_CARD_EXTERNAL_GAP: Dp = RECORDS_FIRST_CARD_EXTERNAL_GAP
-val RECORDS_MONTH_FIRST_CARD_EXTERNAL_GAP: Dp = RECORDS_FIRST_CARD_EXTERNAL_GAP
-val RECORDS_YEAR_FIRST_CARD_EXTERNAL_GAP: Dp = RECORDS_FIRST_CARD_EXTERNAL_GAP
-val RECORDS_ALL_FIRST_CARD_EXTERNAL_GAP: Dp = RECORDS_FIRST_CARD_EXTERNAL_GAP
-val RECORDS_STATS_INTERNAL_TOP_GAP: Dp = 12.dp
-val RECORDS_STATS_ROW_SPACING: Dp = 12.dp
-val RECORDS_CARD_IN_ROW_SPACING: Dp = 12.dp
-val RECORDS_CARD_HORIZONTAL_PADDING: Dp = 8.dp
-val RECORDS_SELECTION_ROW_HEIGHT: Dp = 56.dp
+val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 15.dp // 15
+// separate header horizontal padding so title start can be adjusted independently
+val RECORDS_HEADER_HORIZONTAL_PADDING: Dp = 17.dp // 15+2
+val RECORDS_STATS_INTERNAL_TOP_GAP: Dp = 12.dp // 12
+val RECORDS_STATS_ROW_SPACING: Dp = 12.dp // 12, 3칩 하단
+val RECORDS_CARD_IN_ROW_SPACING: Dp = 12.dp // 12, 3칩 사이 공간
+val RECORDS_SELECTION_ROW_HEIGHT: Dp = 56.dp // 56
 
 // Local small overrides used only inside this file
-private val RECORDS_HEADER_TO_CARD_GAP = 6.dp
-private val RECORDS_CARD_INTERNAL_TOP_PADDING = 8.dp
-private val RECORDS_STATS_INTERNAL_TOP_GAP_LOCAL = 6.dp
-// use RECORDS_TOP_SECTION_EXTERNAL_GAP (based on RECORDS_FIRST_CARD_TOP_PADDING) so changes take effect
+val RECORDS_TOP_SECTION_EXTERNAL_GAP: Dp = 15.dp // 15, 월 통계 상단 패딩
+private val RECORDS_HEADER_TO_CARD_GAP = 6.dp  // 6, 월 통계 <-> 3칩 그룹
+private val RECORDS_CARD_INTERNAL_TOP_PADDING = 8.dp // 8, 3칩 그룹 내부 상단
+// use RECORDS_TOP_SECTION_EXTERNAL_GAP to control top spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Suppress("UNUSED_PARAMETER", "UNUSED_VARIABLE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -268,12 +260,15 @@ fun RecordsScreen(
                     Spacer(modifier = Modifier.height(RECORDS_TOP_SECTION_EXTERNAL_GAP))
                 }
 
-                // 월 통계: 헤더와 카드 통합하여 LazyColumn의 전역 간격 영향을 받지 않게 함
+                // 월 통계: 헤더과 카드의 horizontal padding을 분리해 헤더 시작 위치를 조절할 수 있게 함
                 item {
-                    // header + card together; use shared RECORDS_SCREEN_HORIZONTAL_PADDING for left/right margins
-                    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
+                    // header: allow different left padding
+                    Box(modifier = Modifier.fillMaxWidth().padding(start = RECORDS_HEADER_HORIZONTAL_PADDING, end = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
                         PeriodHeaderRow(onAddRecord = onAddRecord)
-                        Spacer(modifier = Modifier.height(RECORDS_HEADER_TO_CARD_GAP))
+                    }
+                    Spacer(modifier = Modifier.height(RECORDS_HEADER_TO_CARD_GAP))
+                    // card: use the standard horizontal padding
+                    Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
                         PeriodStatisticsSection(
                             records = records,
                             selectedPeriod = selectedPeriod,
@@ -602,7 +597,7 @@ private fun PeriodStatisticsSection(
                 .fillMaxWidth()
                 .padding(top = RECORDS_CARD_INTERNAL_TOP_PADDING, bottom = 24.dp, start = 16.dp, end = 16.dp)
         ) {
-            Spacer(modifier = Modifier.height(RECORDS_STATS_INTERNAL_TOP_GAP_LOCAL))
+            Spacer(modifier = Modifier.height(RECORDS_STATS_INTERNAL_TOP_GAP))
 
             val dayUnit = stringResource(R.string.records_day_unit)
             val percentUnit = stringResource(R.string.records_percent_unit)
