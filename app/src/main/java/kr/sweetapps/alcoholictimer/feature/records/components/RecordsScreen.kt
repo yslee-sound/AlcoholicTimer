@@ -1,22 +1,6 @@
 package kr.sweetapps.alcoholictimer.feature.records.components
 
-import androidx.compose.runtime.Composable
-import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
-import kr.sweetapps.alcoholictimer.ui.screens.RecordsScreen as NewRecordsScreen
-
-@Composable
-fun RecordsScreen(
-    externalRefreshTrigger: Int,
-    onNavigateToDetail: (SobrietyRecord) -> Unit = {},
-    onNavigateToAllRecords: () -> Unit = {},
-    onAddRecord: () -> Unit = {},
-    fontScale: Float = 1.06f
-) {
-    NewRecordsScreen(
-        externalRefreshTrigger = externalRefreshTrigger,
-        onNavigateToDetail = onNavigateToDetail,
-        onNavigateToAllRecords = onNavigateToAllRecords,
-        onAddRecord = onAddRecord,
-        fontScale = fontScale
-    )
-}
+// 이 파일은 더 이상 사용되지 않습니다.
+// RecordsScreen 구현은 다음 새 위치로 이동했습니다:
+// kr.sweetapps.alcoholictimer.ui.screens.RecordsScreen
+// 원본 파일을 안전하게 비우고 참조는 모두 새 위치로 교체되었습니다.
