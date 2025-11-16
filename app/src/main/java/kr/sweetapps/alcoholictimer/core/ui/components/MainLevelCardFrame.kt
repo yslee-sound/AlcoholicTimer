@@ -53,7 +53,7 @@ fun MainLevelCardFrame(
                     contentDescription = null,
                     modifier = Modifier
                         .matchParentSize()
-                        .scale(1.1f)
+                        .scale(1.15f)
                         .clip(RoundedCornerShape(16.dp)),
                     contentScale = backgroundContentScale,
                     alignment = Alignment.TopCenter,
