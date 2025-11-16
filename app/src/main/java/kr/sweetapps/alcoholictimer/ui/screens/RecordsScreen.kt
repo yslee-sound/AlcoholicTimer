@@ -33,7 +33,6 @@ import kr.sweetapps.alcoholictimer.feature.records.components.WeekPickerBottomSh
 import kr.sweetapps.alcoholictimer.feature.records.components.MonthPickerBottomSheet
 import kr.sweetapps.alcoholictimer.feature.records.components.YearPickerBottomSheet
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
@@ -420,7 +419,7 @@ private fun PeriodHeaderRow(onAddRecord: () -> Unit) {
     ) {
         Text(
             text = stringResource(R.string.records_monthly_stats),
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface
         )
         IconButton(onClick = onAddRecord) {
@@ -665,7 +664,7 @@ private fun AutoResizeSingleLineText(
     modifier: Modifier = Modifier,
     step: Float = 0.95f,
     color: Color? = null,
-    textAlign: androidx.compose.ui.text.style.TextAlign? = null,
+    textAlign: TextAlign? = null,
 ) {
     val minSpLocal = 10f
     var style by remember(text) { mutableStateOf(baseStyle) }
@@ -748,7 +747,7 @@ private fun StatisticItem(
                             text = num,
                             baseStyle = numStyle,
                             color = color,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            textAlign = TextAlign.Center,
                             modifier = Modifier.alignByBaseline().wrapContentWidth()
                         )
                         if (unit.isNotBlank()) {
@@ -766,7 +765,7 @@ private fun StatisticItem(
                         text = value,
                         baseStyle = numStyle,
                         color = color,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -789,7 +788,7 @@ private fun StatisticItem(
                     text = title,
                     style = scaledLabelStyle,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    textAlign = TextAlign.Center,
                     maxLines = 2
                 )
             }
