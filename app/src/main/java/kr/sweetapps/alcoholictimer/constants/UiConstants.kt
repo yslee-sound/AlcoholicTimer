@@ -17,13 +17,9 @@ object UiConstants {
     // 이 값을 통해 레벨 화면의 첫 카드와 상단 요소(상단 바 등) 사이의 간격을 제어합니다.
     val LEVEL_FIRST_CARD_TOP_PADDING: Dp = 20.dp
 
-    // Scrollable screens: extra bottom padding to ensure last item isn't hidden under nav bars
-    // Adjust this single constant to control the bottom gap for all scrollable screens.
-    val SCROLL_SCREEN_BOTTOM_PADDING: Dp = 24.dp
-
     // Level screen specific bottom padding (overrides the generic scroll bottom padding for the level screen)
     // Use this to adjust only the Level screen's final scroll gap without affecting other screens (e.g., Records).
-    val LEVEL_SCREEN_BOTTOM_PADDING: Dp = 24.dp
+    val LEVEL_SCREEN_BOTTOM_PADDING: Dp = 1.dp
 
     val START_BRAND_TITLE_TOP_GAP: Dp = 12.dp
     val START_BRAND_TITLE_BOTTOM_GAP: Dp = 12.dp
@@ -69,6 +65,10 @@ object UiConstants {
     val BOTTOM_NAV_ITEM_SIZE: Dp = 35.dp // 아이콘을 감싸는 박스 (56)
     // 하단 내비게이션 바 전체 높이 (Surface 높이)
     val BOTTOM_NAV_BAR_HEIGHT: Dp = 60.dp // 아이콘 박스의 상하 크기 (80)
+    // 레벨 화면 전용: 호스트가 예약(reserve)하는 하단 공간(예: BottomNavBar 높이)
+    // 이 값은 레벨 화면에만 영향을 주며, 전역 BOTTOM_NAV_BAR_HEIGHT와 분리해 관리합니다.
+    // 기본적으로 호스트의 바텀 내비 높이를 사용하도록 설정합니다. 필요시 화면별로 오버라이드하세요.
+    val LEVEL_SCREEN_HOST_BOTTOM_RESERVE: Dp = BOTTOM_NAV_BAR_HEIGHT
     // 하단 내비 내 아이콘 간격: 아이콘 박스 간의 수평 간격을 조절합니다
     val BOTTOM_NAV_ITEM_GAP: Dp = 50.dp // 아이콘 사이의 간격 (중앙에서 펼치거나 좁힐 때 사용)
 }

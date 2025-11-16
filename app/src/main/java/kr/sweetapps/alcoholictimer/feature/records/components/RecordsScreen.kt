@@ -225,11 +225,11 @@ fun RecordsScreen(
                 .padding(start = UiConstants.RECORDS_SCREEN_HORIZONTAL_PADDING, end = UiConstants.RECORDS_SCREEN_HORIZONTAL_PADDING)
         ) {
             val layoutDirection = LocalLayoutDirection.current
-            val combinedPadding = androidx.compose.foundation.layout.PaddingValues(
+            val combinedPadding = PaddingValues(
                 start = safePadding.calculateLeftPadding(layoutDirection),
                 top = safePadding.calculateTopPadding(),
                 end = safePadding.calculateRightPadding(layoutDirection),
-                bottom = safePadding.calculateBottomPadding() + UiConstants.SCROLL_SCREEN_BOTTOM_PADDING
+                bottom = safePadding.calculateBottomPadding()
             )
 
             LazyColumn(
