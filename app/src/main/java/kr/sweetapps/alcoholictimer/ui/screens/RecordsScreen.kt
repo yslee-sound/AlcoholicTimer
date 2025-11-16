@@ -59,7 +59,7 @@ val RECORDS_SELECTION_ROW_HEIGHT: Dp = 56.dp // 56
 // Local small overrides used only inside this file
 val RECORDS_HEADER_START_PADDING: Dp = 17.dp // 15 + 2, 월 통계 왼쪽
 val RECORDS_TOP_SECTION_EXTERNAL_GAP: Dp = 15.dp // 15, 월 통계 상단 패딩
-private val RECORDS_HEADER_TO_CARD_GAP = 6.dp  // 6, 월 통계 <-> 3칩 그룹
+private val RECORDS_HEADER_TO_CARD_GAP = 0.dp  // removed gap between selection card and header
 private val RECORDS_CARD_INTERNAL_TOP_PADDING = 8.dp // 8, 3칩 그룹 내부 상단
 // use RECORDS_TOP_SECTION_EXTERNAL_GAP to control top spacing
 
@@ -242,6 +242,7 @@ fun RecordsScreen(
                 contentPadding = recordsContentPadding,
                 verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING)
             ) {
+                // Combined top section + monthly stats as a single item to avoid extra spacing
                 item {
                     Spacer(modifier = Modifier.height(RECORDS_TOP_SECTION_EXTERNAL_GAP))
                     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
@@ -257,16 +258,13 @@ fun RecordsScreen(
                             horizontalPadding = RECORDS_SCREEN_HORIZONTAL_PADDING
                         )
                     }
-                    Spacer(modifier = Modifier.height(RECORDS_TOP_SECTION_EXTERNAL_GAP))
-                }
 
-                // 월 통계: 헤더과 카드의 horizontal padding을 분리해 헤더 시작 위치를 조절할 수 있게 함
-                item {
-                    // header: allow different left padding
+                    // header: allow different left padding (same visual grouping, no inter-item spacing)
                     Box(modifier = Modifier.fillMaxWidth().padding(start = RECORDS_HEADER_START_PADDING, end = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
                         PeriodHeaderRow(onAddRecord = onAddRecord)
                     }
                     Spacer(modifier = Modifier.height(RECORDS_HEADER_TO_CARD_GAP))
+
                     // card: use the standard horizontal padding
                     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
                         PeriodStatisticsSection(

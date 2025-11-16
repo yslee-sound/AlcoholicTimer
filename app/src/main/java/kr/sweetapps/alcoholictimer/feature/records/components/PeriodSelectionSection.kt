@@ -25,7 +25,7 @@ import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 
 // Local layout constants for Records screen (screen #2). Adjust here to control spacing
-private val RECORDS_SELECTION_ROW_HEIGHT_LOCAL = 56.dp
+private val RECORDS_SELECTION_ROW_HEIGHT_LOCAL = 48.dp
 
 @Composable
 fun PeriodSelectionSection(
@@ -108,7 +108,7 @@ fun PeriodSelectionSection(
                             }
                         })
                         .padding(horizontal = horizontalPadding)
-                        .padding(vertical = 12.dp),
+                        .padding(vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {

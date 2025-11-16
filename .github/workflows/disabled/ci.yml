@@ -1,6 +1,9 @@
-name: CI (disabled auto-run)
+name: CI
 on:
-  workflow_dispatch: {}
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
 
 jobs:
   build-test-lint:
@@ -40,3 +43,4 @@ jobs:
         with:
           name: test-results
           path: app/build/test-results/testDebugUnitTest/
+
