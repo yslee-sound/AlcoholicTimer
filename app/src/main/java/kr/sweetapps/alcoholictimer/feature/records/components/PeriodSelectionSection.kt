@@ -13,19 +13,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import kr.sweetapps.alcoholictimer.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.core.ui.AppElevation
+import androidx.compose.ui.unit.Dp
 import java.util.*
 import androidx.compose.foundation.BorderStroke
 import android.os.SystemClock
+import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
+import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 
 // Local layout constants for Records screen (screen #2). Adjust here to control spacing
 private val RECORDS_SELECTION_ROW_HEIGHT_LOCAL = 56.dp
-private val RECORDS_SCREEN_HORIZONTAL_PADDING_LOCAL = 15.dp
 
 @Composable
 fun PeriodSelectionSection(
@@ -33,7 +33,8 @@ fun PeriodSelectionSection(
     onPeriodSelected: (String) -> Unit,
     onPeriodClick: (String) -> Unit,
     selectedDetailPeriod: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    horizontalPadding: Dp = 15.dp // Padding parameter for horizontal spacing
 ) {
     val periodWeek = stringResource(R.string.records_period_week)
     val periodMonth = stringResource(R.string.records_period_month)
@@ -106,7 +107,7 @@ fun PeriodSelectionSection(
                                 onPeriodClick(selectedPeriod)
                             }
                         })
-                        .padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING_LOCAL)
+                        .padding(horizontal = horizontalPadding)
                         .padding(vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween

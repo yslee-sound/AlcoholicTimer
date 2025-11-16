@@ -129,7 +129,7 @@ fun AllRecordsScreen(
                     val bottomPadding = safePadding.calculateBottomPadding() + 12.dp
 
                     LazyColumn(
-                        modifier = Modifier.fillMaxSize().padding(horizontal = UiConstants.RECORDS_SCREEN_HORIZONTAL_PADDING),
+                        modifier = Modifier.fillMaxSize().padding(horizontal = kr.sweetapps.alcoholictimer.ui.screens.RECORDS_SCREEN_HORIZONTAL_PADDING),
                         verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING),
                         contentPadding = PaddingValues(top = 16.dp, bottom = bottomPadding)
                     ) {

@@ -34,8 +34,6 @@ import kr.sweetapps.alcoholictimer.feature.records.components.MonthPickerBottomS
 import kr.sweetapps.alcoholictimer.feature.records.components.YearPickerBottomSheet
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.ui.res.painterResource
-import kr.sweetapps.alcoholictimer.feature.records.components.StatisticsCardsSection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
@@ -48,20 +46,29 @@ import kr.sweetapps.alcoholictimer.core.util.PercentUtils
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.Dp
 
-// Local header padding for this screen (override here to change 월 통계 title margins)
-private val RECORDS_HEADER_HORIZONTAL_PADDING = 15.dp
-private val RECORDS_HEADER_VERTICAL_PADDING = 0.dp
+// Records screen constants (migrated from UiConstants)
+val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 15.dp
+val RECORDS_FIRST_CARD_TOP_PADDING: Dp = 15.dp
+val RECORDS_SCREEN_BOTTOM_PADDING: Dp = 15.dp
+val RECORDS_FIRST_CARD_EXTERNAL_GAP: Dp = 15.dp
+val RECORDS_TOP_SECTION_EXTERNAL_GAP: Dp = RECORDS_FIRST_CARD_TOP_PADDING
+val RECORDS_SELECTION_TO_PICKER_GAP: Dp = 8.dp
+val RECORDS_WEEK_FIRST_CARD_EXTERNAL_GAP: Dp = RECORDS_FIRST_CARD_EXTERNAL_GAP
+val RECORDS_MONTH_FIRST_CARD_EXTERNAL_GAP: Dp = RECORDS_FIRST_CARD_EXTERNAL_GAP
+val RECORDS_YEAR_FIRST_CARD_EXTERNAL_GAP: Dp = RECORDS_FIRST_CARD_EXTERNAL_GAP
+val RECORDS_ALL_FIRST_CARD_EXTERNAL_GAP: Dp = RECORDS_FIRST_CARD_EXTERNAL_GAP
+val RECORDS_STATS_INTERNAL_TOP_GAP: Dp = 12.dp
+val RECORDS_STATS_ROW_SPACING: Dp = 12.dp
+val RECORDS_CARD_IN_ROW_SPACING: Dp = 12.dp
+val RECORDS_CARD_HORIZONTAL_PADDING: Dp = 8.dp
+val RECORDS_SELECTION_ROW_HEIGHT: Dp = 56.dp
 
-// Local gap between header and card inside this screen
+// Local small overrides used only inside this file
 private val RECORDS_HEADER_TO_CARD_GAP = 6.dp
-
-// Local control for the card's internal top padding (reduces large default inside Card)
 private val RECORDS_CARD_INTERNAL_TOP_PADDING = 8.dp
-// Local override for the internal top gap used inside statistics rows
 private val RECORDS_STATS_INTERNAL_TOP_GAP_LOCAL = 6.dp
-
-// Local override for top section external gap (replaces UiConstants.RECORDS_TOP_SECTION_EXTERNAL_GAP for this screen)
 private val RECORDS_TOP_SECTION_EXTERNAL_GAP_LOCAL = 8.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -228,16 +235,15 @@ fun RecordsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(start = UiConstants.RECORDS_SCREEN_HORIZONTAL_PADDING, end = UiConstants.RECORDS_SCREEN_HORIZONTAL_PADDING)
         ) {
             val layoutDirection = LocalLayoutDirection.current
             val recordsContentPadding = PaddingValues(
                 start = safePadding.calculateLeftPadding(layoutDirection),
                 top = safePadding.calculateTopPadding(),
                 end = safePadding.calculateRightPadding(layoutDirection),
-                bottom = UiConstants.RECORDS_SCREEN_BOTTOM_PADDING
+                bottom = RECORDS_SCREEN_BOTTOM_PADDING
             )
-            Log.d("RecordsScreenDebug", "RECORDS_SCREEN_BOTTOM_PADDING=${UiConstants.RECORDS_SCREEN_BOTTOM_PADDING}")
+            Log.d("RecordsScreenDebug", "RECORDS_SCREEN_BOTTOM_PADDING=${RECORDS_SCREEN_BOTTOM_PADDING}")
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -246,28 +252,27 @@ fun RecordsScreen(
             ) {
                 item {
                     Spacer(modifier = Modifier.height(RECORDS_TOP_SECTION_EXTERNAL_GAP_LOCAL))
-                    PeriodSelectionSection(
-                        selectedPeriod = selectedPeriod,
-                        onPeriodSelected = { period: String ->
-                            selectedPeriod = period
-                            selectedDetailPeriod = ""
-                            if (period == periodWeek) selectedWeekRange = null
-                        },
-                        onPeriodClick = { _ -> showBottomSheet = true },
-                        selectedDetailPeriod = selectedDetailPeriod
-                    )
+                    Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
+                        PeriodSelectionSection(
+                            selectedPeriod = selectedPeriod,
+                            onPeriodSelected = { period: String ->
+                                selectedPeriod = period
+                                selectedDetailPeriod = ""
+                                if (period == periodWeek) selectedWeekRange = null
+                            },
+                            onPeriodClick = { _ -> showBottomSheet = true },
+                            selectedDetailPeriod = selectedDetailPeriod,
+                            horizontalPadding = RECORDS_SCREEN_HORIZONTAL_PADDING
+                        )
+                    }
                     Spacer(modifier = Modifier.height(RECORDS_TOP_SECTION_EXTERNAL_GAP_LOCAL))
                 }
 
                 // 월 통계: 헤더와 카드 통합하여 LazyColumn의 전역 간격 영향을 받지 않게 함
                 item {
-                    // cancel outer Box horizontal padding so header's local horizontal padding is absolute
-                    Column(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = -UiConstants.RECORDS_SCREEN_HORIZONTAL_PADDING, end = -UiConstants.RECORDS_SCREEN_HORIZONTAL_PADDING)
-                     ) {
-                        PeriodHeaderRow(onAddRecord = { onAddRecord() }, enabled = true)
-                        // 내부 간격은 여기서 직접 제어 (로컬 상수 사용)
+                    // header + card together; use shared RECORDS_SCREEN_HORIZONTAL_PADDING for left/right margins
+                    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
+                        PeriodHeaderRow(onAddRecord = onAddRecord)
                         Spacer(modifier = Modifier.height(RECORDS_HEADER_TO_CARD_GAP))
                         PeriodStatisticsSection(
                             records = records,
@@ -301,35 +306,39 @@ fun RecordsScreen(
 
                 // 기록 항목: 어떤 기간을 선택하든 전체 기록 목록은 항상 표시합니다.
                 items(records) { record ->
-                    RecordSummaryCard(
-                        record = record,
-                        compact = false,
-                        headerIconSizeDp = 56.dp,
-                        onClick = { onNavigateToDetail(record) }
-                    )
+                    Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
+                        RecordSummaryCard(
+                            record = record,
+                            compact = false,
+                            headerIconSizeDp = 56.dp,
+                            onClick = { onNavigateToDetail(record) }
+                        )
+                    }
                 }
 
                 // '모든 기록 보기' 버튼 (기록이 있을 때만)
                 if (records.isNotEmpty()) {
                     item {
-                        val viewAllText = stringResource(R.string.records_view_all, records.size)
-                        Button(
-                            onClick = { onNavigateToAllRecords() },
-                            modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(vertical = 12.dp, horizontal = 16.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = MaterialTheme.colorScheme.onPrimary
-                            ),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text(text = viewAllText, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium))
+                        Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
+                            val viewAllText = stringResource(R.string.records_view_all, records.size)
+                            Button(
+                                onClick = { onNavigateToAllRecords() },
+                                modifier = Modifier.fillMaxWidth(),
+                                contentPadding = PaddingValues(vertical = 12.dp, horizontal = 16.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                ),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text(text = viewAllText, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium))
+                            }
                         }
                     }
                 }
 
                 item {
-                    Spacer(modifier = Modifier.height(UiConstants.RECORDS_SCREEN_BOTTOM_PADDING))
+                    Spacer(modifier = Modifier.height(RECORDS_SCREEN_BOTTOM_PADDING))
                 }
             }
 
@@ -409,11 +418,10 @@ fun RecordsScreenPreview() {
 }
 
 @Composable
-private fun PeriodHeaderRow(onAddRecord: () -> Unit, enabled: Boolean) {
+private fun PeriodHeaderRow(onAddRecord: () -> Unit) {
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = RECORDS_HEADER_HORIZONTAL_PADDING, vertical = RECORDS_HEADER_VERTICAL_PADDING),
+            .fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -422,7 +430,7 @@ private fun PeriodHeaderRow(onAddRecord: () -> Unit, enabled: Boolean) {
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface
         )
-        IconButton(onClick = onAddRecord, enabled = enabled) {
+        IconButton(onClick = onAddRecord) {
             Icon(imageVector = Icons.Default.Add, contentDescription = stringResource(R.string.records_add))
         }
     }
@@ -601,7 +609,7 @@ private fun PeriodStatisticsSection(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(UiConstants.RECORDS_CARD_IN_ROW_SPACING)
+                horizontalArrangement = Arrangement.spacedBy(RECORDS_CARD_IN_ROW_SPACING)
             ) {
                 val statsScale = 1.3f
 
@@ -631,7 +639,7 @@ private fun PeriodStatisticsSection(
                 )
             }
 
-            Spacer(modifier = Modifier.height(UiConstants.RECORDS_STATS_ROW_SPACING))
+            Spacer(modifier = Modifier.height(RECORDS_STATS_ROW_SPACING))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

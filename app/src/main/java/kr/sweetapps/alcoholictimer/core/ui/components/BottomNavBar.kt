@@ -21,6 +21,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import kr.sweetapps.alcoholictimer.R
+import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.navigation.Screen
 
 private data class BottomItem(
@@ -85,7 +86,7 @@ fun BottomNavBar(navController: NavHostController, modifier: Modifier = Modifier
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .height(kr.sweetapps.alcoholictimer.constants.UiConstants.BOTTOM_NAV_BAR_HEIGHT),
+            .height(UiConstants.BOTTOM_NAV_BAR_HEIGHT),
         color = Color.White,
         shadowElevation = 12.dp
     ) {
@@ -98,7 +99,7 @@ fun BottomNavBar(navController: NavHostController, modifier: Modifier = Modifier
             // 중앙을 기준으로 아이템 그룹을 배치하기 위해 Box로 감싼 내부 Row를 사용합니다.
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(kr.sweetapps.alcoholictimer.constants.UiConstants.BOTTOM_NAV_ITEM_GAP),
+                    horizontalArrangement = Arrangement.spacedBy(UiConstants.BOTTOM_NAV_ITEM_GAP),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     bottomItems.forEachIndexed { index, item ->
@@ -137,7 +138,7 @@ private fun BottomNavItem(
 
     Box(
         modifier = Modifier
-            .size(kr.sweetapps.alcoholictimer.constants.UiConstants.BOTTOM_NAV_ITEM_SIZE) // 고정 크기로 레이아웃 안정화
+            .size(UiConstants.BOTTOM_NAV_ITEM_SIZE) // 고정 크기로 레이아웃 안정화
             .clip(RoundedCornerShape(12.dp))
             .clickable(
                 interactionSource = interactionSource,
@@ -155,7 +156,7 @@ private fun BottomNavItem(
             painter = painterResource(id = item.iconRes),
             contentDescription = stringResource(id = item.contentDescriptionRes),
             tint = iconColor,
-            modifier = Modifier.size(kr.sweetapps.alcoholictimer.constants.UiConstants.BOTTOM_NAV_ICON_SIZE)
+            modifier = Modifier.size(UiConstants.BOTTOM_NAV_ICON_SIZE)
         )
     }
 }

@@ -11,7 +11,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
-import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.core.util.PercentUtils
 import java.util.*
 import kotlin.math.max
@@ -161,11 +160,11 @@ fun StatisticsCardsSection(
             }
         }
 
-        Spacer(modifier = Modifier.height(UiConstants.RECORDS_FIRST_CARD_EXTERNAL_GAP))
+        Spacer(modifier = Modifier.height(kr.sweetapps.alcoholictimer.ui.screens.RECORDS_FIRST_CARD_EXTERNAL_GAP))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(UiConstants.RECORDS_CARD_IN_ROW_SPACING)
+            horizontalArrangement = Arrangement.spacedBy(kr.sweetapps.alcoholictimer.ui.screens.RECORDS_CARD_IN_ROW_SPACING)
         ) {
             StatCard(title = "총 금주일", value = "${totalDays}일", modifier = Modifier.weight(1f))
             StatCard(title = "성공률", value = "${successRate}%", modifier = Modifier.weight(1f))
@@ -180,7 +179,7 @@ fun StatCard(
     value: String,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.padding(horizontal = UiConstants.RECORDS_CARD_HORIZONTAL_PADDING), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = modifier.padding(horizontal = kr.sweetapps.alcoholictimer.ui.screens.RECORDS_CARD_HORIZONTAL_PADDING), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = value, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = Color.Black)
         Text(text = title, style = MaterialTheme.typography.labelMedium, color = Color.Gray)
     }
