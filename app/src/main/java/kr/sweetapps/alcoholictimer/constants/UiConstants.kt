@@ -22,7 +22,7 @@ object UiConstants {
     val LEVEL_SCREEN_BOTTOM_PADDING: Dp = 20.dp
     // Records screen specific bottom padding. Previously code used safePadding + 12.dp; expose
     // a single constant so the Records screen can be controlled from one place.
-    val RECORDS_SCREEN_BOTTOM_PADDING: Dp = 1.dp
+    val RECORDS_SCREEN_BOTTOM_PADDING: Dp = 20.dp
 
     val START_BRAND_TITLE_TOP_GAP: Dp = 12.dp
     val START_BRAND_TITLE_BOTTOM_GAP: Dp = 12.dp

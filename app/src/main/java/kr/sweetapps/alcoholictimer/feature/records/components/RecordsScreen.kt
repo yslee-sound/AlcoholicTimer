@@ -316,11 +316,12 @@ fun RecordsScreen(
                     if (records.isNotEmpty()) {
                         item {
                             val viewAllText = stringResource(R.string.records_view_all, records.size)
+                            // 외부 padding 제거: 버튼은 리스트 항목 리듬에 따라 배치되고,
+                            // 내부 contentPadding으로 높이/터치 영역을 제어합니다.
                             Button(
                                 onClick = onNavigateToAllRecords,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp),
+                                modifier = Modifier.fillMaxWidth(),
+                                contentPadding = PaddingValues(vertical = 12.dp, horizontal = 16.dp),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.primary,
                                     contentColor = MaterialTheme.colorScheme.onPrimary
