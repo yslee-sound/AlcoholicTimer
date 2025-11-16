@@ -55,7 +55,8 @@ class LevelActivity : BaseActivity() {
             }
 
             // AdmobBanner centralized in MainActivity BaseScaffold during Phase-1 migration
-            BaseScreen(content = { LevelScreen() })
+            // We manage bottom area (safe insets) inside LevelScreen to avoid duplicated bottom spacer
+            BaseScreen(manageBottomAreaExternally = true, content = { LevelScreen() })
         }
     }
 
@@ -93,24 +94,45 @@ fun LevelScreen() {
     val levelDays = Constants.calculateLevelDays(totalElapsedTime)
     val currentLevel = LevelDefinitions.getLevelInfo(levelDays)
 
-    // BaseScreen에서 제공하는 하단 안전 패딩(LocalSafeContentPadding)을 그대로 소비
-    val safePadding = LocalSafeContentPadding.current
+    // BaseScreen에서 제공하는 하단 안전 패딩(LocalSafeContentPadding)을 분리해서 스크롤 영역 밖으로 뺌
+    // We'll rely on navigationBarsPadding() on the scroll content for consistent inset handling.
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .verticalScroll(rememberScrollState())
-            .padding(start = UiConstants.LEVEL_SCREEN_HORIZONTAL_PADDING, end = UiConstants.LEVEL_SCREEN_HORIZONTAL_PADDING, top = UiConstants.LEVEL_FIRST_CARD_EXTERNAL_GAP)
-            .padding(safePadding)
-            // 마지막 카드가 배너와 너무 붙지 않도록 내부 하단 여백 추가
-            .padding(bottom = 8.dp),
+            // Use surface for the screen background so the flat LevelListCard blends to the bottom
+            .background(MaterialTheme.colorScheme.surface),
         verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING)
     ) {
-        // 변경: float 경과 일수 전달
-        CurrentLevelCard(currentLevel = currentLevel, currentDays = levelDays, elapsedDaysFloat = totalElapsedDaysFloat, startTime = startTime)
-        LevelListCard(currentLevel = currentLevel, currentDays = levelDays)
-        // 하단 여백 추가 제거: BaseScreen이 safe area까지 처리
+        // Scrollable area (does NOT include safeBottom) — explicitly paint it with surface so it blends to bottom
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface)
+            .verticalScroll(rememberScrollState())
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = UiConstants.LEVEL_FIRST_CARD_EXTERNAL_GAP)
+                    .navigationBarsPadding(),
+                verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING)
+            ) {
+                // 변경: float 경과 일수 전달
+                // Only the top main card should have the horizontal screen padding; LevelListCard should span edge-to-edge.
+                CurrentLevelCard(
+                    currentLevel = currentLevel,
+                    currentDays = levelDays,
+                    elapsedDaysFloat = totalElapsedDaysFloat,
+                    startTime = startTime,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = UiConstants.LEVEL_SCREEN_HORIZONTAL_PADDING, end = UiConstants.LEVEL_SCREEN_HORIZONTAL_PADDING)
+                )
+                LevelListCard(currentLevel = currentLevel, currentDays = levelDays)
+            }
+        }
+
+        // No separate bottom band — nav inset is included as bottom padding inside the scroll area.
     }
 }
 
@@ -119,10 +141,11 @@ fun CurrentLevelCard(
     currentLevel: LevelDefinitions.LevelInfo,
     currentDays: Int,
     elapsedDaysFloat: Float,
-    startTime: Long
+    startTime: Long,
+    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    MainLevelCardFrame(modifier = Modifier.fillMaxWidth()) {
+    MainLevelCardFrame(modifier = modifier) {
         Column(
             modifier = Modifier
                 .padding(32.dp)
@@ -289,12 +312,12 @@ private fun ProgressToNextLevel(
 @Composable
 private fun LevelListCard(currentLevel: LevelDefinitions.LevelInfo, currentDays: Int) {
     val context = LocalContext.current
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-        border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
+    // Flat container: no rounded card, no elevation, no border.
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            // keep the visual grouping by using the surface color (flat, no corners)
+            .background(MaterialTheme.colorScheme.surface)
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
             Text(
