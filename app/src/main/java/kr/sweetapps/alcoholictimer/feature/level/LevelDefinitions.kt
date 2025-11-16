@@ -11,14 +11,15 @@ object LevelDefinitions {
     data class LevelInfo(val nameResId: Int, val start: Int, val end: Int, val color: Color)
 
     val levels = listOf(
-        LevelInfo(R.string.level_0, 0, 6, Color(0xFF4FC3F7)),      // 연한 하늘색
-        LevelInfo(R.string.level_1, 7, 13, Color(0xFF00ACC1)),    // 청록색
-        LevelInfo(R.string.level_2, 14, 29, Color(0xFF81C784)),   // 연두색
-        LevelInfo(R.string.level_3, 30, 59, Color(0xFF43A047)),   // 밝은 초록
-        LevelInfo(R.string.level_4, 60, 119, Color(0xFFFDD835)), // 노랑
-        LevelInfo(R.string.level_5, 120, 239, Color(0xFFFB8C00)),   // 주황
-        LevelInfo(R.string.level_6, 240, 364, Color(0xFFE53935)), // 빨강
-        LevelInfo(R.string.level_7, 365, Int.MAX_VALUE, Color(0xFF8E24AA)) // 보라
+        // Colors set to: 빨, 주, 노, 초, 파, 남, 보, 검정 (displayed as LV.1 .. LV.8)
+        LevelInfo(R.string.level_0, 0, 6, Color(0xFFE53935)),      // 빨 (red)
+        LevelInfo(R.string.level_1, 7, 13, Color(0xFFFB8C00)),     // 주 (orange)
+        LevelInfo(R.string.level_2, 14, 29, Color(0xFFFBC02D)),    // 노 (yellow)
+        LevelInfo(R.string.level_3, 30, 59, Color(0xFF43A047)),    // 초 (green)
+        LevelInfo(R.string.level_4, 60, 119, Color(0xFF1E88E5)),   // 파 (blue)
+        LevelInfo(R.string.level_5, 120, 239, Color(0xFF3949AB)),  // 남 (indigo/navy)
+        LevelInfo(R.string.level_6, 240, 364, Color(0xFF8E24AA)),  // 보 (purple)
+        LevelInfo(R.string.level_7, 365, Int.MAX_VALUE, Color(0xFF000000)) // 검정 (black)
     )
 
     fun getLevelName(context: Context, days: Int): String {
@@ -34,4 +35,3 @@ object LevelDefinitions {
         return levels.indexOfFirst { days in it.start..it.end }.takeIf { it >= 0 } ?: 0
     }
 }
-

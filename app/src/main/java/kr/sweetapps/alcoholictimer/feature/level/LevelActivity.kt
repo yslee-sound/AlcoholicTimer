@@ -21,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -172,21 +173,25 @@ fun CurrentLevelCard(
                 .testTag("main_level_card_content"),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(
-                modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
-                    .background(
-                        Brush.radialGradient(colors = listOf(currentLevel.color.copy(alpha = 0.8f), currentLevel.color))
-                    )
-                    .testTag("main_level_badge"),
-                contentAlignment = Alignment.Center
-            ) {
+            // Badge: increase font size and add optional visual effect for yellow badge
+            val badgeColor = currentLevel.color
+            val isYellowBadge = badgeColor == Color(0xFFFBC02D)
+            val badgeModifier = Modifier
+                .size(110.dp)
+                .then(if (isYellowBadge) Modifier.shadow(10.dp, CircleShape) else Modifier)
+                .clip(CircleShape)
+                .background(
+                    Brush.radialGradient(colors = listOf(badgeColor.copy(alpha = 0.85f), badgeColor))
+                )
+                .testTag("main_level_badge")
+
+            Box(modifier = badgeModifier, contentAlignment = Alignment.Center) {
                 val levelNumber = LevelDefinitions.getLevelNumber(currentDays) + 1
+                val badgeFontSize = if (isYellowBadge) 26.sp else 22.sp
                 Text(
                     text = "LV.$levelNumber",
                     style = MaterialTheme.typography.titleLarge.copy(color = Color.White, fontWeight = FontWeight.Bold),
-                    fontSize = 20.sp
+                    fontSize = badgeFontSize
                 )
             }
 
