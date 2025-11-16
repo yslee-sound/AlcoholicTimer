@@ -21,9 +21,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
@@ -176,23 +176,48 @@ fun CurrentLevelCard(
             // Badge: increase font size and add optional visual effect for yellow badge
             val badgeColor = currentLevel.color
             val isYellowBadge = badgeColor == Color(0xFFFBC02D)
-            val badgeModifier = Modifier
-                .size(110.dp)
-                .then(if (isYellowBadge) Modifier.shadow(10.dp, CircleShape) else Modifier)
-                .clip(CircleShape)
-                .background(
-                    Brush.radialGradient(colors = listOf(badgeColor.copy(alpha = 0.85f), badgeColor))
-                )
-                .testTag("main_level_badge")
-
-            Box(modifier = badgeModifier, contentAlignment = Alignment.Center) {
-                val levelNumber = LevelDefinitions.getLevelNumber(currentDays) + 1
-                val badgeFontSize = if (isYellowBadge) 26.sp else 22.sp
-                Text(
-                    text = "LV.$levelNumber",
-                    style = MaterialTheme.typography.titleLarge.copy(color = Color.White, fontWeight = FontWeight.Bold),
-                    fontSize = badgeFontSize
-                )
+            // Radial gradient blended slightly toward white at center (less washed) — remove extra highlight overlay
+            // Increased lerp values to make the badge gradient slightly brighter
+            // (was 0.20f / 0.08f -> now 0.35f / 0.18f)
+            val centerBlend = lerp(badgeColor, Color.White, 0.35f)
+            val midBlend = lerp(badgeColor, Color.White, 0.18f)
+            // Use a Surface to ensure shadow (elevation) is rendered for the badge itself.
+            // shadowElevation is applied to the Surface's outline, so the inner radial gradient can remain
+            // and the elevation will be visible regardless of badge color. Apply to all badges.
+            val badgeSize = 110.dp
+            // Add a small outer padding so the badge's shadow can render without being visually clipped
+            Box(modifier = Modifier.padding(6.dp)) {
+                Surface(
+                    modifier = Modifier.size(badgeSize).testTag("main_level_badge"),
+                    shape = CircleShape,
+                    // Use surface color (opaque) so elevation shadow draws consistently across devices
+                    color = MaterialTheme.colorScheme.surface,
+                    // Visible elevation; increase if you want a stronger cast
+                    shadowElevation = 12.dp,
+                    tonalElevation = 4.dp
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                            .background(
+                                Brush.radialGradient(
+                                    0.0f to centerBlend,
+                                    0.55f to midBlend,
+                                    1.0f to badgeColor
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val levelNumber = LevelDefinitions.getLevelNumber(currentDays) + 1
+                        val badgeFontSize = if (isYellowBadge) 26.sp else 22.sp
+                        Text(
+                            text = "LV.$levelNumber",
+                            style = MaterialTheme.typography.titleLarge.copy(color = Color.White, fontWeight = FontWeight.Bold),
+                            fontSize = badgeFontSize
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
