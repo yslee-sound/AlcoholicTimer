@@ -605,7 +605,7 @@ private fun PeriodStatisticsSection(
         // Image background (bg7) clipped to card shape, with subtle overlay to keep text legible
         Box(modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium)) {
             Image(
-                painter = painterResource(id = R.drawable.bg9),
+                painter = painterResource(id = R.drawable.bg11),
                 contentDescription = null,
                 modifier = Modifier
                     .matchParentSize()
@@ -744,7 +744,7 @@ private fun StatisticItem(
             .defaultMinSize(minHeight = 120.dp),
         shape = MaterialTheme.shapes.small,
         // Make the translucent black mask stronger for better contrast over the background
-        color = Color.Black.copy(alpha = 0.22f)
+        color = Color.Black.copy(alpha = 0.3f) // 0.22f
     ) {
         Column(
             modifier = Modifier
