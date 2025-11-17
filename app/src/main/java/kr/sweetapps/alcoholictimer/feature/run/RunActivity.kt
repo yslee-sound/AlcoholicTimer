@@ -102,6 +102,24 @@ fun RunScreenComposable(
     val savedHours = remember(weeks, freqVal, drinkHoursVal) { weeks * freqVal * (drinkHoursVal + Constants.DrinkingSettings.HANGOVER_HOURS) }
     val lifeGainDays = remember(elapsedDaysFloat) { elapsedDaysFloat / 30.0 }
 
+    // Debug: compute life gain explicitly (days + hours) with 1 decimal and log values
+    val formattedLifeGain = remember(lifeGainDays) {
+        val safe = if (lifeGainDays.isNaN() || lifeGainDays.isInfinite()) 0.0 else lifeGainDays.coerceAtLeast(0.0)
+        val dayPart = kotlin.math.floor(safe).toInt()
+        val frac = safe - dayPart
+        val hoursRaw = frac * 24.0
+        val hoursRounded = (kotlin.math.round(hoursRaw * 10.0) / 10.0)
+        val hourUnit = context.getString(R.string.unit_hour)
+        val dayUnit = context.getString(R.string.unit_day)
+        val out = if (dayPart == 0) {
+            String.format(Locale.getDefault(), "%.1f%s", hoursRounded, hourUnit)
+        } else {
+            String.format(Locale.getDefault(), "%d%s %.1f%s", dayPart, dayUnit, hoursRounded, hourUnit)
+        }
+        android.util.Log.d("LifeGainDebug", "elapsedDaysFloat=$elapsedDaysFloat lifeGainDays=$lifeGainDays hoursRaw=$hoursRaw hoursRounded=$hoursRounded formattedLifeGain=$out")
+        out
+    }
+
     val totalTargetMillis = (targetDays * Constants.DAY_IN_MILLIS).toLong()
     val progress = remember(elapsedMillis, totalTargetMillis) {
         if (totalTargetMillis > 0) (elapsedMillis.toFloat() / totalTargetMillis).coerceIn(0f, 1f) else 0f
@@ -184,7 +202,7 @@ fun RunScreenComposable(
                             1 -> Triple(stringResource(id = R.string.indicator_title_time), progressTimeText, colorResource(id = R.color.color_indicator_time))
                             2 -> Triple(stringResource(id = R.string.indicator_title_saved_money), FormatUtils.formatMoney(context, savedMoney).replace(" ", ""), colorResource(id = R.color.color_indicator_money))
                             3 -> Triple(stringResource(id = R.string.indicator_title_saved_hours), FormatUtils.formatHoursValue(savedHours), colorResource(id = R.color.color_indicator_hours))
-                            else -> Triple(stringResource(id = R.string.indicator_title_life_gain), FormatUtils.daysToDayHourString(context, lifeGainDays, 2), colorResource(id = R.color.color_indicator_life))
+                            else -> Triple(stringResource(id = R.string.indicator_title_life_gain), formattedLifeGain, colorResource(id = R.color.color_indicator_life))
                         }
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Box(modifier = Modifier.fillMaxWidth().height(labelBoxH), contentAlignment = Alignment.Center) {

@@ -163,9 +163,9 @@ fun DetailScreen(
     val lifeExpectancyIncrease = totalDays / 30.0
 
     // Preview-safe display strings for values that normally require Context/FormatUtils
-    val savedMoneyStr = if (!previewMode) FormatUtils.formatMoney(context, savedMoney.toDouble()) else "₩${savedMoney}"
-    val savedHoursStr = if (!previewMode) FormatUtils.formatHoursWithUnit(context, savedHoursExact) else "${savedHoursExact.roundToInt()}h"
-    val lifeGainStr = if (!previewMode) FormatUtils.daysToDayHourString(context, lifeExpectancyIncrease, 2) else String.format(Locale.getDefault(), "%.1f", lifeExpectancyIncrease) + " ${stringResource(id = R.string.unit_day)}"
+    val savedMoneyStr = if (!previewMode) kr.sweetapps.alcoholictimer.core.util.CurrencyManager.formatMoneyNoDecimals(savedMoney.toDouble(), context) else "₩${savedMoney}"
+    val savedHoursStr = if (!previewMode) FormatUtils.formatHoursWithUnitFixed(context, savedHoursExact, 1) else String.format(Locale.getDefault(), "%.1f%s", savedHoursExact, stringResource(id = R.string.unit_hour))
+    val lifeGainStr = if (!previewMode) FormatUtils.daysToDayHourStringFixed(context, lifeExpectancyIncrease, 1) else String.format(Locale.getDefault(), "%.1f %s", lifeExpectancyIncrease, stringResource(id = R.string.unit_day))
 
     // Keep topBar outside the fontScale override so its typography matches other screens.
     val navBottomRaw = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()

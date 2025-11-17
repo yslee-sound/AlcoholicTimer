@@ -47,3 +47,4 @@ app/build/
 all_objects.txt
 all_objs_checked.txt
 log_phase1_full.txt
+/build_debug_output.txt

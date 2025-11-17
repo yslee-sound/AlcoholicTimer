@@ -52,6 +52,26 @@ object CurrencyManager {
     }
 
     /**
+     * 금액을 소수점 없이 포맷합니다(예: 2206원 또는 $2,206).
+     * 화면 요구사항으로 소수점 표기가 없어야 할 때 사용합니다.
+     */
+    fun formatMoneyNoDecimals(amountInKRW: Double, context: Context): String {
+        val currency = getSelectedCurrency(context)
+        val converted = amountInKRW / currency.rate
+
+        return when (currency.code) {
+            "KRW" -> {
+                // 소수점 없이 표시하고 기호 추가
+                String.format(Locale.getDefault(), "%,.0f%s", converted, currency.symbol)
+            }
+            else -> {
+                // 다른 통화: 기호 + 소수점 없이
+                String.format(Locale.getDefault(), "%s%,.0f", currency.symbol, converted)
+            }
+        }
+    }
+
+    /**
      * 사용자가 선택한 통화 가져오기
      *
      * @param context Context
@@ -147,4 +167,3 @@ data class CurrencyOption(
     val rate: Double,           // KRW 기준 환율
     val decimalPlaces: Int = 0  // 소수점 자리수
 )
-

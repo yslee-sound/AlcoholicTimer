@@ -41,10 +41,16 @@ object FormatUtils {
             dayInt += 1
             hoursRounded = 0.0
         }
+        // Format numeric part with requested decimals and append localized unit strings
+        val hourUnit = context.getString(R.string.unit_hour)
+        val dayUnit = context.getString(R.string.unit_day)
+        val formattedHours = String.format(Locale.getDefault(), "%.${decimals}f", hoursRounded)
         return if (dayInt == 0) {
-            context.getString(R.string.unit_life_hours_only, hoursRounded)
+            // e.g., "1.2시간"
+            "$formattedHours$hourUnit"
         } else {
-            context.getString(R.string.unit_life_days_hours, dayInt, hoursRounded)
+            // e.g., "1일 1.2시간"
+            "$dayInt$dayUnit $formattedHours$hourUnit"
         }
     }
 
@@ -79,5 +85,21 @@ object FormatUtils {
     fun formatHoursWithUnit(context: Context, hours: Double): String {
         val num = formatHoursValue(hours, Locale.getDefault())
         return "$num${context.getString(R.string.unit_hour)}"
+    }
+
+    /**
+     * Format hours and append localized unit with fixed decimals
+     */
+    @JvmStatic
+    fun formatHoursWithUnitFixed(context: Context, hours: Double, decimals: Int = 1): String {
+        val safe = if (hours.isNaN() || hours.isInfinite()) 0.0 else hours.coerceAtLeast(0.0)
+        val scale = 10.0.pow(decimals)
+        val rounded = round(safe * scale) / scale
+        return String.format(Locale.getDefault(), "%.${decimals}f%s", rounded, context.getString(R.string.unit_hour))
+    }
+
+    @JvmStatic
+    fun daysToDayHourStringFixed(context: Context, days: Double, decimals: Int = 1): String {
+        return daysToDayHourString(context, days, decimals)
     }
 }
