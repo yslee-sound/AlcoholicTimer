@@ -223,7 +223,8 @@ fun AlcoholicTimerNavGraph(
                 targetDays = targetDays,
                 actualDays = actualDays,
                 isCompleted = isCompleted,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onDeleted = { recordsRefreshCounter = recordsRefreshCounter + 1 }
             )
         }
     }
