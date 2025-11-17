@@ -616,6 +616,7 @@ private fun PeriodStatisticsSection(
             )
 
             // subtle overlay (transparent -> white(0.8)) to ensure text contrast
+            val gradientEndY = with(LocalDensity.current) { 250.dp.toPx() } // 원하는 그라디언트 끝 위치 지정
             Box(
                 modifier = Modifier
                     .matchParentSize()
@@ -623,7 +624,7 @@ private fun PeriodStatisticsSection(
                         Brush.verticalGradient(
                             colors = listOf(Color.Transparent, Color.White.copy(alpha = 0.8f)),
                             startY = 0.0f,
-                            endY = Float.POSITIVE_INFINITY
+                            endY = gradientEndY
                         )
                     )
             )
