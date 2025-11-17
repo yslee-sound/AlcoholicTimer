@@ -22,8 +22,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
@@ -34,8 +36,8 @@ import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.core.ui.theme.AmberSecondaryLight
 import kr.sweetapps.alcoholictimer.core.ui.theme.BluePrimaryLight
 import kr.sweetapps.alcoholictimer.core.ui.predictAnchoredBannerHeightDp
-import kr.sweetapps.alcoholictimer.feature.detail.components.DetailStatCard
 import kr.sweetapps.alcoholictimer.core.util.FormatUtils
+import kr.sweetapps.alcoholictimer.core.ui.AppCard
 
 @Composable
 fun DetailScreen(
@@ -326,3 +328,35 @@ fun DetailScreen(
         }
     }
 }
+
+// --- Integrated DetailStatCard from feature.detail.components ---
+@Composable
+fun DetailStatCard(
+    value: String,
+    label: String,
+    modifier: Modifier = Modifier,
+    valueColor: Color = Color.Unspecified
+) {
+    AppCard(
+        modifier = modifier,
+        elevation = AppElevation.CARD,
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp)
+    ) {
+        val resolvedValueColor = if (valueColor != Color.Unspecified) valueColor else MaterialTheme.colorScheme.onSurface
+        Text(
+            text = value,
+            color = resolvedValueColor,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+            color = Color(0xFF718096),
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
