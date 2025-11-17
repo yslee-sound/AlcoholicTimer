@@ -2,7 +2,6 @@ package kr.sweetapps.alcoholictimer.feature.records.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
@@ -37,7 +36,7 @@ fun AllRecordsScreen(
     externalRefreshTrigger: Int = 0,
     onNavigateBack: () -> Unit = {},
     onNavigateToDetail: (SobrietyRecord) -> Unit = {},
-    fontScale: Float = 1.06f,
+    fontScale: Float = 1.0f,
     externalDeleteDialog: MutableState<Boolean>? = null
 ) {
     val context = LocalContext.current
