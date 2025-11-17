@@ -28,7 +28,6 @@ import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
 import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
-import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
 import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
@@ -46,6 +45,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.Brush
 
 // Records screen constants (migrated from UiConstants)
 val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 15.dp // 15
@@ -61,6 +63,9 @@ val RECORDS_HEADER_START_PADDING: Dp = 17.dp // 15 + 2, 월 통계 왼쪽
 val RECORDS_TOP_SECTION_EXTERNAL_GAP: Dp = 15.dp // 15, 월 통계 상단 패딩
 private val RECORDS_HEADER_TO_CARD_GAP = 0.dp  // removed gap between selection card and header
 private val RECORDS_CARD_INTERNAL_TOP_PADDING = 8.dp // 8, 3칩 그룹 내부 상단
+// Local elevation for the monthly statistics card (override the value below to adjust only this card).
+// Set it to 0.dp / 2.dp / 4.dp according to design tokens (0 = flat, 2 = normal card, 4 = high emphasis).
+val RECORDS_STATS_CARD_ELEVATION: Dp = 2.dp // <- change this number in this file to control this card's elevation
 // use RECORDS_TOP_SECTION_EXTERNAL_GAP to control top spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -424,7 +429,7 @@ private fun PeriodHeaderRow(onAddRecord: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurface
         )
         IconButton(onClick = onAddRecord) {
-            androidx.compose.foundation.Image(
+            Image(
                 painter = painterResource(id = R.drawable.ic_plus),
                 contentDescription = stringResource(R.string.records_add),
                 modifier = Modifier.size(24.dp)
@@ -590,13 +595,34 @@ private fun PeriodStatisticsSection(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
-        // Use solid white for the card background per request
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+        // Card container left transparent so image inside is visible (we still use elevation/border)
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        elevation = CardDefaults.cardElevation(defaultElevation = RECORDS_STATS_CARD_ELEVATION),
         border = androidx.compose.foundation.BorderStroke(AppBorder.Hairline, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
     ) {
-        // Plain white background for the card
-        Box(modifier = Modifier.fillMaxWidth().background(Color.White).clip(MaterialTheme.shapes.medium)) {
+        // Image background (bg7) clipped to card shape, with subtle overlay to keep text legible
+        Box(modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium)) {
+            Image(
+                painter = painterResource(id = R.drawable.bg3),
+                contentDescription = null,
+                modifier = Modifier.matchParentSize().clip(MaterialTheme.shapes.medium),
+                contentScale = ContentScale.Crop,
+                alignment = Alignment.TopStart
+            )
+
+            // subtle overlay (transparent -> white(0.8)) to ensure text contrast
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, Color.White.copy(alpha = 0.8f)),
+                            startY = 0.0f,
+                            endY = Float.POSITIVE_INFINITY
+                        )
+                    )
+            )
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -650,7 +676,7 @@ private fun PeriodStatisticsSection(
                 ) {
                     Text(
                         text = stringResource(R.string.records_total_days),
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
@@ -712,8 +738,8 @@ private fun StatisticItem(
             .fillMaxWidth()
             .defaultMinSize(minHeight = 120.dp),
         shape = MaterialTheme.shapes.small,
-        // Use a subtle translucent black background for the chips to ensure consistent look over image
-        color = Color.Black.copy(alpha = 0.10f)
+        // Make the translucent black mask stronger for better contrast over the background
+        color = Color.Black.copy(alpha = 0.22f)
     ) {
         Column(
             modifier = Modifier
@@ -740,7 +766,7 @@ private fun StatisticItem(
                     fontFeatureSettings = "tnum"
                 )
                 val unitStyle = base.copy(
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     fontSize = base.fontSize * 0.9f,
                     lineHeight = base.fontSize * 1.1f,
                     platformStyle = PlatformTextStyle(includeFontPadding = true)
@@ -751,10 +777,11 @@ private fun StatisticItem(
                     val num = m.groupValues[1]
                     val unit = m.groupValues[2]
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                        // Numeric value and unit should be white for contrast over the background image/overlay
                         AutoResizeSingleLineText(
                             text = num,
                             baseStyle = numStyle,
-                            color = color,
+                            color = Color.White,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.alignByBaseline().wrapContentWidth()
                         )
@@ -763,7 +790,7 @@ private fun StatisticItem(
                             Text(
                                 text = unit,
                                 style = unitStyle,
-                                color = color,
+                                color = Color.White,
                                 modifier = Modifier.alignByBaseline()
                             )
                         }
@@ -772,7 +799,7 @@ private fun StatisticItem(
                     AutoResizeSingleLineText(
                         text = value,
                         baseStyle = numStyle,
-                        color = color,
+                        color = Color.White,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -790,7 +817,8 @@ private fun StatisticItem(
                 val scaledLabelStyle = baseLabel.copy(
                     fontSize = scaledLabelFontSize,
                     lineHeight = scaledLabelFontSize * 1.28f,
-                    platformStyle = PlatformTextStyle(includeFontPadding = false)
+                    platformStyle = PlatformTextStyle(includeFontPadding = false),
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = title,
