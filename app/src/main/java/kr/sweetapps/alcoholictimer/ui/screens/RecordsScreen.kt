@@ -68,7 +68,7 @@ private val RECORDS_CARD_INTERNAL_TOP_PADDING = 8.dp // 8, 3칩 그룹 내부 �
 val RECORDS_STATS_CARD_ELEVATION: Dp = 2.dp // <- change this number in this file to control this card's elevation
 // Local bottom padding used for the Records screen list content (controls the space under the last item).
 // Change this value here to adjust the visible gap under the "View all records" button.
-val RECORDS_LIST_BOTTOM_PADDING: Dp = 0.dp // default: 15.dp (was UiConstants.CARD_VERTICAL_SPACING)
+val RECORDS_LIST_BOTTOM_PADDING: Dp = 15.dp // default: 15.dp (was UiConstants.CARD_VERTICAL_SPACING)
 // use RECORDS_TOP_SECTION_EXTERNAL_GAP to control top spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -338,9 +338,7 @@ fun RecordsScreen(
                     }
                 }
 
-                item {
-                    Spacer(modifier = Modifier.height(RECORDS_LIST_BOTTOM_PADDING))
-                }
+                // ... no terminal spacer here; bottom spacing is controlled by recordsContentPadding (RECORDS_LIST_BOTTOM_PADDING)
             }
 
             // 로딩 중일 때 스켈레톤 표시
