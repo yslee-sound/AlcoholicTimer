@@ -3,7 +3,6 @@
 package kr.sweetapps.alcoholictimer.ui.screens
 
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -44,13 +42,10 @@ import kotlin.math.max
 import kotlin.math.min
 import kr.sweetapps.alcoholictimer.core.util.PercentUtils
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.TransformOrigin
 
 // Records screen constants (migrated from UiConstants)
 val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 15.dp // 15
@@ -595,43 +590,13 @@ private fun PeriodStatisticsSection(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        // Use solid white for the card background per request
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
         border = androidx.compose.foundation.BorderStroke(AppBorder.Hairline, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
     ) {
-        // Make the card show the provided image as a background, then place the stats content on top
-        Box(modifier = Modifier.fillMaxWidth()) {
-            // background image stretched/cropped to card bounds
-            Image(
-                painter = painterResource(id = R.drawable.bg4),
-                contentDescription = null,
-                modifier = Modifier
-                    .matchParentSize()
-                    // scale image 1.5x and anchor transform to top-left so it appears zoomed from left
-                    .graphicsLayer {
-                        scaleX = 1.5f
-                        scaleY = 1.5f
-                        transformOrigin = TransformOrigin(0f, 0f)
-                    }
-                    .clip(MaterialTheme.shapes.medium),
-                contentScale = ContentScale.Crop,
-                alignment = Alignment.TopStart
-            )
-
-            // subtle overlay to darken bottom area so text remains legible
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)),
-                            startY = 0.0f,
-                            endY = Float.POSITIVE_INFINITY
-                        )
-                    )
-            )
-
-            // The original Column content (statistics) sits on top of the image+overlay
+        // Plain white background for the card
+        Box(modifier = Modifier.fillMaxWidth().background(Color.White).clip(MaterialTheme.shapes.medium)) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -657,7 +622,8 @@ private fun PeriodStatisticsSection(
                         valueScale = statsScale
                     )
                     StatisticItem(
-                        title = stringResource(R.string.records_avg_duration),
+                        // Show as two lines: "평균\n지속일"
+                        title = stringResource(R.string.records_avg_duration).replace(" ", "\n"),
                         value = "$averageDaysDisplay$dayUnit",
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f),
@@ -665,7 +631,8 @@ private fun PeriodStatisticsSection(
                         valueScale = statsScale
                     )
                     StatisticItem(
-                        title = stringResource(R.string.records_max_duration),
+                        // Show as two lines: "최대\n지속일"
+                        title = stringResource(R.string.records_max_duration).replace(" ", "\n"),
                         value = "$maxDaysDisplay$dayUnit",
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.weight(1f),
@@ -828,7 +795,7 @@ private fun StatisticItem(
                 Text(
                     text = title,
                     style = scaledLabelStyle,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White,
                     textAlign = TextAlign.Center,
                     maxLines = 2
                 )
