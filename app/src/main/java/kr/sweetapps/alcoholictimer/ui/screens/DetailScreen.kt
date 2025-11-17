@@ -4,13 +4,10 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,14 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.painterResource
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
@@ -42,6 +34,10 @@ import kr.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
 import androidx.compose.ui.tooling.preview.Preview
 import android.content.res.Configuration
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -171,38 +167,26 @@ fun DetailScreen(
     val savedHoursStr = if (!previewMode) FormatUtils.formatHoursWithUnit(context, savedHoursExact) else "${savedHoursExact.roundToInt()}h"
     val lifeGainStr = if (!previewMode) FormatUtils.daysToDayHourString(context, lifeExpectancyIncrease, 2) else String.format(Locale.getDefault(), "%.1f", lifeExpectancyIncrease) + " ${stringResource(id = R.string.unit_day)}"
 
-    val density = LocalDensity.current
-
     // Keep topBar outside the fontScale override so its typography matches other screens.
     val navBottomRaw = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val imeBottomRaw = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
 
     Scaffold(
         topBar = {
-            if (previewMode) {
-                // Use the real BackTopBar in preview with a safe static title to reflect actual styling
-                kr.sweetapps.alcoholictimer.core.ui.BackTopBar(
-                    title = "Detail",
-                    onBack = {},
-                    trailingContent = {
+            kr.sweetapps.alcoholictimer.core.ui.BackTopBar(
+                title = if (previewMode) "Detail" else stringResource(id = R.string.detail_title),
+                onBack = if (previewMode) ({}) else onBack,
+                trailingContent = {
+                    IconButton(onClick = { if (!previewMode) showDeleteDialog.value = true }) {
                         Icon(
-                            imageVector = Icons.Outlined.Delete,
-                            contentDescription = null,
+                            painter = painterResource(id = R.drawable.ic_x),
+                            contentDescription = if (previewMode) null else stringResource(id = R.string.dialog_delete_title),
                             tint = Color(0xFFE53E3E),
                             modifier = Modifier.size(24.dp)
                         )
                     }
-                )
-            } else {
-                kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = stringResource(id = R.string.detail_title), onBack = onBack, trailingContent = {
-                    Icon(
-                        imageVector = Icons.Outlined.Delete,
-                        contentDescription = stringResource(id = R.string.dialog_delete_title),
-                        tint = Color(0xFFE53E3E),
-                        modifier = Modifier.size(24.dp).clickable { showDeleteDialog.value = true }
-                    )
-                })
-            }
+                }
+            )
         },
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { paddingValues ->
@@ -493,7 +477,7 @@ fun DetailScreenPreviewSafeDark() {
 fun BackTopBarPreviewLight() {
     AlcoholicTimerTheme(darkTheme = false) {
         kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = "Detail", onBack = {}, trailingContent = {
-            Icon(imageVector = Icons.Outlined.Delete, contentDescription = null, tint = Color(0xFFE53E3E))
+            Icon(painter = painterResource(id = R.drawable.ic_x), contentDescription = null, tint = Color(0xFFE53E3E), modifier = Modifier.size(24.dp))
         })
     }
 }
@@ -503,7 +487,7 @@ fun BackTopBarPreviewLight() {
 fun BackTopBarPreviewDark() {
     AlcoholicTimerTheme(darkTheme = true) {
         kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = "Detail", onBack = {}, trailingContent = {
-            Icon(imageVector = Icons.Outlined.Delete, contentDescription = null, tint = Color(0xFFE53E3E))
+            Icon(painter = painterResource(id = R.drawable.ic_x), contentDescription = null, tint = Color(0xFFE53E3E), modifier = Modifier.size(24.dp))
         })
     }
 }

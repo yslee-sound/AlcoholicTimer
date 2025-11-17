@@ -11,24 +11,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import kr.sweetapps.alcoholictimer.R
+import kr.sweetapps.alcoholictimer.constants.UiConstants
+import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
+import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
+import kr.sweetapps.alcoholictimer.core.ui.BackTopBar
+import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
-import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import kr.sweetapps.alcoholictimer.R
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
-import kr.sweetapps.alcoholictimer.constants.UiConstants
-import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
-import kr.sweetapps.alcoholictimer.core.ui.BackTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,9 +85,10 @@ fun AllRecordsScreen(
                         enabled = !isLoading && records.isNotEmpty()
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.Close,
+                            painter = painterResource(id = kr.sweetapps.alcoholictimer.R.drawable.ic_x),
                             contentDescription = stringResource(id = R.string.cd_delete_all_records),
-                            tint = if (!isLoading && records.isNotEmpty()) Color(0xFFE53E3E) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                            tint = if (!isLoading && records.isNotEmpty()) Color(0xFFE53E3E) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }
