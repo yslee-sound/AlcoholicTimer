@@ -133,19 +133,14 @@ PR 생성 시:
 - 목적: 앱 간/화면 간 동일한 워터마크 크기와 투명도를 유지
 
 워터마크 표준
-- 아이콘 크기: 224dp (`WatermarkTokens.IconSize`)
-- 아이콘 투명도: 0.08 (`WatermarkTokens.IconAlpha`)
+- 아이콘 크기: 224dp (권장 값)
+- 아이콘 투명도: 0.08 (권장 값)
 - 사용 위치 예: 금주 설정 화면 중앙 워터마크
 
 사용 방법 (Jetpack Compose)
-- import: `import com.sweetapps.alcoholictimer.core.ui.WatermarkTokens`
+- import: (이전에는 `WatermarkTokens`를 사용했습니다; 현재는 리터럴을 직접 사용하세요)
 - 적용 예시:
-  - `modifier = Modifier.size(WatermarkTokens.IconSize).alpha(WatermarkTokens.IconAlpha)`
-
-가이드라인
-- 특별한 사유가 없다면 모든 화면에서 동일한 크기/투명도 사용
-- 태블릿/대화면에서도 동일 수치 유지 (디자인 의도: 크기 기준 통일성 우선)
-- 화면 레이아웃에 따라 아이콘이 다른 구성요소와 겹친다면 주변 패딩으로 조절할 것(크기 변경 금지)
+  - `modifier = Modifier.size(224.dp).alpha(0.08f)`
 
 ---
 문의/수정 필요 시: `core/ui/DesignTokens.kt` 와 본 문서를 동기화하세요.
