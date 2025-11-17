@@ -3,6 +3,7 @@
 package kr.sweetapps.alcoholictimer.ui.screens
 
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -45,9 +46,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.draw.clip
-import androidx.compose.foundation.Image
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
 
 // Records screen constants (migrated from UiConstants)
 val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 15.dp // 15
@@ -606,7 +607,10 @@ private fun PeriodStatisticsSection(
             Image(
                 painter = painterResource(id = R.drawable.bg8),
                 contentDescription = null,
-                modifier = Modifier.matchParentSize().clip(MaterialTheme.shapes.medium),
+                modifier = Modifier
+                    .matchParentSize()
+                    .scale(2.3f, 2.3f)
+                    .clip(MaterialTheme.shapes.medium),
                 contentScale = ContentScale.Crop,
                 alignment = Alignment.TopStart
             )
