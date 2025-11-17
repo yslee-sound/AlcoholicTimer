@@ -16,6 +16,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.constants.UiConstants
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.runtime.CompositionLocalProvider
 
 /**
  * 공통 탑바: 왼쪽 백 아이콘 영역(고정 터치 크기)과 타이틀의 시작 패딩을 UiConstants로 통일합니다.
@@ -49,12 +52,17 @@ fun BackTopBar(
             )
         }
 
-        androidx.compose.material3.Text(
-            text = title,
-            color = titleColor,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold),
-            modifier = Modifier.align(Alignment.CenterStart).padding(start = UiConstants.BackIconStartPadding)
-        )
+        // Force the title Text to render with system font scale (1.0) so surrounding
+        // CompositionLocalProvider fontScale changes do not affect top-bar typography.
+        val density = LocalDensity.current
+        CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1f)) {
+            androidx.compose.material3.Text(
+                text = title,
+                color = titleColor,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold),
+                modifier = Modifier.align(Alignment.CenterStart).padding(start = UiConstants.BackIconStartPadding)
+            )
+        }
 
         if (trailingContent != null) {
             Box(modifier = Modifier.align(Alignment.CenterEnd).padding(end = 8.dp)) {

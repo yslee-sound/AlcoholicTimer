@@ -67,37 +67,39 @@ fun AllRecordsScreen(
     LaunchedEffect(retryTrigger) { loadRecords() }
     LaunchedEffect(externalRefreshTrigger) { loadRecords() }
 
-    CompositionLocalProvider(
-        LocalDensity provides Density(
-            density = LocalDensity.current.density,
-            fontScale = LocalDensity.current.fontScale * fontScale
-        )
+    // Keep BackTopBar outside fontScale override so its title uses system font scale
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-        ) {
-            // 상단 공통 BackTopBar: 뒤로가기 및 삭제 버튼(옵션)을 오른쪽에 배치
-            BackTopBar(
-                title = stringResource(id = R.string.all_records_title),
-                onBack = onNavigateBack,
-                trailingContent = if (externalDeleteDialog == null) {
-                    {
-                        IconButton(
-                            onClick = { dialogState.value = true },
-                            enabled = !isLoading && records.isNotEmpty()
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Close,
-                                contentDescription = stringResource(id = R.string.cd_delete_all_records),
-                                tint = if (!isLoading && records.isNotEmpty()) Color(0xFFE53E3E) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                            )
-                        }
+        // 상단 공통 BackTopBar: 뒤로가기 및 삭제 버튼(옵션)을 오른쪽에 배치
+        BackTopBar(
+            title = stringResource(id = R.string.all_records_title),
+            onBack = onNavigateBack,
+            trailingContent = if (externalDeleteDialog == null) {
+                {
+                    IconButton(
+                        onClick = { dialogState.value = true },
+                        enabled = !isLoading && records.isNotEmpty()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Close,
+                            contentDescription = stringResource(id = R.string.cd_delete_all_records),
+                            tint = if (!isLoading && records.isNotEmpty()) Color(0xFFE53E3E) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                        )
                     }
-                } else null
-            )
+                }
+            } else null
+        )
 
+        // Apply fontScale only to the body content below the TopBar
+        CompositionLocalProvider(
+            LocalDensity provides Density(
+                density = LocalDensity.current.density,
+                fontScale = LocalDensity.current.fontScale * fontScale
+            )
+        ) {
             when {
                 isLoading -> {
                     Box(
