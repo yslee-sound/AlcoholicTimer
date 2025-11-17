@@ -43,8 +43,15 @@ import android.util.Log
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import androidx.compose.foundation.BorderStroke
 import kr.sweetapps.alcoholictimer.constants.UiConstants
-import kr.sweetapps.alcoholictimer.core.ui.components.MainLevelCardFrame
 import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.annotation.DrawableRes
+import kr.sweetapps.alcoholictimer.core.ui.AppColors
+import kr.sweetapps.alcoholictimer.core.ui.AppCard
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.unit.Dp
 
 class LevelActivity : BaseActivity() {
 
@@ -147,6 +154,46 @@ fun LevelScreen() {
             // No separate bottom band — nav inset is included as bottom padding inside the scroll area.
         }
     } // end CompositionLocalProvider override
+}
+
+@Composable
+fun MainLevelCardFrame(
+    modifier: Modifier = Modifier,
+    @DrawableRes backgroundRes: Int? = null,
+    backgroundAlpha: Float = 1.0f,
+    backgroundContentScale: ContentScale = ContentScale.Crop,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    val cardContainerColor = if (backgroundRes != null) Color.Transparent else AppColors.SurfaceOverlaySoft
+
+    AppCard(
+        modifier = modifier,
+        elevation = AppElevation.CARD_HIGH,
+        shape = RoundedCornerShape(16.dp),
+        containerColor = cardContainerColor,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        contentPadding = PaddingValues(0.dp),
+        border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
+    ) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            // 배경 이미지는 카드 내부 전체를 채우도록 (그대로) 표시
+            if (backgroundRes != null) {
+                Image(
+                    painter = painterResource(id = backgroundRes),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .matchParentSize()
+                        .scale(1.15f)
+                        .clip(RoundedCornerShape(16.dp)),
+                    contentScale = backgroundContentScale,
+                    alignment = Alignment.TopCenter,
+                    alpha = backgroundAlpha
+                )
+            }
+
+            Column(content = content)
+        }
+    }
 }
 
 @Composable
