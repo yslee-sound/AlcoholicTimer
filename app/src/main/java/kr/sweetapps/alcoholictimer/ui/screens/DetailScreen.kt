@@ -181,7 +181,7 @@ fun DetailScreen(
                         Icon(
                             painter = painterResource(id = R.drawable.ic_x),
                             contentDescription = if (previewMode) null else stringResource(id = R.string.dialog_delete_title),
-                            tint = Color(0xFFE53E3E),
+                            tint = Color.Black,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -477,7 +477,7 @@ fun DetailScreenPreviewSafeDark() {
 fun BackTopBarPreviewLight() {
     AlcoholicTimerTheme(darkTheme = false) {
         kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = "Detail", onBack = {}, trailingContent = {
-            Icon(painter = painterResource(id = R.drawable.ic_x), contentDescription = null, tint = Color(0xFFE53E3E), modifier = Modifier.size(24.dp))
+            Icon(painter = painterResource(id = R.drawable.ic_x), contentDescription = null, tint = Color.Black, modifier = Modifier.size(24.dp))
         })
     }
 }
@@ -487,7 +487,7 @@ fun BackTopBarPreviewLight() {
 fun BackTopBarPreviewDark() {
     AlcoholicTimerTheme(darkTheme = true) {
         kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = "Detail", onBack = {}, trailingContent = {
-            Icon(painter = painterResource(id = R.drawable.ic_x), contentDescription = null, tint = Color(0xFFE53E3E), modifier = Modifier.size(24.dp))
+            Icon(painter = painterResource(id = R.drawable.ic_x), contentDescription = null, tint = Color.Black, modifier = Modifier.size(24.dp))
         })
     }
 }

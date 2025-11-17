@@ -87,7 +87,7 @@ fun AllRecordsScreen(
                         Icon(
                             painter = painterResource(id = kr.sweetapps.alcoholictimer.R.drawable.ic_x),
                             contentDescription = stringResource(id = R.string.cd_delete_all_records),
-                            tint = if (!isLoading && records.isNotEmpty()) Color(0xFFE53E3E) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                            tint = if (!isLoading && records.isNotEmpty()) Color.Black else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                             modifier = Modifier.size(24.dp)
                         )
                     }
