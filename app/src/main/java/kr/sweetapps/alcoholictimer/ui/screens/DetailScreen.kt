@@ -38,7 +38,12 @@ import kr.sweetapps.alcoholictimer.core.ui.theme.BluePrimaryLight
 import kr.sweetapps.alcoholictimer.core.ui.predictAnchoredBannerHeightDp
 import kr.sweetapps.alcoholictimer.core.util.FormatUtils
 import kr.sweetapps.alcoholictimer.core.ui.AppCard
+import kr.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
+import androidx.compose.ui.tooling.preview.Preview
+import android.content.res.Configuration
+import androidx.compose.material3.ExperimentalMaterial3Api
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScreen(
     startTime: Long,
@@ -48,7 +53,8 @@ fun DetailScreen(
     isCompleted: Boolean,
     onBack: () -> Unit,
     onDelete: ((Long, Long) -> Unit)? = null,
-    onDeleted: (() -> Unit)? = null
+    onDeleted: (() -> Unit)? = null,
+    previewMode: Boolean = false
 ) {
     val context = LocalContext.current
     // Internal delete implementation (merged from old feature/detail) as a local function
@@ -101,6 +107,10 @@ fun DetailScreen(
     val accentColor = if (isCompleted) BluePrimaryLight else AmberSecondaryLight
 
     var shouldHideBanner by remember { mutableStateOf(false) } // DebugAdHelper removed: banner is always shown (supabase remote control handles visibility)
+    // If previewMode requested, hide banners and simplify inset calculations to avoid preview crashes
+    if (previewMode) {
+        shouldHideBanner = true
+    }
 
     val dateTimeFormat = remember {
         SimpleDateFormat(
@@ -128,33 +138,72 @@ fun DetailScreen(
     val totalHours = totalDurationMillis / (60 * 60 * 1000.0)
     val totalDays = totalHours / 24.0
 
-    val (selectedCost, selectedFrequency, selectedDuration) = kr.sweetapps.alcoholictimer.constants.Constants.getUserSettings(context)
-    val costVal = kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.getCostValue(selectedCost)
-    val freqVal = kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.getFrequencyValue(selectedFrequency)
-    val drinkHoursVal = kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.getDurationValue(selectedDuration)
-    val hangoverHoursVal = kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.HANGOVER_HOURS
+    // guard platform/runtime-dependent settings for preview safety
+    val selectedCost: String
+    val selectedFrequency: String
+    val selectedDuration: String
+    if (!previewMode) {
+        val settings = kr.sweetapps.alcoholictimer.constants.Constants.getUserSettings(context)
+        selectedCost = settings.first
+        selectedFrequency = settings.second
+        selectedDuration = settings.third
+    } else {
+        // preview defaults
+        selectedCost = "0"
+        selectedFrequency = "0"
+        selectedDuration = "0"
+    }
+
+    // Numeric values for calculations (ensure correct numeric types)
+    val costVal: Int = if (!previewMode) kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.getCostValue(selectedCost) else 1000
+    val freqVal: Double = if (!previewMode) kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.getFrequencyValue(selectedFrequency) else 1.0
+    val drinkHoursVal: Double = if (!previewMode) kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.getDurationValue(selectedDuration) else 3.0
+    val hangoverHoursVal: Double = kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.HANGOVER_HOURS
 
     val exactWeeks = totalHours / (24.0 * 7.0)
-    val savedMoney = (exactWeeks * freqVal * costVal).roundToInt()
+    val savedMoney = (exactWeeks * freqVal * costVal.toDouble()).roundToInt()
     val savedHoursExact = (exactWeeks * freqVal * (drinkHoursVal + hangoverHoursVal))
     val achievementRate = ((totalDays / targetDays) * 100.0).coerceAtMost(100.0)
     val lifeExpectancyIncrease = totalDays / 30.0
 
+    // Preview-safe display strings for values that normally require Context/FormatUtils
+    val savedMoneyStr = if (!previewMode) FormatUtils.formatMoney(context, savedMoney.toDouble()) else "₩${savedMoney}"
+    val savedHoursStr = if (!previewMode) FormatUtils.formatHoursWithUnit(context, savedHoursExact) else "${savedHoursExact.roundToInt()}h"
+    val lifeGainStr = if (!previewMode) FormatUtils.daysToDayHourString(context, lifeExpectancyIncrease, 2) else String.format(Locale.getDefault(), "%.1f", lifeExpectancyIncrease) + " ${stringResource(id = R.string.unit_day)}"
+
     val density = LocalDensity.current
     CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = density.fontScale * 0.9f)) {
-        val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-        val imeBottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
-        val effectiveBottom = maxOf(navBottom, imeBottom)
+        val navBottom = if (previewMode) 0.dp else WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+        val imeBottom = if (previewMode) 0.dp else WindowInsets.ime.asPaddingValues().calculateBottomPadding()
+        val effectiveBottom = if (previewMode) 0.dp else maxOf(navBottom, imeBottom)
 
         Scaffold(
-            topBar = { kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = stringResource(id = R.string.detail_title), onBack = onBack, trailingContent = {
-                Icon(
-                    imageVector = Icons.Outlined.Delete,
-                    contentDescription = stringResource(id = R.string.dialog_delete_title),
-                    tint = Color(0xFFE53E3E),
-                    modifier = Modifier.size(24.dp).clickable { showDeleteDialog.value = true }
-                )
-            }) },
+            topBar = {
+                if (previewMode) {
+                    // Use the real BackTopBar in preview with a safe static title to reflect actual styling
+                    kr.sweetapps.alcoholictimer.core.ui.BackTopBar(
+                        title = "Detail",
+                        onBack = {},
+                        trailingContent = {
+                            Icon(
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription = null,
+                                tint = Color(0xFFE53E3E),
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    )
+                } else {
+                    kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = stringResource(id = R.string.detail_title), onBack = onBack, trailingContent = {
+                        Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = stringResource(id = R.string.dialog_delete_title),
+                            tint = Color(0xFFE53E3E),
+                            modifier = Modifier.size(24.dp).clickable { showDeleteDialog.value = true }
+                        )
+                    })
+                }
+            },
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         ) { paddingValues ->
             Column(modifier = Modifier
@@ -257,7 +306,7 @@ fun DetailScreen(
                             valueColor = colorResource(id = R.color.color_indicator_days)
                         )
                         DetailStatCard(
-                            value = FormatUtils.formatMoney(context, savedMoney.toDouble()),
+                            value = savedMoneyStr,
                             label = stringResource(id = R.string.stat_saved_money_short),
                             modifier = Modifier.weight(1f),
                             valueColor = colorResource(id = R.color.color_indicator_money)
@@ -269,13 +318,13 @@ fun DetailScreen(
                         horizontalArrangement = Arrangement.spacedBy(UiConstants.STAT_ROW_SPACING)
                     ) {
                         DetailStatCard(
-                            value = FormatUtils.formatHoursWithUnit(context, savedHoursExact),
+                            value = savedHoursStr,
                             label = stringResource(id = R.string.stat_saved_hours_short),
                             modifier = Modifier.weight(1f),
                             valueColor = colorResource(id = R.color.color_indicator_hours)
                         )
                         DetailStatCard(
-                            value = FormatUtils.daysToDayHourString(context, lifeExpectancyIncrease, 2),
+                            value = lifeGainStr,
                             label = stringResource(id = R.string.indicator_title_life_gain),
                             modifier = Modifier.weight(1f),
                             valueColor = colorResource(id = R.color.color_indicator_life)
@@ -295,7 +344,7 @@ fun DetailScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp)
                             .padding(bottom = effectiveBottom)
-                            .height(predictAnchoredBannerHeightDp()),
+                            .height(if (previewMode) 56.dp else predictAnchoredBannerHeightDp()),
                         contentAlignment = Alignment.Center
                     ) { /* AdmobBanner centralized - no-op */ }
                 }
@@ -360,3 +409,97 @@ fun DetailStatCard(
     }
 }
 
+@Preview(showBackground = true, name = "DetailScreen - Light")
+@Composable
+fun DetailScreenPreviewLight() {
+    AlcoholicTimerTheme(darkTheme = false) {
+        DetailScreen(
+            startTime = System.currentTimeMillis() - 3L * 24L * 60L * 60L * 1000L,
+            endTime = System.currentTimeMillis(),
+            targetDays = 30f,
+            actualDays = 3,
+            isCompleted = false,
+            onBack = {},
+            onDelete = { _, _ -> /* no-op in preview */ },
+            onDeleted = {},
+            previewMode = true
+        )
+    }
+}
+
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, name = "DetailScreen - Dark")
+@Composable
+fun DetailScreenPreviewDark() {
+    AlcoholicTimerTheme(darkTheme = true) {
+        DetailScreen(
+            startTime = System.currentTimeMillis() - 45L * 24L * 60L * 60L * 1000L,
+            endTime = System.currentTimeMillis(),
+            targetDays = 90f,
+            actualDays = 45,
+            isCompleted = true,
+            onBack = {},
+            onDelete = { _, _ -> },
+            onDeleted = {},
+            previewMode = true
+        )
+    }
+}
+
+// A very safe preview that avoids any Android runtime APIs and uses static strings.
+@Preview(showBackground = true, name = "DetailScreen - Safe Light")
+@Composable
+fun DetailScreenPreviewSafeLight() {
+    AlcoholicTimerTheme(darkTheme = false) {
+        Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+            // Header card
+            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(text = "Start: 2025-11-14 - 3:00 PM", style = MaterialTheme.typography.bodyLarge)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = "End: 2025-11-17 - 11:00 AM", style = MaterialTheme.typography.bodyLarge)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(text = "3.0", style = MaterialTheme.typography.displayLarge, color = Color(0xFF1E88E5))
+                    Text(text = "days", style = MaterialTheme.typography.titleLarge)
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                DetailStatCard(value = "3.0", label = "Total Days", modifier = Modifier.weight(1f), valueColor = Color(0xFF2E7D32))
+                DetailStatCard(value = "₩3,000", label = "Saved", modifier = Modifier.weight(1f), valueColor = Color(0xFF1E88E5))
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                DetailStatCard(value = "9h", label = "Saved Hours", modifier = Modifier.weight(1f), valueColor = Color(0xFFFBC02D))
+                DetailStatCard(value = "1.5d", label = "Life Gain", modifier = Modifier.weight(1f), valueColor = Color(0xFF6B46C1))
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, name = "DetailScreen - Safe Dark")
+@Composable
+fun DetailScreenPreviewSafeDark() {
+    AlcoholicTimerTheme(darkTheme = true) {
+        DetailScreenPreviewSafeLight()
+    }
+}
+
+@Preview(showBackground = true, name = "BackTopBar - Light")
+@Composable
+fun BackTopBarPreviewLight() {
+    AlcoholicTimerTheme(darkTheme = false) {
+        kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = "Detail", onBack = {}, trailingContent = {
+            Icon(imageVector = Icons.Outlined.Delete, contentDescription = null, tint = Color(0xFFE53E3E))
+        })
+    }
+}
+
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, name = "BackTopBar - Dark")
+@Composable
+fun BackTopBarPreviewDark() {
+    AlcoholicTimerTheme(darkTheme = true) {
+        kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = "Detail", onBack = {}, trailingContent = {
+            Icon(imageVector = Icons.Outlined.Delete, contentDescription = null, tint = Color(0xFFE53E3E))
+        })
+    }
+}
