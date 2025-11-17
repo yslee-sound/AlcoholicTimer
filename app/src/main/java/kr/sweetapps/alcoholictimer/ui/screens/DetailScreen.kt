@@ -39,6 +39,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+// Local layout constants for DetailScreen (tweak here to change paddings)
+private val DETAIL_CARD_TOP_PADDING = 15.dp
+private val DETAIL_CARD_HORIZONTAL_PADDING = 15.dp
+private val DETAIL_CARD_CONTENT_PADDING = 20.dp // 20
+private val DETAIL_CARD_VERTICAL_SPACING = 15.dp
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScreen(
@@ -205,9 +211,9 @@ fun DetailScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
-            ) {
-                Spacer(modifier = Modifier.height(24.dp))
+                    .padding(start = DETAIL_CARD_HORIZONTAL_PADDING, end = DETAIL_CARD_HORIZONTAL_PADDING)
+                 ) {
+                Spacer(modifier = Modifier.height(DETAIL_CARD_TOP_PADDING))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -215,7 +221,7 @@ fun DetailScreen(
                     elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
                     border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
                 ) {
-                    Column(modifier = Modifier.padding(20.dp)) {
+                    Column(modifier = Modifier.padding(DETAIL_CARD_CONTENT_PADDING)) {
                         Text(
                             text = "${stringResource(id = R.string.detail_start_label)} $displayDateTime",
                             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
@@ -283,7 +289,7 @@ fun DetailScreen(
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(DETAIL_CARD_VERTICAL_SPACING))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(UiConstants.STAT_ROW_SPACING)
@@ -301,7 +307,7 @@ fun DetailScreen(
                         valueColor = colorResource(id = R.color.color_indicator_money)
                     )
                 }
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(DETAIL_CARD_VERTICAL_SPACING))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(UiConstants.STAT_ROW_SPACING)
