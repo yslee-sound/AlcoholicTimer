@@ -17,7 +17,7 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import kr.sweetapps.alcoholictimer.feature.about.AboutLicensesScreen
 import kr.sweetapps.alcoholictimer.feature.about.AboutScreen
-import kr.sweetapps.alcoholictimer.feature.detail.DetailScreen
+import kr.sweetapps.alcoholictimer.ui.screens.DetailScreen
 import kr.sweetapps.alcoholictimer.feature.level.LevelScreen
 import kr.sweetapps.alcoholictimer.feature.records.components.AllRecordsScreen
 import kr.sweetapps.alcoholictimer.ui.screens.RecordsScreen

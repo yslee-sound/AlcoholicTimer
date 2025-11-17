@@ -1,7 +1,7 @@
 package kr.sweetapps.alcoholictimer.ui.screens
 
-import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
-import androidx.core.content.edit
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
@@ -46,9 +45,56 @@ fun DetailScreen(
     actualDays: Int,
     isCompleted: Boolean,
     onBack: () -> Unit,
-    onDelete: (Long, Long) -> Unit = { _, _ -> }
+    onDelete: ((Long, Long) -> Unit)? = null,
+    onDeleted: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
+    // Internal delete implementation (merged from old feature/detail) as a local function
+    fun deleteImpl(s: Long, e: Long) {
+        Log.d("DetailScreen", "deleteImpl called for start=${s} end=${e}")
+        val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+        val jsonString = sharedPref.getString("sobriety_records", null)
+        if (jsonString == null) {
+            Log.d("DetailScreen", "no sobriety_records found in sharedPref")
+            return
+        }
+        try {
+            Log.d("DetailScreen", "currentRecordsJson=${jsonString}")
+            val originalArray = org.json.JSONArray(jsonString)
+            val newArray = org.json.JSONArray()
+            var removed = 0
+            for (i in 0 until originalArray.length()) {
+                val obj = originalArray.getJSONObject(i)
+                val sv = obj.optLong("startTime", obj.optLong("start_time", -1))
+                val ev = obj.optLong("endTime", obj.optLong("end_time", -1))
+                if (sv == s && ev == e) {
+                    removed++
+                    Log.d("DetailScreen", "matched and removing index=${i} sv=${sv} ev=${ev}")
+                } else {
+                    newArray.put(obj)
+                }
+            }
+            if (removed > 0) {
+                val committed = sharedPref.edit().putString("sobriety_records", newArray.toString()).commit()
+                Log.d("DetailScreen", "removed=${removed} committed=${committed} remainingLen=${newArray.length()}")
+                if (!committed) {
+                    Log.e("DetailScreen", "SharedPreferences.commit() failed")
+                    Toast.makeText(context, "기록 삭제 실패(저장 오류)", Toast.LENGTH_SHORT).show()
+                } else {
+                    try { onDeleted?.invoke() } catch (_: Exception) {}
+                    Toast.makeText(context, "기록이 삭제되었습니다", Toast.LENGTH_SHORT).show()
+                }
+                val afterJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
+                Log.d("DetailScreen", "afterRecordsJson=${afterJson}")
+            } else {
+                Log.d("DetailScreen", "no matching record removed (removed=0)")
+                Toast.makeText(context, "삭제할 기록을 찾을 수 없습니다", Toast.LENGTH_SHORT).show()
+            }
+        } catch (ex: Exception) {
+            Log.e("DetailScreen", "기록 삭제 중 오류", ex)
+        }
+    }
+
     val showDeleteDialog = remember { mutableStateOf(false) }
     val accentColor = if (isCompleted) BluePrimaryLight else AmberSecondaryLight
 
@@ -262,7 +308,9 @@ fun DetailScreen(
                 text = { Text(text = stringResource(id = R.string.dialog_delete_message), style = MaterialTheme.typography.bodyLarge) },
                 confirmButton = {
                     TextButton(onClick = {
-                        onDelete(startTime, endTime)
+                        // prefer caller-provided deletion; otherwise use internal deleteImpl which will call onDeleted
+                        val action: (Long, Long) -> Unit = onDelete ?: { a, b -> deleteImpl(a, b) }
+                        action(startTime, endTime)
                         // no need to set showDeleteDialog false before navigating back
                         onBack()
                     }) {
