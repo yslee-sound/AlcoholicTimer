@@ -43,7 +43,6 @@ import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.navigation.Screen
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
-import kr.sweetapps.alcoholictimer.constants.UiConstants
 
 @Composable
 fun RunScreenComposable(
@@ -54,7 +53,7 @@ fun RunScreenComposable(
     val context = LocalContext.current
 
     // Local layout constants for RunScreen — keep local to avoid changing global constants
-    val RUN_TOP_GROUP_TOP_PADDING = 0.dp            // vertical padding above top stat chips
+    val RUN_TOP_GROUP_TOP_PADDING = 15.dp            // vertical padding above top stat chips
     // Unified horizontal padding for the whole Run screen. Use this single constant to keep card widths consistent.
     val RUN_HORIZONTAL_PADDING = 0.dp               // (was RUN_TOP_GROUP_HORIZONTAL_PADDING)
     // 분리된 로컬 상수: 상단 그룹과 첫 카드 사이, 카드와 프로그레스 카드 사이
@@ -73,7 +72,8 @@ fun RunScreenComposable(
     // Per-chip horizontal alignment (left / center / right)
     val runStatAlignments = listOf(Alignment.Start, Alignment.CenterHorizontally, Alignment.End)
     // Local spacing for the top stat chips so the spacing can be tuned per-screen
-    val RUN_STAT_CHIP_SPACING = UiConstants.RUN_STAT_CHIP_SPACING
+    // Detached from UiConstants: kept local so this file controls spacing independently
+    val RUN_STAT_CHIP_SPACING = 0.dp
 
     BackHandler(enabled = true) {
         // NavHost 내에서는 뒤로가기를 소비해 백그라운드 이동 대신 유지
@@ -207,7 +207,7 @@ fun RunScreenComposable(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = RUN_TOP_GROUP_TOP_PADDING, horizontal = RUN_HORIZONTAL_PADDING),
-                    horizontalArrangement = Arrangement.spacedBy(UiConstants.RUN_STAT_CHIP_SPACING)
+                    horizontalArrangement = Arrangement.spacedBy(RUN_STAT_CHIP_SPACING)
                 ) {
                     RunStatChip(title = stringResource(id = R.string.stat_goal_days), value = goalDaysText, color = colorResource(id = R.color.color_stat_goal), modifier = Modifier.weight(1f), darkBackground = true, contentAlignment = runStatAlignments[0])
                     RunStatChip(title = stringResource(id = R.string.stat_level), value = levelDisplayText, color = levelInfo.color, modifier = Modifier.weight(1f), darkBackground = true, contentAlignment = runStatAlignments[1])
