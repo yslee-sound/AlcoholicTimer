@@ -54,14 +54,26 @@ fun RunScreenComposable(
     val context = LocalContext.current
 
     // Local layout constants for RunScreen — keep local to avoid changing global constants
-    val RUN_TOP_GROUP_TOP_PADDING = 0.dp            // 8
-    val RUN_TOP_GROUP_HORIZONTAL_PADDING = 0.dp     // 16
+    val RUN_TOP_GROUP_TOP_PADDING = 0.dp            // vertical padding above top stat chips
+    // Unified horizontal padding for the whole Run screen. Use this single constant to keep card widths consistent.
+    val RUN_HORIZONTAL_PADDING = 0.dp               // (was RUN_TOP_GROUP_HORIZONTAL_PADDING)
     // 분리된 로컬 상수: 상단 그룹과 첫 카드 사이, 카드와 프로그레스 카드 사이
     val RUN_CARDS_VERTICAL_SPACING_TOP = 0.dp      // 이전 RUN_CARDS_VERTICAL_SPACING (상단 그룹과 첫 카드 사이)
     val RUN_CARDS_VERTICAL_SPACING_BETWEEN = 0.dp  // 이전 RUN_CARDS_VERTICAL_SPACING (카드와 프로그레스 카드 사이)
 
+    // Progress card padding controls
+    // 외부 여백: 프로그레스 카드 주변의 외부 마진(기본 0으로 설정하여 외부 여백 없음)
+    val RUN_PROGRESS_OUTER_PADDING = 0.dp
+    // 카드 내부의 컨텐츠 수평 패딩은 화면 전체의 가로 패딩과 동일하게 관리
+    val RUN_CARD_CONTENT_HORIZONTAL_PADDING = RUN_HORIZONTAL_PADDING
+    // 카드 내부의 수직 패딩은 별도 상수(기존 12.dp 유지)
+    // 내부 수직 패딩을 0으로 하면 흰색 패널(Progress Surface) 상단과 위 카드가 더 붙습니다.
+    val RUN_CARD_CONTENT_VERTICAL_PADDING = 12.dp // 프로그레스 내부 패딩 (기본 0)
+
     // Per-chip horizontal alignment (left / center / right)
     val runStatAlignments = listOf(Alignment.Start, Alignment.CenterHorizontally, Alignment.End)
+    // Local spacing for the top stat chips so the spacing can be tuned per-screen
+    val RUN_STAT_CHIP_SPACING = UiConstants.RUN_STAT_CHIP_SPACING
 
     BackHandler(enabled = true) {
         // NavHost 내에서는 뒤로가기를 소비해 백그라운드 이동 대신 유지
@@ -181,18 +193,20 @@ fun RunScreenComposable(
     Box(modifier = Modifier.fillMaxSize()) {
         StandardScreenWithBottomButton(
             topPadding = RUN_TOP_GROUP_TOP_PADDING,
-            horizontalPadding = RUN_TOP_GROUP_HORIZONTAL_PADDING,
+            horizontalPadding = RUN_HORIZONTAL_PADDING,
             forceFillMaxWidth = true,
             backgroundDecoration = {
                 Box(modifier = Modifier.matchParentSize().background(Color(0xFFEEEDE9)))
             },
             screenBackground = Color(0xFFEEEDE9),
+            // Ensure this screen uses the local card spacing (can be 0.dp)
+            cardVerticalSpacing = RUN_CARDS_VERTICAL_SPACING_BETWEEN,
             topContent = {
                 // 상단 그룹 카드 제거 — 3개 칩을 Card 밖으로 배치
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = RUN_TOP_GROUP_TOP_PADDING),
+                        .padding(vertical = RUN_TOP_GROUP_TOP_PADDING, horizontal = RUN_HORIZONTAL_PADDING),
                     horizontalArrangement = Arrangement.spacedBy(UiConstants.RUN_STAT_CHIP_SPACING)
                 ) {
                     RunStatChip(title = stringResource(id = R.string.stat_goal_days), value = goalDaysText, color = colorResource(id = R.color.color_stat_goal), modifier = Modifier.weight(1f), darkBackground = true, contentAlignment = runStatAlignments[0])
@@ -203,13 +217,15 @@ fun RunScreenComposable(
                 Spacer(modifier = Modifier.height(RUN_CARDS_VERTICAL_SPACING_TOP))
 
                 Card(
-                    modifier = Modifier.fillMaxWidth().height(168.dp).clickable { toggleIndicator() },
-                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth().height(168.dp).padding(horizontal = RUN_PROGRESS_OUTER_PADDING).clickable { toggleIndicator() },
+                    // match the rounded corner with the inner Surface (12.dp) to avoid a visible seam
+                    shape = RoundedCornerShape(12.dp),
                     // make card container transparent and draw bg image inside so rounded corners still apply
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                     // increase elevation so the card shadow is more visible above background
                     elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH),
-                    border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
+                    // remove hairline border here to avoid a thin line between stacked cards
+                    border = BorderStroke(0.dp, Color.Transparent)
                 ) {
                     // background image fills the card
                     Box(modifier = Modifier.fillMaxSize()) {
@@ -367,7 +383,7 @@ fun RunScreenComposable(
                 Spacer(modifier = Modifier.height(RUN_CARDS_VERTICAL_SPACING_BETWEEN))
 
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = RUN_PROGRESS_OUTER_PADDING),
                     shape = RoundedCornerShape(16.dp),
                     // 외부 카드 자체는 투명하게 두고 내부 Surface가 흰색 패널로 작동하게 함
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
@@ -375,7 +391,9 @@ fun RunScreenComposable(
                     border = BorderStroke(0.dp, Color.Transparent)
                 ) {
                     // 내부에 흰색 둥근 컨테이너를 추가하여 이전 모양(둥근 흰색 패널 안의 프로그레스바)을 복원
-                    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp)) {
+                    // 주의: 외부 Column과 내부 Surface 양쪽에 vertical padding이 적용되어 이중으로 여백이 발생하고 있었습니다.
+                    // 외부 Column의 vertical padding은 제거(0.dp)하여 내부 Surface의 padding만 사용하도록 조정합니다.
+                    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = RUN_CARD_CONTENT_HORIZONTAL_PADDING, vertical = 0.dp)) {
                         Surface(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
@@ -385,7 +403,7 @@ fun RunScreenComposable(
                         ) {
                             Column(modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                .padding(horizontal = RUN_CARD_CONTENT_HORIZONTAL_PADDING, vertical = RUN_CARD_CONTENT_VERTICAL_PADDING), horizontalAlignment = Alignment.CenterHorizontally) {
                                 ModernProgressIndicatorSimple(progress = progress)
                             }
                         }
