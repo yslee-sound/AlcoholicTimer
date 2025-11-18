@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
@@ -193,8 +194,17 @@ fun RunScreenComposable(
             topPadding = 0.dp,
             horizontalPadding = RUN_HORIZONTAL_PADDING,
             forceFillMaxWidth = true,
+            // Overlay: keep underlying screenBackground and add a subtle transparent->black overlay at bottom
             backgroundDecoration = {
-                Box(modifier = Modifier.matchParentSize().background(Color(0xFFEEEDE9)))
+                Box(
+                    modifier = Modifier.matchParentSize().background(
+                        Brush.verticalGradient(
+                            0.0f to Color.Transparent,
+                            0.88f to Color.Transparent,
+                            1.0f to Color.Black.copy(alpha = 0.12f)
+                        )
+                    )
+                )
             },
             screenBackground = Color(0xFFEEEDE9),
             // Ensure this screen uses the local card spacing

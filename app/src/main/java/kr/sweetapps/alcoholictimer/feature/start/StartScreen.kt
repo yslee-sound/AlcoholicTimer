@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import java.util.Locale
 import kr.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
 import kr.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
@@ -105,11 +106,11 @@ fun StartScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         StandardScreenWithBottomButton(
-            topPadding = START_TITLE_TOP_MARGIN,
-            horizontalPadding = 0.dp,
-            contentMaxWidth = screenWidthDp,
-            forceFillMaxWidth = true,
-            topContent = {
+             topPadding = START_TITLE_TOP_MARGIN,
+             horizontalPadding = 0.dp,
+             contentMaxWidth = screenWidthDp,
+             forceFillMaxWidth = true,
+             topContent = {
                 Column { // 내부 전용 Column: maintain only local top margin
                     AppBrandTitleBar()
                     Spacer(modifier = Modifier.height(START_TITLE_CARD_GAP))
@@ -213,9 +214,18 @@ fun StartScreen(
                     }
                 )
             },
+            // Use same base background color and overlay as Run screen
+            screenBackground = Color(0xFFEEEDE9),
             backgroundDecoration = {
-                // local background for StartScreen only
-                Box(modifier = Modifier.matchParentSize().background(Color(0xFFEEEDE9)))
+                Box(
+                    modifier = Modifier.matchParentSize().background(
+                        Brush.verticalGradient(
+                            0.0f to Color.Transparent,
+                            0.88f to Color.Transparent,
+                            1.0f to Color.Black.copy(alpha = 0.12f)
+                        )
+                    )
+                )
             },
             // bottomAd = { AdmobBanner() } // moved to MainActivity BaseScaffold during Phase-1
         )

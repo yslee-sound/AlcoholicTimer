@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -74,6 +75,7 @@ fun QuitScreenComposable(
     val coroutineScope = rememberCoroutineScope()
 
     StandardScreenWithBottomButton(
+        screenBackground = Color(0xFFEEEDE9),
         topContent = {
             Card(
                 modifier = Modifier.fillMaxWidth(),
