@@ -71,6 +71,8 @@ fun RunScreenComposable(
     // Local spacing for the top stat chips so the spacing can be tuned per-screen
     // Detached from UiConstants: kept local so this file controls spacing independently
     val RUN_STAT_CHIP_SPACING = 0.dp
+    // New: spacing specifically for the top stat chip group (horizontal gap between the 3 chips)
+    val RUN_TOP_GROUP_CHIP_SPACING = 15.dp
 
     BackHandler(enabled = true) {
         // NavHost 내에서는 뒤로가기를 소비해 백그라운드 이동 대신 유지
@@ -205,7 +207,7 @@ fun RunScreenComposable(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = RUN_TOP_GROUP_TOP_PADDING),
-                        horizontalArrangement = Arrangement.spacedBy(RUN_STAT_CHIP_SPACING)
+                        horizontalArrangement = Arrangement.spacedBy(RUN_TOP_GROUP_CHIP_SPACING)
                     ) {
                         RunStatChip(title = stringResource(id = R.string.stat_goal_days), value = goalDaysText, color = colorResource(id = R.color.color_stat_goal), modifier = Modifier.weight(1f), darkBackground = true, contentAlignment = runStatAlignments[0])
                         RunStatChip(title = stringResource(id = R.string.stat_level), value = levelDisplayText, color = levelInfo.color, modifier = Modifier.weight(1f), darkBackground = true, contentAlignment = runStatAlignments[1])
