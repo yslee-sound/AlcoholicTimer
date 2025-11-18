@@ -9,13 +9,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -41,9 +39,16 @@ import kr.sweetapps.alcoholictimer.core.util.FormatUtils
 
 // Local UI constants for QuitScreen only (do not reference UiConstants)
 private object QuitUiConstants {
-    val TOP_CARD_TOP_PADDING = 0.dp
+    // Per-screen horizontal padding for all cards in this screen (defaults to global card padding)
+    val TOP_CARD_TOP_PADDING = 15.dp
+    // Use same card horizontal padding by default
+    val CARDS_VERTICAL_SPACING = 15.dp
+    val CARD_HORIZONTAL_PADDING = 15.dp
     val STATS_HORIZONTAL_PADDING = 0.dp
-    val STATS_VERTICAL_SPACING = 0.dp
+    // spacing between the four stat cards (horizontal gap inside rows)
+    val STAT_CARD_GAP = 15.dp
+    // Per-screen vertical spacing between cards (use global default unless overridden)
+    // (removed STATS_ROWS_VERTICAL_SPACING; use CARDS_VERTICAL_SPACING for all card vertical gaps)
     val STAT_CARD_HEIGHT = 84.dp
     val STAT_CARD_CORNER = 12.dp
     val STAT_CARD_BORDER_ALPHA = 0.08f
@@ -78,6 +83,8 @@ fun QuitScreenComposable(
     StandardScreenWithBottomButton(
         screenBackground = Color(0xFFEEEDE9),
         topPadding = QuitUiConstants.TOP_CARD_TOP_PADDING,
+        horizontalPadding = QuitUiConstants.CARD_HORIZONTAL_PADDING,
+        forceFillMaxWidth = true,
         topContent = {
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -87,7 +94,7 @@ fun QuitScreenComposable(
                 border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(UiConstants.CARD_PADDING),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = UiConstants.CARD_PADDING),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, 1f)) {
@@ -110,7 +117,7 @@ fun QuitScreenComposable(
                 }
             }
 
-            Spacer(modifier = Modifier.height(UiConstants.CARD_VERTICAL_SPACING))
+            Spacer(modifier = Modifier.height(QuitUiConstants.CARDS_VERTICAL_SPACING))
 
             // Indicators grid: total days, saved money, saved hours, life gain
             val start = previewStartTime ?: sharedPref.getLong(Constants.PREF_START_TIME, 0L)
@@ -127,12 +134,12 @@ fun QuitScreenComposable(
             val lifeGainDays = elapsedDaysFloat / 30.0
 
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = QuitUiConstants.STATS_HORIZONTAL_PADDING)) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(QuitUiConstants.STAT_CARD_GAP)) {
                     SmallStatCard(title = stringResource(id = R.string.stat_total_days), value = String.format(Locale.getDefault(), "%.1f일", elapsedDaysFloat), accentColor = colorResource(id = R.color.color_indicator_days), modifier = Modifier.weight(1f))
                     SmallStatCard(title = stringResource(id = R.string.indicator_title_saved_money), value = FormatUtils.formatMoney(context, savedMoney).replace(" ", ""), accentColor = colorResource(id = R.color.color_indicator_money), modifier = Modifier.weight(1f))
                 }
-                Spacer(modifier = Modifier.height(QuitUiConstants.STATS_VERTICAL_SPACING))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Spacer(modifier = Modifier.height(QuitUiConstants.CARDS_VERTICAL_SPACING))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(QuitUiConstants.STAT_CARD_GAP)) {
                     SmallStatCard(title = stringResource(id = R.string.indicator_title_saved_hours), value = FormatUtils.formatHoursValue(savedHours), accentColor = colorResource(id = R.color.color_indicator_hours), modifier = Modifier.weight(1f))
                     // life gain: format like RunActivity
                     val formattedLifeGain = run {
@@ -247,13 +254,14 @@ fun QuitScreenPreview() {
 @Composable
 private fun SmallStatCard(title: String, value: String, accentColor: Color, modifier: Modifier = Modifier) {
     Card(
+        // height only; horizontal padding is provided by the parent screen's horizontalPadding
         modifier = modifier.height(QuitUiConstants.STAT_CARD_HEIGHT),
         shape = RoundedCornerShape(QuitUiConstants.STAT_CARD_CORNER),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
         border = BorderStroke(1.dp, accentColor.copy(alpha = QuitUiConstants.STAT_CARD_BORDER_ALPHA))
     ) {
-        Column(modifier = Modifier.fillMaxSize().padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        Column(modifier = Modifier.fillMaxSize().padding(vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             Text(text = value, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = accentColor, textAlign = TextAlign.Center)
             Spacer(modifier = Modifier.height(6.dp))
             Text(text = title, style = MaterialTheme.typography.labelMedium, color = colorResource(id = R.color.color_stat_title_gray), textAlign = TextAlign.Center)
@@ -270,18 +278,18 @@ fun QuitScreenFullPreview_Hardcoded() {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
-            Column(modifier = Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(modifier = Modifier.fillMaxWidth().padding(vertical = UiConstants.CARD_PADDING), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(text = "🤔", fontSize = 48.sp)
                 Text(text = "정말 멈추시겠어요?", fontSize = 22.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp, bottom = 4.dp))
                 Text(text = "지금까지 잘 해오셨는데...", fontSize = 14.sp, color = Color(0xFF666666))
             }
         }
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(QuitUiConstants.STAT_CARD_GAP)) {
             SmallStatCard(title = "총 금주 일수", value = "12.4일", accentColor = Color(0xFF2F80ED), modifier = Modifier.weight(1f))
             SmallStatCard(title = "절약한 금액", value = "43,393원", accentColor = Color(0xFFEB5757), modifier = Modifier.weight(1f))
         }
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(QuitUiConstants.STAT_CARD_GAP)) {
             SmallStatCard(title = "절약한 시간", value = "28.2시간", accentColor = Color(0xFFF2994A), modifier = Modifier.weight(1f))
             SmallStatCard(title = "기대 수명+", value = "1일 0.3시간", accentColor = Color(0xFF9B51E0), modifier = Modifier.weight(1f))
         }
