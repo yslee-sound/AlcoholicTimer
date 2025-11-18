@@ -44,7 +44,7 @@ private object QuitUiConstants {
     // Use same card horizontal padding by default
     val CARDS_VERTICAL_SPACING = 15.dp
     val CARD_HORIZONTAL_PADDING = 15.dp
-    val STATS_HORIZONTAL_PADDING = 0.dp
+    // STATS_HORIZONTAL_PADDING removed - not used
     // spacing between the four stat cards (horizontal gap inside rows)
     val STAT_CARD_GAP = 15.dp
     // Per-screen vertical spacing between cards (use global default unless overridden)
@@ -133,7 +133,7 @@ fun QuitScreenComposable(
             val savedHours = weeks * freqVal * (drinkHoursVal + Constants.DrinkingSettings.HANGOVER_HOURS)
             val lifeGainDays = elapsedDaysFloat / 30.0
 
-            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = QuitUiConstants.STATS_HORIZONTAL_PADDING)) {
+            Column(modifier = Modifier.fillMaxWidth()) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(QuitUiConstants.STAT_CARD_GAP)) {
                     SmallStatCard(title = stringResource(id = R.string.stat_total_days), value = String.format(Locale.getDefault(), "%.1f일", elapsedDaysFloat), accentColor = colorResource(id = R.color.color_indicator_days), modifier = Modifier.weight(1f))
                     SmallStatCard(title = stringResource(id = R.string.indicator_title_saved_money), value = FormatUtils.formatMoney(context, savedMoney).replace(" ", ""), accentColor = colorResource(id = R.color.color_indicator_money), modifier = Modifier.weight(1f))
@@ -161,9 +161,9 @@ fun QuitScreenComposable(
                 contentAlignment = Alignment.Center
             ) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(48.dp, Alignment.CenterHorizontally),
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(contentAlignment = Alignment.Center, modifier = Modifier.size(106.dp)) {
                         // 배경 원 (회색)
@@ -217,6 +217,7 @@ fun QuitScreenComposable(
                             }
                         }
                     }
+                    Spacer(modifier = Modifier.width(48.dp))
                     // 취소 버튼 자리에 시작화면의 ModernStartButton과 동일한 크기/디자인의 버튼을 배치
                     // use shared MainActionButton (same as Start screen)
                     MainActionButton(onClick = { onCancel() }, size = QuitUiConstants.MAIN_BUTTON_SIZE, iconSize = QuitUiConstants.MAIN_ICON_SIZE, elevationDp = QuitUiConstants.MAIN_BUTTON_ELEVATION)
