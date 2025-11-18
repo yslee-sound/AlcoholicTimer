@@ -53,6 +53,16 @@ fun RunScreenComposable(
 ) {
     val context = LocalContext.current
 
+    // Local layout constants for RunScreen — keep local to avoid changing global constants
+    val RUN_TOP_GROUP_TOP_PADDING = 0.dp            // 8
+    val RUN_TOP_GROUP_HORIZONTAL_PADDING = 0.dp     // 16
+    // 분리된 로컬 상수: 상단 그룹과 첫 카드 사이, 카드와 프로그레스 카드 사이
+    val RUN_CARDS_VERTICAL_SPACING_TOP = 0.dp      // 이전 RUN_CARDS_VERTICAL_SPACING (상단 그룹과 첫 카드 사이)
+    val RUN_CARDS_VERTICAL_SPACING_BETWEEN = 0.dp  // 이전 RUN_CARDS_VERTICAL_SPACING (카드와 프로그레스 카드 사이)
+
+    // Per-chip horizontal alignment (left / center / right)
+    val runStatAlignments = listOf(Alignment.Start, Alignment.CenterHorizontally, Alignment.End)
+
     BackHandler(enabled = true) {
         // NavHost 내에서는 뒤로가기를 소비해 백그라운드 이동 대신 유지
     }
@@ -170,7 +180,8 @@ fun RunScreenComposable(
 
     Box(modifier = Modifier.fillMaxSize()) {
         StandardScreenWithBottomButton(
-            horizontalPadding = 0.dp,
+            topPadding = RUN_TOP_GROUP_TOP_PADDING,
+            horizontalPadding = RUN_TOP_GROUP_HORIZONTAL_PADDING,
             forceFillMaxWidth = true,
             backgroundDecoration = {
                 Box(modifier = Modifier.matchParentSize().background(Color(0xFFEEEDE9)))
@@ -181,15 +192,15 @@ fun RunScreenComposable(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = UiConstants.RUN_TOP_CARD_HORIZONTAL_PADDING, vertical = UiConstants.RUN_TOP_CARD_VERTICAL_PADDING),
+                        .padding(vertical = RUN_TOP_GROUP_TOP_PADDING),
                     horizontalArrangement = Arrangement.spacedBy(UiConstants.RUN_STAT_CHIP_SPACING)
                 ) {
-                    RunStatChip(title = stringResource(id = R.string.stat_goal_days), value = goalDaysText, color = colorResource(id = R.color.color_stat_goal), modifier = Modifier.weight(1f), darkBackground = true)
-                    RunStatChip(title = stringResource(id = R.string.stat_level), value = levelDisplayText, color = levelInfo.color, modifier = Modifier.weight(1f), darkBackground = true)
-                    RunStatChip(title = stringResource(id = R.string.stat_time), value = progressTimeTextHM, color = colorResource(id = R.color.color_stat_time), modifier = Modifier.weight(1f), darkBackground = true)
+                    RunStatChip(title = stringResource(id = R.string.stat_goal_days), value = goalDaysText, color = colorResource(id = R.color.color_stat_goal), modifier = Modifier.weight(1f), darkBackground = true, contentAlignment = runStatAlignments[0])
+                    RunStatChip(title = stringResource(id = R.string.stat_level), value = levelDisplayText, color = levelInfo.color, modifier = Modifier.weight(1f), darkBackground = true, contentAlignment = runStatAlignments[1])
+                    RunStatChip(title = stringResource(id = R.string.stat_time), value = progressTimeTextHM, color = colorResource(id = R.color.color_stat_time), modifier = Modifier.weight(1f), darkBackground = true, contentAlignment = runStatAlignments[2])
                 }
 
-                Spacer(modifier = Modifier.height(UiConstants.CARD_VERTICAL_SPACING))
+                Spacer(modifier = Modifier.height(RUN_CARDS_VERTICAL_SPACING_TOP))
 
                 Card(
                     modifier = Modifier.fillMaxWidth().height(168.dp).clickable { toggleIndicator() },
@@ -208,8 +219,8 @@ fun RunScreenComposable(
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize()
                         )
-                        // 기존 내용은 이미지 위에 동일한 패딩으로 배치
-                        Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
+                        // 기존 내용은 이미지 위에 동일한 패딩으로 배치 (내부 패딩 제거)
+                        Box(modifier = Modifier.fillMaxSize().padding(0.dp), contentAlignment = Alignment.Center) {
                             val labelBoxH = 36.dp; val valueBoxH = 66.dp; val hintBoxH = 20.dp; val gapSmall = 6.dp; val gapMedium = 8.dp
 
                             // Life Expectancy 값을 일/시간으로 분리
@@ -353,17 +364,31 @@ fun RunScreenComposable(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(UiConstants.CARD_VERTICAL_SPACING))
+                Spacer(modifier = Modifier.height(RUN_CARDS_VERTICAL_SPACING_BETWEEN))
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    // 외부 카드 자체는 투명하게 두고 내부 Surface가 흰색 패널로 작동하게 함
+                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                     elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-                    border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
+                    border = BorderStroke(0.dp, Color.Transparent)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        ModernProgressIndicatorSimple(progress = progress)
+                    // 내부에 흰색 둥근 컨테이너를 추가하여 이전 모양(둥근 흰색 패널 안의 프로그레스바)을 복원
+                    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp)) {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            color = Color.White,
+                            border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light)),
+                            tonalElevation = 0.dp
+                        ) {
+                            Column(modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                ModernProgressIndicatorSimple(progress = progress)
+                            }
+                        }
                     }
                 }
             },
@@ -390,7 +415,15 @@ private fun ModernProgressIndicatorSimple(progress: Float) {
             Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(colorResource(id = R.color.color_progress_primary).copy(alpha = alpha)))
         }
         Spacer(modifier = Modifier.height(8.dp))
-        LinearProgressIndicator(progress = { progress }, color = colorResource(id = R.color.color_progress_primary), trackColor = colorResource(id = R.color.color_progress_track), modifier = Modifier.fillMaxWidth().height(8.dp))
+        LinearProgressIndicator(
+            progress = { progress },
+            color = colorResource(id = R.color.color_progress_primary),
+            trackColor = colorResource(id = R.color.color_progress_track),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(8.dp)
+                .clip(RoundedCornerShape(8.dp))
+        )
     }
 }
 
@@ -451,44 +484,69 @@ private fun AutoResizeSingleLineText(
 }
 
 @Composable
-private fun RunStatChip(title: String, value: String, color: Color, modifier: Modifier = Modifier, darkBackground: Boolean = false) {
-    val bgColor = if (darkBackground) Color.Black.copy(alpha = 0.35f) else color.copy(alpha = 0.1f)
-    val textColor = if (darkBackground) Color.White else color
-    Surface(modifier = modifier.height(84.dp), shape = RoundedCornerShape(12.dp), color = bgColor) {
-        Column(modifier = Modifier.fillMaxWidth().padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+private fun RunStatChip(
+    title: String,
+    value: String,
+    color: Color,
+    modifier: Modifier = Modifier,
+    darkBackground: Boolean = false,
+    lightStyle: Boolean = false,
+    contentAlignment: Alignment.Horizontal = Alignment.CenterHorizontally
+) {
+    // lightStyle: Start 화면 스타일처럼 연한 시안 배경에 선명한 블루 텍스트
+    val bgColor = when {
+        lightStyle -> Color(0xFFE8F8FB)
+        darkBackground -> Color.Black.copy(alpha = 0.35f)
+        else -> color.copy(alpha = 0.1f)
+    }
+    val valueColor = when {
+        lightStyle -> Color(0xFF00AEEF) // 선명한 시안 블루
+        darkBackground -> Color.White
+        else -> color
+    }
+    val labelColor = if (lightStyle) valueColor.copy(alpha = 0.9f) else if (darkBackground) Color.White else colorResource(id = R.color.color_stat_title_gray)
+
+    Surface(modifier = modifier.height(84.dp), shape = RoundedCornerShape(12.dp), color = bgColor, shadowElevation = if (lightStyle) 6.dp else 0.dp, tonalElevation = 0.dp) {
+        Column(modifier = Modifier.fillMaxWidth().padding(8.dp), horizontalAlignment = contentAlignment) {
             val baseValue = MaterialTheme.typography.titleMedium
             val isTime = value.contains(":")
             val baseFactor = if (isTime) 0.92f else 0.98f
-            val valueSize = (baseValue.fontSize.value * baseFactor).sp
+            // 값 텍스트를 기존 대비 약 18% 키움
+            val valueSize = ((baseValue.fontSize.value * baseFactor) * 1.18f).sp
             val valueStyle = baseValue.copy(
                 fontWeight = FontWeight.Bold,
                 fontSize = valueSize,
                 lineHeight = valueSize * 1.1f,
                 platformStyle = PlatformTextStyle(includeFontPadding = true),
-                fontFeatureSettings = "tnum"
+                fontFeatureSettings = "tnum",
+                color = valueColor
             )
-            Box(modifier = Modifier.fillMaxWidth().height(34.dp), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.fillMaxWidth().height(40.dp), contentAlignment = Alignment.Center) {
                 AutoResizeSingleLineText(
                     text = value,
                     baseStyle = valueStyle,
                     minFontSizeSp = (baseValue.fontSize.value * 0.75f),
-                    color = textColor,
+                    color = valueColor,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             val baseLabel = MaterialTheme.typography.labelMedium
+            // 라벨을 약간 키워 가독성 향상
+            val labelSize = (baseLabel.fontSize.value * 1.05f).sp
             val labelStyle = baseLabel.copy(
-                lineHeight = baseLabel.fontSize * 1.2f,
-                platformStyle = PlatformTextStyle(includeFontPadding = true)
+                fontSize = labelSize,
+                lineHeight = labelSize * 1.2f,
+                platformStyle = PlatformTextStyle(includeFontPadding = true),
+                color = labelColor
             )
-            Box(modifier = Modifier.fillMaxWidth().height(22.dp), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.fillMaxWidth().height(24.dp), contentAlignment = Alignment.Center) {
                 AutoResizeSingleLineText(
                     text = title,
                     baseStyle = labelStyle,
                     minFontSizeSp = (baseLabel.fontSize.value * 0.85f),
-                    color = textColor.copy(alpha = if (darkBackground) 0.9f else 1f),
+                    color = labelColor,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
