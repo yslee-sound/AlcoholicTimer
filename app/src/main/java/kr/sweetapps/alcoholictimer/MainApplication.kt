@@ -15,6 +15,16 @@ class MainApplication : Application() {
         // AdController 초기화 (Supabase 기반 광고 제어)
         AdController.initialize(this)
 
+        // When policy fetch completes and interstitials are enabled, ensure interstitial is preloaded.
+        AdController.addPolicyFetchListener { policy ->
+            try {
+                if (policy?.adInterstitialEnabled == true) {
+                    android.util.Log.d("MainApplication", "Policy enables interstitial -> preloading interstitial")
+                    InterstitialAdManager.preload(applicationContext)
+                }
+            } catch (_: Throwable) {}
+        }
+
         val testDeviceIds = (
             listOf("03BB67FC09646C26F9D03C998F4FC6C6") +
             if (BuildConfig.DEBUG) listOf("33BE2250B43518CCDA7DE426D04EE231") else emptyList()

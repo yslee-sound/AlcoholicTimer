@@ -61,6 +61,11 @@ sealed class Screen(val route: String) {
     data object CurrencySettings : Screen("currency_settings")
 
     /**
+     * Debug: Ad verifier screen (development only)
+     */
+    data object DebugAds : Screen("debug_ads")
+
+    /**
      * 기록 상세 화면
      */
     data object Detail : Screen("detail/{startTime}/{endTime}/{targetDays}/{actualDays}/{isCompleted}") {

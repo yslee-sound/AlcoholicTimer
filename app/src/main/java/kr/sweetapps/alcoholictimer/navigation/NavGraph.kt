@@ -31,6 +31,7 @@ import kr.sweetapps.alcoholictimer.ads.HomeAdTrigger
 import android.app.Activity
 import androidx.compose.runtime.mutableStateOf
 import kr.sweetapps.alcoholictimer.feature.addrecord.AddRecordScreenComposable
+import kr.sweetapps.alcoholictimer.feature.debug.DebugAdsScreen
 
 /**
  * Navigation Graph
@@ -197,6 +198,11 @@ fun AlcoholicTimerNavGraph(
         // 통화 설정 화면
         composable(Screen.CurrencySettings.route) {
             kr.sweetapps.alcoholictimer.feature.about.CurrencySettingsScreen(onBack = { navController.popBackStack() })
+        }
+
+        // Debug: Ad verifier (only for dev builds) - optional route
+        composable("debug_ads") {
+            DebugAdsScreen()
         }
 
         // 기록 상세 화면 (Compose)
