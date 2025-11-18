@@ -15,6 +15,7 @@ import kr.sweetapps.alcoholictimer.navigation.Screen
 import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.ads.UmpConsentManager
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 
 // small noop comment to trigger reindex
 // MainActivity integrity check
@@ -156,7 +157,8 @@ private fun AppContentWithStart(
     // holdSplashState가 true인 동안에는 앱 UI를 렌더하지 않습니다. 테마 스플래시가 보이고,
     // 광고가 끝나면 holdSplashState가 false로 바뀌어 BaseScaffold가 렌더됩니다.
     if (!holdSplashState.value) {
-        BaseScaffold(navController = navController) {
+        val contentBg = if (startDestination == kr.sweetapps.alcoholictimer.navigation.Screen.Run.route) Color(0xFFEEEDE9) else null
+        BaseScaffold(navController = navController, contentBackground = contentBg) {
             AlcoholicTimerNavGraph(navController, startDestination)
         }
     }

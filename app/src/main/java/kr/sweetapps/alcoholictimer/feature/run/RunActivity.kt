@@ -25,13 +25,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.core.content.edit
 import java.util.Locale
 import kr.sweetapps.alcoholictimer.constants.Constants
 import kr.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
@@ -131,7 +132,7 @@ fun RunScreenComposable(
     val indicatorKey = remember(startTime) { Constants.keyCurrentIndicator(startTime) }
     var currentIndicator by remember { mutableIntStateOf(sp.getInt(indicatorKey, 0)) }
 
-    fun toggleIndicator() { val next = (currentIndicator + 1) % 5; currentIndicator = next; sp.edit { putInt(indicatorKey, next) } }
+    fun toggleIndicator() { val next = (currentIndicator + 1) % 5; currentIndicator = next; sp.edit().putInt(indicatorKey, next).apply() }
 
     var hasCompleted by remember { mutableStateOf(false) }
     LaunchedEffect(progress) {
@@ -144,7 +145,7 @@ fun RunScreenComposable(
                     targetDays = targetDays,
                     actualDays = (elapsedMillis / Constants.DAY_IN_MILLIS).toInt()
                 )
-                sp.edit { remove(Constants.PREF_START_TIME); putBoolean(Constants.PREF_TIMER_COMPLETED, true) }
+                sp.edit().remove(Constants.PREF_START_TIME).putBoolean(Constants.PREF_TIMER_COMPLETED, true).apply()
                 hasCompleted = true
 
                 // toast suppressed per request
@@ -169,21 +170,23 @@ fun RunScreenComposable(
 
     Box(modifier = Modifier.fillMaxSize()) {
         StandardScreenWithBottomButton(
+            horizontalPadding = 0.dp,
+            forceFillMaxWidth = true,
+            backgroundDecoration = {
+                Box(modifier = Modifier.matchParentSize().background(Color(0xFFEEEDE9)))
+            },
+            screenBackground = Color(0xFFEEEDE9),
             topContent = {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-                    border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
+                // 상단 그룹 카드 제거 — 3개 칩을 Card 밖으로 배치
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = UiConstants.RUN_TOP_CARD_HORIZONTAL_PADDING, vertical = UiConstants.RUN_TOP_CARD_VERTICAL_PADDING),
+                    horizontalArrangement = Arrangement.spacedBy(UiConstants.RUN_STAT_CHIP_SPACING)
                 ) {
-                    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = UiConstants.RUN_TOP_CARD_HORIZONTAL_PADDING, vertical = UiConstants.RUN_TOP_CARD_VERTICAL_PADDING)) {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(UiConstants.RUN_STAT_CHIP_SPACING)) {
-                            RunStatChip(title = stringResource(id = R.string.stat_goal_days), value = goalDaysText, color = colorResource(id = R.color.color_stat_goal), modifier = Modifier.weight(1f))
-                            RunStatChip(title = stringResource(id = R.string.stat_level), value = levelDisplayText, color = levelInfo.color, modifier = Modifier.weight(1f))
-                            RunStatChip(title = stringResource(id = R.string.stat_time), value = progressTimeTextHM, color = colorResource(id = R.color.color_stat_time), modifier = Modifier.weight(1f))
-                        }
-                    }
+                    RunStatChip(title = stringResource(id = R.string.stat_goal_days), value = goalDaysText, color = colorResource(id = R.color.color_stat_goal), modifier = Modifier.weight(1f), darkBackground = true)
+                    RunStatChip(title = stringResource(id = R.string.stat_level), value = levelDisplayText, color = levelInfo.color, modifier = Modifier.weight(1f), darkBackground = true)
+                    RunStatChip(title = stringResource(id = R.string.stat_time), value = progressTimeTextHM, color = colorResource(id = R.color.color_stat_time), modifier = Modifier.weight(1f), darkBackground = true)
                 }
 
                 Spacer(modifier = Modifier.height(UiConstants.CARD_VERTICAL_SPACING))
@@ -227,7 +230,8 @@ fun RunScreenComposable(
                                         style = base.copy(
                                             color = Color.White,
                                             lineHeight = base.fontSize * 1.2f,
-                                            platformStyle = PlatformTextStyle(includeFontPadding = true)
+                                            platformStyle = PlatformTextStyle(includeFontPadding = true),
+                                            shadow = Shadow(color = Color.Black.copy(alpha = 0.5f), offset = Offset(0f, 1f), blurRadius = 2f)
                                         ),
                                         textAlign = TextAlign.Center,
                                         maxLines = 1,
@@ -245,14 +249,16 @@ fun RunScreenComposable(
                                         fontSize = bigSize,
                                         lineHeight = bigSize * 1.1f,
                                         platformStyle = PlatformTextStyle(includeFontPadding = true),
-                                        fontFeatureSettings = "tnum"
+                                        fontFeatureSettings = "tnum",
+                                        shadow = Shadow(color = Color.Black.copy(alpha = 0.55f), offset = Offset(0f, 2f), blurRadius = 4f)
                                     )
                                     val unitStyle = baseStyle.copy(
                                         color = Color.White,
                                         fontWeight = FontWeight.SemiBold,
                                         fontSize = baseStyle.fontSize,
                                         lineHeight = baseStyle.fontSize * 1.1f,
-                                        platformStyle = PlatformTextStyle(includeFontPadding = true)
+                                        platformStyle = PlatformTextStyle(includeFontPadding = true),
+                                        shadow = Shadow(color = Color.Black.copy(alpha = 0.45f), offset = Offset(0f, 1f), blurRadius = 2f)
                                     )
                                     val isMoney = currentIndicator == 2
                                     val isLifeGain = currentIndicator == 4
@@ -334,7 +340,8 @@ fun RunScreenComposable(
                                         style = base.copy(
                                             color = Color.White,
                                             lineHeight = base.fontSize * 1.2f,
-                                            platformStyle = PlatformTextStyle(includeFontPadding = true)
+                                            platformStyle = PlatformTextStyle(includeFontPadding = true),
+                                            shadow = Shadow(color = Color.Black.copy(alpha = 0.45f), offset = Offset(0f, 1f), blurRadius = 2f)
                                         ),
                                         textAlign = TextAlign.Center,
                                         maxLines = 1,
@@ -444,8 +451,10 @@ private fun AutoResizeSingleLineText(
 }
 
 @Composable
-private fun RunStatChip(title: String, value: String, color: Color, modifier: Modifier = Modifier) {
-    Surface(modifier = modifier.height(84.dp), shape = RoundedCornerShape(12.dp), color = color.copy(alpha = 0.1f)) {
+private fun RunStatChip(title: String, value: String, color: Color, modifier: Modifier = Modifier, darkBackground: Boolean = false) {
+    val bgColor = if (darkBackground) Color.Black.copy(alpha = 0.35f) else color.copy(alpha = 0.1f)
+    val textColor = if (darkBackground) Color.White else color
+    Surface(modifier = modifier.height(84.dp), shape = RoundedCornerShape(12.dp), color = bgColor) {
         Column(modifier = Modifier.fillMaxWidth().padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             val baseValue = MaterialTheme.typography.titleMedium
             val isTime = value.contains(":")
@@ -463,7 +472,7 @@ private fun RunStatChip(title: String, value: String, color: Color, modifier: Mo
                     text = value,
                     baseStyle = valueStyle,
                     minFontSizeSp = (baseValue.fontSize.value * 0.75f),
-                    color = color,
+                    color = textColor,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -479,7 +488,7 @@ private fun RunStatChip(title: String, value: String, color: Color, modifier: Mo
                     text = title,
                     baseStyle = labelStyle,
                     minFontSizeSp = (baseLabel.fontSize.value * 0.85f),
-                    color = colorResource(id = R.color.color_stat_title_gray),
+                    color = textColor.copy(alpha = if (darkBackground) 0.9f else 1f),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -500,6 +509,6 @@ private fun saveCompletedRecord(context: Context, startTime: Long, endTime: Long
         val recordsJson = sharedPref.getString(Constants.PREF_SOBRIETY_RECORDS, "[]") ?: "[]"
         val list = try { org.json.JSONArray(recordsJson) } catch (_: Exception) { org.json.JSONArray() }
         list.put(record)
-        sharedPref.edit { putString(Constants.PREF_SOBRIETY_RECORDS, list.toString()) }
+        sharedPref.edit().putString(Constants.PREF_SOBRIETY_RECORDS, list.toString()).apply()
     } catch (_: Exception) { }
 }

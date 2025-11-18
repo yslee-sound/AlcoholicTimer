@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kr.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
+import kr.sweetapps.alcoholictimer.navigation.Screen
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.NavHostController
 import kr.sweetapps.alcoholictimer.core.ui.components.BottomNavBar
 import kotlinx.coroutines.delay
@@ -21,6 +23,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun BaseScaffold(
     navController: NavHostController,
+    contentBackground: Color? = null,
     content: @Composable () -> Unit
 ) {
     // 전면광고 표시 상태 구독
@@ -42,6 +45,10 @@ fun BaseScaffold(
     val overlayVisible = isInterstitialShowing || overlayHoldActive
 
     AlcoholicTimerTheme(darkTheme = false, applySystemBars = true) {
+        // Observe nav back stack to allow per-route content background overrides (e.g., Run screen)
+        val backStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = backStackEntry?.destination?.route
+
         Box(modifier = Modifier.fillMaxSize()) {
             // 기본 UI
             Column(
@@ -59,10 +66,14 @@ fun BaseScaffold(
                 HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
 
                 // 중앙 콘텐츠
+                val effectiveBg = when (currentRoute) {
+                    Screen.Run.route -> Color(0xFFEEEDE9)
+                    else -> contentBackground ?: MaterialTheme.colorScheme.background
+                }
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .background(MaterialTheme.colorScheme.background)
+                        .background(effectiveBg)
                 ) {
                     content()
                 }

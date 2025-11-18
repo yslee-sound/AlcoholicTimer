@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -39,7 +40,9 @@ fun StandardScreenWithBottomButton(
     // Allow callers to override the content max width (default 600.dp)
     contentMaxWidth: Dp = MaxContentWidth,
     // If true, inner content Column uses fillMaxWidth() instead of centering with a max width.
-    forceFillMaxWidth: Boolean = false
+    forceFillMaxWidth: Boolean = false,
+    // Optional background color for the screen. If null, the default surface variant color is used.
+    screenBackground: Color? = null
 ) {
     // banner visibility handled externally
     var shouldHideBanner by remember { mutableStateOf(false) }
@@ -48,8 +51,8 @@ fun StandardScreenWithBottomButton(
 
     val rootModifier = Modifier
         .fillMaxSize()
-        .background(MaterialTheme.colorScheme.surfaceVariant)
         .then(if (imePaddingEnabled) Modifier.imePadding() else Modifier)
+        .background(screenBackground ?: MaterialTheme.colorScheme.surfaceVariant)
 
     val navBarPaddingValues = WindowInsets.navigationBars.asPaddingValues()
     val navBarBottom = navBarPaddingValues.calculateBottomPadding()
