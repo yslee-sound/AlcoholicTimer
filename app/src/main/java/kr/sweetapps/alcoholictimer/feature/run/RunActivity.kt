@@ -58,21 +58,18 @@ fun RunScreenComposable(
     // Unified horizontal padding for the whole Run screen. Use this single constant to keep card widths consistent.
     val RUN_HORIZONTAL_PADDING = 15.dp               // (was RUN_TOP_GROUP_HORIZONTAL_PADDING)
     // 분리된 로컬 상수: 상단 그룹과 첫 카드 사이, 카드와 프로그레스 카드 사이
-    val RUN_CARDS_VERTICAL_SPACING_TOP = 10.dp      // 화면 내 카드들 사이 간격
+    val RUN_CARDS_VERTICAL_SPACING_TOP = 15.dp      // 화면 내 카드들 사이 간격
 
     // Progress card padding controls
     // 외부 여백: 프로그레스 카드 주변의 외부 마진(기본 0으로 설정하여 외부 여백 없음)
-    val RUN_CARD_CONTENT_HORIZONTAL_PADDING = 12.dp
+    val RUN_CARD_CONTENT_HORIZONTAL_PADDING = 15.dp // 프로그레스 바의 패딩
     // 카드 내부의 수직 패딩은 별도 상수(기존 12.dp 유지)
     // 내부 수직 패딩을 0으로 하면 흰색 패널(Progress Surface) 상단과 위 카드가 더 붙습니다.
     val RUN_CARD_CONTENT_VERTICAL_PADDING = 12.dp // 프로그레스 내부 패딩 (기본 0) 12
 
     // Per-chip horizontal alignment (left / center / right)
     val runStatAlignments = listOf(Alignment.Start, Alignment.CenterHorizontally, Alignment.End)
-    // Local spacing for the top stat chips so the spacing can be tuned per-screen
-    // Detached from UiConstants: kept local so this file controls spacing independently
-    // New: spacing specifically for the top stat chip group (horizontal gap between the 3 chips)
-    val RUN_TOP_GROUP_CHIP_SPACING = 15.dp
+    val RUN_TOP_GROUP_CHIP_SPACING = 12.dp
 
     BackHandler(enabled = true) {
         // NavHost 내에서는 뒤로가기를 소비해 백그라운드 이동 대신 유지
