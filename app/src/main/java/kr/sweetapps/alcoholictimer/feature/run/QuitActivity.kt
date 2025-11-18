@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,11 +31,26 @@ import kotlinx.coroutines.launch
 import java.util.Locale
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
+import kr.sweetapps.alcoholictimer.core.ui.MainActionButton
 import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.constants.Constants
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.util.FormatUtils
+
+// Local UI constants for QuitScreen only (do not reference UiConstants)
+private object QuitUiConstants {
+    val STATS_HORIZONTAL_PADDING = 12.dp
+    val STATS_VERTICAL_SPACING = 12.dp
+    val STAT_CARD_HEIGHT = 84.dp
+    val STAT_CARD_CORNER = 12.dp
+    val STAT_CARD_BORDER_ALPHA = 0.08f
+    // local-only constants; keep minimal and used
+    // Main green start-style button (match StartScreen.ModernStartButton)
+    val MAIN_BUTTON_SIZE = 96.dp
+    val MAIN_ICON_SIZE = 48.dp
+    val MAIN_BUTTON_ELEVATION = AppElevation.CARD_HIGH
+}
 
 @Composable
 fun QuitScreenComposable(
@@ -106,14 +122,14 @@ fun QuitScreenComposable(
             val savedHours = weeks * freqVal * (drinkHoursVal + Constants.DrinkingSettings.HANGOVER_HOURS)
             val lifeGainDays = elapsedDaysFloat / 30.0
 
-            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = QuitUiConstants.STATS_HORIZONTAL_PADDING)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    SmallStatCard(title = stringResource(id = R.string.stat_total_days), value = String.format(Locale.getDefault(), "%.1f일", elapsedDaysFloat), color = colorResource(id = R.color.color_indicator_days), modifier = Modifier.weight(1f))
-                    SmallStatCard(title = stringResource(id = R.string.indicator_title_saved_money), value = FormatUtils.formatMoney(context, savedMoney).replace(" ", ""), color = colorResource(id = R.color.color_indicator_money), modifier = Modifier.weight(1f))
+                    SmallStatCard(title = stringResource(id = R.string.stat_total_days), value = String.format(Locale.getDefault(), "%.1f일", elapsedDaysFloat), accentColor = colorResource(id = R.color.color_indicator_days), modifier = Modifier.weight(1f))
+                    SmallStatCard(title = stringResource(id = R.string.indicator_title_saved_money), value = FormatUtils.formatMoney(context, savedMoney).replace(" ", ""), accentColor = colorResource(id = R.color.color_indicator_money), modifier = Modifier.weight(1f))
                 }
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(QuitUiConstants.STATS_VERTICAL_SPACING))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    SmallStatCard(title = stringResource(id = R.string.indicator_title_saved_hours), value = FormatUtils.formatHoursValue(savedHours), color = colorResource(id = R.color.color_indicator_hours), modifier = Modifier.weight(1f))
+                    SmallStatCard(title = stringResource(id = R.string.indicator_title_saved_hours), value = FormatUtils.formatHoursValue(savedHours), accentColor = colorResource(id = R.color.color_indicator_hours), modifier = Modifier.weight(1f))
                     // life gain: format like RunActivity
                     val formattedLifeGain = run {
                         val safe = if (lifeGainDays.isNaN() || lifeGainDays.isInfinite()) 0.0 else lifeGainDays.coerceAtLeast(0.0)
@@ -124,7 +140,7 @@ fun QuitScreenComposable(
                         if (dayPart == 0) String.format(Locale.getDefault(), "%.1f%s", hoursRounded, context.getString(R.string.unit_hour))
                         else String.format(Locale.getDefault(), "%d%s %.1f%s", dayPart, context.getString(R.string.unit_day), hoursRounded, context.getString(R.string.unit_hour))
                     }
-                    SmallStatCard(title = stringResource(id = R.string.indicator_title_life_gain), value = formattedLifeGain, color = colorResource(id = R.color.color_indicator_life), modifier = Modifier.weight(1f))
+                    SmallStatCard(title = stringResource(id = R.string.indicator_title_life_gain), value = formattedLifeGain, accentColor = colorResource(id = R.color.color_indicator_life), modifier = Modifier.weight(1f))
                 }
             }
         },
@@ -190,15 +206,14 @@ fun QuitScreenComposable(
                             }
                         }
                     }
-                    // 취소 버튼 (즉시 이전 화면 복귀)
-                    OutlinedButton(onClick = { onCancel() }) {
-                        Text(text = stringResource(id = R.string.dialog_cancel))
-                    }
-                }
-            }
-        }
-    )
-}
+                    // 취소 버튼 자리에 시작화면의 ModernStartButton과 동일한 크기/디자인의 버튼을 배치
+                    // use shared MainActionButton (same as Start screen)
+                    MainActionButton(onClick = { onCancel() }, size = QuitUiConstants.MAIN_BUTTON_SIZE, iconSize = QuitUiConstants.MAIN_ICON_SIZE, elevationDp = QuitUiConstants.MAIN_BUTTON_ELEVATION)
+                 }
+             }
+         }
+     )
+ }
 
 private fun saveCompletedRecord(context: android.content.Context, startTime: Long, endTime: Long, targetDays: Float, actualDays: Int) {
     try {
@@ -226,16 +241,16 @@ fun QuitScreenPreview() {
 }
 
 @Composable
-private fun SmallStatCard(title: String, value: String, color: Color, modifier: Modifier = Modifier) {
+private fun SmallStatCard(title: String, value: String, accentColor: Color, modifier: Modifier = Modifier) {
     Card(
-        modifier = modifier.height(84.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.12f)),
+        modifier = modifier.height(QuitUiConstants.STAT_CARD_HEIGHT),
+        shape = RoundedCornerShape(QuitUiConstants.STAT_CARD_CORNER),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-        border = BorderStroke(1.dp, color.copy(alpha = 0.18f))
+        border = BorderStroke(1.dp, accentColor.copy(alpha = QuitUiConstants.STAT_CARD_BORDER_ALPHA))
     ) {
         Column(modifier = Modifier.fillMaxSize().padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            Text(text = value, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = color, textAlign = TextAlign.Center)
+            Text(text = value, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = accentColor, textAlign = TextAlign.Center)
             Spacer(modifier = Modifier.height(6.dp))
             Text(text = title, style = MaterialTheme.typography.labelMedium, color = colorResource(id = R.color.color_stat_title_gray), textAlign = TextAlign.Center)
         }
@@ -259,12 +274,12 @@ fun QuitScreenFullPreview_Hardcoded() {
         }
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            SmallStatCard(title = "총 금주 일수", value = "12.4일", color = Color(0xFF2F80ED), modifier = Modifier.weight(1f))
-            SmallStatCard(title = "절약한 금액", value = "43,393원", color = Color(0xFFEB5757), modifier = Modifier.weight(1f))
+            SmallStatCard(title = "총 금주 일수", value = "12.4일", accentColor = Color(0xFF2F80ED), modifier = Modifier.weight(1f))
+            SmallStatCard(title = "절약한 금액", value = "43,393원", accentColor = Color(0xFFEB5757), modifier = Modifier.weight(1f))
         }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            SmallStatCard(title = "절약한 시간", value = "28.2시간", color = Color(0xFFF2994A), modifier = Modifier.weight(1f))
-            SmallStatCard(title = "기대 수명+", value = "1일 0.3시간", color = Color(0xFF9B51E0), modifier = Modifier.weight(1f))
+            SmallStatCard(title = "절약한 시간", value = "28.2시간", accentColor = Color(0xFFF2994A), modifier = Modifier.weight(1f))
+            SmallStatCard(title = "기대 수명+", value = "1일 0.3시간", accentColor = Color(0xFF9B51E0), modifier = Modifier.weight(1f))
         }
 
         Spacer(modifier = Modifier.weight(1f))

@@ -40,6 +40,7 @@ import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
+import kr.sweetapps.alcoholictimer.core.ui.MainActionButton
 
 // Local layout constants for StartScreen only — tweak these to adjust spacing on this screen
 private val START_BRAND_HORIZONTAL_PADDING: Dp = 30.dp  // 15
@@ -188,9 +189,8 @@ fun StartScreen(
                 }
             },
             bottomButton = {
-                ModernStartButton(
-                    isEnabled = isValid,
-                    onStart = {
+                MainActionButton(
+                    onClick = {
                         val formatted = String.format(Locale.US, "%.6f", targetDays.toFloat()).toFloat()
                         sharedPref.edit {
                             putFloat("target_days", formatted)
@@ -199,7 +199,6 @@ fun StartScreen(
                         }
                         val launchRun: () -> Unit = {
                             if (onStart != null) {
-                                // NavHost 내부 이동만 수행, Activity 종료 금지
                                 onStart()
                             } else {
                                 val intent = Intent(context, MainActivity::class.java)
@@ -209,9 +208,7 @@ fun StartScreen(
                                 (context as? android.app.Activity)?.finish()
                             }
                         }
-                        // 전면광고 직접 호출 제거: 홈 전환 3회 규칙 준수
                         launchRun()
-                        // 다음 기회 대비 조용히 프리로드만 유지
                         InterstitialAdManager.preload(context.applicationContext)
                     }
                 )
@@ -274,23 +271,6 @@ private fun AppBrandTitleBar() {
                 .fillMaxWidth()
                 .height(54.dp)
         )
-    }
-}
-
-@Composable
-fun ModernStartButton(modifier: Modifier = Modifier, isEnabled: Boolean = true, onStart: () -> Unit) {
-    Card(
-        onClick = { if (isEnabled) onStart() },
-        modifier = modifier.size(96.dp),
-        shape = CircleShape,
-        colors = CardDefaults.cardColors(
-            containerColor = if (isEnabled) colorResource(id = R.color.color_progress_primary) else colorResource(id = R.color.color_button_disabled)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (isEnabled) AppElevation.CARD_HIGH else AppElevation.CARD)
-    ) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Icon(Icons.Default.PlayArrow, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(48.dp))
-        }
     }
 }
 
