@@ -34,18 +34,27 @@ import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.constants.Constants
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
+import kr.sweetapps.alcoholictimer.core.util.FormatUtils
 
 @Composable
 fun QuitScreenComposable(
     onQuitConfirmed: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    // optional overrides used only for Preview (or tests)
+    previewStartTime: Long? = null,
+    previewTargetDays: Float? = null,
+    previewIsPressed: Boolean? = null,
+    previewProgress: Float? = null
 ) {
     val context = LocalContext.current
     val sharedPref = context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, android.content.Context.MODE_PRIVATE)
-    val targetDays = sharedPref.getFloat(Constants.PREF_TARGET_DAYS, 30f)
+    val targetDays = previewTargetDays ?: sharedPref.getFloat(Constants.PREF_TARGET_DAYS, 30f)
 
     var isPressed by remember { mutableStateOf(false) }
     var progress by remember { mutableFloatStateOf(0f) }
+    // preview overrides: if provided, use them for rendering instead of internal state
+    val showPressed = previewIsPressed ?: isPressed
+    val showProgress = previewProgress ?: progress
     val coroutineScope = rememberCoroutineScope()
 
     StandardScreenWithBottomButton(
@@ -80,6 +89,44 @@ fun QuitScreenComposable(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(UiConstants.CARD_VERTICAL_SPACING))
+
+            // Indicators grid: total days, saved money, saved hours, life gain
+            val start = previewStartTime ?: sharedPref.getLong(Constants.PREF_START_TIME, 0L)
+            val now = System.currentTimeMillis()
+            val elapsedMillis = if (start > 0L) now - start else 0L
+            val elapsedDaysFloat = elapsedMillis / Constants.DAY_IN_MILLIS.toFloat()
+            val weeks = elapsedDaysFloat / 7.0
+            val (selectedCost, selectedFrequency, selectedDuration) = Constants.getUserSettings(context)
+            val costVal = Constants.DrinkingSettings.getCostValue(selectedCost)
+            val freqVal = Constants.DrinkingSettings.getFrequencyValue(selectedFrequency)
+            val drinkHoursVal = Constants.DrinkingSettings.getDurationValue(selectedDuration)
+            val savedMoney = weeks * freqVal * costVal
+            val savedHours = weeks * freqVal * (drinkHoursVal + Constants.DrinkingSettings.HANGOVER_HOURS)
+            val lifeGainDays = elapsedDaysFloat / 30.0
+
+            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SmallStatCard(title = stringResource(id = R.string.stat_total_days), value = String.format(Locale.getDefault(), "%.1f일", elapsedDaysFloat), color = colorResource(id = R.color.color_indicator_days), modifier = Modifier.weight(1f))
+                    SmallStatCard(title = stringResource(id = R.string.indicator_title_saved_money), value = FormatUtils.formatMoney(context, savedMoney).replace(" ", ""), color = colorResource(id = R.color.color_indicator_money), modifier = Modifier.weight(1f))
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SmallStatCard(title = stringResource(id = R.string.indicator_title_saved_hours), value = FormatUtils.formatHoursValue(savedHours), color = colorResource(id = R.color.color_indicator_hours), modifier = Modifier.weight(1f))
+                    // life gain: format like RunActivity
+                    val formattedLifeGain = run {
+                        val safe = if (lifeGainDays.isNaN() || lifeGainDays.isInfinite()) 0.0 else lifeGainDays.coerceAtLeast(0.0)
+                        val dayPart = kotlin.math.floor(safe).toInt()
+                        val frac = safe - dayPart
+                        val hoursRaw = frac * 24.0
+                        val hoursRounded = (kotlin.math.round(hoursRaw * 10.0) / 10.0)
+                        if (dayPart == 0) String.format(Locale.getDefault(), "%.1f%s", hoursRounded, context.getString(R.string.unit_hour))
+                        else String.format(Locale.getDefault(), "%d%s %.1f%s", dayPart, context.getString(R.string.unit_day), hoursRounded, context.getString(R.string.unit_hour))
+                    }
+                    SmallStatCard(title = stringResource(id = R.string.indicator_title_life_gain), value = formattedLifeGain, color = colorResource(id = R.color.color_indicator_life), modifier = Modifier.weight(1f))
+                }
+            }
         },
         bottomButton = {
             Box(
@@ -95,8 +142,8 @@ fun QuitScreenComposable(
                         // 배경 원 (회색)
                         CircularProgressIndicator(progress = { 1f }, modifier = Modifier.size(106.dp), color = Color(0xFFE0E0E0), strokeWidth = 4.dp, trackColor = Color.Transparent)
                         // 진행 상태 원 (빨간색)
-                        if (isPressed) {
-                            CircularProgressIndicator(progress = { progress }, modifier = Modifier.size(106.dp), color = Color(0xFFD32F2F), strokeWidth = 4.dp, trackColor = Color.Transparent)
+                        if (showPressed) {
+                            CircularProgressIndicator(progress = { showProgress }, modifier = Modifier.size(106.dp), color = Color(0xFFD32F2F), strokeWidth = 4.dp, trackColor = Color.Transparent)
                         }
                         // 중지 버튼
                         Card(
@@ -171,6 +218,66 @@ private fun saveCompletedRecord(context: android.content.Context, startTime: Lon
     } catch (_: Exception) { }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, widthDp = 360, heightDp = 900)
 @Composable
-fun QuitScreenPreview() { QuitScreenComposable({}, {}) }
+fun QuitScreenPreview() {
+    // Use the fully hardcoded preview to avoid resource/runtime failures in the IDE renderer
+    QuitScreenFullPreview_Hardcoded()
+}
+
+@Composable
+private fun SmallStatCard(title: String, value: String, color: Color, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.height(84.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.12f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.18f))
+    ) {
+        Column(modifier = Modifier.fillMaxSize().padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            Text(text = value, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = color, textAlign = TextAlign.Center)
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(text = title, style = MaterialTheme.typography.labelMedium, color = colorResource(id = R.color.color_stat_title_gray), textAlign = TextAlign.Center)
+        }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 900, name = "Quit Full (Hardcoded)")
+@Composable
+fun QuitScreenFullPreview_Hardcoded() {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(horizontal = 16.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+            Column(modifier = Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(text = "🤔", fontSize = 48.sp)
+                Text(text = "정말 멈추시겠어요?", fontSize = 22.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp, bottom = 4.dp))
+                Text(text = "지금까지 잘 해오셨는데...", fontSize = 14.sp, color = Color(0xFF666666))
+            }
+        }
+
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            SmallStatCard(title = "총 금주 일수", value = "12.4일", color = Color(0xFF2F80ED), modifier = Modifier.weight(1f))
+            SmallStatCard(title = "절약한 금액", value = "43,393원", color = Color(0xFFEB5757), modifier = Modifier.weight(1f))
+        }
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            SmallStatCard(title = "절약한 시간", value = "28.2시간", color = Color(0xFFF2994A), modifier = Modifier.weight(1f))
+            SmallStatCard(title = "기대 수명+", value = "1일 0.3시간", color = Color(0xFF9B51E0), modifier = Modifier.weight(1f))
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(106.dp)) {
+                CircularProgressIndicator(progress = { 1f }, modifier = Modifier.size(106.dp), color = Color(0xFFE0E0E0), strokeWidth = 4.dp, trackColor = Color.Transparent)
+                CircularProgressIndicator(progress = { 0.6f }, modifier = Modifier.size(106.dp), color = Color(0xFFD32F2F), strokeWidth = 4.dp, trackColor = Color.Transparent)
+                Card(modifier = Modifier.size(96.dp), shape = CircleShape, colors = CardDefaults.cardColors(containerColor = Color(0xFFD32F2F)), elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("✕", color = Color.White, fontSize = 36.sp) }
+                }
+            }
+            OutlinedButton(onClick = {}) { Text(text = "취소") }
+        }
+    }
+}

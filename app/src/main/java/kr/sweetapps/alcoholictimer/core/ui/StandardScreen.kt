@@ -7,6 +7,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
@@ -72,6 +73,13 @@ fun StandardScreenWithBottomButton(
         mutableStateOf(buttonBottomPadding + (buttonSize / 2) + UiConstants.CLEARANCE_ABOVE_BUTTON)
     }
 
+    val isPreview = LocalInspectionMode.current
+
+    // In Preview we want to avoid reserving large bottom space and disable scroll so
+    // designers can see the full content without interacting with the Preview.
+    val previewReservedBottom = if (isPreview) 0.dp else reservedBottom
+    val useScroll = !isPreview
+
     Box(modifier = rootModifier) {
         backgroundDecoration()
 
@@ -82,9 +90,9 @@ fun StandardScreenWithBottomButton(
                     start = horizontalPadding,
                     end = horizontalPadding,
                     top = topPadding,
-                    bottom = reservedBottom
+                    bottom = previewReservedBottom
                 )
-                .verticalScroll(rememberScrollState()),
+                .then(if (useScroll) Modifier.verticalScroll(rememberScrollState()) else Modifier),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING)
         ) {
