@@ -70,7 +70,6 @@ fun RunScreenComposable(
     val runStatAlignments = listOf(Alignment.Start, Alignment.CenterHorizontally, Alignment.End)
     // Local spacing for the top stat chips so the spacing can be tuned per-screen
     // Detached from UiConstants: kept local so this file controls spacing independently
-    val RUN_STAT_CHIP_SPACING = 0.dp
     // New: spacing specifically for the top stat chip group (horizontal gap between the 3 chips)
     val RUN_TOP_GROUP_CHIP_SPACING = 15.dp
 
