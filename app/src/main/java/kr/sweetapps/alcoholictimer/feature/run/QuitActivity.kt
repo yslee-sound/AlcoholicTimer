@@ -41,8 +41,9 @@ import kr.sweetapps.alcoholictimer.core.util.FormatUtils
 
 // Local UI constants for QuitScreen only (do not reference UiConstants)
 private object QuitUiConstants {
-    val STATS_HORIZONTAL_PADDING = 12.dp
-    val STATS_VERTICAL_SPACING = 12.dp
+    val TOP_CARD_TOP_PADDING = 0.dp
+    val STATS_HORIZONTAL_PADDING = 0.dp
+    val STATS_VERTICAL_SPACING = 0.dp
     val STAT_CARD_HEIGHT = 84.dp
     val STAT_CARD_CORNER = 12.dp
     val STAT_CARD_BORDER_ALPHA = 0.08f
@@ -76,6 +77,7 @@ fun QuitScreenComposable(
 
     StandardScreenWithBottomButton(
         screenBackground = Color(0xFFEEEDE9),
+        topPadding = QuitUiConstants.TOP_CARD_TOP_PADDING,
         topContent = {
             Card(
                 modifier = Modifier.fillMaxWidth(),
