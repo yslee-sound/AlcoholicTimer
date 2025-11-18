@@ -55,19 +55,16 @@ fun RunScreenComposable(
     // Local layout constants for RunScreen — keep local to avoid changing global constants
     val RUN_TOP_GROUP_TOP_PADDING = 15.dp            // vertical padding above top stat chips
     // Unified horizontal padding for the whole Run screen. Use this single constant to keep card widths consistent.
-    val RUN_HORIZONTAL_PADDING = 0.dp               // (was RUN_TOP_GROUP_HORIZONTAL_PADDING)
+    val RUN_HORIZONTAL_PADDING = 15.dp               // (was RUN_TOP_GROUP_HORIZONTAL_PADDING)
     // 분리된 로컬 상수: 상단 그룹과 첫 카드 사이, 카드와 프로그레스 카드 사이
-    val RUN_CARDS_VERTICAL_SPACING_TOP = 0.dp      // 이전 RUN_CARDS_VERTICAL_SPACING (상단 그룹과 첫 카드 사이)
-    val RUN_CARDS_VERTICAL_SPACING_BETWEEN = 0.dp  // 이전 RUN_CARDS_VERTICAL_SPACING (카드와 프로그레스 카드 사이)
+    val RUN_CARDS_VERTICAL_SPACING_TOP = 15.dp      // 화면 내 카드들 사이 간격
 
     // Progress card padding controls
     // 외부 여백: 프로그레스 카드 주변의 외부 마진(기본 0으로 설정하여 외부 여백 없음)
-    val RUN_PROGRESS_OUTER_PADDING = 0.dp
-    // 카드 내부의 컨텐츠 수평 패딩은 화면 전체의 가로 패딩과 동일하게 관리
-    val RUN_CARD_CONTENT_HORIZONTAL_PADDING = RUN_HORIZONTAL_PADDING
+    val RUN_CARD_CONTENT_HORIZONTAL_PADDING = 12.dp
     // 카드 내부의 수직 패딩은 별도 상수(기존 12.dp 유지)
     // 내부 수직 패딩을 0으로 하면 흰색 패널(Progress Surface) 상단과 위 카드가 더 붙습니다.
-    val RUN_CARD_CONTENT_VERTICAL_PADDING = 12.dp // 프로그레스 내부 패딩 (기본 0)
+    val RUN_CARD_CONTENT_VERTICAL_PADDING = 12.dp // 프로그레스 내부 패딩 (기본 0) 12
 
     // Per-chip horizontal alignment (left / center / right)
     val runStatAlignments = listOf(Alignment.Start, Alignment.CenterHorizontally, Alignment.End)
@@ -192,208 +189,194 @@ fun RunScreenComposable(
 
     Box(modifier = Modifier.fillMaxSize()) {
         StandardScreenWithBottomButton(
-            topPadding = RUN_TOP_GROUP_TOP_PADDING,
+            topPadding = 0.dp,
             horizontalPadding = RUN_HORIZONTAL_PADDING,
             forceFillMaxWidth = true,
             backgroundDecoration = {
                 Box(modifier = Modifier.matchParentSize().background(Color(0xFFEEEDE9)))
             },
             screenBackground = Color(0xFFEEEDE9),
-            // Ensure this screen uses the local card spacing (can be 0.dp)
-            cardVerticalSpacing = RUN_CARDS_VERTICAL_SPACING_BETWEEN,
+            // Ensure this screen uses the local card spacing
+            cardVerticalSpacing = RUN_CARDS_VERTICAL_SPACING_TOP,
             topContent = {
-                // 상단 그룹 카드 제거 — 3개 칩을 Card 밖으로 배치
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = RUN_TOP_GROUP_TOP_PADDING, horizontal = RUN_HORIZONTAL_PADDING),
-                    horizontalArrangement = Arrangement.spacedBy(RUN_STAT_CHIP_SPACING)
-                ) {
-                    RunStatChip(title = stringResource(id = R.string.stat_goal_days), value = goalDaysText, color = colorResource(id = R.color.color_stat_goal), modifier = Modifier.weight(1f), darkBackground = true, contentAlignment = runStatAlignments[0])
-                    RunStatChip(title = stringResource(id = R.string.stat_level), value = levelDisplayText, color = levelInfo.color, modifier = Modifier.weight(1f), darkBackground = true, contentAlignment = runStatAlignments[1])
-                    RunStatChip(title = stringResource(id = R.string.stat_time), value = progressTimeTextHM, color = colorResource(id = R.color.color_stat_time), modifier = Modifier.weight(1f), darkBackground = true, contentAlignment = runStatAlignments[2])
-                }
+                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(RUN_CARDS_VERTICAL_SPACING_TOP)) {
+                    // 상단 그룹 카드 제거 — 3개 칩을 Card 밖으로 배치
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = RUN_TOP_GROUP_TOP_PADDING),
+                        horizontalArrangement = Arrangement.spacedBy(RUN_STAT_CHIP_SPACING)
+                    ) {
+                        RunStatChip(title = stringResource(id = R.string.stat_goal_days), value = goalDaysText, color = colorResource(id = R.color.color_stat_goal), modifier = Modifier.weight(1f), darkBackground = true, contentAlignment = runStatAlignments[0])
+                        RunStatChip(title = stringResource(id = R.string.stat_level), value = levelDisplayText, color = levelInfo.color, modifier = Modifier.weight(1f), darkBackground = true, contentAlignment = runStatAlignments[1])
+                        RunStatChip(title = stringResource(id = R.string.stat_time), value = progressTimeTextHM, color = colorResource(id = R.color.color_stat_time), modifier = Modifier.weight(1f), darkBackground = true, contentAlignment = runStatAlignments[2])
+                    }
 
-                Spacer(modifier = Modifier.height(RUN_CARDS_VERTICAL_SPACING_TOP))
-
-                Card(
-                    modifier = Modifier.fillMaxWidth().height(168.dp).padding(horizontal = RUN_PROGRESS_OUTER_PADDING).clickable { toggleIndicator() },
-                    // match the rounded corner with the inner Surface (12.dp) to avoid a visible seam
-                    shape = RoundedCornerShape(12.dp),
-                    // make card container transparent and draw bg image inside so rounded corners still apply
-                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                    // increase elevation so the card shadow is more visible above background
-                    elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH),
-                    // remove hairline border here to avoid a thin line between stacked cards
-                    border = BorderStroke(0.dp, Color.Transparent)
-                ) {
-                    // background image fills the card
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        Image(
-                            painter = painterResource(id = R.drawable.bg9),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                        // 기존 내용은 이미지 위에 동일한 패딩으로 배치 (내부 패딩 제거)
-                        Box(modifier = Modifier.fillMaxSize().padding(0.dp), contentAlignment = Alignment.Center) {
-                            val labelBoxH = 36.dp; val valueBoxH = 66.dp; val hintBoxH = 20.dp; val gapSmall = 6.dp; val gapMedium = 8.dp
-
-                            // Life Expectancy 값을 일/시간으로 분리
-
-                            val (label, valueText, _) = when (currentIndicator) {
-                                0 -> Triple(stringResource(id = R.string.indicator_title_days), String.format(Locale.getDefault(), "%.1f", elapsedDaysFloat), colorResource(id = R.color.color_indicator_days))
-                                1 -> Triple(stringResource(id = R.string.indicator_title_time), progressTimeText, colorResource(id = R.color.color_indicator_time))
-                                2 -> Triple(stringResource(id = R.string.indicator_title_saved_money), FormatUtils.formatMoney(context, savedMoney).replace(" ", ""), colorResource(id = R.color.color_indicator_money))
-                                3 -> Triple(stringResource(id = R.string.indicator_title_saved_hours), FormatUtils.formatHoursValue(savedHours), colorResource(id = R.color.color_indicator_hours))
-                                else -> Triple(stringResource(id = R.string.indicator_title_life_gain), formattedLifeGain, colorResource(id = R.color.color_indicator_life))
-                            }
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Box(modifier = Modifier.fillMaxWidth().height(labelBoxH), contentAlignment = Alignment.Center) {
-                                    val base = MaterialTheme.typography.titleMedium
-                                    // label text in white for readability over background image
-                                    Text(
-                                        text = label,
-                                        style = base.copy(
-                                            color = Color.White,
-                                            lineHeight = base.fontSize * 1.2f,
-                                            platformStyle = PlatformTextStyle(includeFontPadding = true),
-                                            shadow = Shadow(color = Color.Black.copy(alpha = 0.5f), offset = Offset(0f, 1f), blurRadius = 2f)
-                                        ),
-                                        textAlign = TextAlign.Center,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
+                    Card(
+                        modifier = Modifier.fillMaxWidth().height(168.dp).clickable { toggleIndicator() },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH),
+                        border = BorderStroke(0.dp, Color.Transparent)
+                    ) {
+                        // background image fills the card
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Image(
+                                painter = painterResource(id = R.drawable.bg9),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                            // 기존 내용은 이미지 위에 동일한 패딩으로 배치 (내부 패딩 제거)
+                            Box(modifier = Modifier.fillMaxSize().padding(0.dp), contentAlignment = Alignment.Center) {
+                                val labelBoxH = 36.dp; val valueBoxH = 66.dp; val hintBoxH = 20.dp; val gapSmall = 6.dp; val gapMedium = 8.dp
+                                val (label, valueText, _) = when (currentIndicator) {
+                                    0 -> Triple(stringResource(id = R.string.indicator_title_days), String.format(Locale.getDefault(), "%.1f", elapsedDaysFloat), colorResource(id = R.color.color_indicator_days))
+                                    1 -> Triple(stringResource(id = R.string.indicator_title_time), progressTimeText, colorResource(id = R.color.color_indicator_time))
+                                    2 -> Triple(stringResource(id = R.string.indicator_title_saved_money), FormatUtils.formatMoney(context, savedMoney).replace(" ", ""), colorResource(id = R.color.color_indicator_money))
+                                    3 -> Triple(stringResource(id = R.string.indicator_title_saved_hours), FormatUtils.formatHoursValue(savedHours), colorResource(id = R.color.color_indicator_hours))
+                                    else -> Triple(stringResource(id = R.string.indicator_title_life_gain), formattedLifeGain, colorResource(id = R.color.color_indicator_life))
                                 }
-                                Spacer(modifier = Modifier.height(gapSmall))
-                                Box(modifier = Modifier.fillMaxWidth().height(valueBoxH), contentAlignment = Alignment.Center) {
-                                    val baseStyle = MaterialTheme.typography.headlineMedium
-                                    val bigSize = (baseStyle.fontSize.value * 1.5f).sp
-                                    // 모든 값 텍스트를 흰색으로 변경하여 이미지 위 가독성 확보
-                                    val bigStyle = baseStyle.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White,
-                                        fontSize = bigSize,
-                                        lineHeight = bigSize * 1.1f,
-                                        platformStyle = PlatformTextStyle(includeFontPadding = true),
-                                        fontFeatureSettings = "tnum",
-                                        shadow = Shadow(color = Color.Black.copy(alpha = 0.55f), offset = Offset(0f, 2f), blurRadius = 4f)
-                                    )
-                                    val unitStyle = baseStyle.copy(
-                                        color = Color.White,
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontSize = baseStyle.fontSize,
-                                        lineHeight = baseStyle.fontSize * 1.1f,
-                                        platformStyle = PlatformTextStyle(includeFontPadding = true),
-                                        shadow = Shadow(color = Color.Black.copy(alpha = 0.45f), offset = Offset(0f, 1f), blurRadius = 2f)
-                                    )
-                                    val isMoney = currentIndicator == 2
-                                    val isLifeGain = currentIndicator == 4
-                                    if (isMoney) {
-                                        // 다국어 통화 형식 처리
-                                        val dollarMatch = Regex("""\$([0-9,]+(?:\.[0-9]+)?)""" ).find(valueText)
-                                        val yenMatch = Regex("""¥([0-9,]+)""" ).find(valueText)
-
-                                        when {
-                                            dollarMatch != null -> {
-                                                // 달러 형식: $1,000.00
-                                                val numeric = dollarMatch.groupValues[1]
-                                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                                                    Text(text = "$", style = unitStyle, modifier = Modifier.alignByBaseline())
-                                                    Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
-                                                }
-                                            }
-                                            yenMatch != null -> {
-                                                // 엔화 형식: ¥1,000
-                                                val numeric = yenMatch.groupValues[1]
-                                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                                                    Text(text = "¥", style = unitStyle, modifier = Modifier.alignByBaseline())
-                                                    Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
-                                                }
-                                            }
-                                            else -> {
-                                                // 원화 형식: 1,000원 또는 ₩1,000
-                                                val numeric = valueText.replace("원", "").replace("₩", "").trim()
-                                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                                                    Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
-                                                    Spacer(modifier = Modifier.width(2.dp))
-                                                    Text(text = "원", style = unitStyle, modifier = Modifier.alignByBaseline())
-                                                }
-                                            }
-                                        }
-                                    } else if (isLifeGain) {
-                                        // 다국어 지원: "1일 2.5시간" 또는 "1 day(s) 2.5 hr(s)" 또는 "1日 2.5時間"
-                                        val twoPart = Regex("""(\d+)\s*(?:일|日|day\(s\))\s*([0-9]+(?:\.[0-9]+)?)\s*(?:시간|時間|hr\(s\))""")
-                                        val onePart = Regex("""([0-9]+(?:\.[0-9]+)?)\s*(?:시간|時間|hr\(s\))""")
-                                        val m1 = twoPart.find(valueText)
-                                        val m2 = if (m1 == null) onePart.find(valueText) else null
-                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                                            if (m1 != null) {
-                                                val dStr = m1.groupValues[1]
-                                                val hStr = m1.groupValues[2]
-                                                Text(text = dStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
-                                                Spacer(modifier = Modifier.width(2.dp))
-                                                Text(text = stringResource(R.string.unit_day), style = unitStyle, modifier = Modifier.alignByBaseline())
-                                                Spacer(modifier = Modifier.width(6.dp))
-                                                Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
-                                                Spacer(modifier = Modifier.width(2.dp))
-                                                Text(text = stringResource(R.string.unit_hour), style = unitStyle, modifier = Modifier.alignByBaseline())
-                                            } else if (m2 != null) {
-                                                val hStr = m2.groupValues[1]
-                                                Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
-                                                Spacer(modifier = Modifier.width(2.dp))
-                                                Text(text = stringResource(R.string.unit_hour), style = unitStyle, modifier = Modifier.alignByBaseline())
-                                            } else {
-                                                Text(text = valueText, style = bigStyle, textAlign = TextAlign.Center, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
-                                            }
-                                        }
-                                    } else {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Box(modifier = Modifier.fillMaxWidth().height(labelBoxH), contentAlignment = Alignment.Center) {
+                                        val base = MaterialTheme.typography.titleMedium
+                                        // label text in white for readability over background image
                                         Text(
-                                            text = valueText,
-                                            style = bigStyle,
+                                            text = label,
+                                            style = base.copy(
+                                                color = Color.White,
+                                                lineHeight = base.fontSize * 1.2f,
+                                                platformStyle = PlatformTextStyle(includeFontPadding = true),
+                                                shadow = Shadow(color = Color.Black.copy(alpha = 0.5f), offset = Offset(0f, 1f), blurRadius = 2f)
+                                            ),
                                             textAlign = TextAlign.Center,
                                             maxLines = 1,
-                                            softWrap = false,
-                                            overflow = TextOverflow.Clip
+                                            overflow = TextOverflow.Ellipsis
                                         )
                                     }
-                                }
-                                Spacer(modifier = Modifier.height(gapMedium))
-                                Box(modifier = Modifier.fillMaxWidth().height(hintBoxH), contentAlignment = Alignment.Center) {
-                                    val base = MaterialTheme.typography.labelMedium
-                                    // hint text also white for consistency
-                                    Text(
-                                        text = stringResource(id = R.string.tap_to_switch_indicator),
-                                        style = base.copy(
+                                    Spacer(modifier = Modifier.height(gapSmall))
+                                    Box(modifier = Modifier.fillMaxWidth().height(valueBoxH), contentAlignment = Alignment.Center) {
+                                        val baseStyle = MaterialTheme.typography.headlineMedium
+                                        val bigSize = (baseStyle.fontSize.value * 1.5f).sp
+                                        // 모든 값 텍스트를 흰색으로 변경하여 이미지 위 가독성 확보
+                                        val bigStyle = baseStyle.copy(
+                                            fontWeight = FontWeight.Bold,
                                             color = Color.White,
-                                            lineHeight = base.fontSize * 1.2f,
+                                            fontSize = bigSize,
+                                            lineHeight = bigSize * 1.1f,
+                                            platformStyle = PlatformTextStyle(includeFontPadding = true),
+                                            fontFeatureSettings = "tnum",
+                                            shadow = Shadow(color = Color.Black.copy(alpha = 0.55f), offset = Offset(0f, 2f), blurRadius = 4f)
+                                        )
+                                        val unitStyle = baseStyle.copy(
+                                            color = Color.White,
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = baseStyle.fontSize,
+                                            lineHeight = baseStyle.fontSize * 1.1f,
                                             platformStyle = PlatformTextStyle(includeFontPadding = true),
                                             shadow = Shadow(color = Color.Black.copy(alpha = 0.45f), offset = Offset(0f, 1f), blurRadius = 2f)
-                                        ),
-                                        textAlign = TextAlign.Center,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
+                                        )
+                                        val isMoney = currentIndicator == 2
+                                        val isLifeGain = currentIndicator == 4
+                                        if (isMoney) {
+                                            // 다국어 통화 형식 처리
+                                            val dollarMatch = Regex("""\$([0-9,]+(?:\.[0-9]+)?)""" ).find(valueText)
+                                            val yenMatch = Regex("""¥([0-9,]+)""" ).find(valueText)
+
+                                            when {
+                                                dollarMatch != null -> {
+                                                    // 달러 형식: $1,000.00
+                                                    val numeric = dollarMatch.groupValues[1]
+                                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                                        Text(text = "$", style = unitStyle, modifier = Modifier.alignByBaseline())
+                                                        Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                                    }
+                                                }
+                                                yenMatch != null -> {
+                                                    // 엔화 형식: ¥1,000
+                                                    val numeric = yenMatch.groupValues[1]
+                                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                                        Text(text = "¥", style = unitStyle, modifier = Modifier.alignByBaseline())
+                                                        Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                                    }
+                                                }
+                                                else -> {
+                                                    // 원화 형식: 1,000원 또는 ₩1,000
+                                                    val numeric = valueText.replace("원", "").replace("₩", "").trim()
+                                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                                        Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                                        Spacer(modifier = Modifier.width(2.dp))
+                                                        Text(text = "원", style = unitStyle, modifier = Modifier.alignByBaseline())
+                                                    }
+                                                }
+                                            }
+                                        } else if (isLifeGain) {
+                                            // 다국어 지원: "1일 2.5시간" 또는 "1 day(s) 2.5 hr(s)" 또는 "1日 2.5時間"
+                                            val twoPart = Regex("""(\d+)\s*(?:일|日|day\(s\))\s*([0-9]+(?:\.[0-9]+)?)\s*(?:시간|時間|hr\(s\))""")
+                                            val onePart = Regex("""([0-9]+(?:\.[0-9]+)?)\s*(?:시간|時間|hr\(s\))""")
+                                            val m1 = twoPart.find(valueText)
+                                            val m2 = if (m1 == null) onePart.find(valueText) else null
+                                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                                if (m1 != null) {
+                                                    val dStr = m1.groupValues[1]
+                                                    val hStr = m1.groupValues[2]
+                                                    Text(text = dStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                                    Spacer(modifier = Modifier.width(2.dp))
+                                                    Text(text = stringResource(R.string.unit_day), style = unitStyle, modifier = Modifier.alignByBaseline())
+                                                    Spacer(modifier = Modifier.width(6.dp))
+                                                    Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                                    Spacer(modifier = Modifier.width(2.dp))
+                                                    Text(text = stringResource(R.string.unit_hour), style = unitStyle, modifier = Modifier.alignByBaseline())
+                                                } else if (m2 != null) {
+                                                    val hStr = m2.groupValues[1]
+                                                    Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                                    Spacer(modifier = Modifier.width(2.dp))
+                                                    Text(text = stringResource(R.string.unit_hour), style = unitStyle, modifier = Modifier.alignByBaseline())
+                                                } else {
+                                                    Text(text = valueText, style = bigStyle, textAlign = TextAlign.Center, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
+                                                }
+                                            }
+                                        } else {
+                                            Text(
+                                                text = valueText,
+                                                style = bigStyle,
+                                                textAlign = TextAlign.Center,
+                                                maxLines = 1,
+                                                softWrap = false,
+                                                overflow = TextOverflow.Clip
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(gapMedium))
+                                    Box(modifier = Modifier.fillMaxWidth().height(hintBoxH), contentAlignment = Alignment.Center) {
+                                        val base = MaterialTheme.typography.labelMedium
+                                        // hint text also white for consistency
+                                        Text(
+                                            text = stringResource(id = R.string.tap_to_switch_indicator),
+                                            style = base.copy(
+                                                color = Color.White,
+                                                lineHeight = base.fontSize * 1.2f,
+                                                platformStyle = PlatformTextStyle(includeFontPadding = true),
+                                                shadow = Shadow(color = Color.Black.copy(alpha = 0.45f), offset = Offset(0f, 1f), blurRadius = 2f)
+                                            ),
+                                            textAlign = TextAlign.Center,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(RUN_CARDS_VERTICAL_SPACING_BETWEEN))
-
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = RUN_PROGRESS_OUTER_PADDING),
-                    shape = RoundedCornerShape(16.dp),
-                    // 외부 카드 자체는 투명하게 두고 내부 Surface가 흰색 패널로 작동하게 함
-                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                    elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-                    border = BorderStroke(0.dp, Color.Transparent)
-                ) {
-                    // 내부에 흰색 둥근 컨테이너를 추가하여 이전 모양(둥근 흰색 패널 안의 프로그레스바)을 복원
-                    // 주의: 외부 Column과 내부 Surface 양쪽에 vertical padding이 적용되어 이중으로 여백이 발생하고 있었습니다.
-                    // 외부 Column의 vertical padding은 제거(0.dp)하여 내부 Surface의 padding만 사용하도록 조정합니다.
-                    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = RUN_CARD_CONTENT_HORIZONTAL_PADDING, vertical = 0.dp)) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+                        border = BorderStroke(0.dp, Color.Transparent)
+                    ) {
+                        // 내부에 흰색 둥근 컨테이너를 추가하여 이전 모양(둥근 흰색 패널 안의 프로그레스바)을 복원
                         Surface(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
