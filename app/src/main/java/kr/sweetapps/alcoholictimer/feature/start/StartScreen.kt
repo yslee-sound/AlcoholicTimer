@@ -119,7 +119,7 @@ fun StartScreen(
                             .fillMaxWidth(),
                         shape = RoundedCornerShape(20.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
+                        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH),
                         border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
                     ) {
                         Column(
