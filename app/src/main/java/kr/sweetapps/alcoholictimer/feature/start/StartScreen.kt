@@ -21,23 +21,32 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
+import java.util.Locale
+import kr.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
+import kr.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
 import androidx.core.content.edit
 import kr.sweetapps.alcoholictimer.MainActivity
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
-import kr.sweetapps.alcoholictimer.constants.UiConstants
-import kr.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
-import kr.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
-import java.util.Locale
+
+// Local layout constants for StartScreen only — tweak these to adjust spacing on this screen
+private val START_BRAND_HORIZONTAL_PADDING: Dp = 30.dp  // 15
+private val START_CARD_TOP_INNER_PADDING: Dp = 50.dp    // 50
+private val START_TITLE_TOP_MARGIN: Dp = 30.dp           // previously 1.dp
+private val START_TITLE_CARD_GAP: Dp = 20.dp            // 12
+private val START_CARD_HORIZONTAL_PADDING: Dp = 15.dp   // 16
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,16 +99,24 @@ fun StartScreen(
         if (!showSplashOverlay) android.util.Log.d("StartScreen", "onSplashFinished invoked: ${onSplashFinished != null}")
     }
 
+    val config = LocalConfiguration.current
+    val screenWidthDp = config.screenWidthDp.dp
+
     Box(modifier = Modifier.fillMaxSize()) {
         StandardScreenWithBottomButton(
-             topContent = {
-                Column { // 내부 전용 Column: spacing 없음 -> 지정한 12dp 그대로 유지
-                    Spacer(modifier = Modifier.height(UiConstants.START_BRAND_TITLE_TOP_GAP))
+            topPadding = START_TITLE_TOP_MARGIN,
+            horizontalPadding = 0.dp,
+            contentMaxWidth = screenWidthDp,
+            forceFillMaxWidth = true,
+            topContent = {
+                Column { // 내부 전용 Column: maintain only local top margin
                     AppBrandTitleBar()
-                    Spacer(modifier = Modifier.height(UiConstants.START_BRAND_TITLE_BOTTOM_GAP))
+                    Spacer(modifier = Modifier.height(START_TITLE_CARD_GAP))
 
                     Card(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .padding(horizontal = START_CARD_HORIZONTAL_PADDING)
+                            .fillMaxWidth(),
                         shape = RoundedCornerShape(20.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
@@ -108,7 +125,7 @@ fun StartScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(UiConstants.FIRST_CARD_TOP_INNER_PADDING),
+                                .padding(vertical = START_CARD_TOP_INNER_PADDING),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
@@ -230,7 +247,10 @@ fun StartScreen(
     if (showDaysPicker) {
         TargetDaysBottomSheet(
             initialValue = targetDays,
-            onConfirm = { picked -> targetDays = picked.coerceIn(0, 999); showDaysPicker = false },
+            onConfirm = { picked: Int ->
+                targetDays = picked.coerceIn(0, 999)
+                showDaysPicker = false
+            },
             onDismiss = { showDaysPicker = false }
         )
     }
@@ -238,14 +258,23 @@ fun StartScreen(
 
 @Composable
 private fun AppBrandTitleBar() {
-    Image(
-        painter = painterResource(id = R.drawable.alcoholic_timer_logo),
-        contentDescription = stringResource(id = R.string.app_name),
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(max = 54.dp)
-            .padding(horizontal = UiConstants.SCREEN_HORIZONTAL_PADDING)
-    )
+            .height(54.dp)
+            .padding(horizontal = START_BRAND_HORIZONTAL_PADDING),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.alcoholic_timer_logo),
+            contentDescription = stringResource(id = R.string.app_name),
+            contentScale = ContentScale.Fit,
+            alignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(54.dp)
+        )
+    }
 }
 
 @Composable

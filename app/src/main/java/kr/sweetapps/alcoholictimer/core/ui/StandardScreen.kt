@@ -30,7 +30,15 @@ fun StandardScreenWithBottomButton(
     imePaddingEnabled: Boolean = false,
     backgroundDecoration: @Composable BoxScope.() -> Unit = {},
     bottomAd: (@Composable () -> Unit)? = null,
-    reserveSpaceForBottomAd: Boolean = false
+    reserveSpaceForBottomAd: Boolean = false,
+    // Allow callers to override the top padding applied to the content area for per-screen control.
+    topPadding: Dp = UiConstants.FIRST_CARD_EXTERNAL_GAP,
+    // Allow callers to override horizontal padding applied to both sides (default preserved)
+    horizontalPadding: Dp = UiConstants.SCREEN_HORIZONTAL_PADDING,
+    // Allow callers to override the content max width (default 600.dp)
+    contentMaxWidth: Dp = MaxContentWidth,
+    // If true, inner content Column uses fillMaxWidth() instead of centering with a max width.
+    forceFillMaxWidth: Boolean = false
 ) {
     // banner visibility handled externally
     var shouldHideBanner by remember { mutableStateOf(false) }
@@ -71,20 +79,23 @@ fun StandardScreenWithBottomButton(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    start = UiConstants.SCREEN_HORIZONTAL_PADDING,
-                    end = UiConstants.SCREEN_HORIZONTAL_PADDING,
-                    top = UiConstants.FIRST_CARD_EXTERNAL_GAP,
+                    start = horizontalPadding,
+                    end = horizontalPadding,
+                    top = topPadding,
                     bottom = reservedBottom
                 )
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING)
         ) {
+            val innerColumnModifier = if (forceFillMaxWidth) {
+                Modifier.fillMaxWidth()
+            } else {
+                Modifier.fillMaxWidth().wrapContentWidth(Alignment.CenterHorizontally).widthIn(max = contentMaxWidth)
+            }
+
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentWidth(Alignment.CenterHorizontally)
-                    .widthIn(max = MaxContentWidth),
+                modifier = innerColumnModifier,
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top,
                 content = topContent

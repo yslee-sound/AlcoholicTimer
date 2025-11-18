@@ -14,6 +14,8 @@ object UiConstants {
     val LEVEL_SCREEN_HORIZONTAL_PADDING: Dp = 15.dp     // 3번 화면
 
     val FIRST_CARD_EXTERNAL_GAP: Dp = 15.dp             // 1번 화면
+    // Height of the app top bar used in BaseActivity (Box height = 56.dp)
+    val TOP_BAR_HEIGHT: Dp = 56.dp
     val LEVEL_FIRST_CARD_TOP_PADDING: Dp = 15.dp        // 3번 화면
 
     val LEVEL_SCREEN_BOTTOM_PADDING: Dp = 15.dp         // 3번 화면
