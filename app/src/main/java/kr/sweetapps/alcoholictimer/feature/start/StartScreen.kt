@@ -2,8 +2,6 @@ package kr.sweetapps.alcoholictimer.feature.start
 
 import android.content.Context.MODE_PRIVATE
 import android.content.Intent
-import android.os.Handler
-import android.os.Looper
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -29,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
 import androidx.core.content.edit
 import kr.sweetapps.alcoholictimer.MainActivity
 import kr.sweetapps.alcoholictimer.R
@@ -39,7 +38,6 @@ import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
 import kr.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
 import java.util.Locale
-import java.util.concurrent.atomic.AtomicBoolean
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,7 +92,7 @@ fun StartScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         StandardScreenWithBottomButton(
-            topContent = {
+             topContent = {
                 Column { // 내부 전용 Column: spacing 없음 -> 지정한 12dp 그대로 유지
                     Spacer(modifier = Modifier.height(UiConstants.START_BRAND_TITLE_TOP_GAP))
                     AppBrandTitleBar()
@@ -200,6 +198,10 @@ fun StartScreen(
                         InterstitialAdManager.preload(context.applicationContext)
                     }
                 )
+            },
+            backgroundDecoration = {
+                // local background for StartScreen only
+                Box(modifier = Modifier.matchParentSize().background(Color(0xFFEEEDE9)))
             },
             // bottomAd = { AdmobBanner() } // moved to MainActivity BaseScaffold during Phase-1
         )
