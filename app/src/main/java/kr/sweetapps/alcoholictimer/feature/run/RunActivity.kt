@@ -278,8 +278,9 @@ fun RunScreenComposable(
                             )
                             // 기존 내용은 이미지 위에 동일한 패딩으로 배치 (내부 패딩 제거)
                             Box(modifier = Modifier.fillMaxSize().padding(0.dp), contentAlignment = Alignment.Center) {
-                                // 중앙 카드 요소가 카드 높이(168dp) 내에 들어가도록 축소
-                                val labelBoxH = 36.dp; val valueBoxH = 84.dp; val hintBoxH = 18.dp; val gapSmall = 6.dp; val gapMedium = 6.dp
+                                // 중앙 카드 요소 간격 축소: 라벨/값/힌트가 더 붙도록 조정
+                                // 힌트 텍스트 클리핑 방지: hintBoxH를 늘리고 간격을 약간 조정
+                                val labelBoxH = 28.dp; val valueBoxH = 64.dp; val hintBoxH = 20.dp; val gapSmall = 4.dp; val gapMedium = 2.dp
                                 val (label, valueText, _) = when (currentIndicator) {
                                     0 -> Triple(stringResource(id = R.string.indicator_title_days), String.format(Locale.getDefault(), "%.1f", elapsedDaysFloat), colorResource(id = R.color.color_indicator_days))
                                     1 -> Triple(stringResource(id = R.string.indicator_title_time), progressTimeText, colorResource(id = R.color.color_indicator_time))
@@ -287,10 +288,10 @@ fun RunScreenComposable(
                                     3 -> Triple(stringResource(id = R.string.indicator_title_saved_hours), FormatUtils.formatHoursValue(savedHours), colorResource(id = R.color.color_indicator_hours))
                                     else -> Triple(stringResource(id = R.string.indicator_title_life_gain), formattedLifeGain, colorResource(id = R.color.color_indicator_life))
                                 }
-                                // Layout reworked: label at top, main value centered, hint at bottom
-                                Box(modifier = Modifier.fillMaxWidth().height(labelBoxH + valueBoxH + hintBoxH + gapSmall + gapMedium)) {
-                                    // Top label
-                                    Box(modifier = Modifier.fillMaxWidth().height(labelBoxH).align(Alignment.TopCenter), contentAlignment = Alignment.Center) {
+                                // Layout: use full card height so main value centers correctly
+                                Column(modifier = Modifier.fillMaxSize().padding(vertical = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                    // Top label (fixed height)
+                                    Box(modifier = Modifier.height(labelBoxH).fillMaxWidth(), contentAlignment = Alignment.Center) {
                                         val base = MaterialTheme.typography.titleMedium
                                         Text(
                                             text = label,
@@ -307,8 +308,8 @@ fun RunScreenComposable(
                                         )
                                     }
 
-                                    // Center main value
-                                    Box(modifier = Modifier.fillMaxWidth().height(valueBoxH).align(Alignment.Center), contentAlignment = Alignment.Center) {
+                                    // Middle: expand and center main value (use Box for strict centering)
+                                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                                         val baseStyle = MaterialTheme.typography.headlineMedium
                                         val bigSize = (baseStyle.fontSize.value * 2.0f).sp
                                         val bigStyle = baseStyle.copy(
@@ -316,7 +317,7 @@ fun RunScreenComposable(
                                             color = Color.White,
                                             fontSize = bigSize,
                                             lineHeight = bigSize * 1.05f,
-                                            platformStyle = PlatformTextStyle(includeFontPadding = true),
+                                            platformStyle = PlatformTextStyle(includeFontPadding = false),
                                             fontFeatureSettings = "tnum",
                                             shadow = Shadow(color = Color.Black.copy(alpha = 0.55f), offset = Offset(0f, 2f), blurRadius = 4f)
                                         )
@@ -325,7 +326,7 @@ fun RunScreenComposable(
                                             fontWeight = FontWeight.SemiBold,
                                             fontSize = baseStyle.fontSize * 1.0f,
                                             lineHeight = baseStyle.fontSize * 1.05f,
-                                            platformStyle = PlatformTextStyle(includeFontPadding = true),
+                                            platformStyle = PlatformTextStyle(includeFontPadding = false),
                                             shadow = Shadow(color = Color.Black.copy(alpha = 0.45f), offset = Offset(0f, 1f), blurRadius = 2f)
                                         )
 
@@ -337,24 +338,24 @@ fun RunScreenComposable(
                                             when {
                                                 dollarMatch != null -> {
                                                     val numeric = dollarMatch.groupValues[1]
-                                                    Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                                                        Text(text = "$", style = unitStyle, modifier = Modifier.alignByBaseline())
-                                                        Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+                                                        Text(text = "$", style = unitStyle)
+                                                        Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
                                                     }
                                                 }
                                                 yenMatch != null -> {
                                                     val numeric = yenMatch.groupValues[1]
-                                                    Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                                                        Text(text = "¥", style = unitStyle, modifier = Modifier.alignByBaseline())
-                                                        Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+                                                        Text(text = "¥", style = unitStyle)
+                                                        Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
                                                     }
                                                 }
                                                 else -> {
                                                     val numeric = valueText.replace("원", "").replace("₩", "").trim()
-                                                    Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                                                        Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+                                                        Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
                                                         Spacer(modifier = Modifier.width(2.dp))
-                                                        Text(text = "원", style = unitStyle, modifier = Modifier.alignByBaseline())
+                                                        Text(text = "원", style = unitStyle)
                                                     }
                                                 }
                                             }
@@ -363,22 +364,22 @@ fun RunScreenComposable(
                                             val onePart = Regex("""([0-9]+(?:\.[0-9]+)?)\s*(?:시간|時間|hr\(s\))""")
                                             val m1 = twoPart.find(valueText)
                                             val m2 = if (m1 == null) onePart.find(valueText) else null
-                                            Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+                                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                                                 if (m1 != null) {
                                                     val dStr = m1.groupValues[1]
                                                     val hStr = m1.groupValues[2]
-                                                    Text(text = dStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                                    Text(text = dStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
                                                     Spacer(modifier = Modifier.width(2.dp))
-                                                    Text(text = stringResource(R.string.unit_day), style = unitStyle, modifier = Modifier.alignByBaseline())
+                                                    Text(text = stringResource(R.string.unit_day), style = unitStyle)
                                                     Spacer(modifier = Modifier.width(6.dp))
-                                                    Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                                    Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
                                                     Spacer(modifier = Modifier.width(2.dp))
-                                                    Text(text = stringResource(R.string.unit_hour), style = unitStyle, modifier = Modifier.alignByBaseline())
+                                                    Text(text = stringResource(R.string.unit_hour), style = unitStyle)
                                                 } else if (m2 != null) {
                                                     val hStr = m2.groupValues[1]
-                                                    Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
+                                                    Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
                                                     Spacer(modifier = Modifier.width(2.dp))
-                                                    Text(text = stringResource(R.string.unit_hour), style = unitStyle, modifier = Modifier.alignByBaseline())
+                                                    Text(text = stringResource(R.string.unit_hour), style = unitStyle)
                                                 } else {
                                                     Text(text = valueText, style = bigStyle, textAlign = TextAlign.Center, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
                                                 }
@@ -388,14 +389,15 @@ fun RunScreenComposable(
                                         }
                                     }
 
-                                    // Bottom hint
-                                    Box(modifier = Modifier.fillMaxWidth().height(hintBoxH).align(Alignment.BottomCenter), contentAlignment = Alignment.Center) {
+                                    // Bottom hint (fixed height)
+                                    Box(modifier = Modifier.height(hintBoxH).fillMaxWidth(), contentAlignment = Alignment.Center) {
                                         val base = MaterialTheme.typography.labelMedium
                                         Text(
                                             text = stringResource(id = R.string.tap_to_switch_indicator),
                                             style = base.copy(
                                                 color = Color.White,
-                                                lineHeight = base.fontSize * 1.2f,
+                                                fontSize = 13.sp,
+                                                lineHeight = 16.sp,
                                                 platformStyle = PlatformTextStyle(includeFontPadding = true),
                                                 shadow = Shadow(color = Color.Black.copy(alpha = 0.45f), offset = Offset(0f, 1f), blurRadius = 2f)
                                             ),
