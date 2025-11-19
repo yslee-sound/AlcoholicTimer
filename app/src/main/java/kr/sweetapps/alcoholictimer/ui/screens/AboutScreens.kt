@@ -1,9 +1,13 @@
-package kr.sweetapps.alcoholictimer.feature.about
+package kr.sweetapps.alcoholictimer.ui.screens
 
+import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +30,8 @@ import androidx.compose.ui.graphics.Color
 import kr.sweetapps.alcoholictimer.constants.UiConstants
 
 import kr.sweetapps.alcoholictimer.R
+import kr.sweetapps.alcoholictimer.core.ui.BackTopBar
+import kr.sweetapps.alcoholictimer.core.util.CurrencyManager
 
 @Composable
 fun AboutScreen(
@@ -36,7 +42,7 @@ fun AboutScreen(
     onBack: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val sp = remember { context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE) }
+    val sp = remember { context.getSharedPreferences("user_settings", Context.MODE_PRIVATE) }
     var nickname by remember { mutableStateOf(sp.getString("nickname", context.getString(R.string.default_nickname)) ?: context.getString(R.string.default_nickname)) }
 
     // 로컬: 닉네임 섹션 아래 간격 — AboutScreen 내부에서만 제어
@@ -60,7 +66,7 @@ fun AboutScreen(
     ) {
         // 상단 블록: 뒤로가기 표시 여부에 따라 공통 BackTopBar를 렌더링하거나 아무 것도 렌더링하지 않습니다.
         if (showBack) {
-            kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = nickname.ifEmpty { context.getString(R.string.default_nickname) }, onBack = onBack)
+            BackTopBar(title = nickname.ifEmpty { context.getString(R.string.default_nickname) }, onBack = onBack)
         }
 
         // 프로필 클릭 영역: 백버튼과 제목과 별도로 눌러서 닉네임 편집으로 이동하도록 유지
@@ -69,7 +75,7 @@ fun AboutScreen(
                 .fillMaxWidth()
                 .clickable(
                     indication = null,
-                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                    interactionSource = remember { MutableInteractionSource() }
                 ) { onNavigateEditNickname() }
                 // top/bottom padding은 상단에 BackTopBar가 렌더링되는 경우와 메인 탭(타이틀 없음)인 경우에 다르게 적용
                 .padding(start = 10.dp, top = if (showBack) 12.dp else 20.dp, end = 16.dp, bottom = if (showBack) 12.dp else 20.dp),
@@ -153,7 +159,7 @@ fun AboutLicensesScreen(onBack: () -> Unit = {}) {
     }
 
     Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
-        kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = stringResource(id = R.string.about_open_license_notice), onBack = onBack, titleColor = Color.Black)
+        BackTopBar(title = stringResource(id = R.string.about_open_license_notice), onBack = onBack, titleColor = Color.Black)
 
         // 파일 전체 텍스트를 스크롤 가능한 컬럼에 표시
         rememberScrollState()
@@ -217,7 +223,7 @@ fun LicenseItem(
                 color = Color.Black,
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier.clickable {
-                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(sourceUrl))
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(sourceUrl))
                     context.startActivity(intent)
                 }
             )
@@ -236,7 +242,7 @@ fun LicenseItem(
                 color = Color.Black,
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier.clickable {
-                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(licenseUrl))
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(licenseUrl))
                     context.startActivity(intent)
                 }
             )
@@ -257,7 +263,7 @@ fun LicenseItem(
 fun CurrencySettingsScreen(onBack: () -> Unit = {}) {
     val context = LocalContext.current
     var selectedCurrency by remember {
-        mutableStateOf(kr.sweetapps.alcoholictimer.core.util.CurrencyManager.getSelectedCurrency(context).code)
+        mutableStateOf(CurrencyManager.getSelectedCurrency(context).code)
     }
 
     Column(
@@ -268,7 +274,7 @@ fun CurrencySettingsScreen(onBack: () -> Unit = {}) {
         // Top bar for currency settings: overlay so title aligns with list items (start = 16.dp)
         Box(modifier = Modifier.fillMaxWidth().height(56.dp).padding(top = 8.dp, bottom = 4.dp)) {
             Box(modifier = Modifier.align(Alignment.CenterStart).width(UiConstants.BackIconTouchArea).padding(start = UiConstants.BackIconInnerPadding), contentAlignment = Alignment.CenterStart) {
-                val noRipple = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                val noRipple = remember { MutableInteractionSource() }
                 Image(painter = painterResource(id = R.drawable.ic_caret_left), contentDescription = stringResource(id = R.string.cd_navigate_back), modifier = Modifier.size(24.dp).clickable(indication = null, interactionSource = noRipple) { onBack() })
             }
             Text(
@@ -279,16 +285,16 @@ fun CurrencySettingsScreen(onBack: () -> Unit = {}) {
             )
         }
 
-        kr.sweetapps.alcoholictimer.core.util.CurrencyManager.supportedCurrencies.forEachIndexed { index, currency ->
+        CurrencyManager.supportedCurrencies.forEachIndexed { index, currency ->
             CurrencyOptionRow(
                 isSelected = selectedCurrency == currency.code,
                 label = stringResource(currency.nameResId),
                 onSelected = {
                     selectedCurrency = currency.code
-                    kr.sweetapps.alcoholictimer.core.util.CurrencyManager.saveCurrency(context, currency.code)
+                    CurrencyManager.saveCurrency(context, currency.code)
                 }
             )
-            if (index < kr.sweetapps.alcoholictimer.core.util.CurrencyManager.supportedCurrencies.size - 1) {
+            if (index < CurrencyManager.supportedCurrencies.size - 1) {
                 HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
             }
         }
@@ -306,7 +312,7 @@ private fun CurrencyOptionRow(
             .fillMaxWidth()
             .clickable(
                 indication = null,
-                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                interactionSource = remember { MutableInteractionSource() }
             ) { onSelected() }
             .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -338,7 +344,7 @@ private fun SimpleAboutRow(
         .fillMaxWidth()
         .then(if (onClick != null) Modifier.clickable(
             indication = null,
-            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+            interactionSource = remember { MutableInteractionSource() }
         ) { onClick() } else Modifier)
         .padding(horizontal = 16.dp, vertical = 16.dp)
     Row(modifier = base, verticalAlignment = Alignment.CenterVertically) {

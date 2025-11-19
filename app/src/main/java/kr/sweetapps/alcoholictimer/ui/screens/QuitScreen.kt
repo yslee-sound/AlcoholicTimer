@@ -311,10 +311,26 @@ private fun SmallStatCard(title: String, value: String, accentColor: Color, modi
         elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
         border = BorderStroke(1.dp, accentColor.copy(alpha = QuitUiConstants.STAT_CARD_BORDER_ALPHA))
     ) {
-        Column(modifier = Modifier.fillMaxSize().padding(vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            Text(text = value, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = accentColor, textAlign = TextAlign.Center)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = accentColor,
+                textAlign = TextAlign.Start
+            )
             Spacer(modifier = Modifier.height(6.dp))
-            Text(text = title, style = MaterialTheme.typography.labelMedium, color = colorResource(id = R.color.color_stat_title_gray), textAlign = TextAlign.Center)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelMedium,
+                color = colorResource(id = R.color.color_stat_title_gray),
+                textAlign = TextAlign.Start
+            )
         }
     }
 }

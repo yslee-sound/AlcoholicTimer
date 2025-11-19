@@ -15,8 +15,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import kr.sweetapps.alcoholictimer.feature.about.AboutLicensesScreen
-import kr.sweetapps.alcoholictimer.feature.about.AboutScreen
+import kr.sweetapps.alcoholictimer.ui.screens.AboutLicensesScreen
+import kr.sweetapps.alcoholictimer.ui.screens.AboutScreen
 import kr.sweetapps.alcoholictimer.ui.screens.DetailScreen
 import kr.sweetapps.alcoholictimer.feature.level.LevelScreen
 import kr.sweetapps.alcoholictimer.feature.records.components.AllRecordsScreen
@@ -32,6 +32,7 @@ import android.app.Activity
 import androidx.compose.runtime.mutableStateOf
 import kr.sweetapps.alcoholictimer.feature.addrecord.AddRecordScreenComposable
 import kr.sweetapps.alcoholictimer.feature.debug.DebugAdsScreen
+import kr.sweetapps.alcoholictimer.ui.screens.CurrencySettingsScreen
 
 /**
  * Navigation Graph
@@ -197,7 +198,7 @@ fun AlcoholicTimerNavGraph(
 
         // 통화 설정 화면
         composable(Screen.CurrencySettings.route) {
-            kr.sweetapps.alcoholictimer.feature.about.CurrencySettingsScreen(onBack = { navController.popBackStack() })
+            CurrencySettingsScreen(onBack = { navController.popBackStack() })
         }
 
         // Debug: Ad verifier (only for dev builds) - optional route
