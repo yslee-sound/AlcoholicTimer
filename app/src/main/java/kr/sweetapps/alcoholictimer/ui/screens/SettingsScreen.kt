@@ -1,7 +1,8 @@
-package kr.sweetapps.alcoholictimer.feature.settings
+package kr.sweetapps.alcoholictimer.ui.screens
 
 import android.content.Context
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -152,7 +153,7 @@ fun SettingsScreen() {
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Button(
-                        onClick = { UmpConsentManager.showPrivacyOptionsForm(activity = context as? androidx.activity.ComponentActivity ?: return@Button) },
+                        onClick = { UmpConsentManager.showPrivacyOptionsForm(activity = context as? ComponentActivity ?: return@Button) },
                         modifier = Modifier.padding(horizontal = 16.dp)
                     ) {
                         Text(text = stringResource(R.string.settings_privacy_open_button))

@@ -1,5 +1,6 @@
-package kr.sweetapps.alcoholictimer.feature.run
+package kr.sweetapps.alcoholictimer.ui.screens
 
+import android.content.Context
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -40,6 +41,9 @@ import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.util.FormatUtils
 import kr.sweetapps.alcoholictimer.core.util.CurrencyManager
+import org.json.JSONArray
+import org.json.JSONObject
+import kotlin.math.round
 
 // Local UI constants for QuitScreen only (do not reference UiConstants)
 private object QuitUiConstants {
@@ -76,7 +80,7 @@ fun QuitScreenComposable(
     previewProgress: Float? = null
 ) {
     val context = LocalContext.current
-    val sharedPref = context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, android.content.Context.MODE_PRIVATE)
+    val sharedPref = context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
     val targetDays = previewTargetDays ?: sharedPref.getFloat(Constants.PREF_TARGET_DAYS, 30f)
 
     var isPressed by remember { mutableStateOf(false) }
@@ -162,7 +166,7 @@ fun QuitScreenComposable(
                         modifier = Modifier.weight(1f)
                     )
                     // 절약한 금액: 소수점 없이 로케일/통화 규칙에 따라 포맷 (DetailScreen과 동일)
-                    val savedMoneyRounded = kotlin.math.round(savedMoney)
+                    val savedMoneyRounded = round(savedMoney)
                     val savedMoneyStr = CurrencyManager.formatMoneyNoDecimals(savedMoneyRounded, context)
                     SmallStatCard(
                         title = stringResource(id = R.string.indicator_title_saved_money),
@@ -268,17 +272,21 @@ fun QuitScreenComposable(
      )
  }
 
-private fun saveCompletedRecord(context: android.content.Context, startTime: Long, endTime: Long, targetDays: Float, actualDays: Int) {
+private fun saveCompletedRecord(context: Context, startTime: Long, endTime: Long, targetDays: Float, actualDays: Int) {
     try {
-        val sharedPref = context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, android.content.Context.MODE_PRIVATE)
+        val sharedPref = context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
         val recordId = System.currentTimeMillis().toString()
         val isCompleted = actualDays >= targetDays
         val status = if (isCompleted) "완료" else "중지"
-        val record = org.json.JSONObject().apply {
+        val record = JSONObject().apply {
             put("id", recordId); put("startTime", startTime); put("endTime", endTime); put("targetDays", targetDays.toInt()); put("actualDays", actualDays); put("isCompleted", isCompleted); put("status", status); put("createdAt", System.currentTimeMillis())
         }
         val recordsJson = sharedPref.getString(Constants.PREF_SOBRIETY_RECORDS, "[]") ?: "[]"
-        val list = try { org.json.JSONArray(recordsJson) } catch (_: Exception) { org.json.JSONArray() }
+        val list = try {
+            JSONArray(recordsJson)
+        } catch (_: Exception) {
+            JSONArray()
+        }
         list.put(record)
         sharedPref.edit {
             putString(Constants.PREF_SOBRIETY_RECORDS, list.toString())

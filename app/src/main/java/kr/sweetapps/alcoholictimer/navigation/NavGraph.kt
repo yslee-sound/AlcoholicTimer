@@ -21,9 +21,9 @@ import kr.sweetapps.alcoholictimer.ui.screens.DetailScreen
 import kr.sweetapps.alcoholictimer.feature.level.LevelScreen
 import kr.sweetapps.alcoholictimer.feature.records.components.AllRecordsScreen
 import kr.sweetapps.alcoholictimer.ui.screens.RecordsScreen
-import kr.sweetapps.alcoholictimer.feature.run.QuitScreenComposable
+import kr.sweetapps.alcoholictimer.ui.screens.QuitScreenComposable
 import kr.sweetapps.alcoholictimer.feature.run.RunScreenComposable
-import kr.sweetapps.alcoholictimer.feature.settings.SettingsScreen
+import kr.sweetapps.alcoholictimer.ui.screens.SettingsScreen
 import kr.sweetapps.alcoholictimer.feature.start.StartScreen
 import kr.sweetapps.alcoholictimer.feature.profile.NicknameEditScreen
 import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
