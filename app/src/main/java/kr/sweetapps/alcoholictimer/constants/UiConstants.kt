@@ -11,33 +11,11 @@ object UiConstants {
 
     // Layout-related constants (migrated from core.ui/LayoutConstants)
     val SCREEN_HORIZONTAL_PADDING: Dp = 15.dp           // 1번 화면
-    val LEVEL_SCREEN_HORIZONTAL_PADDING: Dp = 15.dp     // 3번 화면
-
     val FIRST_CARD_EXTERNAL_GAP: Dp = 15.dp             // 1번 화면
-    // Height of the app top bar used in BaseActivity (Box height = 56.dp)
-    val TOP_BAR_HEIGHT: Dp = 56.dp
-    val LEVEL_FIRST_CARD_TOP_PADDING: Dp = 15.dp        // 3번 화면
-
-    val LEVEL_SCREEN_BOTTOM_PADDING: Dp = 15.dp         // 3번 화면
-    // Records screen constants migrated to RecordsScreen.kt to allow per-screen overrides.
-
-    val START_BRAND_TITLE_TOP_GAP: Dp = 12.dp
-    val START_BRAND_TITLE_BOTTOM_GAP: Dp = 12.dp
-
-    val FIRST_CARD_TOP_INNER_PADDING: Dp = 50.dp
-
-    val RUN_STAT_CHIP_SPACING: Dp = 10.dp
-    val RUN_TOP_CARD_HORIZONTAL_PADDING: Dp = 10.dp
-    val RUN_TOP_CARD_VERTICAL_PADDING: Dp = 10.dp
-
-    // Global vertical spacing between cards across the app.
-    // Use this constant for any card-to-card vertical gap to ensure uniform spacing.
-    // To change spacing for all cards update CARD_VERTICAL_SPACING here.
     val CARD_VERTICAL_SPACING: Dp = 15.dp // 12
     val STAT_ROW_SPACING: Dp = 12.dp
     val CARD_CORNER_RADIUS: Dp = 20.dp
     val CARD_PADDING: Dp = 20.dp
-    val BOTTOM_BUTTON_HORIZONTAL_PADDING: Dp = 120.dp
 
     val BANNER_TOP_GAP: Dp = 8.dp
     val BANNER_FIXED_HEIGHT: Dp = 64.dp
