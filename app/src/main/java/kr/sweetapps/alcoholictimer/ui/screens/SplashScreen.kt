@@ -8,18 +8,13 @@ import androidx.activity.compose.setContent
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.ads.AppOpenAdManager
 import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.ads.UmpConsentManager
 import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
 import kr.sweetapps.alcoholictimer.constants.Constants
 import kr.sweetapps.alcoholictimer.MainActivity
 import android.graphics.Color as AndroidColor
-import kr.sweetapps.alcoholictimer.ads.HomeAdTrigger
 import androidx.compose.runtime.mutableStateOf
-import androidx.core.view.WindowInsetsControllerCompat
-import android.view.WindowManager
-import kr.sweetapps.alcoholictimer.feature.start.StartScreen
 
 /**
  * 이전 `StartActivity`의 역할을 그대로 옮긴 스플래시 전용 액티비티입니다.

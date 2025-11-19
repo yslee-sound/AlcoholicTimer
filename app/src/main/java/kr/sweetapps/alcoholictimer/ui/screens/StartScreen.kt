@@ -1,7 +1,9 @@
-package kr.sweetapps.alcoholictimer.feature.start
+package kr.sweetapps.alcoholictimer.ui.screens
 
+import android.app.Activity
 import android.content.Context.MODE_PRIVATE
 import android.content.Intent
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -11,10 +13,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -71,18 +70,18 @@ fun StartScreen(
 
     if (!gateNavigation && startTime != 0L && !timerCompleted) {
         LaunchedEffect(Unit) {
-            android.util.Log.d("StartScreen", "Immediate navigation path taken: startTime=$startTime timerCompleted=$timerCompleted onStart=${onStart!=null}")
+            Log.d("StartScreen", "Immediate navigation path taken: startTime=$startTime timerCompleted=$timerCompleted onStart=${onStart!=null}")
             if (onStart != null) {
                 // NavHost 내부 이동: Activity 종료 금지 (스플래시 재등장 방지)
-                android.util.Log.d("StartScreen", "Calling onStart() for in-app navigation")
+                Log.d("StartScreen", "Calling onStart() for in-app navigation")
                 onStart()
             } else {
-                android.util.Log.d("StartScreen", "Starting MainActivity directly (run route)")
+                Log.d("StartScreen", "Starting MainActivity directly (run route)")
                 val intent = Intent(context, MainActivity::class.java)
                 intent.putExtra("route", "run")
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 context.startActivity(intent)
-                (context as? android.app.Activity)?.finish()
+                (context as? Activity)?.finish()
             }
         }
         return
@@ -96,9 +95,9 @@ fun StartScreen(
 
     // 스플래시 오버레이가 해제될 때(onSplashFinished)만 앱으로 진입
     LaunchedEffect(showSplashOverlay) {
-        android.util.Log.d("StartScreen", "LaunchedEffect showSplashOverlay changed: $showSplashOverlay")
+        Log.d("StartScreen", "LaunchedEffect showSplashOverlay changed: $showSplashOverlay")
         if (!showSplashOverlay && onSplashFinished != null) onSplashFinished()
-        if (!showSplashOverlay) android.util.Log.d("StartScreen", "onSplashFinished invoked: ${onSplashFinished != null}")
+        if (!showSplashOverlay) Log.d("StartScreen", "onSplashFinished invoked: ${onSplashFinished != null}")
     }
 
     val config = LocalConfiguration.current
@@ -206,7 +205,7 @@ fun StartScreen(
                                 intent.putExtra("route", "run")
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                                 context.startActivity(intent)
-                                (context as? android.app.Activity)?.finish()
+                                (context as? Activity)?.finish()
                             }
                         }
                         launchRun()
