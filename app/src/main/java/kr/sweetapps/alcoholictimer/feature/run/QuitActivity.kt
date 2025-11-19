@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.core.content.edit
 import java.util.Locale
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
@@ -161,7 +162,7 @@ fun QuitScreenComposable(
                         modifier = Modifier.weight(1f)
                     )
                     // 절약한 금액: 소수점 없이 로케일/통화 규칙에 따라 포맷 (DetailScreen과 동일)
-                    val savedMoneyRounded = kotlin.math.round(savedMoney).toDouble()
+                    val savedMoneyRounded = kotlin.math.round(savedMoney)
                     val savedMoneyStr = CurrencyManager.formatMoneyNoDecimals(savedMoneyRounded, context)
                     SmallStatCard(
                         title = stringResource(id = R.string.indicator_title_saved_money),
@@ -227,10 +228,10 @@ fun QuitScreenComposable(
                                                     targetDays = targetDays,
                                                     actualDays = actualDays
                                                 )
-                                                val editor = sharedPref.edit()
-                                                editor.putBoolean(Constants.PREF_TIMER_COMPLETED, true)
-                                                editor.remove(Constants.PREF_START_TIME)
-                                                editor.apply()
+                                                sharedPref.edit {
+                                                    putBoolean(Constants.PREF_TIMER_COMPLETED, true)
+                                                    remove(Constants.PREF_START_TIME)
+                                                }
                                             } catch (_: Throwable) { }
                                             onQuitConfirmed()
                                         }
@@ -279,9 +280,9 @@ private fun saveCompletedRecord(context: android.content.Context, startTime: Lon
         val recordsJson = sharedPref.getString(Constants.PREF_SOBRIETY_RECORDS, "[]") ?: "[]"
         val list = try { org.json.JSONArray(recordsJson) } catch (_: Exception) { org.json.JSONArray() }
         list.put(record)
-        val editor = sharedPref.edit()
-        editor.putString(Constants.PREF_SOBRIETY_RECORDS, list.toString())
-        editor.apply()
+        sharedPref.edit {
+            putString(Constants.PREF_SOBRIETY_RECORDS, list.toString())
+        }
     } catch (_: Exception) { }
 }
 
