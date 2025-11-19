@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -83,6 +85,19 @@ fun QuitScreenComposable(
     val coroutineScope = rememberCoroutineScope()
 
     StandardScreenWithBottomButton(
+        // Overlay: match RunScreen's subtle top highlight and bottom darkening
+        backgroundDecoration = {
+            Box(
+                modifier = Modifier.matchParentSize().background(
+                    Brush.verticalGradient(
+                        0.0f to Color.Transparent,
+                        0.25f to Color.White.copy(alpha = 0.18f),
+                        0.7f to Color.Transparent,
+                        1.0f to Color.Black.copy(alpha = 0.12f)
+                    )
+                )
+            )
+        },
         screenBackground = Color(0xFFEEEDE9),
         topPadding = QuitUiConstants.TOP_CARD_TOP_PADDING,
         horizontalPadding = QuitUiConstants.CARD_HORIZONTAL_PADDING,
