@@ -1,3 +1,8 @@
+/**
+ * 답변만 간결하게 50자 이내로 할 것
+ * 불필요한 추가작업 추천하지 말것
+ * 불필요한 작업과정은 설명하지 말것
+ */
 package kr.sweetapps.alcoholictimer.feature.run
 
 import android.content.Context
@@ -262,7 +267,7 @@ fun RunScreenComposable(
                     }
 
                     Card(
-                        modifier = Modifier.fillMaxWidth().height(168.dp).clickable { toggleIndicator() },
+                        modifier = Modifier.fillMaxWidth().height(180.dp).clickable { toggleIndicator() },
                         shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -319,7 +324,8 @@ fun RunScreenComposable(
                                     // Middle: center main value (no weight so it stays close to label/hint)
                                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                                         val baseStyle = MaterialTheme.typography.headlineMedium
-                                        val bigSize = (baseStyle.fontSize.value * 1.45f).sp
+                                        // User requested: increase multiplier to 2.0 to make central number much larger
+                                        val bigSize = (baseStyle.fontSize.value * 2.5f).sp
                                         val bigStyle = baseStyle.copy(
                                             fontWeight = FontWeight.ExtraBold,
                                             color = Color.White,
@@ -332,8 +338,9 @@ fun RunScreenComposable(
                                         val unitStyle = baseStyle.copy(
                                             color = Color.White,
                                             fontWeight = FontWeight.SemiBold,
-                                            fontSize = baseStyle.fontSize * 1.0f,
-                                            lineHeight = baseStyle.fontSize * 1.05f,
+                                            // Increase unit font size to keep unit readable with much larger main number
+                                            fontSize = baseStyle.fontSize * 1.25f,
+                                            lineHeight = baseStyle.fontSize * 1.15f,
                                             platformStyle = PlatformTextStyle(includeFontPadding = false),
                                             shadow = Shadow(color = Color.Black.copy(alpha = 0.45f), offset = Offset(0f, 1f), blurRadius = 2f)
                                         )
