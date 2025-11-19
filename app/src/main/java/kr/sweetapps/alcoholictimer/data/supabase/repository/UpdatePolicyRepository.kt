@@ -1,9 +1,9 @@
 package kr.sweetapps.alcoholictimer.data.supabase.repository
 
-import android.R.attr.order
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Log
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import kr.sweetapps.alcoholictimer.data.supabase.model.UpdatePolicy
@@ -29,9 +29,11 @@ class UpdatePolicyRepository(
     private val context: Context
 ) {
     companion object {
-        private const val TABLE_NAME = "update_policies"
+        private const val TABLE_NAME = "update_policy"
         private const val PREF_NAME = "update_policy_prefs"
-        private const val KEY_DISMISSED_VERSION = "dismissed_version"
+        private const val KEY_DISMISSED_VERSION_CODE = "dismissed_version_code"
+        private const val KEY_LATER_COUNT_PREFIX = "update_later_count_"
+        private const val KEY_LAST_DISMISSED_PREFIX = "update_last_dismissed_"
     }
 
     /**
@@ -84,64 +86,38 @@ class UpdatePolicyRepository(
             val currentVersionCode = getCurrentVersionCode()
             val currentVersionName = getCurrentVersionName()
 
-            val policies = client.from(TABLE_NAME)
-                .select {
-                    filter {
-                        eq("is_active", true)
-                        gt("version_code", currentVersionCode)
-                    }
-                }
-                .decodeList<UpdatePolicy>()
-                .sortedByDescending { it.versionCode }
+            Log.d("UpdatePolicyRepo", "getActivePolicy: app=${context.packageName} currentVersionCode=$currentVersionCode currentVersionName=$currentVersionName")
 
-            // 버전 범위 필터링 및 이전 버전 무시 로직 적용
-            val dismissedVersion = getDismissedVersion()
-            policies.firstOrNull { policy ->
-                isVersionInRange(currentVersionName, policy.targetVersionMin, policy.targetVersionMax) &&
-                (policy.isForceUpdate || policy.version != dismissedVersion)
+            val appId = context.packageName
+            val policies = try {
+                client.from(TABLE_NAME)
+                    .select {
+                        filter {
+                            eq("is_active", true)
+                            eq("app_id", appId)
+                        }
+                    }
+                    .decodeList<UpdatePolicy>()
+                    .sortedByDescending { it.targetVersionCode }
+            } catch (e: Exception) {
+                Log.e("UpdatePolicyRepo", "decodeList failed: ${e.message}", e)
+                emptyList<UpdatePolicy>()
             }
+
+            Log.d("UpdatePolicyRepo", "policies fetched count=${policies.size}")
+            policies.forEach { p -> Log.d("UpdatePolicyRepo", "policy id=${p.id} target=${p.targetVersionCode} force=${p.isForceUpdate}") }
+
+            val chosen = policies.firstOrNull { p ->
+                try {
+                    p.targetVersionCode > currentVersionCode.toLong()
+                } catch (_: Exception) { false }
+            }
+            Log.d("UpdatePolicyRepo", "chosen policy=${chosen?.id}")
+            chosen
         } catch (e: Exception) {
             e.printStackTrace()
             null
         }
-    }
-
-    /**
-     * 현재 버전이 대상 버전 범위 내에 있는지 확인합니다.
-     */
-    private fun isVersionInRange(current: String, min: String?, max: String?): Boolean {
-        if (min == null && max == null) return true
-
-        try {
-            val currentParts = current.split(".").map { it.toIntOrNull() ?: 0 }
-
-            if (min != null) {
-                val minParts = min.split(".").map { it.toIntOrNull() ?: 0 }
-                if (compareVersions(currentParts, minParts) < 0) return false
-            }
-
-            if (max != null) {
-                val maxParts = max.split(".").map { it.toIntOrNull() ?: 0 }
-                if (compareVersions(currentParts, maxParts) > 0) return false
-            }
-
-            return true
-        } catch (e: Exception) {
-            return true
-        }
-    }
-
-    /**
-     * 두 버전을 비교합니다.
-     */
-    private fun compareVersions(v1: List<Int>, v2: List<Int>): Int {
-        val maxLength = maxOf(v1.size, v2.size)
-        for (i in 0 until maxLength) {
-            val part1 = v1.getOrNull(i) ?: 0
-            val part2 = v2.getOrNull(i) ?: 0
-            if (part1 != part2) return part1 - part2
-        }
-        return 0
     }
 
     /**
@@ -151,7 +127,7 @@ class UpdatePolicyRepository(
      */
     fun dismissVersion(version: String) {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putString(KEY_DISMISSED_VERSION, version).apply()
+        prefs.edit().putString(KEY_DISMISSED_VERSION_CODE, version).apply()
     }
 
     /**
@@ -159,7 +135,7 @@ class UpdatePolicyRepository(
      */
     private fun getDismissedVersion(): String? {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        return prefs.getString(KEY_DISMISSED_VERSION, null)
+        return prefs.getString(KEY_DISMISSED_VERSION_CODE, null)
     }
 
     /**
@@ -167,7 +143,29 @@ class UpdatePolicyRepository(
      */
     fun clearDismissedVersion() {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        prefs.edit().remove(KEY_DISMISSED_VERSION).apply()
+        prefs.edit().remove(KEY_DISMISSED_VERSION_CODE).apply()
+    }
+
+    // UpdateStats helpers - stored per targetVersionCode
+    fun getUpdateStats(versionCode: Long): kr.sweetapps.alcoholictimer.data.supabase.model.UpdateStats {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val key = versionCode.toString()
+        val later = prefs.getInt(KEY_LATER_COUNT_PREFIX + key, 0)
+        val lastMs = prefs.getLong(KEY_LAST_DISMISSED_PREFIX + key, 0L)
+        return kr.sweetapps.alcoholictimer.data.supabase.model.UpdateStats(later, lastMs)
+    }
+
+    fun recordLaterClicked(versionCode: Long, nowMs: Long = System.currentTimeMillis()) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val key = versionCode.toString()
+        val keyCount = KEY_LATER_COUNT_PREFIX + key
+        val prev = prefs.getInt(keyCount, 0)
+        prefs.edit().putInt(keyCount, prev + 1).putLong(KEY_LAST_DISMISSED_PREFIX + key, nowMs).apply()
+    }
+
+    fun clearStats(versionCode: Long) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val key = versionCode.toString()
+        prefs.edit().remove(KEY_LATER_COUNT_PREFIX + key).remove(KEY_LAST_DISMISSED_PREFIX + key).apply()
     }
 }
-

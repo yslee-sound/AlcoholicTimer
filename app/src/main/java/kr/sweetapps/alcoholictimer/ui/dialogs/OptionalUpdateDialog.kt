@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -16,12 +17,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.unit.dp
 import kr.sweetapps.alcoholictimer.R
 
 /**
@@ -37,16 +40,21 @@ import kr.sweetapps.alcoholictimer.R
 fun OptionalUpdateDialog(
     isForce: Boolean = false,
     title: String = "앱 업데이트",
-    // 추가: 설명과 버전 파라미터을 허용하여 호출부와 호환되도록 함
+    // 설명과 features 파라미터 허용
     description: String = "",
     updateButtonText: String = "지금 업데이트",
     laterButtonText: String = "나중에",
     features: List<String>? = null,
-    version: String? = null,
     estimatedTime: String? = null,
     onUpdateClick: () -> Unit,
     onLaterClick: (() -> Unit)? = null
 ) {
+    // resolve strings from resources when empty
+    val resolvedTitle = if (title.isBlank()) stringResource(id = kr.sweetapps.alcoholictimer.R.string.update_dialog_title) else title
+    val resolvedDescription = if (description.isBlank()) stringResource(id = kr.sweetapps.alcoholictimer.R.string.update_dialog_default_message) else description
+    val resolvedUpdateText = if (updateButtonText.isBlank()) stringResource(id = kr.sweetapps.alcoholictimer.R.string.update_dialog_update) else updateButtonText
+    val resolvedLaterText = if (laterButtonText.isBlank()) stringResource(id = kr.sweetapps.alcoholictimer.R.string.update_dialog_later) else laterButtonText
+
     Dialog(
         onDismissRequest = {
             if (!isForce) {
@@ -62,89 +70,91 @@ fun OptionalUpdateDialog(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.5f))
+                .background(Color.Black.copy(alpha = 0.6f)) // overlay alpha 0.6
                 .padding(24.dp),
             contentAlignment = Alignment.Center
         ) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .widthIn(max = 360.dp)
                     .wrapContentHeight(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
+                shape = RoundedCornerShape(12.dp), // corner radius 12dp
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
                 Box {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .verticalScroll(rememberScrollState())
-                            .padding(28.dp)
-                            .padding(top = 16.dp) // X 버튼 공간
+                            .padding(20.dp) // container padding 20dp
+                            .padding(top = 8.dp) // header top margin 8dp for icon
                     ) {
-                        // 상단 이미지
+                        // Header icon (56dp circular)
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(1.6f)
-                                .clip(RoundedCornerShape(12.dp))
+                                .size(56.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFF3F8FF)),
+                            contentAlignment = Alignment.Center
                         ) {
                             Image(
-                                painter = painterResource(id = R.drawable.ic_splash_logo),
+                                painter = painterResource(id = R.drawable.update_sample),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
+                                modifier = Modifier
+                                    .size(40.dp)
                             )
                         }
 
-                        Spacer(modifier = Modifier.height(20.dp))
-
-
-                        // 버전 배지 (옵션)
-                        version?.let {
-                            Surface(
-                                color = Color(0xFFEFF6FF),
-                                shape = RoundedCornerShape(20.dp)
-                            ) {
-                                Text(
-                                    text = "v$it",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = Color(0xFF1976D2),
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(12.dp))
-                        }
+                        Spacer(modifier = Modifier.height(8.dp))
 
                         // 제목
                         Text(
-                            text = title,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1A1A1A),
-                            textAlign = TextAlign.Center
+                            text = resolvedTitle,
+                            fontSize = 20.sp, // token
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF111827),
+                            textAlign = TextAlign.Center,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth()
                         )
 
-                        // 설명 (선택)
+                        // title - body spacing: 12dp token
+                        // 설명 (선택) — 본문만 스크롤 가능하게 제한된 높이(최대 220dp)
                         if (description.isNotBlank()) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = description,
-                                fontSize = 15.sp,
-                                color = Color(0xFF666666),
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(max = 220.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                            ) {
+                                Column(modifier = Modifier
+                                    .fillMaxWidth()
+                                    .verticalScroll(rememberScrollState())
+                                    .padding(vertical = 8.dp)) {
+                                    Text(
+                                        text = resolvedDescription,
+                                        fontSize = 14.sp,
+                                        lineHeight = 18.sp, // 14sp + 4dp token
+                                        color = Color(0xFF6B7280),
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 12.dp)
+                                    )
+                                }
+                            }
                         }
 
                         val hasFeatures = !features.isNullOrEmpty()
                         if (hasFeatures) {
                             Spacer(modifier = Modifier.height(16.dp))
                             Column(modifier = Modifier.fillMaxWidth()) {
-                                val list = features!!
-                                list.forEach { feature ->
+                                features!!.forEach { feature ->
                                     FeatureItem(feature)
                                     Spacer(modifier = Modifier.height(8.dp))
                                 }
@@ -161,8 +171,8 @@ fun OptionalUpdateDialog(
                             )
                         }
 
-                        // features 없으면 버튼 위 여백 축소 (기존 22dp → 8dp)
-                        Spacer(modifier = Modifier.height(if (hasFeatures) 22.dp else 8.dp))
+                        // 본문과 버튼 사이: 20dp
+                        Spacer(modifier = Modifier.height(20.dp))
 
                         // 버튼 레이아웃
                         if (isForce) {
@@ -175,13 +185,13 @@ fun OptionalUpdateDialog(
                                 Button(
                                     onClick = onUpdateClick,
                                     modifier = Modifier.weight(1f).height(48.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A7FFF)),
-                                    shape = RoundedCornerShape(12.dp)
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E88E5)),
+                                    shape = RoundedCornerShape(10.dp)
                                 ) {
                                     Text(
-                                        updateButtonText,
+                                        resolvedUpdateText,
                                         color = Color.White,
-                                        style = MaterialTheme.typography.labelLarge,
+                                        fontSize = 16.sp,
                                         fontWeight = FontWeight.SemiBold
                                     )
                                 }
@@ -192,31 +202,32 @@ fun OptionalUpdateDialog(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                Button(
+                                // Secondary button style (outlined-like)
+                                OutlinedButton(
                                     onClick = { onLaterClick?.invoke() },
-                                    modifier = Modifier.weight(1f).height(48.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFF2F4F7),
-                                        contentColor = Color(0xFF333333)
-                                    ),
-                                    shape = RoundedCornerShape(12.dp)
+                                    modifier = Modifier.weight(1f).height(44.dp),
+                                    border = BorderStroke(1.dp, Color(0xFF1E88E5)),
+                                    colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent, contentColor = Color(0xFF1E88E5)),
+                                    shape = RoundedCornerShape(10.dp),
+                                    contentPadding = PaddingValues()
                                 ) {
                                     Text(
-                                        laterButtonText,
-                                        style = MaterialTheme.typography.labelLarge,
-                                        fontWeight = FontWeight.Medium
+                                        resolvedLaterText,
+                                        fontSize = 14.sp,
+                                        color = Color(0xFF1E88E5)
                                     )
                                 }
+                                Spacer(modifier = Modifier.width(12.dp))
                                 Button(
                                     onClick = onUpdateClick,
                                     modifier = Modifier.weight(1f).height(48.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A7FFF)),
-                                    shape = RoundedCornerShape(12.dp)
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E88E5)),
+                                    shape = RoundedCornerShape(10.dp)
                                 ) {
                                     Text(
-                                        updateButtonText,
+                                        resolvedUpdateText,
                                         color = Color.White,
-                                        style = MaterialTheme.typography.labelLarge,
+                                        fontSize = 16.sp,
                                         fontWeight = FontWeight.SemiBold
                                     )
                                 }

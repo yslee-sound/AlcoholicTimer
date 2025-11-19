@@ -4,50 +4,44 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * 업데이트 정책 데이터 모델
+ * UpdatePolicy matches Supabase `update_policy` table schema.
  */
 @Serializable
 data class UpdatePolicy(
     @SerialName("id")
-    val id: String,
+    val id: Long,
+
+    @SerialName("app_id")
+    val appId: String? = null,
 
     @SerialName("is_active")
-    val isActive: Boolean,
+    val isActive: Boolean = true,
 
-    @SerialName("version")
-    val version: String,
-
-    @SerialName("version_code")
-    val versionCode: Int,
-
-    @SerialName("title")
-    val title: String,
-
-    @SerialName("description")
-    val description: String,
-
-    @SerialName("update_button_text")
-    val updateButtonText: String,
-
-    @SerialName("later_button_text")
-    val laterButtonText: String? = null,
-
-    @SerialName("features")
-    val features: List<String> = emptyList(),
+    // target version the policy applies to (integer)
+    @SerialName("target_version_code")
+    val targetVersionCode: Long = 0L,
 
     @SerialName("is_force_update")
     val isForceUpdate: Boolean = false,
 
-    @SerialName("target_version_min")
-    val targetVersionMin: String? = null,
+    @SerialName("release_notes")
+    val releaseNotes: String? = null,
 
-    @SerialName("target_version_max")
-    val targetVersionMax: String? = null,
+    @SerialName("download_url")
+    val downloadUrl: String? = null,
 
-    @SerialName("store_url")
-    val storeUrl: String? = null,
+    @SerialName("reshow_interval_hours")
+    val reshowIntervalHours: Int? = null,
+
+    @SerialName("reshow_interval_minutes")
+    val reshowIntervalMinutes: Int? = null,
+
+    @SerialName("reshow_interval_seconds")
+    val reshowIntervalSeconds: Int? = null,
+
+    @SerialName("max_later_count")
+    val maxLaterCount: Int = 0,
 
     @SerialName("created_at")
     val createdAt: String? = null
 )
-
