@@ -1,5 +1,11 @@
+// 이 파일 내부에서 UiConstants.kt 의 상수를 사용하지 말 것
+// 앞으로 답변은 50자 이내로 할것
+// 과정에 대한 설명 하지 말 것
+// 불필요한 추가작업 제안하지 말 것
+
 package kr.sweetapps.alcoholictimer.feature.level
 
+import android.R.attr.left
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -42,7 +48,6 @@ import java.util.Locale
 import android.util.Log
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import androidx.compose.foundation.BorderStroke
-import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
@@ -51,7 +56,6 @@ import androidx.annotation.DrawableRes
 import kr.sweetapps.alcoholictimer.core.ui.AppColors
 import kr.sweetapps.alcoholictimer.core.ui.AppCard
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.unit.Dp
 
 class LevelActivity : BaseActivity() {
 
@@ -113,12 +117,12 @@ fun LevelScreen() {
                 .fillMaxSize()
                 // Use surface for the screen background so the flat LevelListCard blends to the bottom
                 .background(MaterialTheme.colorScheme.surface),
-            verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING)
+            verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
             // Scrollable area (does NOT include safeBottom) — explicitly paint it with surface so it blends to bottom
             // Use only the level-screen bottom padding so spacing is not stacked with host reserves.
             // This makes the content extend behind the BottomNavBar; the nav will overlay on top.
-            val appliedBottom = UiConstants.LEVEL_SCREEN_BOTTOM_PADDING
+            val appliedBottom = 15.dp
             Box(modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surface)
@@ -127,15 +131,15 @@ fun LevelScreen() {
                 .padding(bottom = appliedBottom)
             ) {
                 // Debug: log computed appliedBottom for diagnosis
-                Log.d("LevelScreenDebug", "LEVEL_SCREEN_BOTTOM_PADDING=${UiConstants.LEVEL_SCREEN_BOTTOM_PADDING}, appliedBottom=$appliedBottom")
+                Log.d("LevelScreenDebug", "LEVEL_SCREEN_BOTTOM_PADDING=15.dp, appliedBottom=$appliedBottom")
 
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         // 수평 여백을 LEVEL_SCREEN_HORIZONTAL_PADDING으로 통일하여
                         // 상단 메인카드와 하단 리스트카드의 좌우 여백을 한 곳에서 관리합니다.
-                        .padding(top = UiConstants.LEVEL_FIRST_CARD_TOP_PADDING, start = UiConstants.LEVEL_SCREEN_HORIZONTAL_PADDING, end = UiConstants.LEVEL_SCREEN_HORIZONTAL_PADDING),
-                    verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING)
+                        .padding(top = 15.dp, start = 15.dp, end = 15.dp),
+                    verticalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
                     // 변경: float 경과 일수 전달
                     // Only the top main card should have the horizontal screen padding; LevelListCard should span edge-to-edge.
@@ -147,6 +151,10 @@ fun LevelScreen() {
                         // 카드 외형 폭은 부모의 LEVEL_SCREEN_HORIZONTAL_PADDING으로만 관리되도록
                         modifier = Modifier.fillMaxWidth()
                     )
+
+                    // Explicit external bottom gap for the main card
+                    Spacer(modifier = Modifier.height(24.dp))
+
                     LevelListCard(currentLevel = currentLevel, currentDays = levelDays)
                 }
             }
@@ -183,7 +191,7 @@ fun MainLevelCardFrame(
                     contentDescription = null,
                     modifier = Modifier
                         .matchParentSize()
-                        .scale(1.15f)
+                        .scale(1.4f)
                         .clip(RoundedCornerShape(16.dp)),
                     contentScale = backgroundContentScale,
                     alignment = Alignment.TopCenter,
@@ -280,9 +288,7 @@ fun CurrentLevelCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-            Spacer(modifier = Modifier.height(8.dp))
-
+            Spacer(modifier = Modifier.height(30.dp))
             Text(
                 text = context.getString(currentLevel.nameResId),
                 style = MaterialTheme.typography.headlineLarge.copy(color = Color.White),
@@ -447,14 +453,15 @@ private fun LevelListCard(currentLevel: LevelDefinitions.LevelInfo, currentDays:
             // keep the visual grouping by using the surface color (flat, no corners)
             .background(MaterialTheme.colorScheme.surface)
     ) {
-        Column(modifier = Modifier.padding(top = 24.dp)) {
+        Column(modifier = Modifier.padding(top = 0.dp)) {
             Text(
                 text = context.getString(R.string.level_all_levels),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color(0xFF333333)),
-                modifier = Modifier.padding(bottom = 24.dp)
+                modifier = Modifier.padding(start = 2.dp, bottom = 24.dp)
             )
 
-            Column(verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING)) {
+            // local card vertical spacing used instead of UiConstants
+            Column(verticalArrangement = Arrangement.spacedBy(15.dp)) {
                 LevelDefinitions.levels.forEach { level ->
                     LevelItem(
                         level = level,
