@@ -287,15 +287,17 @@ fun RunScreenComposable(
                                     3 -> Triple(stringResource(id = R.string.indicator_title_saved_hours), FormatUtils.formatHoursValue(savedHours), colorResource(id = R.color.color_indicator_hours))
                                     else -> Triple(stringResource(id = R.string.indicator_title_life_gain), formattedLifeGain, colorResource(id = R.color.color_indicator_life))
                                 }
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Box(modifier = Modifier.fillMaxWidth().height(labelBoxH), contentAlignment = Alignment.Center) {
+                                // Layout reworked: label at top, main value centered, hint at bottom
+                                Box(modifier = Modifier.fillMaxWidth().height(labelBoxH + valueBoxH + hintBoxH + gapSmall + gapMedium)) {
+                                    // Top label
+                                    Box(modifier = Modifier.fillMaxWidth().height(labelBoxH).align(Alignment.TopCenter), contentAlignment = Alignment.Center) {
                                         val base = MaterialTheme.typography.titleMedium
-                                        // label text in white for readability over background image
                                         Text(
                                             text = label,
                                             style = base.copy(
                                                 color = Color.White,
                                                 lineHeight = base.fontSize * 1.2f,
+                                                fontWeight = FontWeight.Bold,
                                                 platformStyle = PlatformTextStyle(includeFontPadding = true),
                                                 shadow = Shadow(color = Color.Black.copy(alpha = 0.5f), offset = Offset(0f, 1f), blurRadius = 2f)
                                             ),
@@ -304,12 +306,11 @@ fun RunScreenComposable(
                                             overflow = TextOverflow.Ellipsis
                                         )
                                     }
-                                    Spacer(modifier = Modifier.height(gapSmall))
-                                    Box(modifier = Modifier.fillMaxWidth().height(valueBoxH), contentAlignment = Alignment.Center) {
-                                        // 강조 숫자 크기: 적절히 확대하되 카드 내에 맞춤
+
+                                    // Center main value
+                                    Box(modifier = Modifier.fillMaxWidth().height(valueBoxH).align(Alignment.Center), contentAlignment = Alignment.Center) {
                                         val baseStyle = MaterialTheme.typography.headlineMedium
                                         val bigSize = (baseStyle.fontSize.value * 2.0f).sp
-                                        // 모든 값 텍스트를 흰색으로 변경하여 이미지 위 가독성 확보
                                         val bigStyle = baseStyle.copy(
                                             fontWeight = FontWeight.ExtraBold,
                                             color = Color.White,
@@ -327,34 +328,30 @@ fun RunScreenComposable(
                                             platformStyle = PlatformTextStyle(includeFontPadding = true),
                                             shadow = Shadow(color = Color.Black.copy(alpha = 0.45f), offset = Offset(0f, 1f), blurRadius = 2f)
                                         )
+
                                         val isMoney = currentIndicator == 2
                                         val isLifeGain = currentIndicator == 4
                                         if (isMoney) {
-                                            // 다국어 통화 형식 처리
-                                            val dollarMatch = Regex("""\$([0-9,]+(?:\.[0-9]+)?)""" ).find(valueText)
-                                            val yenMatch = Regex("""¥([0-9,]+)""" ).find(valueText)
-
+                                            val dollarMatch = Regex("""\$([0-9,]+(?:\.[0-9]+)?)""").find(valueText)
+                                            val yenMatch = Regex("""¥([0-9,]+)""").find(valueText)
                                             when {
                                                 dollarMatch != null -> {
-                                                    // 달러 형식: $1,000.00
                                                     val numeric = dollarMatch.groupValues[1]
-                                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                                    Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                                                         Text(text = "$", style = unitStyle, modifier = Modifier.alignByBaseline())
                                                         Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
                                                     }
                                                 }
                                                 yenMatch != null -> {
-                                                    // 엔화 형식: ¥1,000
                                                     val numeric = yenMatch.groupValues[1]
-                                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                                    Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                                                         Text(text = "¥", style = unitStyle, modifier = Modifier.alignByBaseline())
                                                         Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
                                                     }
                                                 }
                                                 else -> {
-                                                    // 원화 형식: 1,000원 또는 ₩1,000
                                                     val numeric = valueText.replace("원", "").replace("₩", "").trim()
-                                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                                    Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                                                         Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip, modifier = Modifier.alignByBaseline())
                                                         Spacer(modifier = Modifier.width(2.dp))
                                                         Text(text = "원", style = unitStyle, modifier = Modifier.alignByBaseline())
@@ -362,12 +359,11 @@ fun RunScreenComposable(
                                                 }
                                             }
                                         } else if (isLifeGain) {
-                                            // 다국어 지원: "1일 2.5시간" 또는 "1 day(s) 2.5 hr(s)" 또는 "1日 2.5時間"
                                             val twoPart = Regex("""(\d+)\s*(?:일|日|day\(s\))\s*([0-9]+(?:\.[0-9]+)?)\s*(?:시간|時間|hr\(s\))""")
                                             val onePart = Regex("""([0-9]+(?:\.[0-9]+)?)\s*(?:시간|時間|hr\(s\))""")
                                             val m1 = twoPart.find(valueText)
                                             val m2 = if (m1 == null) onePart.find(valueText) else null
-                                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                            Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                                                 if (m1 != null) {
                                                     val dStr = m1.groupValues[1]
                                                     val hStr = m1.groupValues[2]
@@ -388,20 +384,13 @@ fun RunScreenComposable(
                                                 }
                                             }
                                         } else {
-                                            Text(
-                                                text = valueText,
-                                                style = bigStyle,
-                                                textAlign = TextAlign.Center,
-                                                maxLines = 1,
-                                                softWrap = false,
-                                                overflow = TextOverflow.Clip
-                                            )
+                                            Text(text = valueText, style = bigStyle, textAlign = TextAlign.Center, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
                                         }
                                     }
-                                    Spacer(modifier = Modifier.height(gapMedium))
-                                    Box(modifier = Modifier.fillMaxWidth().height(hintBoxH), contentAlignment = Alignment.Center) {
+
+                                    // Bottom hint
+                                    Box(modifier = Modifier.fillMaxWidth().height(hintBoxH).align(Alignment.BottomCenter), contentAlignment = Alignment.Center) {
                                         val base = MaterialTheme.typography.labelMedium
-                                        // hint text also white for consistency
                                         Text(
                                             text = stringResource(id = R.string.tap_to_switch_indicator),
                                             style = base.copy(
