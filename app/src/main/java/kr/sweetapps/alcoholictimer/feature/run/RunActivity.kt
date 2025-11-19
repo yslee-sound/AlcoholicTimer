@@ -279,10 +279,8 @@ fun RunScreenComposable(
                             // 기존 내용은 이미지 위에 동일한 패딩으로 배치 (내부 패딩 제거)
                             Box(modifier = Modifier.fillMaxSize().padding(0.dp), contentAlignment = Alignment.Center) {
                                 // 중앙 카드 요소 간격 축소: 라벨/값/힌트가 더 붙도록 조정
-                                // 라벨/힌트 최소화, Column 중앙 정렬로 그룹을 밀착시킴
+                                // 라벨/힌트 최소화 — Column은 컨텐츠 높이로 래핑하여 박스 중앙에 배치
                                 // label이 잘리는 문제 해결을 위해 최소 높이를 확보
-                                val labelBoxH = 20.dp; val hintBoxH = 12.dp; val gapSmall = 4.dp
-                                // label/valueText 정의(이전 삭제로 unresolved 참조 발생하여 복원)
                                 val label: String = when (currentIndicator) {
                                     0 -> stringResource(id = R.string.indicator_title_days)
                                     1 -> stringResource(id = R.string.indicator_title_time)
@@ -298,18 +296,18 @@ fun RunScreenComposable(
                                     else -> formattedLifeGain
                                 }
 
-                                // Layout: use full card height so main value centers correctly
-                                Column(modifier = Modifier.fillMaxSize().padding(vertical = 0.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                                    // Top label (use padding instead of fixed height to avoid clipping)
-                                    Box(modifier = Modifier.fillMaxWidth().padding(top = 18.dp), contentAlignment = Alignment.Center) {
+                                // Layout: fill card height and center children so numeric value is visually centered
+                                Column(modifier = Modifier.fillMaxHeight().fillMaxWidth().padding(vertical = 0.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                                    // Top label: padding 제거, includeFontPadding=false로 줄여 숫자 중심 정렬 보정
+                                    Box(modifier = Modifier.fillMaxWidth().padding(top = 0.dp), contentAlignment = Alignment.Center) {
                                         val base = MaterialTheme.typography.titleMedium
                                         Text(
                                             text = label,
                                             style = base.copy(
                                                 color = Color.White,
-                                                lineHeight = base.fontSize * 1.2f,
+                                                lineHeight = base.fontSize * 1.05f,
                                                 fontWeight = FontWeight.Bold,
-                                                platformStyle = PlatformTextStyle(includeFontPadding = true),
+                                                platformStyle = PlatformTextStyle(includeFontPadding = false),
                                                 shadow = Shadow(color = Color.Black.copy(alpha = 0.5f), offset = Offset(0f, 1f), blurRadius = 2f)
                                             ),
                                             textAlign = TextAlign.Center,
@@ -399,8 +397,8 @@ fun RunScreenComposable(
                                         }
                                     }
 
-                                    // Bottom hint (use padding to ensure visibility)
-                                    Box(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp), contentAlignment = Alignment.Center) {
+                                    // Bottom hint (작은 패딩으로 숫자와 가깝게 조정)
+                                    Box(modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp), contentAlignment = Alignment.Center) {
                                         val base = MaterialTheme.typography.labelMedium
                                         Text(
                                             text = stringResource(id = R.string.tap_to_switch_indicator),
