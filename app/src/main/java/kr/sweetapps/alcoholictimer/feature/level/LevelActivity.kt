@@ -189,6 +189,19 @@ fun MainLevelCardFrame(
                     alignment = Alignment.TopCenter,
                     alpha = backgroundAlpha
                 )
+                // Overlay: apply same subtle vertical overlay used on StartScreen/Run screens
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(
+                            Brush.verticalGradient(
+                                0.0f to Color.Transparent,
+                                0.88f to Color.Transparent,
+                                1.0f to Color.Black.copy(alpha = 0.12f)
+                            )
+                        )
+                )
             }
 
             Column(content = content)
