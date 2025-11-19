@@ -279,19 +279,29 @@ fun RunScreenComposable(
                             // 기존 내용은 이미지 위에 동일한 패딩으로 배치 (내부 패딩 제거)
                             Box(modifier = Modifier.fillMaxSize().padding(0.dp), contentAlignment = Alignment.Center) {
                                 // 중앙 카드 요소 간격 축소: 라벨/값/힌트가 더 붙도록 조정
-                                // 힌트 텍스트 클리핑 방지: hintBoxH를 늘리고 간격을 약간 조정
-                                val labelBoxH = 28.dp; val valueBoxH = 64.dp; val hintBoxH = 20.dp; val gapSmall = 4.dp; val gapMedium = 2.dp
-                                val (label, valueText, _) = when (currentIndicator) {
-                                    0 -> Triple(stringResource(id = R.string.indicator_title_days), String.format(Locale.getDefault(), "%.1f", elapsedDaysFloat), colorResource(id = R.color.color_indicator_days))
-                                    1 -> Triple(stringResource(id = R.string.indicator_title_time), progressTimeText, colorResource(id = R.color.color_indicator_time))
-                                    2 -> Triple(stringResource(id = R.string.indicator_title_saved_money), FormatUtils.formatMoney(context, savedMoney).replace(" ", ""), colorResource(id = R.color.color_indicator_money))
-                                    3 -> Triple(stringResource(id = R.string.indicator_title_saved_hours), FormatUtils.formatHoursValue(savedHours), colorResource(id = R.color.color_indicator_hours))
-                                    else -> Triple(stringResource(id = R.string.indicator_title_life_gain), formattedLifeGain, colorResource(id = R.color.color_indicator_life))
+                                // 라벨/힌트 최소화, Column 중앙 정렬로 그룹을 밀착시킴
+                                // label이 잘리는 문제 해결을 위해 최소 높이를 확보
+                                val labelBoxH = 20.dp; val hintBoxH = 12.dp; val gapSmall = 4.dp
+                                // label/valueText 정의(이전 삭제로 unresolved 참조 발생하여 복원)
+                                val label: String = when (currentIndicator) {
+                                    0 -> stringResource(id = R.string.indicator_title_days)
+                                    1 -> stringResource(id = R.string.indicator_title_time)
+                                    2 -> stringResource(id = R.string.indicator_title_saved_money)
+                                    3 -> stringResource(id = R.string.indicator_title_saved_hours)
+                                    else -> stringResource(id = R.string.indicator_title_life_gain)
                                 }
+                                val valueText: String = when (currentIndicator) {
+                                    0 -> String.format(Locale.getDefault(), "%.1f", elapsedDaysFloat)
+                                    1 -> progressTimeTextHM
+                                    2 -> FormatUtils.formatMoney(context, savedMoney).replace(" ", "")
+                                    3 -> FormatUtils.formatHoursValue(savedHours)
+                                    else -> formattedLifeGain
+                                }
+
                                 // Layout: use full card height so main value centers correctly
-                                Column(modifier = Modifier.fillMaxSize().padding(vertical = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                                    // Top label (fixed height)
-                                    Box(modifier = Modifier.height(labelBoxH).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                Column(modifier = Modifier.fillMaxSize().padding(vertical = 0.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                                    // Top label (use padding instead of fixed height to avoid clipping)
+                                    Box(modifier = Modifier.fillMaxWidth().padding(top = 18.dp), contentAlignment = Alignment.Center) {
                                         val base = MaterialTheme.typography.titleMedium
                                         Text(
                                             text = label,
@@ -308,10 +318,10 @@ fun RunScreenComposable(
                                         )
                                     }
 
-                                    // Middle: expand and center main value (use Box for strict centering)
-                                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                    // Middle: center main value (no weight so it stays close to label/hint)
+                                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                                         val baseStyle = MaterialTheme.typography.headlineMedium
-                                        val bigSize = (baseStyle.fontSize.value * 2.0f).sp
+                                        val bigSize = (baseStyle.fontSize.value * 1.45f).sp
                                         val bigStyle = baseStyle.copy(
                                             fontWeight = FontWeight.ExtraBold,
                                             color = Color.White,
@@ -389,8 +399,8 @@ fun RunScreenComposable(
                                         }
                                     }
 
-                                    // Bottom hint (fixed height)
-                                    Box(modifier = Modifier.height(hintBoxH).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                    // Bottom hint (use padding to ensure visibility)
+                                    Box(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp), contentAlignment = Alignment.Center) {
                                         val base = MaterialTheme.typography.labelMedium
                                         Text(
                                             text = stringResource(id = R.string.tap_to_switch_indicator),
@@ -398,7 +408,7 @@ fun RunScreenComposable(
                                                 color = Color.White,
                                                 fontSize = 13.sp,
                                                 lineHeight = 16.sp,
-                                                platformStyle = PlatformTextStyle(includeFontPadding = true),
+                                                platformStyle = PlatformTextStyle(includeFontPadding = false),
                                                 shadow = Shadow(color = Color.Black.copy(alpha = 0.45f), offset = Offset(0f, 1f), blurRadius = 2f)
                                             ),
                                             textAlign = TextAlign.Center,
