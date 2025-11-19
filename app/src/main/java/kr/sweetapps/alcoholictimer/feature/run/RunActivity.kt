@@ -30,6 +30,8 @@ import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Shadow
@@ -81,22 +83,29 @@ fun RunScreenComposable(
         // NavHost 내에서는 뒤로가기를 소비해 백그라운드 이동 대신 유지
     }
 
-    val sp = context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
-    val startTime = sp.getLong(Constants.PREF_START_TIME, 0L)
-    val targetDays = sp.getFloat(Constants.PREF_TARGET_DAYS, 30f)
-    val timerCompleted = sp.getBoolean(Constants.PREF_TIMER_COMPLETED, false)
+    val isPreview = LocalInspectionMode.current
 
-    LaunchedEffect(startTime, timerCompleted) {
-        if (timerCompleted || startTime == 0L) {
-            onRequireBackToStart?.invoke()
+    // SharedPreferences 접근은 런타임에서만 수행 (Preview 안전성)
+    val sp = if (isPreview) null else context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
+    val startTime = if (isPreview) (System.currentTimeMillis() - (2 * Constants.DAY_IN_MILLIS)) else sp!!.getLong(Constants.PREF_START_TIME, 0L)
+    val targetDays = if (isPreview) 30f else sp!!.getFloat(Constants.PREF_TARGET_DAYS, 30f)
+    val timerCompleted = if (isPreview) false else sp!!.getBoolean(Constants.PREF_TIMER_COMPLETED, false)
+
+    if (!isPreview) {
+        LaunchedEffect(startTime, timerCompleted) {
+            if (timerCompleted || startTime == 0L) {
+                onRequireBackToStart?.invoke()
+            }
         }
     }
 
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(1000)
-            now = System.currentTimeMillis()
+    if (!isPreview) {
+        LaunchedEffect(Unit) {
+            while (true) {
+                delay(1000)
+                now = System.currentTimeMillis()
+            }
         }
     }
 
@@ -154,41 +163,46 @@ fun RunScreenComposable(
     }
 
     val indicatorKey = remember(startTime) { Constants.keyCurrentIndicator(startTime) }
-    var currentIndicator by remember { mutableIntStateOf(sp.getInt(indicatorKey, 0)) }
+    var currentIndicator by remember { mutableIntStateOf(if (isPreview) 0 else sp!!.getInt(indicatorKey, 0)) }
 
-    fun toggleIndicator() { val next = (currentIndicator + 1) % 5; currentIndicator = next; sp.edit().putInt(indicatorKey, next).apply() }
+    fun toggleIndicator() {
+        val next = (currentIndicator + 1) % 5
+        currentIndicator = next
+        if (!isPreview) {
+            sp!!.edit().putInt(indicatorKey, next).apply()
+        }
+    }
 
     var hasCompleted by remember { mutableStateOf(false) }
-    LaunchedEffect(progress) {
-        if (!hasCompleted && progress >= 1f && startTime > 0) {
-            try {
-                saveCompletedRecord(
-                    context = context,
-                    startTime = startTime,
-                    endTime = System.currentTimeMillis(),
-                    targetDays = targetDays,
-                    actualDays = (elapsedMillis / Constants.DAY_IN_MILLIS).toInt()
-                )
-                sp.edit().remove(Constants.PREF_START_TIME).putBoolean(Constants.PREF_TIMER_COMPLETED, true).apply()
-                hasCompleted = true
-
-                // toast suppressed per request
-                val goDetail: () -> Unit = {
-                    val route = Screen.Detail.createRoute(
+    if (!isPreview) {
+        LaunchedEffect(progress) {
+            if (!hasCompleted && progress >= 1f && startTime > 0) {
+                try {
+                    saveCompletedRecord(
+                        context = context,
                         startTime = startTime,
                         endTime = System.currentTimeMillis(),
                         targetDays = targetDays,
-                        actualDays = (elapsedMillis / Constants.DAY_IN_MILLIS).toInt(),
-                        isCompleted = true
+                        actualDays = (elapsedMillis / Constants.DAY_IN_MILLIS).toInt()
                     )
-                    onCompletedNavigateToDetail?.invoke(route)
-                }
+                    sp!!.edit().remove(Constants.PREF_START_TIME).putBoolean(Constants.PREF_TIMER_COMPLETED, true).apply()
+                    hasCompleted = true
 
-                // 직접 전면광고 호출 제거: 홈 전환 3회 규칙 준수
-                goDetail()
-                // 다음 기회 대비 프리로드만 유지
-                kr.sweetapps.alcoholictimer.ads.InterstitialAdManager.preload(context.applicationContext)
-            } catch (_: Exception) { }
+                    val goDetail: () -> Unit = {
+                        val route = Screen.Detail.createRoute(
+                            startTime = startTime,
+                            endTime = System.currentTimeMillis(),
+                            targetDays = targetDays,
+                            actualDays = (elapsedMillis / Constants.DAY_IN_MILLIS).toInt(),
+                            isCompleted = true
+                        )
+                        onCompletedNavigateToDetail?.invoke(route)
+                    }
+
+                    goDetail()
+                    kr.sweetapps.alcoholictimer.ads.InterstitialAdManager.preload(context.applicationContext)
+                } catch (_: Exception) { }
+            }
         }
     }
 
@@ -437,7 +451,7 @@ fun RunScreenComposable(
 }
 
 @Composable
-private fun ModernProgressIndicatorSimple(progress: Float, targetDays: Float = 30f) {
+fun ModernProgressIndicatorSimple(progress: Float, targetDays: Float = 30f) {
     val primary = colorResource(id = R.color.color_progress_primary)
     val track = colorResource(id = R.color.color_progress_track)
 
@@ -543,7 +557,7 @@ private fun AutoResizeSingleLineText(
 }
 
 @Composable
-private fun RunStatChip(
+fun RunStatChip(
     title: String,
     value: String,
     color: Color,
@@ -605,4 +619,12 @@ private fun saveCompletedRecord(context: Context, startTime: Long, endTime: Long
         list.put(record)
         sharedPref.edit().putString(Constants.PREF_SOBRIETY_RECORDS, list.toString()).apply()
     } catch (_: Exception) { }
+}
+
+// Preview: show the real Run screen composable as-is
+@Preview(name = "RunScreen - Live Composable", showBackground = true, widthDp = 360, heightDp = 640)
+@Composable
+fun RunScreenLivePreview() {
+    // Call the actual RunScreenComposable so preview matches runtime UI
+    RunScreenComposable(onRequestQuit = {}, onCompletedNavigateToDetail = {}, onRequireBackToStart = {})
 }
