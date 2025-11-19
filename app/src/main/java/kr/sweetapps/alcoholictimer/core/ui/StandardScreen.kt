@@ -31,6 +31,8 @@ fun StandardScreenWithBottomButton(
     topContent: @Composable ColumnScope.() -> Unit,
     bottomButton: @Composable () -> Unit,
     imePaddingEnabled: Boolean = false,
+    // When true, ignore WindowInsets.ime in layout calculations (useful when showing IME without moving UI)
+    ignoreImeInsets: Boolean = false,
     backgroundDecoration: @Composable BoxScope.() -> Unit = {},
     bottomAd: (@Composable () -> Unit)? = null,
     reserveSpaceForBottomAd: Boolean = false,
@@ -59,7 +61,7 @@ fun StandardScreenWithBottomButton(
 
     val navBarPaddingValues = WindowInsets.navigationBars.asPaddingValues()
     val navBarBottom = navBarPaddingValues.calculateBottomPadding()
-    val imeBottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
+    val imeBottom = if (ignoreImeInsets) 0.dp else WindowInsets.ime.asPaddingValues().calculateBottomPadding()
     val effectiveBottom = if (navBarBottom > imeBottom) navBarBottom else imeBottom
     val globalSafeBottom = LocalSafeContentPadding.current.calculateBottomPadding()
     val effectiveBottomAdjusted = if (effectiveBottom > globalSafeBottom) effectiveBottom else globalSafeBottom

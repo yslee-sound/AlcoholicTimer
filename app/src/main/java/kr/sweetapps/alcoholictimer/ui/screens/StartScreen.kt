@@ -1,6 +1,7 @@
 package kr.sweetapps.alcoholictimer.ui.screens
 
 import android.app.Activity
+import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.util.Log
@@ -33,7 +34,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import java.util.Locale
 import kr.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
-import kr.sweetapps.alcoholictimer.feature.addrecord.components.TargetDaysBottomSheet
 import androidx.core.content.edit
 import kr.sweetapps.alcoholictimer.MainActivity
 import kr.sweetapps.alcoholictimer.R
@@ -41,9 +41,10 @@ import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.MainActionButton
+import android.widget.EditText
+import androidx.compose.ui.viewinterop.AndroidView
 
 // Local layout constants for StartScreen only — tweak these to adjust spacing on this screen
-private val START_BRAND_HORIZONTAL_PADDING: Dp = 30.dp  // 15
 private val START_CARD_TOP_INNER_PADDING: Dp = 50.dp    // 50
 private val START_TITLE_TOP_MARGIN: Dp = 30.dp           // previously 1.dp
 private val START_TITLE_CARD_GAP: Dp = 20.dp            // 12
@@ -88,8 +89,12 @@ fun StartScreen(
     }
 
     var targetDays by rememberSaveable { mutableIntStateOf(30) }
-    val isValid by remember { derivedStateOf { targetDays > 0 } }
-    var showDaysPicker by remember { mutableStateOf(false) }
+    // inline editing state: true when the number inside the main card is editable
+    var editingDays by remember { mutableStateOf(false) }
+    // previous soft input mode to restore after IME is hidden
+    val prevSoftInputMode = remember { mutableStateOf<Int?>(null) }
+    // direct reference to hidden Android EditText for immediate IME control
+    val hiddenEditRef = remember { mutableStateOf<EditText?>(null) }
 
     val showSplashOverlay = holdSplashState != null && holdSplashState.value
 
@@ -105,11 +110,13 @@ fun StartScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         StandardScreenWithBottomButton(
-             topPadding = START_TITLE_TOP_MARGIN,
-             horizontalPadding = 0.dp,
-             contentMaxWidth = screenWidthDp,
-             forceFillMaxWidth = true,
-             topContent = {
+              topPadding = START_TITLE_TOP_MARGIN,
+              horizontalPadding = 0.dp,
+             // Always ignore IME insets on StartScreen so keyboard doesn't push the bottom button
+             ignoreImeInsets = true,
+              contentMaxWidth = screenWidthDp,
+              forceFillMaxWidth = true,
+              topContent = {
                 Column { // 내부 전용 Column: maintain only local top margin
                     AppBrandTitleBar()
                     Spacer(modifier = Modifier.height(START_TITLE_CARD_GAP))
@@ -152,24 +159,25 @@ fun StartScreen(
                                     colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.color_bg_card_light)),
                                     elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD)
                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .padding(12.dp)
-                                            .clickable(
-                                                interactionSource = remember { MutableInteractionSource() },
-                                                indication = null
-                                            ) { showDaysPicker = true },
-                                        contentAlignment = Alignment.Center
-                                    ) {
+                                    // Inline display only; clicking toggles editingDays which shows hidden EditText (no layout change)
+                                    Box(modifier = Modifier.fillMaxSize().padding(12.dp), contentAlignment = Alignment.Center) {
                                         Text(
                                             text = targetDays.toString(),
                                             style = MaterialTheme.typography.headlineLarge,
                                             color = colorResource(id = R.color.color_indicator_days),
-                                            textAlign = TextAlign.Center
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier.clickable {
+                                                Log.d("StartScreen", "targetDays clicked — set ADJUST_NOTHING & editingDays=true")
+                                                try {
+                                                    val act = context as? Activity
+                                                    if (prevSoftInputMode.value == null) prevSoftInputMode.value = act?.window?.attributes?.softInputMode
+                                                    try { act?.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING) } catch (_: Exception) {}
+                                                } catch (_: Exception) {}
+                                                editingDays = true
+                                            }
                                         )
                                     }
-                                }
+                                 }
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Text(
                                     text = stringResource(R.string.target_days_unit),
@@ -248,19 +256,74 @@ fun StartScreen(
                 )
             }
         }
-    }
 
-    if (showDaysPicker) {
-        TargetDaysBottomSheet(
-            initialValue = targetDays,
-            onConfirm = { picked: Int ->
-                targetDays = picked.coerceIn(0, 999)
-                showDaysPicker = false
-            },
-            onDismiss = { showDaysPicker = false }
-        )
-    }
-}
+        // Always-present hidden Android EditText (1dp) — provides reliable IME target
+        AndroidView(factory = { ctx ->
+             android.widget.EditText(ctx).apply {
+                setText(targetDays.toString())
+                setSelection(text.length)
+                inputType = android.text.InputType.TYPE_CLASS_NUMBER
+                imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_DONE
+                isFocusableInTouchMode = true
+                setOnEditorActionListener { v, actionId, _ ->
+                    if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) {
+                        val parsed = v.text?.toString()?.filter { it.isDigit() }?.take(3)?.toIntOrNull() ?: targetDays
+                        targetDays = parsed.coerceIn(0, 999)
+                        try {
+                            val imm = ctx.getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
+                            imm?.hideSoftInputFromWindow(windowToken, 0)
+                        } catch (_: Exception) {}
+                        editingDays = false
+                        true
+                    } else false
+                }
+                setOnFocusChangeListener { _, hasFocus ->
+                    if (!hasFocus) {
+                        val parsed = text?.toString()?.filter { it.isDigit() }?.take(3)?.toIntOrNull() ?: targetDays
+                        targetDays = parsed.coerceIn(0, 999)
+                        editingDays = false
+                    }
+                }
+            }
+        }, update = { view ->
+             hiddenEditRef.value = view
+             val cur = view.text?.toString() ?: ""
+             if (cur != targetDays.toString()) {
+                 view.setText(targetDays.toString())
+                 view.setSelection(view.text.length)
+             }
+        }, modifier = Modifier.size(1.dp).align(Alignment.BottomCenter))
+
+        // Focus and IME show when editingDays becomes true — set ADJUST_NOTHING first then focus hidden EditText
+        LaunchedEffect(editingDays) {
+            val act = context as? Activity
+            if (editingDays) {
+                if (prevSoftInputMode.value == null) prevSoftInputMode.value = act?.window?.attributes?.softInputMode
+                try { act?.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING) } catch (_: Exception) {}
+                try {
+                    val edit = hiddenEditRef.value
+                    val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
+                    if (edit != null) {
+                        edit.post {
+                            try {
+                                edit.requestFocus()
+                                imm?.showSoftInput(edit, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
+                            } catch (_: Exception) {}
+                        }
+                    } else {
+                        // fallback: show on decor
+                        val decor = act?.window?.decorView
+                        decor?.post { try { imm?.showSoftInput(decor, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT) } catch (_: Exception) {} }
+                    }
+                } catch (_: Exception) {}
+            } else {
+                try { val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager; imm?.hideSoftInputFromWindow((context as? Activity)?.window?.decorView?.windowToken, 0) } catch (_: Exception) {}
+                try { prevSoftInputMode.value?.let { (context as? Activity)?.window?.setSoftInputMode(it) } } catch (_: Exception) {}
+                prevSoftInputMode.value = null
+            }
+        }
+     }
+ }
 
 @Composable
 private fun AppBrandTitleBar() {
@@ -268,7 +331,7 @@ private fun AppBrandTitleBar() {
         modifier = Modifier
             .fillMaxWidth()
             .height(54.dp)
-            .padding(horizontal = START_BRAND_HORIZONTAL_PADDING),
+            .padding(horizontal = 30.dp),
         contentAlignment = Alignment.Center
     ) {
         Image(
