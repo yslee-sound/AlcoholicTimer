@@ -38,6 +38,7 @@ import kr.sweetapps.alcoholictimer.constants.Constants
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.util.FormatUtils
+import kr.sweetapps.alcoholictimer.core.util.CurrencyManager
 
 // Local UI constants for QuitScreen only (do not reference UiConstants)
 private object QuitUiConstants {
@@ -152,23 +153,41 @@ fun QuitScreenComposable(
 
             Column(modifier = Modifier.fillMaxWidth()) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(QuitUiConstants.STAT_CARD_GAP)) {
-                    SmallStatCard(title = stringResource(id = R.string.stat_total_days), value = String.format(Locale.getDefault(), "%.1f일", elapsedDaysFloat), accentColor = colorResource(id = R.color.color_indicator_days), modifier = Modifier.weight(1f))
-                    SmallStatCard(title = stringResource(id = R.string.indicator_title_saved_money), value = FormatUtils.formatMoney(context, savedMoney).replace(" ", ""), accentColor = colorResource(id = R.color.color_indicator_money), modifier = Modifier.weight(1f))
+                    // 총 금주 일수: 소수점 1자리 (단위 포함, DetailScreen과 동일 포맷)
+                    SmallStatCard(
+                        title = stringResource(id = R.string.stat_total_days),
+                        value = String.format(Locale.getDefault(), "%.1f%s", elapsedDaysFloat, context.getString(R.string.unit_day)),
+                        accentColor = colorResource(id = R.color.color_indicator_days),
+                        modifier = Modifier.weight(1f)
+                    )
+                    // 절약한 금액: 소수점 없이 로케일/통화 규칙에 따라 포맷 (DetailScreen과 동일)
+                    val savedMoneyRounded = kotlin.math.round(savedMoney).toDouble()
+                    val savedMoneyStr = CurrencyManager.formatMoneyNoDecimals(savedMoneyRounded, context)
+                    SmallStatCard(
+                        title = stringResource(id = R.string.indicator_title_saved_money),
+                        value = savedMoneyStr,
+                        accentColor = colorResource(id = R.color.color_indicator_money),
+                        modifier = Modifier.weight(1f)
+                    )
                 }
                 Spacer(modifier = Modifier.height(QuitUiConstants.CARDS_VERTICAL_SPACING))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(QuitUiConstants.STAT_CARD_GAP)) {
-                    SmallStatCard(title = stringResource(id = R.string.indicator_title_saved_hours), value = FormatUtils.formatHoursValue(savedHours), accentColor = colorResource(id = R.color.color_indicator_hours), modifier = Modifier.weight(1f))
-                    // life gain: format like RunActivity
-                    val formattedLifeGain = run {
-                        val safe = if (lifeGainDays.isNaN() || lifeGainDays.isInfinite()) 0.0 else lifeGainDays.coerceAtLeast(0.0)
-                        val dayPart = kotlin.math.floor(safe).toInt()
-                        val frac = safe - dayPart
-                        val hoursRaw = frac * 24.0
-                        val hoursRounded = (kotlin.math.round(hoursRaw * 10.0) / 10.0)
-                        if (dayPart == 0) String.format(Locale.getDefault(), "%.1f%s", hoursRounded, context.getString(R.string.unit_hour))
-                        else String.format(Locale.getDefault(), "%d%s %.1f%s", dayPart, context.getString(R.string.unit_day), hoursRounded, context.getString(R.string.unit_hour))
-                    }
-                    SmallStatCard(title = stringResource(id = R.string.indicator_title_life_gain), value = formattedLifeGain, accentColor = colorResource(id = R.color.color_indicator_life), modifier = Modifier.weight(1f))
+                    // 절약한 시간: 소수점 1자리 + 단위 (DetailScreen과 동일)
+                    val savedHoursStr = FormatUtils.formatHoursWithUnitFixed(context, savedHours, 1)
+                    SmallStatCard(
+                        title = stringResource(id = R.string.indicator_title_saved_hours),
+                        value = savedHoursStr,
+                        accentColor = colorResource(id = R.color.color_indicator_hours),
+                        modifier = Modifier.weight(1f)
+                    )
+                    // 기대 수명+: 일+시간 포맷, 소수점1자리 (DetailScreen과 동일)
+                    val lifeGainStr = FormatUtils.daysToDayHourStringFixed(context, lifeGainDays, 1)
+                    SmallStatCard(
+                        title = stringResource(id = R.string.indicator_title_life_gain),
+                        value = lifeGainStr,
+                        accentColor = colorResource(id = R.color.color_indicator_life),
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
         },
