@@ -1,8 +1,6 @@
 package kr.sweetapps.alcoholictimer.ui.screens
 
 import android.app.Activity
-import android.content.Context
-import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
@@ -34,15 +32,29 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import java.util.Locale
 import kr.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
-import androidx.core.content.edit
 import kr.sweetapps.alcoholictimer.MainActivity
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.MainActionButton
-import android.widget.EditText
-import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.edit
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TextField
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.TextRange
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 // Local layout constants for StartScreen only — tweak these to adjust spacing on this screen
 private val START_CARD_TOP_INNER_PADDING: Dp = 50.dp    // 50
@@ -59,7 +71,7 @@ fun StartScreen(
     onSplashFinished: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
-    val sharedPref = context.getSharedPreferences("user_settings", MODE_PRIVATE)
+    val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
 
     var startTime by remember { mutableLongStateOf(sharedPref.getLong("start_time", 0L)) }
     var timerCompleted by remember { mutableStateOf(sharedPref.getBoolean("timer_completed", false)) }
@@ -89,12 +101,6 @@ fun StartScreen(
     }
 
     var targetDays by rememberSaveable { mutableIntStateOf(30) }
-    // inline editing state: true when the number inside the main card is editable
-    var editingDays by remember { mutableStateOf(false) }
-    // previous soft input mode to restore after IME is hidden
-    val prevSoftInputMode = remember { mutableStateOf<Int?>(null) }
-    // direct reference to hidden Android EditText for immediate IME control
-    val hiddenEditRef = remember { mutableStateOf<EditText?>(null) }
 
     val showSplashOverlay = holdSplashState != null && holdSplashState.value
 
@@ -154,30 +160,74 @@ fun StartScreen(
                                 Card(
                                     modifier = Modifier
                                         .width(120.dp)
-                                        .height(56.dp),
+                                        .height(80.dp),
                                     shape = RoundedCornerShape(12.dp),
                                     colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.color_bg_card_light)),
                                     elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD)
                                 ) {
-                                    // Inline display only; clicking toggles editingDays which shows hidden EditText (no layout change)
-                                    Box(modifier = Modifier.fillMaxSize().padding(12.dp), contentAlignment = Alignment.Center) {
-                                        Text(
-                                            text = targetDays.toString(),
-                                            style = MaterialTheme.typography.headlineLarge,
-                                            color = colorResource(id = R.color.color_indicator_days),
-                                            textAlign = TextAlign.Center,
-                                            modifier = Modifier.clickable {
-                                                Log.d("StartScreen", "targetDays clicked — set ADJUST_NOTHING & editingDays=true")
-                                                try {
-                                                    val act = context as? Activity
-                                                    if (prevSoftInputMode.value == null) prevSoftInputMode.value = act?.window?.attributes?.softInputMode
-                                                    try { act?.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING) } catch (_: Exception) {}
-                                                } catch (_: Exception) {}
-                                                editingDays = true
-                                            }
+                                    // Minimal inline numeric TextField: starts read-only (display), becomes editable on tap
+                                    val focusManager = LocalFocusManager.current
+                                    val keyboardController = LocalSoftwareKeyboardController.current
+                                    val targetFocusRequester = remember { FocusRequester() }
+                                    var targetText by remember { mutableStateOf(TextFieldValue(text = targetDays.toString(), selection = TextRange(targetDays.toString().length))) }
+
+                                    val coroutineScope = rememberCoroutineScope()
+                                    Box(modifier = Modifier.fillMaxSize().padding(8.dp), contentAlignment = Alignment.Center) {
+                                        TextField(
+                                            value = targetText,
+                                            onValueChange = { newVal: TextFieldValue ->
+                                                // keep only digits and place cursor at end
+                                                val filtered = newVal.text.filter { it.isDigit() }
+                                                val truncated = filtered.take(4)
+                                                targetText = TextFieldValue(text = truncated, selection = TextRange(truncated.length))
+                                            },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(64.dp)
+                                                .focusRequester(targetFocusRequester)
+                                                .onFocusChanged { fs ->
+                                                    if (fs.isFocused) {
+                                                        // select all when focus is gained so first keystroke replaces existing value
+                                                        val t = targetText.text
+                                                        targetText = TextFieldValue(text = t, selection = TextRange(0, t.length))
+                                                    }
+                                                },
+                                            textStyle = MaterialTheme.typography.headlineLarge.copy(color = colorResource(id = R.color.color_indicator_days), textAlign = TextAlign.Center),
+                                            singleLine = true,
+                                            readOnly = false,
+                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                                            keyboardActions = KeyboardActions(onDone = {
+                                                val parsed = targetText.text.toIntOrNull() ?: targetDays
+                                                targetDays = parsed.coerceIn(0, 999)
+                                                // collapse selection to end
+                                                targetText = TextFieldValue(text = targetDays.toString(), selection = TextRange(targetDays.toString().length))
+                                                try { keyboardController?.hide() } catch (_: Exception) {}
+                                                focusManager.clearFocus()
+                                            }),
+                                            colors = TextFieldDefaults.colors(
+                                                focusedContainerColor = Color.Transparent,
+                                                unfocusedContainerColor = Color.Transparent,
+                                                disabledContainerColor = Color.Transparent,
+                                                errorContainerColor = Color.Transparent
+                                            )
                                         )
+
+                                        // overlay clickable: select-all then request focus so typing replaces full content
+                                        Box(modifier = Modifier.matchParentSize().clickable {
+                                            Log.d("StartScreen", "display area clicked — selecting all and showing keyboard")
+                                            val s = targetDays.toString()
+                                            // set selection immediately
+                                            targetText = TextFieldValue(text = s, selection = TextRange(0, s.length))
+                                            coroutineScope.launch {
+                                                try { targetFocusRequester.requestFocus() } catch (_: Exception) { Log.d("StartScreen","requestFocus failed") }
+                                                try { keyboardController?.show() } catch (_: Exception) { Log.d("StartScreen","keyboard show failed") }
+                                                // small delay and reapply selection to prevent IME/Compose race that moves caret to start
+                                                try { delay(40L) } catch (_: Exception) {}
+                                                targetText = TextFieldValue(text = s, selection = TextRange(0, s.length))
+                                            }
+                                        }) {}
                                     }
-                                 }
+                                }
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Text(
                                     text = stringResource(R.string.target_days_unit),
@@ -254,72 +304,6 @@ fun StartScreen(
                     contentDescription = null,
                     modifier = Modifier.size(240.dp)
                 )
-            }
-        }
-
-        // Always-present hidden Android EditText (1dp) — provides reliable IME target
-        AndroidView(factory = { ctx ->
-             android.widget.EditText(ctx).apply {
-                setText(targetDays.toString())
-                setSelection(text.length)
-                inputType = android.text.InputType.TYPE_CLASS_NUMBER
-                imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_DONE
-                isFocusableInTouchMode = true
-                setOnEditorActionListener { v, actionId, _ ->
-                    if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) {
-                        val parsed = v.text?.toString()?.filter { it.isDigit() }?.take(3)?.toIntOrNull() ?: targetDays
-                        targetDays = parsed.coerceIn(0, 999)
-                        try {
-                            val imm = ctx.getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
-                            imm?.hideSoftInputFromWindow(windowToken, 0)
-                        } catch (_: Exception) {}
-                        editingDays = false
-                        true
-                    } else false
-                }
-                setOnFocusChangeListener { _, hasFocus ->
-                    if (!hasFocus) {
-                        val parsed = text?.toString()?.filter { it.isDigit() }?.take(3)?.toIntOrNull() ?: targetDays
-                        targetDays = parsed.coerceIn(0, 999)
-                        editingDays = false
-                    }
-                }
-            }
-        }, update = { view ->
-             hiddenEditRef.value = view
-             val cur = view.text?.toString() ?: ""
-             if (cur != targetDays.toString()) {
-                 view.setText(targetDays.toString())
-                 view.setSelection(view.text.length)
-             }
-        }, modifier = Modifier.size(1.dp).align(Alignment.BottomCenter))
-
-        // Focus and IME show when editingDays becomes true — set ADJUST_NOTHING first then focus hidden EditText
-        LaunchedEffect(editingDays) {
-            val act = context as? Activity
-            if (editingDays) {
-                if (prevSoftInputMode.value == null) prevSoftInputMode.value = act?.window?.attributes?.softInputMode
-                try { act?.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING) } catch (_: Exception) {}
-                try {
-                    val edit = hiddenEditRef.value
-                    val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
-                    if (edit != null) {
-                        edit.post {
-                            try {
-                                edit.requestFocus()
-                                imm?.showSoftInput(edit, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
-                            } catch (_: Exception) {}
-                        }
-                    } else {
-                        // fallback: show on decor
-                        val decor = act?.window?.decorView
-                        decor?.post { try { imm?.showSoftInput(decor, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT) } catch (_: Exception) {} }
-                    }
-                } catch (_: Exception) {}
-            } else {
-                try { val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager; imm?.hideSoftInputFromWindow((context as? Activity)?.window?.decorView?.windowToken, 0) } catch (_: Exception) {}
-                try { prevSoftInputMode.value?.let { (context as? Activity)?.window?.setSoftInputMode(it) } } catch (_: Exception) {}
-                prevSoftInputMode.value = null
             }
         }
      }
