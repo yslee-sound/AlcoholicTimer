@@ -44,12 +44,12 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TextField
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.TextRange
 import androidx.compose.runtime.rememberCoroutineScope
@@ -114,7 +114,17 @@ fun StartScreen(
     val config = LocalConfiguration.current
     val screenWidthDp = config.screenWidthDp.dp
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    // top-level focus and keyboard controllers for dismiss-on-tap-outside behavior
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    Box(modifier = Modifier.fillMaxSize().pointerInput(Unit) {
+        detectTapGestures(onTap = {
+            // tapping outside interactive children clears focus and hides IME
+            focusManager.clearFocus()
+            try { keyboardController?.hide() } catch (_: Exception) {}
+        })
+    }) {
         StandardScreenWithBottomButton(
               topPadding = START_TITLE_TOP_MARGIN,
               horizontalPadding = 0.dp,
@@ -158,16 +168,14 @@ fun StartScreen(
                                     .padding(bottom = 24.dp)
                             ) {
                                 Card(
-                                    modifier = Modifier
-                                        .width(120.dp)
-                                        .height(80.dp),
+                                     modifier = Modifier
+                                         .width(120.dp)
+                                         .height(80.dp),
                                     shape = RoundedCornerShape(12.dp),
                                     colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.color_bg_card_light)),
                                     elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD)
                                 ) {
                                     // Minimal inline numeric TextField: starts read-only (display), becomes editable on tap
-                                    val focusManager = LocalFocusManager.current
-                                    val keyboardController = LocalSoftwareKeyboardController.current
                                     val targetFocusRequester = remember { FocusRequester() }
                                     var targetText by remember { mutableStateOf(TextFieldValue(text = targetDays.toString(), selection = TextRange(targetDays.toString().length))) }
 
@@ -190,6 +198,10 @@ fun StartScreen(
                                                         // select all when focus is gained so first keystroke replaces existing value
                                                         val t = targetText.text
                                                         targetText = TextFieldValue(text = t, selection = TextRange(0, t.length))
+                                                    } else {
+                                                        // on focus lost, collapse selection to end (remove highlight)
+                                                        val t = targetText.text
+                                                        targetText = TextFieldValue(text = t, selection = TextRange(t.length))
                                                     }
                                                 },
                                             textStyle = MaterialTheme.typography.headlineLarge.copy(color = colorResource(id = R.color.color_indicator_days), textAlign = TextAlign.Center),
@@ -208,24 +220,30 @@ fun StartScreen(
                                                 focusedContainerColor = Color.Transparent,
                                                 unfocusedContainerColor = Color.Transparent,
                                                 disabledContainerColor = Color.Transparent,
-                                                errorContainerColor = Color.Transparent
+                                                errorContainerColor = Color.Transparent,
+                                                focusedIndicatorColor = Color.Transparent,
+                                                unfocusedIndicatorColor = Color.Transparent,
+                                                disabledIndicatorColor = Color.Transparent
                                             )
                                         )
 
                                         // overlay clickable: select-all then request focus so typing replaces full content
-                                        Box(modifier = Modifier.matchParentSize().clickable {
-                                            Log.d("StartScreen", "display area clicked — selecting all and showing keyboard")
-                                            val s = targetDays.toString()
-                                            // set selection immediately
-                                            targetText = TextFieldValue(text = s, selection = TextRange(0, s.length))
-                                            coroutineScope.launch {
-                                                try { targetFocusRequester.requestFocus() } catch (_: Exception) { Log.d("StartScreen","requestFocus failed") }
-                                                try { keyboardController?.show() } catch (_: Exception) { Log.d("StartScreen","keyboard show failed") }
-                                                // small delay and reapply selection to prevent IME/Compose race that moves caret to start
-                                                try { delay(40L) } catch (_: Exception) {}
-                                                targetText = TextFieldValue(text = s, selection = TextRange(0, s.length))
-                                            }
-                                        }) {}
+                                        Box(modifier = Modifier.matchParentSize().clickable(
+                                             indication = null,
+                                             interactionSource = remember { MutableInteractionSource() }
+                                         ) {
+                                              Log.d("StartScreen", "display area clicked — selecting all and showing keyboard")
+                                              val s = targetDays.toString()
+                                              // set selection immediately
+                                              targetText = TextFieldValue(text = s, selection = TextRange(0, s.length))
+                                              coroutineScope.launch {
+                                                  try { targetFocusRequester.requestFocus() } catch (_: Exception) { Log.d("StartScreen","requestFocus failed") }
+                                                  try { keyboardController?.show() } catch (_: Exception) { Log.d("StartScreen","keyboard show failed") }
+                                                  // small delay and reapply selection to prevent IME/Compose race that moves caret to start
+                                                  try { delay(40L) } catch (_: Exception) {}
+                                                  targetText = TextFieldValue(text = s, selection = TextRange(0, s.length))
+                                              }
+                                         }) {}
                                     }
                                 }
                                 Spacer(modifier = Modifier.width(16.dp))
