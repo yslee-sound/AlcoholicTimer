@@ -57,6 +57,8 @@ private object QuitUiConstants {
     val MAIN_BUTTON_SIZE = 96.dp
     val MAIN_ICON_SIZE = 48.dp
     val MAIN_BUTTON_ELEVATION = AppElevation.CARD_HIGH
+    // Ring / progress indicator size around the main stop button
+    val MAIN_RING_SIZE = 106.dp
 }
 
 @Composable
@@ -157,7 +159,7 @@ fun QuitScreenComposable(
         },
         bottomButton = {
             Box(
-                modifier = Modifier.fillMaxWidth().height(140.dp),
+                modifier = Modifier.fillMaxWidth().height(QuitUiConstants.MAIN_RING_SIZE),
                 contentAlignment = Alignment.Center
             ) {
                 Row(
@@ -165,16 +167,11 @@ fun QuitScreenComposable(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(106.dp)) {
-                        // 배경 원 (회색)
-                        CircularProgressIndicator(progress = { 1f }, modifier = Modifier.size(106.dp), color = Color(0xFFE0E0E0), strokeWidth = 4.dp, trackColor = Color.Transparent)
-                        // 진행 상태 원 (빨간색)
-                        if (showPressed) {
-                            CircularProgressIndicator(progress = { showProgress }, modifier = Modifier.size(106.dp), color = Color(0xFFD32F2F), strokeWidth = 4.dp, trackColor = Color.Transparent)
-                        }
-                        // 중지 버튼
-                        Card(
-                            modifier = Modifier.size(96.dp).pointerInput(Unit) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(QuitUiConstants.MAIN_RING_SIZE)
+                            .pointerInput(Unit) {
                                 awaitEachGesture {
                                     awaitFirstDown(); isPressed = true; progress = 0f
                                     val job = coroutineScope.launch {
@@ -186,7 +183,6 @@ fun QuitScreenComposable(
                                             delay(16)
                                         }
                                         if (progress >= 1f && isPressed) {
-                                            // 완료 처리: 기록 저장 + 진행 상태 정리
                                             try {
                                                 val start = sharedPref.getLong(Constants.PREF_START_TIME, 0L)
                                                 val actualDays = (((System.currentTimeMillis() - start) / Constants.DAY_IN_MILLIS)).toInt()
@@ -207,7 +203,17 @@ fun QuitScreenComposable(
                                     }
                                     waitForUpOrCancellation(); isPressed = false; job.cancel()
                                 }
-                            },
+                            }
+                    ) {
+                        // 배경 원 (회색)
+                        CircularProgressIndicator(progress = { 1f }, modifier = Modifier.size(QuitUiConstants.MAIN_RING_SIZE), color = Color(0xFFE0E0E0), strokeWidth = 4.dp, trackColor = Color.Transparent)
+                        // 진행 상태 원 (빨간색)
+                        if (showPressed) {
+                            CircularProgressIndicator(progress = { showProgress }, modifier = Modifier.size(QuitUiConstants.MAIN_RING_SIZE), color = Color(0xFFD32F2F), strokeWidth = 4.dp, trackColor = Color.Transparent)
+                        }
+                        // 중지 버튼 (터치 핸들러는 외부 Box로 옮겨짐)
+                        Card(
+                            modifier = Modifier.size(QuitUiConstants.MAIN_BUTTON_SIZE),
                             shape = CircleShape,
                             colors = CardDefaults.cardColors(containerColor = Color(0xFFD32F2F)),
                             elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
