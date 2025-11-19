@@ -1,3 +1,9 @@
+/**
+ * 답변만 간결하게 50자 이내로 할 것
+ * 불필요한 추가작업 추천하지 말것
+ * 불필요한 작업과정은 설명하지 말것
+ */
+
 package kr.sweetapps.alcoholictimer.ui.screens
 
 import android.content.Context
@@ -11,6 +17,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,13 +30,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -57,7 +68,8 @@ private object QuitUiConstants {
     val STAT_CARD_GAP = 15.dp
     // Per-screen vertical spacing between cards (use global default unless overridden)
     // (removed STATS_ROWS_VERTICAL_SPACING; use CARDS_VERTICAL_SPACING for all card vertical gaps)
-    val STAT_CARD_HEIGHT = 84.dp
+    // Reduced height to make cards more compact and place icon left of text
+    val STAT_CARD_HEIGHT = 104.dp
     val STAT_CARD_CORNER = 12.dp
     val STAT_CARD_BORDER_ALPHA = 0.08f
     // local-only constants; keep minimal and used
@@ -120,8 +132,22 @@ fun QuitScreenComposable(
                     modifier = Modifier.fillMaxWidth().padding(vertical = UiConstants.CARD_PADDING),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, 1f)) {
-                        Text("🤔", fontSize = 48.sp, modifier = Modifier.padding(bottom = 12.dp))
+                    // Icon badge
+                    Box(modifier = Modifier.padding(bottom = 12.dp), contentAlignment = Alignment.Center) {
+                        Box(
+                            modifier = Modifier
+                                .size(72.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFFFF3E0)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Warning,
+                                contentDescription = null,
+                                tint = Color(0xFFFFA726),
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
                     }
                     Text(
                         text = stringResource(id = R.string.quit_confirm_title),
@@ -163,6 +189,8 @@ fun QuitScreenComposable(
                         title = stringResource(id = R.string.stat_total_days),
                         value = String.format(Locale.getDefault(), "%.1f%s", elapsedDaysFloat, context.getString(R.string.unit_day)),
                         accentColor = colorResource(id = R.color.color_indicator_days),
+                        icon = Icons.Filled.CalendarToday,
+                        iconBg = Color(0xFFD6E8FF),
                         modifier = Modifier.weight(1f)
                     )
                     // 절약한 금액: 소수점 없이 로케일/통화 규칙에 따라 포맷 (DetailScreen과 동일)
@@ -172,6 +200,8 @@ fun QuitScreenComposable(
                         title = stringResource(id = R.string.indicator_title_saved_money),
                         value = savedMoneyStr,
                         accentColor = colorResource(id = R.color.color_indicator_money),
+                        icon = Icons.Filled.AttachMoney,
+                        iconBg = Color(0xFFFFE6EC),
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -183,6 +213,8 @@ fun QuitScreenComposable(
                         title = stringResource(id = R.string.indicator_title_saved_hours),
                         value = savedHoursStr,
                         accentColor = colorResource(id = R.color.color_indicator_hours),
+                        icon = Icons.Filled.AccessTime,
+                        iconBg = Color(0xFFFFF3E0),
                         modifier = Modifier.weight(1f)
                     )
                     // 기대 수명+: 일+시간 포맷, 소수점1자리 (DetailScreen과 동일)
@@ -191,6 +223,8 @@ fun QuitScreenComposable(
                         title = stringResource(id = R.string.indicator_title_life_gain),
                         value = lifeGainStr,
                         accentColor = colorResource(id = R.color.color_indicator_life),
+                        icon = Icons.Filled.EmojiEvents,
+                        iconBg = Color(0xFFF0E8FF),
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -302,38 +336,51 @@ fun QuitScreenPreview() {
 }
 
 @Composable
-private fun SmallStatCard(title: String, value: String, accentColor: Color, modifier: Modifier = Modifier) {
+private fun SmallStatCard(title: String, value: String, accentColor: Color, modifier: Modifier = Modifier, icon: androidx.compose.ui.graphics.vector.ImageVector? = null, iconBg: Color? = null) {
     Card(
-        // height only; horizontal padding is provided by the parent screen's horizontalPadding
         modifier = modifier.height(QuitUiConstants.STAT_CARD_HEIGHT),
         shape = RoundedCornerShape(QuitUiConstants.STAT_CARD_CORNER),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
         border = BorderStroke(1.dp, accentColor.copy(alpha = QuitUiConstants.STAT_CARD_BORDER_ALPHA))
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.Start
+                .padding(horizontal = 12.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                color = accentColor,
-                textAlign = TextAlign.Start
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.labelMedium,
-                color = colorResource(id = R.color.color_stat_title_gray),
-                textAlign = TextAlign.Start
-            )
+            if (icon != null) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(iconBg ?: accentColor.copy(alpha = 0.12f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(imageVector = icon, contentDescription = null, tint = accentColor, modifier = Modifier.size(22.dp))
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+            }
+
+            Column(modifier = Modifier.fillMaxHeight().weight(1f), verticalArrangement = Arrangement.Center) {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold, lineHeight = 26.sp),
+                    color = accentColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = colorResource(id = R.color.color_stat_title_gray)
+                )
+            }
         }
     }
-}
+ }
 
 @Preview(showBackground = true, widthDp = 360, heightDp = 900, name = "Quit Full (Hardcoded)")
 @Composable
