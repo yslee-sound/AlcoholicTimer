@@ -238,8 +238,8 @@ fun RunScreenComposable(
                             value = goalDaysText,
                             color = Color(0xFF2B6CB0),
                             modifier = Modifier.weight(1f),
-                            icon = Icons.Filled.CalendarToday,
-                            iconBg = Color(0xFFEAF3FF),
+                            iconRes = kr.sweetapps.alcoholictimer.R.drawable.calendar_blank,
+                            iconBg = Color(0xFFD6E8FF), // slightly darker pastel blue
                             contentAlignment = runStatAlignments[0]
                         )
 
@@ -249,8 +249,8 @@ fun RunScreenComposable(
                             value = levelDisplayText,
                             color = Color(0xFF06AD6A),
                             modifier = Modifier.weight(1f),
-                            icon = Icons.Filled.EmojiEvents,
-                            iconBg = Color(0xFFE6FFF4),
+                            iconRes = kr.sweetapps.alcoholictimer.R.drawable.trophy,
+                            iconBg = Color(0xFFDFFFEF), // slightly darker pastel mint
                             contentAlignment = runStatAlignments[1]
                         )
 
@@ -260,8 +260,8 @@ fun RunScreenComposable(
                             value = progressTimeTextHM,
                             color = Color(0xFF5873D6),
                             modifier = Modifier.weight(1f),
-                            icon = Icons.Filled.AccessTime,
-                            iconBg = Color(0xFFEEF2FF),
+                            iconRes = kr.sweetapps.alcoholictimer.R.drawable.clock,
+                            iconBg = Color(0xFFDDE8FF), // slightly darker pastel lilac
                             contentAlignment = runStatAlignments[2]
                         )
                     }
@@ -569,6 +569,7 @@ fun RunStatChip(
     color: Color,
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
+    iconRes: Int? = null,
     iconBg: Color? = null,
     contentAlignment: Alignment.Horizontal = Alignment.CenterHorizontally
 ) {
@@ -582,12 +583,23 @@ fun RunStatChip(
     ) {
         Column(modifier = Modifier.fillMaxSize().padding(12.dp), horizontalAlignment = contentAlignment, verticalArrangement = Arrangement.Center) {
             // Top circular icon
-            if (icon != null) {
+            if (icon != null || iconRes != null) {
                 Box(modifier = Modifier
                     .size(44.dp)
                     .clip(CircleShape)
                     .background(iconBg ?: color.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
-                    Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
+                    if (icon != null) {
+                        Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
+                    } else {
+                        iconRes?.let { res ->
+                            Image(
+                                painter = painterResource(id = res),
+                                contentDescription = null,
+                                contentScale = ContentScale.Inside,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
             }
