@@ -209,4 +209,9 @@
     <string name="update_dialog_later">稍后</string>
     <string name="update_dialog_update">更新</string>
     <string name="update_dialog_icon_description">更新图标</string>
+
+    <!-- 添加: 运行屏幕字符串 -->
+    <string name="run_progress_title">进度</string>
+    <string name="run_start_label">开始</string>
+    <string name="run_target_label">目标: %1$d天</string>
 </resources>

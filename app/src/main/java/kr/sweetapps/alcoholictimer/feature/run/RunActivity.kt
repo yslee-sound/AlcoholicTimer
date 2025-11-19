@@ -472,7 +472,7 @@ fun ModernProgressIndicatorSimple(progress: Float, targetDays: Float = 30f) {
                     Icon(imageVector = Icons.Filled.TrendingUp, contentDescription = null, tint = primary, modifier = Modifier.size(18.dp))
                 }
                 Spacer(modifier = Modifier.width(10.dp))
-                Text(text = "진행 상황", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold), color = Color(0xFF111111))
+                Text(text = stringResource(id = R.string.run_progress_title), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold), color = Color(0xFF111111))
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -499,9 +499,9 @@ fun ModernProgressIndicatorSimple(progress: Float, targetDays: Float = 30f) {
 
         // bottom labels: start / target
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "시작", style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFF718096)))
+            Text(text = stringResource(id = R.string.run_start_label), style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFF718096)))
             Spacer(modifier = Modifier.weight(1f))
-            Text(text = "목표: ${targetDays.toInt()}일", style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFF718096)))
+            Text(text = stringResource(id = R.string.run_target_label, targetDays.toInt()), style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFF718096)))
         }
     }
 }

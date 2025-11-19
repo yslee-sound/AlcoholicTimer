@@ -211,4 +211,9 @@
     <string name="update_dialog_later">Más tarde</string>
     <string name="update_dialog_update">Actualizar</string>
     <string name="update_dialog_icon_description">Icono de actualización</string>
+
+    <!-- Añadido: cadenas para pantalla de progreso -->
+    <string name="run_progress_title">Progreso</string>
+    <string name="run_start_label">Inicio</string>
+    <string name="run_target_label">Meta: %1$d día(s)</string>
 </resources>

@@ -21,7 +21,7 @@
     <string name="stat_goal_days">Goal</string>
     <string name="stat_level">Level</string>
     <string name="stat_time">Time</string>
-    <string name="stat_goal_days_format">%d day(s)</string>
+    <string name="stat_goal_days_format">%d d</string>
 
     <string name="indicator_title_days">Days Sober</string>
     <string name="indicator_title_time">Time</string>
@@ -59,17 +59,17 @@
     <string name="detail_start_label">Started:</string>
     <string name="detail_end_label">Ended:</string>
     <string name="detail_progress_rate">Goal Achievement</string>
-    <string name="detail_progress_current">Progress: %1$s days</string>
-    <string name="detail_progress_target">Goal: %1$d days</string>
+    <string name="detail_progress_current">Progress: %1$s d</string>
+    <string name="detail_progress_target">Goal: %1$d d</string>
     <string name="detail_today_time">Today - %1$s</string>
-    <string name="unit_days_format">%.1f day(s)</string>
+    <string name="unit_days_format">%.1f d</string>
     <string name="unit_hours_format">%.1f hr(s)</string>
     <string name="unit_won_format">₩%,.0f</string>
     <string name="unit_life_hours_only">%.2f hr(s)</string>
-    <string name="unit_life_days_hours" formatted="false">%d day(s) %.2f hr(s)</string>
+    <string name="unit_life_days_hours" formatted="false">%d d %.2f hr(s)</string>
 
     <!-- Unit labels for separated display -->
-    <string name="unit_day">day(s)</string>
+    <string name="unit_day">d</string>
     <string name="unit_hour">hr(s)</string>
 
     <!-- About screen -->
@@ -134,7 +134,7 @@
     <string name="records_no_records">No sobriety records yet</string>
     <string name="records_view_all">View All Records (%d)</string>
     <string name="records_add">Add Sobriety Record</string>
-    <string name="records_day_unit">day(s)</string>
+    <string name="records_day_unit">d</string>
     <string name="records_percent_unit">%</string>
 
     <!-- Level names -->
@@ -153,20 +153,20 @@
     <string name="level_until_next">Until Next Level</string>
     <string name="level_days_remaining">left</string>
     <string name="level_hours_remaining">left</string>
-    <string name="level_days_hours_remaining">day(s) %d hour(s) left</string>
+    <string name="level_days_hours_remaining">%d d %d hour(s) left</string>
     <string name="level_soon_levelup">Level Up Soon!</string>
     <string name="level_all_levels">All Levels</string>
-    <string name="level_day_unit">day(s)</string>
+    <string name="level_day_unit">d</string>
     <string name="level_hour_unit">hour(s)</string>
 
     <!-- Target Days Setting -->
     <string name="target_days_title">Set Target Period</string>
-    <string name="target_days_unit">day(s)</string>
+    <string name="target_days_unit">d</string>
     <string name="target_days_hint">Please select your sobriety goal period</string>
 
     <!-- Target Days Picker -->
     <string name="target_days_picker_title">Select Target Days</string>
-    <string name="target_days_picker_unit">day(s)</string>
+    <string name="target_days_picker_unit">d</string>
     <string name="target_days_picker_cancel">Cancel</string>
     <string name="target_days_picker_confirm">OK</string>
 
@@ -188,8 +188,8 @@
     <string name="record_success_rate">Success Rate</string>
     <string name="record_start_time">Start</string>
     <string name="record_end_time">End</string>
-    <string name="record_days_format">%.1f day(s)</string>
-    <string name="record_target_days_format">%d day(s)</string>
+    <string name="record_days_format">%.1f d</string>
+    <string name="record_target_days_format">%d d</string>
     <string name="record_rate_format">%.1f%%</string>
 
     <!-- Month Picker -->
@@ -248,7 +248,7 @@
     <string name="add_record_save">Save</string>
     <string name="add_record_toast_success">Sobriety record added successfully</string>
     <string name="add_record_toast_conflict">Selected time conflicts with existing records</string>
-    <string name="add_record_days_unit">day(s)</string>
+    <string name="add_record_days_unit">d</string>
 
     <!-- Currency options -->
     <string name="settings_currency">Currency</string>
@@ -267,4 +267,8 @@
     <string name="update_dialog_later">Later</string>
     <string name="update_dialog_update">Update</string>
     <string name="update_dialog_icon_description">Update icon</string>
+
+    <string name="run_progress_title">Progress</string>
+    <string name="run_start_label">Start</string>
+    <string name="run_target_label">Target: %1$d d</string>
 </resources>
