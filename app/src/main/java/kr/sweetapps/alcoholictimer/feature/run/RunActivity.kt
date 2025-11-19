@@ -213,9 +213,38 @@ fun RunScreenComposable(
                             .padding(top = RUN_TOP_GROUP_TOP_PADDING),
                         horizontalArrangement = Arrangement.spacedBy(RUN_TOP_GROUP_CHIP_SPACING)
                     ) {
-                        RunStatChip(title = stringResource(id = R.string.stat_goal_days), value = goalDaysText, color = colorResource(id = R.color.color_stat_goal), modifier = Modifier.weight(1f), icon = Icons.Filled.CalendarToday, iconBg = colorResource(id = R.color.color_stat_goal).copy(alpha = 0.12f), contentAlignment = runStatAlignments[0])
-                        RunStatChip(title = stringResource(id = R.string.stat_level), value = levelDisplayText, color = levelInfo.color, modifier = Modifier.weight(1f), icon = Icons.Filled.EmojiEvents, iconBg = levelInfo.color.copy(alpha = 0.12f), contentAlignment = runStatAlignments[1])
-                        RunStatChip(title = stringResource(id = R.string.stat_time), value = progressTimeTextHM, color = colorResource(id = R.color.color_stat_time), modifier = Modifier.weight(1f), icon = Icons.Filled.AccessTime, iconBg = colorResource(id = R.color.color_stat_time).copy(alpha = 0.12f), contentAlignment = runStatAlignments[2])
+                        // Left: pastel blue circle, blue icon
+                        RunStatChip(
+                            title = stringResource(id = R.string.stat_goal_days),
+                            value = goalDaysText,
+                            color = Color(0xFF2B6CB0),
+                            modifier = Modifier.weight(1f),
+                            icon = Icons.Filled.CalendarToday,
+                            iconBg = Color(0xFFEAF3FF),
+                            contentAlignment = runStatAlignments[0]
+                        )
+
+                        // Center: pastel mint circle, green icon
+                        RunStatChip(
+                            title = stringResource(id = R.string.stat_level),
+                            value = levelDisplayText,
+                            color = Color(0xFF06AD6A),
+                            modifier = Modifier.weight(1f),
+                            icon = Icons.Filled.EmojiEvents,
+                            iconBg = Color(0xFFE6FFF4),
+                            contentAlignment = runStatAlignments[1]
+                        )
+
+                        // Right: pastel lilac circle, indigo icon
+                        RunStatChip(
+                            title = stringResource(id = R.string.stat_time),
+                            value = progressTimeTextHM,
+                            color = Color(0xFF5873D6),
+                            modifier = Modifier.weight(1f),
+                            icon = Icons.Filled.AccessTime,
+                            iconBg = Color(0xFFEEF2FF),
+                            contentAlignment = runStatAlignments[2]
+                        )
                     }
 
                     Card(
@@ -235,7 +264,8 @@ fun RunScreenComposable(
                             )
                             // 기존 내용은 이미지 위에 동일한 패딩으로 배치 (내부 패딩 제거)
                             Box(modifier = Modifier.fillMaxSize().padding(0.dp), contentAlignment = Alignment.Center) {
-                                val labelBoxH = 36.dp; val valueBoxH = 66.dp; val hintBoxH = 20.dp; val gapSmall = 6.dp; val gapMedium = 8.dp
+                                // 중앙 카드 요소가 카드 높이(168dp) 내에 들어가도록 축소
+                                val labelBoxH = 36.dp; val valueBoxH = 84.dp; val hintBoxH = 18.dp; val gapSmall = 6.dp; val gapMedium = 6.dp
                                 val (label, valueText, _) = when (currentIndicator) {
                                     0 -> Triple(stringResource(id = R.string.indicator_title_days), String.format(Locale.getDefault(), "%.1f", elapsedDaysFloat), colorResource(id = R.color.color_indicator_days))
                                     1 -> Triple(stringResource(id = R.string.indicator_title_time), progressTimeText, colorResource(id = R.color.color_indicator_time))
@@ -262,14 +292,15 @@ fun RunScreenComposable(
                                     }
                                     Spacer(modifier = Modifier.height(gapSmall))
                                     Box(modifier = Modifier.fillMaxWidth().height(valueBoxH), contentAlignment = Alignment.Center) {
+                                        // 강조 숫자 크기: 적절히 확대하되 카드 내에 맞춤
                                         val baseStyle = MaterialTheme.typography.headlineMedium
-                                        val bigSize = (baseStyle.fontSize.value * 1.5f).sp
+                                        val bigSize = (baseStyle.fontSize.value * 2.0f).sp
                                         // 모든 값 텍스트를 흰색으로 변경하여 이미지 위 가독성 확보
                                         val bigStyle = baseStyle.copy(
-                                            fontWeight = FontWeight.Bold,
+                                            fontWeight = FontWeight.ExtraBold,
                                             color = Color.White,
                                             fontSize = bigSize,
-                                            lineHeight = bigSize * 1.1f,
+                                            lineHeight = bigSize * 1.05f,
                                             platformStyle = PlatformTextStyle(includeFontPadding = true),
                                             fontFeatureSettings = "tnum",
                                             shadow = Shadow(color = Color.Black.copy(alpha = 0.55f), offset = Offset(0f, 2f), blurRadius = 4f)
@@ -277,8 +308,8 @@ fun RunScreenComposable(
                                         val unitStyle = baseStyle.copy(
                                             color = Color.White,
                                             fontWeight = FontWeight.SemiBold,
-                                            fontSize = baseStyle.fontSize,
-                                            lineHeight = baseStyle.fontSize * 1.1f,
+                                            fontSize = baseStyle.fontSize * 1.0f,
+                                            lineHeight = baseStyle.fontSize * 1.05f,
                                             platformStyle = PlatformTextStyle(includeFontPadding = true),
                                             shadow = Shadow(color = Color.Black.copy(alpha = 0.45f), offset = Offset(0f, 1f), blurRadius = 2f)
                                         )
