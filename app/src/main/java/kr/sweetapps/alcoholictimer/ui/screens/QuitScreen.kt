@@ -17,7 +17,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.EmojiEvents
@@ -31,6 +30,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -189,7 +190,7 @@ fun QuitScreenComposable(
                         title = stringResource(id = R.string.stat_total_days),
                         value = String.format(Locale.getDefault(), "%.1f%s", elapsedDaysFloat, context.getString(R.string.unit_day)),
                         accentColor = colorResource(id = R.color.color_indicator_days),
-                        icon = Icons.Filled.CalendarToday,
+                        iconRes = R.drawable.calendar_blank,
                         iconBg = Color(0xFFD6E8FF),
                         modifier = Modifier.weight(1f)
                     )
@@ -200,7 +201,7 @@ fun QuitScreenComposable(
                         title = stringResource(id = R.string.indicator_title_saved_money),
                         value = savedMoneyStr,
                         accentColor = colorResource(id = R.color.color_indicator_money),
-                        icon = Icons.Filled.AttachMoney,
+                        iconRes = R.drawable.currency_dollar_simple,
                         iconBg = Color(0xFFFFE6EC),
                         modifier = Modifier.weight(1f)
                     )
@@ -213,7 +214,7 @@ fun QuitScreenComposable(
                         title = stringResource(id = R.string.indicator_title_saved_hours),
                         value = savedHoursStr,
                         accentColor = colorResource(id = R.color.color_indicator_hours),
-                        icon = Icons.Filled.AccessTime,
+                        iconRes = R.drawable.clock,
                         iconBg = Color(0xFFFFF3E0),
                         modifier = Modifier.weight(1f)
                     )
@@ -223,7 +224,7 @@ fun QuitScreenComposable(
                         title = stringResource(id = R.string.indicator_title_life_gain),
                         value = lifeGainStr,
                         accentColor = colorResource(id = R.color.color_indicator_life),
-                        icon = Icons.Filled.EmojiEvents,
+                        iconRes = kr.sweetapps.alcoholictimer.R.drawable.heartbeat,
                         iconBg = Color(0xFFF0E8FF),
                         modifier = Modifier.weight(1f)
                     )
@@ -336,7 +337,7 @@ fun QuitScreenPreview() {
 }
 
 @Composable
-private fun SmallStatCard(title: String, value: String, accentColor: Color, modifier: Modifier = Modifier, icon: androidx.compose.ui.graphics.vector.ImageVector? = null, iconBg: Color? = null) {
+private fun SmallStatCard(title: String, value: String, accentColor: Color, modifier: Modifier = Modifier, icon: androidx.compose.ui.graphics.vector.ImageVector? = null, iconRes: Int? = null, iconBg: Color? = null) {
     Card(
         modifier = modifier.height(QuitUiConstants.STAT_CARD_HEIGHT),
         shape = RoundedCornerShape(QuitUiConstants.STAT_CARD_CORNER),
@@ -350,7 +351,7 @@ private fun SmallStatCard(title: String, value: String, accentColor: Color, modi
                 .padding(horizontal = 12.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (icon != null) {
+            if (icon != null || iconRes != null) {
                 Box(
                     modifier = Modifier
                         .size(48.dp)
@@ -358,28 +359,34 @@ private fun SmallStatCard(title: String, value: String, accentColor: Color, modi
                         .background(iconBg ?: accentColor.copy(alpha = 0.12f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(imageVector = icon, contentDescription = null, tint = accentColor, modifier = Modifier.size(22.dp))
+                    if (icon != null) {
+                        Icon(imageVector = icon, contentDescription = null, tint = accentColor, modifier = Modifier.size(22.dp))
+                    } else {
+                        iconRes?.let { res ->
+                            Image(painter = painterResource(id = res), contentDescription = null, modifier = Modifier.size(22.dp))
+                        }
+                    }
                 }
                 Spacer(modifier = Modifier.width(12.dp))
             }
 
-            Column(modifier = Modifier.fillMaxHeight().weight(1f), verticalArrangement = Arrangement.Center) {
-                Text(
-                    text = value,
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold, lineHeight = 26.sp),
-                    color = accentColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = colorResource(id = R.color.color_stat_title_gray)
-                )
-            }
-        }
-    }
+             Column(modifier = Modifier.fillMaxHeight().weight(1f), verticalArrangement = Arrangement.Center) {
+                 Text(
+                     text = value,
+                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold, lineHeight = 26.sp),
+                     color = accentColor,
+                     maxLines = 1,
+                     overflow = TextOverflow.Ellipsis
+                 )
+                 Spacer(modifier = Modifier.height(4.dp))
+                 Text(
+                     text = title,
+                     style = MaterialTheme.typography.labelMedium,
+                     color = colorResource(id = R.color.color_stat_title_gray)
+                 )
+             }
+         }
+     }
  }
 
 @Preview(showBackground = true, widthDp = 360, heightDp = 900, name = "Quit Full (Hardcoded)")
