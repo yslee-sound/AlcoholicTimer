@@ -235,8 +235,19 @@ fun RecordsScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .background(Color(0xFFEEEDE9))
         ) {
+            // Overlay: match StartScreen / RunScreen subtle top highlight and bottom darkening
+            Box(
+                modifier = Modifier.matchParentSize().background(
+                    Brush.verticalGradient(
+                        0.0f to Color.Transparent,
+                        0.88f to Color.Transparent,
+                        1.0f to Color.Black.copy(alpha = 0.12f)
+                    )
+                )
+            )
+
             val layoutDirection = LocalLayoutDirection.current
             val recordsContentPadding = PaddingValues(
                 start = safePadding.calculateLeftPadding(layoutDirection),
