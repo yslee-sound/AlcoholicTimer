@@ -178,11 +178,15 @@ private fun AppContentWithStart(
     androidx.compose.runtime.LaunchedEffect(key1 = holdSplashState.value) {
         if (!holdSplashState.value) {
             try {
-                val decision = policyManager.decidePopup(android.os.Build.VERSION.RELEASE ?: "")
+                // decidePopup is suspend now
+                val decision = try { policyManager.decidePopup(android.os.Build.VERSION.RELEASE ?: "") } catch (e: Exception) { e.printStackTrace(); PopupDecision.None }
                 if (decision is PopupDecision.ShowUpdate) {
                     val policy = decision.policy
+                    android.util.Log.d("MainActivity", "Update policy received: id=${policy.id} isForce=${policy.isForceUpdate} target=${policy.targetVersionCode} releaseNotes=${policy.releaseNotes}")
                     currentUpdatePolicyState.value = policy
                     showOptionalUpdateDialogState.value = true
+                } else {
+                    android.util.Log.d("MainActivity", "No update decision from PopupPolicyManager: $decision")
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -206,10 +210,11 @@ private fun AppContentWithStart(
         OptionalUpdateDialog(
             isForce = policy.isForceUpdate,
             title = "앱 업데이트",
-            description = policy.releaseNotes ?: "",
+            // pass releaseNotes into description so the dialog shows Supabase content
+            description = policy.releaseNotes,
+            features = null,
             updateButtonText = "지금 업데이트",
             laterButtonText = "나중에",
-            features = null,
             onUpdateClick = {
                 val url = policy.downloadUrl ?: "https://play.google.com/store/apps/details?id=${context.packageName}"
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
