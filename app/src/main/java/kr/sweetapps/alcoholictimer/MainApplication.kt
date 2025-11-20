@@ -16,11 +16,11 @@ class MainApplication : Application() {
         AdController.initialize(this)
 
         // When policy fetch completes and interstitials are enabled, ensure interstitial is preloaded.
-        AdController.addPolicyFetchListener { policy ->
+        AdController.addPolicyFetchListener { policy: AdController.Policy? ->
             try {
                 if (policy?.adInterstitialEnabled == true) {
                     android.util.Log.d("MainApplication", "Policy enables interstitial -> preloading interstitial")
-                    InterstitialAdManager.preload(applicationContext)
+                    kr.sweetapps.alcoholictimer.ads.InterstitialAdManager.preload(applicationContext)
                 }
             } catch (_: Throwable) {}
         }
@@ -41,7 +41,7 @@ class MainApplication : Application() {
         }
 
         // 앱 시작 시각 기록: 콜드 스타트 직후 초기 보호 창 동작
-        InterstitialAdManager.noteAppStart()
+        kr.sweetapps.alcoholictimer.ads.InterstitialAdManager.noteAppStart()
 
         // AppOpen도 앱 시작 시각을 기록하여 'startup window' 검사에 사용
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.noteAppStart()

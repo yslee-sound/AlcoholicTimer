@@ -66,9 +66,12 @@ class SplashScreen : BaseActivity() {
                 try {
                     val elapsed = SystemClock.uptimeMillis() - splashStart
                     if (kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.isLoaded() && holdSplashState.value && elapsed <= AD_WAIT_MS) {
-                        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this@SplashScreen)
-                        window.decorView.post { applySystemBarAppearance() }
-                        return@runOnUiThread
+                        // showIfAvailable이 true를 반환하면 광고가 보여진 것이므로 스플래시는 광고 흐름에 맡깁니다.
+                        val shown = runCatching { kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this@SplashScreen) }.getOrDefault(false)
+                        if (shown) {
+                            window.decorView.post { applySystemBarAppearance() }
+                            return@runOnUiThread
+                        }
                     }
                     releaseSplash()
                     android.util.Log.d("SplashScreen", "Ad loaded but conditions not met -> releaseSplash() called")
@@ -91,8 +94,9 @@ class SplashScreen : BaseActivity() {
             kr.sweetapps.alcoholictimer.ads.AdController.addPolicyFetchListener { policy ->
                 runOnUiThread {
                     try {
-                        android.util.Log.d("SplashScreen", "Policy fetch listener invoked: policy=${policy?.isActive}")
-                        if (policy == null || !policy.isActive) {
+                        val enabled = policy?.adAppOpenEnabled ?: kr.sweetapps.alcoholictimer.ads.AdController.isAppOpenEnabled()
+                        android.util.Log.d("SplashScreen", "Policy fetch listener invoked: appOpenEnabled=$enabled")
+                        if (!enabled) {
                             android.util.Log.d("SplashScreen", "Policy indicates ads disabled -> releaseSplash()")
                             releaseSplash()
                         }

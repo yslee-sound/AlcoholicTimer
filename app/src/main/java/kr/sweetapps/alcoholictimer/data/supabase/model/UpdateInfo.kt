@@ -33,15 +33,15 @@ data class UpdateInfo(
 
     /** 앱 버전 코드 (비교/정렬용 정수) */
     @SerialName("version_code")
-    val versionCode: Int,
+    val versionCode: Int = 0,
 
     /** 앱 버전명 (UI 표시용) */
     @SerialName("version_name")
-    val versionName: String,
+    val versionName: String = "",
 
     /** 앱 식별자 (패키지명 등) */
     @SerialName("app_id")
-    val appId: String,
+    val appId: String = "",
 
     /** 강제 업데이트 여부 (true면 반드시 업데이트) */
     @SerialName("is_force")
@@ -49,7 +49,7 @@ data class UpdateInfo(
 
     /** 릴리즈 노트(업데이트 내용) */
     @SerialName("release_notes")
-    val releaseNotes: String,
+    val releaseNotes: String = "",
 
     /** 릴리즈 시각 (ISO 8601 문자열, 선택) */
     @SerialName("released_at")
