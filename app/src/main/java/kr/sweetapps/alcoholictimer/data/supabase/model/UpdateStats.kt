@@ -7,4 +7,3 @@ data class UpdateStats(
     val currentLaterCount: Int = 0,
     val lastDismissedAtMs: Long = 0L
 )
-

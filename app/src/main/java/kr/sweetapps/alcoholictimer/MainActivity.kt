@@ -23,7 +23,7 @@ import kr.sweetapps.alcoholictimer.data.supabase.repository.PopupPolicyManager
 import kr.sweetapps.alcoholictimer.data.supabase.repository.UpdatePolicyRepository
 import kr.sweetapps.alcoholictimer.data.supabase.model.PopupDecision
 import kr.sweetapps.alcoholictimer.ui.dialogs.OptionalUpdateDialog
-import kr.sweetapps.alcoholictimer.BuildConfig
+import android.os.Build
 import androidx.compose.ui.graphics.Color
 
 // small noop comment to trigger reindex
@@ -115,7 +115,7 @@ class MainActivity : BaseActivity() {
         // Edge-to-Edge 활성화
         // enableEdgeToEdge() // Removed to follow single source strategy for system bars
 
-        // enableEdgeToEdge()는 decorFitsSystemWindows를 false로 변경할 수 있으므로
+        // enableEdgeTo-Edge()는 decorFitsSystemWindows를 false로 변경할 수 있으므로
         // 시스템바 배경을 윈도우가 직접 그리도록 유지하려면 true로 재설정합니다.
         // WindowCompat.setDecorFitsSystemWindows(window, true) // Now handled in BaseActivity
 
@@ -165,10 +165,10 @@ private fun AppContentWithStart(
     val context = LocalContext.current
 
     // popup policy manager setup
-    val supabaseClient = remember { SupabaseProvider.getClient(context) }
-    val emergencyRepo = remember { EmergencyPolicyRepository(supabaseClient, context) }
-    val updateRepo = remember { UpdatePolicyRepository(supabaseClient, context) }
-    val noticeRepo = remember { NoticePolicyRepository(supabaseClient, context) }
+    // Note: Supabase client was removed; use stub repositories matching current constructors
+    val emergencyRepo = remember { EmergencyPolicyRepository() }
+    val updateRepo = remember { UpdatePolicyRepository(context) }
+    val noticeRepo = remember { NoticePolicyRepository() }
     val policyManager = remember { PopupPolicyManager(emergencyRepo, updateRepo, noticeRepo, context) }
 
     val showOptionalUpdateDialogState = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
@@ -178,13 +178,11 @@ private fun AppContentWithStart(
     androidx.compose.runtime.LaunchedEffect(key1 = holdSplashState.value) {
         if (!holdSplashState.value) {
             try {
-                val decision = policyManager.decidePopup(BuildConfig.VERSION_NAME)
-                when (decision) {
-                    is PopupDecision.ShowUpdate -> {
-                        currentUpdatePolicyState.value = decision.policy
-                        showOptionalUpdateDialogState.value = true
-                    }
-                    else -> { /* no-op */ }
+                val decision = policyManager.decidePopup(android.os.Build.VERSION.RELEASE ?: "")
+                if (decision is PopupDecision.ShowUpdate) {
+                    val policy = decision.policy
+                    currentUpdatePolicyState.value = policy
+                    showOptionalUpdateDialogState.value = true
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
