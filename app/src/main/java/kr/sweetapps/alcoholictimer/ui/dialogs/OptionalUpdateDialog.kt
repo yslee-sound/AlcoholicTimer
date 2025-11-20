@@ -42,7 +42,6 @@ fun OptionalUpdateDialog(
     updateButtonText: String = "지금 업데이트",
     laterButtonText: String = "나중에",
     features: List<String>? = null,
-    estimatedTime: String? = null,
     // Supabase의 release_notes 필드 (description)
     description: String? = null,
     onUpdateClick: () -> Unit,
@@ -82,7 +81,6 @@ fun OptionalUpdateDialog(
                     updateButtonText = updateButtonText,
                     laterButtonText = laterButtonText,
                     features = features,
-                    estimatedTime = estimatedTime,
                     description = description,
                     onUpdateClick = onUpdateClick,
                     onLaterClick = onLaterClick
@@ -99,7 +97,6 @@ fun OptionalUpdateDialogContent(
     updateButtonText: String = "지금 업데이트",
     laterButtonText: String = "나중에",
     features: List<String>? = null,
-    estimatedTime: String? = null,
     // Supabase의 release_notes 필드 (description)
     description: String? = null,
     // 새로 추가: description 하단 여백 조절 (기본 12.dp)
