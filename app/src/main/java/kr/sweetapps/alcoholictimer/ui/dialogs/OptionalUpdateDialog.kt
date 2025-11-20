@@ -19,6 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -101,6 +102,8 @@ fun OptionalUpdateDialogContent(
     estimatedTime: String? = null,
     // Supabase의 release_notes 필드 (description)
     description: String? = null,
+    // 새로 추가: description 하단 여백 조절 (기본 12.dp)
+    descriptionBottomPadding: Dp = 12.dp,
     onUpdateClick: () -> Unit = {},
     onLaterClick: (() -> Unit)? = null
 ) {
@@ -165,6 +168,8 @@ fun OptionalUpdateDialogContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 4.dp)
+                            // description 아래 여백을 여기서 제어합니다.
+                            .padding(bottom = descriptionBottomPadding)
                     )
                 }
             }
@@ -266,22 +271,9 @@ fun OptionalUpdateDialogContent(
 @Composable
 fun OptionalUpdateDialogPreview_Optional() {
     MaterialTheme {
-        // Preview에서는 Dialog 대신 콘텐츠만 렌더링
+        // Preview에서는 Dialog 대신 콘텐츠만 렌더링 — 기본 파라미터(코드 그대로)를 사용합니다.
         Surface(modifier = Modifier.padding(24.dp)) {
-            OptionalUpdateDialogContent(
-                isForce = false,
-                title = "새 버전이 출시되었습니다!",
-                updateButtonText = "지금 업데이트",
-                laterButtonText = "나중에",
-                features = listOf(
-                    "UI/UX 개선",
-                    "버그 수정 및 안정성 향상",
-                    "새로운 차트 뷰 추가"
-                ),
-                estimatedTime = "약 2분",
-                onUpdateClick = {},
-                onLaterClick = {}
-            )
+            OptionalUpdateDialogContent()
         }
     }
 }
@@ -291,18 +283,8 @@ fun OptionalUpdateDialogPreview_Optional() {
 fun OptionalUpdateDialogPreview_Force() {
     MaterialTheme {
         Surface(modifier = Modifier.padding(24.dp)) {
-            OptionalUpdateDialogContent(
-                isForce = true,
-                title = "중요 업데이트가 필요합니다",
-                updateButtonText = "업데이트",
-                features = listOf(
-                    "보안 패치 적용",
-                    "기능 호환성 보장"
-                ),
-                estimatedTime = null,
-                onUpdateClick = {},
-                onLaterClick = {}
-            )
+            // 강제 업데이트 모드 프리뷰: isForce=true 이외에는 기본값 사용
+            OptionalUpdateDialogContent(isForce = true)
         }
     }
 }
