@@ -34,3 +34,4 @@ object NativeAdManager {
         Log.d(TAG, "NativeAdManager: 네이티브 광고 기능 비활성화됨")
     }
 }
+

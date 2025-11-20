@@ -121,3 +121,4 @@ object AdController {
     /** Runtime state: is a fullscreen ad overlay showing */
     fun isFullScreenAdShowingState(): Boolean = fullScreenAdShowing.get()
 }
+

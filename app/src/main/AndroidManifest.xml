@@ -42,7 +42,7 @@
         <activity
             android:name="com.google.android.gms.ads.AdActivity"
             android:exported="false"
-            android:theme="@style/Theme.AlcoholicTimer.Splash"
+            android:theme="@android:style/Theme.Translucent"
             tools:replace="android:theme" />
 
         <!-- 별명 편집 화면 -->

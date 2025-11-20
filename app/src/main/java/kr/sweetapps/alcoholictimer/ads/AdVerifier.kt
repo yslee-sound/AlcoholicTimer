@@ -20,3 +20,4 @@ object AdVerifier {
         callback(results)
     }
 }
+

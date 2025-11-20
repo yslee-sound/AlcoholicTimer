@@ -5,3 +5,4 @@ object AdLoadState {
     // keep the property for compatibility
     val bannerRequested = java.util.concurrent.atomic.AtomicBoolean(false)
 }
+

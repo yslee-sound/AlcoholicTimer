@@ -20,3 +20,4 @@ object InterstitialAdManager {
     // Added to satisfy MainApplication.noteAppStart() call
     fun noteAppStart() { Log.d(TAG, "noteAppStart called (stub)") }
 }
+

@@ -34,3 +34,4 @@ object AppOpenAdManager {
         return false
     }
 }
+
