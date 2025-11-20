@@ -65,7 +65,11 @@ class UpdatePolicyRepository(private val context: Context) {
                     chosen = candidates.firstOrNull { getAppId(it) == pkgName }
                         ?: candidates.firstOrNull { getAppId(it) == pkgBase }
                         ?: candidates.firstOrNull { getAppId(it) == simpleName }
-                        ?: candidates.firstOrNull() // fallback to first active
+
+                    if (chosen == null) {
+                        // No candidate matched the current package identifiers. Log and skip.
+                        android.util.Log.d("UpdatePolicyRepo", "No matching active update_policy found for pkg=$pkgName; candidates=${candidates.map { getAppId(it) }}")
+                    }
 
                     if (chosen != null) {
                         val obj = chosen
@@ -96,28 +100,11 @@ class UpdatePolicyRepository(private val context: Context) {
             e.printStackTrace()
         }
 
-        // Development fallback: when running a debug build return a sample policy so UI can be exercised
-        try {
-            if (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) {
-                val pkgInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-                val currentVersionCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-                    (pkgInfo.longVersionCode).toInt()
-                } else {
-                    @Suppress("DEPRECATION")
-                    pkgInfo.versionCode
-                }
-                return@withContext UpdatePolicy(
-                    id = 1L,
-                    appId = context.packageName,
-                    targetVersionCode = currentVersionCode + 1,
-                    isForceUpdate = false,
-                    releaseNotes = "- 버그 수정\n- 안정성 향상",
-                    downloadUrl = "https://play.google.com/store/apps/details?id=${context.packageName}"
-                )
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        // NOTE: Removed the development fallback that returned a sample UpdatePolicy for
+        // debug builds. This was causing the app to show the update dialog even when
+        // Supabase returned no active policy (for example when is_active=false).
+        // If you need a local debug fallback, add a controlled flag (not enabled by default)
+        // so that Supabase's is_active setting is respected.
 
         return@withContext null
     }
