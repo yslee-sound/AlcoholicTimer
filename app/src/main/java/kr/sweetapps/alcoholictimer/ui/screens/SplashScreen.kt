@@ -206,10 +206,9 @@ class SplashScreen : BaseActivity() {
         // 자동 라이프사이클 기반 노출은 StartActivity에서 직접 제어(일시 중단)합니다.
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setAutoShowEnabled(false)
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdFinishedListener {
-            // 광고 종료 시 자동 노출을 다시 허용하고 스플래시를 해제
-            kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setAutoShowEnabled(true)
+            // 광고 종료 시 스플래시를 해제하되 자동 노출은 활성화하지 않음
             runOnUiThread {
-                android.util.Log.d("SplashScreen", "Ad finished -> releasing holdSplashState")
+                android.util.Log.d("SplashScreen", "Ad finished -> releasing holdSplashState (no auto-show)")
                 releaseSplash()
                 // 광고가 종료되면 시스템바 외형 재적용
                 applySystemBarAppearance()

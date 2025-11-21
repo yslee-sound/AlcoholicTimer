@@ -61,6 +61,7 @@ class AdPolicyRepository(private val appId: String = "alcoholictimer") {
                         val adBannerEnabled = if (obj.has("ad_banner_enabled")) obj.getBoolean("ad_banner_enabled") else false
                         val appOpenMaxPerHour = if (obj.has("app_open_max_per_hour")) obj.getInt("app_open_max_per_hour") else 2
                         val appOpenMaxPerDay = if (obj.has("app_open_max_per_day")) obj.getInt("app_open_max_per_day") else 15
+                        val appOpenCooldownSeconds = if (obj.has("app_open_cooldown_seconds")) obj.getInt("app_open_cooldown_seconds") else 60
                         val adInterstitialMaxPerHour = if (obj.has("ad_interstitial_max_per_hour")) obj.getInt("ad_interstitial_max_per_hour") else 3
                         val adInterstitialMaxPerDay = if (obj.has("ad_interstitial_max_per_day")) obj.getInt("ad_interstitial_max_per_day") else 20
 
@@ -73,6 +74,7 @@ class AdPolicyRepository(private val appId: String = "alcoholictimer") {
                             adBannerEnabled = adBannerEnabled,
                             appOpenMaxPerHour = appOpenMaxPerHour,
                             appOpenMaxPerDay = appOpenMaxPerDay,
+                            appOpenCooldownSeconds = appOpenCooldownSeconds,
                             adInterstitialMaxPerHour = adInterstitialMaxPerHour,
                             adInterstitialMaxPerDay = adInterstitialMaxPerDay
                         )

@@ -31,6 +31,8 @@ object AppOpenAdManager {
     @Volatile private var appOpenAd: AppOpenAd? = null
     @Volatile private var isLoading: Boolean = false
     @Volatile private var isShowing: Boolean = false
+    @Volatile private var isShowScheduled: Boolean = false
+    @Volatile private var lastDismissedAt: Long = 0L
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -186,27 +188,52 @@ object AppOpenAdManager {
                 override fun onAdDismissedFullScreenContent() {
                     Log.d(TAG, "AppOpen onAdDismissedFullScreenContent")
                     isShowing = false
+                    isShowScheduled = false
                     appOpenAd = null
+                    try { lastDismissedAt = System.currentTimeMillis() } catch (_: Throwable) {}
                     // record that ad was shown and finished
                     try { AdController.recordAppOpenShown(activity) } catch (_: Throwable) {}
                     for (l in onFinishedListeners) runCatching { l.invoke() }
+                    // After dismissal, schedule preload after server-controlled cooldown to avoid immediate reload->show
+                    try {
+                        val appCtx = applicationRef?.applicationContext
+                        if (appCtx != null) {
+                            val delayMs = try { (AdController.getAppOpenCooldownSeconds().coerceAtLeast(1) * 1000L) } catch (_: Throwable) { 30_000L }
+                            mainHandler.postDelayed({ try { preload(appCtx) } catch (_: Throwable) {} }, delayMs)
+                        }
+                    } catch (_: Throwable) {}
                 }
 
                 override fun onAdFailedToShowFullScreenContent(adError: AdError) {
                     Log.w(TAG, "AppOpen failed to show: ${adError.message} | details=${adError}")
                     isShowing = false
+                    isShowScheduled = false
                     appOpenAd = null
                     for (l in onLoadFailedListeners) runCatching { l.invoke() }
+                    // On failure, schedule reload after server cooldown to avoid immediate retry->show
+                    try {
+                        val appCtx = applicationRef?.applicationContext
+                        if (appCtx != null) {
+                            val delayMs = try { (AdController.getAppOpenCooldownSeconds().coerceAtLeast(1) * 1000L) } catch (_: Throwable) { 30_000L }
+                            mainHandler.postDelayed({ try { preload(appCtx) } catch (_: Throwable) {} }, delayMs)
+                        }
+                    } catch (_: Throwable) {}
                 }
 
                 override fun onAdShowedFullScreenContent() {
                     Log.d(TAG, "AppOpen onAdShowedFullScreenContent")
                     isShowing = true
+                    isShowScheduled = false
                     for (l in onShownListeners) runCatching { l.invoke() }
                 }
             }
-            // Show
+            // Show (guard against concurrent scheduling)
             Log.d(TAG, "Attempting to show AppOpen ad now (safely on UI thread)")
+            if (isShowScheduled) {
+                Log.d(TAG, "showIfAvailable: already scheduled -> returning false")
+                return false
+            }
+            isShowScheduled = true
             var shown = false
             // Prefer posting to the activity's decorView so the ad is shown when the window is ready
             try {
@@ -216,16 +243,23 @@ object AppOpenAdManager {
                         val destroyed = runCatching {
                             if (android.os.Build.VERSION.SDK_INT >= 17) activity.isDestroyed else false
                         }.getOrDefault(false)
-                        Log.d(TAG, "showIfAvailable -> decor-post pre-show check finishing=$finishing destroyed=$destroyed isShowing=$isShowing")
+                        Log.d(TAG, "showIfAvailable -> decor-post pre-show check finishing=$finishing destroyed=$destroyed isShowing=$isShowing isShowScheduled=$isShowScheduled")
                         if (!finishing && !destroyed && !isShowing) {
-                            ad.show(activity)
-                            shown = true
-                            Log.d(TAG, "ad.show() invoked via decorView.post")
+                            try {
+                                ad.show(activity)
+                                shown = true
+                                Log.d(TAG, "ad.show() invoked via decorView.post")
+                            } catch (t: Throwable) {
+                                Log.w(TAG, "ad.show threw: $t")
+                                isShowScheduled = false
+                            }
                         } else {
                             Log.w(TAG, "ad.show skipped because activity not valid (finishing=$finishing destroyed=$destroyed isShowing=$isShowing)")
+                            isShowScheduled = false
                         }
                     } catch (t: Throwable) {
                         Log.w(TAG, "ad.show (decor) threw: $t")
+                        isShowScheduled = false
                     }
                 }
                 val posted = try {
@@ -240,6 +274,7 @@ object AppOpenAdManager {
                 }
             } catch (t: Throwable) {
                 Log.w(TAG, "scheduling ad.show failed: $t")
+                isShowScheduled = false
             }
             // Do NOT auto-launch overlay activity as a fallback; leave decision to caller.
             if (!shown) {
@@ -250,6 +285,7 @@ object AppOpenAdManager {
         } catch (t: Throwable) {
             Log.w(TAG, "showIfAvailable failed: $t")
             isShowing = false
+            isShowScheduled = false
             for (l in onLoadFailedListeners) runCatching { l.invoke() }
             return false
         }
@@ -262,5 +298,17 @@ object AppOpenAdManager {
         Log.d(TAG, "notifyAdFinished -> calling finished listeners")
         isShowing = false
         for (l in onFinishedListeners) runCatching { l.invoke() }
+    }
+
+    fun wasRecentlyShown(): Boolean {
+        return try {
+            // Prefer server-controlled cooldown via AdController
+            AdController.isAppOpenInCooldown()
+        } catch (_: Throwable) {
+            // Fallback to local timestamp if AdController unavailable
+            val t = lastDismissedAt
+            if (t == 0L) return false
+            (System.currentTimeMillis() - t) < 60_000L
+        }
     }
 }

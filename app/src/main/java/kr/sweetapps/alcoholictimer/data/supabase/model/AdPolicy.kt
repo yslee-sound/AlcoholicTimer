@@ -11,5 +11,7 @@ data class AdPolicy(
     val appOpenMaxPerHour: Int = 2,
     val appOpenMaxPerDay: Int = 15,
     val adInterstitialMaxPerHour: Int = 3,
-    val adInterstitialMaxPerDay: Int = 20
+    val adInterstitialMaxPerDay: Int = 20,
+    // cooldown between app-open ads in seconds (remote-controlled)
+    val appOpenCooldownSeconds: Int = 60
 )

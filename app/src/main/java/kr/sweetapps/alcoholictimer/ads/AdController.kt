@@ -29,6 +29,9 @@ object AdController {
     private val shownThisHour = AtomicInteger(0)
     private val shownToday = AtomicInteger(0)
 
+    // track last app-open shown timestamp (ms) for cooldown enforcement
+    @Volatile private var lastAppOpenShownAt: Long = 0L
+
     // runtime flags
     private val interstitialShowing = AtomicBoolean(false)
     private val fullScreenAdShowing = AtomicBoolean(false)
@@ -136,6 +139,15 @@ object AdController {
             if (!policy.adAppOpenEnabled) return false
             if (policy.appOpenMaxPerHour >= 0 && shownThisHour.get() >= policy.appOpenMaxPerHour) return false
             if (policy.appOpenMaxPerDay >= 0 && shownToday.get() >= policy.appOpenMaxPerDay) return false
+            // Cooldown (server-controlled)
+            try {
+                val cdSec = policy.appOpenCooldownSeconds
+                if (cdSec > 0) {
+                    val now = System.currentTimeMillis()
+                    val last = lastAppOpenShownAt
+                    if (last > 0 && now - last < cdSec * 1000L) return false
+                }
+            } catch (_: Throwable) {}
             return true
         } catch (t: Throwable) {
             Log.w(TAG, "canShowAppOpen evaluation failed: $t")
@@ -148,7 +160,22 @@ object AdController {
             resetWindowsIfNeeded()
             shownThisHour.incrementAndGet()
             shownToday.incrementAndGet()
+            try { lastAppOpenShownAt = System.currentTimeMillis() } catch (_: Throwable) {}
         } catch (_: Throwable) {}
+    }
+
+    // Expose cooldown and recent shown check for clients
+    fun getAppOpenCooldownSeconds(): Int = currentPolicy?.appOpenCooldownSeconds ?: 60
+    fun getLastAppOpenShownAt(): Long = lastAppOpenShownAt
+    fun isAppOpenInCooldown(): Boolean {
+        try {
+            val policy = currentPolicy ?: return false
+            val cd = policy.appOpenCooldownSeconds
+            if (cd <= 0) return false
+            val last = lastAppOpenShownAt
+            if (last == 0L) return false
+            return (System.currentTimeMillis() - last) < cd * 1000L
+        } catch (_: Throwable) { return false }
     }
 
     // no-op setters preserved for compatibility

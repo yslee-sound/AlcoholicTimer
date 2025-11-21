@@ -64,7 +64,7 @@ class MainActivity : BaseActivity() {
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdFinishedListener {
             // 광고가 닫히거나 실패하면 오버레이를 해제 (fallback)
             android.util.Log.d("MainActivity", "onAdFinishedListener invoked")
-            kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setAutoShowEnabled(true)
+            // DO NOT enable auto-show here to avoid immediate reload->auto-show loop
             runOnUiThread {
                 android.util.Log.d("MainActivity", "Ad finished -> releasing holdSplashState (fallback)")
                 setHoldSplash(false)
