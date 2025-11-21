@@ -5,8 +5,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
 import android.view.WindowManager
 import android.widget.Button
 import kr.sweetapps.alcoholictimer.R
@@ -53,21 +51,34 @@ class AppOpenOverlayActivity : Activity() {
             Log.w(TAG, "onCreate window setup failed: $t")
         }
 
-        // Inflate a simple overlay layout with a top 'Continue to app' button
+        // Inflate a simple overlay layout with an optional top 'Continue to app' button.
         try {
-            val root = LayoutInflater.from(this).inflate(R.layout.activity_app_open_overlay, null)
-            setContentView(root)
-            val btn = findViewById<Button>(R.id.btn_continue_app)
-            btn.setOnClickListener {
-                // When user taps the top button, treat it as 'continue to app' -> finish overlay
+            // Use direct setContentView(resource) to avoid inflate(..., null) warning
+            setContentView(R.layout.activity_app_open_overlay)
+
+            // Attempt to find an optional continue button by name at runtime so compile
+            // doesn't require the id to exist. If the layout provides the button, we
+            // attach the handler; otherwise we simply rely on the ad's built-in UI.
+            val btnId = resources.getIdentifier("btn_continue_app", "id", packageName)
+            if (btnId != 0) {
                 try {
-                    Log.d(TAG, "User tapped Continue to app -> finishing overlay and notifying AppOpenAdManager")
-                    // Notify the AppOpen manager that ad finished so it can release any hold state
-                    kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.notifyAdFinished()
+                    val btn = findViewById<Button?>(btnId)
+                    btn?.setOnClickListener {
+                        // When user taps the top button, treat it as 'continue to app' -> finish overlay
+                        try {
+                            Log.d(TAG, "User tapped Continue to app -> finishing overlay and notifying AppOpenAdManager")
+                            // Notify the AppOpen manager that ad finished so it can release any hold state
+                            AppOpenAdManager.notifyAdFinished()
+                        } catch (t: Throwable) {
+                            Log.w(TAG, "notifyAdFinished failed: $t")
+                        }
+                        finish()
+                    }
                 } catch (t: Throwable) {
-                    Log.w(TAG, "notifyAdFinished failed: $t")
+                    Log.w(TAG, "Error wiring optional continue button: $t")
                 }
-                finish()
+            } else {
+                Log.d(TAG, "No optional continue button present in overlay layout; skipping")
             }
         } catch (t: Throwable) {
             Log.w(TAG, "Failed to inflate overlay layout: $t")

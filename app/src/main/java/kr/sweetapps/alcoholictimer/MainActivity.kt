@@ -16,16 +16,13 @@ import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import kr.sweetapps.alcoholictimer.data.supabase.SupabaseProvider
 import kr.sweetapps.alcoholictimer.data.supabase.repository.EmergencyPolicyRepository
 import kr.sweetapps.alcoholictimer.data.supabase.repository.NoticePolicyRepository
 import kr.sweetapps.alcoholictimer.data.supabase.repository.PopupPolicyManager
 import kr.sweetapps.alcoholictimer.data.supabase.repository.UpdatePolicyRepository
 import kr.sweetapps.alcoholictimer.data.supabase.model.PopupDecision
 import kr.sweetapps.alcoholictimer.ui.dialogs.OptionalUpdateDialog
-import android.os.Build
 import androidx.compose.ui.graphics.Color
-import kr.sweetapps.alcoholictimer.ads.AppOpenOverlayActivity
 
 // small noop comment to trigger reindex
 // MainActivity integrity check
@@ -108,8 +105,11 @@ class MainActivity : BaseActivity() {
                             return@runOnUiThread
                         } else {
                             // If we couldn't show ad (e.g., not resumed or other), do NOT immediately release the splash here.
-                            // Instead, attempt debug overlay fallback (so that overlay can show the ad over the splash)
-                            android.util.Log.w("MainActivity", "Ad not shown from MainActivity -> attempting debug overlay fallback")
+                            // Instead, fallback overlay launch was previously used for debug; disable that to avoid double UI.
+                            android.util.Log.w("MainActivity", "Ad not shown from MainActivity -> debug overlay fallback disabled to avoid interfering with real ad")
+
+                            /*
+                            // DEBUG fallback disabled: do not start AppOpenOverlayActivity
                             val debugMode = try { kr.sweetapps.alcoholictimer.BuildConfig.DEBUG } catch (_: Throwable) { false }
                             if (debugMode) {
                                 android.util.Log.d("MainActivity", "DEBUG fallback: launching AppOpenOverlayActivity to simulate ad")
@@ -120,6 +120,7 @@ class MainActivity : BaseActivity() {
                                     // overlay activity will call AppOpenAdManager.notifyAdFinished() on destroy
                                 } catch (t: Throwable) { android.util.Log.w("MainActivity","Failed to start overlay activity: $t") }
                             }
+                            */
 
                             // Do NOT call setHoldSplash(false) here; wait for ad finished listener or safety timeout to release splash.
                             pendingShowOnResume = false
