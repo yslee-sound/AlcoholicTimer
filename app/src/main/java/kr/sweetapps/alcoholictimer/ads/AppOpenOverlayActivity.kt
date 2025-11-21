@@ -6,7 +6,6 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.WindowManager
-import android.widget.Button
 import kr.sweetapps.alcoholictimer.R
 
 /**
@@ -56,30 +55,8 @@ class AppOpenOverlayActivity : Activity() {
             // Use direct setContentView(resource) to avoid inflate(..., null) warning
             setContentView(R.layout.activity_app_open_overlay)
 
-            // Attempt to find an optional continue button by name at runtime so compile
-            // doesn't require the id to exist. If the layout provides the button, we
-            // attach the handler; otherwise we simply rely on the ad's built-in UI.
-            val btnId = resources.getIdentifier("btn_continue_app", "id", packageName)
-            if (btnId != 0) {
-                try {
-                    val btn = findViewById<Button?>(btnId)
-                    btn?.setOnClickListener {
-                        // When user taps the top button, treat it as 'continue to app' -> finish overlay
-                        try {
-                            Log.d(TAG, "User tapped Continue to app -> finishing overlay and notifying AppOpenAdManager")
-                            // Notify the AppOpen manager that ad finished so it can release any hold state
-                            AppOpenAdManager.notifyAdFinished()
-                        } catch (t: Throwable) {
-                            Log.w(TAG, "notifyAdFinished failed: $t")
-                        }
-                        finish()
-                    }
-                } catch (t: Throwable) {
-                    Log.w(TAG, "Error wiring optional continue button: $t")
-                }
-            } else {
-                Log.d(TAG, "No optional continue button present in overlay layout; skipping")
-            }
+            // No manual top button wiring; ad provides its own 'continue' UI. Overlay layout intentionally
+            // contains no top continue button to avoid duplicating ad controls.
         } catch (t: Throwable) {
             Log.w(TAG, "Failed to inflate overlay layout: $t")
         }

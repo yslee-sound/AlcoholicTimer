@@ -105,24 +105,8 @@ class MainActivity : BaseActivity() {
                             return@runOnUiThread
                         } else {
                             // If we couldn't show ad (e.g., not resumed or other), do NOT immediately release the splash here.
-                            // Instead, fallback overlay launch was previously used for debug; disable that to avoid double UI.
-                            android.util.Log.w("MainActivity", "Ad not shown from MainActivity -> debug overlay fallback disabled to avoid interfering with real ad")
+                            // Debug overlay fallback removed completely to avoid double UI and unexpected process death.
 
-                            /*
-                            // DEBUG fallback disabled: do not start AppOpenOverlayActivity
-                            val debugMode = try { kr.sweetapps.alcoholictimer.BuildConfig.DEBUG } catch (_: Throwable) { false }
-                            if (debugMode) {
-                                android.util.Log.d("MainActivity", "DEBUG fallback: launching AppOpenOverlayActivity to simulate ad")
-                                try {
-                                    val i = Intent(this@MainActivity, AppOpenOverlayActivity::class.java)
-                                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    startActivity(i)
-                                    // overlay activity will call AppOpenAdManager.notifyAdFinished() on destroy
-                                } catch (t: Throwable) { android.util.Log.w("MainActivity","Failed to start overlay activity: $t") }
-                            }
-                            */
-
-                            // Do NOT call setHoldSplash(false) here; wait for ad finished listener or safety timeout to release splash.
                             pendingShowOnResume = false
                             return@runOnUiThread
                         }
@@ -208,11 +192,11 @@ class MainActivity : BaseActivity() {
                     android.util.Log.d("MainActivity", "onResume: showIfAvailable returned=$shown")
                     if (shown) {
                         window.decorView.post { applySystemBarAppearance() }
-                    } else {
+                      } else {
                         android.util.Log.d("MainActivity", "onResume: ad not shown -> release splash")
                         // ensure splash isn't stuck
                         runOnUiThread { /* no-op; the show listener will release splash or fallback will handle */ }
-                    }
+                      }
                 }
             }
         }
@@ -284,24 +268,23 @@ private fun AppContentWithStart(
         OptionalUpdateDialog(
             isForce = policy.isForceUpdate,
             title = "앱 업데이트",
-            // pass releaseNotes into description so the dialog shows Supabase content
-            description = policy.releaseNotes,
-            features = null,
-            updateButtonText = "지금 업데이트",
-            laterButtonText = "나중에",
-            onUpdateClick = {
-                val url = policy.downloadUrl ?: "https://play.google.com/store/apps/details?id=${context.packageName}"
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                context.startActivity(intent)
-            },
-            onLaterClick = {
-                // record later click
-                policyManager.dismissUpdate(policy.targetVersionCode)
-                showOptionalUpdateDialogState.value = false
-            }
-        )
-    }
+            // pass releaseNotes into features list so the existing UI shows Supabase content
+            features = listOf(policy.releaseNotes ?: "업데이트 안내 없음"),
+                 updateButtonText = "지금 업데이트",
+                 laterButtonText = "나중에",
+                 onUpdateClick = {
+                     val url = policy.downloadUrl ?: "https://play.google.com/store/apps/details?id=${context.packageName}"
+                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                     context.startActivity(intent)
+                 },
+                 onLaterClick = {
+                     // record later click
+                     policyManager.dismissUpdate(policy.targetVersionCode)
+                     showOptionalUpdateDialogState.value = false
+                 }
+             )
+         }
 }
 
 @Composable

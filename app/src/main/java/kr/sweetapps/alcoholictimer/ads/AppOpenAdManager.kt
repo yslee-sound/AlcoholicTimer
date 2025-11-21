@@ -171,12 +171,24 @@ object AppOpenAdManager {
         Log.d(TAG, "showIfAvailable called - loaded=${appOpenAd != null} showing=$isShowing autoShow=$autoShowEnabled activity=${activity.javaClass.simpleName} finishing=${activity.isFinishing} destroyed=${try{ if (android.os.Build.VERSION.SDK_INT>=17) activity.isDestroyed else false } catch (_:Throwable){"unknown"}}")
         if (appOpenAd == null || isShowing) return false
         try {
+            // Check policy via AdController before attempting to show
+            try {
+                if (!AdController.canShowAppOpen(activity)) {
+                    Log.d(TAG, "showIfAvailable: policy disallows app-open -> returning false")
+                    return false
+                }
+            } catch (t: Throwable) {
+                Log.w(TAG, "Policy check failed, proceeding to attempt show: $t")
+            }
+
             val ad = appOpenAd ?: return false
             ad.fullScreenContentCallback = object : FullScreenContentCallback() {
                 override fun onAdDismissedFullScreenContent() {
                     Log.d(TAG, "AppOpen onAdDismissedFullScreenContent")
                     isShowing = false
                     appOpenAd = null
+                    // record that ad was shown and finished
+                    try { AdController.recordAppOpenShown(activity) } catch (_: Throwable) {}
                     for (l in onFinishedListeners) runCatching { l.invoke() }
                 }
 
@@ -229,25 +241,9 @@ object AppOpenAdManager {
             } catch (t: Throwable) {
                 Log.w(TAG, "scheduling ad.show failed: $t")
             }
-            // If we couldn't show on the provided activity (e.g., activity is MainActivity/Splash and decor posting didn't show),
-            // we attempt to launch the overlay activity which will call showIfAvailable(self) and host the ad above the splash.
+            // Do NOT auto-launch overlay activity as a fallback; leave decision to caller.
             if (!shown) {
-                try {
-                    val overlayCls = Class.forName("kr.sweetapps.alcoholictimer.ads.AppOpenOverlayActivity")
-                    if (activity.javaClass != overlayCls) {
-                        Log.d(TAG, "showIfAvailable: launching overlay activity as fallback to host ad")
-                        try {
-                            val intent = android.content.Intent(activity, overlayCls)
-                            intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NO_ANIMATION or android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                            activity.startActivity(intent)
-                            // overlay activity will attempt to show the ad and will report back via listeners
-                        } catch (t: Throwable) {
-                            Log.w(TAG, "showIfAvailable overlay launch failed: $t")
-                        }
-                    }
-                } catch (t: Throwable) {
-                    // overlay class not present or other failure; nothing else to do
-                }
+                Log.d(TAG, "showIfAvailable: ad not shown immediately and overlay fallback suppressed")
             }
             Log.d(TAG, "ad.show() returned (scheduled). shownFlag=$shown, awaiting callbacks")
             return shown

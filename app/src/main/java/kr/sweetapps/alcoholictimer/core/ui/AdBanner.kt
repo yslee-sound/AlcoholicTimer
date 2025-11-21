@@ -86,9 +86,16 @@ fun AdmobBanner(
     }
 
     // 정책/전면 상태 구독
-    val isPolicyEnabled = kr.sweetapps.alcoholictimer.ads.AdController.isBannerEnabledState()
-    val isInterstitialShowing = kr.sweetapps.alcoholictimer.ads.AdController.isInterstitialShowingState()
-    val isFullScreenAdShowing = kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowingState()
+    // Subscribe to runtime policy so Compose recomposes when Supabase toggles the banner flag
+    val isPolicyEnabledState = remember { mutableStateOf(kr.sweetapps.alcoholictimer.ads.AdController.isBannerEnabled()) }
+    DisposableEffect(Unit) {
+        val listener: (kr.sweetapps.alcoholictimer.ads.AdController.Policy?) -> Unit = { p -> isPolicyEnabledState.value = p?.adBannerEnabled ?: false }
+        kr.sweetapps.alcoholictimer.ads.AdController.addPolicyFetchListener(listener)
+        onDispose { kr.sweetapps.alcoholictimer.ads.AdController.removePolicyFetchListener(listener) }
+    }
+    val isPolicyEnabled by remember { derivedStateOf { isPolicyEnabledState.value } }
+    val isInterstitialShowing = kr.sweetapps.alcoholictimer.ads.AdController.isInterstitialShowingNow()
+    val isFullScreenAdShowing = kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing()
     val shouldShowBanner = isPolicyEnabled && !isInterstitialShowing && !isFullScreenAdShowing
     val placeholderColor = if (isInterstitialShowing) Color.Black else MaterialTheme.colorScheme.surface
     LaunchedEffect(shouldShowBanner) { Log.d(TAG, "banner visible=$shouldShowBanner h=$predictedHeight") }
@@ -168,13 +175,19 @@ fun AdmobBanner(
                             }
                         }
                         adViewRef = this
+                        Log.d(TAG, "AdView factory created unit=$unitId")
                     }
                 },
                 update = { adView ->
+                    Log.d(TAG, "AndroidView update called; adViewRef=${adViewRef != null} loadState=$loadState isPolicyEnabled=$isPolicyEnabled")
                     val consentInfo = runCatching { UserMessagingPlatform.getConsentInformation(adView.context) }.getOrNull()
-                    if (consentInfo?.canRequestAds() == true && !hasSuccessfulLoad && loadState is BannerLoadState.Loading) {
-                        Log.d(TAG, "Issuing initial banner loadAd")
-                        runCatching { adView.loadAd(AdRequest.Builder().build()) }
+                    val canRequest = (consentInfo?.canRequestAds() == true) || BuildConfig.DEBUG
+                    // Only request/load banner if policy allows (Supabase-controlled)
+                    if (isPolicyEnabled && canRequest && !hasSuccessfulLoad && loadState is BannerLoadState.Loading) {
+                        Log.d(TAG, "Issuing initial banner loadAd (canRequest=$canRequest debug=${BuildConfig.DEBUG})")
+                        runCatching { adView.loadAd(AdRequest.Builder().build()) }.onFailure { e -> Log.w(TAG, "initial loadAd threw: ${e.message}") }
+                    } else {
+                        Log.d(TAG, "Banner load skipped (isPolicyEnabled=$isPolicyEnabled canRequest=$canRequest hasSuccessfulLoad=$hasSuccessfulLoad loadState=$loadState)")
                     }
                 }
             )
@@ -242,7 +255,8 @@ fun AdmobBanner(
     }
 
     // destroy
-    DisposableEffect(adViewRef) { onDispose { runCatching { adViewRef?.destroy() }; Log.d(TAG, "AdView destroyed") } }
+    // Destroy AdView only when this composable leaves composition (prevent premature destroy on adViewRef changes)
+    DisposableEffect(Unit) { onDispose { runCatching { adViewRef?.destroy() }; Log.d(TAG, "AdView destroyed") } }
 }
 
 @Suppress("unused")

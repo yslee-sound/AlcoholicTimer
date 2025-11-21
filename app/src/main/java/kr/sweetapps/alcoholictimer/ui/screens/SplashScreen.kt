@@ -273,6 +273,7 @@ class SplashScreen : BaseActivity() {
             val i = Intent(this, MainActivity::class.java)
             i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             startActivity(i)
+            overridePendingTransition(0, 0)
             finish()
             return
         }
@@ -312,6 +313,7 @@ class SplashScreen : BaseActivity() {
                                 val i = Intent(this@SplashScreen, MainActivity::class.java)
                                 i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                                 startActivity(i)
+                                overridePendingTransition(0, 0)
                                 finish()
                             }
                         )
@@ -414,6 +416,7 @@ class SplashScreen : BaseActivity() {
             val i = Intent(this, MainActivity::class.java)
             i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             startActivity(i)
+            overridePendingTransition(0, 0)
             finish()
         }
     }

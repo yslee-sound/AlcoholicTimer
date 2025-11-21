@@ -2,123 +2,160 @@ package kr.sweetapps.alcoholictimer.ads
 
 import android.content.Context
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kr.sweetapps.alcoholictimer.data.supabase.model.AdPolicy
+import kr.sweetapps.alcoholictimer.data.supabase.repository.AdPolicyRepository
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * Stubbed AdController to satisfy references after removing ad implementation.
+ * Central ad policy controller. Fetches AdPolicy from Supabase via AdPolicyRepository
+ * and enforces app-open enable/limit semantics used by AppOpen flow.
  */
 object AdController {
     private const val TAG = "AdController"
 
-    // splash release listeners (called when policy forces splash release)
     private val splashReleaseListeners = mutableSetOf<() -> Unit>()
-
-    // policy fetch listeners
-    data class Policy(
-        val adBannerEnabled: Boolean = false,
-        val adInterstitialEnabled: Boolean = false,
-        val adAppOpenEnabled: Boolean = true // 기본값을 true로 변경 (앱오프닝 광고 허용)
-    )
-
     private val policyListeners = mutableSetOf<(Policy?) -> Unit>()
-    @Volatile private var currentPolicy: Policy? = null
 
-    // runtime flags for UI consumers
+    // runtime policy snapshot
+    @Volatile private var currentPolicy: AdPolicy? = null
+
+    // counters for app-open frequency (reset every hour/day as needed)
+    private var hourWindowStart = System.currentTimeMillis()
+    private var dayWindowStart = System.currentTimeMillis()
+    private val shownThisHour = AtomicInteger(0)
+    private val shownToday = AtomicInteger(0)
+
+    // runtime flags
     private val interstitialShowing = AtomicBoolean(false)
     private val fullScreenAdShowing = AtomicBoolean(false)
 
-    fun initialize(context: Context) { Log.d(TAG, "Stub initialize")
-        // trigger a default (stub) policy to notify listeners so callers can react
-        // In real implementation this would be an async network fetch.
-        currentPolicy = Policy(adBannerEnabled = false, adInterstitialEnabled = false, adAppOpenEnabled = true)
-        notifyPolicyListeners()
-    }
+    data class Policy(
+        val adBannerEnabled: Boolean = false,
+        val adInterstitialEnabled: Boolean = false,
+        val adAppOpenEnabled: Boolean = true
+    )
 
-    fun isPolicyFetchCompleted(): Boolean = true
-    fun isInterstitialEnabled(): Boolean = false
-    // 기본적으로 app-open 허용 상태를 반환하도록 변경
-    fun isAppOpenEnabled(): Boolean = currentPolicy?.adAppOpenEnabled ?: true
-    fun isFullScreenAdShowing(): Boolean = fullScreenAdShowing.get()
-    fun setInterstitialShowing(showing: Boolean) { interstitialShowing.set(showing) }
-    fun setFullScreenAdShowing(showing: Boolean) { fullScreenAdShowing.set(showing) }
-    fun setAppOpenLoading(loading: Boolean) {}
-    fun setAppOpenLoaded(loaded: Boolean) {}
-    fun setAppOpenLastError(err: String?) {}
-    fun setInterstitialLoading(loading: Boolean) {}
-    fun setInterstitialLoaded(loaded: Boolean) {}
-    fun setInterstitialLastError(err: String?) {}
-    fun refreshPolicy(context: Context) {
-        // no-op stub; in real implementation this would fetch and update currentPolicy
-        currentPolicy = Policy(adBannerEnabled = false, adInterstitialEnabled = false, adAppOpenEnabled = true)
-        notifyPolicyListeners()
-    }
-    fun canShowInterstitial(context: Context): Boolean = false
-    fun recordInterstitialShown(context: Context) {}
-    fun canShowAppOpen(context: Context): Boolean = false
-
-    /**
-     * Registers a listener that will be invoked when external code requests the splash to be released.
-     * MainActivity uses this to immediately proceed if ad policy disables showing app-open ads.
-     */
-    fun addSplashReleaseListener(listener: () -> Unit) {
-        synchronized(splashReleaseListeners) { splashReleaseListeners.add(listener) }
-    }
-
-    /**
-     * Removes a previously registered splash release listener.
-     */
-    fun removeSplashReleaseListener(listener: () -> Unit) {
-        synchronized(splashReleaseListeners) { splashReleaseListeners.remove(listener) }
-    }
-
-    /**
-     * Trigger all registered splash-release listeners (stub: not called automatically).
-     * Kept public so tests or other code can simulate policy change.
-     */
-    fun triggerSplashRelease() {
-        val copy: List<() -> Unit>
-        synchronized(splashReleaseListeners) { copy = splashReleaseListeners.toList() }
-        for (l in copy) {
-            try { l.invoke() } catch (t: Throwable) { Log.w(TAG, "splash listener failed", t) }
+    fun initialize(context: Context) {
+        Log.d(TAG, "initialize: loading policy from Supabase repo")
+        // async fetch policy and keep cached snapshot
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val repo = AdPolicyRepository(context.packageName)
+                val res = runCatching { repo.getPolicy() }
+                val policy = res.getOrNull()
+                if (policy != null) {
+                    currentPolicy = policy
+                    Log.d(TAG, "initialize: policy loaded: appOpen=${policy.adAppOpenEnabled} hourMax=${policy.appOpenMaxPerHour} dayMax=${policy.appOpenMaxPerDay}")
+                } else {
+                    Log.d(TAG, "initialize: no policy returned from repo; using defaults (treat as disabled)")
+                }
+                notifyPolicyListeners()
+                // If policy explicitly disables app-open, inform listeners to release splash etc.
+                if (currentPolicy?.adAppOpenEnabled == false) {
+                    Log.d(TAG, "initialize: policy disables app-open -> triggering splash release listeners")
+                    triggerSplashRelease()
+                }
+            } catch (t: Throwable) {
+                Log.w(TAG, "initialize: failed to fetch policy: $t")
+            }
         }
-    }
-
-    /**
-     * Adds a listener that will be called when policy becomes available/changes.
-     * Listener is invoked immediately if a policy is already available.
-     */
-    fun addPolicyFetchListener(listener: (Policy?) -> Unit) {
-        synchronized(policyListeners) { policyListeners.add(listener) }
-        // deliver current policy synchronously if available
-        try {
-            listener.invoke(currentPolicy)
-        } catch (t: Throwable) {
-            Log.w(TAG, "policy listener invoke failed", t)
-        }
-    }
-
-    /**
-     * Removes a previously registered policy fetch listener.
-     */
-    fun removePolicyFetchListener(listener: (Policy?) -> Unit) {
-        synchronized(policyListeners) { policyListeners.remove(listener) }
     }
 
     private fun notifyPolicyListeners() {
         val copy: List<(Policy?) -> Unit>
         synchronized(policyListeners) { copy = policyListeners.toList() }
         for (l in copy) {
-            try { l.invoke(currentPolicy) } catch (t: Throwable) { Log.w(TAG, "policy listener failed", t) }
+            try { l.invoke(currentPolicy?.let { Policy(it.adBannerEnabled, it.adInterstitialEnabled, it.adAppOpenEnabled) }) } catch (t: Throwable) { Log.w(TAG, "policy listener failed", t) }
         }
     }
 
-    // --- New helper accessors used by Compose UI ---
-    /** Returns whether banners are enabled by policy (safe, non-blocking) */
+    fun addPolicyFetchListener(listener: (Policy?) -> Unit) {
+        synchronized(policyListeners) { policyListeners.add(listener) }
+        try { listener.invoke(currentPolicy?.let { Policy(it.adBannerEnabled, it.adInterstitialEnabled, it.adAppOpenEnabled) }) } catch (t: Throwable) { Log.w(TAG, "policy listener invoke failed", t) }
+    }
+
+    fun removePolicyFetchListener(listener: (Policy?) -> Unit) { synchronized(policyListeners) { policyListeners.remove(listener) } }
+
+    fun addSplashReleaseListener(listener: () -> Unit) { synchronized(splashReleaseListeners) { splashReleaseListeners.add(listener) } }
+    fun removeSplashReleaseListener(listener: () -> Unit) { synchronized(splashReleaseListeners) { splashReleaseListeners.remove(listener) } }
+
+    fun triggerSplashRelease() {
+        val copy: List<() -> Unit>
+        synchronized(splashReleaseListeners) { copy = splashReleaseListeners.toList() }
+        for (l in copy) { try { l.invoke() } catch (t: Throwable) { Log.w(TAG, "splash listener failed", t) } }
+    }
+
+    // accessors used by UI
+    fun isPolicyFetchCompleted(): Boolean = true // keep existing callers simple
+    fun isInterstitialEnabled(): Boolean = currentPolicy?.adInterstitialEnabled ?: false
+    // Fail-safe: if policy not yet fetched, treat app-open as disabled so Supabase controls it
+    fun isAppOpenEnabled(): Boolean = currentPolicy?.adAppOpenEnabled ?: false
+    fun isFullScreenAdShowing(): Boolean = fullScreenAdShowing.get()
+    fun setInterstitialShowing(showing: Boolean) { interstitialShowing.set(showing) }
+    fun setFullScreenAdShowing(showing: Boolean) { fullScreenAdShowing.set(showing) }
+
+    // Added compatibility/state helpers used by UI callers (preserve old names expected by Compose files)
     fun isBannerEnabledState(): Boolean = currentPolicy?.adBannerEnabled ?: false
-
-    /** Runtime state: is an interstitial currently shown */
     fun isInterstitialShowingState(): Boolean = interstitialShowing.get()
-
-    /** Runtime state: is a fullscreen ad overlay showing */
     fun isFullScreenAdShowingState(): Boolean = fullScreenAdShowing.get()
+
+    // Stable API names expected across codebase
+    fun isBannerEnabled(): Boolean = currentPolicy?.adBannerEnabled ?: false
+    fun isInterstitialShowingNow(): Boolean = interstitialShowing.get()
+
+    fun refreshPolicy(context: Context) {
+        initialize(context)
+    }
+
+    // Frequency control for app-open ads
+    private fun resetWindowsIfNeeded() {
+        val now = System.currentTimeMillis()
+        // hour window
+        if (now - hourWindowStart >= 60 * 60 * 1000L) {
+            hourWindowStart = now
+            shownThisHour.set(0)
+        }
+        // day window (24h)
+        if (now - dayWindowStart >= 24 * 60 * 60 * 1000L) {
+            dayWindowStart = now
+            shownToday.set(0)
+        }
+    }
+
+    fun canShowAppOpen(context: Context): Boolean {
+        try {
+            resetWindowsIfNeeded()
+            val policy = currentPolicy
+            // Fail-safe: if policy not yet fetched, do NOT show app-open
+            if (policy == null) return false
+            if (!policy.isActive) return false
+            if (!policy.adAppOpenEnabled) return false
+            if (policy.appOpenMaxPerHour >= 0 && shownThisHour.get() >= policy.appOpenMaxPerHour) return false
+            if (policy.appOpenMaxPerDay >= 0 && shownToday.get() >= policy.appOpenMaxPerDay) return false
+            return true
+        } catch (t: Throwable) {
+            Log.w(TAG, "canShowAppOpen evaluation failed: $t")
+            return false
+        }
+    }
+
+    fun recordAppOpenShown(context: Context) {
+        try {
+            resetWindowsIfNeeded()
+            shownThisHour.incrementAndGet()
+            shownToday.incrementAndGet()
+        } catch (_: Throwable) {}
+    }
+
+    // no-op setters preserved for compatibility
+    fun setAppOpenLoading(loading: Boolean) {}
+    fun setAppOpenLoaded(loaded: Boolean) {}
+    fun setAppOpenLastError(err: String?) {}
+    fun setInterstitialLoading(loading: Boolean) {}
+    fun setInterstitialLoaded(loaded: Boolean) {}
+    fun setInterstitialLastError(err: String?) {}
 }
