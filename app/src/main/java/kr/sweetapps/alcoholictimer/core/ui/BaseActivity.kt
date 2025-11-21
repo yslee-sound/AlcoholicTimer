@@ -234,7 +234,8 @@ abstract class BaseActivity : ComponentActivity() {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         }
         startActivity(intent)
-        overridePendingTransition(0, 0)
+        // transition animation intentionally removed to avoid splash->app animation
+        // overridePendingTransition(0, 0)
         finish()
     }
 
