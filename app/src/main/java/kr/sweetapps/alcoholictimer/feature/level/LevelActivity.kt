@@ -10,6 +10,8 @@ package kr.sweetapps.alcoholictimer.feature.level
 
 import android.content.Context
 import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -43,6 +45,8 @@ import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.constants.Constants
 import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
 import kotlinx.coroutines.delay
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 import android.util.Log
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
@@ -56,6 +60,7 @@ import kr.sweetapps.alcoholictimer.core.ui.AppColors
 import kr.sweetapps.alcoholictimer.core.ui.AppCard
 import androidx.compose.ui.draw.scale
 import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
+import kr.sweetapps.alcoholictimer.ads.AdPolicyChecker
 
 // LevelActivity removed. LevelScreen is now hosted by Compose NavHost (Screen.Level route).
 // If you need a legacy activity for other entry points, create a thin wrapper that calls LevelScreen via setContent.
@@ -66,34 +71,82 @@ fun LevelScreen(onNavigateBack: () -> Unit = {}) {
     val context = LocalContext.current
     val activity = context as? android.app.Activity
 
-    // 뒤로가기 처리: 전면광고 조건을 바로 체크하여 노출 시도합니다.
-    BackHandler(enabled = true) {
-        try {
-            Log.d("LevelBack", "BackHandler triggered: attempting maybeShowIfEligible")
-            // (선택) NavGraph 기반 홈 방문 카운트와 통일하려면 아래 주석을 해제하여 등록할 수 있습니다.
-            // kr.sweetapps.alcoholictimer.ads.HomeAdTrigger.registerHomeVisit(activity ?: context as android.content.Context as android.app.Activity, source = "level")
+    val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
+    val LEVEL_VISITS_KEY = "level_visits"
 
-            val act = activity
-            val showed = if (act != null) {
-                InterstitialAdManager.maybeShowIfEligible(act) {
-                    Log.d("LevelBack", "Interstitial dismissed -> calling onNavigateBack")
+    // 화면 진입 카운트: LevelScreen이 NavHost로 네비게이트 될 때마다 1증가
+    LaunchedEffect(Unit) {
+        try {
+            val prev = sharedPref.getInt(LEVEL_VISITS_KEY, 0)
+            val next = prev + 1
+            sharedPref.edit().putInt(LEVEL_VISITS_KEY, next).apply()
+            Log.d("LevelBack", "LevelScreen visited; count=$next")
+        } catch (_: Throwable) {}
+    }
+
+    // 뒤로가기 처리: Supabase 정책 확인 후 전면광고 노출 여부 결정
+    val coroutineScope = rememberCoroutineScope()
+    BackHandler(enabled = true) {
+        Log.d("LevelBack", "BackHandler triggered: policy check start")
+        coroutineScope.launch {
+            try {
+                val act = activity
+                val visits = try { sharedPref.getInt(LEVEL_VISITS_KEY, 0) } catch (_: Throwable) { 0 }
+                Log.d("LevelBack", "Back pressed, level visits=$visits")
+
+                val policy = try { AdPolicyChecker.fetchPolicy(context) } catch (t: Throwable) { Log.e("AdPolicyChecker", "fetch failed", t); AdPolicyChecker.AdPolicy() }
+                Log.d("AdPolicyChecker", "policy.enabled=${policy.enabled}, maxHour=${policy.maxPerHour}, maxDay=${policy.maxPerDay}")
+
+                if (policy.enabled && visits >= 3 && act != null) {
+                    // check local per-hour/day counters
+                    val now = System.currentTimeMillis()
+                    val hourKey = SimpleDateFormat("yyyyMMddHH", Locale.US).format(Date(now))
+                    val dayKey = SimpleDateFormat("yyyyMMdd", Locale.US).format(Date(now))
+
+                    val storedHourKey = sharedPref.getString("ad_shown_hour_key", null)
+                    var hourCount = sharedPref.getInt("ad_shown_hour_count", 0)
+                    if (storedHourKey != hourKey) {
+                        hourCount = 0
+                        sharedPref.edit().putString("ad_shown_hour_key", hourKey).putInt("ad_shown_hour_count", 0).apply()
+                    }
+
+                    val storedDayKey = sharedPref.getString("ad_shown_day_key", null)
+                    var dayCount = sharedPref.getInt("ad_shown_day_count", 0)
+                    if (storedDayKey != dayKey) {
+                        dayCount = 0
+                        sharedPref.edit().putString("ad_shown_day_key", dayKey).putInt("ad_shown_day_count", 0).apply()
+                    }
+
+                    Log.d("AdPolicyChecker", "localCounts hour=$hourCount day=$dayCount")
+
+                    val underHour = hourCount < policy.maxPerHour
+                    val underDay = dayCount < policy.maxPerDay
+
+                    if (underHour && underDay) {
+                        val showed = InterstitialAdManager.maybeShowIfEligible(act) {
+                            Log.d("LevelBack", "Interstitial dismissed -> increment counters, reset visits and navigate back")
+                            try {
+                                // increment counts
+                                sharedPref.edit().putInt("ad_shown_hour_count", hourCount + 1).putInt("ad_shown_day_count", dayCount + 1).apply()
+                            } catch (_: Throwable) {}
+                            try { sharedPref.edit().putInt(LEVEL_VISITS_KEY, 0).apply() } catch (_: Throwable) {}
+                            try { onNavigateBack() } catch (_: Throwable) {}
+                        }
+                        Log.d("LevelBack", "maybeShowIfEligible returned: $showed")
+                        if (!showed) {
+                            try { onNavigateBack() } catch (_: Throwable) {}
+                        }
+                    } else {
+                        Log.d("AdPolicyChecker", "Ad quota exceeded (hour/day) — skipping ad")
+                        try { onNavigateBack() } catch (_: Throwable) {}
+                    }
+                } else {
                     try { onNavigateBack() } catch (_: Throwable) {}
                 }
-            } else {
-                // activity가 없으면 콜백으로 뒤로 처리
-                try { onNavigateBack() } catch (_: Throwable) {}
-                false
+            } catch (t: Throwable) {
+                Log.e("LevelBack", "BackHandler coroutine failed", t)
+                activity?.finish()
             }
-
-            Log.d("LevelBack", "maybeShowIfEligible returned: $showed")
-            if (!showed) {
-                // 광고를 표시하지 못하면 콜백으로 뒤로 처리
-                Log.d("LevelBack", "Ad not shown -> calling onNavigateBack")
-                try { onNavigateBack() } catch (_: Throwable) {}
-            }
-        } catch (t: Throwable) {
-            Log.e("LevelBack", "BackHandler failed", t)
-            activity?.finish()
         }
     }
 
@@ -106,7 +159,6 @@ fun LevelScreen(onNavigateBack: () -> Unit = {}) {
         }
     }
 
-    val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
     val startTime = sharedPref.getLong("start_time", 0L)
 
     val currentElapsedTime = if (startTime > 0) currentTime - startTime else 0L
