@@ -7,6 +7,9 @@ import android.util.Log
 /**
  * Minimal UMP gating helper stub.
  * - Keeps API surface to avoid changing callers, but delegates to AppOpenAdManager when present.
+ *
+ * NOTE: For local testing we optimistically allow ad requests by returning `onFinished(true)`.
+ * In production replace this with a real UMP flow.
  */
 object UmpConsentManager {
     private const val TAG = "UmpConsentManager"
@@ -29,10 +32,10 @@ object UmpConsentManager {
         tagForUnderAgeOfConsent: Boolean = false,
         onFinished: (Boolean) -> Unit
     ) {
-        Log.d(TAG, "Stub requestAndLoadIfRequired called")
-        // call AppOpenAdManager.onConsentUpdated(false) conservatively
-        try { AppOpenAdManager.onConsentUpdated(false) } catch (_: Throwable) {}
-        onFinished(false)
+        Log.d(TAG, "Stub requestAndLoadIfRequired called (test-mode: allowing ads)")
+        // Inform AppOpenAdManager about consent state (optimistic test-mode=true)
+        try { AppOpenAdManager.onConsentUpdated(true) } catch (_: Throwable) {}
+        // Notify caller that ads can be requested so preload() will run in SplashScreen
+        onFinished(true)
     }
 }
-

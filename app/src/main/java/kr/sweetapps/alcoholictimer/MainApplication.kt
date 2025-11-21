@@ -48,6 +48,8 @@ class MainApplication : Application() {
 
         // App Open Ad 초기화
         AppOpenAdManager.initialize(this)
+        // Preload app-open early to increase chance it's ready at splash time
+        runCatching { kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.preload(this) }
 
         // Debug-time: ensure system bar appearance is re-applied after activity resume
         if (BuildConfig.DEBUG) {

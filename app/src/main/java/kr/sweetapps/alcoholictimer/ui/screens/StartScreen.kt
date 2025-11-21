@@ -56,6 +56,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 
+// New import: AppOpenAdManager (app-open ad helper)
+import kr.sweetapps.alcoholictimer.ads.AppOpenAdManager
+
 // Local layout constants for StartScreen only — tweak these to adjust spacing on this screen
 private val START_CARD_TOP_INNER_PADDING: Dp = 50.dp    // 50
 private val START_TITLE_TOP_MARGIN: Dp = 30.dp           // previously 1.dp
@@ -79,6 +82,75 @@ fun StartScreen(
     LaunchedEffect(Unit) {
         startTime = sharedPref.getLong("start_time", 0L)
         timerCompleted = sharedPref.getBoolean("timer_completed", false)
+    }
+
+    // --- New: integrate AppOpenAd overlay on splash ---
+    // Only attempt integration when a splash-hold state is provided (publisher-controlled splash)
+    if (holdSplashState != null) {
+        // Ensure splash is held initially so we can show ad above it
+        LaunchedEffect(key1 = holdSplashState) {
+            try {
+                Log.d("StartScreen", "AppOpen integration: holding splash and initializing listeners")
+                holdSplashState.value = true
+
+                // Register listeners (use nullable-wrapping to avoid leaking listeners across recompositions)
+                AppOpenAdManager.setOnAdLoadedListener {
+                    // Attempt to show when loaded, only if splash is still held
+                    try {
+                        val act = context as? Activity
+                        Log.d("StartScreen", "AppOpen loaded listener invoked. loaded=${AppOpenAdManager.isLoaded()} holdSplash=${holdSplashState.value} activity=${act?.javaClass?.simpleName}")
+                        if (act != null && holdSplashState.value && AppOpenAdManager.isLoaded()) {
+                            val shown = AppOpenAdManager.showIfAvailable(act)
+                            Log.d("StartScreen", "AppOpen showIfAvailable returned: $shown")
+                        }
+                    } catch (t: Throwable) { Log.w("StartScreen","onAdLoaded handler failed: $t") }
+                }
+
+                AppOpenAdManager.setOnAdFinishedListener {
+                    // When ad finished/dismissed, release splash so the app continues
+                    try {
+                        Log.d("StartScreen", "AppOpen finished -> releasing splash")
+                        holdSplashState.value = false
+                    } catch (t: Throwable) { Log.w("StartScreen","onAdFinished handler failed: $t") }
+                }
+
+                AppOpenAdManager.setOnAdLoadFailedListener {
+                    // If loading fails, don't block UI — release splash
+                    try {
+                        Log.d("StartScreen", "AppOpen load failed -> releasing splash")
+                        holdSplashState.value = false
+                    } catch (t: Throwable) { Log.w("StartScreen","onAdLoadFailed handler failed: $t") }
+                }
+
+                // Kick off preload (AppOpenAdManager uses debug test id for debug builds)
+                try {
+                    AppOpenAdManager.preload(context.applicationContext)
+                } catch (t: Throwable) {
+                    Log.w("StartScreen", "preload call failed: $t")
+                }
+
+                // If ad already loaded (rare), try show immediately
+                try {
+                    val act = context as? Activity
+                    if (act != null && AppOpenAdManager.isLoaded()) {
+                        val shown = AppOpenAdManager.showIfAvailable(act)
+                        Log.d("StartScreen", "Immediate showIfAvailable returned: $shown")
+                    }
+                } catch (t: Throwable) { Log.w("StartScreen","immediate showIfAvailable failed: $t") }
+
+                // Safety timeout: don't hold splash forever. If ad doesn't show in 8s, continue.
+                delay(8000L)
+                if (holdSplashState.value) {
+                    Log.d("StartScreen", "Safety timeout reached -> releasing splash")
+                    holdSplashState.value = false
+                }
+
+            } catch (t: Throwable) {
+                Log.w("StartScreen", "AppOpen integration LaunchedEffect failed: $t")
+                // Ensure we don't block UI on exceptions
+                holdSplashState.value = false
+            }
+        }
     }
 
     if (!gateNavigation && startTime != 0L && !timerCompleted) {

@@ -45,12 +45,13 @@
             android:theme="@android:style/Theme.Translucent"
             tools:replace="android:theme" />
 
-        <!-- 별명 편집 화면 -->
+        <!-- AppOpen overlay activity (투명 테마로 변경) -->
         <activity
-            android:name="kr.sweetapps.alcoholictimer.feature.profile.NicknameEditActivity"
+            android:name="kr.sweetapps.alcoholictimer.ads.AppOpenOverlayActivity"
             android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AlcoholicTimer" />
+            android:theme="@android:style/Theme.Translucent"
+            android:taskAffinity=""
+            android:excludeFromRecents="true" />
 
         <!-- 사용자 기록 추가 화면 -->
         <activity

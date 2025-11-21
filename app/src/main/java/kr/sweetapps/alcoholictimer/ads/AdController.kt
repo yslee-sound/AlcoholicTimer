@@ -17,7 +17,7 @@ object AdController {
     data class Policy(
         val adBannerEnabled: Boolean = false,
         val adInterstitialEnabled: Boolean = false,
-        val adAppOpenEnabled: Boolean = false
+        val adAppOpenEnabled: Boolean = true // 기본값을 true로 변경 (앱오프닝 광고 허용)
     )
 
     private val policyListeners = mutableSetOf<(Policy?) -> Unit>()
@@ -30,13 +30,14 @@ object AdController {
     fun initialize(context: Context) { Log.d(TAG, "Stub initialize")
         // trigger a default (stub) policy to notify listeners so callers can react
         // In real implementation this would be an async network fetch.
-        currentPolicy = Policy(adBannerEnabled = false, adInterstitialEnabled = false, adAppOpenEnabled = false)
+        currentPolicy = Policy(adBannerEnabled = false, adInterstitialEnabled = false, adAppOpenEnabled = true)
         notifyPolicyListeners()
     }
 
     fun isPolicyFetchCompleted(): Boolean = true
     fun isInterstitialEnabled(): Boolean = false
-    fun isAppOpenEnabled(): Boolean = false
+    // 기본적으로 app-open 허용 상태를 반환하도록 변경
+    fun isAppOpenEnabled(): Boolean = currentPolicy?.adAppOpenEnabled ?: true
     fun isFullScreenAdShowing(): Boolean = fullScreenAdShowing.get()
     fun setInterstitialShowing(showing: Boolean) { interstitialShowing.set(showing) }
     fun setFullScreenAdShowing(showing: Boolean) { fullScreenAdShowing.set(showing) }
@@ -48,7 +49,7 @@ object AdController {
     fun setInterstitialLastError(err: String?) {}
     fun refreshPolicy(context: Context) {
         // no-op stub; in real implementation this would fetch and update currentPolicy
-        currentPolicy = Policy(adBannerEnabled = false, adInterstitialEnabled = false, adAppOpenEnabled = false)
+        currentPolicy = Policy(adBannerEnabled = false, adInterstitialEnabled = false, adAppOpenEnabled = true)
         notifyPolicyListeners()
     }
     fun canShowInterstitial(context: Context): Boolean = false
@@ -121,4 +122,3 @@ object AdController {
     /** Runtime state: is a fullscreen ad overlay showing */
     fun isFullScreenAdShowingState(): Boolean = fullScreenAdShowing.get()
 }
-

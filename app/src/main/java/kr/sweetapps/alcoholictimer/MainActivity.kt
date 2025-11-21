@@ -25,11 +25,16 @@ import kr.sweetapps.alcoholictimer.data.supabase.model.PopupDecision
 import kr.sweetapps.alcoholictimer.ui.dialogs.OptionalUpdateDialog
 import android.os.Build
 import androidx.compose.ui.graphics.Color
+import kr.sweetapps.alcoholictimer.ads.AppOpenOverlayActivity
 
 // small noop comment to trigger reindex
 // MainActivity integrity check
 
 class MainActivity : BaseActivity() {
+    // resume tracking for proper app-open timing
+    private var isResumed: Boolean = false
+    private var pendingShowOnResume: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -68,22 +73,65 @@ class MainActivity : BaseActivity() {
                 setHoldSplash(false)
             }
         }
-        // In MainActivity we do NOT show AppOpen ads; AppOpen should be displayed only from StartActivity (splash).
-        // Keep a no-op listener that simply releases splash if policy disables ads. This avoids showing
-        // app-open ads during normal in-app navigation which would violate policy.
+        // 수정: MainActivity에서 광고 로드 시 광고를 표시하도록 변경
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdLoadedListener {
             runOnUiThread {
-                val policyEnabled = try { kr.sweetapps.alcoholictimer.ads.AdController.isAppOpenEnabled() } catch (_: Throwable) { true }
-                if (!policyEnabled) {
-                    android.util.Log.d("MainActivity", "Ad loaded but policy disabled -> release splash immediately (MainActivity)")
-                    setHoldSplash(false)
-                    return@runOnUiThread
+                try {
+                    val policyEnabled = try { kr.sweetapps.alcoholictimer.ads.AdController.isAppOpenEnabled() } catch (_: Throwable) { true }
+                    if (!policyEnabled) {
+                        android.util.Log.d("MainActivity", "Ad loaded but policy disabled -> release splash immediately (MainActivity)")
+                        setHoldSplash(false)
+                        return@runOnUiThread
+                    }
+
+                    // If we are currently holding the splash (app launch), attempt to show the preloaded AppOpen ad here.
+                    if (holdSplashState.value) {
+                        // If activity not resumed yet, schedule show on resume
+                        if (!isResumed) {
+                            android.util.Log.d("MainActivity", "Ad loaded but activity not resumed -> scheduling show on resume")
+                            pendingShowOnResume = true
+                            return@runOnUiThread
+                        }
+
+                        android.util.Log.d("MainActivity", "Ad loaded in MainActivity -> attempting to show on splash overlay")
+                        val shown = try {
+                            kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this@MainActivity)
+                        } catch (t: Throwable) {
+                            android.util.Log.w("MainActivity", "showIfAvailable threw: $t")
+                            false
+                        }
+                        android.util.Log.d("MainActivity", "showIfAvailable returned=$shown")
+                        if (shown) {
+                            // If ad is shown, onAdShownListener will handle releasing splash. Remove safety timeout.
+                            window.decorView.removeCallbacks(timeoutRunnable)
+                            pendingShowOnResume = false
+                            return@runOnUiThread
+                        } else {
+                            // If we couldn't show ad (e.g., not resumed or other), release splash to avoid blocking.
+                            android.util.Log.w("MainActivity", "Ad not shown from MainActivity -> releasing splash as fallback")
+                            // DEBUG fallback: launch local overlay so developer can see an ad-like overlay during tests
+                            val debugMode = try { kr.sweetapps.alcoholictimer.BuildConfig.DEBUG } catch (_: Throwable) { false }
+                            if (debugMode) {
+                                android.util.Log.d("MainActivity", "DEBUG fallback: launching AppOpenOverlayActivity to simulate ad")
+                                try {
+                                    val i = Intent(this@MainActivity, AppOpenOverlayActivity::class.java)
+                                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    startActivity(i)
+                                    // overlay activity will call AppOpenAdManager.notifyAdFinished() on destroy
+                                } catch (t: Throwable) { android.util.Log.w("MainActivity","Failed to start overlay activity: $t") }
+                            }
+
+                            setHoldSplash(false)
+                            pendingShowOnResume = false
+                            return@runOnUiThread
+                        }
+                    }
+
+                    // Not holding splash: do nothing special (don't show ad in regular in-app navigation)
+                    android.util.Log.d("MainActivity", "Ad loaded in MainActivity but splash not held -> ignoring show here")
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-                // If ad loaded while in MainActivity, do not present it here. StartActivity (splash) is responsible
-                // for showing AppOpen ads. Just cancel the startup timeout and release the splash so app proceeds.
-                android.util.Log.d("MainActivity", "Ad loaded in MainActivity -> not showing here (splash-only). Releasing splash if held")
-                window.decorView.removeCallbacks(timeoutRunnable)
-                setHoldSplash(false)
             }
         }
 
@@ -148,7 +196,33 @@ class MainActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
+        isResumed = true
+        // If ad was loaded earlier while activity wasn't resumed, try to show now
+        if (pendingShowOnResume) {
+            android.util.Log.d("MainActivity", "onResume: pendingShowOnResume=true -> attempting show")
+            pendingShowOnResume = false
+            runCatching {
+                if (kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.isLoaded()) {
+                    android.util.Log.d("MainActivity", "onResume: ad loaded -> attempting show while keeping splash")
+                    val shown = kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this)
+                    android.util.Log.d("MainActivity", "onResume: showIfAvailable returned=$shown")
+                    if (shown) {
+                        window.decorView.post { applySystemBarAppearance() }
+                    } else {
+                        android.util.Log.d("MainActivity", "onResume: ad not shown -> release splash")
+                        // ensure splash isn't stuck
+                        runOnUiThread { /* no-op; the show listener will release splash or fallback will handle */ }
+                    }
+                }
+            }
+        }
+
         // 시스템바 appearance 직접 재적용 코드 제거됨 (BaseActivity에서 일괄 적용)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        isResumed = false
     }
 
     // BaseActivity의 추상 함수 구현

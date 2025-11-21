@@ -44,6 +44,8 @@ fun OptionalUpdateDialog(
     features: List<String>? = null,
     // Supabase의 release_notes 필드 (description)
     description: String? = null,
+    // allow callers to tweak bottom padding under the description
+    descriptionBottomPadding: Dp = 12.dp,
     onUpdateClick: () -> Unit,
     onLaterClick: (() -> Unit)? = null
 ) {
@@ -82,6 +84,8 @@ fun OptionalUpdateDialog(
                     laterButtonText = laterButtonText,
                     features = features,
                     description = description,
+                    // forward padding setting
+                    descriptionBottomPadding = descriptionBottomPadding,
                     onUpdateClick = onUpdateClick,
                     onLaterClick = onLaterClick
                 )
