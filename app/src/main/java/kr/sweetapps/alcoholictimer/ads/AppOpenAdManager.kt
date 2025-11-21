@@ -229,6 +229,26 @@ object AppOpenAdManager {
             } catch (t: Throwable) {
                 Log.w(TAG, "scheduling ad.show failed: $t")
             }
+            // If we couldn't show on the provided activity (e.g., activity is MainActivity/Splash and decor posting didn't show),
+            // we attempt to launch the overlay activity which will call showIfAvailable(self) and host the ad above the splash.
+            if (!shown) {
+                try {
+                    val overlayCls = Class.forName("kr.sweetapps.alcoholictimer.ads.AppOpenOverlayActivity")
+                    if (activity.javaClass != overlayCls) {
+                        Log.d(TAG, "showIfAvailable: launching overlay activity as fallback to host ad")
+                        try {
+                            val intent = android.content.Intent(activity, overlayCls)
+                            intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NO_ANIMATION or android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                            activity.startActivity(intent)
+                            // overlay activity will attempt to show the ad and will report back via listeners
+                        } catch (t: Throwable) {
+                            Log.w(TAG, "showIfAvailable overlay launch failed: $t")
+                        }
+                    }
+                } catch (t: Throwable) {
+                    // overlay class not present or other failure; nothing else to do
+                }
+            }
             Log.d(TAG, "ad.show() returned (scheduled). shownFlag=$shown, awaiting callbacks")
             return shown
         } catch (t: Throwable) {

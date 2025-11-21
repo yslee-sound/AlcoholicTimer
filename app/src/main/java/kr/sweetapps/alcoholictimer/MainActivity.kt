@@ -102,14 +102,14 @@ class MainActivity : BaseActivity() {
                         }
                         android.util.Log.d("MainActivity", "showIfAvailable returned=$shown")
                         if (shown) {
-                            // If ad is shown, onAdShownListener will handle releasing splash. Remove safety timeout.
+                            // If ad is shown, onAdFinishedListener will handle releasing splash. Remove safety timeout.
                             window.decorView.removeCallbacks(timeoutRunnable)
                             pendingShowOnResume = false
                             return@runOnUiThread
                         } else {
-                            // If we couldn't show ad (e.g., not resumed or other), release splash to avoid blocking.
-                            android.util.Log.w("MainActivity", "Ad not shown from MainActivity -> releasing splash as fallback")
-                            // DEBUG fallback: launch local overlay so developer can see an ad-like overlay during tests
+                            // If we couldn't show ad (e.g., not resumed or other), do NOT immediately release the splash here.
+                            // Instead, attempt debug overlay fallback (so that overlay can show the ad over the splash)
+                            android.util.Log.w("MainActivity", "Ad not shown from MainActivity -> attempting debug overlay fallback")
                             val debugMode = try { kr.sweetapps.alcoholictimer.BuildConfig.DEBUG } catch (_: Throwable) { false }
                             if (debugMode) {
                                 android.util.Log.d("MainActivity", "DEBUG fallback: launching AppOpenOverlayActivity to simulate ad")
@@ -121,7 +121,7 @@ class MainActivity : BaseActivity() {
                                 } catch (t: Throwable) { android.util.Log.w("MainActivity","Failed to start overlay activity: $t") }
                             }
 
-                            setHoldSplash(false)
+                            // Do NOT call setHoldSplash(false) here; wait for ad finished listener or safety timeout to release splash.
                             pendingShowOnResume = false
                             return@runOnUiThread
                         }
@@ -148,11 +148,10 @@ class MainActivity : BaseActivity() {
         // 광고가 실제로 화면에 나타나는 시점에 스플래시를 해제하여 검은 화면 간격을 제거
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdShownListener {
             runOnUiThread {
-                android.util.Log.d("MainActivity", "onAdShownListener invoked: ad is visible; releasing holdSplashState")
+                android.util.Log.d("MainActivity", "onAdShownListener invoked: ad is visible; applying system bar appearance")
                 // 안전 타임아웃 제거
                 window.decorView.removeCallbacks(timeoutRunnable)
-                setHoldSplash(false)
-                // 광고가 나타난 후/사라진 직후 시스템바가 덮어써질 수 있으므로 재적용
+                // DO NOT release the splash here. Only adjust system bars to match visual.
                 applySystemBarAppearance()
             }
         }

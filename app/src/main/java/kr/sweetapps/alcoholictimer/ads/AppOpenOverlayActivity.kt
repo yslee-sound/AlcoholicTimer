@@ -5,21 +5,16 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
 import android.view.WindowManager
+import android.widget.Button
+import kr.sweetapps.alcoholictimer.R
 
 /**
  * Transparent overlay Activity whose sole job is to host/show the App Open ad
  * so that the ad appears visually above the splash screen (which remains visible
  * under this translucent activity).
- *
- * Flow:
- * - SplashScreen keeps the splash visible.
- * - When an app-open ad is ready, SplashScreen starts this overlay activity.
- * - The overlay activity calls AppOpenAdManager.showIfAvailable(this).
- *   - If the ad is shown, AppOpenAdManager's callbacks will notify listeners (SplashScreen)
- *     and the overlay activity will simply wait for the ad to finish.
- *   - If no ad is available or showing failed, this activity finishes immediately
- *     to allow SplashScreen to continue.
  */
 class AppOpenOverlayActivity : Activity() {
     private val TAG = "AppOpenOverlayActivity"
@@ -30,6 +25,20 @@ class AppOpenOverlayActivity : Activity() {
             Log.d(TAG, "finishRunnable: no ad shown -> finishing overlay")
             finish()
         } catch (_: Throwable) {}
+    }
+
+    private val adFinishedListener: (() -> Unit) = {
+        Log.d(TAG, "adFinishedListener: ad finished -> finishing overlay")
+        // Ensure finish runs on main thread
+        mainHandler.post {
+            try { finish() } catch (_: Throwable) {}
+        }
+    }
+    private val adLoadFailedListener: (() -> Unit) = {
+        Log.w(TAG, "adLoadFailedListener: ad failed to load -> finishing overlay")
+        mainHandler.post {
+            try { finish() } catch (_: Throwable) {}
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,6 +52,30 @@ class AppOpenOverlayActivity : Activity() {
         } catch (t: Throwable) {
             Log.w(TAG, "onCreate window setup failed: $t")
         }
+
+        // Inflate a simple overlay layout with a top 'Continue to app' button
+        try {
+            val root = LayoutInflater.from(this).inflate(R.layout.activity_app_open_overlay, null)
+            setContentView(root)
+            val btn = findViewById<Button>(R.id.btn_continue_app)
+            btn.setOnClickListener {
+                // When user taps the top button, treat it as 'continue to app' -> finish overlay
+                try {
+                    Log.d(TAG, "User tapped Continue to app -> finishing overlay and notifying AppOpenAdManager")
+                    // Notify the AppOpen manager that ad finished so it can release any hold state
+                    kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.notifyAdFinished()
+                } catch (t: Throwable) {
+                    Log.w(TAG, "notifyAdFinished failed: $t")
+                }
+                finish()
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "Failed to inflate overlay layout: $t")
+        }
+
+        // Register listeners so we can finish when ad ends or fails
+        AppOpenAdManager.setOnAdFinishedListener(adFinishedListener)
+        AppOpenAdManager.setOnAdLoadFailedListener(adLoadFailedListener)
 
         // Try to show a preloaded app-open ad. If not shown, finish quickly.
         mainHandler.post {
@@ -65,13 +98,16 @@ class AppOpenOverlayActivity : Activity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        try { mainHandler.removeCallbacks(finishRunnable) } catch (_: Throwable) {}
+        try {
+            mainHandler.removeCallbacks(finishRunnable)
+        } catch (_: Throwable) {}
+        // Unregister listeners
+        try { AppOpenAdManager.setOnAdFinishedListener(null) } catch (_: Throwable) {}
+        try { AppOpenAdManager.setOnAdLoadFailedListener(null) } catch (_: Throwable) {}
     }
 
     override fun onPause() {
         super.onPause()
-        // If the overlay loses focus but is still running, we don't want it to hold the app.
-        // However do not auto-finish here; let ad callbacks control lifecycle.
+        // Do not auto-finish here; let ad callbacks control lifecycle.
     }
 }
-

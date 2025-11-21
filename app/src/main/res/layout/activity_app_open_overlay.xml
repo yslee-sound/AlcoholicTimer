@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Top bar with '앱으로 이동' button. Designed to sit above the ad when overlay activity is shown. -->
+    <LinearLayout
+        android:id="@+id/overlay_top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:gravity="center_vertical"
+        android:background="@android:color/transparent">
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/btn_continue_app"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:backgroundTint="#FFFFFF"
+            android:textColor="#333333"
+            android:text="앱으로 이동"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:stateListAnimator="@null"/>
+    </LinearLayout>
+
+    <!-- Empty container - reserved for future embedding if needed -->
+    <FrameLayout
+        android:id="@+id/overlay_content_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</FrameLayout>

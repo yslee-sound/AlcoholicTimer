@@ -83,26 +83,18 @@ class SplashScreen : BaseActivity() {
                         return@runOnUiThread
                     }
 
-                    // 광고가 로드되어 있고 스플래시 유지 중이면 광고를 먼저 시도해서 보여줍니다.
-                    // 중요: 이전에는 releaseSplash() 후에 광고를 표시했기 때문에 StartScreen의 onSplashFinished
-                    // 콜백이 일어나면서 MainActivity로 전환되어 SplashActivity가 finish되어 광고가 실패하는 경우가 있었습니다.
-                    // 따라서 광고를 먼저 보여주고, 광고가 닫힐 때 releaseSplash()가 호출되도록 변경합니다.
+                    // 광고가 로드되어 있고 스플래시 유지 중이면 오버레이 액티비티를 시작하여
+                    // 광고가 스플래시 위에 표시되도록 합니다.
                     if (kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.isLoaded() && holdSplashState.value) {
-                        android.util.Log.d("SplashScreen", "Ad loaded and activity resumed -> attempting to show ad while keeping splash")
-                        val shown = try {
-                            kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this@SplashScreen)
-                        } catch (t: Throwable) {
-                            android.util.Log.w("SplashScreen", "showIfAvailable threw: $t")
-                            false
-                        }
-                        android.util.Log.d("SplashScreen", "Attempted showIfAvailable returned=$shown")
-                        if (shown) {
-                            // 광고가 성공적으로 보여지면, 광고 종료 콜백(onAdFinishedListener)에서 releaseSplash()가 호출됩니다.
-                            // UI 재적용 등은 onAdShownListener에서 처리됩니다.
+                        android.util.Log.d("SplashScreen", "Ad loaded and activity resumed -> starting AppOpenOverlayActivity to show ad over splash")
+                        try {
+                            val intent = Intent(this@SplashScreen, kr.sweetapps.alcoholictimer.ads.AppOpenOverlayActivity::class.java)
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+                            startActivity(intent)
+                            // overlay가 광고를 처리하면 광고 종료 콜백에서 releaseSplash()가 호출됩니다.
                             return@runOnUiThread
-                        } else {
-                            // 광고 표시에 실패하면 안전하게 스플래시 해제
-                            android.util.Log.w("SplashScreen", "Ad not shown -> releasing splash")
+                        } catch (t: Throwable) {
+                            android.util.Log.w("SplashScreen", "Failed to start overlay activity: $t")
                             releaseSplash()
                             return@runOnUiThread
                         }
@@ -176,6 +168,7 @@ class SplashScreen : BaseActivity() {
                                             if (isResumed) {
                                                 // 스플래시를 유지한 채로 광고를 먼저 띄웁니다.
                                                 val shown = try {
+                                                    // keep direct show for debug path (overlay activity is not used here)
                                                     ad.show(this@SplashScreen)
                                                     true
                                                 } catch (t: Throwable) {
@@ -336,12 +329,15 @@ class SplashScreen : BaseActivity() {
             android.util.Log.d("SplashScreen", "Short splash timeout reached (${AD_WAIT_MS}ms)")
             try {
                 if (kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.isLoaded() && holdSplashState.value) {
-                    android.util.Log.d("SplashScreen","Attempting to show preloaded app-open ad on short timeout (without releasing splash first)")
-                    val shown = try { kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this@SplashScreen) } catch (_: Throwable) { false }
-                    android.util.Log.d("SplashScreen", "Short timeout showIfAvailable returned=$shown")
-                    if (shown) {
+                    android.util.Log.d("SplashScreen","Attempting to start overlay for preloaded app-open ad on short timeout (without releasing splash first)")
+                    try {
+                        val intent = Intent(this@SplashScreen, kr.sweetapps.alcoholictimer.ads.AppOpenOverlayActivity::class.java)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+                        startActivity(intent)
                         window.decorView.post { applySystemBarAppearance() }
                         return@Runnable
+                    } catch (t: Throwable) {
+                        android.util.Log.w("SplashScreen", "Failed to start overlay on short timeout: $t")
                     }
                 }
             } catch (_: Throwable) {}
@@ -378,9 +374,6 @@ class SplashScreen : BaseActivity() {
         if (Build.VERSION.SDK_INT < 31) {
             window.setBackgroundDrawable(AndroidColor.WHITE.toDrawable())
             launchContent()
-            // Do not clear the window background here. Clearing it can cause the
-            // system to show its own navigation bar background (semi-transparent/gray)
-            // during the transition. Keep the white background as a stable fallback.
         } else {
             launchContent()
         }
@@ -390,24 +383,17 @@ class SplashScreen : BaseActivity() {
         super.onResume()
         isResumed = true
         applySystemBarAppearance()
-        // HomeAdTrigger 호출 제거: NavGraph의 중앙 관찰자에서 홈 그룹 진입을 일괄 처리
-        // (StartActivity는 레거시 진입점이며, 진행 중 세션이면 즉시 MainActivity로 이동)
 
-        // 만약 광고 로드가 완료되어 있고 예약 표시가 되어 있다면 시도
         if (pendingShowOnResume) {
-            android.util.Log.d("SplashScreen", "onResume: pendingShowOnResume=true -> attempting show")
+            android.util.Log.d("SplashScreen", "onResume: pendingShowOnResume=true -> attempting overlay start")
             pendingShowOnResume = false
             runCatching {
                 if (kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.isLoaded()) {
-                    android.util.Log.d("SplashScreen", "onResume: ad loaded -> attempting show while keeping splash")
-                    val shown = kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this)
-                    android.util.Log.d("SplashScreen", "onResume: showIfAvailable returned=$shown")
-                    if (shown) {
-                        window.decorView.post { applySystemBarAppearance() }
-                    } else {
-                        android.util.Log.d("SplashScreen", "onResume: ad not shown -> releaseSplash()")
-                        releaseSplash()
-                    }
+                    android.util.Log.d("SplashScreen", "onResume: ad loaded -> starting overlay activity to show ad over splash")
+                    val intent = Intent(this@SplashScreen, kr.sweetapps.alcoholictimer.ads.AppOpenOverlayActivity::class.java)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+                    startActivity(intent)
+                    window.decorView.post { applySystemBarAppearance() }
                 }
             }
         }
