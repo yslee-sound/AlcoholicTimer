@@ -179,6 +179,11 @@ object AppOpenAdManager {
                     Log.d(TAG, "showIfAvailable: policy disallows app-open -> returning false")
                     return false
                 }
+                // Prevent collisions: do not show app-open if another full-screen or interstitial is active
+                if (AdController.isFullScreenAdShowing() || AdController.isInterstitialShowingNow()) {
+                    Log.d(TAG, "showIfAvailable: another full-screen/interstitial is active -> skipping app-open")
+                    return false
+                }
             } catch (t: Throwable) {
                 Log.w(TAG, "Policy check failed, proceeding to attempt show: $t")
             }
@@ -193,6 +198,8 @@ object AppOpenAdManager {
                     try { lastDismissedAt = System.currentTimeMillis() } catch (_: Throwable) {}
                     // record that ad was shown and finished
                     try { AdController.recordAppOpenShown(activity) } catch (_: Throwable) {}
+                    // clear full-screen flag so banners can re-appear
+                    try { AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
                     for (l in onFinishedListeners) runCatching { l.invoke() }
                     // After dismissal, schedule preload after server-controlled cooldown to avoid immediate reload->show
                     try {
@@ -209,21 +216,17 @@ object AppOpenAdManager {
                     isShowing = false
                     isShowScheduled = false
                     appOpenAd = null
+                    // ensure full-screen flag cleared
+                    try { AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
                     for (l in onLoadFailedListeners) runCatching { l.invoke() }
-                    // On failure, schedule reload after server cooldown to avoid immediate retry->show
-                    try {
-                        val appCtx = applicationRef?.applicationContext
-                        if (appCtx != null) {
-                            val delayMs = try { (AdController.getAppOpenCooldownSeconds().coerceAtLeast(1) * 1000L) } catch (_: Throwable) { 30_000L }
-                            mainHandler.postDelayed({ try { preload(appCtx) } catch (_: Throwable) {} }, delayMs)
-                        }
-                    } catch (_: Throwable) {}
                 }
 
                 override fun onAdShowedFullScreenContent() {
                     Log.d(TAG, "AppOpen onAdShowedFullScreenContent")
                     isShowing = true
                     isShowScheduled = false
+                    // mark full-screen ad active so other ad types (banner/interstitial) can hide
+                    try { AdController.setFullScreenAdShowing(true) } catch (_: Throwable) {}
                     for (l in onShownListeners) runCatching { l.invoke() }
                 }
             }

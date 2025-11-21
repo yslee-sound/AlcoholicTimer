@@ -11,6 +11,7 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import kr.sweetapps.alcoholictimer.BuildConfig
+import kr.sweetapps.alcoholictimer.ads.AdController
 
 object InterstitialAdManager {
     private const val TAG = "InterstitialAdManager"
@@ -75,6 +76,14 @@ object InterstitialAdManager {
     fun maybeShowIfEligible(activity: Activity, onDismiss: (() -> Unit)? = null): Boolean {
         try {
             Log.d(TAG, "maybeShowIfEligible called")
+            // Avoid collision: do not show if a higher-priority full-screen ad is active
+            try {
+                if (AdController.isFullScreenAdShowing() || AdController.isInterstitialShowingNow()) {
+                    Log.d(TAG, "maybeShowIfEligible: another full-screen/interstitial active -> skip show")
+                    return false
+                }
+            } catch (_: Throwable) {}
+
             // If an ad is already loaded, show it immediately
             val ad = interstitial
             if (ad != null) {
@@ -100,11 +109,15 @@ object InterstitialAdManager {
     private fun tryShowAd(activity: Activity, ad: InterstitialAd, onDismiss: (() -> Unit)?) {
         try {
             isShowing = true
+            // mark interstitial and full-screen state so banner hides and other flows respect priority
+            try { AdController.setInterstitialShowing(true); AdController.setFullScreenAdShowing(true) } catch (_: Throwable) {}
             ad.fullScreenContentCallback = object : FullScreenContentCallback() {
                 override fun onAdDismissedFullScreenContent() {
                     Log.d(TAG, "onAdDismissedFullScreenContent")
                     isShowing = false
                     interstitial = null
+                    // clear interstitial/full-screen flags
+                    try { AdController.setInterstitialShowing(false); AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
                     try { onDismiss?.invoke() } catch (_: Throwable) {}
                 }
 
@@ -112,6 +125,8 @@ object InterstitialAdManager {
                     Log.e(TAG, "onAdFailedToShowFullScreenContent: ${adError.message}")
                     isShowing = false
                     interstitial = null
+                    // clear flags on failure
+                    try { AdController.setInterstitialShowing(false); AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
                     try { onDismiss?.invoke() } catch (_: Throwable) {}
                 }
 
@@ -137,6 +152,8 @@ object InterstitialAdManager {
                 .setMessage("This simulates an interstitial ad for testing. Press Close to continue.")
                 .setCancelable(false)
                 .setPositiveButton("Close") { _, _ ->
+                    // clear flags for debug dialog flow as well
+                    try { AdController.setInterstitialShowing(false); AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
                     try { onDismiss?.invoke() } catch (_: Throwable) {}
                 }
                 .show()
