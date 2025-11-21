@@ -1,5 +1,3 @@
-import kr.sweetapps.alcoholictimer.feature.level.LevelDefinitions
-
 /**
  * 향후 답변에서는 불필요한 과정 설명, 추가작업 제안은 필요없음. 꼭 필요한 설명, 필요작업만 100자 이내로 답변 할 것
  * 중요한 답변은 단답형이 아니라 중학생도 이해할 수 있는 수준으로 쉽게 설명할 것
@@ -10,10 +8,7 @@ import kr.sweetapps.alcoholictimer.feature.level.LevelDefinitions
 
 package kr.sweetapps.alcoholictimer.feature.level
 
-import android.R.attr.left
 import android.content.Context
-import android.os.Bundle
-import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -45,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
-import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
 import kr.sweetapps.alcoholictimer.constants.Constants
 import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
 import kotlinx.coroutines.delay
@@ -61,32 +55,47 @@ import androidx.annotation.DrawableRes
 import kr.sweetapps.alcoholictimer.core.ui.AppColors
 import kr.sweetapps.alcoholictimer.core.ui.AppCard
 import androidx.compose.ui.draw.scale
+import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
 
-class LevelActivity : BaseActivity() {
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            // 뒤로가기 버튼: 메인 홈(Start/Run)으로 이동
-            BackHandler(enabled = true) {
-                navigateToMainHome()
-            }
-
-            // AdmobBanner centralized in MainActivity BaseScaffold during Phase-1 migration
-            // We manage bottom area (safe insets) inside LevelScreen to avoid duplicated bottom spacer
-            BaseScreen(manageBottomAreaExternally = true, content = { LevelScreen() })
-        }
-    }
-
-    override fun getScreenTitleResId(): Int = R.string.level_title
-    @Deprecated("Use getScreenTitleResId() instead")
-    override fun getScreenTitle(): String = getString(R.string.level_title)
-}
+// LevelActivity removed. LevelScreen is now hosted by Compose NavHost (Screen.Level route).
+// If you need a legacy activity for other entry points, create a thin wrapper that calls LevelScreen via setContent.
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LevelScreen() {
+fun LevelScreen(onNavigateBack: () -> Unit = {}) {
     val context = LocalContext.current
+    val activity = context as? android.app.Activity
+
+    // 뒤로가기 처리: 전면광고 조건을 바로 체크하여 노출 시도합니다.
+    BackHandler(enabled = true) {
+        try {
+            Log.d("LevelBack", "BackHandler triggered: attempting maybeShowIfEligible")
+            // (선택) NavGraph 기반 홈 방문 카운트와 통일하려면 아래 주석을 해제하여 등록할 수 있습니다.
+            // kr.sweetapps.alcoholictimer.ads.HomeAdTrigger.registerHomeVisit(activity ?: context as android.content.Context as android.app.Activity, source = "level")
+
+            val act = activity
+            val showed = if (act != null) {
+                InterstitialAdManager.maybeShowIfEligible(act) {
+                    Log.d("LevelBack", "Interstitial dismissed -> calling onNavigateBack")
+                    try { onNavigateBack() } catch (_: Throwable) {}
+                }
+            } else {
+                // activity가 없으면 콜백으로 뒤로 처리
+                try { onNavigateBack() } catch (_: Throwable) {}
+                false
+            }
+
+            Log.d("LevelBack", "maybeShowIfEligible returned: $showed")
+            if (!showed) {
+                // 광고를 표시하지 못하면 콜백으로 뒤로 처리
+                Log.d("LevelBack", "Ad not shown -> calling onNavigateBack")
+                try { onNavigateBack() } catch (_: Throwable) {}
+            }
+        } catch (t: Throwable) {
+            Log.e("LevelBack", "BackHandler failed", t)
+            activity?.finish()
+        }
+    }
 
     var currentTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
 

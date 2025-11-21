@@ -170,7 +170,18 @@ fun AlcoholicTimerNavGraph(
         }
 
         // 레벨 화면
-        composable(Screen.Level.route) { LevelScreen() }
+        // 뒤로가기: 가능한 경우 nav로 팝, 불가하면 Start 화면으로 안전 복귀(호출 스택 초기화).
+        composable(Screen.Level.route) {
+            LevelScreen(onNavigateBack = {
+                if (!navController.popBackStack()) {
+                    navController.navigate(Screen.Start.route) {
+                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            })
+        }
 
         // 설정 화면
         composable(Screen.Settings.route) { SettingsScreen() }
