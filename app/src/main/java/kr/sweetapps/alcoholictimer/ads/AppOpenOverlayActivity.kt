@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.Window
 import android.view.WindowManager
 import kr.sweetapps.alcoholictimer.R
 
@@ -42,6 +43,8 @@ class AppOpenOverlayActivity : Activity() {
         super.onCreate(savedInstanceState)
         try {
             // Ensure the window is translucent/transparent and doesn't dim underlying splash
+            // Remove any title bar to avoid duplicate UI above the ad
+            try { requestWindowFeature(Window.FEATURE_NO_TITLE) } catch (_: Throwable) {}
             window.setBackgroundDrawableResource(android.R.color.transparent)
             window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
             // Don't allow this activity to appear in recents
@@ -50,13 +53,12 @@ class AppOpenOverlayActivity : Activity() {
             Log.w(TAG, "onCreate window setup failed: $t")
         }
 
-        // Inflate a simple overlay layout with an optional top 'Continue to app' button.
+        // Inflate a simple overlay layout with no top 'Continue to app' button.
         try {
             // Use direct setContentView(resource) to avoid inflate(..., null) warning
             setContentView(R.layout.activity_app_open_overlay)
 
-            // No manual top button wiring; ad provides its own 'continue' UI. Overlay layout intentionally
-            // contains no top continue button to avoid duplicating ad controls.
+            // Overlay intentionally contains no top continue button; the ad provides its own controls.
         } catch (t: Throwable) {
             Log.w(TAG, "Failed to inflate overlay layout: $t")
         }

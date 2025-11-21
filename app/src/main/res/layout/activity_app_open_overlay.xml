@@ -4,7 +4,6 @@
     android:layout_height="match_parent"
     android:background="@android:color/transparent">
 
-    <!-- Transparent overlay that simply hosts the ad. No top bar or continue button shown by default. -->
     <FrameLayout
         android:id="@+id/overlay_content_container"
         android:layout_width="match_parent"

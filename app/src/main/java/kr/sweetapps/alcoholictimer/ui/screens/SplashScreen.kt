@@ -131,82 +131,6 @@ class SplashScreen : BaseActivity() {
             if (debugMode) {
                 android.util.Log.d("SplashScreen", "DEBUG build: forcing AppOpenAdManager.preload for testing")
                 runCatching { kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.preload(this) }
-
-                // 디버그 전용 직접 AppOpen 로드/표시: 테스트 단위 ID 사용
-                try {
-                    val TEST_APP_OPEN_UNIT = "ca-app-pub-3940256099942544/9257395921"
-                    val adRequest = AdRequest.Builder().build()
-                    AppOpenAd.load(
-                        this,
-                        TEST_APP_OPEN_UNIT,
-                        adRequest,
-                        AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT,
-                        object : AppOpenAd.AppOpenAdLoadCallback() {
-                            override fun onAdLoaded(ad: AppOpenAd) {
-                                android.util.Log.d("SplashScreen", "DEBUG AppOpen ad loaded (direct). Showing ad now.")
-                                try {
-                                    // fullScreen callbacks
-                                    ad.fullScreenContentCallback = object : FullScreenContentCallback() {
-                                        override fun onAdDismissedFullScreenContent() {
-                                            android.util.Log.d("SplashScreen", "DEBUG direct AppOpen dismissed -> releaseSplash()")
-                                            runOnUiThread { releaseSplash() }
-                                        }
-
-                                        override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-                                            android.util.Log.w("SplashScreen", "DEBUG direct AppOpen failed to show: $adError -> releaseSplash()")
-                                            runOnUiThread { releaseSplash() }
-                                        }
-
-                                        override fun onAdShowedFullScreenContent() {
-                                            android.util.Log.d("SplashScreen", "DEBUG direct AppOpen showed")
-                                        }
-                                    }
-
-                                    runOnUiThread {
-                                        if (holdSplashState.value) {
-                                            // Activity가 resume 상태일 때만 직접 show 시도
-                                            if (isResumed) {
-                                                // 스플래시를 유지한 채로 광고를 먼저 띄웁니다.
-                                                val shown = try {
-                                                    // keep direct show for debug path (overlay activity is not used here)
-                                                    ad.show(this@SplashScreen)
-                                                    true
-                                                } catch (t: Throwable) {
-                                                    android.util.Log.w("SplashScreen", "DEBUG direct ad show failed: $t")
-                                                    false
-                                                }
-                                                if (!shown) {
-                                                    // 실패하면 스플래시 해제
-                                                    releaseSplash()
-                                                } else {
-                                                    // 성공하면 release는 광고의 dismiss 콜백에서 수행
-                                                    window.decorView.post { applySystemBarAppearance() }
-                                                }
-                                                return@runOnUiThread
-                                            } else {
-                                                android.util.Log.d("SplashScreen", "DEBUG direct ad loaded but activity not resumed -> pendingShowOnResume=true")
-                                                pendingShowOnResume = true
-                                            }
-                                        } else {
-                                            releaseSplash()
-                                        }
-                                    }
-                                } catch (t: Throwable) {
-                                    android.util.Log.w("SplashScreen", "DEBUG AppOpen onAdLoaded handler error: $t")
-                                    releaseSplash()
-                                }
-                            }
-
-                            override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-                                android.util.Log.w("SplashScreen", "DEBUG AppOpen failed to load (direct): $loadAdError -> releaseSplash()")
-                                releaseSplash()
-                            }
-                        }
-                    )
-                } catch (t: Throwable) {
-                    android.util.Log.w("SplashScreen", "DEBUG AppOpen direct load error: $t")
-                    releaseSplash()
-                }
             }
         } catch (_: Throwable) {}
         // 광고 사전 로드 (동의 후)
@@ -416,7 +340,6 @@ class SplashScreen : BaseActivity() {
             val i = Intent(this, MainActivity::class.java)
             i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             startActivity(i)
-            overridePendingTransition(0, 0)
             finish()
         }
     }
