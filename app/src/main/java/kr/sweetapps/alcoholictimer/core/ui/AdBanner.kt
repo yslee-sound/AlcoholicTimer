@@ -1,6 +1,7 @@
 package kr.sweetapps.alcoholictimer.core.ui
 
 import android.util.Log
+import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -85,6 +86,9 @@ fun AdmobBanner(
         } catch (_: Throwable) { 50.dp }
     }
 
+    // adView 레퍼런스는 DisposableEffect에서 바로 사용되므로 미리 선언
+    var adViewRef by remember { mutableStateOf<AdView?>(null) }
+
     // 정책/전면 상태 구독
     // Subscribe to runtime policy so Compose recomposes when Supabase toggles the banner flag
     val isPolicyEnabledState = remember { mutableStateOf(kr.sweetapps.alcoholictimer.ads.AdController.isBannerEnabled()) }
@@ -98,7 +102,22 @@ fun AdmobBanner(
     // full-screen 상태(앱오프닝 등)를 실시간으로 구독하여 배너가 즉시 숨겨지도록 함
     var isFullScreenAdShowing by remember { mutableStateOf(kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing()) }
     DisposableEffect(Unit) {
-        val fsListener: (Boolean) -> Unit = { showing -> isFullScreenAdShowing = showing }
+        val fsListener: (Boolean) -> Unit = { showing ->
+            isFullScreenAdShowing = showing
+            // 즉시 AdView를 숨기거나 다시 보이게 함 (UI 스레드에서 안전하게 실행)
+            try {
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    try {
+                        val view = adViewRef
+                        if (view != null) {
+                            view.visibility = if (showing) View.GONE else View.VISIBLE
+                            Log.d(TAG, "AdView visibility changed immediate -> showing=$showing visibility=${view.visibility}")
+                            // 만약 다시 보이게 될 때 아직 로드가 필요하면 로드 시도는 기존 로직(update)에서 처리됨
+                        }
+                    } catch (_: Throwable) {}
+                }
+            } catch (_: Throwable) {}
+        }
         kr.sweetapps.alcoholictimer.ads.AdController.addFullScreenShowListener(fsListener)
         onDispose { kr.sweetapps.alcoholictimer.ads.AdController.removeFullScreenShowListener(fsListener) }
     }
@@ -120,7 +139,6 @@ fun AdmobBanner(
     }
 
     // 상태
-    var adViewRef by remember { mutableStateOf<AdView?>(null) }
     var loadState by remember { mutableStateOf<BannerLoadState>(BannerLoadState.Loading) }
     var retryCount by remember { mutableStateOf(0) }
     var hasSuccessfulLoad by remember { mutableStateOf(false) }
@@ -150,6 +168,8 @@ fun AdmobBanner(
                             val adaptive = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(ctx, screenWidthDp)
                             setAdSize(adaptive)
                         } catch (_: Throwable) { try { setAdSize(AdSize.BANNER) } catch (ignored: Throwable) { Log.w(TAG, "Fallback setAdSize failed: ${ignored.message}") } }
+                        // 초기 visibility를 full-screen 상태에 맞춤
+                        try { visibility = if (isFullScreenAdShowing) View.GONE else View.VISIBLE } catch (_: Throwable) {}
                         adListener = object : AdListener() {
                             override fun onAdLoaded() {
                                 Log.d(TAG, "Banner onAdLoaded retryCount=$retryCount")
@@ -181,10 +201,21 @@ fun AdmobBanner(
                             }
                         }
                         adViewRef = this
-                        Log.d(TAG, "AdView factory created unit=$unitId")
+                        Log.d(TAG, "AdView factory created unit=$unitId visibility=${this.visibility}")
                     }
                 },
                 update = { adView ->
+                    // full-screen 상태에 따라 즉시 숨김/보이기 및 로드 제어
+                    try {
+                        if (isFullScreenAdShowing) {
+                            if (adView.visibility != View.GONE) adView.visibility = View.GONE
+                            Log.d(TAG, "AndroidView update -> hiding AdView due to full-screen")
+                            return@AndroidView
+                        } else {
+                            if (adView.visibility != View.VISIBLE) adView.visibility = View.VISIBLE
+                        }
+                    } catch (_: Throwable) {}
+
                     Log.d(TAG, "AndroidView update called; adViewRef=${adViewRef != null} loadState=$loadState isPolicyEnabled=$isPolicyEnabled")
                     val consentInfo = runCatching { UserMessagingPlatform.getConsentInformation(adView.context) }.getOrNull()
                     val canRequest = (consentInfo?.canRequestAds() == true) || BuildConfig.DEBUG
