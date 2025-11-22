@@ -134,7 +134,6 @@ gradlew.bat bundleRelease  ← verifyReleaseAdConfig 자동 실행
   - [구현 가이드](./docs/I18N_IMPLEMENTATION_GUIDE.md) - 코드, 테스트, 출시 상세 🛠️
   - [통화 현지화 가이드](./docs/CURRENCY_LOCALIZATION_GUIDE.md) - 다국가 통화 지원 전략 💰
   - [체크리스트](./docs/I18N_CHECKLIST.md) - 단계별 진행 상황 추적
-- MVP 초간단 릴리스 체크리스트 (1인 개발용): [docs/MVP_RELEASE_CHECKLIST.md](./docs/MVP_RELEASE_CHECKLIST.md)
 - 개인정보 처리방침: [docs/PRIVACY_POLICY.md](./docs/PRIVACY_POLICY.md)
 - 스토어 메타데이터 템플릿: [docs/PLAY_STORE_METADATA_TEMPLATE.md](./docs/PLAY_STORE_METADATA_TEMPLATE.md)
 - 변경 이력: [CHANGELOG.md](./CHANGELOG.md)
