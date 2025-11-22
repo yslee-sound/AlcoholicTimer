@@ -1,6 +1,7 @@
 package com.alcoholictimer.ad
 
 import kotlin.math.max
+import kr.sweetapps.alcoholictimer.ads.AdController
 
 interface PreferencesStore {
     fun getLong(key: String, default: Long): Long
@@ -101,6 +102,10 @@ class AdManager(
     fun canShowAd(adType: AdType): Boolean {
         ensureWindows()
         val now = timeProvider.nowMillis()
+        // If a full-screen popup/overlay is active (e.g., emergency/update), never show ads
+        try {
+            if (kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing()) return false
+        } catch (_: Throwable) {}
         // 최상위 정책 비활성화 시 모든 광고 표시 불가
         try {
             if (!policy.is_active) return false
