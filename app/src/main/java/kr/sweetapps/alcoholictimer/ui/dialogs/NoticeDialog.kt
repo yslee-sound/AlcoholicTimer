@@ -15,6 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -39,6 +40,7 @@ fun NoticeDialog(
     titleColor: Color = Color(0xFF1A1A1A),
     descriptionColor: Color = Color(0xFF666666)
 ) {
+    val closeDesc = stringResource(id = R.string.dialog_close)
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
@@ -148,7 +150,7 @@ fun NoticeDialog(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = "닫기",
+                            contentDescription = closeDesc,
                             tint = Color(0xFF666666)
                         )
                     }
@@ -220,6 +222,7 @@ fun AnnouncementDialog(
     onDismiss: () -> Unit,
     showImage: Boolean = true
 ) {
+    val closeDesc = stringResource(id = R.string.dialog_close)
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
@@ -315,7 +318,7 @@ fun AnnouncementDialog(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = "닫기",
+                            contentDescription = closeDesc,
                             tint = Color(0xFF666666)
                         )
                     }

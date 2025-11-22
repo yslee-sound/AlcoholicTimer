@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,9 +39,9 @@ import kr.sweetapps.alcoholictimer.R
 @Composable
 fun OptionalUpdateDialog(
     isForce: Boolean = false,
-    title: String = "앱 업데이트",
-    updateButtonText: String = "지금 업데이트",
-    laterButtonText: String = "나중에",
+    title: String? = null,
+    updateButtonText: String? = null,
+    laterButtonText: String? = null,
     features: List<String>? = null,
     // Supabase의 release_notes 필드 (description)
     description: String? = null,
@@ -49,6 +50,10 @@ fun OptionalUpdateDialog(
     onUpdateClick: () -> Unit,
     onLaterClick: (() -> Unit)? = null
 ) {
+    val titleText = title ?: stringResource(id = R.string.update_dialog_title)
+    val updateLabel = updateButtonText ?: stringResource(id = R.string.update_dialog_update)
+    val laterLabel = laterButtonText ?: stringResource(id = R.string.update_dialog_later)
+
     Dialog(
         onDismissRequest = {
             if (!isForce) {
@@ -79,9 +84,9 @@ fun OptionalUpdateDialog(
                 // Dialog 안의 실제 콘텐츠를 별도 컴포저블로 이동하여 Preview에서 재사용 가능하도록 함
                 OptionalUpdateDialogContent(
                     isForce = isForce,
-                    title = title,
-                    updateButtonText = updateButtonText,
-                    laterButtonText = laterButtonText,
+                    title = titleText,
+                    updateButtonText = updateLabel,
+                    laterButtonText = laterLabel,
                     features = features,
                     description = description,
                     // forward padding setting
@@ -97,9 +102,9 @@ fun OptionalUpdateDialog(
 @Composable
 fun OptionalUpdateDialogContent(
     isForce: Boolean = false,
-    title: String = "앱 업데이트",
-    updateButtonText: String = "지금 업데이트",
-    laterButtonText: String = "나중에",
+    title: String? = null,
+    updateButtonText: String? = null,
+    laterButtonText: String? = null,
     features: List<String>? = null,
     // Supabase의 release_notes 필드 (description)
     description: String? = null,
@@ -108,6 +113,10 @@ fun OptionalUpdateDialogContent(
     onUpdateClick: () -> Unit = {},
     onLaterClick: (() -> Unit)? = null
 ) {
+    val titleText = title ?: stringResource(id = R.string.update_dialog_title)
+    val updateLabel = updateButtonText ?: stringResource(id = R.string.update_dialog_update)
+    val laterLabel = laterButtonText ?: stringResource(id = R.string.update_dialog_later)
+
     // 로그를 추가하여 실제로 전달된 description 값을 확인합니다.
     androidx.compose.runtime.LaunchedEffect(key1 = description) {
         android.util.Log.d("OptionalUpdateDialog", "description (release_notes) = ${description ?: "<null>"}")
@@ -141,7 +150,7 @@ fun OptionalUpdateDialogContent(
 
             // 제목
             Text(
-                text = title,
+                text = titleText,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1A1A1A),
@@ -204,7 +213,7 @@ fun OptionalUpdateDialogContent(
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
-                            updateButtonText,
+                            updateLabel,
                             color = Color.White,
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.SemiBold
@@ -227,7 +236,7 @@ fun OptionalUpdateDialogContent(
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
-                            laterButtonText,
+                            laterLabel,
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Medium
                         )
@@ -239,7 +248,7 @@ fun OptionalUpdateDialogContent(
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
-                            updateButtonText,
+                            updateLabel,
                             color = Color.White,
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.SemiBold
@@ -260,7 +269,7 @@ fun OptionalUpdateDialogContent(
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "닫기",
+                    contentDescription = stringResource(id = R.string.dialog_close),
                     tint = Color(0xFF999999)
                 )
             }

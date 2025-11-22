@@ -187,6 +187,20 @@
     <string name="settings_privacy_open_button">동의/광고 설정 열기</string>
     <string name="settings_privacy_description">광고 맞춤설정 동의 변경 또는 철회를 할 수 있어요.</string>
 
+    <!-- About / UMP helper strings -->
+    <string name="about_ad_consent_settings">광고 동의 설정</string>
+    <string name="settings_privacy_unavailable">활동을 사용할 수 없어 광고 설정을 표시할 수 없습니다.</string>
+    <string name="settings_privacy_checking">광고 동의 확인 중&#8230;</string>
+    <string name="settings_privacy_load_failed">동의 폼 로드 실패: %1$s</string>
+    <string name="settings_privacy_not_required">동의 폼이 필요하지 않거나 이미 처리되었습니다.</string>
+    <string name="settings_privacy_update_failed">동의 정보 업데이트 실패: %1$s</string>
+
+    <!-- Dialog common strings -->
+    <string name="dialog_confirm">확인</string>
+    <string name="dialog_view_details">자세히 보기</string>
+    <string name="dialog_close">닫기</string>
+    <string name="emergency_title_default">긴급 안내</string>
+
     <!-- Additional All Records screen strings (추가 모든 기록 화면 문자열) -->
     <string name="all_records_delete_failed">삭제 실패</string>
     <string name="record_completed">완료</string>
@@ -260,7 +274,7 @@
     <string name="add_record_error_invalid_input">입력값이 올바르지 않습니다</string>
     <string name="add_record_error_time_conflict">선택한 시간이 기존 기록과 겹칩니다</string>
     <string name="add_record_error_save_failed">저장에 실패했습니다</string>
-    <string name="add_record_saving">저장 중...</string>
+    <string name="add_record_saving">저장 중&#8230;</string>
 
     <!-- Currency options (통화 선택) -->
     <string name="settings_currency">통화 설정</string>

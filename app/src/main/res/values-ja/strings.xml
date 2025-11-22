@@ -272,4 +272,21 @@
     <string name="run_progress_title">進捗</string>
     <string name="run_start_label">開始</string>
     <string name="run_target_label">目標: %1$d日</string>
+
+    <!-- About / UMP helper strings (added) -->
+    <string name="about_ad_consent_settings">広告同意設定</string>
+    <string name="settings_privacy_unavailable">アクティビティを利用できないため広告設定を表示できません。</string>
+    <string name="settings_privacy_checking">広告同意を確認中&#8230;</string>
+    <string name="settings_privacy_load_failed">同意フォームの読み込みに失敗しました: %1$s</string>
+    <string name="settings_privacy_not_required">同意フォームは不要、または既に処理されています。</string>
+    <string name="settings_privacy_update_failed">同意情報の更新に失敗しました: %1$s</string>
+
+    <!-- Login label -->
+    <string name="login_label">ログイン</string>
+
+    <!-- Dialog common strings -->
+    <string name="dialog_confirm">確認</string>
+    <string name="dialog_view_details">詳細を見る</string>
+    <string name="dialog_close">閉じる</string>
+    <string name="emergency_title_default">緊急のお知らせ</string>
 </resources>

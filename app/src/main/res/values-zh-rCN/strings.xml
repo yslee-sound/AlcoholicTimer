@@ -214,4 +214,21 @@
     <string name="run_progress_title">进度</string>
     <string name="run_start_label">开始</string>
     <string name="run_target_label">目标: %1$d天</string>
+
+    <!-- About / UMP helper strings -->
+    <string name="about_ad_consent_settings">广告同意设置</string>
+    <string name="settings_privacy_unavailable">无法显示广告设置（活动不可用）。</string>
+    <string name="settings_privacy_checking">正在检查广告同意&#8230;</string>
+    <string name="settings_privacy_load_failed">同意表单加载失败：%1$s</string>
+    <string name="settings_privacy_not_required">不需要同意表单或已处理。</string>
+    <string name="settings_privacy_update_failed">更新同意信息失败：%1$s</string>
+
+    <!-- Login label -->
+    <string name="login_label">登录</string>
+
+    <!-- Dialog common strings -->
+    <string name="dialog_confirm">确认</string>
+    <string name="dialog_view_details">查看详情</string>
+    <string name="dialog_close">关闭</string>
+    <string name="emergency_title_default">紧急通知</string>
 </resources>

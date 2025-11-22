@@ -216,4 +216,21 @@
     <string name="run_progress_title">Progreso</string>
     <string name="run_start_label">Inicio</string>
     <string name="run_target_label">Meta: %1$d día(s)</string>
+
+    <!-- About / UMP helper strings (added) -->
+    <string name="about_ad_consent_settings">Configuración de consentimiento de anuncios</string>
+    <string name="settings_privacy_unavailable">No se puede mostrar la configuración de anuncios porque la actividad no está disponible.</string>
+    <string name="settings_privacy_checking">Comprobando el consentimiento de anuncios&#8230;</string>
+    <string name="settings_privacy_load_failed">Error al cargar el formulario de consentimiento: %1$s</string>
+    <string name="settings_privacy_not_required">El formulario de consentimiento no es necesario o ya se ha procesado.</string>
+    <string name="settings_privacy_update_failed">Error al actualizar la información de consentimiento: %1$s</string>
+
+    <!-- Login label -->
+    <string name="login_label">Iniciar sesión</string>
+
+    <!-- Dialog common strings -->
+    <string name="dialog_confirm">Confirmar</string>
+    <string name="dialog_view_details">Ver detalles</string>
+    <string name="dialog_close">Cerrar</string>
+    <string name="emergency_title_default">Aviso de emergencia</string>
 </resources>

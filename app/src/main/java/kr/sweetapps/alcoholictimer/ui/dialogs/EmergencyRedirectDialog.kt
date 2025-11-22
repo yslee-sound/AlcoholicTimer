@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -38,18 +39,25 @@ import kr.sweetapps.alcoholictimer.R
  */
 @Composable
 fun EmergencyRedirectDialog(
-    title: String = "공지",
+    title: String? = null,
     description: String,
     newAppPackage: String,
     redirectUrl: String? = null,
-    buttonText: String = "확인",
+    buttonText: String? = null,
     supportUrl: String? = null,
-    supportButtonText: String = "자세히 보기",
+    supportButtonText: String? = null,
     isDismissible: Boolean = false,
     onDismiss: (() -> Unit)? = null,
     badgeText: String? = null  // 기본값을 null로 변경 (배지 안 보임)
 ) {
     val context = LocalContext.current
+
+    // 지역화된 기본값 적용
+    val titleText = title ?: stringResource(id = R.string.emergency_title_default)
+    val confirmLabel = buttonText ?: stringResource(id = R.string.dialog_confirm)
+    val supportLabel = supportButtonText ?: stringResource(id = R.string.dialog_view_details)
+    val closeDesc = stringResource(id = R.string.dialog_close)
+
     Dialog(
         onDismissRequest = { if (isDismissible) onDismiss?.invoke() },
         properties = DialogProperties(
@@ -97,7 +105,7 @@ fun EmergencyRedirectDialog(
 
                         // 제목 (이모티콘 제거)
                         Text(
-                            text = title.replace("🚨", "").trim(),
+                            text = titleText.replace("🚨", "").trim(),
                             fontSize = 26.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1A1A1A),
@@ -139,7 +147,7 @@ fun EmergencyRedirectDialog(
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Text(
-                                text = buttonText,
+                                text = confirmLabel,
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color.White
@@ -155,7 +163,7 @@ fun EmergencyRedirectDialog(
                             val active = Color(0xFF6F4EF6)
                             val color by animateColorAsState(if (pressed) active else base, label = "support_link_color")
                             Text(
-                                text = supportButtonText,
+                                text = supportLabel,
                                 fontSize = 14.sp,
                                 color = color,
                                 textAlign = TextAlign.Center,
@@ -180,7 +188,7 @@ fun EmergencyRedirectDialog(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "닫기",
+                                contentDescription = closeDesc,
                                 tint = Color(0xFF999999),
                                 modifier = Modifier.size(24.dp)
                             )

@@ -46,7 +46,7 @@ import java.security.MessageDigest
 private fun requestAndShowConsent(context: Context) {
     val activity = context as? Activity
     if (activity == null) {
-        Toast.makeText(context, "활동을 사용할 수 없어 광고 설정을 표시할 수 없습니다.", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.settings_privacy_unavailable), Toast.LENGTH_SHORT).show()
         return
     }
 
@@ -65,7 +65,7 @@ private fun requestAndShowConsent(context: Context) {
     val params = paramsBuilder.build()
 
     Log.d("AboutScreen", "requestAndShowConsent start (debug=${BuildConfig.DEBUG})")
-    Toast.makeText(context, "광고 동의 확인 중...", Toast.LENGTH_SHORT).show()
+    Toast.makeText(context, context.getString(R.string.settings_privacy_checking), Toast.LENGTH_SHORT).show()
 
     consentInformation.requestConsentInfoUpdate(activity, params,
         {
@@ -77,19 +77,19 @@ private fun requestAndShowConsent(context: Context) {
                         consentForm.show(activity) { Log.d("AboutScreen", "consentForm dismissed") }
                     },
                     { formError ->
-                        Log.e("AboutScreen", "loadConsentForm error: ${formError.message}")
-                        Toast.makeText(context, "동의 폼 로드 실패: ${formError.message}", Toast.LENGTH_SHORT).show()
+                        Log.e("AboutScreen", "loadConsentForm error: ${'$'}{formError.message}")
+                        Toast.makeText(context, context.getString(R.string.settings_privacy_load_failed, formError.message ?: ""), Toast.LENGTH_SHORT).show()
                     }
                 )
             } else {
                 // 폼이 필요하지 않은 경우 상태를 사용자에게 안내
                 Log.d("AboutScreen", "consent form not available or not required")
-                Toast.makeText(context, "동의 폼이 필요하지 않거나 이미 처리되었습니다.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.settings_privacy_not_required), Toast.LENGTH_SHORT).show()
             }
         },
         { formError ->
-            Log.e("AboutScreen", "requestConsentInfoUpdate error: ${formError.message}")
-            Toast.makeText(context, "동의 정보 업데이트 실패: ${formError.message}", Toast.LENGTH_SHORT).show()
+            Log.e("AboutScreen", "requestConsentInfoUpdate error: ${'$'}{formError.message}")
+            Toast.makeText(context, context.getString(R.string.settings_privacy_update_failed, formError.message ?: ""), Toast.LENGTH_SHORT).show()
         }
     )
 }
@@ -100,7 +100,7 @@ private fun md5Hex(input: String): String {
         val md = MessageDigest.getInstance("MD5")
         val digest = md.digest(input.toByteArray())
         digest.joinToString("") { String.format("%02X", it) }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         ""
     }
 }
@@ -109,7 +109,7 @@ private fun logAdvertisingIdHash(context: Context) {
     Thread {
         try {
             val info = AdvertisingIdClient.getAdvertisingIdInfo(context)
-            val adId = info?.id ?: ""
+            val adId = info.id ?: ""
             if (adId.isNotEmpty()) {
                 val hash = md5Hex(adId)
                 Log.d("AboutScreen", "AdvertisingId MD5 (test device hash): $hash")
@@ -117,7 +117,7 @@ private fun logAdvertisingIdHash(context: Context) {
                 Log.d("AboutScreen", "AdvertisingId empty")
             }
         } catch (t: Throwable) {
-            Log.w("AboutScreen", "Failed to fetch AdvertisingId: ${t.message}")
+            Log.w("AboutScreen", "Failed to fetch AdvertisingId: ${'$'}{t.message}")
         }
     }.start()
 }
@@ -182,7 +182,7 @@ fun AboutScreen(
             }
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = nickname.ifEmpty { "로그인" },
+                text = nickname.ifEmpty { stringResource(id = R.string.login_label) },
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f)
@@ -211,7 +211,7 @@ fun AboutScreen(
 
         // UMP 동의 설정 (미국/유럽 규정 대응용) - About 화면에만 추가
         SimpleAboutRow(
-            title = "광고 동의 설정",
+            title = stringResource(id = R.string.about_ad_consent_settings),
             onClick = { requestAndShowConsent(context) },
             trailing = {
                 Image(
