@@ -7,6 +7,7 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import com.google.android.ump.ConsentDebugSettings
 import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
 import androidx.compose.foundation.Image
@@ -37,8 +38,11 @@ import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.BackTopBar
 import kr.sweetapps.alcoholictimer.core.util.CurrencyManager
+import kr.sweetapps.alcoholictimer.BuildConfig
+import com.google.android.gms.ads.identifier.AdvertisingIdClient
+import java.security.MessageDigest
 
-// UMP consent flow helper
+// UMP consent flow helper (with debug options and logging)
 private fun requestAndShowConsent(context: Context) {
     val activity = context as? Activity
     if (activity == null) {
@@ -47,14 +51,30 @@ private fun requestAndShowConsent(context: Context) {
     }
 
     val consentInformation = UserMessagingPlatform.getConsentInformation(activity)
-    val params = ConsentRequestParameters.Builder().build()
+
+    // Build params with optional debug settings when in DEBUG build
+    val paramsBuilder = ConsentRequestParameters.Builder()
+    if (BuildConfig.DEBUG) {
+        val debugSettings = ConsentDebugSettings.Builder(activity)
+            .setDebugGeography(ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA) // 강제로 EEA로 설정하여 테스트 가능
+            // 예시 테스트 해시(샘플): 실제 디바이스 해시로 교체하세요. UMP에 전달하는 값은 '해시된 광고 ID'입니다.
+            .addTestDeviceHashedId("33BE2250B43518CCDA7DE426D04EE231")
+            .build()
+        paramsBuilder.setConsentDebugSettings(debugSettings)
+    }
+    val params = paramsBuilder.build()
+
+    Log.d("AboutScreen", "requestAndShowConsent start (debug=${BuildConfig.DEBUG})")
+    Toast.makeText(context, "광고 동의 확인 중...", Toast.LENGTH_SHORT).show()
 
     consentInformation.requestConsentInfoUpdate(activity, params,
         {
+            Log.d("AboutScreen", "requestConsentInfoUpdate success. isConsentFormAvailable=${consentInformation.isConsentFormAvailable}")
             if (consentInformation.isConsentFormAvailable) {
                 UserMessagingPlatform.loadConsentForm(activity,
                     { consentForm ->
-                        consentForm.show(activity) { /* dismissed */ }
+                        Log.d("AboutScreen", "consentForm loaded, showing")
+                        consentForm.show(activity) { Log.d("AboutScreen", "consentForm dismissed") }
                     },
                     { formError ->
                         Log.e("AboutScreen", "loadConsentForm error: ${formError.message}")
@@ -63,7 +83,8 @@ private fun requestAndShowConsent(context: Context) {
                 )
             } else {
                 // 폼이 필요하지 않은 경우 상태를 사용자에게 안내
-                Toast.makeText(context, "동의 폼이 필요하지 않습니다.", Toast.LENGTH_SHORT).show()
+                Log.d("AboutScreen", "consent form not available or not required")
+                Toast.makeText(context, "동의 폼이 필요하지 않거나 이미 처리되었습니다.", Toast.LENGTH_SHORT).show()
             }
         },
         { formError ->
@@ -71,6 +92,34 @@ private fun requestAndShowConsent(context: Context) {
             Toast.makeText(context, "동의 정보 업데이트 실패: ${formError.message}", Toast.LENGTH_SHORT).show()
         }
     )
+}
+
+// debug helper: fetch Advertising ID and log MD5 hash (used to get test device hashed id)
+private fun md5Hex(input: String): String {
+    return try {
+        val md = MessageDigest.getInstance("MD5")
+        val digest = md.digest(input.toByteArray())
+        digest.joinToString("") { String.format("%02X", it) }
+    } catch (e: Exception) {
+        ""
+    }
+}
+
+private fun logAdvertisingIdHash(context: Context) {
+    Thread {
+        try {
+            val info = AdvertisingIdClient.getAdvertisingIdInfo(context)
+            val adId = info?.id ?: ""
+            if (adId.isNotEmpty()) {
+                val hash = md5Hex(adId)
+                Log.d("AboutScreen", "AdvertisingId MD5 (test device hash): $hash")
+            } else {
+                Log.d("AboutScreen", "AdvertisingId empty")
+            }
+        } catch (t: Throwable) {
+            Log.w("AboutScreen", "Failed to fetch AdvertisingId: ${t.message}")
+        }
+    }.start()
 }
 
 @Composable
@@ -82,6 +131,13 @@ fun AboutScreen(
     onBack: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    // 디버그 환경에서는 광고 ID의 MD5 해시를 로그에 남겨 UMP 테스트 해시로 사용할 수 있도록 합니다.
+    DisposableEffect(Unit) {
+        if (BuildConfig.DEBUG) {
+            logAdvertisingIdHash(context)
+        }
+        onDispose { }
+    }
     val sp = remember { context.getSharedPreferences("user_settings", Context.MODE_PRIVATE) }
     var nickname by remember { mutableStateOf(sp.getString("nickname", context.getString(R.string.default_nickname)) ?: context.getString(R.string.default_nickname)) }
 
