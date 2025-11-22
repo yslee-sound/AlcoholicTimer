@@ -1,13 +1,22 @@
-package com.alcoholictimer.ad
+package kr.sweetapps.alcoholictimer.ads
 
+import com.alcoholictimer.ad.*
 import org.junit.Assert.*
 import org.junit.Test
 
-class MockTimeProvider(var now: Long) : TimeProvider {
-    override fun nowMillis(): Long = now
-}
+/**
+ * 통합 광고 관련 단위 테스트 모음
+ * - AdManager 관련 테스트 (cooldown, 카운트, 윈도우 초기화)
+ * - AdController 관련 플래그/리스너 테스트
+ * - 빌드/광고 유닛 설정(ReleaseAdConfig) 검사
+ */
+class AdsCombinedTest {
 
-class AdManagerTest {
+    // --- AdManager 관련 테스트 (원본: com.alcoholictimer.ad.AdManagerTest) ---
+    class MockTimeProvider(var now: Long) : TimeProvider {
+        override fun nowMillis(): Long = now
+    }
+
     private fun startOfDay(millis: Long): Long {
         val tzOffset = java.util.TimeZone.getDefault().getOffset(millis)
         return (millis + tzOffset) / 86_400_000L * 86_400_000L - tzOffset
@@ -97,6 +106,66 @@ class AdManagerTest {
         // 날짜가 바뀌었으므로 일일 카운트는 초기화되어야 함
         assertEquals(0, manager.getDayCountInterstitial())
         assertEquals(0, manager.getDayCountAppOpen())
+    }
+
+    // --- AdController 관련 테스트 (원본: kr.sweetapps.alcoholictimer.ads.AdControllerTest) ---
+    @Test
+    fun fullScreenListener_receives_initial_and_changes() {
+        // 초기 상태는 false
+        assertFalse(AdController.isFullScreenAdShowing())
+
+        val events = mutableListOf<Boolean>()
+        val listener: (Boolean) -> Unit = { showing -> events.add(showing) }
+
+        AdController.addFullScreenShowListener(listener)
+        try {
+            assertTrue(events.isNotEmpty())
+            assertEquals(false, events[0])
+
+            events.clear()
+            AdController.setFullScreenAdShowing(true)
+            assertEquals(listOf(true), events)
+
+            events.clear()
+            AdController.setFullScreenAdShowing(false)
+            assertEquals(listOf(false), events)
+        } finally {
+            AdController.removeFullScreenShowListener(listener)
+        }
+    }
+
+    @Test
+    fun interstitialFlag_toggles() {
+        AdController.setInterstitialShowing(false)
+        assertFalse(AdController.isInterstitialShowingNow())
+
+        AdController.setInterstitialShowing(true)
+        assertTrue(AdController.isInterstitialShowingNow())
+
+        AdController.setInterstitialShowing(false)
+        assertFalse(AdController.isInterstitialShowingNow())
+    }
+
+    // --- ReleaseAdConfig 테스트 (원본: kr.sweetapps.alcoholictimer.ReleaseAdConfigTest) ---
+    @Test
+    fun buildConfig_release_debug_check() {
+        if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) return
+        assertFalse("In release build BuildConfig.DEBUG must be false", kr.sweetapps.alcoholictimer.BuildConfig.DEBUG)
+    }
+
+    @Test
+    fun banner_and_interstitial_unit_ids_configured() {
+        val bannerId: String = kr.sweetapps.alcoholictimer.BuildConfig.ADMOB_BANNER_UNIT_ID
+        assertTrue("Banner id must not be blank", bannerId.isNotBlank())
+        if (!kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
+            assertFalse("Release build must not use test banner id", bannerId.contains("3940256099942544"))
+        }
+
+        val id: String = kr.sweetapps.alcoholictimer.BuildConfig.ADMOB_INTERSTITIAL_UNIT_ID
+        assertTrue("Interstitial id must not be blank", id.isNotBlank())
+        if (!kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
+            assertFalse("Release build must not use test interstitial id", id.contains("3940256099942544"))
+        }
     }
 }
 
