@@ -1,9 +1,14 @@
 package kr.sweetapps.alcoholictimer.ui.screens
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
+import android.util.Log
+import android.widget.Toast
+import com.google.android.ump.ConsentRequestParameters
+import com.google.android.ump.UserMessagingPlatform
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,6 +37,41 @@ import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.BackTopBar
 import kr.sweetapps.alcoholictimer.core.util.CurrencyManager
+
+// UMP consent flow helper
+private fun requestAndShowConsent(context: Context) {
+    val activity = context as? Activity
+    if (activity == null) {
+        Toast.makeText(context, "활동을 사용할 수 없어 광고 설정을 표시할 수 없습니다.", Toast.LENGTH_SHORT).show()
+        return
+    }
+
+    val consentInformation = UserMessagingPlatform.getConsentInformation(activity)
+    val params = ConsentRequestParameters.Builder().build()
+
+    consentInformation.requestConsentInfoUpdate(activity, params,
+        {
+            if (consentInformation.isConsentFormAvailable) {
+                UserMessagingPlatform.loadConsentForm(activity,
+                    { consentForm ->
+                        consentForm.show(activity) { /* dismissed */ }
+                    },
+                    { formError ->
+                        Log.e("AboutScreen", "loadConsentForm error: ${formError.message}")
+                        Toast.makeText(context, "동의 폼 로드 실패: ${formError.message}", Toast.LENGTH_SHORT).show()
+                    }
+                )
+            } else {
+                // 폼이 필요하지 않은 경우 상태를 사용자에게 안내
+                Toast.makeText(context, "동의 폼이 필요하지 않습니다.", Toast.LENGTH_SHORT).show()
+            }
+        },
+        { formError ->
+            Log.e("AboutScreen", "requestConsentInfoUpdate error: ${formError.message}")
+            Toast.makeText(context, "동의 정보 업데이트 실패: ${formError.message}", Toast.LENGTH_SHORT).show()
+        }
+    )
+}
 
 @Composable
 fun AboutScreen(
@@ -102,6 +142,21 @@ fun AboutScreen(
         SimpleAboutRow(
             title = stringResource(id = R.string.settings_currency),
             onClick = onNavigateCurrencySettings,
+            trailing = {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_caret_right),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        )
+
+        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
+
+        // UMP 동의 설정 (미국/유럽 규정 대응용) - About 화면에만 추가
+        SimpleAboutRow(
+            title = "광고 동의 설정",
+            onClick = { requestAndShowConsent(context) },
             trailing = {
                 Image(
                     painter = painterResource(id = R.drawable.ic_caret_right),
@@ -190,7 +245,7 @@ fun LicenseItem(
      sourceUrl: String,
      license: String,
      licenseUrl: String,
-    changes: String
+     changes: String
  ) {
      val context = LocalContext.current
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
