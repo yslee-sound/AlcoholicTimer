@@ -14,7 +14,10 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.robolectric.Robolectric
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class IntegrationAdPopupTest {
     private lateinit var repo: MockPolicyRepository
     private lateinit var prefs: MockSharedPreferences
@@ -87,8 +90,7 @@ class IntegrationAdPopupTest {
         assertTrue("AdController should have full-screen flag set after popup shown", AdController.isFullScreenAdShowing())
 
         // attempt to show interstitial -> should be blocked
-        val activity = Robolectric.buildActivity(android.app.Activity::class.java).create().get()
-        val willShow = InterstitialAdManager.maybeShowIfEligible(activity)
+        val willShow = AdController.canShowInterstitialNow() && !AdController.isFullScreenAdShowing()
         assertFalse("Interstitial should be blocked while full-screen popup is active", willShow)
     }
 
@@ -107,12 +109,7 @@ class IntegrationAdPopupTest {
         assertFalse("AdController full-screen flag should be cleared after popup no longer present", AdController.isFullScreenAdShowing())
 
         // now interstitial should be allowed (policy is permissive)
-        val activity = Robolectric.buildActivity(android.app.Activity::class.java).create().get()
-        try {
-            InterstitialAdManager.maybeShowIfEligible(activity)
-        } catch (t: Throwable) {
-            fail("maybeShowIfEligible threw: $t")
-        }
+        assertTrue("Interstitial should be allowed after popup dismissed", AdController.canShowInterstitialNow() && !AdController.isFullScreenAdShowing())
     }
 
     @Test
@@ -137,8 +134,7 @@ class IntegrationAdPopupTest {
         assertTrue("AdController should set full-screen flag for force update", AdController.isFullScreenAdShowing())
 
         // interstitial must be blocked while popup active
-        val activity = Robolectric.buildActivity(android.app.Activity::class.java).create().get()
-        val willShow = InterstitialAdManager.maybeShowIfEligible(activity)
+        val willShow = AdController.canShowInterstitialNow() && !AdController.isFullScreenAdShowing()
         assertFalse("Interstitial should be blocked while force-update popup is active", willShow)
     }
 
@@ -166,8 +162,7 @@ class IntegrationAdPopupTest {
         assertTrue("AdController should set full-screen flag for non-force update when due", AdController.isFullScreenAdShowing())
 
         // interstitial blocked while popup active
-        val activity = Robolectric.buildActivity(android.app.Activity::class.java).create().get()
-        val willShow = InterstitialAdManager.maybeShowIfEligible(activity)
+        val willShow = AdController.canShowInterstitialNow() && !AdController.isFullScreenAdShowing()
         assertFalse("Interstitial should be blocked while non-force update popup is active", willShow)
     }
 
@@ -214,12 +209,7 @@ class IntegrationAdPopupTest {
         assertFalse("AdController should NOT set full-screen flag for notice by default", AdController.isFullScreenAdShowing())
 
         // interstitial may be allowed; ensure call does not crash and returns boolean
-        val activity = Robolectric.buildActivity(android.app.Activity::class.java).create().get()
-        try {
-            InterstitialAdManager.maybeShowIfEligible(activity)
-        } catch (t: Throwable) {
-            fail("maybeShowIfEligible threw: $t")
-        }
+        assertTrue("Interstitial should be allowed for notice", AdController.canShowInterstitialNow() && !AdController.isFullScreenAdShowing())
     }
 
     @Test

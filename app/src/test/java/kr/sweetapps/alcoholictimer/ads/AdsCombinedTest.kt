@@ -140,19 +140,21 @@ class AdsCombinedTest {
     fun parsePolicy_empty_or_invalid_returns_disabled_policy() {
         val disabled = kr.sweetapps.alcoholictimer.data.supabase.repository.AdPolicyRepository.parsePolicyFromJson(null, "kr.sweetapps.alcoholictimer")
         assertNotNull(disabled)
+        val d = disabled!! // non-null alias for safer access
         val fallback = kr.sweetapps.alcoholictimer.data.supabase.model.AdPolicy.DEFAULT_FALLBACK
         // Verify core fallback fields match the Default Fallback Policy (P6 spec)
-        assertEquals(fallback.isActive, disabled!!.isActive)
-        assertEquals(fallback.adAppOpenEnabled, disabled.adAppOpenEnabled)
-        assertEquals(fallback.adInterstitialEnabled, disabled.adInterstitialEnabled)
-        assertEquals(fallback.adBannerEnabled, disabled.adBannerEnabled)
-        assertEquals(fallback.adInterstitialMaxPerDay, disabled.adInterstitialMaxPerDay)
-        assertEquals(fallback.appOpenCooldownSeconds, disabled.appOpenCooldownSeconds)
-        assertEquals(fallback.appOpenMaxPerHour, disabled.appOpenMaxPerHour)
+        assertEquals(fallback.isActive, d.isActive)
+        assertEquals(fallback.adAppOpenEnabled, d.adAppOpenEnabled)
+        assertEquals(fallback.adInterstitialEnabled, d.adInterstitialEnabled)
+        assertEquals(fallback.adBannerEnabled, d.adBannerEnabled)
+        assertEquals(fallback.adInterstitialMaxPerDay, d.adInterstitialMaxPerDay)
+        assertEquals(fallback.appOpenCooldownSeconds, d.appOpenCooldownSeconds)
+        assertEquals(fallback.appOpenMaxPerHour, d.appOpenMaxPerHour)
 
         val disabled2 = kr.sweetapps.alcoholictimer.data.supabase.repository.AdPolicyRepository.parsePolicyFromJson("[]", "kr.sweetapps.alcoholictimer")
         assertNotNull(disabled2)
-        assertEquals(fallback.isActive, disabled2!!.isActive)
+        val d2 = disabled2!!
+        assertEquals(fallback.isActive, d2.isActive)
     }
 
     @Test
@@ -164,9 +166,10 @@ class AdsCombinedTest {
         // call suspend function
         val policy = kotlinx.coroutines.runBlocking { repo.getPolicy() }
         assertNotNull(policy)
+        val p = policy!!
         val fallback = kr.sweetapps.alcoholictimer.data.supabase.model.AdPolicy.DEFAULT_FALLBACK
-        assertEquals(fallback.isActive, policy.isActive)
-        assertEquals(fallback.appOpenCooldownSeconds, policy.appOpenCooldownSeconds)
+        assertEquals(fallback.isActive, p.isActive)
+        assertEquals(fallback.appOpenCooldownSeconds, p.appOpenCooldownSeconds)
     }
 
     @Test

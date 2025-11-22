@@ -24,6 +24,11 @@
 @rem Set local scope for the variables with windows NT shell
 if "%OS%"=="Windows_NT" setlocal
 
+@rem Force project-local JAVA_HOME to JDK 21 if not set externally
+if not defined JAVA_HOME (
+    set "JAVA_HOME=C:\Program Files\Java\jdk-21"
+)
+
 set DIRNAME=%~dp0
 if "%DIRNAME%" == "" set DIRNAME=.
 set APP_BASE_NAME=%~n0

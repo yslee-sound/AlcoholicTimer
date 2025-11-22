@@ -3,7 +3,11 @@ package kr.sweetapps.alcoholictimer.ads
 import kr.sweetapps.alcoholictimer.data.supabase.model.AdPolicy
 import org.junit.Assert.*
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.Robolectric
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class AdControllerUnitTest {
 
     @Test
@@ -73,7 +77,7 @@ class AdControllerUnitTest {
 
     // Helper: minimal mock Context used by recordAppOpenShown (only used for set/get shared prefs in some flows)
     private fun mockContext(): android.content.Context {
-        return androidx.test.core.app.ApplicationProvider.getApplicationContext()
+        // Use Robolectric to create a lightweight Activity/context for unit tests
+        return Robolectric.buildActivity(android.app.Activity::class.java).create().get().applicationContext
     }
 }
-
