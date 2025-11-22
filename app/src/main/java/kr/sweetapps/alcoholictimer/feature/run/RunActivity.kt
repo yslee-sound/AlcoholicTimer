@@ -375,31 +375,28 @@ fun RunScreenComposable(
                                             val isMoney = currentIndicator == 2
                                             val isLifeGain = currentIndicator == 4
                                             if (isMoney) {
-                                                val dollarMatch = Regex("""\$([0-9,]+(?:\.[0-9]+)?)""").find(valueText)
-                                                val yenMatch = Regex("""¥([0-9,]+)""").find(valueText)
-                                                when {
-                                                    dollarMatch != null -> {
-                                                        val numeric = dollarMatch.groupValues[1]
-                                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                                                            Text(text = "$", style = unitStyle)
-                                                            Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
-                                                        }
+                                                // 기존: 심볼별 정규식으로 분기하던 코드 -> 선택된 통화를 직접 가져와 처리
+                                                val selectedCurrency = kr.sweetapps.alcoholictimer.core.util.CurrencyManager.getSelectedCurrency(context)
+                                                val symbol = selectedCurrency.symbol
+                                                if (selectedCurrency.code == "KRW") {
+                                                    // KRW: 숫자만 보여주고 '원' 단위를 붙임
+                                                    val numeric = valueText.replace("원", "").replace("₩", "").trim()
+                                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+                                                        Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
+                                                        Spacer(modifier = Modifier.width(2.dp))
+                                                        Text(text = "원", style = unitStyle)
                                                     }
-                                                    yenMatch != null -> {
-                                                        val numeric = yenMatch.groupValues[1]
-                                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                                                            Text(text = "¥", style = unitStyle)
-                                                            Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
-                                                        }
-                                                    }
-                                                    else -> {
-                                                        val numeric = valueText.replace("원", "").replace("₩", "").trim()
-                                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                                                            Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
-                                                            Spacer(modifier = Modifier.width(2.dp))
-                                                            Text(text = "원", style = unitStyle)
-                                                        }
-                                                    }
+                                                } else {
+                                                    // 기타 통화: 통화 심볼을 좌측에 두고 숫자 부분만 표시
+                                                    // 제거 대상: 통화 심볼, '원', '₩' 등 남아 있을 수 있는 단위들을 모두 제거
+                                                    val numeric = valueText.replace(symbol, "")
+                                                        .replace("원", "")
+                                                        .replace("₩", "")
+                                                        .trim()
+                                                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+                                                         Text(text = symbol, style = unitStyle)
+                                                         Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
+                                                     }
                                                 }
                                             } else if (isLifeGain) {
                                                 val twoPart = Regex("""(\d+)\s*(?:일|日|day\(s\))\s*([0-9]+(?:\.[0-9]+)?)\s*(?:시간|時間|hr\(s\))""")
