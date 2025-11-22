@@ -61,7 +61,8 @@ class PopupPolicyManager(
                 val lastSeen = prefs.getInt(key, -1)
                 val currentVersion = announcement.noticeVersion
                 android.util.Log.d("PopupPolicyManager", "Found announcement id=${announcement.id} version=$currentVersion lastSeen=$lastSeen")
-                if (currentVersion != lastSeen) {
+                // show only if announcement version is strictly newer than last seen
+                if (currentVersion > lastSeen) {
                     return@withContext PopupDecision.ShowNotice(announcement)
                 }
             }

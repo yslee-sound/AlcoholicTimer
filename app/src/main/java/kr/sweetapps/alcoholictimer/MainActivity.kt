@@ -22,7 +22,9 @@ import kr.sweetapps.alcoholictimer.data.supabase.repository.PopupPolicyManager
 import kr.sweetapps.alcoholictimer.data.supabase.repository.UpdatePolicyRepository
 import kr.sweetapps.alcoholictimer.data.supabase.model.PopupDecision
 import kr.sweetapps.alcoholictimer.ui.dialogs.OptionalUpdateDialog
+import kr.sweetapps.alcoholictimer.data.supabase.model.UpdatePolicy
 import kr.sweetapps.alcoholictimer.data.supabase.model.Announcement
+import kr.sweetapps.alcoholictimer.data.supabase.model.EmergencyPolicy
 import kr.sweetapps.alcoholictimer.ui.dialogs.AnnouncementDialog
 import kr.sweetapps.alcoholictimer.ui.dialogs.EmergencyRedirectDialog
 import androidx.compose.ui.graphics.Color
@@ -232,11 +234,11 @@ private fun AppContentWithStart(
     val policyManager = remember { PopupPolicyManager(emergencyRepo, updateRepo, noticeRepo, context) }
 
     val showUpdateDialog = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
-    val currentUpdatePolicy = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<kr.sweetapps.alcoholictimer.data.supabase.model.UpdatePolicy?>(null) }
+    val currentUpdatePolicy = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<UpdatePolicy?>(null) }
     val showNoticeDialog = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
-    val currentNotice = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<kr.sweetapps.alcoholictimer.data.supabase.model.Announcement?>(null) }
+    val currentNotice = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<Announcement?>(null) }
     val showEmergencyDialog = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
-    val currentEmergency = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<kr.sweetapps.alcoholictimer.data.supabase.model.EmergencyPolicy?>(null) }
+    val currentEmergency = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<EmergencyPolicy?>(null) }
 
     // decide once after splash hidden
     androidx.compose.runtime.LaunchedEffect(key1 = holdSplashState.value) {
@@ -244,19 +246,17 @@ private fun AppContentWithStart(
             try {
                 val decision = try { policyManager.decidePopup(android.os.Build.VERSION.RELEASE ?: "") } catch (e: Exception) { e.printStackTrace(); PopupDecision.None }
                 when (decision) {
-                    is kr.sweetapps.alcoholictimer.data.supabase.model.PopupDecision.ShowEmergency -> {
+                    is PopupDecision.ShowEmergency -> {
                         currentEmergency.value = decision.policy
                         showEmergencyDialog.value = true
                     }
-                    is kr.sweetapps.alcoholictimer.data.supabase.model.PopupDecision.ShowUpdate -> {
-                        // explicit cast to access the UpdatePolicy payload when smart-cast fails
-                        val pol = (decision as kr.sweetapps.alcoholictimer.data.supabase.model.PopupDecision.ShowUpdate).policy
+                    is PopupDecision.ShowUpdate -> {
+                        val pol = decision.policy
                         currentUpdatePolicy.value = pol
                         showUpdateDialog.value = true
                     }
-                    is kr.sweetapps.alcoholictimer.data.supabase.model.PopupDecision.ShowNotice -> {
-                        // explicit cast to access the Announcement payload when smart-cast fails
-                        val ann = (decision as kr.sweetapps.alcoholictimer.data.supabase.model.PopupDecision.ShowNotice).announcement
+                    is PopupDecision.ShowNotice -> {
+                        val ann = decision.announcement
                         currentNotice.value = ann
                         showNoticeDialog.value = true
                     }
