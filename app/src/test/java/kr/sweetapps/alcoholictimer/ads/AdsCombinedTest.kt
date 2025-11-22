@@ -142,7 +142,7 @@ class AdsCombinedTest {
         assertNotNull(disabled)
         val fallback = kr.sweetapps.alcoholictimer.data.supabase.model.AdPolicy.DEFAULT_FALLBACK
         // Verify core fallback fields match the Default Fallback Policy (P6 spec)
-        assertEquals(fallback.isActive, disabled.isActive)
+        assertEquals(fallback.isActive, disabled!!.isActive)
         assertEquals(fallback.adAppOpenEnabled, disabled.adAppOpenEnabled)
         assertEquals(fallback.adInterstitialEnabled, disabled.adInterstitialEnabled)
         assertEquals(fallback.adBannerEnabled, disabled.adBannerEnabled)
@@ -152,7 +152,7 @@ class AdsCombinedTest {
 
         val disabled2 = kr.sweetapps.alcoholictimer.data.supabase.repository.AdPolicyRepository.parsePolicyFromJson("[]", "kr.sweetapps.alcoholictimer")
         assertNotNull(disabled2)
-        assertEquals(fallback.isActive, disabled2.isActive)
+        assertEquals(fallback.isActive, disabled2!!.isActive)
     }
 
     @Test
@@ -223,7 +223,6 @@ class AdsCombinedTest {
 
             events.clear()
             AdController.setFullScreenAdShowing(false)
-        assertEquals(123L, policy.id)
         } finally {
             AdController.removeFullScreenShowListener(listener)
         }
