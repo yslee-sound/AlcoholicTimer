@@ -108,6 +108,101 @@ class AdsCombinedTest {
         assertEquals(0, manager.getDayCountAppOpen())
     }
 
+    @Test
+    fun policy_isActive_false_disables_all_ad_types() {
+        val timeProvider = MockTimeProvider(1_600_000_000_000L)
+        val prefs = InMemoryPreferencesStore()
+        // 정책 전체 비활성화
+        val policy = AdPolicyConfig(is_active = false, ad_app_open_enabled = true, ad_interstitial_enabled = true, ad_banner_enabled = true)
+        val manager = AdManager(policy, prefs, timeProvider)
+
+        assertFalse("is_active=false이면 APP_OPEN 불가", manager.canShowAd(AdType.APP_OPEN))
+        assertFalse("is_active=false이면 INTERSTITIAL 불가", manager.canShowAd(AdType.INTERSTITIAL))
+        assertFalse("is_active=false이면 BANNER 불가", manager.canShowAd(AdType.BANNER))
+    }
+
+    @Test
+    fun policy_type_flag_disables_only_specific_type() {
+        val timeProvider = MockTimeProvider(1_600_000_000_000L)
+        val prefs = InMemoryPreferencesStore()
+        // 배너만 비활성화, 나머지는 활성
+        val policy = AdPolicyConfig(is_active = true, ad_app_open_enabled = true, ad_interstitial_enabled = true, ad_banner_enabled = false)
+        val manager = AdManager(policy, prefs, timeProvider)
+
+        // APP_OPEN과 INTERSTITIAL은 기본 조건에서 노출 가능 (쿨다운/카운트가 없으므로 true)
+        assertTrue("ad_banner_enabled=false일 때 APP_OPEN은 허용되어야 함", manager.canShowAd(AdType.APP_OPEN))
+        assertTrue("ad_banner_enabled=false일 때 INTERSTITIAL은 허용되어야 함", manager.canShowAd(AdType.INTERSTITIAL))
+        // 배너만 비활성
+        assertFalse("ad_banner_enabled=false일 때 BANNER는 불가", manager.canShowAd(AdType.BANNER))
+    }
+
+    @Test
+    fun parsePolicy_empty_or_invalid_returns_disabled_policy() {
+        val disabled = kr.sweetapps.alcoholictimer.data.supabase.repository.AdPolicyRepository.parsePolicyFromJson(null, "kr.sweetapps.alcoholictimer")
+        assertNotNull(disabled)
+        val fallback = kr.sweetapps.alcoholictimer.data.supabase.model.AdPolicy.DEFAULT_FALLBACK
+        // Verify core fallback fields match the Default Fallback Policy (P6 spec)
+        assertEquals(fallback.isActive, disabled!!.isActive)
+        assertEquals(fallback.adAppOpenEnabled, disabled.adAppOpenEnabled)
+        assertEquals(fallback.adInterstitialEnabled, disabled.adInterstitialEnabled)
+        assertEquals(fallback.adBannerEnabled, disabled.adBannerEnabled)
+        assertEquals(fallback.adInterstitialMaxPerDay, disabled.adInterstitialMaxPerDay)
+        assertEquals(fallback.appOpenCooldownSeconds, disabled.appOpenCooldownSeconds)
+        assertEquals(fallback.appOpenMaxPerHour, disabled.appOpenMaxPerHour)
+
+        val disabled2 = kr.sweetapps.alcoholictimer.data.supabase.repository.AdPolicyRepository.parsePolicyFromJson("[]", "kr.sweetapps.alcoholictimer")
+        assertNotNull(disabled2)
+        assertEquals(fallback.isActive, disabled2!!.isActive)
+    }
+
+    @Test
+    fun repository_fetcher_empty_body_returns_disabled_policy() {
+        val fetcher = object : kr.sweetapps.alcoholictimer.data.supabase.repository.AdPolicyRepository.Fetcher {
+            override fun get(url: String): Pair<Int, String?> = Pair(200, "[]")
+        }
+        val repo = kr.sweetapps.alcoholictimer.data.supabase.repository.AdPolicyRepository("kr.sweetapps.alcoholictimer", fetcher)
+        // call suspend function
+        val policy = kotlinx.coroutines.runBlocking { repo.getPolicy() }
+        assertNotNull(policy)
+        val fallback = kr.sweetapps.alcoholictimer.data.supabase.model.AdPolicy.DEFAULT_FALLBACK
+        assertEquals(fallback.isActive, policy!!.isActive)
+        assertEquals(fallback.appOpenCooldownSeconds, policy.appOpenCooldownSeconds)
+    }
+
+    @Test
+    fun parsePolicy_selects_matching_app_id() {
+        // Prepare JSON with multiple candidate policies
+        val json = "[\n" +
+            "  {\n" +
+            "    \"id\": 1,\n" +
+            "    \"app_id\": \"other.app\",\n" +
+            "    \"is_active\": true,\n" +
+            "    \"ad_banner_enabled\": false\n" +
+            "  },\n" +
+            "  {\n" +
+            "    \"id\": 2,\n" +
+            "    \"app_id\": \"kr.sweetapps.alcoholictimer\",\n" +
+            "    \"is_active\": true,\n" +
+            "    \"ad_banner_enabled\": true,\n" +
+            "    \"ad_app_open_enabled\": false\n" +
+            "  }\n" +
+            "]"
+        val policy = kr.sweetapps.alcoholictimer.data.supabase.repository.AdPolicyRepository.parsePolicyFromJson(json, "kr.sweetapps.alcoholictimer")
+        assertNotNull(policy)
+        assertEquals(2L, policy!!.id)
+        assertTrue(policy.adBannerEnabled)
+        assertFalse(policy.adAppOpenEnabled)
+
+        // Also verify fetcher + repository returns same chosen policy
+        val fetcher = object : kr.sweetapps.alcoholictimer.data.supabase.repository.AdPolicyRepository.Fetcher {
+            override fun get(url: String): Pair<Int, String?> = Pair(200, json)
+        }
+        val repo = kr.sweetapps.alcoholictimer.data.supabase.repository.AdPolicyRepository("kr.sweetapps.alcoholictimer", fetcher)
+        val fetched = kotlinx.coroutines.runBlocking { repo.getPolicy() }
+        assertNotNull(fetched)
+        assertEquals(policy.id, fetched!!.id)
+    }
+
     // --- AdController 관련 테스트 (원본: kr.sweetapps.alcoholictimer.ads.AdControllerTest) ---
     @Test
     fun fullScreenListener_receives_initial_and_changes() {
@@ -168,4 +263,3 @@ class AdsCombinedTest {
         }
     }
 }
-

@@ -101,6 +101,10 @@ class AdManager(
     fun canShowAd(adType: AdType): Boolean {
         ensureWindows()
         val now = timeProvider.nowMillis()
+        // 최상위 정책 비활성화 시 모든 광고 표시 불가
+        try {
+            if (!policy.is_active) return false
+        } catch (_: Throwable) {}
         when (adType) {
             AdType.INTERSTITIAL -> {
                 if (!policy.ad_interstitial_enabled) return false
@@ -150,4 +154,3 @@ class AdManager(
     fun getDayCountAppOpen(): Int = dayCountAppOpen
     fun getLastAppOpenTime(): Long = lastAppOpenTime
 }
-

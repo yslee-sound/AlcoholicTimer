@@ -14,4 +14,22 @@ data class AdPolicy(
     val adInterstitialMaxPerDay: Int = 20,
     // cooldown between app-open ads in seconds (remote-controlled)
     val appOpenCooldownSeconds: Int = 60
-)
+) {
+    companion object {
+        // Default fallback policy used when remote policy cannot be fetched or parsed.
+        // Values chosen to preserve revenue while being conservative about frequency.
+        val DEFAULT_FALLBACK = AdPolicy(
+            id = 0L,
+            appId = "",
+            isActive = true,
+            adAppOpenEnabled = true,
+            adInterstitialEnabled = true,
+            adBannerEnabled = true,
+            appOpenMaxPerHour = 1,
+            appOpenMaxPerDay = 15,
+            adInterstitialMaxPerHour = 1,
+            adInterstitialMaxPerDay = 5,
+            appOpenCooldownSeconds = 300
+        )
+    }
+}
