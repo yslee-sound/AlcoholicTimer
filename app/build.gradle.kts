@@ -92,7 +92,7 @@ android {
             // 빌드타입별 전면 광고 유닛ID (릴리즈 실제 ID)
             buildConfigField("String", "ADMOB_INTERSTITIAL_UNIT_ID", "\"ca-app-pub-8420908105703273/2270912481\"")
             // 앱 오프닝 광고 유닛 ID
-            buildConfigField("String", "ADMOB_APP_OPEN_UNIT_ID", "\"ca-app-pub-8420908105703273/3419835294\"") // 운영용 앱 오프닝 광고 단위 ID로 교체
+            buildConfigField("String", "ADMOB_APP_OPEN_UNIT_ID", "\"ca-app-pub-8420908105703273/4469985826\"") // 운영용 앱 오프닝 광고 단위 ID
             manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-8420908105703273~7175986319"
         }
         // debug 빌드 타입: 테스트용 광고 ID + .debug suffix
