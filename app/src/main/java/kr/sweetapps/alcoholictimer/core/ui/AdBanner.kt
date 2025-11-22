@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -140,7 +139,8 @@ fun AdmobBanner(
         onDispose { kr.sweetapps.alcoholictimer.ads.AdController.removeFullScreenShowListener(fsListener) }
     }
     val shouldShowBanner = isPolicyEnabled && !isInterstitialShowing && !isFullScreenAdShowing
-    val placeholderColor = if (isInterstitialShowing) Color.Black else MaterialTheme.colorScheme.surface
+    // Use theme surface colors for reserved placeholder to avoid black bars after fullscreen ads.
+    val placeholderColor = if (isFullScreenAdShowing || isInterstitialShowing) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface
     LaunchedEffect(shouldShowBanner) { Log.d(TAG, "banner visible=$shouldShowBanner h=$predictedHeight") }
 
     // 비표시 시에도 공간 예약 여부
@@ -169,7 +169,8 @@ fun AdmobBanner(
     // 컨테이너: Anchored Adaptive height로 고정 (레이아웃 시프트 방지 + 잘림 방지)
     androidx.compose.material3.Surface(
         modifier = modifier.fillMaxWidth().height(predictedHeight),
-        color = MaterialTheme.colorScheme.surface,
+        // use surfaceVariant to visually match reserved placeholder and avoid black flash
+        color = MaterialTheme.colorScheme.surfaceVariant,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp
     ) {
@@ -178,6 +179,8 @@ fun AdmobBanner(
                 modifier = Modifier.fillMaxWidth(),
                 factory = { ctx ->
                     AdView(ctx).apply {
+                        // Ensure Android AdView has transparent background to avoid black bars
+                        try { setBackgroundColor(android.graphics.Color.TRANSPARENT) } catch (_: Throwable) {}
                         layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
                         val resolvedUnitId = BuildConfig.ADMOB_BANNER_UNIT_ID
                         val unitId = if (resolvedUnitId.isNullOrBlank() || resolvedUnitId.contains("REPLACE_WITH_REAL_BANNER")) "ca-app-pub-3940256099942544/6300978111" else resolvedUnitId

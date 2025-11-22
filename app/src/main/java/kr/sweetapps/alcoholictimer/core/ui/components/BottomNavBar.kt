@@ -93,22 +93,23 @@ fun BottomNavBar(navController: NavHostController, modifier: Modifier = Modifier
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp), // 좌우 패딩 증가 (8dp → 16dp)
+                .padding(horizontal = 12.dp, vertical = 8.dp), // reduced horizontal padding for small screens
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 중앙을 기준으로 아이템 그룹을 배치하기 위해 Box로 감싼 내부 Row를 사용합니다.
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(UiConstants.BOTTOM_NAV_ITEM_GAP),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    bottomItems.forEachIndexed { index, item ->
+            // Use SpaceEvenly so items never overflow on narrow screens or with large fonts
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Give each nav item equal weight so they spread across the full width.
+                bottomItems.forEachIndexed { index, item ->
+                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                         val selected = index == matchedIndex
                         BottomNavItem(
                             item = item,
                             isSelected = selected,
                             onClick = {
-                                // 같은 화면/그룹이면 아무 동작도 하지 않음 (무의미한 네비게이션 방지)
                                 if (!selected) {
                                     navController.navigate(item.screen.route) {
                                         launchSingleTop = true

@@ -70,7 +70,7 @@ private object QuitUiConstants {
     // Per-screen vertical spacing between cards (use global default unless overridden)
     // (removed STATS_ROWS_VERTICAL_SPACING; use CARDS_VERTICAL_SPACING for all card vertical gaps)
     // Reduced height to make cards more compact and place icon left of text
-    val STAT_CARD_HEIGHT = 104.dp
+    val STAT_CARD_HEIGHT = 96.dp
     val STAT_CARD_CORNER = 12.dp
     val STAT_CARD_BORDER_ALPHA = 0.08f
     // local-only constants; keep minimal and used
@@ -354,37 +354,40 @@ private fun SmallStatCard(title: String, value: String, accentColor: Color, modi
             if (icon != null || iconRes != null) {
                 Box(
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(40.dp)
                         .clip(CircleShape)
                         .background(iconBg ?: accentColor.copy(alpha = 0.12f)),
                     contentAlignment = Alignment.Center
                 ) {
                     if (icon != null) {
-                        Icon(imageVector = icon, contentDescription = null, tint = accentColor, modifier = Modifier.size(22.dp))
+                        Icon(imageVector = icon, contentDescription = null, tint = accentColor, modifier = Modifier.size(18.dp))
                     } else {
                         iconRes?.let { res ->
-                            Image(painter = painterResource(id = res), contentDescription = null, modifier = Modifier.size(22.dp))
+                            Image(painter = painterResource(id = res), contentDescription = null, modifier = Modifier.size(18.dp))
                         }
                     }
                 }
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(8.dp))
             }
 
-             Column(modifier = Modifier.fillMaxHeight().weight(1f), verticalArrangement = Arrangement.Center) {
-                 Text(
-                     text = value,
-                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold, lineHeight = 26.sp),
-                     color = accentColor,
-                     maxLines = 1,
-                     overflow = TextOverflow.Ellipsis
-                 )
-                 Spacer(modifier = Modifier.height(4.dp))
-                 Text(
-                     text = title,
-                     style = MaterialTheme.typography.labelMedium,
-                     color = colorResource(id = R.color.color_stat_title_gray)
-                 )
-             }
+            Column(modifier = Modifier.fillMaxHeight().weight(1f), verticalArrangement = Arrangement.Center) {
+                Text(
+                    text = value,
+                    // slightly smaller, more compact typography to avoid clipping at large system font sizes
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold, lineHeight = 22.sp),
+                    color = accentColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colorResource(id = R.color.color_stat_title_gray),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
          }
      }
  }

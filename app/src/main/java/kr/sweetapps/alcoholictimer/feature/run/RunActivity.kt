@@ -497,12 +497,7 @@ fun ModernProgressIndicatorSimple(progress: Float, targetDays: Float = 30f) {
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // bottom labels: start / target
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(text = stringResource(id = R.string.run_start_label), style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFF718096)))
-            Spacer(modifier = Modifier.weight(1f))
-            Text(text = stringResource(id = R.string.run_target_label, targetDays.toInt()), style = MaterialTheme.typography.bodySmall.copy(color = Color(0xFF718096)))
-        }
+        // bottom labels removed per request (start/target texts deleted)
     }
 }
 
