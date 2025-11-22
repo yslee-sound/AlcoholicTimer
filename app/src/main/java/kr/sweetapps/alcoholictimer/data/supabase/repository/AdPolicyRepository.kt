@@ -1,6 +1,7 @@
 package kr.sweetapps.alcoholictimer.data.supabase.repository
 
 import android.util.Log
+import kr.sweetapps.alcoholictimer.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kr.sweetapps.alcoholictimer.data.supabase.model.AdPolicy
@@ -12,8 +13,8 @@ import org.json.JSONArray
  * and limits (app_open_max_per_hour/app_open_max_per_day) are respected.
  */
 class AdPolicyRepository(private val appId: String = "alcoholictimer", private val fetcher: Fetcher? = null) {
-    private val SUPABASE_URL = "https://bajurdtglfaiqilnpamt.supabase.co"
-    private val SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhanVyZHRnbGZhaXFpbG5wYW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5ODI2NzksImV4cCI6MjA3NzU1ODY3OX0.lqFbkf974wf-uYrY0VFuD7MwCiDF5hKTx-bIbVujfH4"
+    private val SUPABASE_URL: String = BuildConfig.SUPABASE_URL
+    private val SUPABASE_ANON_KEY: String = BuildConfig.SUPABASE_KEY
 
     @Volatile private var cached: AdPolicy? = null
 

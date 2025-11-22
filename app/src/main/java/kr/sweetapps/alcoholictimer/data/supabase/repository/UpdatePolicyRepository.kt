@@ -6,17 +6,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kr.sweetapps.alcoholictimer.data.supabase.model.UpdatePolicy
 import org.json.JSONArray
+import kr.sweetapps.alcoholictimer.BuildConfig
 
 /**
  * Implementation of UpdatePolicyRepository that fetches the active policy from Supabase REST
- * endpoint. The Supabase project URL and anon key are configurable here. This is a small,
- * dependency-free HTTP implementation using java.net.HttpURLConnection and org.json.
+ * endpoint. Supabase 설정은 BuildConfig (app/build.gradle.kts의 buildConfigField)에서 읽습니다.
  */
 class UpdatePolicyRepository(private val context: Context) {
-    // TODO: move these values to secure config (BuildConfig or resources). Using constants
-    // here because this repo previously used a stub.
-    private val SUPABASE_URL = "https://bajurdtglfaiqilnpamt.supabase.co"
-    private val SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhanVyZHRnbGZhaXFpbG5wYW10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE5ODI2NzksImV4cCI6MjA3NzU1ODY3OX0.lqFbkf974wf-uYrY0VFuD7MwCiDF5hKTx-bIbVujfH4"
+    private val SUPABASE_URL: String = BuildConfig.SUPABASE_URL
+    private val SUPABASE_ANON_KEY: String = BuildConfig.SUPABASE_KEY
 
     /**
      * Suspend function that attempts to fetch the currently active update policy from Supabase.
@@ -99,12 +97,6 @@ class UpdatePolicyRepository(private val context: Context) {
         } catch (e: Exception) {
             e.printStackTrace()
         }
-
-        // NOTE: Removed the development fallback that returned a sample UpdatePolicy for
-        // debug builds. This was causing the app to show the update dialog even when
-        // Supabase returned no active policy (for example when is_active=false).
-        // If you need a local debug fallback, add a controlled flag (not enabled by default)
-        // so that Supabase's is_active setting is respected.
 
         return@withContext null
     }

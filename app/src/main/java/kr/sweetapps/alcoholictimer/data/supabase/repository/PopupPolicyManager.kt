@@ -6,8 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * Simple policy manager stub that decides whether to show an update dialog.
- * The real implementation should call Supabase and apply business rules.
+ * Simple policy manager stub that decides whether to show an update dialog or notice.
  */
 class PopupPolicyManager(
     private val emergencyRepo: EmergencyPolicyRepository,
@@ -43,6 +42,24 @@ class PopupPolicyManager(
         } catch (e: Exception) {
             e.printStackTrace()
         }
+
+        // Check notice policy (latest active announcement) and decide to show if not seen
+        try {
+            val announcement = try { noticeRepo.getLatestActiveAnnouncement() } catch (e: Exception) { null }
+            if (announcement != null && announcement.isActive) {
+                val prefs = context.getSharedPreferences("popup_prefs", Context.MODE_PRIVATE)
+                val key = "last_notice_version_${context.packageName}"
+                val lastSeen = prefs.getInt(key, -1)
+                val currentVersion = announcement.noticeVersion
+                android.util.Log.d("PopupPolicyManager", "Found announcement id=${announcement.id} version=$currentVersion lastSeen=$lastSeen")
+                if (currentVersion != lastSeen) {
+                    return@withContext PopupDecision.ShowNotice(announcement)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
         return@withContext PopupDecision.None
     }
 

@@ -22,6 +22,7 @@ import kr.sweetapps.alcoholictimer.data.supabase.repository.PopupPolicyManager
 import kr.sweetapps.alcoholictimer.data.supabase.repository.UpdatePolicyRepository
 import kr.sweetapps.alcoholictimer.data.supabase.model.PopupDecision
 import kr.sweetapps.alcoholictimer.ui.dialogs.OptionalUpdateDialog
+import kr.sweetapps.alcoholictimer.data.supabase.model.Announcement
 import androidx.compose.ui.graphics.Color
 
 // small noop comment to trigger reindex
@@ -222,29 +223,32 @@ private fun AppContentWithStart(
     val navController = rememberNavController()
     val context = LocalContext.current
 
-    // popup policy manager setup
-    // Note: Supabase client was removed; use stub repositories matching current constructors
+    // repositories & manager
     val emergencyRepo = remember { EmergencyPolicyRepository() }
     val updateRepo = remember { UpdatePolicyRepository(context) }
-    val noticeRepo = remember { NoticePolicyRepository() }
+    val noticeRepo = remember { NoticePolicyRepository(context) }
     val policyManager = remember { PopupPolicyManager(emergencyRepo, updateRepo, noticeRepo, context) }
 
-    val showOptionalUpdateDialogState = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
-    val currentUpdatePolicyState = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<kr.sweetapps.alcoholictimer.data.supabase.model.UpdatePolicy?>(null) }
+    val showUpdateDialog = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    val currentUpdatePolicy = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<kr.sweetapps.alcoholictimer.data.supabase.model.UpdatePolicy?>(null) }
+    val showNoticeDialog = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    val currentNotice = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<kr.sweetapps.alcoholictimer.data.supabase.model.Announcement?>(null) }
 
-    // decide popup once when UI rendered (after splash)
+    // decide once after splash hidden
     androidx.compose.runtime.LaunchedEffect(key1 = holdSplashState.value) {
         if (!holdSplashState.value) {
             try {
-                // decidePopup is suspend now
                 val decision = try { policyManager.decidePopup(android.os.Build.VERSION.RELEASE ?: "") } catch (e: Exception) { e.printStackTrace(); PopupDecision.None }
-                if (decision is PopupDecision.ShowUpdate) {
-                    val policy = decision.policy
-                    android.util.Log.d("MainActivity", "Update policy received: id=${policy.id} isForce=${policy.isForceUpdate} target=${policy.targetVersionCode} releaseNotes=${policy.releaseNotes}")
-                    currentUpdatePolicyState.value = policy
-                    showOptionalUpdateDialogState.value = true
-                } else {
-                    android.util.Log.d("MainActivity", "No update decision from PopupPolicyManager: $decision")
+                when (decision) {
+                    is PopupDecision.ShowUpdate -> {
+                        currentUpdatePolicy.value = decision.policy
+                        showUpdateDialog.value = true
+                    }
+                    is PopupDecision.ShowNotice -> {
+                        currentNotice.value = decision.announcement
+                        showNoticeDialog.value = true
+                    }
+                    else -> { /* none */ }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -252,40 +256,64 @@ private fun AppContentWithStart(
         }
     }
 
-    // 테마(윈도우 백그라운드)로 스플래시를 처리하므로, duplicate splash 문제를 방지하기 위해
-    // holdSplashState가 true인 동안에는 앱 UI를 렌더하지 않습니다. 테마 스플래시가 보이고,
-    // 광고가 끝나면 holdSplashState가 false로 바뀌어 BaseScaffold가 렌더됩니다.
+    // main content
     if (!holdSplashState.value) {
-        val contentBg = if (startDestination == kr.sweetapps.alcoholictimer.navigation.Screen.Run.route) Color(0xFFEEEDE9) else null
+        val contentBg = if (startDestination == Screen.Run.route) Color(0xFFEEEDE9) else null
         BaseScaffold(navController = navController, contentBackground = contentBg) {
             AlcoholicTimerNavGraph(navController, startDestination)
         }
     }
 
-    // show update dialog if present
-    if (showOptionalUpdateDialogState.value && currentUpdatePolicyState.value != null) {
-        val policy = currentUpdatePolicyState.value!!
+    // update dialog
+    if (showUpdateDialog.value && currentUpdatePolicy.value != null) {
+        val policy = currentUpdatePolicy.value!!
         OptionalUpdateDialog(
             isForce = policy.isForceUpdate,
             title = "앱 업데이트",
-            // pass releaseNotes into features list so the existing UI shows Supabase content
             features = listOf(policy.releaseNotes ?: "업데이트 안내 없음"),
-                 updateButtonText = "지금 업데이트",
-                 laterButtonText = "나중에",
-                 onUpdateClick = {
-                     val url = policy.downloadUrl ?: "https://play.google.com/store/apps/details?id=${context.packageName}"
-                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                     context.startActivity(intent)
-                 },
-                 onLaterClick = {
-                     // record later click
-                     policyManager.dismissUpdate(policy.targetVersionCode)
-                     showOptionalUpdateDialogState.value = false
-                 }
-             )
-         }
+            updateButtonText = "지금 업데이트",
+            laterButtonText = "나중에",
+            onUpdateClick = {
+                val url = policy.downloadUrl ?: "https://play.google.com/store/apps/details?id=${context.packageName}"
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(intent)
+            },
+            onLaterClick = {
+                policyManager.dismissUpdate(policy.targetVersionCode)
+                showUpdateDialog.value = false
+            }
+        )
+    }
+
+    // notice dialog
+    if (showNoticeDialog.value && currentNotice.value != null) {
+        val ann = currentNotice.value!!
+        AnnouncementAlert(announcement = ann, onDismiss = {
+            try {
+                val prefs = context.getSharedPreferences("popup_prefs", android.content.Context.MODE_PRIVATE)
+                val key = "last_notice_version_${context.packageName}"
+                prefs.edit().putInt(key, ann.noticeVersion).apply()
+            } catch (_: Throwable) {}
+            showNoticeDialog.value = false
+        })
+    }
 }
 
 @Composable
 fun AppContent() { AppContentWithStart(Screen.Start.route) }
+
+// Top-level composable for announcement dialog
+@Composable
+fun AnnouncementAlert(announcement: Announcement, onDismiss: () -> Unit) {
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { androidx.compose.material3.Text(text = announcement.title ?: "공지") },
+        text = { androidx.compose.material3.Text(text = announcement.content) },
+        confirmButton = {
+            androidx.compose.material3.TextButton(onClick = onDismiss) {
+                androidx.compose.material3.Text("닫기")
+            }
+        }
+    )
+}
