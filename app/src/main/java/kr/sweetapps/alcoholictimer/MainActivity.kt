@@ -23,6 +23,7 @@ import kr.sweetapps.alcoholictimer.data.supabase.repository.UpdatePolicyReposito
 import kr.sweetapps.alcoholictimer.data.supabase.model.PopupDecision
 import kr.sweetapps.alcoholictimer.ui.dialogs.OptionalUpdateDialog
 import kr.sweetapps.alcoholictimer.data.supabase.model.Announcement
+import kr.sweetapps.alcoholictimer.ui.dialogs.AnnouncementDialog
 import androidx.compose.ui.graphics.Color
 
 // small noop comment to trigger reindex
@@ -286,34 +287,23 @@ private fun AppContentWithStart(
         )
     }
 
-    // notice dialog
+    // notice dialog (use project AnnouncementDialog design)
     if (showNoticeDialog.value && currentNotice.value != null) {
         val ann = currentNotice.value!!
-        AnnouncementAlert(announcement = ann, onDismiss = {
-            try {
-                val prefs = context.getSharedPreferences("popup_prefs", android.content.Context.MODE_PRIVATE)
-                val key = "last_notice_version_${context.packageName}"
-                prefs.edit().putInt(key, ann.noticeVersion).apply()
-            } catch (_: Throwable) {}
-            showNoticeDialog.value = false
-        })
+        AnnouncementDialog(
+            announcement = ann,
+            onDismiss = {
+                try {
+                    val prefs = context.getSharedPreferences("popup_prefs", android.content.Context.MODE_PRIVATE)
+                    val key = "last_notice_version_${context.packageName}"
+                    prefs.edit().putInt(key, ann.noticeVersion).apply()
+                } catch (_: Throwable) {}
+                showNoticeDialog.value = false
+            }
+        )
     }
 }
 
 @Composable
 fun AppContent() { AppContentWithStart(Screen.Start.route) }
 
-// Top-level composable for announcement dialog
-@Composable
-fun AnnouncementAlert(announcement: Announcement, onDismiss: () -> Unit) {
-    androidx.compose.material3.AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { androidx.compose.material3.Text(text = announcement.title ?: "공지") },
-        text = { androidx.compose.material3.Text(text = announcement.content) },
-        confirmButton = {
-            androidx.compose.material3.TextButton(onClick = onDismiss) {
-                androidx.compose.material3.Text("닫기")
-            }
-        }
-    )
-}
