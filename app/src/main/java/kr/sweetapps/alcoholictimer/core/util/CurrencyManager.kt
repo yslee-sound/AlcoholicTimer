@@ -11,6 +11,7 @@ import java.util.Locale
  * 모든 금액은 내부적으로 KRW로 저장되며, 표시 시에만 변환됩니다.
  */
 object CurrencyManager {
+    private const val AUTO_CURRENCY_CODE = "AUTO"
 
     /**
      * 지원하는 통화 목록
@@ -80,16 +81,20 @@ object CurrencyManager {
     fun getSelectedCurrency(context: Context): CurrencyOption {
         val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
         val currencyCode = prefs.getString("currency", null)
+        val explicit = prefs.getBoolean("currency_explicit", false)
 
-        // 저장된 설정이 없으면 자동 감지
-        if (currencyCode == null) {
-            return getDefaultCurrency(context).also {
-                saveCurrency(context, it.code)
-            }
+        // If user hasn't explicitly chosen a currency, follow system locale dynamically
+        if (!explicit) {
+            return getDefaultCurrency(context)
+        }
+
+        // If explicit choice exists, respect it; treat AUTO or null as locale-based
+        if (currencyCode == null || currencyCode == AUTO_CURRENCY_CODE) {
+            return getDefaultCurrency(context)
         }
 
         return supportedCurrencies.find { it.code == currencyCode }
-            ?: supportedCurrencies.first()
+            ?: getDefaultCurrency(context)
     }
 
     /**
@@ -139,6 +144,7 @@ object CurrencyManager {
         context.getSharedPreferences("settings", Context.MODE_PRIVATE)
             .edit()
             .putString("currency", currencyCode)
+            .putBoolean("currency_explicit", true)
             .apply()
     }
 
@@ -150,9 +156,14 @@ object CurrencyManager {
      */
     fun initializeDefaultCurrency(context: Context) {
         val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+        // store AUTO sentinel so app follows system locale by default
         if (!prefs.contains("currency")) {
-            val defaultCurrency = getDefaultCurrency(context)
-            saveCurrency(context, defaultCurrency.code)
+            saveCurrency(context, AUTO_CURRENCY_CODE)
+            // mark as not explicit so it follows locale
+            context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean("currency_explicit", false)
+                .apply()
         }
     }
 }

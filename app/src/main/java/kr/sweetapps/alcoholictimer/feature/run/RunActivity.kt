@@ -427,10 +427,18 @@ fun RunScreenComposable(
                                                     }
                                                 }
                                             } else {
-                                                Text(text = valueText, style = bigStyle, textAlign = TextAlign.Center, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
+                                                Text(
+                                                    text = valueText,
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    style = bigStyle,
+                                                    textAlign = TextAlign.Center,
+                                                    maxLines = 1,
+                                                    softWrap = false,
+                                                    overflow = TextOverflow.Clip
+                                                )
                                             }
-                                        }
-                                    }
+                                         }
+                                     }
 
                                     // Bottom hint (작은 패딩으로 숫자와 가깝게 조정)
                                     Box(modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp), contentAlignment = Alignment.Center) {
