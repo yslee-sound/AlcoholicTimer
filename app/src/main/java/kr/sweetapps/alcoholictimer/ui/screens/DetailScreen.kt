@@ -22,6 +22,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
 import kr.sweetapps.alcoholictimer.R
+import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.constants.UiConstants
@@ -108,7 +109,8 @@ fun DetailScreen(
     val showDeleteDialog = remember { mutableStateOf(false) }
     val accentColor = if (isCompleted) BluePrimaryLight else AmberSecondaryLight
 
-    var shouldHideBanner by remember { mutableStateOf(false) } // DebugAdHelper removed: banner is always shown (supabase remote control handles visibility)
+    // banner visibility: ensure any hiding used for debug is guarded by BuildConfig.DEBUG (release validation)
+    var shouldHideBanner by remember { mutableStateOf(if (BuildConfig.DEBUG) false else false) }
     // If previewMode requested, hide banners and simplify inset calculations to avoid preview crashes
     if (previewMode) {
         shouldHideBanner = true

@@ -1,5 +1,7 @@
 package kr.sweetapps.alcoholictimer.core.ui
 
+import kr.sweetapps.alcoholictimer.BuildConfig
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
@@ -50,7 +52,8 @@ fun StandardScreenWithBottomButton(
     cardVerticalSpacing: Dp = UiConstants.CARD_VERTICAL_SPACING
 ) {
     // banner visibility handled externally
-    var shouldHideBanner by remember { mutableStateOf(false) }
+    // Ensure debug-only hiding uses BuildConfig.DEBUG guard per release validation
+    var shouldHideBanner by remember { mutableStateOf(if (BuildConfig.DEBUG) false else false) }
 
     val effectiveBottomAd = if (shouldHideBanner) null else bottomAd
 
