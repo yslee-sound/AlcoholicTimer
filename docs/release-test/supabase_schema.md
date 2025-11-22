@@ -12,6 +12,7 @@ ad_interstitial_max_per_hour integer not null default 3,
 ad_interstitial_max_per_day integer not null default 20,
 app_open_max_per_hour integer not null default 2,
 app_open_max_per_day integer not null default 15,
+app_open_cooldown_seconds integer not null default 60,
 constraint ad_policy_pkey primary key (id),
 constraint ad_policy_app_id_key unique (app_id)
 ) TABLESPACE pg_default;
