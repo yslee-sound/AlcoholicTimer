@@ -106,15 +106,33 @@ fun AdmobBanner(
             isFullScreenAdShowing = showing
             // 즉시 AdView를 숨기거나 다시 보이게 함 (UI 스레드에서 안전하게 실행)
             try {
-                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                val handler = android.os.Handler(android.os.Looper.getMainLooper())
+                val restoreRunnable = Runnable {
                     try {
                         val view = adViewRef
                         if (view != null) {
-                            view.visibility = if (showing) View.GONE else View.VISIBLE
-                            Log.d(TAG, "AdView visibility changed immediate -> showing=$showing visibility=${view.visibility}")
-                            // 만약 다시 보이게 될 때 아직 로드가 필요하면 로드 시도는 기존 로직(update)에서 처리됨
+                            try { view.visibility = View.VISIBLE } catch (_: Throwable) {}
+                            try { view.resume() } catch (_: Throwable) {}
+                            Log.d(TAG, "AdView restored: visibility=VISIBLE resumed")
                         }
                     } catch (_: Throwable) {}
+                }
+                if (showing) {
+                    // 숨김 즉시 적용, 재개 콜백 제거
+                    handler.removeCallbacks(restoreRunnable)
+                    handler.post {
+                        try {
+                            val view = adViewRef
+                            if (view != null) {
+                                try { view.pause() } catch (_: Throwable) {}
+                                try { view.visibility = View.GONE } catch (_: Throwable) {}
+                                Log.d(TAG, "AdView paused and hidden immediate")
+                            }
+                        } catch (_: Throwable) {}
+                    }
+                } else {
+                    // 복구는 짧은 지연을 두고 resume -> visibility
+                    handler.postDelayed(restoreRunnable, 300L)
                 }
             } catch (_: Throwable) {}
         }
@@ -205,18 +223,20 @@ fun AdmobBanner(
                     }
                 },
                 update = { adView ->
-                    // full-screen 상태에 따라 즉시 숨김/보이기 및 로드 제어
+                    // full-screen 상태에 따라 즉시 pause/hidden 또는 resume/visible 적용
                     try {
                         if (isFullScreenAdShowing) {
-                            if (adView.visibility != View.GONE) adView.visibility = View.GONE
-                            Log.d(TAG, "AndroidView update -> hiding AdView due to full-screen")
+                            try { if (adView.visibility != View.GONE) adView.visibility = View.GONE } catch (_: Throwable) {}
+                            try { adView.pause() } catch (_: Throwable) {}
+                            Log.d(TAG, "AndroidView update -> hiding+pause AdView due to full-screen")
                             return@AndroidView
                         } else {
-                            if (adView.visibility != View.VISIBLE) adView.visibility = View.VISIBLE
+                            try { if (adView.visibility != View.VISIBLE) adView.visibility = View.VISIBLE } catch (_: Throwable) {}
+                            try { adView.resume() } catch (_: Throwable) {}
                         }
                     } catch (_: Throwable) {}
 
-                    Log.d(TAG, "AndroidView update called; adViewRef=${adViewRef != null} loadState=$loadState isPolicyEnabled=$isPolicyEnabled")
+                     Log.d(TAG, "AndroidView update called; adViewRef=${adViewRef != null} loadState=$loadState isPolicyEnabled=$isPolicyEnabled")
                     val consentInfo = runCatching { UserMessagingPlatform.getConsentInformation(adView.context) }.getOrNull()
                     val canRequest = (consentInfo?.canRequestAds() == true) || BuildConfig.DEBUG
                     // Only request/load banner if policy allows (Supabase-controlled)
