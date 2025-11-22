@@ -59,6 +59,7 @@ import androidx.annotation.DrawableRes
 import kr.sweetapps.alcoholictimer.core.ui.AppColors
 import kr.sweetapps.alcoholictimer.core.ui.AppCard
 import androidx.compose.ui.draw.scale
+import kr.sweetapps.alcoholictimer.ads.AdController
 import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.ads.AdPolicyChecker
 
@@ -94,54 +95,30 @@ fun LevelScreen(onNavigateBack: () -> Unit = {}) {
                 val visits = try { sharedPref.getInt(LEVEL_VISITS_KEY, 0) } catch (_: Throwable) { 0 }
                 Log.d("LevelBack", "Back pressed, level visits=$visits")
 
-                val policy = try { AdPolicyChecker.fetchPolicy(context) } catch (t: Throwable) { Log.e("AdPolicyChecker", "fetch failed", t); AdPolicyChecker.AdPolicy() }
-                Log.d("AdPolicyChecker", "policy.enabled=${policy.enabled}, maxHour=${policy.maxPerHour}, maxDay=${policy.maxPerDay}")
-
-                if (policy.enabled && visits >= 3 && act != null) {
-                    // check local per-hour/day counters
-                    val now = System.currentTimeMillis()
-                    val hourKey = SimpleDateFormat("yyyyMMddHH", Locale.US).format(Date(now))
-                    val dayKey = SimpleDateFormat("yyyyMMdd", Locale.US).format(Date(now))
-
-                    val storedHourKey = sharedPref.getString("ad_shown_hour_key", null)
-                    var hourCount = sharedPref.getInt("ad_shown_hour_count", 0)
-                    if (storedHourKey != hourKey) {
-                        hourCount = 0
-                        sharedPref.edit().putString("ad_shown_hour_key", hourKey).putInt("ad_shown_hour_count", 0).apply()
-                    }
-
-                    val storedDayKey = sharedPref.getString("ad_shown_day_key", null)
-                    var dayCount = sharedPref.getInt("ad_shown_day_count", 0)
-                    if (storedDayKey != dayKey) {
-                        dayCount = 0
-                        sharedPref.edit().putString("ad_shown_day_key", dayKey).putInt("ad_shown_day_count", 0).apply()
-                    }
-
-                    Log.d("AdPolicyChecker", "localCounts hour=$hourCount day=$dayCount")
-
-                    val underHour = hourCount < policy.maxPerHour
-                    val underDay = dayCount < policy.maxPerDay
-
-                    if (underHour && underDay) {
-                        val showed = InterstitialAdManager.maybeShowIfEligible(act) {
-                            Log.d("LevelBack", "Interstitial dismissed -> increment counters, reset visits and navigate back")
-                            try {
-                                // increment counts
-                                sharedPref.edit().putInt("ad_shown_hour_count", hourCount + 1).putInt("ad_shown_day_count", dayCount + 1).apply()
-                            } catch (_: Throwable) {}
-                            try { sharedPref.edit().putInt(LEVEL_VISITS_KEY, 0).apply() } catch (_: Throwable) {}
+                // Centralized check: use AdController which holds supabase policy and counters
+                if (act == null || visits < 3) {
+                    try { onNavigateBack() } catch (_: Throwable) {}
+                } else {
+                    try {
+                        Log.d("LevelBack", "AdController.snapshot-before -> ${AdController.debugSnapshot()}")
+                        val allowed = AdController.canShowInterstitial(context)
+                        Log.d("LevelBack", "AdController.canShowInterstitial returned=$allowed | snapshot-after -> ${AdController.debugSnapshot()}")
+                        if (!allowed) {
+                            Log.d("LevelBack", "Interstitial suppressed by AdController policy")
                             try { onNavigateBack() } catch (_: Throwable) {}
+                        } else {
+                            val showed = InterstitialAdManager.maybeShowIfEligible(act) {
+                                Log.d("LevelBack", "Interstitial dismissed callback -> ${AdController.debugSnapshot()}")
+                                try { sharedPref.edit().putInt(LEVEL_VISITS_KEY, 0).apply() } catch (_: Throwable) {}
+                                try { onNavigateBack() } catch (_: Throwable) {}
+                            }
+                            Log.d("LevelBack", "maybeShowIfEligible returned: $showed")
+                            if (!showed) try { onNavigateBack() } catch (_: Throwable) {}
                         }
-                        Log.d("LevelBack", "maybeShowIfEligible returned: $showed")
-                        if (!showed) {
-                            try { onNavigateBack() } catch (_: Throwable) {}
-                        }
-                    } else {
-                        Log.d("AdPolicyChecker", "Ad quota exceeded (hour/day) — skipping ad")
+                    } catch (t: Throwable) {
+                        Log.e("LevelBack", "ad check failed, navigating back", t)
                         try { onNavigateBack() } catch (_: Throwable) {}
                     }
-                } else {
-                    try { onNavigateBack() } catch (_: Throwable) {}
                 }
             } catch (t: Throwable) {
                 Log.e("LevelBack", "BackHandler coroutine failed", t)

@@ -1,3 +1,4 @@
+@file:Suppress("unused", "UNUSED_PARAMETER")
 package kr.sweetapps.alcoholictimer.ads
 
 import android.app.Activity
@@ -11,7 +12,6 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import kr.sweetapps.alcoholictimer.BuildConfig
-import kr.sweetapps.alcoholictimer.ads.AdController
 
 object InterstitialAdManager {
     private const val TAG = "InterstitialAdManager"
@@ -84,21 +84,39 @@ object InterstitialAdManager {
                 }
             } catch (_: Throwable) {}
 
+            // Enforce remote policy limits for interstitials
+            try {
+                if (!AdController.canShowInterstitial(activity)) {
+                    Log.d(TAG, "maybeShowIfEligible: Blocked by policy: interstitial_rate_limit")
+                    return false
+                }
+            } catch (_: Throwable) {}
+
             // If an ad is already loaded, show it immediately
             val ad = interstitial
             if (ad != null) {
+                // Reserve slot atomically; if not allowed, skip show
+                try {
+                    val reserved = AdController.reserveInterstitialSlot()
+                    if (!reserved) {
+                        Log.d(TAG, "maybeShowIfEligible: reservation failed -> rate limit reached")
+                        return false
+                    }
+                } catch (_: Throwable) {
+                    // fallback: if reservation API fails, proceed conservatively
+                    Log.w(TAG, "maybeShowIfEligible: reserveInterstitialSlot threw")
+                    return false
+                }
+
                 tryShowAd(activity, ad, onDismiss)
                 return true
             }
 
-            // Not loaded: start loading and show when ready. Return true to indicate we will attempt to show.
-            // If loading fails, we'll call onDismiss automatically.
+            // Not loaded: start loading but return false so caller does not assume an immediate/guaranteed show.
+            // This avoids situations where caller suppresses navigation expecting a show that won't occur.
             preload(activity.applicationContext)
-            // Attach a temporary load callback by reloading with a custom callback to show when loaded.
             if (!isLoading) loadInterstitial(activity.applicationContext)
-            // We will show when loaded via the global interstitial reference if possible. To ensure
-            // the caller does not navigate away, return true indicating an ad attempt.
-            return true
+            return false
         } catch (t: Throwable) {
             Log.e(TAG, "maybeShowIfEligible failed", t)
             // Fallback to debug dialog
@@ -127,18 +145,44 @@ object InterstitialAdManager {
                     interstitial = null
                     // clear flags on failure
                     try { AdController.setInterstitialShowing(false); AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
+                    // revert reservation because ad did not actually show
+                    try { AdController.unreserveInterstitialSlot() } catch (_: Throwable) {}
                     try { onDismiss?.invoke() } catch (_: Throwable) {}
                 }
 
                 override fun onAdShowedFullScreenContent() {
                     Log.d(TAG, "onAdShowedFullScreenContent")
+                    // Ad was shown; reservation already accounted for limits
                 }
             }
+            // Final policy check just before showing (avoid race where policy changed or counters reached)
+            try {
+                if (!AdController.canShowInterstitial(activity)) {
+                    Log.d(TAG, "tryShowAd: final policy check denied -> unreserve and skip show")
+                    try { AdController.unreserveInterstitialSlot() } catch (_: Throwable) {}
+                    // clear flags set above
+                    try { AdController.setInterstitialShowing(false); AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
+                    isShowing = false
+                    interstitial = null
+                    try { onDismiss?.invoke() } catch (_: Throwable) {}
+                    return
+                }
+            } catch (_: Throwable) { /* if policy check fails, be conservative and skip showing */
+                try { AdController.unreserveInterstitialSlot() } catch (_: Throwable) {}
+                try { AdController.setInterstitialShowing(false); AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
+                isShowing = false
+                interstitial = null
+                try { onDismiss?.invoke() } catch (_: Throwable) {}
+                return
+            }
+
             ad.show(activity)
         } catch (t: Throwable) {
             Log.e(TAG, "show failed", t)
             isShowing = false
             interstitial = null
+            // revert reservation since show failed
+            try { AdController.unreserveInterstitialSlot() } catch (_: Throwable) {}
             // fallback dialog
             forceShowDebug(activity, onDismiss)
         }

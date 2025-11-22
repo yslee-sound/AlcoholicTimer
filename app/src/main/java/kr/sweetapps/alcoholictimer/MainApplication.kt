@@ -25,7 +25,10 @@ class MainApplication : Application() {
             try {
                 if (policy?.adInterstitialEnabled == true) {
                     android.util.Log.d("MainApplication", "Policy enables interstitial -> preloading interstitial")
-                    InterstitialAdManager.preload(applicationContext)
+                    // preload must run on main/UI thread (InterstitialAd.load enforces main thread)
+                    android.os.Handler(android.os.Looper.getMainLooper()).post {
+                        try { InterstitialAdManager.preload(applicationContext) } catch (_: Throwable) {}
+                    }
                 }
             } catch (_: Throwable) {}
         }

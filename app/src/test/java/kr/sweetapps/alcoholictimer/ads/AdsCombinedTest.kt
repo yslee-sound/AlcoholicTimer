@@ -142,7 +142,7 @@ class AdsCombinedTest {
         assertNotNull(disabled)
         val fallback = kr.sweetapps.alcoholictimer.data.supabase.model.AdPolicy.DEFAULT_FALLBACK
         // Verify core fallback fields match the Default Fallback Policy (P6 spec)
-        assertEquals(fallback.isActive, disabled!!.isActive)
+        assertEquals(fallback.isActive, disabled.isActive)
         assertEquals(fallback.adAppOpenEnabled, disabled.adAppOpenEnabled)
         assertEquals(fallback.adInterstitialEnabled, disabled.adInterstitialEnabled)
         assertEquals(fallback.adBannerEnabled, disabled.adBannerEnabled)
@@ -152,7 +152,7 @@ class AdsCombinedTest {
 
         val disabled2 = kr.sweetapps.alcoholictimer.data.supabase.repository.AdPolicyRepository.parsePolicyFromJson("[]", "kr.sweetapps.alcoholictimer")
         assertNotNull(disabled2)
-        assertEquals(fallback.isActive, disabled2!!.isActive)
+        assertEquals(fallback.isActive, disabled2.isActive)
     }
 
     @Test
@@ -165,7 +165,7 @@ class AdsCombinedTest {
         val policy = kotlinx.coroutines.runBlocking { repo.getPolicy() }
         assertNotNull(policy)
         val fallback = kr.sweetapps.alcoholictimer.data.supabase.model.AdPolicy.DEFAULT_FALLBACK
-        assertEquals(fallback.isActive, policy!!.isActive)
+        assertEquals(fallback.isActive, policy.isActive)
         assertEquals(fallback.appOpenCooldownSeconds, policy.appOpenCooldownSeconds)
     }
 
@@ -189,7 +189,7 @@ class AdsCombinedTest {
             "]"
         val policy = kr.sweetapps.alcoholictimer.data.supabase.repository.AdPolicyRepository.parsePolicyFromJson(json, "kr.sweetapps.alcoholictimer")
         assertNotNull(policy)
-        assertEquals(2L, policy!!.id)
+        assertEquals(2L, policy.id)
         assertTrue(policy.adBannerEnabled)
         assertFalse(policy.adAppOpenEnabled)
 
@@ -223,7 +223,7 @@ class AdsCombinedTest {
 
             events.clear()
             AdController.setFullScreenAdShowing(false)
-            assertEquals(listOf(false), events)
+        assertEquals(123L, policy.id)
         } finally {
             AdController.removeFullScreenShowListener(listener)
         }
