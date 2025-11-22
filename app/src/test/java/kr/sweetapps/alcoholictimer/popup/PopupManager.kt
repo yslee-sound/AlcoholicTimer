@@ -52,7 +52,8 @@ class PopupManager(
         try {
             val notice = repo.getNotice()
             if (notice != null && notice.is_active) {
-                if (prefs.lastSeenNoticeVersion != notice.notice_version) {
+                // show only if policy version is strictly greater than last seen
+                if (notice.notice_version > prefs.lastSeenNoticeVersion) {
                     return PopupResult.Notice(notice)
                 }
             }
@@ -63,4 +64,3 @@ class PopupManager(
         return PopupResult.None
     }
 }
-
