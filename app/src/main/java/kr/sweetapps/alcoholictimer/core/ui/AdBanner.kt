@@ -95,7 +95,13 @@ fun AdmobBanner(
     }
     val isPolicyEnabled by remember { derivedStateOf { isPolicyEnabledState.value } }
     val isInterstitialShowing = kr.sweetapps.alcoholictimer.ads.AdController.isInterstitialShowingNow()
-    val isFullScreenAdShowing = kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing()
+    // full-screen 상태(앱오프닝 등)를 실시간으로 구독하여 배너가 즉시 숨겨지도록 함
+    var isFullScreenAdShowing by remember { mutableStateOf(kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing()) }
+    DisposableEffect(Unit) {
+        val fsListener: (Boolean) -> Unit = { showing -> isFullScreenAdShowing = showing }
+        kr.sweetapps.alcoholictimer.ads.AdController.addFullScreenShowListener(fsListener)
+        onDispose { kr.sweetapps.alcoholictimer.ads.AdController.removeFullScreenShowListener(fsListener) }
+    }
     val shouldShowBanner = isPolicyEnabled && !isInterstitialShowing && !isFullScreenAdShowing
     val placeholderColor = if (isInterstitialShowing) Color.Black else MaterialTheme.colorScheme.surface
     LaunchedEffect(shouldShowBanner) { Log.d(TAG, "banner visible=$shouldShowBanner h=$predictedHeight") }

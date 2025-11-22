@@ -249,12 +249,16 @@ object AppOpenAdManager {
                         Log.d(TAG, "showIfAvailable -> decor-post pre-show check finishing=$finishing destroyed=$destroyed isShowing=$isShowing isShowScheduled=$isShowScheduled")
                         if (!finishing && !destroyed && !isShowing) {
                             try {
+                                // Mark that a full-screen ad is going to be shown so other ad types (e.g. banners) can hide immediately
+                                try { AdController.setFullScreenAdShowing(true) } catch (_: Throwable) {}
                                 ad.show(activity)
                                 shown = true
                                 Log.d(TAG, "ad.show() invoked via decorView.post")
                             } catch (t: Throwable) {
                                 Log.w(TAG, "ad.show threw: $t")
                                 isShowScheduled = false
+                                // Ensure the full-screen flag is cleared if showing failed to start
+                                try { AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
                             }
                         } else {
                             Log.w(TAG, "ad.show skipped because activity not valid (finishing=$finishing destroyed=$destroyed isShowing=$isShowing)")

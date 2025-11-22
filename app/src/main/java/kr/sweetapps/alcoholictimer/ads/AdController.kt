@@ -35,6 +35,7 @@ object AdController {
     // runtime flags
     private val interstitialShowing = AtomicBoolean(false)
     private val fullScreenAdShowing = AtomicBoolean(false)
+    private val fullScreenListeners = mutableSetOf<(Boolean) -> Unit>()
 
     data class Policy(
         val adBannerEnabled: Boolean = false,
@@ -99,7 +100,16 @@ object AdController {
     fun isAppOpenEnabled(): Boolean = currentPolicy?.adAppOpenEnabled ?: false
     fun isFullScreenAdShowing(): Boolean = fullScreenAdShowing.get()
     fun setInterstitialShowing(showing: Boolean) { interstitialShowing.set(showing) }
-    fun setFullScreenAdShowing(showing: Boolean) { fullScreenAdShowing.set(showing) }
+    fun setFullScreenAdShowing(showing: Boolean) {
+        fullScreenAdShowing.set(showing)
+        // notify listeners of change
+        val copy: List<(Boolean) -> Unit>
+        synchronized(fullScreenListeners) { copy = fullScreenListeners.toList() }
+        for (l in copy) { try { l.invoke(showing) } catch (_: Throwable) {} }
+    }
+
+    fun addFullScreenShowListener(listener: (Boolean) -> Unit) { synchronized(fullScreenListeners) { fullScreenListeners.add(listener) }; try { listener.invoke(fullScreenAdShowing.get()) } catch (_: Throwable) {} }
+    fun removeFullScreenShowListener(listener: (Boolean) -> Unit) { synchronized(fullScreenListeners) { fullScreenListeners.remove(listener) } }
 
     // Added compatibility/state helpers used by UI callers (preserve old names expected by Compose files)
     fun isBannerEnabledState(): Boolean = currentPolicy?.adBannerEnabled ?: false
