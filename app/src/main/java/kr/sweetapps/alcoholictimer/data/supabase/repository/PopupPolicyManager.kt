@@ -19,6 +19,15 @@ class PopupPolicyManager(
      */
     suspend fun decidePopup(osVersion: String): PopupDecision = withContext(Dispatchers.IO) {
         try {
+            // Emergency policy has highest priority
+            try {
+                val em = try { emergencyRepo.getActivePolicy() } catch (e: Exception) { null }
+                if (em != null && em.isActive) {
+                    android.util.Log.d("PopupPolicyManager", "Deciding to show emergency dialog id=${em.id}")
+                    return@withContext PopupDecision.ShowEmergency(em)
+                }
+            } catch (e: Exception) { e.printStackTrace() }
+
             val active = updateRepo.getActivePolicy()
             if (active != null) {
                 // get current version code

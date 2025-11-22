@@ -24,6 +24,7 @@ import kr.sweetapps.alcoholictimer.data.supabase.model.PopupDecision
 import kr.sweetapps.alcoholictimer.ui.dialogs.OptionalUpdateDialog
 import kr.sweetapps.alcoholictimer.data.supabase.model.Announcement
 import kr.sweetapps.alcoholictimer.ui.dialogs.AnnouncementDialog
+import kr.sweetapps.alcoholictimer.ui.dialogs.EmergencyRedirectDialog
 import androidx.compose.ui.graphics.Color
 
 // small noop comment to trigger reindex
@@ -225,7 +226,7 @@ private fun AppContentWithStart(
     val context = LocalContext.current
 
     // repositories & manager
-    val emergencyRepo = remember { EmergencyPolicyRepository() }
+    val emergencyRepo = remember { EmergencyPolicyRepository(context) }
     val updateRepo = remember { UpdatePolicyRepository(context) }
     val noticeRepo = remember { NoticePolicyRepository(context) }
     val policyManager = remember { PopupPolicyManager(emergencyRepo, updateRepo, noticeRepo, context) }
@@ -234,6 +235,8 @@ private fun AppContentWithStart(
     val currentUpdatePolicy = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<kr.sweetapps.alcoholictimer.data.supabase.model.UpdatePolicy?>(null) }
     val showNoticeDialog = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     val currentNotice = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<kr.sweetapps.alcoholictimer.data.supabase.model.Announcement?>(null) }
+    val showEmergencyDialog = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    val currentEmergency = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<kr.sweetapps.alcoholictimer.data.supabase.model.EmergencyPolicy?>(null) }
 
     // decide once after splash hidden
     androidx.compose.runtime.LaunchedEffect(key1 = holdSplashState.value) {
@@ -241,12 +244,20 @@ private fun AppContentWithStart(
             try {
                 val decision = try { policyManager.decidePopup(android.os.Build.VERSION.RELEASE ?: "") } catch (e: Exception) { e.printStackTrace(); PopupDecision.None }
                 when (decision) {
-                    is PopupDecision.ShowUpdate -> {
-                        currentUpdatePolicy.value = decision.policy
+                    is kr.sweetapps.alcoholictimer.data.supabase.model.PopupDecision.ShowEmergency -> {
+                        currentEmergency.value = decision.policy
+                        showEmergencyDialog.value = true
+                    }
+                    is kr.sweetapps.alcoholictimer.data.supabase.model.PopupDecision.ShowUpdate -> {
+                        // explicit cast to access the UpdatePolicy payload when smart-cast fails
+                        val pol = (decision as kr.sweetapps.alcoholictimer.data.supabase.model.PopupDecision.ShowUpdate).policy
+                        currentUpdatePolicy.value = pol
                         showUpdateDialog.value = true
                     }
-                    is PopupDecision.ShowNotice -> {
-                        currentNotice.value = decision.announcement
+                    is kr.sweetapps.alcoholictimer.data.supabase.model.PopupDecision.ShowNotice -> {
+                        // explicit cast to access the Announcement payload when smart-cast fails
+                        val ann = (decision as kr.sweetapps.alcoholictimer.data.supabase.model.PopupDecision.ShowNotice).announcement
+                        currentNotice.value = ann
                         showNoticeDialog.value = true
                     }
                     else -> { /* none */ }
@@ -302,8 +313,21 @@ private fun AppContentWithStart(
             }
         )
     }
+
+    // emergency dialog
+    if (showEmergencyDialog.value && currentEmergency.value != null) {
+        val em = currentEmergency.value!!
+        EmergencyRedirectDialog(
+            title = "긴급 공지",
+            description = em.content,
+            newAppPackage = em.appId ?: context.packageName,
+            redirectUrl = em.redirectUrl,
+            buttonText = em.buttonText ?: "확인",
+            isDismissible = em.isDismissible,
+            onDismiss = { showEmergencyDialog.value = false }
+        )
+    }
 }
 
 @Composable
 fun AppContent() { AppContentWithStart(Screen.Start.route) }
-

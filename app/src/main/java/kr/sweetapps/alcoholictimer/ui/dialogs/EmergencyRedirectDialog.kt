@@ -3,8 +3,6 @@ package kr.sweetapps.alcoholictimer.ui.dialogs
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.util.Log
-import androidx.core.net.toUri
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -31,35 +29,27 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.net.toUri
 import kr.sweetapps.alcoholictimer.R
 
 /**
- * 긴급 상황 앱 전환 안내 팝업 (dialogs 스타일)
- * - 원래 dialogs 구현 스타일을 복원했습니다.
- * - DebugActivity 같은 기존 호출부와 호환되도록 파라미터를 확장(호환성 유지).
+ * 긴급 상황 앱 전환 안내 팝업
+ * 앱 스토어 출시 중지, 서비스 종료 등 긴급 상황에서 사용
  */
 @Composable
 fun EmergencyRedirectDialog(
     title: String = "공지",
     description: String,
-    // 호환성을 위해 newAppName도 허용(예: 기존 screens에서 사용)
-    newAppName: String? = null,
-    // play store 패키지
     newAppPackage: String,
-    // 외부 리다이렉트 URL(있으면 웹으로 이동)
     redirectUrl: String? = null,
     buttonText: String = "확인",
     supportUrl: String? = null,
     supportButtonText: String = "자세히 보기",
-    // 기존 파라미터 유지 (미사용 가능)
-    canMigrateData: Boolean = false,
     isDismissible: Boolean = false,
     onDismiss: (() -> Unit)? = null,
-    badgeText: String? = null,
-    migrationMessage: String? = null
+    badgeText: String? = null  // 기본값을 null로 변경 (배지 안 보임)
 ) {
     val context = LocalContext.current
-    Log.d("EmergencyRedirectDialog", "Showing dialog with title: $title, description: $description")
     Dialog(
         onDismissRequest = { if (isDismissible) onDismiss?.invoke() },
         properties = DialogProperties(
@@ -83,7 +73,9 @@ fun EmergencyRedirectDialog(
                 colors = CardDefaults.cardColors(
                     containerColor = Color.White
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 16.dp
+                )
             ) {
                 Box {
                     Column(
@@ -94,7 +86,7 @@ fun EmergencyRedirectDialog(
                             .padding(32.dp)
                             .padding(top = if (isDismissible) 16.dp else 0.dp)
                     ) {
-                        // dialogs 스타일: 경고 아이콘/이미지
+                        // 상단 아이콘(교체 가능 리소스)
                         Image(
                             painter = painterResource(id = R.drawable.emergency_notice),
                             contentDescription = null,
@@ -103,7 +95,7 @@ fun EmergencyRedirectDialog(
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        // 제목 — 기존 dialogs는 이모티콘 제거
+                        // 제목 (이모티콘 제거)
                         Text(
                             text = title.replace("🚨", "").trim(),
                             fontSize = 26.sp,
@@ -112,23 +104,26 @@ fun EmergencyRedirectDialog(
                             textAlign = TextAlign.Center
                         )
 
+                        // 배지 삭제 (badgeText 무시)
+
                         Spacer(modifier = Modifier.height(14.dp))
 
-                        // 설명 — dialogs 스타일은 왼쪽 정렬, 전체 너비 사용
+                        // 설명
                         Text(
                             text = description,
                             fontSize = 15.sp,
                             color = Color(0xFF666666),
-                            textAlign = TextAlign.Start,
+                            textAlign = TextAlign.Start, // 좌측 정렬
                             lineHeight = 22.sp,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 8.dp)
                         )
 
+                        // 파란 안내 박스 및 관련 여백 제거
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // 버튼: redirectUrl이 우선, 아니면 Play Store로
+                        // 설치 버튼 (전체 너비)
                         Button(
                             onClick = {
                                 if (!redirectUrl.isNullOrBlank()) {
@@ -151,7 +146,7 @@ fun EmergencyRedirectDialog(
                             )
                         }
 
-                        // 하단 링크(옵션)
+                        // 하단 링크(옵션) – 링크 스타일(리플 제거 + 눌림 시 밑줄/색상 변화)
                         supportUrl?.let { url ->
                             Spacer(modifier = Modifier.height(10.dp))
                             val interaction = remember { MutableInteractionSource() }
