@@ -42,6 +42,8 @@ class AppOpenOverlayActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         try {
+            // Mark full-screen ad showing immediately so UI banners hide while overlay is visible
+            try { kr.sweetapps.alcoholictimer.ads.AdController.setFullScreenAdShowing(true) } catch (_: Throwable) {}
             // Ensure the window is translucent/transparent and doesn't dim underlying splash
             // Remove any title bar to avoid duplicate UI above the ad
             try { requestWindowFeature(Window.FEATURE_NO_TITLE) } catch (_: Throwable) {}
@@ -94,6 +96,8 @@ class AppOpenOverlayActivity : Activity() {
         // Unregister listeners
         try { AppOpenAdManager.setOnAdFinishedListener(null) } catch (_: Throwable) {}
         try { AppOpenAdManager.setOnAdLoadFailedListener(null) } catch (_: Throwable) {}
+        // Ensure full-screen flag cleared when overlay is destroyed
+        try { kr.sweetapps.alcoholictimer.ads.AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
     }
 
     override fun onPause() {
