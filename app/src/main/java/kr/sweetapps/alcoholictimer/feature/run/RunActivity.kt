@@ -56,6 +56,9 @@ import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.navigation.Screen
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.rememberTextMeasurer
 
 @Composable
 fun RunScreenComposable(
@@ -324,83 +327,108 @@ fun RunScreenComposable(
                                     // Middle: center main value (no weight so it stays close to label/hint)
                                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                                         val baseStyle = MaterialTheme.typography.headlineMedium
-                                        // User requested: increase multiplier to 2.0 to make central number much larger
-                                        val bigSize = (baseStyle.fontSize.value * 2.5f).sp
-                                        val bigStyle = baseStyle.copy(
-                                            fontWeight = FontWeight.ExtraBold,
-                                            color = Color.White,
-                                            fontSize = bigSize,
-                                            lineHeight = bigSize * 1.05f,
-                                            platformStyle = PlatformTextStyle(includeFontPadding = false),
-                                            fontFeatureSettings = "tnum",
-                                            shadow = Shadow(color = Color.Black.copy(alpha = 0.55f), offset = Offset(0f, 2f), blurRadius = 4f)
-                                        )
-                                        val unitStyle = baseStyle.copy(
-                                            color = Color.White,
-                                            fontWeight = FontWeight.SemiBold,
-                                            // Increase unit font size to keep unit readable with much larger main number
-                                            fontSize = baseStyle.fontSize * 1.25f,
-                                            lineHeight = baseStyle.fontSize * 1.15f,
-                                            platformStyle = PlatformTextStyle(includeFontPadding = false),
-                                            shadow = Shadow(color = Color.Black.copy(alpha = 0.45f), offset = Offset(0f, 1f), blurRadius = 2f)
-                                        )
+                                        // 자동 축소: 가용 너비에 맞춰 큰 숫자 폰트 크기 계산
+                                        val textMeasurer = rememberTextMeasurer()
+                                        val density = LocalDensity.current
+                                        val baseFontSp = baseStyle.fontSize
+                                        val maxMultiplier = 2.5f
+                                        val minMultiplier = 0.6f
 
-                                        val isMoney = currentIndicator == 2
-                                        val isLifeGain = currentIndicator == 4
-                                        if (isMoney) {
-                                            val dollarMatch = Regex("""\$([0-9,]+(?:\.[0-9]+)?)""").find(valueText)
-                                            val yenMatch = Regex("""¥([0-9,]+)""").find(valueText)
-                                            when {
-                                                dollarMatch != null -> {
-                                                    val numeric = dollarMatch.groupValues[1]
-                                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                                                        Text(text = "$", style = unitStyle)
-                                                        Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
+                                        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                                            val maxWpx = with(density) { maxWidth.toPx() }
+                                            // 초기 폰트 크기(px)
+                                            val initialSizeSp = (baseFontSp.value * maxMultiplier)
+                                            // 측정 루프: 초기 크기에서 최소 크기까지 감소시키며 가로 공간에 맞추기
+                                            val chosenSizeSp = remember(valueText, maxWpx) {
+                                                var s = initialSizeSp
+                                                val minSize = baseFontSp.value * minMultiplier
+                                                while (s >= minSize) {
+                                                    val styleTry = baseStyle.copy(fontSize = s.sp, platformStyle = PlatformTextStyle(includeFontPadding = false))
+                                                    val result = try { textMeasurer.measure(AnnotatedString(valueText), style = styleTry) } catch (_: Throwable) { null }
+                                                    val textW = result?.size?.width ?: 0
+                                                    if (textW <= maxWpx * 0.92f) break
+                                                    s -= 2f // 감소 스텝 (sp)
+                                                }
+                                                s.coerceAtLeast(minSize)
+                                            }
+
+                                            val bigStyle = baseStyle.copy(
+                                                fontWeight = FontWeight.ExtraBold,
+                                                color = Color.White,
+                                                fontSize = chosenSizeSp.sp,
+                                                lineHeight = chosenSizeSp.sp * 1.05f,
+                                                platformStyle = PlatformTextStyle(includeFontPadding = false),
+                                                fontFeatureSettings = "tnum",
+                                                shadow = Shadow(color = Color.Black.copy(alpha = 0.55f), offset = Offset(0f, 2f), blurRadius = 4f)
+                                            )
+
+                                            val unitStyle = baseStyle.copy(
+                                                color = Color.White,
+                                                fontWeight = FontWeight.SemiBold,
+                                                fontSize = (baseFontSp.value * 1.25f).sp,
+                                                lineHeight = baseFontSp * 1.15f,
+                                                platformStyle = PlatformTextStyle(includeFontPadding = false),
+                                                shadow = Shadow(color = Color.Black.copy(alpha = 0.45f), offset = Offset(0f, 1f), blurRadius = 2f)
+                                            )
+
+                                            // 숫자/단위 렌더링은 기존 로직과 동일하게 사용
+                                            val isMoney = currentIndicator == 2
+                                            val isLifeGain = currentIndicator == 4
+                                            if (isMoney) {
+                                                val dollarMatch = Regex("""\$([0-9,]+(?:\.[0-9]+)?)""").find(valueText)
+                                                val yenMatch = Regex("""¥([0-9,]+)""").find(valueText)
+                                                when {
+                                                    dollarMatch != null -> {
+                                                        val numeric = dollarMatch.groupValues[1]
+                                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+                                                            Text(text = "$", style = unitStyle)
+                                                            Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
+                                                        }
+                                                    }
+                                                    yenMatch != null -> {
+                                                        val numeric = yenMatch.groupValues[1]
+                                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+                                                            Text(text = "¥", style = unitStyle)
+                                                            Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
+                                                        }
+                                                    }
+                                                    else -> {
+                                                        val numeric = valueText.replace("원", "").replace("₩", "").trim()
+                                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+                                                            Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
+                                                            Spacer(modifier = Modifier.width(2.dp))
+                                                            Text(text = "원", style = unitStyle)
+                                                        }
                                                     }
                                                 }
-                                                yenMatch != null -> {
-                                                    val numeric = yenMatch.groupValues[1]
-                                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                                                        Text(text = "¥", style = unitStyle)
-                                                        Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
-                                                    }
-                                                }
-                                                else -> {
-                                                    val numeric = valueText.replace("원", "").replace("₩", "").trim()
-                                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                                                        Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
+                                            } else if (isLifeGain) {
+                                                val twoPart = Regex("""(\d+)\s*(?:일|日|day\(s\))\s*([0-9]+(?:\.[0-9]+)?)\s*(?:시간|時間|hr\(s\))""")
+                                                val onePart = Regex("""([0-9]+(?:\.[0-9]+)?)\s*(?:시간|時間|hr\(s\))""")
+                                                val m1 = twoPart.find(valueText)
+                                                val m2 = if (m1 == null) onePart.find(valueText) else null
+                                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+                                                    if (m1 != null) {
+                                                        val dStr = m1.groupValues[1]
+                                                        val hStr = m1.groupValues[2]
+                                                        Text(text = dStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
                                                         Spacer(modifier = Modifier.width(2.dp))
-                                                        Text(text = "원", style = unitStyle)
+                                                        Text(text = stringResource(R.string.unit_day), style = unitStyle)
+                                                        Spacer(modifier = Modifier.width(6.dp))
+                                                        Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
+                                                        Spacer(modifier = Modifier.width(2.dp))
+                                                        Text(text = stringResource(R.string.unit_hour), style = unitStyle)
+                                                    } else if (m2 != null) {
+                                                        val hStr = m2.groupValues[1]
+                                                        Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
+                                                        Spacer(modifier = Modifier.width(2.dp))
+                                                        Text(text = stringResource(R.string.unit_hour), style = unitStyle)
+                                                    } else {
+                                                        Text(text = valueText, style = bigStyle, textAlign = TextAlign.Center, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
                                                     }
                                                 }
+                                            } else {
+                                                Text(text = valueText, style = bigStyle, textAlign = TextAlign.Center, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
                                             }
-                                        } else if (isLifeGain) {
-                                            val twoPart = Regex("""(\d+)\s*(?:일|日|day\(s\))\s*([0-9]+(?:\.[0-9]+)?)\s*(?:시간|時間|hr\(s\))""")
-                                            val onePart = Regex("""([0-9]+(?:\.[0-9]+)?)\s*(?:시간|時間|hr\(s\))""")
-                                            val m1 = twoPart.find(valueText)
-                                            val m2 = if (m1 == null) onePart.find(valueText) else null
-                                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                                                if (m1 != null) {
-                                                    val dStr = m1.groupValues[1]
-                                                    val hStr = m1.groupValues[2]
-                                                    Text(text = dStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
-                                                    Spacer(modifier = Modifier.width(2.dp))
-                                                    Text(text = stringResource(R.string.unit_day), style = unitStyle)
-                                                    Spacer(modifier = Modifier.width(6.dp))
-                                                    Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
-                                                    Spacer(modifier = Modifier.width(2.dp))
-                                                    Text(text = stringResource(R.string.unit_hour), style = unitStyle)
-                                                } else if (m2 != null) {
-                                                    val hStr = m2.groupValues[1]
-                                                    Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
-                                                    Spacer(modifier = Modifier.width(2.dp))
-                                                    Text(text = stringResource(R.string.unit_hour), style = unitStyle)
-                                                } else {
-                                                    Text(text = valueText, style = bigStyle, textAlign = TextAlign.Center, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
-                                                }
-                                            }
-                                        } else {
-                                            Text(text = valueText, style = bigStyle, textAlign = TextAlign.Center, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
                                         }
                                     }
 
