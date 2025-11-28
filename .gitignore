@@ -1,0 +1,48 @@
+# .gitignore for AlcoholicTimer
+
+# IDE / project files
+*.iml
+.gradle/
+/.idea/
+.DS_Store
+
+# Build outputs
+/build/
+/app/build/
+*.apk
+*.aab
+
+# Android specific
+/captures
+.externalNativeBuild/
+.cxx/
+
+# Local dev secrets
+local.properties
+supabase.key
+local.properties.bak
+*.bak
+build_release.ps1
+
+# Keystore / signing artifacts
+*.jks
+*.keystore
+*.p12
+keystore-local/
+keystore/
+keys/
+signing/
+
+# Logs
+*.log
+log_*.txt
+logdump*.txt
+
+# Generated files
+/app/google-services.json
+
+# Misc
+all_objects.txt
+all_objs_checked.txt
+
+# End of file

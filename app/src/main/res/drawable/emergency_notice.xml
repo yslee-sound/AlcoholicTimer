@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+
+    <!-- 배경 원 -->
+    <path
+        android:fillColor="#FFE5E5"
+        android:pathData="M48,8 A40,40 0 1,1 48,88 A40,40 0 1,1 48,8Z"/>
+
+    <!-- 느낌표 -->
+    <path
+        android:fillColor="#FF6B35"
+        android:pathData="M44,28 h8 v24 h-8 Z"/>
+
+    <path
+        android:fillColor="#FF6B35"
+        android:pathData="M44,60 A4,4 0 1,1 52,60 A4,4 0 1,1 44,60Z"/>
+</vector>
+

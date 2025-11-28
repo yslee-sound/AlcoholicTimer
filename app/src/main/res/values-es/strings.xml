@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Alcoholic Timer</string>
+
+    <!-- AllRecords screen strings -->
+    <string name="all_records_title">Todos los Registros</string>
+    <string name="cd_navigate_back">Volver</string>
+    <string name="error_loading_records">Error al cargar los registros</string>
+    <string name="retry">Reintentar</string>
+    <string name="empty_records_title">No hay registros</string>
+    <string name="empty_records_subtitle">¡Comienza tu primer desafío de sobriedad!</string>
+    <string name="empty_records_cd">No hay registros para mostrar</string>
+    <!-- Delete all records -->
+    <string name="cd_delete_all_records">Eliminar todos los registros</string>
+    <string name="all_records_delete_title">Eliminar Todos los Registros</string>
+    <string name="all_records_delete_message">¿Está seguro de que desea eliminar todos los registros de sobriedad?&#10;Esta acción no se puede deshacer.</string>
+    <string name="all_records_delete_confirm">Eliminar Todo</string>
+
+    <!-- Run screen (pantalla de progreso) -->
+    <string name="run_title">Progreso de Sobriedad</string>
+    <string name="stat_goal_days">Meta</string>
+    <string name="stat_level">Nivel</string>
+    <string name="stat_time">Tiempo</string>
+    <string name="stat_goal_days_format">%d día(s)</string>
+
+    <string name="indicator_title_days">Días Sobrio</string>
+    <string name="indicator_title_time">Tiempo</string>
+    <string name="indicator_title_saved_money">Dinero Ahorrado</string>
+    <string name="indicator_title_saved_hours">Horas Ahorradas</string>
+    <string name="indicator_title_life_gain">Esperanza de Vida +</string>
+    <string name="tap_to_switch_indicator">Toca para ver otras métricas</string>
+
+    <string name="cd_stop">Detener</string>
+    <string name="cd_continue">Continuar</string>
+
+    <string name="toast_goal_completed">¡Has alcanzado tu meta de sobriedad!</string>
+
+    <!-- Update Snackbar (Flexible download completed) -->
+    <string name="update_downloaded_restart_prompt">Actualización descargada. Reinicia para instalar.</string>
+    <string name="action_restart">Reiniciar</string>
+
+    <!-- Start overlay -->
+    <string name="checking_update">Verificando actualizaciones&#8230;</string>
+
+    <!-- Quit screen -->
+    <string name="quit_title">Finalizar Sobriedad</string>
+    <string name="quit_confirm_title">¿Estás seguro de que quieres parar?</string>
+    <string name="quit_confirm_subtitle">Lo has estado haciendo muy bien&#8230;</string>
+    <string name="stat_total_days">Total de Días Sobrio</string>
+    <string name="stat_saved_money_short">Dinero Ahorrado</string>
+    <string name="stat_saved_hours_short">Horas Ahorradas</string>
+
+    <!-- Detail screen -->
+    <string name="detail_title">Detalles del Registro</string>
+    <string name="dialog_delete_title">Eliminar Registro</string>
+    <string name="dialog_delete_message">¿Está seguro de que desea eliminar este registro de sobriedad?&#10;Esta acción no se puede deshacer.</string>
+    <string name="dialog_delete_confirm">Eliminar</string>
+    <string name="dialog_cancel">Cancelar</string>
+    <string name="detail_start_label">Inicio:</string>
+    <string name="detail_end_label">Fin:</string>
+    <string name="detail_progress_rate">Tasa de Logro</string>
+    <string name="detail_progress_current">Progreso: %1$s días</string>
+    <string name="detail_progress_target">Meta: %1$d días</string>
+    <string name="detail_today_time">Hoy - %1$s</string>
+    <string name="unit_days_format">%.1f día(s)</string>
+    <string name="unit_hours_format">%.1f hora(s)</string>
+    <string name="unit_won_format">€%,.2f</string>
+    <string name="unit_life_hours_only">%.2f hora(s)</string>
+    <string name="unit_life_days_hours" formatted="false">%d día(s) %.2f hora(s)</string>
+
+    <!-- Unidades para visualización separada -->
+    <string name="unit_day">día(s)</string>
+    <string name="unit_hour">hora(s)</string>
+
+    <!-- About screen (pantalla de información) -->
+    <string name="about_title">Acerca de</string>
+    <string name="about_version_info">Información de Versión</string>
+    <string name="about_open_license_notice">Avisos de Licencias de Código Abierto</string>
+    <string name="about_section_app_icon">Icono de la Aplicación</string>
+    <string name="about_label_original_work">Obra Original</string>
+    <string name="about_label_author">Autor Original</string>
+    <string name="about_label_source">Fuente</string>
+    <string name="about_label_source_link">Enlace de Fuente</string>
+    <string name="about_label_license">Licencia</string>
+    <string name="about_label_changes">Cambios Realizados</string>
+
+    <!-- Updated license notice values -->
+    <string name="about_value_icon_name">Free Wayfinding vector icons - Guidance icon set</string>
+    <string name="about_value_icon_author">Streamline and Vincent le moign</string>
+    <string name="about_value_source_url">https://www.figma.com/community/file/1227184301417272677/free-wayfinding-vector-icons-guidance-icon-set</string>
+
+    <string name="about_value_license_cc_by">Creative Commons Attribution 4.0 International (CC BY 4.0)</string>
+    <string name="about_value_license_cc_by_url">https://creativecommons.org/licenses/by/4.0/</string>
+    <string name="about_value_change_desc">Se modificaron los colores y algunas formas del icono.</string>
+    <string name="about_notice_compliance">Esta aplicación cumple con CC BY 4.0 al proporcionar la atribución adecuada al autor, enlace a la fuente, enlace a la licencia y aviso de cambios.</string>
+
+    <string name="action_copy">Copiar</string>
+    <string name="toast_copied">Dirección copiada.</string>
+
+    <!-- Drawer menu (menú de navegación) -->
+    <string name="default_nickname">Sobrio1</string>
+    <string name="drawer_edit_profile">Editar Perfil</string>
+    <string name="drawer_section_menu">Menú</string>
+    <string name="drawer_section_settings">Configuración</string>
+    <string name="drawer_menu_sobriety">Sobriedad</string>
+    <string name="drawer_menu_records">Registros</string>
+    <string name="drawer_menu_level">Nivel</string>
+    <string name="drawer_menu_settings">Configuración</string>
+    <string name="drawer_menu_about">Acerca de</string>
+    <string name="cd_avatar">Avatar</string>
+    <string name="cd_menu">Menú</string>
+
+    <!-- Profile Edit screen (edición de perfil) -->
+    <string name="profile_edit_title">Editar Perfil</string>
+    <string name="profile_edit_instruction">Por favor ingrese un nuevo apodo</string>
+    <string name="profile_nickname_label">Apodo</string>
+    <string name="profile_nickname_placeholder">Ingresa un apodo</string>
+    <string name="profile_save">Guardar</string>
+    <string name="profile_cancel">Cancelar</string>
+    <string name="cd_clear_text">Borrar texto</string>
+
+    <!-- Records screen (pantalla de registros) -->
+    <string name="records_title">Registros de Sobriedad</string>
+    <string name="records_period_week">Semana</string>
+    <string name="records_period_month">Mes</string>
+    <string name="records_period_year">Año</string>
+    <string name="records_period_all">Todo</string>
+    <string name="records_this_week">Esta Semana</string>
+    <string name="records_monthly_stats">Estadísticas Mensuales</string>
+    <string name="records_success_rate">Tasa de Éxito</string>
+    <string name="records_avg_duration">Duración Promedio</string>
+    <string name="records_max_duration">Duración Máxima</string>
+    <string name="records_total_days">Total de Días Sobrio Acumulados</string>
+    <string name="records_no_records">Aún no hay registros de sobriedad</string>
+    <string name="records_view_all">Ver Todos los Registros (%d)</string>
+    <string name="records_add">Agregar Registro de Sobriedad</string>
+    <string name="records_day_unit">día(s)</string>
+    <string name="records_percent_unit">%</string>
+
+    <!-- Level names (nombres de niveles) -->
+    <string name="level_0">7 Días de Propósito</string>
+    <string name="level_1">2 Semanas de Voluntad</string>
+    <string name="level_2">El Milagro del Mes</string>
+    <string name="level_3">Nacimiento del Hábito</string>
+    <string name="level_4">Desafío Continuo</string>
+    <string name="level_5">Casi un Año</string>
+    <string name="level_6">Maestro de Sobriedad</string>
+    <string name="level_7">Leyenda de la Moderación</string>
+
+    <!-- Level screen (pantalla de nivel) -->
+    <string name="level_title">Nivel de Sobriedad</string>
+    <string name="level_days_label">Día</string>
+    <string name="level_until_next">Hasta el Próximo Nivel</string>
+    <string name="level_days_remaining">restante(s)</string>
+    <string name="level_hours_remaining">restante(s)</string>
+    <string name="level_days_hours_remaining">día(s) %d hora(s) restantes</string>
+    <string name="level_soon_levelup">Pronto subirás de nivel</string>
+    <string name="level_all_levels">Todos los Niveles</string>
+    <string name="level_day_unit">día(s)</string>
+    <string name="level_hour_unit">hora(s)</string>
+
+    <!-- Target Days Setting (configuración de días objetivo) -->
+    <string name="target_days_title">Establecer Días Objetivo</string>
+    <string name="target_days_unit">día(s)</string>
+    <string name="target_days_hint">Por favor seleccione el período objetivo de sobriedad</string>
+
+    <!-- Target Days Picker (selector de días objetivo) -->
+    <string name="target_days_picker_title">Seleccionar Días Objetivo</string>
+    <string name="target_days_picker_unit">día(s)</string>
+    <string name="target_days_picker_cancel">Cancelar</string>
+    <string name="target_days_picker_confirm">Confirmar</string>
+
+    <!-- Start Activity screen title (título de pantalla de inicio) -->
+    <string name="start_screen_title">Iniciar Sobriedad</string>
+
+    <!-- Settings screen (pantalla de configuración) -->
+    <string name="settings_title">Configuración</string>
+    <string name="settings_drinking_cost">Costo de Beber</string>
+    <string name="settings_drinking_frequency">Frecuencia de Consumo</string>
+    <string name="settings_drinking_duration">Duración del Consumo</string>
+
+    <!-- Additional All Records screen strings (cadenas adicionales de pantalla de todos los registros) -->
+    <string name="all_records_delete_failed">Error al eliminar</string>
+    <string name="record_completed">Completado</string>
+    <string name="record_incomplete">Incompleto</string>
+    <string name="record_actual_days">Días Logrados</string>
+    <string name="record_target_days">Días Objetivo</string>
+    <string name="record_success_rate">Tasa de Logro</string>
+    <string name="record_start_time">Inicio</string>
+    <string name="record_end_time">Fin</string>
+    <string name="record_days_format">%.1f día(s)</string>
+    <string name="record_target_days_format">%d día(s)</string>
+    <string name="record_rate_format">%.1f%%</string>
+
+    <!-- Month Picker (selector de mes) -->
+    <string name="month_picker_title">Seleccionar Mes</string>
+    <string name="month_picker_year_format">%d</string>
+    <string name="month_picker_month_format">%d</string>
+    <string name="month_picker_no_data">No hay elementos para mostrar</string>
+    <string name="month_picker_select">Seleccionar</string>
+
+    <!-- Date Format (formato de fecha) -->
+    <string name="date_format_year_month">%2$d/%1$d</string>
+    <string name="date_format_year">%d</string>
+    <string name="date_format_month">%d</string>
+
+    <!-- Update dialog strings -->
+    <string name="update_dialog_title">¡Nueva versión disponible! 🎉</string>
+    <string name="update_dialog_version_format">Versión %1$s</string>
+    <string name="update_dialog_default_message">Incluye nuevas funciones y mejoras.</string>
+    <string name="update_dialog_later">Más tarde</string>
+    <string name="update_dialog_update">Actualizar</string>
+    <string name="update_dialog_icon_description">Icono de actualización</string>
+
+    <!-- Añadido: cadenas para pantalla de progreso -->
+    <string name="run_progress_title">Progreso</string>
+    <string name="run_start_label">Inicio</string>
+    <string name="run_target_label">Meta: %1$d día(s)</string>
+
+    <!-- About / UMP helper strings (added) -->
+    <string name="about_ad_consent_settings">Privacy Settings</string>
+    <string name="settings_privacy_unavailable">No se puede mostrar la configuración de anuncios porque la actividad no está disponible.</string>
+    <string name="settings_privacy_checking">Comprobando el consentimiento de anuncios&#8230;</string>
+    <string name="settings_privacy_load_failed">Error al cargar el formulario de consentimiento: %1$s</string>
+    <string name="settings_privacy_not_required">El formulario de consentimiento no es necesario o ya se ha procesado.</string>
+    <string name="settings_privacy_update_failed">Error al actualizar la información de consentimiento: %1$s</string>
+
+    <!-- Login label -->
+    <string name="login_label">Iniciar sesión</string>
+
+    <!-- Dialog common strings -->
+    <string name="dialog_confirm">Confirmar</string>
+    <string name="dialog_view_details">Ver detalles</string>
+    <string name="dialog_close">Cerrar</string>
+    <string name="emergency_title_default">Aviso de emergencia</string>
+</resources>

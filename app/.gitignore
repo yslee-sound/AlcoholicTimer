@@ -1,0 +1,6 @@
+/build
+
+# Prevent committing actual google-services.json files
+src/debug/google-services.json
+src/release/google-services.json
+google-services.json

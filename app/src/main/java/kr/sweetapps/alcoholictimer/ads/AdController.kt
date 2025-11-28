@@ -1,0 +1,559 @@
+package kr.sweetapps.alcoholictimer.ads
+
+/*
+ * 주의(IMPORTANT):
+ * 이 파일은 앱 오프닝(App Open / 전체화면) 광고와 배너 광고 간의 상태 동기화를 담당합니다.
+ * 변경사항(반영됨): setFullScreenAdShowing(false)가 호출되어 전체화면 광고가 닫힐 때
+ * 자동으로 triggerBannerReload()를 호출해 배너 재로딩을 트리거하도록 구현되어 있습니다.
+ *
+ * 문제 재발 방지용 안내:
+ *  - 원인: 과거에는 앱오프닝(전체화면) 광고가 닫혀도 배너 컴포넌트에 "다시 로드하라"는 신호가 전달되지 않아
+ *    배너가 갱신되지 않는 문제가 있었습니다.
+ *  - 지금의 동작: 전체화면이 보이다가 닫히는 순간을 감지해 내부적으로 bannerReloadTick을 갱신하므로
+ *    호출 누락으로 인한 빈 배너 문제 가능성이 크게 줄어들었습니다.
+ *  - 권고: 자동 호출이 적용되었더라도, 앱 내 다른 경로에서 배너/컨셉트 변화가 발생하면
+ *    명시적으로 AdController.triggerBannerReload()를 호출하는 것이 안전합니다.
+ *  - 배너 측 구현: 배너 뷰/컴포넌트는 AdController.bannerReloadTick 를 옵저빙하여 값 변경 시 reload를 시도해야 합니다.
+ *
+ * 요약: setFullScreenAdShowing(false)에서 자동 트리거가 추가되었으니 우선 이 동작을 신뢰하되,
+ * 외부 상태 변경 시에는 triggerBannerReload() 호출을 권장합니다.
+ */
+
+import android.content.Context
+import android.util.Log
+import androidx.core.content.edit
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kr.sweetapps.alcoholictimer.MainApplication
+import kr.sweetapps.alcoholictimer.data.supabase.model.AdPolicy
+import kr.sweetapps.alcoholictimer.data.supabase.repository.AdPolicyRepository
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+
+/**
+ * Central ad policy controller. Fetches AdPolicy from Supabase via AdPolicyRepository
+ * and enforces app-open enable/limit semantics used by AppOpen flow.
+ */
+@Suppress("unused", "UNUSED_PARAMETER")
+object AdController {
+    private const val TAG = "AdController"
+
+    // Reactive StateFlow for full-screen ad visibility: single source of truth for UI
+    private val _fullScreenAdShowingFlow = MutableStateFlow(false)
+    val fullScreenAdShowingFlow: StateFlow<Boolean> get() = _fullScreenAdShowingFlow
+
+    // Persistence keys for interstitial counters and windows
+    private const val PREFS_NAME = "ad_policy_counters"
+    private const val KEY_HOUR_WINDOW_START = "hour_window_start"
+    private const val KEY_DAY_WINDOW_START = "day_window_start"
+    private const val KEY_INTER_HOUR_COUNT = "inter_hour_count"
+    private const val KEY_INTER_DAY_COUNT = "inter_day_count"
+
+    @Volatile
+    private var appContext: Context? = null
+
+    private val splashReleaseListeners = mutableSetOf<() -> Unit>()
+    private val policyListeners = mutableSetOf<(Policy?) -> Unit>()
+
+    // runtime policy snapshot
+    @Volatile
+    private var currentPolicy: AdPolicy? = null
+
+    // counters for app-open frequency (reset every hour/day as needed)
+    private var hourWindowStart = System.currentTimeMillis()
+    private var dayWindowStart = System.currentTimeMillis()
+    private val shownThisHour = AtomicInteger(0)
+    private val shownToday = AtomicInteger(0)
+
+    // track last app-open shown timestamp (ms) for cooldown enforcement
+    @Volatile
+    private var lastAppOpenShownAt: Long = 0L
+
+    // Interstitial counters (same window semantics)
+    private val shownInterstitialThisHour = AtomicInteger(0)
+    private val shownInterstitialToday = AtomicInteger(0)
+
+    @Volatile
+    private var lastInterstitialShownAt: Long = 0L
+
+    // runtime flags
+    private val interstitialShowing = AtomicBoolean(false)
+    private val fullScreenAdShowing = AtomicBoolean(false)
+    private val fullScreenListeners = mutableSetOf<(Boolean) -> Unit>()
+
+    // 기록: 전체화면(Interstitial/AppOpen 등) 광고가 닫힌 마지막 시각
+    @Volatile
+    private var lastFullScreenDismissedAt: Long = 0L
+
+    // 외부에서 마지막 전체화면 종료 시각을 질의할 수 있도록 getter 제공
+    fun getLastFullScreenDismissedAt(): Long = lastFullScreenDismissedAt
+
+    // Ticker to request banner components to retry loading (increment when reload needed)
+    private val _bannerReloadTick = MutableStateFlow(0L)
+    val bannerReloadTick: StateFlow<Long> get() = _bannerReloadTick
+
+    private val _isPersonalizedAdsAllowed = MutableStateFlow(false)
+    val isPersonalizedAdsAllowed: StateFlow<Boolean> = _isPersonalizedAdsAllowed.asStateFlow()
+
+    data class Policy(
+        val adBannerEnabled: Boolean = false,
+        val adInterstitialEnabled: Boolean = false,
+        val adAppOpenEnabled: Boolean = true
+    )
+
+    // Note: do NOT add a getFullScreenAdShowingFlow() function — the property
+    // `fullScreenAdShowingFlow` already exposes a JVM getter. Avoid duplicate JVM signature.
+
+    fun initialize(context: Context) {
+        Log.d(TAG, "initialize: loading policy from Supabase repo")
+        // keep application context for counters persistence
+        try {
+            appContext = context.applicationContext
+        } catch (_: Throwable) {
+        }
+
+        // Release 빌드에서는 원격 정책을 기다리지 않고 즉시 DEFAULT_FALLBACK을 사용하여
+        // 광고가 초기화되지 않는 문제를 방지합니다. Debug 빌드는 기존의 '정책 없음 -> 광고 비활성' 유지.
+        try {
+            val isDebuggable = try {
+                (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
+            } catch (_: Throwable) {
+                false
+            }
+            if (!isDebuggable && currentPolicy == null) {
+                currentPolicy = AdPolicy.DEFAULT_FALLBACK
+                Log.d(TAG, "initialize: pre-set DEFAULT_FALLBACK for release to avoid blocking ads while fetching remote policy")
+            }
+        } catch (_: Throwable) {
+        }
+
+        val mainApp = context.applicationContext as MainApplication
+        val umpManager = mainApp.umpConsentManager
+
+        CoroutineScope(Dispatchers.IO).launch {
+            umpManager.isPersonalizedAdsAllowed.collect { isAllowed ->
+                if (_isPersonalizedAdsAllowed.value != isAllowed) {
+                    _isPersonalizedAdsAllowed.value = isAllowed
+                    triggerBannerReload() // NPA status change requires ad reload
+                }
+            }
+        }
+
+        // async fetch policy and keep cached snapshot
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val repo = AdPolicyRepository(context.packageName)
+                val res = runCatching { repo.getPolicy() }
+                val policy = res.getOrNull()
+                if (policy != null) {
+                    currentPolicy = policy
+                    Log.d(
+                        TAG,
+                        "initialize: policy loaded: appOpen=${policy.adAppOpenEnabled} hourMax=${policy.appOpenMaxPerHour} dayMax=${policy.appOpenMaxPerDay}"
+                    )
+                } else {
+                    // no remote policy: 릴리즈 빌드에서는 보수적 폴백을 사용, 디버그는 기존 동작 유지
+                    val isDebuggable = try {
+                        (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
+                    } catch (_: Throwable) {
+                        false
+                    }
+                    if (!isDebuggable) {
+                        // Release-ish: fallback policy to keep ads working with conservative limits
+                        currentPolicy = AdPolicy.DEFAULT_FALLBACK
+                        Log.d(TAG, "initialize: no policy returned from repo -> using DEFAULT_FALLBACK for release")
+                    } else {
+                        // Debug: keep previous safe behavior (treat as disabled)
+                        Log.d(TAG, "initialize: no policy returned from repo; using defaults (treat as disabled)")
+                    }
+                }
+                // load persisted interstitial counters/window start if available
+                try {
+                    val sp = appContext?.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                    sp?.let {
+                        hourWindowStart = it.getLong(KEY_HOUR_WINDOW_START, hourWindowStart)
+                        dayWindowStart = it.getLong(KEY_DAY_WINDOW_START, dayWindowStart)
+                        shownInterstitialThisHour.set(it.getInt(KEY_INTER_HOUR_COUNT, shownInterstitialThisHour.get()))
+                        shownInterstitialToday.set(it.getInt(KEY_INTER_DAY_COUNT, shownInterstitialToday.get()))
+                        Log.d(
+                            TAG,
+                            "initialize: loaded persisted counters interHour=${shownInterstitialThisHour.get()} interDay=${shownInterstitialToday.get()} hourWindowStart=$hourWindowStart dayWindowStart=$dayWindowStart"
+                        )
+                    }
+                } catch (_: Throwable) {
+                }
+                notifyPolicyListeners()
+                // If policy explicitly disables app-open, inform listeners to release splash etc.
+                if (currentPolicy?.adAppOpenEnabled == false) {
+                    Log.d(TAG, "initialize: policy disables app-open -> triggering splash release listeners")
+                    triggerSplashRelease()
+                }
+            } catch (t: Throwable) {
+                Log.w(TAG, "initialize: failed to fetch policy: $t")
+            }
+        }
+    }
+
+    private fun notifyPolicyListeners() {
+        val copy: List<(Policy?) -> Unit>
+        synchronized(policyListeners) { copy = policyListeners.toList() }
+        for (l in copy) {
+            try {
+                l.invoke(currentPolicy?.let { Policy(it.adBannerEnabled, it.adInterstitialEnabled, it.adAppOpenEnabled) })
+            } catch (t: Throwable) {
+                Log.w(TAG, "policy listener failed", t)
+            }
+        }
+    }
+
+    fun addPolicyFetchListener(listener: (Policy?) -> Unit) {
+        synchronized(policyListeners) { policyListeners.add(listener) }
+        try {
+            listener.invoke(currentPolicy?.let { Policy(it.adBannerEnabled, it.adInterstitialEnabled, it.adAppOpenEnabled) })
+        } catch (t: Throwable) {
+            Log.w(TAG, "policy listener invoke failed", t)
+        }
+    }
+
+    fun removePolicyFetchListener(listener: (Policy?) -> Unit) {
+        synchronized(policyListeners) { policyListeners.remove(listener) }
+    }
+
+    fun addSplashReleaseListener(listener: () -> Unit) {
+        synchronized(splashReleaseListeners) { splashReleaseListeners.add(listener) }
+    }
+
+    fun removeSplashReleaseListener(listener: () -> Unit) {
+        synchronized(splashReleaseListeners) { splashReleaseListeners.remove(listener) }
+    }
+
+    fun triggerSplashRelease() {
+        val copy: List<() -> Unit>
+        synchronized(splashReleaseListeners) { copy = splashReleaseListeners.toList() }
+        for (l in copy) {
+            try {
+                l.invoke()
+            } catch (t: Throwable) {
+                Log.w(TAG, "splash listener failed", t)
+            }
+        }
+    }
+
+    // accessors used by UI
+    fun isPolicyFetchCompleted(): Boolean = true // keep existing callers simple
+    fun isInterstitialEnabled(): Boolean = currentPolicy?.adInterstitialEnabled ?: false
+
+    // Fail-safe: if policy not yet fetched, treat app-open as disabled so Supabase controls it
+    fun isAppOpenEnabled(): Boolean = currentPolicy?.adAppOpenEnabled ?: false
+    fun isFullScreenAdShowing(): Boolean = fullScreenAdShowing.get()
+
+    // StateFlow-based accessor for reactive UI frameworks (use getFullScreenAdShowingFlow())
+    // (removed duplicate-named accessor to avoid overload conflict)
+    fun setInterstitialShowing(showing: Boolean) {
+        interstitialShowing.set(showing)
+    }
+
+    fun setFullScreenAdShowing(showing: Boolean) {
+        // atomically set and get previous state
+        val previous = fullScreenAdShowing.getAndSet(showing)
+        // update reactive StateFlow
+        try {
+            _fullScreenAdShowingFlow.value = showing
+        } catch (_: Throwable) {
+        }
+
+        // If a full-screen ad was showing and now closed, request banner reload to avoid stale/empty banner.
+        if (previous && !showing) {
+            try {
+                // record dismissal time for cross-ad suppression logic
+                lastFullScreenDismissedAt = System.currentTimeMillis()
+            } catch (_: Throwable) {
+            }
+            try {
+                triggerBannerReload()
+            } catch (_: Throwable) {
+            }
+        }
+
+        // notify listeners of change
+        val copy: List<(Boolean) -> Unit>
+        synchronized(fullScreenListeners) { copy = fullScreenListeners.toList() }
+        for (l in copy) {
+            try {
+                l.invoke(showing)
+            } catch (_: Throwable) {
+            }
+        }
+    }
+
+    // Request banner reload by bumping the tick. Use when consent/state changed after full-screen ad.
+    fun triggerBannerReload() {
+        try {
+            _bannerReloadTick.value = System.currentTimeMillis()
+        } catch (_: Throwable) {
+        }
+    }
+
+    fun addFullScreenShowListener(listener: (Boolean) -> Unit) {
+        synchronized(fullScreenListeners) { fullScreenListeners.add(listener) }; try {
+            listener.invoke(
+                fullScreenAdShowing.get()
+            )
+        } catch (_: Throwable) {
+        }
+    }
+
+    fun removeFullScreenShowListener(listener: (Boolean) -> Unit) {
+        synchronized(fullScreenListeners) { fullScreenListeners.remove(listener) }
+    }
+
+    // Added compatibility/state helpers used by UI callers (preserve old names expected by Compose files)
+    fun isBannerEnabledState(): Boolean = currentPolicy?.adBannerEnabled ?: false
+    fun isInterstitialShowingState(): Boolean = interstitialShowing.get()
+    fun isFullScreenAdShowingState(): Boolean = fullScreenAdShowing.get()
+
+    // Stable API names expected across codebase
+    fun isBannerEnabled(): Boolean = currentPolicy?.adBannerEnabled ?: false
+    fun isInterstitialShowingNow(): Boolean = interstitialShowing.get()
+
+    fun refreshPolicy(context: Context) {
+        initialize(context)
+    }
+
+    // Debug helper: return a compact snapshot of policy and counters
+    fun debugSnapshot(): String {
+        return try {
+            val p = currentPolicy
+            val policyStr =
+                if (p == null) "null" else "appId=${p.appId} active=${p.isActive} interEnabled=${p.adInterstitialEnabled} interHourMax=${p.adInterstitialMaxPerHour} interDayMax=${p.adInterstitialMaxPerDay} appOpenHourMax=${p.appOpenMaxPerHour} appOpenDayMax=${p.appOpenMaxPerDay} cooldown=${p.appOpenCooldownSeconds}"
+            "AdController(snapshot: policy=$policyStr interCountsHour=${shownInterstitialThisHour.get()} interCountsDay=${shownInterstitialToday.get()} appCountsHour=${shownThisHour.get()} appCountsDay=${shownToday.get()} hourWindowStart=$hourWindowStart dayWindowStart=$dayWindowStart lastInterstitialAt=$lastInterstitialShownAt lastAppOpenAt=$lastAppOpenShownAt)"
+        } catch (t: Throwable) {
+            "AdController(debugSnapshot failed: $t)"
+        }
+    }
+
+    // Ensure hour/day windows and counters are reset when their interval elapses.
+    private fun resetWindowsIfNeeded() {
+        try {
+            val now = System.currentTimeMillis()
+            var persistNeeded = false
+            synchronized(this) {
+                // hourly window expired
+                if (now - hourWindowStart >= 60 * 60 * 1000L) {
+                    hourWindowStart = now
+                    shownThisHour.set(0)
+                    shownInterstitialThisHour.set(0)
+                    persistNeeded = true
+                }
+                // daily window expired
+                if (now - dayWindowStart >= 24 * 60 * 60 * 1000L) {
+                    dayWindowStart = now
+                    shownToday.set(0)
+                    shownInterstitialToday.set(0)
+                    persistNeeded = true
+                }
+            }
+            if (persistNeeded) {
+                try {
+                    val sp = appContext?.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                    sp?.edit {
+                        putLong(KEY_HOUR_WINDOW_START, hourWindowStart)
+                        putLong(KEY_DAY_WINDOW_START, dayWindowStart)
+                        putInt(KEY_INTER_HOUR_COUNT, shownInterstitialThisHour.get())
+                        putInt(KEY_INTER_DAY_COUNT, shownInterstitialToday.get())
+                    }
+                } catch (_: Throwable) {
+                }
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "resetWindowsIfNeeded failed: $t")
+        }
+    }
+
+    // Interstitial frequency control
+    fun canShowInterstitial(context: Context): Boolean = canShowInterstitialNow()
+
+    /** Context-free check usable in unit tests and internal callers */
+    fun canShowInterstitialNow(): Boolean {
+        try {
+            resetWindowsIfNeeded()
+            val policy = currentPolicy ?: run {
+                Log.d(TAG, "canShowInterstitialNow: no policy loaded -> deny")
+                return false
+            }
+            Log.d(
+                TAG,
+                "canShowInterstitialNow: policy=appId=${policy.appId} active=${policy.isActive} adInterstitialEnabled=${policy.adInterstitialEnabled} hourMax=${policy.adInterstitialMaxPerHour} dayMax=${policy.adInterstitialMaxPerDay} countsHour=${shownInterstitialThisHour.get()} countsDay=${shownInterstitialToday.get()}"
+            )
+            if (!policy.isActive) return false
+            if (!policy.adInterstitialEnabled) return false
+            if (policy.adInterstitialMaxPerHour >= 0 && shownInterstitialThisHour.get() >= policy.adInterstitialMaxPerHour) return false
+            if (policy.adInterstitialMaxPerDay >= 0 && shownInterstitialToday.get() >= policy.adInterstitialMaxPerDay) return false
+            return true
+        } catch (t: Throwable) {
+            Log.w(TAG, "canShowInterstitialNow evaluation failed: $t")
+            return false
+        }
+    }
+
+    /** Test helper: set policy snapshot (used by unit tests) */
+    fun setPolicyForTest(policy: AdPolicy?) {
+        currentPolicy = policy
+        // reset counters when changing policy
+        shownInterstitialThisHour.set(0)
+        shownInterstitialToday.set(0)
+        shownThisHour.set(0)
+        shownToday.set(0)
+        lastAppOpenShownAt = 0L
+        lastInterstitialShownAt = 0L
+    }
+
+    fun canShowAppOpen(context: Context): Boolean {
+        try {
+            resetWindowsIfNeeded()
+            val policy = currentPolicy
+            // Fail-safe: if policy not yet fetched, do NOT show app-open
+            if (policy == null) return false
+            if (!policy.isActive) return false
+            if (!policy.adAppOpenEnabled) return false
+            if (policy.appOpenMaxPerHour >= 0 && shownThisHour.get() >= policy.appOpenMaxPerHour) return false
+            if (policy.appOpenMaxPerDay >= 0 && shownToday.get() >= policy.appOpenMaxPerDay) return false
+            // Cooldown (server-controlled)
+            try {
+                val cdSec = policy.appOpenCooldownSeconds
+                if (cdSec > 0) {
+                    val now = System.currentTimeMillis()
+                    val last = lastAppOpenShownAt
+                    if (last > 0 && now - last < cdSec * 1000L) return false
+                }
+            } catch (_: Throwable) {
+            }
+            return true
+        } catch (t: Throwable) {
+            Log.w(TAG, "canShowAppOpen evaluation failed: $t")
+            return false
+        }
+    }
+
+    fun recordAppOpenShown(context: Context) {
+        try {
+            resetWindowsIfNeeded()
+            shownThisHour.incrementAndGet()
+            shownToday.incrementAndGet()
+            try {
+                lastAppOpenShownAt = System.currentTimeMillis()
+            } catch (_: Throwable) {
+            }
+        } catch (_: Throwable) {
+        }
+    }
+
+    // Expose cooldown and recent shown check for clients
+    fun getAppOpenCooldownSeconds(): Int = currentPolicy?.appOpenCooldownSeconds ?: 60
+
+    // Expose server-controlled minimum gap between any two full-screen ads (seconds).
+    fun getMinFullscreenGapSeconds(): Int = currentPolicy?.minFullscreenGapSeconds ?: 30
+    fun getLastAppOpenShownAt(): Long = lastAppOpenShownAt
+    fun isAppOpenInCooldown(): Boolean {
+        try {
+            val policy = currentPolicy ?: return false
+            val cd = policy.appOpenCooldownSeconds
+            if (cd <= 0) return false
+            val last = lastAppOpenShownAt
+            if (last == 0L) return false
+            return (System.currentTimeMillis() - last) < cd * 1000L
+        } catch (_: Throwable) {
+            return false
+        }
+    }
+
+    /**
+     * Notify controller that a full-screen ad was dismissed right now.
+     * This is a defensive helper for ad managers that may experience races
+     * where the controller wasn't updated yet. It records the dismissal time
+     * and triggers banner reloads as needed.
+     */
+    fun notifyFullScreenDismissed() {
+        try {
+            lastFullScreenDismissedAt = System.currentTimeMillis()
+        } catch (_: Throwable) {
+        }
+        try {
+            setFullScreenAdShowing(false)
+        } catch (_: Throwable) {
+        }
+        try {
+            triggerBannerReload()
+        } catch (_: Throwable) {
+        }
+    }
+
+    // Reserve/unreserve interstitial slot API used by ad managers. Reservation is atomic
+    // w.r.t. policy counters: reserve increments counters if limits allow; unreserve
+    // decrements counters in case a reserved ad failed to show.
+    fun reserveInterstitialSlot(): Boolean {
+        try {
+            synchronized(this) {
+                resetWindowsIfNeeded()
+                val policy = currentPolicy ?: run {
+                    Log.d(TAG, "reserveInterstitialSlot: no policy -> deny")
+                    return false
+                }
+                if (!policy.isActive) return false
+                if (!policy.adInterstitialEnabled) return false
+                if (policy.adInterstitialMaxPerHour >= 0 && shownInterstitialThisHour.get() >= policy.adInterstitialMaxPerHour) return false
+                if (policy.adInterstitialMaxPerDay >= 0 && shownInterstitialToday.get() >= policy.adInterstitialMaxPerDay) return false
+
+                shownInterstitialThisHour.incrementAndGet()
+                shownInterstitialToday.incrementAndGet()
+                try {
+                    lastInterstitialShownAt = System.currentTimeMillis()
+                } catch (_: Throwable) {
+                }
+
+                // persist interstitial counters and window starts
+                try {
+                    val sp = appContext?.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                    sp?.edit {
+                        putLong(KEY_HOUR_WINDOW_START, hourWindowStart)
+                        putLong(KEY_DAY_WINDOW_START, dayWindowStart)
+                        putInt(KEY_INTER_HOUR_COUNT, shownInterstitialThisHour.get())
+                        putInt(KEY_INTER_DAY_COUNT, shownInterstitialToday.get())
+                    }
+                } catch (_: Throwable) {
+                }
+
+                return true
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "reserveInterstitialSlot failed: $t")
+            return false
+        }
+    }
+
+    fun unreserveInterstitialSlot() {
+        try {
+            synchronized(this) {
+                if (shownInterstitialThisHour.get() > 0) shownInterstitialThisHour.decrementAndGet()
+                if (shownInterstitialToday.get() > 0) shownInterstitialToday.decrementAndGet()
+                try {
+                    val sp = appContext?.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                    sp?.edit {
+                        putLong(KEY_HOUR_WINDOW_START, hourWindowStart)
+                        putLong(KEY_DAY_WINDOW_START, dayWindowStart)
+                        putInt(KEY_INTER_HOUR_COUNT, shownInterstitialThisHour.get())
+                        putInt(KEY_INTER_DAY_COUNT, shownInterstitialToday.get())
+                    }
+                } catch (_: Throwable) {
+                }
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "unreserveInterstitialSlot failed: $t")
+        }
+    }
+
+}

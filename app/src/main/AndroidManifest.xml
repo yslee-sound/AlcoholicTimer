@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- SDK 30+ 패키지 가시성: Play Store 존재 확인을 위해 선언 -->
+    <queries>
+        <package android:name="com.android.vending" />
+    </queries>
+
+    <application
+        android:name="kr.sweetapps.alcoholictimer.MainApplication"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/app_icon"
+        android:roundIcon="@mipmap/app_icon"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AlcoholicTimer"
+        tools:targetApi="31">
+
+        <!-- 새 메인 진입점: Compose 기반 MainActivity -->
+        <activity
+            android:name="kr.sweetapps.alcoholictimer.MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AlcoholicTimer.Splash"
+            android:windowSoftInputMode="adjustPan">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Compose NavHost 전환에 따라 기존 개별 Activity 제거 -->
+        <!-- RecordsActivity / AllRecordsActivity / SettingsActivity / DetailActivity 제거 -->
+
+        <!-- Ensure AdActivity uses the splash theme to avoid black background gap when showing ads -->
+        <activity
+            android:name="com.google.android.gms.ads.AdActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Translucent"
+            tools:replace="android:theme" />
+
+        <!-- AppOpen overlay activity (투명 테마로 변경) -->
+        <activity
+            android:name="kr.sweetapps.alcoholictimer.ads.AppOpenOverlayActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Translucent"
+            android:taskAffinity=""
+            android:excludeFromRecents="true" />
+
+        <!-- 사용자 기록 추가 화면 -->
+        <activity
+            android:name="kr.sweetapps.alcoholictimer.feature.addrecord.AddRecordActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AlcoholicTimer" />
+
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${ADMOB_APP_ID}"/>
+
+        <property
+            android:name="android.adservices.AD_SERVICES_CONFIG"
+            android:resource="@xml/gma_ad_services_config"
+            tools:replace="android:resource" />
+
+    </application>
+
+</manifest>

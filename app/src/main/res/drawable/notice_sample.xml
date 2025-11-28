@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="400dp"
+    android:height="225dp"
+    android:viewportWidth="400"
+    android:viewportHeight="225">
+
+    <!-- Background -->
+    <path
+        android:fillColor="#FFF8F1"
+        android:pathData="M0,0h400v225h-400z" />
+
+    <!-- Left shadow panel -->
+    <path
+        android:fillColor="#FFF2E0"
+        android:pathData="M0,0h120v225h-120z" />
+
+    <!-- Right light panel -->
+    <path
+        android:fillColor="#FFF9ED"
+        android:pathData="M280,0h120v225h-120z" />
+
+    <!-- Certificate inner card -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M56,20h288v185h-288z" />
+
+    <!-- Top decorative line -->
+    <path
+        android:strokeColor="#D4AF37"
+        android:strokeWidth="2"
+        android:fillColor="#00000000"
+        android:pathData="M96,55h208" />
+
+    <!-- Bottom decorative line -->
+    <path
+        android:strokeColor="#D4AF37"
+        android:strokeWidth="2"
+        android:fillColor="#00000000"
+        android:pathData="M96,170h208" />
+
+    <!-- Title text hint bars -->
+    <path android:fillColor="#E8E3D6" android:pathData="M120,95h160v10h-160z"/>
+    <path android:fillColor="#EFEADE" android:pathData="M110,112h180v8h-180z"/>
+
+    <!-- Body text hint lines -->
+    <path android:fillColor="#F3EFE6" android:pathData="M96,135h208v6h-208z"/>
+    <path android:fillColor="#F3EFE6" android:pathData="M96,147h208v6h-208z"/>
+    <path android:fillColor="#F3EFE6" android:pathData="M120,159h160v6h-160z"/>
+
+    <!-- Soft right shadow overlay -->
+    <path
+        android:fillAlpha="0.08"
+        android:fillColor="#000000"
+        android:pathData="M260,0h140v225h-140z" />
+</vector>

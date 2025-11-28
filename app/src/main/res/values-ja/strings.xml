@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">アルコールタイマー</string>
+
+    <!-- AllRecords screen strings -->
+    <string name="all_records_title">全ての記録</string>
+    <string name="cd_navigate_back">戻る</string>
+    <string name="error_loading_records">記録の読み込みに失敗しました</string>
+    <string name="retry">再試行</string>
+    <string name="empty_records_title">まだ記録がありません</string>
+    <string name="empty_records_subtitle">最初の禁酒チャレンジを始めましょう！</string>
+    <string name="empty_records_cd">表示する記録がありません</string>
+    <!-- Delete all records -->
+    <string name="cd_delete_all_records">全ての記録を削除</string>
+    <string name="all_records_delete_title">全ての記録を削除</string>
+    <string name="all_records_delete_message">本当に全ての禁酒記録を削除しますか？&#10;この操作は元に戻せません。</string>
+    <string name="all_records_delete_confirm">全て削除</string>
+
+    <!-- Run screen -->
+    <string name="run_title">禁酒の進捗</string>
+    <string name="stat_goal_days">目標</string>
+    <string name="stat_level">レベル</string>
+    <string name="stat_time">時間</string>
+    <string name="stat_goal_days_format">%d日</string>
+
+    <string name="indicator_title_days">禁酒日数</string>
+    <string name="indicator_title_time">時間</string>
+    <string name="indicator_title_saved_money">節約金額</string>
+    <string name="indicator_title_saved_hours">節約時間</string>
+    <string name="indicator_title_life_gain">寿命延長</string>
+    <string name="tap_to_switch_indicator">タップして他の指標を表示</string>
+
+    <string name="cd_stop">停止</string>
+    <string name="cd_continue">続ける</string>
+
+    <string name="toast_goal_completed">禁酒目標を達成しました！</string>
+
+    <!-- Update Snackbar (Flexible download completed) -->
+    <string name="update_downloaded_restart_prompt">アップデートをダウンロードしました。再起動してインストールしてください。</string>
+    <string name="action_restart">再起動</string>
+
+    <!-- Start overlay -->
+    <string name="checking_update">アップデートを確認中&#8230;</string>
+
+    <!-- Quit screen -->
+    <string name="quit_title">禁酒を終了</string>
+    <string name="quit_confirm_title">本当にやめますか？</string>
+    <string name="quit_confirm_subtitle">ここまで頑張ってきたのに&#8230;</string>
+    <string name="stat_total_days">総禁酒日数</string>
+    <string name="stat_saved_money_short">節約金額</string>
+    <string name="stat_saved_hours_short">節約時間</string>
+
+    <!-- Detail screen -->
+    <string name="detail_title">記録の詳細</string>
+    <string name="dialog_delete_title">記録を削除</string>
+    <string name="dialog_delete_message">この記録を削除しますか？&#10;この操作は元に戻せません。</string>
+    <string name="dialog_delete_confirm">削除</string>
+    <string name="dialog_cancel">キャンセル</string>
+    <string name="detail_start_label">開始:</string>
+    <string name="detail_end_label">終了:</string>
+    <string name="detail_progress_rate">目標達成率</string>
+    <string name="detail_progress_current">進捗: %1$s日</string>
+    <string name="detail_progress_target">目標: %1$d日</string>
+    <string name="detail_today_time">今日 - %1$s</string>
+    <string name="unit_days_format">%.1f日</string>
+    <string name="unit_hours_format">%.1f時間</string>
+    <string name="unit_won_format">¥%,.0f</string>
+    <string name="unit_life_hours_only">%.2f時間</string>
+    <string name="unit_life_days_hours" formatted="false">%d日 %.2f時間</string>
+
+    <!-- Unit labels for separated display -->
+    <string name="unit_day">日</string>
+    <string name="unit_hour">時間</string>
+
+    <!-- About screen -->
+    <string name="about_title">アプリについて</string>
+    <string name="about_version_info">バージョン情報</string>
+    <string name="about_open_license_notice">オープンソースライセンス</string>
+    <string name="about_section_app_icon">アプリアイコン</string>
+    <string name="about_label_original_work">原作</string>
+    <string name="about_label_author">作者</string>
+    <string name="about_label_source">ソース</string>
+    <string name="about_label_source_link">ソースリンク</string>
+    <string name="about_label_license">ライセンス</string>
+    <string name="about_label_changes">変更内容</string>
+
+    <!-- License notice values (these remain in English for both languages) -->
+    <string name="about_value_icon_name">Free Wayfinding vector icons - Guidance icon set</string>
+    <string name="about_value_icon_author">Streamline and Vincent le moign</string>
+    <string name="about_value_source_url">https://www.figma.com/community/file/1227184301417272677/free-wayfinding-vector-icons-guidance-icon-set</string>
+
+    <string name="about_value_license_cc_by">Creative Commons Attribution 4.0 International (CC BY 4.0)</string>
+    <string name="about_value_license_cc_by_url">https://creativecommons.org/licenses/by/4.0/</string>
+    <string name="about_value_change_desc">アイコンの色と形状を変更しました。</string>
+    <string name="about_notice_compliance">このアプリは、適切な帰属表示、ソースリンク、ライセンスリンク、および変更の通知を提供することにより、CC BY 4.0に準拠しています。</string>
+
+    <string name="action_copy">コピー</string>
+    <string name="toast_copied">アドレスをコピーしました。</string>
+
+    <!-- Drawer menu (Navigation drawer) -->
+    <string name="default_nickname">禁酒ヒーロー1</string>
+    <string name="drawer_edit_profile">プロフィール編集</string>
+    <string name="drawer_section_menu">メニュー</string>
+    <string name="drawer_section_settings">設定</string>
+    <string name="drawer_menu_sobriety">禁酒</string>
+    <string name="drawer_menu_records">記録</string>
+    <string name="drawer_menu_level">レベル</string>
+    <string name="drawer_menu_settings">設定</string>
+    <string name="drawer_menu_about">アプリについて</string>
+    <string name="cd_avatar">アバター</string>
+    <string name="cd_menu">メニュー</string>
+
+    <!-- Profile Edit screen -->
+    <string name="profile_edit_title">プロフィール編集</string>
+    <string name="profile_edit_instruction">新しいニックネームを入力してください</string>
+    <string name="profile_nickname_label">ニックネーム</string>
+    <string name="profile_nickname_placeholder">ニックネームを入力</string>
+    <string name="profile_save">保存</string>
+    <string name="profile_cancel">キャンセル</string>
+    <string name="cd_clear_text">テキストをクリア</string>
+
+    <!-- Records screen -->
+    <string name="records_title">禁酒記録</string>
+    <string name="records_period_week">週</string>
+    <string name="records_period_month">月</string>
+    <string name="records_period_year">年</string>
+    <string name="records_period_all">全て</string>
+    <string name="records_this_week">今週</string>
+    <string name="records_monthly_stats">月間統計</string>
+    <string name="records_success_rate">成功率</string>
+    <string name="records_avg_duration">平均期間</string>
+    <string name="records_max_duration">最長期間</string>
+    <string name="records_total_days">総禁酒日数</string>
+    <string name="records_no_records">禁酒記録がまだありません</string>
+    <string name="records_view_all">全ての記録を表示 (%d)</string>
+    <string name="records_add">禁酒記録を追加</string>
+    <string name="records_day_unit">日</string>
+    <string name="records_percent_unit">%</string>
+
+    <!-- Level names -->
+    <string name="level_0">7日間の生存者</string>
+    <string name="level_1">2週間の忍耐</string>
+    <string name="level_2">1ヶ月の奇跡</string>
+    <string name="level_3">習慣の孵化</string>
+    <string name="level_4">挑戦は続く</string>
+    <string name="level_5">1年への道</string>
+    <string name="level_6">禁酒マスター</string>
+    <string name="level_7">伝説中の伝説</string>
+
+    <!-- Level screen -->
+    <string name="level_title">禁酒レベル</string>
+    <string name="level_days_label">日数</string>
+    <string name="level_until_next">次のレベルまで</string>
+    <string name="level_days_remaining">残り</string>
+    <string name="level_hours_remaining">残り</string>
+    <string name="level_days_hours_remaining" formatted="false">あと%d日 %d時間</string>
+    <string name="level_soon_levelup">もうすぐレベルアップ！</string>
+    <string name="level_all_levels">全てのレベル</string>
+    <string name="level_day_unit">日</string>
+    <string name="level_hour_unit">時間</string>
+
+    <!-- Target Days Setting -->
+    <string name="target_days_title">目標期間を設定</string>
+    <string name="target_days_unit">日</string>
+    <string name="target_days_hint">禁酒の目標期間を選択してください</string>
+
+    <!-- Target Days Picker -->
+    <string name="target_days_picker_title">目標日数を選択</string>
+    <string name="target_days_picker_unit">日</string>
+    <string name="target_days_picker_cancel">キャンセル</string>
+    <string name="target_days_picker_confirm">OK</string>
+
+    <!-- Start Activity screen title -->
+    <string name="start_screen_title">禁酒開始</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">設定</string>
+    <string name="settings_drinking_cost">飲酒費用</string>
+    <string name="settings_drinking_frequency">飲酒頻度</string>
+    <string name="settings_drinking_duration">飲酒時間</string>
+
+    <!-- Additional All Records screen strings -->
+    <string name="all_records_delete_failed">削除に失敗しました</string>
+    <string name="record_completed">完了</string>
+    <string name="record_incomplete">未完了</string>
+    <string name="record_actual_days">実際の日数</string>
+    <string name="record_target_days">目標日数</string>
+    <string name="record_success_rate">成功率</string>
+    <string name="record_start_time">開始</string>
+    <string name="record_end_time">終了</string>
+    <string name="record_days_format">%.1f日</string>
+    <string name="record_target_days_format">%d日</string>
+    <string name="record_rate_format">%.1f%%</string>
+
+    <!-- Month Picker -->
+    <string name="month_picker_title">月を選択</string>
+    <string name="month_picker_year_format">%d年</string>
+    <string name="month_picker_month_format">%d月</string>
+    <string name="month_picker_no_data">データがありません</string>
+    <string name="month_picker_select">選択</string>
+
+    <!-- Date Format -->
+    <string name="date_format_year_month">%1$d年%2$d月</string>
+    <string name="date_format_year">%d年</string>
+    <string name="date_format_month">%d月</string>
+
+    <!-- Week Picker -->
+    <string name="week_picker_title">週を選択</string>
+    <string name="week_picker_this_week">今週</string>
+    <string name="week_picker_last_week">先週</string>
+    <string name="week_picker_select">選択</string>
+
+    <!-- Year Picker -->
+    <string name="year_picker_title">年を選択</string>
+    <string name="year_picker_year_format">%d年</string>
+    <string name="year_picker_no_data">データがありません</string>
+    <string name="year_picker_select">選択</string>
+
+    <!-- Cost options (1엔 = 10원) -->
+    <string name="settings_cost_low">低</string>
+    <string name="settings_cost_medium">中</string>
+    <string name="settings_cost_high">高</string>
+    <string name="settings_cost_low_label">低 (¥1,000以下)</string>
+    <string name="settings_cost_medium_label">中 (¥1,000~5,000)</string>
+    <string name="settings_cost_high_label">高 (¥5,000以上)</string>
+
+    <!-- Frequency options -->
+    <string name="settings_frequency_low">週1回以下</string>
+    <string name="settings_frequency_medium">週2~3回</string>
+    <string name="settings_frequency_high">週4回以上</string>
+
+    <!-- Duration options -->
+    <string name="settings_duration_short">短い</string>
+    <string name="settings_duration_medium">普通</string>
+    <string name="settings_duration_long">長い</string>
+    <string name="settings_duration_short_label">短い (2時間以下)</string>
+    <string name="settings_duration_medium_label">普通 (3~5時間)</string>
+    <string name="settings_duration_long_label">長い (6時間以上)</string>
+
+    <!-- Add Record screen -->
+    <string name="add_record_title">禁酒記録を追加</string>
+    <string name="add_record_start_date_time">開始日時</string>
+    <string name="add_record_end_date_time">終了日時</string>
+    <string name="add_record_target_days">目標日数</string>
+    <string name="add_record_error_invalid_range">終了時刻は開始時刻より後である必要があります</string>
+    <string name="add_record_error_set_target">有効な目標日数を入力してください</string>
+    <string name="add_record_cancel">キャンセル</string>
+    <string name="add_record_save">保存</string>
+    <string name="add_record_toast_success">禁酒記録が追加されました</string>
+    <string name="add_record_toast_conflict">選択した時間が既存の記録と重複しています</string>
+    <string name="add_record_days_unit">日</string>
+
+    <!-- Currency options (通貨選択) -->
+    <string name="settings_currency">通貨</string>
+    <string name="currency_krw">韓国ウォン (₩)</string>
+    <string name="currency_jpy">日本円 (¥)</string>
+    <string name="currency_usd">米ドル ($)</string>
+    <string name="currency_eur">ユーロ (€)</string>
+    <string name="currency_mxn">メキシコペソ (MX$)</string>
+    <string name="currency_cny">中国元 (¥)</string>
+    <string name="currency_brl">ブラジルレアル (R$)</string>
+
+    <!-- Update dialog strings -->
+    <string name="update_dialog_title">新しいバージョンがあります！ 🎉</string>
+    <string name="update_dialog_version_format">バージョン %1$s</string>
+    <string name="update_dialog_default_message">新機能と改善が含まれています。</string>
+    <string name="update_dialog_later">後で</string>
+    <string name="update_dialog_update">アップデート</string>
+    <string name="update_dialog_icon_description">アップデートアイコン</string>
+
+    <!-- 추가: 진행 화면 문자열 -->
+    <string name="run_progress_title">進捗</string>
+    <string name="run_start_label">開始</string>
+    <string name="run_target_label">目標: %1$d日</string>
+
+    <!-- About / UMP helper strings (added) -->
+    <string name="about_ad_consent_settings">Privacy Settings</string>
+    <string name="settings_privacy_unavailable">アクティビティを利用できないため広告設定を表示できません。</string>
+    <string name="settings_privacy_checking">広告同意を確認中&#8230;</string>
+    <string name="settings_privacy_load_failed">同意フォームの読み込みに失敗しました: %1$s</string>
+    <string name="settings_privacy_not_required">同意フォームは不要、または既に処理されています。</string>
+    <string name="settings_privacy_update_failed">同意情報の更新に失敗しました: %1$s</string>
+
+    <!-- Login label -->
+    <string name="login_label">ログイン</string>
+
+    <!-- Dialog common strings -->
+    <string name="dialog_confirm">確認</string>
+    <string name="dialog_view_details">詳細を見る</string>
+    <string name="dialog_close">閉じる</string>
+    <string name="emergency_title_default">緊急のお知らせ</string>
+</resources>

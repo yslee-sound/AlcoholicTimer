@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="app_name">Alcoholic Timer</string>
+
+    <!-- AllRecords screen strings -->
+    <string name="all_records_title">모든 기록</string>
+    <string name="cd_navigate_back">뒤로가기</string>
+    <string name="error_loading_records">기록을 불러오는 데 실패했어요</string>
+    <string name="retry">다시 시도</string>
+    <string name="empty_records_title">기록이 없습니다</string>
+    <string name="empty_records_subtitle">첫 번째 금주 기록을 시작해보세요!</string>
+    <string name="empty_records_cd">표시할 기록이 없습니다</string>
+    <!-- Delete all records -->
+    <string name="cd_delete_all_records">모든 기록 삭제</string>
+    <string name="all_records_delete_title">모든 기록 삭제</string>
+    <string name="all_records_delete_message">정말로 모든 금주 기록을 삭제하시겠습니까?&#10;삭제 후 복구할 수 없습니다.</string>
+    <string name="all_records_delete_confirm">모두 삭제</string>
+
+    <!-- Run screen (진행 화면) -->
+    <string name="run_title">금주 진행</string>
+    <string name="stat_goal_days">목표일</string>
+    <string name="stat_level">레벨</string>
+    <string name="stat_time">시간</string>
+    <string name="stat_goal_days_format">%d일</string>
+
+    <string name="indicator_title_days">금주 일수</string>
+    <string name="indicator_title_time">시간</string>
+    <string name="indicator_title_saved_money">절약한 금액</string>
+    <string name="indicator_title_saved_hours">절약한 시간</string>
+    <string name="indicator_title_life_gain">기대 수명+</string>
+    <string name="tap_to_switch_indicator">탭하여 다른 지표 보기</string>
+
+    <string name="cd_stop">정지</string>
+    <string name="cd_continue">계속</string>
+
+    <string name="toast_goal_completed">금주 목표를 달성했습니다!</string>
+
+    <!-- Update Snackbar (Flexible download completed) -->
+    <string name="update_downloaded_restart_prompt">업데이트가 다운로드되었습니다. 다시 시작하여 설치하세요.</string>
+    <string name="action_restart">다시 시작</string>
+
+    <!-- Start overlay -->
+    <string name="checking_update">업데이트 확인 중&#8230;</string>
+
+    <!-- Quit screen -->
+    <string name="quit_title">금주 종료</string>
+    <string name="quit_confirm_title">정말 멈추시겠어요?</string>
+    <string name="quit_confirm_subtitle">지금까지 잘 해오셨는데&#8230;</string>
+    <string name="stat_total_days">총 금주 일수</string>
+    <string name="stat_saved_money_short">절약한 금액</string>
+    <string name="stat_saved_hours_short">절약한 시간</string>
+
+    <!-- Detail screen -->
+    <string name="detail_title">기록 상세</string>
+    <string name="dialog_delete_title">기록 삭제</string>
+    <string name="dialog_delete_message">정말로 이 금주 기록을 삭제하시겠습니까?&#10;삭제 후 복구할 수 없습니다.</string>
+    <string name="dialog_delete_confirm">삭제</string>
+    <string name="dialog_cancel">취소</string>
+    <string name="detail_start_label">시작:</string>
+    <string name="detail_end_label">종료:</string>
+    <string name="detail_progress_rate">목표 달성률</string>
+    <string name="detail_progress_current">진행: %1$s일</string>
+    <string name="detail_progress_target">목표: %1$d일</string>
+    <string name="detail_today_time">오늘 - %1$s</string>
+    <string name="unit_days_format">%.1f일</string>
+    <string name="unit_hours_format">%.1f시간</string>
+    <string name="unit_won_format">%,.0f원</string>
+    <string name="unit_life_hours_only">%.2f시간</string>
+    <string name="unit_life_days_hours" formatted="false">%d일 %.2f시간</string>
+
+    <!-- 단위 표시 전용 (UI 분리 표시용) -->
+    <string name="unit_day">일</string>
+    <string name="unit_hour">시간</string>
+
+    <!-- About screen (앱 정보) -->
+    <string name="about_title">앱 정보</string>
+    <string name="about_version_info">버전 정보</string>
+    <string name="about_open_license_notice">Open Source License</string>
+    <!-- Document screen titles -->
+    <string name="document_title_open_source">Open Source License</string>
+    <string name="document_title_privacy">개인정보 처리방침</string>
+    <string name="about_section_app_icon">앱 아이콘</string>
+    <string name="about_label_original_work">원본 저작물</string>
+    <string name="about_label_author">원저작자</string>
+    <string name="about_label_source">출처</string>
+    <string name="about_label_source_link">출처 링크</string>
+    <string name="about_label_license">라이선스</string>
+    <string name="about_label_changes">변경 사항</string>
+
+    <!-- Updated license notice values -->
+    <string name="about_value_icon_name">Free Wayfinding vector icons - Guidance icon set</string>
+    <string name="about_value_icon_author">Streamline and Vincent le moign</string>
+    <string name="about_value_source_url">https://www.figma.com/community/file/1227184301417272677/free-wayfinding-vector-icons-guidance-icon-set</string>
+
+    <string name="about_value_license_cc_by">Creative Commons Attribution 4.0 International (CC BY 4.0)</string>
+    <string name="about_value_license_cc_by_url">https://creativecommons.org/licenses/by/4.0/</string>
+    <string name="about_value_change_desc">아이콘의 색상 및 모양 일부를 수정하여 사용함.</string>
+    <string name="about_notice_compliance">본 앱은 CC BY 4.0 조건에 따라 적절한 저작자 표시, 출처 및 라이선스 링크 제공, 변경 사항 고지를 준수합니다.</string>
+
+    <string name="action_copy">복사</string>
+    <string name="toast_copied">주소를 복사했습니다.</string>
+
+    <!-- Drawer menu (네비게이션 드로어) -->
+    <string name="default_nickname">알중이1</string>
+    <string name="drawer_edit_profile">프로필 편집</string>
+    <string name="drawer_section_menu">메뉴</string>
+    <string name="drawer_section_settings">설정</string>
+    <string name="drawer_menu_sobriety">금주</string>
+    <string name="drawer_menu_records">기록</string>
+    <string name="drawer_menu_level">레벨</string>
+    <string name="drawer_menu_settings">설정</string>
+    <string name="drawer_menu_about">앱 정보</string>
+    <string name="cd_avatar">아바타</string>
+    <string name="cd_menu">메뉴</string>
+
+    <!-- Profile Edit screen (프로필 편집) -->
+    <string name="profile_edit_title">프로필 편집</string>
+    <string name="profile_edit_instruction">새로운 별명을 입력해주세요</string>
+    <string name="profile_nickname_label">별명</string>
+    <string name="profile_nickname_placeholder">별명을 입력하세요</string>
+    <string name="profile_save">저장</string>
+    <string name="profile_cancel">취소</string>
+    <string name="cd_clear_text">텍스트 지우기</string>
+
+    <!-- 추가: 로그인 레이블 (About 화면 상단에서 사용) -->
+    <string name="login_label">로그인</string>
+
+    <!-- Records screen (기록 화면) -->
+    <string name="records_title">금주 기록</string>
+    <string name="records_period_week">주</string>
+    <string name="records_period_month">월</string>
+    <string name="records_period_year">년</string>
+    <string name="records_period_all">전체</string>
+    <string name="records_this_week">이번 주</string>
+    <string name="records_monthly_stats">월 통계</string>
+    <string name="records_success_rate">성공률</string>
+    <string name="records_avg_duration">평균 지속일</string>
+    <string name="records_max_duration">최대 지속일</string>
+    <string name="records_total_days">총 누적 금주일</string>
+    <string name="records_no_records">아직 금주 기록이 없습니다</string>
+    <string name="records_view_all">모든 기록 보기 (%d개)</string>
+    <string name="records_add">금주 기록 추가</string>
+    <string name="records_day_unit">일</string>
+    <string name="records_percent_unit">%</string>
+
+    <!-- Level names (레벨 이름) -->
+    <string name="level_0">작심 7일</string>
+    <string name="level_1">의지의 2주</string>
+    <string name="level_2">한달의 기적</string>
+    <string name="level_3">습관의 탄생</string>
+    <string name="level_4">계속되는 도전</string>
+    <string name="level_5">거의 1년</string>
+    <string name="level_6">금주 마스터</string>
+    <string name="level_7">절제의 레전드</string>
+
+    <!-- Level screen (레벨 화면) -->
+    <string name="level_title">금주 레벨</string>
+    <string name="level_days_label">일차</string>
+    <string name="level_until_next">다음 레벨까지</string>
+    <string name="level_days_remaining">남음</string>
+    <string name="level_hours_remaining">남음</string>
+    <string name="level_days_hours_remaining">일 %d시간 남음</string>
+    <string name="level_soon_levelup">곧 레벨업</string>
+    <string name="level_all_levels">전체 레벨</string>
+    <string name="level_day_unit">일</string>
+    <string name="level_hour_unit">시간</string>
+
+    <!-- Target Days Setting (목표 기간 설정) -->
+    <string name="target_days_title">목표 기간 설정</string>
+    <string name="target_days_unit">일</string>
+    <string name="target_days_hint">금주할 목표 기간을 선택해주세요</string>
+
+    <!-- Target Days Picker (목표 일수 선택) -->
+    <string name="target_days_picker_title">목표 일수 선택</string>
+    <string name="target_days_picker_unit">일</string>
+    <string name="target_days_picker_cancel">취소</string>
+    <string name="target_days_picker_confirm">확인</string>
+
+    <!-- Start Activity screen title (금주 시작 화면 제목) -->
+    <string name="start_screen_title">금주 시작</string>
+
+    <!-- Settings screen (설정 화면) -->
+    <string name="settings_title">설정</string>
+    <string name="settings_drinking_cost">음주 비용</string>
+    <string name="settings_drinking_frequency">음주 빈도</string>
+    <string name="settings_drinking_duration">음주 시간</string>
+
+    <!-- Privacy options (UMP) -->
+    <string name="settings_privacy_section_title">개인정보 및 광고 설정</string>
+    <string name="settings_privacy_open_button">동의/광고 설정 열기</string>
+    <string name="settings_privacy_description">광고 맞춤설정 동의 변경 또는 철회를 할 수 있어요.</string>
+    <!-- Ad personalization status labels (used in AboutScreens UMP UI) -->
+    <string name="settings_privacy_personalization_allowed">허용됨</string>
+    <string name="settings_privacy_personalization_denied">거부됨</string>
+
+    <!-- About / UMP helper strings -->
+    <string name="about_ad_consent_settings">Privacy Settings</string>
+    <string name="settings_privacy_unavailable">활동을 사용할 수 없어 광고 설정을 표시할 수 없습니다.</string>
+    <string name="settings_privacy_checking">광고 동의 확인 중&#8230;</string>
+    <string name="settings_privacy_load_failed">동의 폼 로드 실패: %1$s</string>
+    <string name="settings_privacy_not_required">동의 폼이 필요하지 않거나 이미 처리되었습니다.</string>
+    <string name="settings_privacy_update_failed">동의 정보 업데이트 실패: %1$s</string>
+
+    <!-- About screen: ad personalization labels (reusable) -->
+    <string name="about_ad_personalization">광고 개인화 허용</string>
+    <string name="about_ad_personalization_dialog_title">광고 개인화 허용</string>
+    <string name="about_ad_personalization_dialog_message">광고 개인화를 위해 기기 광고 ID(Advertising ID)를 사용합니다. 동의하면 광고 ID에 접근할 수 있습니다. 계속하시겠습니까?</string>
+
+    <!-- Dialog common strings -->
+    <string name="dialog_confirm">확인</string>
+    <string name="dialog_view_details">자세히 보기</string>
+    <string name="dialog_close">닫기</string>
+    <string name="emergency_title_default">긴급 안내</string>
+
+    <!-- Additional All Records screen strings (추가 모든 기록 화면 문자열) -->
+    <string name="all_records_delete_failed">삭제 실패</string>
+    <string name="record_completed">완료</string>
+    <string name="record_incomplete">미완료</string>
+    <string name="record_actual_days">달성 일수</string>
+    <string name="record_target_days">목표 일수</string>
+    <string name="record_success_rate">달성률</string>
+    <string name="record_start_time">시작</string>
+    <string name="record_end_time">종료</string>
+    <string name="record_days_format">%.1f일</string>
+    <string name="record_target_days_format">%d일</string>
+    <string name="record_rate_format">%.1f%%</string>
+
+    <!-- Month Picker (월 선택) -->
+    <string name="month_picker_title">월 선택</string>
+    <string name="month_picker_year_format">%d년</string>
+    <string name="month_picker_month_format">%d월</string>
+    <string name="month_picker_no_data">표시할 항목이 없습니다</string>
+    <string name="month_picker_select">선택</string>
+
+    <!-- Date Format (날짜 형식) -->
+    <string name="date_format_year_month">%1$d년 %2$d월</string>
+    <string name="date_format_year">%d년</string>
+    <string name="date_format_month">%d월</string>
+
+    <!-- Week Picker (주 선택) -->
+    <string name="week_picker_title">주 선택</string>
+    <string name="week_picker_this_week">이번 주</string>
+    <string name="week_picker_last_week">지난 주</string>
+    <string name="week_picker_select">선택</string>
+
+    <!-- Year Picker (연도 선택) -->
+    <string name="year_picker_title">연도 선택</string>
+    <string name="year_picker_year_format">%d년</string>
+    <string name="year_picker_no_data">표시할 항목이 없습니다</string>
+    <string name="year_picker_select">선택</string>
+
+    <!-- Cost options -->
+    <string name="settings_cost_low">저</string>
+    <string name="settings_cost_medium">중</string>
+    <string name="settings_cost_high">고</string>
+    <string name="settings_cost_low_label">저 (1만원 이하)</string>
+    <string name="settings_cost_medium_label">중 (1~5만원)</string>
+    <string name="settings_cost_high_label">고 (5만원 이상)</string>
+
+    <!-- Frequency options -->
+    <string name="settings_frequency_low">주 1회 이하</string>
+    <string name="settings_frequency_medium">주 2~3회</string>
+    <string name="settings_frequency_high">주 4회 이상</string>
+
+    <!-- Duration options -->
+    <string name="settings_duration_short">짧음</string>
+    <string name="settings_duration_medium">보통</string>
+    <string name="settings_duration_long">길게</string>
+    <string name="settings_duration_short_label">짧음 (2시간 이하)</string>
+    <string name="settings_duration_medium_label">보통 (3~5시간)</string>
+    <string name="settings_duration_long_label">길게 (6시간 이상)</string>
+
+    <!-- Add Record screen (금주 기록 추가) -->
+    <string name="add_record_title">금주 기록 추가</string>
+    <string name="add_record_start_date_time">시작일 및 시간</string>
+    <string name="add_record_end_date_time">종료일 및 시간</string>
+    <string name="add_record_target_days">목표 일수</string>
+    <string name="add_record_error_invalid_range">종료 시간은 시작 시간 이후이어야 합니다</string>
+    <string name="add_record_error_set_target">목표 일수를 올바르게 입력하세요</string>
+    <string name="add_record_cancel">취소</string>
+    <string name="add_record_save">저장</string>
+    <string name="add_record_toast_success">금주 기록이 추가되었습니다</string>
+    <string name="add_record_toast_conflict">선택한 시간이 기존 기록과 겹칩니다</string>
+    <string name="add_record_days_unit">일</string>
+    <string name="add_record_error_invalid_input">입력값이 올바르지 않습니다</string>
+    <string name="add_record_error_time_conflict">선택한 시간이 기존 기록과 겹칩니다</string>
+    <string name="add_record_error_save_failed">저장에 실패했습니다</string>
+    <string name="add_record_saving">저장 중&#8230;</string>
+
+    <!-- Currency options (통화 선택) -->
+    <string name="settings_currency">통화 설정</string>
+    <string name="currency_krw">대한민국 원 (₩)</string>
+    <string name="currency_jpy">일본 엔 (¥)</string>
+    <string name="currency_usd">미국 달러 ($)</string>
+    <string name="currency_eur">유로 (€)</string>
+    <string name="currency_mxn">멕시코 페소 (MX$)</string>
+    <string name="currency_cny">중국 위안 (¥)</string>
+    <string name="currency_brl">브라질 헤알 (R$)</string>
+
+    <!-- Update dialog strings (localization keys added) -->
+    <string name="update_dialog_title">새 버전이 있습니다! 🎉</string>
+    <string name="update_dialog_version_format">버전 %1$s</string>
+    <string name="update_dialog_default_message">새로운 기능과 개선사항이 포함되어 있습니다.</string>
+    <string name="update_dialog_later">나중에</string>
+    <string name="update_dialog_update">업데이트</string>
+    <string name="update_dialog_icon_description">업데이트 아이콘</string>
+
+    <!-- Nickname error messages -->
+    <string name="error_only_spaces">공백만 입력할 수 없어요</string>
+    <string name="error_too_long">입력 가능한 최대 길이를 초과했어요</string>
+
+    <!-- 추가: 진행 화면 문자열 -->
+    <string name="run_progress_title">진행 상황</string>
+    <string name="run_start_label">시작</string>
+    <string name="run_target_label">목표: %1$d일</string>
+    <string name="debug_menu_title">Debug Menu</string>
+</resources>

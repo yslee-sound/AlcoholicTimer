@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Alcoholic Timer</string>
+
+    <!-- AllRecords screen strings -->
+    <string name="all_records_title">所有记录</string>
+    <string name="cd_navigate_back">返回</string>
+    <string name="error_loading_records">加载记录失败</string>
+    <string name="retry">重试</string>
+    <string name="empty_records_title">暂无记录</string>
+    <string name="empty_records_subtitle">开始您的第一次戒酒挑战吧！</string>
+    <string name="empty_records_cd">没有可显示的记录</string>
+    <!-- Delete all records -->
+    <string name="cd_delete_all_records">删除所有记录</string>
+    <string name="all_records_delete_title">删除所有记录</string>
+    <string name="all_records_delete_message">确定要删除所有戒酒记录吗？&#10;此操作无法撤销。</string>
+    <string name="all_records_delete_confirm">全部删除</string>
+
+    <!-- Run screen (进行画面) -->
+    <string name="run_title">戒酒进度</string>
+    <string name="stat_goal_days">目标</string>
+    <string name="stat_level">等级</string>
+    <string name="stat_time">时间</string>
+    <string name="stat_goal_days_format">%d天</string>
+
+    <string name="indicator_title_days">戒酒天数</string>
+    <string name="indicator_title_time">时间</string>
+    <string name="indicator_title_saved_money">节省金额</string>
+    <string name="indicator_title_saved_hours">节省时间</string>
+    <string name="indicator_title_life_gain">预期寿命+</string>
+    <string name="tap_to_switch_indicator">点击查看其他指标</string>
+
+    <string name="cd_stop">停止</string>
+    <string name="cd_continue">继续</string>
+
+    <string name="toast_goal_completed">您已达成戒酒目标！</string>
+
+    <!-- Update Snackbar (Flexible download completed) -->
+    <string name="update_downloaded_restart_prompt">更新已下载完成。请重启以安装。</string>
+    <string name="action_restart">重启</string>
+
+    <!-- Start overlay -->
+    <string name="checking_update">正在检查更新&#8230;</string>
+
+    <!-- Quit screen -->
+    <string name="quit_title">结束戒酒</string>
+    <string name="quit_confirm_title">真的要停止吗？</string>
+    <string name="quit_confirm_subtitle">您一直做得很好&#8230;</string>
+    <string name="stat_total_days">总戒酒天数</string>
+    <string name="stat_saved_money_short">节省金额</string>
+    <string name="stat_saved_hours_short">节省时间</string>
+
+    <!-- Detail screen -->
+    <string name="detail_title">记录详情</string>
+    <string name="dialog_delete_title">删除记录</string>
+    <string name="dialog_delete_message">确定要删除此戒酒记录吗？&#10;此操作无法撤销。</string>
+    <string name="dialog_delete_confirm">删除</string>
+    <string name="dialog_cancel">取消</string>
+    <string name="detail_start_label">开始：</string>
+    <string name="detail_end_label">结束：</string>
+    <string name="detail_progress_rate">目标达成率</string>
+    <string name="detail_progress_current">进度：%1$s天</string>
+    <string name="detail_progress_target">目标：%1$d天</string>
+    <string name="detail_today_time">今天 - %1$s</string>
+    <string name="unit_days_format">%.1f天</string>
+    <string name="unit_hours_format">%.1f小时</string>
+    <string name="unit_won_format">¥%,.2f</string>
+    <string name="unit_life_hours_only">%.2f小时</string>
+    <string name="unit_life_days_hours" formatted="false">%d天 %.2f小时</string>
+
+    <!-- 单位显示专用 (UI分离显示用) -->
+    <string name="unit_day">天</string>
+    <string name="unit_hour">小时</string>
+
+    <!-- About screen (应用信息) -->
+    <string name="about_title">关于</string>
+    <string name="about_version_info">版本信息</string>
+    <string name="about_open_license_notice">开源许可声明</string>
+    <string name="about_section_app_icon">应用图标</string>
+    <string name="about_label_original_work">原作品</string>
+    <string name="about_label_author">原作者</string>
+    <string name="about_label_source">来源</string>
+    <string name="about_label_source_link">来源链接</string>
+    <string name="about_label_license">许可证</string>
+    <string name="about_label_changes">修改说明</string>
+
+    <!-- Updated license notice values -->
+    <string name="about_value_icon_name">Free Wayfinding vector icons - Guidance icon set</string>
+    <string name="about_value_icon_author">Streamline and Vincent le moign</string>
+    <string name="about_value_source_url">https://www.figma.com/community/file/1227184301417272677/free-wayfinding-vector-icons-guidance-icon-set</string>
+
+    <string name="about_value_license_cc_by">Creative Commons Attribution 4.0 International (CC BY 4.0)</string>
+    <string name="about_value_license_cc_by_url">https://creativecommons.org/licenses/by/4.0/</string>
+    <string name="about_value_change_desc">修改了图标的颜色和部分形状。</string>
+    <string name="about_notice_compliance">本应用遵循 CC BY 4.0 条款，提供适当的作者署名、来源及许可链接，并说明修改内容。</string>
+
+    <string name="action_copy">复制</string>
+    <string name="toast_copied">地址已复制。</string>
+
+    <!-- Drawer menu (导航抽屉) -->
+    <string name="default_nickname">戒酒达人1</string>
+    <string name="drawer_edit_profile">编辑资料</string>
+    <string name="drawer_section_menu">菜单</string>
+    <string name="drawer_section_settings">设置</string>
+    <string name="drawer_menu_sobriety">戒酒</string>
+    <string name="drawer_menu_records">记录</string>
+    <string name="drawer_menu_level">等级</string>
+    <string name="drawer_menu_settings">设置</string>
+    <string name="drawer_menu_about">关于</string>
+    <string name="cd_avatar">头像</string>
+    <string name="cd_menu">菜单</string>
+
+    <!-- Profile Edit screen (资料编辑) -->
+    <string name="profile_edit_title">编辑资料</string>
+    <string name="profile_edit_instruction">请输入新昵称</string>
+    <string name="profile_nickname_label">昵称</string>
+    <string name="profile_save">保存</string>
+    <string name="profile_cancel">取消</string>
+
+    <!-- Records screen (记录画面) -->
+    <string name="records_title">戒酒记录</string>
+    <string name="records_period_week">周</string>
+    <string name="records_period_month">月</string>
+    <string name="records_period_year">年</string>
+    <string name="records_period_all">全部</string>
+    <string name="records_this_week">本周</string>
+    <string name="records_monthly_stats">月度统计</string>
+    <string name="records_success_rate">成功率</string>
+    <string name="records_avg_duration">平均持续天数</string>
+    <string name="records_max_duration">最长持续天数</string>
+    <string name="records_total_days">累计戒酒天数</string>
+    <string name="records_no_records">暂无戒酒记录</string>
+    <string name="records_view_all">查看所有记录 (%d条)</string>
+    <string name="records_add">添加戒酒记录</string>
+    <string name="records_day_unit">天</string>
+    <string name="records_percent_unit">%</string>
+
+    <!-- Level names (等级名称) -->
+    <string name="level_0">初心7天</string>
+    <string name="level_1">意志两周</string>
+    <string name="level_2">一月奇迹</string>
+    <string name="level_3">习惯养成</string>
+    <string name="level_4">持续挑战</string>
+    <string name="level_5">坚持近年</string>
+    <string name="level_6">戒酒大师</string>
+    <string name="level_7">自律传奇</string>
+
+    <!-- Level screen (等级画面) -->
+    <string name="level_title">戒酒等级</string>
+    <string name="level_days_label">天</string>
+    <string name="level_until_next">距离下一等级</string>
+    <string name="level_days_remaining">剩余</string>
+    <string name="level_hours_remaining">剩余</string>
+    <string name="level_days_hours_remaining">天 %d小时 剩余</string>
+    <string name="level_soon_levelup">即将升级</string>
+    <string name="level_all_levels">所有等级</string>
+    <string name="level_day_unit">天</string>
+    <string name="level_hour_unit">小时</string>
+
+    <!-- Target Days Setting (目标期间设定) -->
+    <string name="target_days_title">设置目标天数</string>
+    <string name="target_days_unit">天</string>
+    <string name="target_days_hint">请选择戒酒目标天数</string>
+
+    <!-- Target Days Picker (目标天数选择) -->
+    <string name="target_days_picker_title">选择目标天数</string>
+    <string name="target_days_picker_unit">天</string>
+    <string name="target_days_picker_cancel">取消</string>
+    <string name="target_days_picker_confirm">确定</string>
+
+    <!-- Start Activity screen title (开始戒酒画面标题) -->
+    <string name="start_screen_title">开始戒酒</string>
+
+    <!-- Settings screen (设置画面) -->
+    <string name="settings_title">设置</string>
+    <string name="settings_drinking_cost">饮酒花费</string>
+    <string name="settings_drinking_frequency">饮酒频率</string>
+    <string name="settings_drinking_duration">饮酒时长</string>
+
+    <!-- Additional All Records screen strings (追加所有记录画面字符串) -->
+    <string name="all_records_delete_failed">删除失败</string>
+    <string name="record_completed">已完成</string>
+    <string name="record_incomplete">未完成</string>
+    <string name="record_actual_days">达成天数</string>
+    <string name="record_target_days">目标天数</string>
+    <string name="record_success_rate">达成率</string>
+    <string name="record_start_time">开始</string>
+    <string name="record_end_time">结束</string>
+    <string name="record_days_format">%.1f天</string>
+    <string name="record_target_days_format">%d天</string>
+    <string name="record_rate_format">%.1f%%</string>
+
+    <!-- Month Picker (月份选择) -->
+    <string name="month_picker_title">选择月份</string>
+    <string name="month_picker_year_format">%d年</string>
+    <string name="month_picker_month_format">%d月</string>
+    <string name="month_picker_no_data">没有可显示的内容</string>
+    <string name="month_picker_select">选择</string>
+
+    <!-- Date Format (日期格式) -->
+    <string name="date_format_year_month">%1$d年%2$d月</string>
+    <string name="date_format_year">%d年</string>
+    <string name="date_format_month">%d月</string>
+
+    <!-- Update dialog strings -->
+    <string name="update_dialog_title">有新版本可用！ 🎉</string>
+    <string name="update_dialog_version_format">版本 %1$s</string>
+    <string name="update_dialog_default_message">包含新功能和改进。</string>
+    <string name="update_dialog_later">稍后</string>
+    <string name="update_dialog_update">更新</string>
+    <string name="update_dialog_icon_description">更新图标</string>
+
+    <!-- 添加: 运行屏幕字符串 -->
+    <string name="run_progress_title">进度</string>
+    <string name="run_start_label">开始</string>
+    <string name="run_target_label">目标: %1$d天</string>
+
+    <!-- About / UMP helper strings -->
+    <string name="about_ad_consent_settings">广告同意设置</string>
+    <string name="settings_privacy_unavailable">无法显示广告设置（活动不可用）。</string>
+    <string name="settings_privacy_checking">正在检查广告同意&#8230;</string>
+    <string name="settings_privacy_load_failed">同意表单加载失败：%1$s</string>
+    <string name="settings_privacy_not_required">不需要同意表单或已处理。</string>
+    <string name="settings_privacy_update_failed">更新同意信息失败：%1$s</string>
+
+    <!-- Login label -->
+    <string name="login_label">登录</string>
+
+    <!-- Dialog common strings -->
+    <string name="dialog_confirm">确认</string>
+    <string name="dialog_view_details">查看详情</string>
+    <string name="dialog_close">关闭</string>
+    <string name="emergency_title_default">紧急通知</string>
+</resources>
