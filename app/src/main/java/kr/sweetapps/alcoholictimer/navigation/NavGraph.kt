@@ -52,7 +52,7 @@ fun AlcoholicTimerNavGraph(
     var recordsRefreshCounter by remember { mutableStateOf<Int>(0) }
     val activity = (LocalView.current.context as? Activity)
     val context = LocalContext.current
-    val firebaseAnalytics = Firebase.analytics
+    val firebaseAnalytics = runCatching { Firebase.analytics }.getOrNull()
 
     LaunchedEffect(Unit) {
         var wasHome = false
@@ -89,7 +89,7 @@ fun AlcoholicTimerNavGraph(
                     targetDays ->
                     val bundle = Bundle()
                     bundle.putInt("target_days", targetDays)
-                    firebaseAnalytics.logEvent("start_timer", bundle)
+                    firebaseAnalytics?.logEvent("start_timer", bundle)
                     navController.navigate(Screen.Run.route) {
                         popUpTo(Screen.Start.route) { inclusive = true }
                         launchSingleTop = true

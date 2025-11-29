@@ -33,12 +33,13 @@ class MainApplication : Application() {
         AdController.initialize(this)
 
         // When policy fetch completes and interstitials are enabled, ensure interstitial is preloaded.
-        AdController.addPolicyFetchListener { policy: AdController.Policy? ->
+        // Use AdController's policy listener to react when the remote policy is available.
+        AdController.addPolicyFetchListener { policy ->
             try {
                 if (policy?.adInterstitialEnabled == true) {
                     android.util.Log.d("MainApplication", "Policy enables interstitial -> preloading interstitial")
                     // preload must run on main/UI thread (InterstitialAd.load enforces main thread)
-                    android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    Handler(Looper.getMainLooper()).post {
                         try { InterstitialAdManager.preload(applicationContext) } catch (_: Throwable) {}
                     }
                 }
