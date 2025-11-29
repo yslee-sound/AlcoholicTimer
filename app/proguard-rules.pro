@@ -21,14 +21,9 @@
 #-renamesourcefileattribute SourceFile
 
 # ===================================================
-# Google AdMob & Play Services Ads (축소된 keep)
+# Google AdMob & Play Services Ads (간소화된 keep)
 # ===================================================
--keep class com.google.android.gms.ads.AdView { *; }
--keep class com.google.android.gms.ads.InterstitialAd { *; }
--keep class com.google.android.gms.ads.AdRequest { *; }
--keep class com.google.android.gms.ads.LoadAdError { *; }
--keep class com.google.android.gms.ads.AdError { *; }
--keep class com.google.android.gms.ads.FullScreenContentCallback { *; }
+-keep class com.google.android.gms.ads.** { *; }
 -dontwarn com.google.android.gms.ads.**
 
 # UMP (동의 폼 안정성 위해 전체 유지)
@@ -52,3 +47,4 @@
 
 # BuildConfig 보존 (광고 유닛 ID 포함 가능)
 -keep class kr.sweetapps.alcoholictimer.BuildConfig { *; }
+

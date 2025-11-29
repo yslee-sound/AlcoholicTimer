@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
-    // id("com.google.gms.google-services")  // 조건부로 적용하도록 아래에서 처리
+    id("com.google.gms.google-services") // 명시적으로 적용하여 variant 콜백 시점 문제 해결
     id("com.google.firebase.crashlytics")
     id("com.google.firebase.firebase-perf")
 }
@@ -208,19 +208,6 @@ dependencies {
 
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-}
-
-// Conditionally apply Google Services plugin only if google-services.json exists
-val googleServicePaths = listOf(
-    file("src/debug/google-services.json"),
-    file("src/release/google-services.json"),
-    file("src/google-services.json"),
-    file("google-services.json")
-)
-if (googleServicePaths.any { it.exists() }) {
-    apply(plugin = "com.google.gms.google-services")
-} else {
-    println("[WARN] google-services.json not found - skipping com.google.gms.google-services plugin.")
 }
 
 // signingReport 대안: 서명 환경변수 및 키스토어 존재 여부를 출력하는 헬퍼 태스크
