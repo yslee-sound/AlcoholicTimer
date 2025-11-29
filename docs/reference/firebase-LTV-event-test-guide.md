@@ -54,6 +54,52 @@ adb -s emulator-5554 shell setprop debug.firebase.analytics.app .none.
 
 -----
 
+## ⏰ 테스트용 시스템 시간 변경 및 복구 방법 (에뮬레이터)
+
+**timer_finish 등 시간 기반 이벤트를 빠르게 검증하려면, 에뮬레이터의 시스템 시간을 인위적으로 변경할 수 있습니다.**
+
+### 1. 에뮬레이터 시간 앞으로 이동시키기
+
+아래 명령어를 안드로이드 스튜디오의 Terminal 또는 PowerShell에서 실행하세요.
+
+```bash
+# 예시: 2025년 12월 1일 12:00:00로 변경
+adb -s emulator-5554 shell date -s 20251201.120000
+```
+
+- 날짜 형식: `YYYYMMDD.HHMMSS` (년월일.시분초)
+- 금주 목표를 1일로 설정한 뒤, 위 명령어로 시간을 하루 이상 앞으로 이동하면 즉시 목표 달성 이벤트(timer_finish)를 검증할 수 있습니다.
+
+### 2. 시간 변경 후 앱 재실행
+
+시간을 변경한 뒤에는 반드시 앱을 완전히 종료했다가 다시 실행해야 합니다.
+
+```bash
+adb -s emulator-5554 shell am force-stop kr.sweetapps.alcoholictimer.debug
+adb -s emulator-5554 shell monkey -p kr.sweetapps.alcoholictimer.debug -c android.intent.category.LAUNCHER 1
+```
+
+### 3. 에뮬레이터 시간을 원래대로 복구하기
+
+테스트가 끝난 후에는 시스템 시간을 실제 현재 시각으로 복구해야 합니다. 아래 명령어를 사용하세요.
+
+```bash
+# PC의 현재 시간을 에뮬레이터에 동기화
+adb -s emulator-5554 shell date -s $(date +%Y%m%d.%H%M%S)
+```
+
+- Windows PowerShell에서는 아래와 같이 입력할 수 있습니다:
+
+```powershell
+adb -s emulator-5554 shell date -s $(Get-Date -Format yyyyMMdd.HHmmss)
+```
+
+- 또는 에뮬레이터 설정 화면에서 수동으로 날짜/시간을 직접 변경할 수도 있습니다.
+
+**시간을 복구하지 않으면, 이후 앱 테스트/광고/로그 기록에 문제가 생길 수 있으니 반드시 원래대로 돌려주세요.**
+
+-----
+
 ## 🧪 이벤트별 테스트 방법 및 필수 매개변수 검증
 
 아래 순서에 따라 앱의 각 기능을 사용하며 **Logcat**과 **DebugView**에 이벤트가 올바르게 기록되는지 확인하세요.
