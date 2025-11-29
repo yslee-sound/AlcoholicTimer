@@ -81,4 +81,15 @@ object AnalyticsManager {
 
     // ViewRecords: 과거 금주 기록 조회
     fun logViewRecords() = log(AnalyticsEvents.VIEW_RECORDS) {}
+
+    // ChangeRecordView: 기록 보기 화면에서 주/월/년 기준 변경
+    fun logChangeRecordView(viewType: String, currentLevel: Int) = log(AnalyticsEvents.CHANGE_RECORD_VIEW) {
+        putString(AnalyticsParams.VIEW_TYPE, viewType)
+        putInt(AnalyticsParams.CURRENT_LEVEL, currentLevel)
+    }
+
+    // ViewRecordDetail: 특정 기록 상세 조회
+    fun logViewRecordDetail(recordId: String) = log(AnalyticsEvents.VIEW_RECORD_DETAIL) {
+        putString(AnalyticsParams.RECORD_ID, recordId)
+    }
 }

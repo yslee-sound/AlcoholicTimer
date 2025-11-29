@@ -11,6 +11,8 @@ object AnalyticsEvents {
     const val AD_IMPRESSION = "ad_impression"
     const val AD_CLICK = "ad_click"
     const val VIEW_RECORDS = "view_records"
+    const val CHANGE_RECORD_VIEW = "change_record_view"
+    const val VIEW_RECORD_DETAIL = "view_record_detail"
 }
 
 object AnalyticsParams {
@@ -23,4 +25,7 @@ object AnalyticsParams {
     const val END_TS = "end_ts"
     const val FAIL_REASON = "fail_reason"
     const val HAD_ACTIVE_GOAL = "had_active_goal"
+    const val VIEW_TYPE = "view_type"
+    const val CURRENT_LEVEL = "current_level"
+    const val RECORD_ID = "record_id"
 }
