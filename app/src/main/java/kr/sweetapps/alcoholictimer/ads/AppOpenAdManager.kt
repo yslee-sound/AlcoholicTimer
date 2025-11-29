@@ -16,6 +16,7 @@ import java.util.concurrent.CopyOnWriteArraySet
 import android.os.Handler
 import android.os.Looper
 import kr.sweetapps.alcoholictimer.ads.UmpConsentManager
+import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 
 /**
  * Real App Open Ad manager using Google Mobile Ads SDK.
@@ -290,8 +291,16 @@ object AppOpenAdManager {
                     try { AdController.setFullScreenAdShowing(true) } catch (_: Throwable) {}
                     for (l in shownListeners) runCatching { l.invoke() }
                     runCatching { onShownListener?.invoke() }
+                    // Analytics: log impression
+                    try { runCatching { AnalyticsManager.logAdImpression("app_open") } } catch (_: Throwable) {}
+                }
+
+                override fun onAdClicked() {
+                    Log.d(TAG, "AppOpen onAdClicked")
+                    try { runCatching { AnalyticsManager.logAdClick("app_open") } } catch (_: Throwable) {}
                 }
             }
+
             Log.d(TAG, "Attempting to show AppOpen ad now (safely on UI thread)")
             if (isShowScheduled) {
                 Log.d(TAG, "showIfAvailable: already scheduled -> returning false")

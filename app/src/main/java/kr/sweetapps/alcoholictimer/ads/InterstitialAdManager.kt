@@ -3,10 +3,8 @@ package kr.sweetapps.alcoholictimer.ads
 
 import android.app.Activity
 import android.content.Context
-import android.os.Bundle
 import android.util.Log
 import com.google.android.gms.ads.AdError
-import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
@@ -15,6 +13,7 @@ import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.firebase.analytics.FirebaseAnalytics
 import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.ads.AdRequestFactory
+import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 
 object InterstitialAdManager {
     private const val TAG = "InterstitialAdManager"
@@ -51,14 +50,12 @@ object InterstitialAdManager {
                     interstitial = ad
                     isLoading = false
                     ad.onPaidEventListener = com.google.android.gms.ads.OnPaidEventListener { adValue ->
-                        val bundle = Bundle()
-                        bundle.putString(FirebaseAnalytics.Param.AD_PLATFORM, "admob")
-                        bundle.putString(FirebaseAnalytics.Param.AD_SOURCE, ad.responseInfo?.loadedAdapterResponseInfo?.adSourceName)
-                        bundle.putString(FirebaseAnalytics.Param.AD_FORMAT, "interstitial")
-                        bundle.putString(FirebaseAnalytics.Param.AD_UNIT_NAME, ad.adUnitId)
-                        bundle.putDouble(FirebaseAnalytics.Param.VALUE, adValue.valueMicros / 1000000.0)
-                        bundle.putString(FirebaseAnalytics.Param.CURRENCY, adValue.currencyCode)
-                        firebaseAnalytics.logEvent("ad_revenue", bundle)
+                        // Use AnalyticsManager wrapper so parameter names match our tracking guide
+                        try {
+                            val value = adValue.valueMicros / 1000000.0
+                            val currency = adValue.currencyCode
+                            runCatching { AnalyticsManager.logAdRevenue(value, currency, "interstitial") }
+                        } catch (_: Throwable) {}
                     }
                 }
 
@@ -155,6 +152,13 @@ object InterstitialAdManager {
 
                 override fun onAdShowedFullScreenContent() {
                     Log.d(TAG, "onAdShowedFullScreenContent")
+                    // Analytics: ad impression for interstitial
+                    try { runCatching { AnalyticsManager.logAdImpression("interstitial") } } catch (_: Throwable) {}
+                }
+
+                override fun onAdClicked() {
+                    Log.d(TAG, "onAdClicked")
+                    try { runCatching { AnalyticsManager.logAdClick("interstitial") } } catch (_: Throwable) {}
                 }
             }
             try {

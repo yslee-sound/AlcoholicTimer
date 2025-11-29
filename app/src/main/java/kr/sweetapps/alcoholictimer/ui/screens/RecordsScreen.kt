@@ -28,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import kr.sweetapps.alcoholictimer.R
+import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
 import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
@@ -276,6 +277,17 @@ fun RecordsScreen(
                                 selectedPeriod = period
                                 selectedDetailPeriod = ""
                                 if (period == periodWeek) selectedWeekRange = null
+                                // Analytics: 사용자 통계 뷰 변경 이벤트 전송
+                                try {
+                                    val viewType = when (period) {
+                                        periodWeek -> "Week"
+                                        periodMonth -> "Month"
+                                        periodYear -> "Year"
+                                        else -> "All"
+                                    }
+                                    val currentLevel = records.maxOfOrNull { it.achievedLevel } ?: 0
+                                    AnalyticsManager.logChangeRecordView(viewType, currentLevel)
+                                } catch (_: Throwable) {}
                             },
                             onPeriodClick = { _ -> showBottomSheet = true },
                             selectedDetailPeriod = selectedDetailPeriod,

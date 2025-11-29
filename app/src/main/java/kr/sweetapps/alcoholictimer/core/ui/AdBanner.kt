@@ -25,6 +25,8 @@ import com.google.android.gms.ads.AdRequest
 import kr.sweetapps.alcoholictimer.ads.AdRequestFactory
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.AdValue
+import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 import com.google.android.ump.UserMessagingPlatform
 import kotlinx.coroutines.delay
 
@@ -234,6 +236,8 @@ fun AdmobBanner(
                                 if (first) {
                                     onFirstLoaded?.invoke()
                                     analytics.onFirstLoaded()
+                                    // Analytics: log banner impression (first successful load)
+                                    try { AnalyticsManager.logAdImpression("banner") } catch (_: Throwable) {}
                                 }
                             }
 
@@ -254,9 +258,24 @@ fun AdmobBanner(
                                     analytics.onAllRetriesFailed(code, msg)
                                 }
                             }
+
+                            override fun onAdClicked() {
+                                Log.d(TAG, "Banner onAdClicked")
+                                try { AnalyticsManager.logAdClick("banner") } catch (_: Throwable) {}
+                            }
                         }
 
                         adViewRef = this
+                        // Paid event listener: report ad revenue to AnalyticsManager
+                        try {
+                            setOnPaidEventListener { adValue: AdValue ->
+                                try {
+                                    val value = (adValue.valueMicros / 1_000_000.0)
+                                    val currency = adValue.currencyCode ?: "USD"
+                                    AnalyticsManager.logAdRevenue(value, currency, "banner")
+                                } catch (_: Throwable) {}
+                            }
+                        } catch (_: Throwable) {}
                         Log.d(TAG, "AdView factory created unit=$unitId visibility=${visibility}")
                     }
                 },

@@ -40,6 +40,7 @@ import kr.sweetapps.alcoholictimer.feature.debug.DebugAdsScreen
 import kr.sweetapps.alcoholictimer.ui.tab_04.screens.CurrencySettingsScreen
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DebugScreen
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.policy.DocumentScreen
+import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 
 /**
  * Navigation Graph
@@ -133,6 +134,8 @@ fun AlcoholicTimerNavGraph(
                 externalRefreshTrigger = recordsRefreshCounter,
                 onNavigateToAllRecords = { navController.navigate(Screen.AllRecords.route) },
                 onNavigateToDetail = { record: SobrietyRecord ->
+                    // Analytics: 기록 상세 보기 이벤트 전송
+                    try { AnalyticsManager.logViewRecordDetail(record.id) } catch (_: Throwable) {}
                     val route = Screen.Detail.createRoute(
                         startTime = record.startTime,
                         endTime = record.endTime,
@@ -160,6 +163,8 @@ fun AlcoholicTimerNavGraph(
             AllRecordsScreen(
                 onNavigateBack = { if (!navController.popBackStack()) navController.navigate(Screen.Records.route) },
                 onNavigateToDetail = { record: SobrietyRecord ->
+                    // Analytics: 기록 상세 보기 이벤트 전송 (AllRecords 출처)
+                    try { AnalyticsManager.logViewRecordDetail(record.id) } catch (_: Throwable) {}
                     val route = Screen.Detail.createRoute(
                         startTime = record.startTime,
                         endTime = record.endTime,
