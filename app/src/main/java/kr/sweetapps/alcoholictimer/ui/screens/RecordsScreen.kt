@@ -28,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import kr.sweetapps.alcoholictimer.R
+import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
 import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
@@ -84,6 +85,10 @@ fun RecordsScreen(
     onAddRecord: () -> Unit = {},
     fontScale: Float = 1.06f
 ) {
+    LaunchedEffect(Unit) {
+        AnalyticsManager.logViewRecords()
+    }
+
     val context = LocalContext.current
     var records by remember { mutableStateOf<List<SobrietyRecord>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
