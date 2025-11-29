@@ -12,6 +12,26 @@
 
 ---
 
+## 💡 문제 해결: DebugView에 기기가 표시되지 않는 경우
+
+에뮬레이터로 테스트할 때 DebugView에 기기가 바로 나타나지 않는다면, **분석 디버그 모드**가 활성화되지 않아서 그렇습니다.
+
+디버그 빌드는 패키지 이름 끝에 `.debug`가 추가되므로, 아래의 **정확한 명령어**를 안드로이드 스튜디오의 **Terminal** 창에 복사하여 실행하면 즉시 해결됩니다.
+
+```bash
+# 'emulator-5554' 에뮬레이터에 디버그 모드 활성화
+adb -s emulator-5554 shell setprop debug.firebase.analytics.app kr.sweetapps.alcoholictimer.debug
+```
+
+**참고**: 테스트가 끝나면 아래 명령어로 디버그 모드를 비활성화할 수 있습니다. (끄는 명령어는 패키지 이름 없이 `.none.`을 사용하는 것이 맞습니다.)
+
+```bash
+# 'emulator-5554' 에뮬레이터에서 디버그 모드 비활성화
+adb -s emulator-5554 shell setprop debug.firebase.analytics.app .none.
+```
+
+---
+
 ## 🧪 이벤트별 테스트 방법
 
 아래 순서에 따라 앱의 각 기능을 사용하며 Logcat과 DebugView에 이벤트가 올바르게 기록되는지 확인하세요.
