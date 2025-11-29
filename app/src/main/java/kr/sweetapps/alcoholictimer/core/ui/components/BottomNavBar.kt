@@ -21,6 +21,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import kr.sweetapps.alcoholictimer.R
+import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.navigation.Screen
 
@@ -110,6 +111,10 @@ fun BottomNavBar(navController: NavHostController, modifier: Modifier = Modifier
                             item = item,
                             isSelected = selected,
                             onClick = {
+                                // 기록 보기(두 번째 버튼) 클릭 시 이벤트 전송
+                                if (index == 1) {
+                                    try { AnalyticsManager.logViewRecords() } catch (_: Throwable) {}
+                                }
                                 if (!selected) {
                                     navController.navigate(item.screen.route) {
                                         launchSingleTop = true
