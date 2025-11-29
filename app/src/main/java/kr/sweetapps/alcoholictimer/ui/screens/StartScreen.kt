@@ -59,6 +59,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 
 import kr.sweetapps.alcoholictimer.ads.AppOpenAdManager
+import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 
 private val START_CARD_TOP_INNER_PADDING: Dp = 50.dp
 private val START_TITLE_TOP_MARGIN: Dp = 30.dp
@@ -345,6 +346,16 @@ fun StartScreen(
             bottomButton = {
                 MainActionButton(
                     onClick = {
+                        // Log timer_start event
+                        try {
+                            val hadActiveGoal = sharedPref.getLong("start_time", 0L) > 0L
+                            AnalyticsManager.logTimerStart(
+                                targetDays = targetDays,
+                                hadActiveGoal = hadActiveGoal,
+                                startTs = System.currentTimeMillis()
+                            )
+                        } catch (_: Throwable) {}
+
                         val formatted = String.format(Locale.US, "%.6f", targetDays.toFloat()).toFloat()
                         sharedPref.edit {
                             putFloat("target_days", formatted)
