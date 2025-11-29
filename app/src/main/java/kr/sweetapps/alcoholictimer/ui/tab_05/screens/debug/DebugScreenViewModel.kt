@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.ump.UserMessagingPlatform
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.analytics.ktx.logEvent
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -52,6 +53,12 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
                 else -> currentState
             }
         }
+    }
+
+    fun resetConsent() {
+        if (!BuildConfig.DEBUG) return
+        val consentInformation = UserMessagingPlatform.getConsentInformation(getApplication())
+        consentInformation.reset()
     }
 
     /**

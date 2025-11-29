@@ -1,6 +1,7 @@
 package kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug
 
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,6 +35,18 @@ fun DebugScreen(
             onBack = onBack
         )
         Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "맞춤형 광고 재설정",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        viewModel.resetConsent()
+                        Toast
+                            .makeText(context, "광고 동의 상태가 초기화되었습니다.", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                    .padding(vertical = 8.dp)
+            )
             DebugSwitch(title = "기능 1", checked = uiState.switch1, onCheckedChange = { viewModel.setSwitch(1, it) })
             DebugSwitch(title = "데모 모드", checked = uiState.demoMode, onCheckedChange = { viewModel.setSwitch(2, it) })
             DebugSwitch(title = "Analytics 이벤트 전송", checked = uiState.switch3, onCheckedChange = {
