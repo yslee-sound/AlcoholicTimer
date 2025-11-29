@@ -1,6 +1,47 @@
-/build
+/build/
 
-# Prevent committing actual google-services.json files
+# Android gradle / IDE
+/.gradle/
+*.iml
+/.idea/
+.DS_Store
+
+# Build outputs
+*.apk
+*.aab
+
+# Local dev secrets (do NOT commit these)
+local.properties
+local.properties.bak
+supabase.key
+supabase.key.bak
+
+# google-services (keep local only)
+google-services.json
 src/debug/google-services.json
 src/release/google-services.json
-google-services.json
+
+# Keystore / signing artifacts
+*.jks
+*.keystore
+*.p12
+keystore*/
+
+# Logs and temp
+*.log
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+
+# Native build / captures
+/captures
+.externalNativeBuild/
+.cxx/
+
+# Misc
+all_objects.txt
+all_objs_checked.txt
+
+# End of file
