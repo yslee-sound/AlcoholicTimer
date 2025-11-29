@@ -45,6 +45,7 @@ import kotlinx.coroutines.launch
 import androidx.core.content.edit
 import java.util.Locale
 import kr.sweetapps.alcoholictimer.R
+import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 import kr.sweetapps.alcoholictimer.core.ui.StandardScreenWithBottomButton
 import kr.sweetapps.alcoholictimer.core.ui.MainActionButton
 import kr.sweetapps.alcoholictimer.constants.UiConstants
@@ -259,11 +260,13 @@ fun QuitScreenComposable(
                                         if (progress >= 1f && isPressed) {
                                             try {
                                                 val start = sharedPref.getLong(Constants.PREF_START_TIME, 0L)
-                                                val actualDays = (((System.currentTimeMillis() - start) / Constants.DAY_IN_MILLIS)).toInt()
+                                                val endTime = System.currentTimeMillis()
+                                                val actualDays = (((endTime - start) / Constants.DAY_IN_MILLIS)).toInt()
+
                                                 saveCompletedRecord(
                                                     context = context,
                                                     startTime = start,
-                                                    endTime = System.currentTimeMillis(),
+                                                    endTime = endTime,
                                                     targetDays = targetDays,
                                                     actualDays = actualDays
                                                 )
@@ -313,6 +316,29 @@ private fun saveCompletedRecord(context: Context, startTime: Long, endTime: Long
         val recordId = System.currentTimeMillis().toString()
         val isCompleted = actualDays >= targetDays
         val status = if (isCompleted) "완료" else "중지"
+
+        // Log analytics event based on completion status
+        try {
+            if (isCompleted) {
+                AnalyticsManager.logTimerFinish(
+                    targetDays = targetDays.toInt(),
+                    actualDays = actualDays,
+                    startTs = startTime,
+                    endTs = endTime
+                )
+            } else {
+                AnalyticsManager.logTimerEnd(
+                    targetDays = targetDays.toInt(),
+                    actualDays = actualDays,
+                    reason = "user_quit",
+                    startTs = startTime,
+                    endTs = endTime
+                )
+            }
+        } catch (_: Throwable) {
+            // Best-effort logging, do not crash the app
+        }
+
         val record = JSONObject().apply {
             put("id", recordId); put("startTime", startTime); put("endTime", endTime); put("targetDays", targetDays.toInt()); put("actualDays", actualDays); put("isCompleted", isCompleted); put("status", status); put("createdAt", System.currentTimeMillis())
         }

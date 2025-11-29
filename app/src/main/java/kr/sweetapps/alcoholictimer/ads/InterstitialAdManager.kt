@@ -58,7 +58,7 @@ object InterstitialAdManager {
                         bundle.putString(FirebaseAnalytics.Param.AD_UNIT_NAME, ad.adUnitId)
                         bundle.putDouble(FirebaseAnalytics.Param.VALUE, adValue.valueMicros / 1000000.0)
                         bundle.putString(FirebaseAnalytics.Param.CURRENCY, adValue.currencyCode)
-                        firebaseAnalytics.logEvent(FirebaseAnalytics.Event.AD_IMPRESSION, bundle)
+                        firebaseAnalytics.logEvent("ad_revenue", bundle)
                     }
                 }
 

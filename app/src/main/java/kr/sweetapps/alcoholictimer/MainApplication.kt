@@ -13,7 +13,7 @@ import android.os.Looper
 import android.os.Bundle
 import kr.sweetapps.alcoholictimer.consent.UmpConsentManager
 import com.google.firebase.FirebaseApp
-import kr.sweetapps.alcoholictimer.analytics.AnalyticsLogger
+import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 
 class MainApplication : Application() {
 
@@ -26,7 +26,7 @@ class MainApplication : Application() {
         // 명시적으로 초기화하여 Firebase API 사용 시 안정성 확보
         try { FirebaseApp.initializeApp(this) } catch (_: Throwable) {}
         // Analytics 래퍼 초기화 (Firebase 초기화 이후에 호출)
-        try { AnalyticsLogger.initialize(this) } catch (_: Throwable) {}
+        try { AnalyticsManager.initialize(this) } catch (_: Throwable) {}
         umpConsentManager = UmpConsentManager(this)
 
         // AdController 초기화 (Supabase 기반 광고 제어)

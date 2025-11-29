@@ -58,7 +58,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.rememberTextMeasurer
 import kr.sweetapps.alcoholictimer.core.util.DebugSettings
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DemoData
-import kr.sweetapps.alcoholictimer.analytics.AnalyticsLogger
+import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 
 @Composable
 fun RunScreenComposable(
@@ -212,7 +212,7 @@ fun RunScreenComposable(
                     hasCompleted = true
 
                     // Analytics: 목표 달성 이벤트 기록
-                    try { AnalyticsLogger.timerComplete(targetDays.toInt(), actualDaysInt, startTime, endTs) } catch (_: Throwable) {}
+                    try { AnalyticsManager.logTimerFinish(targetDays.toInt(), actualDaysInt, startTime, endTs) } catch (_: Throwable) {}
 
                     val goDetail: () -> Unit = {
                         val route = Screen.Detail.createRoute(
