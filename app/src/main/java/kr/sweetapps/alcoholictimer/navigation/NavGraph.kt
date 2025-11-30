@@ -21,7 +21,6 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.ui.tab_05.AboutScreen
 import kr.sweetapps.alcoholictimer.ui.screens.DetailScreen
 import kr.sweetapps.alcoholictimer.feature.level.LevelScreen
 import kr.sweetapps.alcoholictimer.feature.records.components.AllRecordsScreen
@@ -41,6 +40,7 @@ import kr.sweetapps.alcoholictimer.ui.tab_04.screens.CurrencySettingsScreen
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DebugScreen
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.policy.DocumentScreen
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
+import kr.sweetapps.alcoholictimer.ui.tab_05.AboutScreen
 
 /**
  * Navigation Graph

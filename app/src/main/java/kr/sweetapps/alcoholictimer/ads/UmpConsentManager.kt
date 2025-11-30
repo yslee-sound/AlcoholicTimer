@@ -9,7 +9,6 @@ import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
 import com.google.android.ump.ConsentInformation
 import com.google.android.ump.FormError
-import kr.sweetapps.alcoholictimer.BuildConfig
 import androidx.core.content.edit
 import android.os.Handler
 import android.os.Looper
@@ -141,7 +140,11 @@ object UmpConsentManager {
             lastCanRequestAds = canRequest
             saveToPrefs(context, canRequest)
             try {
-                val debugMode = try { BuildConfig.DEBUG } catch (_: Throwable) { false }
+                val debugMode = try {
+                    val cls = Class.forName(context.packageName + ".BuildConfig")
+                    val f = cls.getDeclaredField("DEBUG")
+                    (f.get(null) as? Boolean) == true
+                } catch (_: Throwable) { false }
                 if (canRequest || debugMode) {
                     runCatching { InterstitialAdManager.preload(context.applicationContext) }
                     android.util.Log.d(TAG, "applyExternalConsent -> triggered InterstitialAdManager.preload (canRequest=$canRequest debug=$debugMode)")
@@ -197,7 +200,12 @@ object UmpConsentManager {
             // Build debug settings if forced via DebugSettings
             val paramsBuilder = ConsentRequestParameters.Builder().setTagForUnderAgeOfConsent(false)
             try {
-                if (BuildConfig.DEBUG && DebugSettings.isUmpForceEeaEnabled(activity.applicationContext)) {
+                val isDebugBuild = try {
+                    val cls = Class.forName(activity.packageName + ".BuildConfig")
+                    val f = cls.getDeclaredField("DEBUG")
+                    (f.get(null) as? Boolean) == true
+                } catch (_: Throwable) { false }
+                if (isDebugBuild && DebugSettings.isUmpForceEeaEnabled(activity.applicationContext)) {
                     val debugBuilder = ConsentDebugSettings.Builder(activity.applicationContext)
                     // Force EEA geography
                     debugBuilder.setDebugGeography(ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA)
@@ -214,10 +222,19 @@ object UmpConsentManager {
                     try {
                         consentChecked = true
                         val status = consentInformation.consentStatus
-                        val canRequest = (status == ConsentInformation.ConsentStatus.OBTAINED)
-                        lastCanRequestAds = canRequest
-                        saveToPrefs(activity.applicationContext, canRequest)
-                        for (cb in pendingCallbacks) { try { cb.invoke(canRequest) } catch (_: Throwable) {} }
+                        // Treat NOT_REQUIRED and OBTAINED as allowing ad requests.
+                        // NOT_REQUIRED: UMP indicates consent dialog not required for this user/region -> ads may be requested.
+                        // OBTAINED: user granted consent for personalized ads.
+                        val canRequest = try {
+                            status == ConsentInformation.ConsentStatus.OBTAINED ||
+                            status == ConsentInformation.ConsentStatus.NOT_REQUIRED
+                        } catch (_: Throwable) {
+                            // Fallback conservative: only allow when explicitly obtained
+                            status == ConsentInformation.ConsentStatus.OBTAINED
+                        }
+                         lastCanRequestAds = canRequest
+                         saveToPrefs(activity.applicationContext, canRequest)
+                         for (cb in pendingCallbacks) { try { cb.invoke(canRequest) } catch (_: Throwable) {} }
                     } catch (t: Throwable) {
                         for (cb in pendingCallbacks) { try { cb.invoke(false) } catch (_: Throwable) {} }
                     }

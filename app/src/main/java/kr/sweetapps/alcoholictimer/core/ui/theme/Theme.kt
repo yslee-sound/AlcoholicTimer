@@ -8,6 +8,8 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import androidx.compose.runtime.SideEffect
 
 private val DarkColorScheme = darkColorScheme(
     primary = BluePrimaryDark,
@@ -59,5 +61,21 @@ fun AlcoholicTimerTheme(
         else -> LightColorScheme
     }
 
-    MaterialTheme(colorScheme = colorScheme, typography = AppTypography, content = content)
+    val dimens = Dimens()
+
+    // Apply system bar colors when requested
+    val sysUiController = rememberSystemUiController()
+    SideEffect {
+        if (applySystemBars) {
+            // status bar: use primary; navigation bar: use surface
+            sysUiController.setStatusBarColor(color = colorScheme.primary, darkIcons = !darkTheme)
+            sysUiController.setNavigationBarColor(color = colorScheme.surface, darkIcons = !darkTheme)
+        }
+    }
+
+    androidx.compose.runtime.CompositionLocalProvider(
+        LocalDimens provides dimens
+    ) {
+        MaterialTheme(colorScheme = colorScheme, typography = AppTypography, content = content)
+    }
 }

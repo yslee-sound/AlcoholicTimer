@@ -417,7 +417,20 @@ object AdController {
             resetWindowsIfNeeded()
             val policy = currentPolicy
             // Fail-safe: if policy not yet fetched, do NOT show app-open
-            if (policy == null) return false
+            if (policy == null) {
+                // 개발 편의: Debug 빌드에서는 원격 정책이 없을 때도 앱오픈을 허용하여
+                // 로컬 테스트/디버깅 시 광고 흐름을 확인할 수 있도록 합니다.
+                try {
+                    val cls = Class.forName(context.packageName + ".BuildConfig")
+                    val f = cls.getDeclaredField("DEBUG")
+                    val dbg = (f.get(null) as? Boolean) == true
+                    if (dbg) {
+                        Log.d(TAG, "canShowAppOpen: policy=null but DEBUG build -> allowing app-open for local testing")
+                        return true
+                    }
+                } catch (_: Throwable) {}
+                return false
+            }
             if (!policy.isActive) return false
             if (!policy.adAppOpenEnabled) return false
             if (policy.appOpenMaxPerHour >= 0 && shownThisHour.get() >= policy.appOpenMaxPerHour) return false

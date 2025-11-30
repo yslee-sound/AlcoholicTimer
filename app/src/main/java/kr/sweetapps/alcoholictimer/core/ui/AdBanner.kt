@@ -204,7 +204,8 @@ fun AdmobBanner(
     }
 
     val shouldShowBanner = isPolicyEnabledState.value && !isInterstitialShowing && !isFullScreenAdShowing
-    val placeholderColor = if (isFullScreenAdShowing || isInterstitialShowing) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface
+    // 예약 공간이 비활성 상태일 때도 배경이 흰색이 되도록 surface를 기본으로 사용합니다.
+    val placeholderColor = MaterialTheme.colorScheme.surface
 
     LaunchedEffect(shouldShowBanner) { Log.d(TAG, "banner visible=$shouldShowBanner h=$predictedHeight") }
 
@@ -305,14 +306,15 @@ fun AdmobBanner(
                 }
             )
 
-            // If banner should be hidden but we must reserve space, render placeholder overlay
+            // If banner should be hidden but we must reserve space, render placeholder overlay (use surface -> typically white)
             if (!shouldShowBanner && reserveSpaceWhenDisabled) {
                 Box(Modifier.matchParentSize().background(placeholderColor)) {}
             }
 
+            // For loading/failed states keep overlays transparent so UI doesn't show gray shading
             when (loadState) {
-                BannerLoadState.Loading -> Box(Modifier.matchParentSize().background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.18f)))
-                is BannerLoadState.Failed -> Box(Modifier.matchParentSize().background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.18f)))
+                BannerLoadState.Loading -> Box(Modifier.matchParentSize().background(MaterialTheme.colorScheme.surface.copy(alpha = 0f)))
+                is BannerLoadState.Failed -> Box(Modifier.matchParentSize().background(MaterialTheme.colorScheme.surface.copy(alpha = 0f)))
                 BannerLoadState.Success -> Unit
             }
         }

@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.google.android.gms.ads.MobileAds
 import kr.sweetapps.alcoholictimer.ads.AdController
+import kr.sweetapps.alcoholictimer.ads.UmpConsentManager as AdsUmpConsentManager
 
 // small noop comment to trigger reindex
 // MainActivity integrity check
@@ -80,6 +81,7 @@ class MainActivity : BaseActivity() {
         // 수정: MainActivity에서 광고 로드 시 광고를 표시하도록 변경
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdLoadedListener {
             runOnUiThread {
+                android.util.Log.d("MainActivity", "onAdLoaded listener invoked -> adsConsentChecked=${try { AdsUmpConsentManager.consentChecked } catch (_: Throwable) { "<err>" }} holdSplash=${holdSplashState.value} isResumed=$isResumed")
                 try {
                     val policyEnabled = try { AdController.isAppOpenEnabled() } catch (_: Throwable) { true }
                     if (!policyEnabled) {
@@ -94,6 +96,38 @@ class MainActivity : BaseActivity() {
                         if (!isResumed) {
                             android.util.Log.d("MainActivity", "Ad loaded but activity not resumed -> scheduling show on resume")
                             pendingShowOnResume = true
+                            return@runOnUiThread
+                        }
+
+                        // Ensure ads-side consent has been checked before attempting to show to avoid UMP suppression
+                        val adsConsentChecked = try { AdsUmpConsentManager.consentChecked } catch (_: Throwable) { false }
+                        if (!adsConsentChecked) {
+                            android.util.Log.d("MainActivity", "Ad loaded but ads-side consent not checked -> requesting ads-side UMP then attempting show")
+                            try {
+                                AdsUmpConsentManager.requestAndLoadIfRequired(this@MainActivity) { canRequest ->
+                                    runOnUiThread {
+                                        try {
+                                            if (canRequest) {
+                                                val shown = try { kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this@MainActivity) } catch (t: Throwable) { false }
+                                                android.util.Log.d("MainActivity", "post-consent showIfAvailable returned=$shown")
+                                                if (shown) {
+                                                    window.decorView.removeCallbacks(timeoutRunnable)
+                                                    pendingShowOnResume = false
+                                                    return@runOnUiThread
+                                                  }
+                                            }
+                                        } catch (_: Throwable) {}
+
+                                        // If we reach here, either consent denied or show failed -> release splash to avoid stuck UI
+                                        android.util.Log.d("MainActivity", "post-consent could not show AppOpen -> releasing splash")
+                                        setHoldSplash(false)
+                                    }
+                                }
+                            } catch (_: Throwable) {
+                                android.util.Log.d("MainActivity", "AdsUmpConsentManager.requestAndLoadIfRequired threw -> releasing splash")
+                                setHoldSplash(false)
+                            }
+
                             return@runOnUiThread
                         }
 
@@ -112,8 +146,6 @@ class MainActivity : BaseActivity() {
                             return@runOnUiThread
                         } else {
                             // If we couldn't show ad (e.g., not resumed or other), do NOT immediately release the splash here.
-                            // Debug overlay fallback removed completely to avoid double UI and unexpected process death.
-
                             pendingShowOnResume = false
                             return@runOnUiThread
                         }
@@ -162,6 +194,8 @@ class MainActivity : BaseActivity() {
                 // 광고 SDK 초기화 코드
                 MobileAds.initialize(this) {}
                 InterstitialAdManager.preload(this)
+                // Ads-side consent proxy: ensure ads-side manager has checked consent and loads if allowed
+                try { AdsUmpConsentManager.requestAndLoadIfRequired(this) { _ -> } } catch (_: Throwable) {}
             }
         }
 

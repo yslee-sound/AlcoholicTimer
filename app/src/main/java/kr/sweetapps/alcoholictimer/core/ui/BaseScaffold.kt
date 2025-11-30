@@ -68,7 +68,7 @@ fun BaseScaffold(
                 // 중앙 콘텐츠
                 val effectiveBg = when (currentRoute) {
                     Screen.Run.route -> Color(0xFFEEEDE9)
-                    else -> contentBackground ?: MaterialTheme.colorScheme.background
+                    else -> contentBackground ?: Color.White
                 }
                 Box(
                     modifier = Modifier
