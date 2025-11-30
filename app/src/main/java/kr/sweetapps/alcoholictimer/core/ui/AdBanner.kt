@@ -21,7 +21,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.ads.AdListener
-import com.google.android.gms.ads.AdRequest
 import kr.sweetapps.alcoholictimer.ads.AdRequestFactory
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
@@ -139,6 +138,8 @@ fun AdmobBanner(
     var hasSuccessfulLoad by remember { mutableStateOf(false) }
     var finalFailureEmitted by remember { mutableStateOf(false) }
     var consecutiveNoFill by remember { mutableStateOf(0) }
+    // 앱 시작 시 기본적으로 숨김. 앱오프닝 광고가 완전히 닫힌 후에만 표시/로딩을 허용합니다.
+    var hideUntilFirstDismiss by remember { mutableStateOf(true) }
 
     val maxRetry = retryConfig.maxRetry.coerceAtLeast(0)
     val retryDelays = retryConfig.retryDelaysMs.take(maxRetry.coerceAtLeast(1))
@@ -169,19 +170,34 @@ fun AdmobBanner(
                     try { view.pause() } catch (_: Throwable) {}
                     try { view.visibility = View.GONE } catch (_: Throwable) {}
                 } else {
-                    // 작은 지연 후 복원(원래는 Handler.postDelayed(restoreRunnable, 300))
-                    kotlinx.coroutines.delay(300L)
-                    try { view.resume() } catch (_: Throwable) {}
-                    try { view.visibility = View.VISIBLE } catch (_: Throwable) {}
-                    // when full-screen ad hides, attempt immediate load if consent allows
-                    try {
-                        val consentInfo = runCatching { UserMessagingPlatform.getConsentInformation(view.context) }.getOrNull()
-                        val canRequestNow = (consentInfo?.canRequestAds() == true) || isDebugBuild()
-                        if (isPolicyEnabledState.value && canRequestNow && !hasSuccessfulLoad && loadState is BannerLoadState.Loading) {
-                            Log.d(TAG, "fullScreenHidden -> triggering immediate banner load")
-                            runCatching { view.loadAd(AdRequestFactory.create(view.context)) }.onFailure { e -> Log.w(TAG, "fullScreenHidden loadAd threw: ${e.message}") }
+                    // If we are still in startup-hide mode, check whether a full-screen dismiss event occurred.
+                    val lastDismiss = try { kr.sweetapps.alcoholictimer.ads.AdController.getLastFullScreenDismissedAt() } catch (_: Throwable) { 0L }
+                    if (hideUntilFirstDismiss) {
+                        if (lastDismiss > 0L) {
+                            // First real full-screen dismiss observed -> reveal and load
+                            hideUntilFirstDismiss = false
+                            try { view.visibility = View.VISIBLE } catch (_: Throwable) {}
+                            // small delay to stabilize UI
+                            kotlinx.coroutines.delay(200L)
+                            try { view.loadAd(AdRequestFactory.create(view.context)) } catch (e: Throwable) { Log.w(TAG, "initial show loadAd threw: ${e.message}") }
+                        } else {
+                            // still waiting for first dismiss; keep hidden
+                            try { view.visibility = View.GONE } catch (_: Throwable) {}
                         }
-                    } catch (_: Throwable) {}
+                    } else {
+                        // normal behavior after initial dismiss: restore view and attempt load if needed
+                        kotlinx.coroutines.delay(300L)
+                        try { view.resume() } catch (_: Throwable) {}
+                        try { view.visibility = View.VISIBLE } catch (_: Throwable) {}
+                        try {
+                            val consentInfo = runCatching { UserMessagingPlatform.getConsentInformation(view.context) }.getOrNull()
+                            val canRequestNow = (consentInfo?.canRequestAds() == true) || isDebugBuild()
+                            if (isPolicyEnabledState.value && canRequestNow && !hasSuccessfulLoad && loadState is BannerLoadState.Loading) {
+                                Log.d(TAG, "fullScreenHidden -> triggering immediate banner load")
+                                runCatching { view.loadAd(AdRequestFactory.create(view.context)) }.onFailure { e -> Log.w(TAG, "fullScreenHidden loadAd threw: ${e.message}") }
+                            }
+                        } catch (_: Throwable) {}
+                    }
                 }
             }
         } catch (_: Throwable) {}
@@ -194,6 +210,12 @@ fun AdmobBanner(
         try {
             val consentInfo = runCatching { UserMessagingPlatform.getConsentInformation(view.context) }.getOrNull()
             val canRequestNow = (consentInfo?.canRequestAds() == true) || isDebugBuild()
+            // Do not trigger banner load before we've seen the first full-screen dismiss event.
+            if (hideUntilFirstDismiss) {
+                Log.d(TAG, "bannerReloadTick -> suppressed until first full-screen dismiss")
+                return@LaunchedEffect
+            }
+
             if (isPolicyEnabledState.value && canRequestNow && !hasSuccessfulLoad && loadState is BannerLoadState.Loading) {
                 Log.d(TAG, "bannerReloadTick -> triggering immediate banner load")
                 runCatching { view.loadAd(AdRequestFactory.create(view.context)) }.onFailure { e -> Log.w(TAG, "bannerReloadTick loadAd threw: ${e.message}") }
@@ -225,7 +247,7 @@ fun AdmobBanner(
                             val adaptive = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(ctx, screenWidthDp)
                             setAdSize(adaptive)
                         } catch (_: Throwable) { try { setAdSize(AdSize.BANNER) } catch (_: Throwable) {} }
-                        try { visibility = if (isFullScreenAdShowing) View.GONE else View.VISIBLE } catch (_: Throwable) {}
+                        try { visibility = View.GONE } catch (_: Throwable) {}
 
                         adListener = object : AdListener() {
                             override fun onAdLoaded() {
@@ -272,7 +294,7 @@ fun AdmobBanner(
                             setOnPaidEventListener { adValue: AdValue ->
                                 try {
                                     val value = (adValue.valueMicros / 1_000_000.0)
-                                    val currency = adValue.currencyCode ?: "USD"
+                                    val currency = adValue.currencyCode
                                     AnalyticsManager.logAdRevenue(value, currency, "banner")
                                 } catch (_: Throwable) {}
                             }
