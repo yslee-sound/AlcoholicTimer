@@ -112,44 +112,49 @@ fun StartScreen(
                 } catch (t: Throwable) { kotlin.run { Log.w("StartScreen", "onAdLoadFailed handler failed: $t") } }
             }
 
-            AppOpenAdManager.addOnAdLoadedListener(onLoaded)
-            AppOpenAdManager.addOnAdFinishedListener(onFinished)
-            AppOpenAdManager.addOnAdLoadFailedListener(onLoadFailed)
+             AppOpenAdManager.addOnAdLoadedListener(onLoaded)
+             AppOpenAdManager.addOnAdFinishedListener(onFinished)
+             AppOpenAdManager.addOnAdLoadFailedListener(onLoadFailed)
 
-            try {
-                Log.d("StartScreen", "AppOpen integration: holding splash and initializing listeners")
-                holdSplashState.value = true
+             try {
+                 Log.d("StartScreen", "AppOpen integration: holding splash and initializing listeners")
+                 holdSplashState.value = true
+                 // Hide banner while splash is held to avoid duplicate banner visible under splash
+                 try { kr.sweetapps.alcoholictimer.ads.AdController.setBannerForceHidden(true) } catch (_: Throwable) {}
 
-                try {
-                    AppOpenAdManager.preload(context.applicationContext)
-                } catch (t: Throwable) {
-                    Log.w("StartScreen", "preload call failed: $t")
-                }
+                 try {
+                     AppOpenAdManager.preload(context.applicationContext)
+                 } catch (t: Throwable) {
+                     Log.w("StartScreen", "preload call failed: $t")
+                 }
 
-                try {
-                    val act = context as? Activity
-                    if (act != null && AppOpenAdManager.isLoaded()) {
-                        val shown = AppOpenAdManager.showIfAvailable(act)
-                        Log.d("StartScreen", "Immediate showIfAvailable returned: $shown")
-                    }
-                } catch (t: Throwable) { Log.w("StartScreen", "immediate showIfAvailable failed: $t") }
+                 try {
+                     val act = context as? Activity
+                     if (act != null && AppOpenAdManager.isLoaded()) {
+                         val shown = AppOpenAdManager.showIfAvailable(act)
+                         Log.d("StartScreen", "Immediate showIfAvailable returned: $shown")
+                     }
+                 } catch (t: Throwable) { Log.w("StartScreen", "immediate showIfAvailable failed: $t") }
 
-                delay(8000L)
-                if (holdSplashState.value) {
-                    Log.d("StartScreen", "Safety timeout reached -> releasing splash")
-                    holdSplashState.value = false
-                }
+                 delay(8000L)
+                 if (holdSplashState.value) {
+                     Log.d("StartScreen", "Safety timeout reached -> releasing splash")
+                     holdSplashState.value = false
+                     try { kr.sweetapps.alcoholictimer.ads.AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
+                 }
 
-            } catch (t: Throwable) {
-                Log.w("StartScreen", "AppOpen integration LaunchedEffect failed: $t")
-                holdSplashState.value = false
-            } finally {
-                try { AppOpenAdManager.removeOnAdLoadedListener(onLoaded) } catch (_: Throwable) {}
-                try { AppOpenAdManager.removeOnAdFinishedListener(onFinished) } catch (_: Throwable) {}
-                try { AppOpenAdManager.removeOnAdLoadFailedListener(onLoadFailed) } catch (_: Throwable) {}
-            }
-        }
-    }
+             } catch (t: Throwable) {
+                 Log.w("StartScreen", "AppOpen integration LaunchedEffect failed: $t")
+                 holdSplashState.value = false
+             } finally {
+                // ensure banner is restored
+                 try { kr.sweetapps.alcoholictimer.ads.AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
+                 try { AppOpenAdManager.removeOnAdLoadedListener(onLoaded) } catch (_: Throwable) {}
+                 try { AppOpenAdManager.removeOnAdFinishedListener(onFinished) } catch (_: Throwable) {}
+                 try { AppOpenAdManager.removeOnAdLoadFailedListener(onLoadFailed) } catch (_: Throwable) {}
+             }
+         }
+     }
 
     if (!gateNavigation && startTime != 0L && !timerCompleted) {
         LaunchedEffect(Unit) {

@@ -96,6 +96,33 @@ object AdController {
     private val _bannerReloadTick = MutableStateFlow(0L)
     val bannerReloadTick: StateFlow<Long> get() = _bannerReloadTick
 
+    // Force-hide flag: allow external managers to request banners be hidden immediately
+    private val _bannerForceHidden = MutableStateFlow(false)
+    val bannerForceHiddenFlow: StateFlow<Boolean> get() = _bannerForceHidden.asStateFlow()
+
+    private val bannerForceHiddenListeners = mutableSetOf<(Boolean) -> Unit>()
+
+    fun setBannerForceHidden(hidden: Boolean) {
+        try {
+            _bannerForceHidden.value = hidden
+        } catch (_: Throwable) {}
+        // notify listeners immediately
+        val copy: List<(Boolean) -> Unit>
+        synchronized(bannerForceHiddenListeners) { copy = bannerForceHiddenListeners.toList() }
+        for (l in copy) {
+            try { l.invoke(hidden) } catch (_: Throwable) {}
+        }
+    }
+
+    fun addBannerForceHiddenListener(listener: (Boolean) -> Unit) {
+        synchronized(bannerForceHiddenListeners) { bannerForceHiddenListeners.add(listener) }
+        try { listener.invoke(_bannerForceHidden.value) } catch (_: Throwable) {}
+    }
+
+    fun removeBannerForceHiddenListener(listener: (Boolean) -> Unit) {
+        synchronized(bannerForceHiddenListeners) { bannerForceHiddenListeners.remove(listener) }
+    }
+
     private val _isPersonalizedAdsAllowed = MutableStateFlow(false)
     val isPersonalizedAdsAllowed: StateFlow<Boolean> = _isPersonalizedAdsAllowed.asStateFlow()
 

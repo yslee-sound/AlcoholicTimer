@@ -157,6 +157,7 @@ fun AdmobBanner(
     val isFullScreenAdShowing by kr.sweetapps.alcoholictimer.ads.AdController.fullScreenAdShowingFlow.collectAsState(
         initial = kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing()
     )
+    val isBannerForceHidden by kr.sweetapps.alcoholictimer.ads.AdController.bannerForceHiddenFlow.collectAsState(initial = false)
 
     // Observe banner reload tick to retry loads immediately on demand
     val bannerReloadTick by kr.sweetapps.alcoholictimer.ads.AdController.bannerReloadTick.collectAsState(initial = 0L)
@@ -176,10 +177,14 @@ fun AdmobBanner(
                         if (lastDismiss > 0L) {
                             // First real full-screen dismiss observed -> reveal and load
                             hideUntilFirstDismiss = false
-                            try { view.visibility = View.VISIBLE } catch (_: Throwable) {}
+                            try {
+                                if (!kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing()) try { view.visibility = View.VISIBLE } catch (_: Throwable) {}
+                            } catch (_: Throwable) {}
                             // small delay to stabilize UI
                             kotlinx.coroutines.delay(200L)
-                            try { view.loadAd(AdRequestFactory.create(view.context)) } catch (e: Throwable) { Log.w(TAG, "initial show loadAd threw: ${e.message}") }
+                            try {
+                                if (!kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing()) runCatching { view.loadAd(AdRequestFactory.create(view.context)) }.onFailure { e -> Log.w(TAG, "initial show loadAd threw: ${e?.message}") }
+                            } catch (_: Throwable) {}
                         } else {
                             // still waiting for first dismiss; keep hidden
                             try { view.visibility = View.GONE } catch (_: Throwable) {}
@@ -188,11 +193,13 @@ fun AdmobBanner(
                         // normal behavior after initial dismiss: restore view and attempt load if needed
                         kotlinx.coroutines.delay(300L)
                         try { view.resume() } catch (_: Throwable) {}
-                        try { view.visibility = View.VISIBLE } catch (_: Throwable) {}
+                        try {
+                            if (!kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing()) try { view.visibility = View.VISIBLE } catch (_: Throwable) {}
+                        } catch (_: Throwable) {}
                         try {
                             val consentInfo = runCatching { UserMessagingPlatform.getConsentInformation(view.context) }.getOrNull()
                             val canRequestNow = (consentInfo?.canRequestAds() == true) || isDebugBuild()
-                            if (isPolicyEnabledState.value && canRequestNow && !hasSuccessfulLoad && loadState is BannerLoadState.Loading) {
+                            if (!kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing() && isPolicyEnabledState.value && canRequestNow && !hasSuccessfulLoad && loadState is BannerLoadState.Loading) {
                                 Log.d(TAG, "fullScreenHidden -> triggering immediate banner load")
                                 runCatching { view.loadAd(AdRequestFactory.create(view.context)) }.onFailure { e -> Log.w(TAG, "fullScreenHidden loadAd threw: ${e.message}") }
                             }
@@ -211,12 +218,12 @@ fun AdmobBanner(
             val consentInfo = runCatching { UserMessagingPlatform.getConsentInformation(view.context) }.getOrNull()
             val canRequestNow = (consentInfo?.canRequestAds() == true) || isDebugBuild()
             // Do not trigger banner load before we've seen the first full-screen dismiss event.
-            if (hideUntilFirstDismiss) {
-                Log.d(TAG, "bannerReloadTick -> suppressed until first full-screen dismiss")
+            if (hideUntilFirstDismiss || kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing() || isBannerForceHidden) {
+                Log.d(TAG, "bannerReloadTick -> suppressed because full-screen present or initial hide or forceHidden=$isBannerForceHidden")
                 return@LaunchedEffect
             }
 
-            if (isPolicyEnabledState.value && canRequestNow && !hasSuccessfulLoad && loadState is BannerLoadState.Loading) {
+            if (!kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing() && !isBannerForceHidden && isPolicyEnabledState.value && canRequestNow && !hasSuccessfulLoad && loadState is BannerLoadState.Loading) {
                 Log.d(TAG, "bannerReloadTick -> triggering immediate banner load")
                 runCatching { view.loadAd(AdRequestFactory.create(view.context)) }.onFailure { e -> Log.w(TAG, "bannerReloadTick loadAd threw: ${e.message}") }
             } else {
@@ -225,7 +232,7 @@ fun AdmobBanner(
         } catch (_: Throwable) {}
     }
 
-    val shouldShowBanner = isPolicyEnabledState.value && !isInterstitialShowing && !isFullScreenAdShowing
+    val shouldShowBanner = isPolicyEnabledState.value && !isInterstitialShowing && !isFullScreenAdShowing && !isBannerForceHidden
     // 예약 공간이 비활성 상태일 때도 배경이 흰색이 되도록 surface를 기본으로 사용합니다.
     val placeholderColor = MaterialTheme.colorScheme.surface
 
@@ -304,7 +311,7 @@ fun AdmobBanner(
                 },
                 update = { adView ->
                     try {
-                        if (isFullScreenAdShowing) {
+                        if (kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing() || isBannerForceHidden) {
                             if (adView.visibility != View.GONE) adView.visibility = View.GONE
                             try { adView.pause() } catch (_: Throwable) {}
                         } else {
@@ -327,6 +334,61 @@ fun AdmobBanner(
                     }
                 }
             )
+
+            // Register a persistent full-screen listener tied to adViewRef so banner is hidden immediately when full-screen starts.
+            DisposableEffect(adViewRef) {
+                val view = adViewRef
+                if (view != null) {
+                    val fsListener: (Boolean) -> Unit = { showing ->
+                        try {
+                            view.post {
+                                try {
+                                    if (showing) {
+                                        try { view.pause() } catch (_: Throwable) {}
+                                        try { view.visibility = View.GONE } catch (_: Throwable) {}
+                                    } else {
+                                        val lastDismiss = try { kr.sweetapps.alcoholictimer.ads.AdController.getLastFullScreenDismissedAt() } catch (_: Throwable) { 0L }
+                                        if (hideUntilFirstDismiss && lastDismiss <= 0L) {
+                                            try { view.visibility = View.GONE } catch (_: Throwable) {}
+                                        } else {
+                                            try { view.visibility = View.VISIBLE } catch (_: Throwable) {}
+                                            try { view.resume() } catch (_: Throwable) {}
+                                        }
+                                    }
+                                } catch (_: Throwable) {}
+                            }
+                        } catch (_: Throwable) {}
+                    }
+                    val bfListener: (Boolean) -> Unit = { hidden ->
+                        try {
+                            view.post {
+                                try {
+                                    if (hidden) {
+                                        try { view.pause() } catch (_: Throwable) {}
+                                        try { view.visibility = View.GONE } catch (_: Throwable) {}
+                                    } else {
+                                        val lastDismiss = try { kr.sweetapps.alcoholictimer.ads.AdController.getLastFullScreenDismissedAt() } catch (_: Throwable) { 0L }
+                                        if (hideUntilFirstDismiss && lastDismiss <= 0L) {
+                                            try { view.visibility = View.GONE } catch (_: Throwable) {}
+                                        } else {
+                                            try { view.visibility = View.VISIBLE } catch (_: Throwable) {}
+                                            try { view.resume() } catch (_: Throwable) {}
+                                        }
+                                    }
+                                } catch (_: Throwable) {}
+                            }
+                        } catch (_: Throwable) {}
+                    }
+                    try { kr.sweetapps.alcoholictimer.ads.AdController.addFullScreenShowListener(fsListener) } catch (_: Throwable) {}
+                    try { kr.sweetapps.alcoholictimer.ads.AdController.addBannerForceHiddenListener(bfListener) } catch (_: Throwable) {}
+                    onDispose {
+                        try { kr.sweetapps.alcoholictimer.ads.AdController.removeFullScreenShowListener(fsListener) } catch (_: Throwable) {}
+                        try { kr.sweetapps.alcoholictimer.ads.AdController.removeBannerForceHiddenListener(bfListener) } catch (_: Throwable) {}
+                    }
+                } else {
+                    onDispose { }
+                }
+            }
 
             // If banner should be hidden but we must reserve space, render placeholder overlay (use surface -> typically white)
             if (!shouldShowBanner && reserveSpaceWhenDisabled) {

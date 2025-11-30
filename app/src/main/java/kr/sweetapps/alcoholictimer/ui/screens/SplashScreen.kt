@@ -47,6 +47,8 @@ class SplashScreen : BaseActivity() {
         try {
             holdSplashState.value = false
         } catch (_: Throwable) {}
+        // restore banner visibility when splash released
+        try { kr.sweetapps.alcoholictimer.ads.AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
         android.util.Log.d("SplashScreen", "releaseSplash() called -> atomic=${holdSplashAtomic.get()} compose=${holdSplashState.value}")
     }
 
@@ -223,6 +225,9 @@ class SplashScreen : BaseActivity() {
                 applySystemBarAppearance()
             }
         }
+
+        // Ensure banner is hidden while splash overlay is active to avoid transient duplicate banners
+        try { kr.sweetapps.alcoholictimer.ads.AdController.setBannerForceHidden(holdSplashAtomic.get()) } catch (_: Throwable) {}
 
         val launchContent = {
             val elapsed = SystemClock.uptimeMillis() - splashStart

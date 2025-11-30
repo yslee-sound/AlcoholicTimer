@@ -6,6 +6,9 @@ import android.content.Context
 import android.util.Log
 import android.os.Handler
 import android.os.Looper
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.ProcessLifecycleOwner
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
@@ -59,6 +62,26 @@ object AppOpenAdManager {
             try {
                 var startedCount = 0
                 var pendingShowAttempt = false
+                // Observe process lifecycle to handle resume-from-background centrally
+                try {
+                    ProcessLifecycleOwner.get().lifecycle.addObserver(LifecycleEventObserver { _, event ->
+                        try {
+                            if (event == Lifecycle.Event.ON_START) {
+                                Log.d(TAG, "processLifecycle: ON_START (app foregrounded)")
+                                try {
+                                    // if we have a loaded ad ready, attempt to show it using current activity if possible
+                                    val act = try { kr.sweetapps.alcoholictimer.MainApplication.currentActivity } catch (_: Throwable) { null }
+                                    if (act != null && autoShowEnabled && !wasRecentlyShown() && isLoaded()) {
+                                        Log.d(TAG, "processLifecycle: ready-to-show AppOpen -> will attempt show and hide banner before show")
+                                        // ensure banner hidden immediately
+                                        try { AdController.setFullScreenAdShowing(true) } catch (_: Throwable) {}
+                                        runCatching { showIfAvailable(act, true) }.onFailure { Log.w(TAG, "processLifecycle show failed: ${it.message}") }
+                                    }
+                                } catch (_: Throwable) {}
+                            }
+                        } catch (_: Throwable) {}
+                    })
+                } catch (_: Throwable) {}
                 application.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
                     override fun onActivityCreated(activity: android.app.Activity, savedInstanceState: android.os.Bundle?) {}
                     override fun onActivityStarted(activity: android.app.Activity) {
@@ -204,6 +227,8 @@ object AppOpenAdManager {
                             // Record shown in central controller so policy counters update
                             try { applicationRef?.let { AdController.recordAppOpenShown(it.applicationContext) } } catch (_: Throwable) {}
                             try { AdController.setFullScreenAdShowing(true) } catch (_: Throwable) {}
+                            try { kr.sweetapps.alcoholictimer.ads.AdController.setBannerForceHidden(true) } catch (_: Throwable) {}
+                            try { Log.d(TAG, "onAdShowed -> AdController.debugSnapshot=${AdController.debugSnapshot()}") } catch (_: Throwable) {}
                             try { onShownListener?.invoke() } catch (_: Throwable) {}
                             for (l in shownListeners) runCatching { l.invoke() }
                         }
@@ -214,6 +239,7 @@ object AppOpenAdManager {
                             isShowing = false
                             appOpenAd = null
                             loaded = false
+                            try { kr.sweetapps.alcoholictimer.ads.AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
                             try { AdController.notifyFullScreenDismissed() } catch (_: Throwable) {}
                             performFinishFlow()
                         }
@@ -224,7 +250,9 @@ object AppOpenAdManager {
                             appOpenAd = null
                             loaded = false
                             lastDismissedAt = System.currentTimeMillis()
+                            try { kr.sweetapps.alcoholictimer.ads.AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
                             try { AdController.notifyFullScreenDismissed() } catch (_: Throwable) {}
+                            try { Log.d(TAG, "onAdDismissed -> AdController.debugSnapshot=${AdController.debugSnapshot()}") } catch (_: Throwable) {}
                             performFinishFlow()
                         }
                     }
@@ -302,21 +330,42 @@ object AppOpenAdManager {
             }
         } catch (_: Throwable) {}
 
-        // Basic suppression: if recently shown within 5s, treat as recent
+        // Basic suppression: if recently shown within configured gap, treat as recent
         if (!bypassRecentFullscreenSuppression && wasRecentlyShown()) {
             Log.d(TAG, "showIfAvailable: suppressed due to recent show")
             return false
         }
 
-        // Show the loaded AppOpenAd
+        // Before calling show(), ensure banner is hidden immediately to avoid overlap.
         try {
-            appOpenAd?.show(activity)
-            Log.d(TAG, "showIfAvailable: appOpenAd.show() called")
-            return true
-        } catch (t: Throwable) {
-            Log.w(TAG, "showIfAvailable: failed to show app open ad: ${t.message}")
-            return false
-        }
+            Log.d(TAG, "showIfAvailable: forcing banner hidden via AdController.setBannerForceHidden(true) and setFullScreenAdShowing(true)")
+            try { Log.d(TAG, "showIfAvailable: AdController.debugSnapshot(beforeSet)=${AdController.debugSnapshot()}") } catch (_: Throwable) {}
+            try { kr.sweetapps.alcoholictimer.ads.AdController.setBannerForceHidden(true) } catch (_: Throwable) {}
+            try { AdController.setFullScreenAdShowing(true) } catch (_: Throwable) {}
+            try { Log.d(TAG, "showIfAvailable: AdController.debugSnapshot(afterSet)=${AdController.debugSnapshot()}") } catch (_: Throwable) {}
+            // Small delay to allow UI listeners to process bannerForceHidden -> ensures banner is GONE before show
+            try {
+                mainHandler.postDelayed({
+                    try {
+                        appOpenAd?.show(activity)
+                        Log.d(TAG, "showIfAvailable: appOpenAd.show() called after delay")
+                    } catch (t: Throwable) {
+                        Log.w(TAG, "delayed show failed: ${t.message}")
+                        try { kr.sweetapps.alcoholictimer.ads.AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
+                        try { AdController.notifyFullScreenDismissed() } catch (_: Throwable) {}
+                    }
+                }, 80L)
+            } catch (_: Throwable) {
+                try { appOpenAd?.show(activity); Log.d(TAG, "showIfAvailable: appOpenAd.show() called fallback") } catch (_: Throwable) { Log.w(TAG, "show fallback failed") }
+            }
+             return true
+         } catch (t: Throwable) {
+             Log.w(TAG, "showIfAvailable: failed to show app open ad: ${t.message}")
+             // Revert full-screen flag if show failed immediately
+             try { kr.sweetapps.alcoholictimer.ads.AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
+             try { AdController.notifyFullScreenDismissed() } catch (_: Throwable) {}
+             return false
+         }
     }
 
     private fun performFinishFlow() {
