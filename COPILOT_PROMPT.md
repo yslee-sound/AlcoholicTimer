@@ -68,3 +68,37 @@ adb/logcat 예시 규칙
 --- END PROMPT ---
 
 이 지침을 세션 전체에 적용해주세요.
+
+
+// 추가: 릴리즈 전 체크리스트 및 안내 (간단, 중학생 수준)
+
+릴리즈 전 필수 체크리스트 (UMP / 테스트 해시 관련)
+- 1) 로컬 테스트 단계에서는 `local.properties`에 `UMP_TEST_DEVICE_HASH`를 둬도 됩니다. 디버그 빌드에서만 사용됩니다.
+- 2) 릴리즈 빌드 전에 반드시 다음을 확인하세요:
+  - `build.gradle.kts`에 릴리즈 태스크 요청 시 `UMP_TEST_DEVICE_HASH`를 빈값으로 강제하는 로직이 있는지 확인.
+  - (권장) `local.properties`에서 `UMP_TEST_DEVICE_HASH` 값을 삭제하거나 빈값으로 설정.
+- 3) 릴리즈 빌드 전에 자동 검증을 실행하세요:
+  - `.\gradlew.bat verifyReleaseAdConfig` (PowerShell에서 실행)
+
+릴리즈 시 안내 메시지(사용자에게 알려줄 내용)
+- "릴리즈 준비 중입니다. 로컬에 저장한 테스트 기기 해시(`local.properties`의 `UMP_TEST_DEVICE_HASH`)는 릴리즈 APK에 포함되지 않도록 확인하세요. 빌드스크립트가 빈값으로 강제하지만, 실수를 완전히 방지하려면 로컬 파일에서 제거 또는 빈값으로 변경하세요. 릴리즈 직전 `verifyReleaseAdConfig` 태스크를 실행해 설정을 검증하세요."
+
+간단한 PowerShell 검사/조치 예시 (한 줄씩 실행; 각 줄 뒤 빈 줄 유지):
+
+- `local.properties`에서 해시를 빈값으로 바꾸기:
+Get-Content .\local.properties | ForEach-Object { $_ -replace '^(UMP_TEST_DEVICE_HASH)=.*','$1=' } | Set-Content .\local.properties
+
+
+- `local.properties`에서 해당 라인 삭제하기:
+Get-Content .\local.properties | Where-Object { $_ -notmatch '^UMP_TEST_DEVICE_HASH=' } | Set-Content .\local.properties
+
+
+- 릴리즈 검증 태스크 실행(빌드 전):
+.\gradlew.bat verifyReleaseAdConfig
+
+
+검증 포인트(간단)
+- 릴리즈 빌드에서는 `BuildConfig.UMP_TEST_DEVICE_HASH` 값이 빈 문자열인지 확인하세요.
+- 릴리즈 빌드 전에 테스트 광고 단위(ID)가 릴리즈 블록에 설정되어 있는지 확인하세요.
+
+끝. (간결 유지)

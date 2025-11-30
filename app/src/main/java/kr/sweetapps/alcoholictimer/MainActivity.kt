@@ -61,103 +61,20 @@ class MainActivity : BaseActivity() {
 
         // Helper to change holdSplashState with logging
         val setHoldSplash: (Boolean) -> Unit = { v ->
-            runOnUiThread { android.util.Log.d("MainActivity", "holdSplashState -> $v (thread=${Thread.currentThread().name})"); holdSplashState.value = v }
-        }
-
-        // AppOpenAd 동기화: 자동 라이프사이클 노출은 suppressed 상태로 설계되어 있으므로
-        // MainActivity에서 수동으로 광고 로드를 표시하도록 리스너 등록
-        android.util.Log.d("MainActivity", "disabling auto-show on AppOpenAdManager")
-        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setAutoShowEnabled(false)
-        android.util.Log.d("MainActivity", "auto-show disabled")
-        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdFinishedListener {
-            // 광고가 닫히거나 실패하면 오버레이를 해제 (fallback)
-            android.util.Log.d("MainActivity", "onAdFinishedListener invoked")
-            // DO NOT enable auto-show here to avoid immediate reload->auto-show loop
-            runOnUiThread {
-                android.util.Log.d("MainActivity", "Ad finished -> releasing holdSplashState (fallback)")
-                setHoldSplash(false)
-            }
-        }
-        // 수정: MainActivity에서 광고 로드 시 광고를 표시하도록 변경
-        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdLoadedListener {
-            runOnUiThread {
-                android.util.Log.d("MainActivity", "onAdLoaded listener invoked -> adsConsentChecked=${try { AdsUmpConsentManager.consentChecked } catch (_: Throwable) { "<err>" }} holdSplash=${holdSplashState.value} isResumed=$isResumed")
-                try {
-                    val policyEnabled = try { AdController.isAppOpenEnabled() } catch (_: Throwable) { true }
-                    if (!policyEnabled) {
-                        android.util.Log.d("MainActivity", "Ad loaded but policy disabled -> release splash immediately (MainActivity)")
-                        setHoldSplash(false)
-                        return@runOnUiThread
-                    }
-
-                    // If we are currently holding the splash (app launch), attempt to show the preloaded AppOpen ad here.
-                    if (holdSplashState.value) {
-                        // If activity not resumed yet, schedule show on resume
-                        if (!isResumed) {
-                            android.util.Log.d("MainActivity", "Ad loaded but activity not resumed -> scheduling show on resume")
-                            pendingShowOnResume = true
-                            return@runOnUiThread
-                        }
-
-                        // Ensure ads-side consent has been checked before attempting to show to avoid UMP suppression
-                        val adsConsentChecked = try { AdsUmpConsentManager.consentChecked } catch (_: Throwable) { false }
-                        if (!adsConsentChecked) {
-                            android.util.Log.d("MainActivity", "Ad loaded but ads-side consent not checked -> requesting ads-side UMP then attempting show")
-                            try {
-                                AdsUmpConsentManager.requestAndLoadIfRequired(this@MainActivity) { canRequest ->
-                                    runOnUiThread {
-                                        try {
-                                            if (canRequest) {
-                                                val shown = try { kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this@MainActivity) } catch (t: Throwable) { false }
-                                                android.util.Log.d("MainActivity", "post-consent showIfAvailable returned=$shown")
-                                                if (shown) {
-                                                    window.decorView.removeCallbacks(timeoutRunnable)
-                                                    pendingShowOnResume = false
-                                                    return@runOnUiThread
-                                                  }
-                                            }
-                                        } catch (_: Throwable) {}
-
-                                        // If we reach here, either consent denied or show failed -> release splash to avoid stuck UI
-                                        android.util.Log.d("MainActivity", "post-consent could not show AppOpen -> releasing splash")
-                                        setHoldSplash(false)
-                                    }
-                                }
-                            } catch (_: Throwable) {
-                                android.util.Log.d("MainActivity", "AdsUmpConsentManager.requestAndLoadIfRequired threw -> releasing splash")
-                                setHoldSplash(false)
-                            }
-
-                            return@runOnUiThread
-                        }
-
-                        android.util.Log.d("MainActivity", "Ad loaded in MainActivity -> attempting to show on splash overlay")
-                        val shown = try {
-                            kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this@MainActivity)
-                        } catch (t: Throwable) {
-                            android.util.Log.w("MainActivity", "showIfAvailable threw: $t")
-                            false
-                        }
-                        android.util.Log.d("MainActivity", "showIfAvailable returned=$shown")
-                        if (shown) {
-                            // If ad is shown, onAdFinishedListener will handle releasing splash. Remove safety timeout.
-                            window.decorView.removeCallbacks(timeoutRunnable)
-                            pendingShowOnResume = false
-                            return@runOnUiThread
-                        } else {
-                            // If we couldn't show ad (e.g., not resumed or other), do NOT immediately release the splash here.
-                            pendingShowOnResume = false
-                            return@runOnUiThread
-                        }
-                    }
-
-                    // Not holding splash: do nothing special (don't show ad in regular in-app navigation)
-                    android.util.Log.d("MainActivity", "Ad loaded in MainActivity but splash not held -> ignoring show here")
-                } catch (e: Exception) {
-                    e.printStackTrace()
+            runOnUiThread { android.util.Log.d("MainActivity", "holdSplashState -> $v (thread=${Thread.currentThread().name})"); holdSplashState.value = v
+                // When we release the initial splash (v == false), re-enable AppOpen auto-show so
+                // subsequent background->foreground transitions may trigger AppOpen ads normally.
+                if (!v) {
+                    try {
+                        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setAutoShowEnabled(true)
+                        android.util.Log.d("MainActivity", "auto-show re-enabled after splash release")
+                    } catch (_: Throwable) {}
                 }
             }
         }
+
+        // Use AppOpenAdManager lifecycle handling for foreground shows.
+        // Do not disable auto-show or attempt to show manually here; the AppOpenAdManager handles lifecycle-triggered shows.
 
         // 정책이 비활성화될 때 스플래시를 즉시 해제할 수 있도록 리스너 등록
         try {
@@ -170,15 +87,7 @@ class MainActivity : BaseActivity() {
         } catch (_: Throwable) {}
 
         // 광고가 실제로 화면에 나타나는 시점에 스플래시를 해제하여 검은 화면 간격을 제거
-        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdShownListener {
-            runOnUiThread {
-                android.util.Log.d("MainActivity", "onAdShownListener invoked: ad is visible; applying system bar appearance")
-                // 안전 타임아웃 제거
-                window.decorView.removeCallbacks(timeoutRunnable)
-                // DO NOT release the splash here. Only adjust system bars to match visual.
-                applySystemBarAppearance()
-            }
-        }
+        // Leave ad shown handling to the AppOpenAdManager; keep only the splash timeout to avoid permanent blocking
 
         // 강제 라이트 모드 설정
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
@@ -194,6 +103,11 @@ class MainActivity : BaseActivity() {
                 // 광고 SDK 초기화 코드
                 MobileAds.initialize(this) {}
                 InterstitialAdManager.preload(this)
+                // Ensure AppOpen preload runs after MobileAds initialization / consent
+                try {
+                    android.util.Log.d("MainActivity", "Post-initialize: preloading AppOpen via AppOpenAdManager")
+                    kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.preload(this)
+                } catch (_: Throwable) { android.util.Log.w("MainActivity", "AppOpen preload failed post-initialize") }
                 // Ads-side consent proxy: ensure ads-side manager has checked consent and loads if allowed
                 try { AdsUmpConsentManager.requestAndLoadIfRequired(this) { _ -> } } catch (_: Throwable) {}
             }

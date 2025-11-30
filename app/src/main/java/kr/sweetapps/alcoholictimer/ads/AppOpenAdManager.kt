@@ -55,6 +55,87 @@ object AppOpenAdManager {
             Log.w(TAG, "MobileAds.initialize failed: ${t.message}")
         }
         Log.d(TAG, "initialize: application set. registerLifecycle=$registerLifecycle")
+        if (registerLifecycle) {
+            try {
+                var startedCount = 0
+                var pendingShowAttempt = false
+                application.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
+                    override fun onActivityCreated(activity: android.app.Activity, savedInstanceState: android.os.Bundle?) {}
+                    override fun onActivityStarted(activity: android.app.Activity) {
+                        try {
+                            startedCount++
+                            if (startedCount == 1) {
+                                // app moved to foreground
+                                Log.d(TAG, "lifecycle: app moved to foreground -> attempting post-foreground AppOpen show (autoShow=$autoShowEnabled)")
+                                if (autoShowEnabled) {
+                                    // Use MainApplication.currentActivity if available, else activity param
+                                    val act = try { kr.sweetapps.alcoholictimer.MainApplication.currentActivity } catch (_: Throwable) { null } ?: activity
+                                    // avoid showing on splash/overlay activities
+                                    val cls = act.javaClass.simpleName
+                                    if (cls == "SplashScreen" || cls == "AppOpenOverlayActivity") {
+                                        Log.d(TAG, "lifecycle: foreground activity is $cls -> skip automatic AppOpen show")
+                                        return
+                                    }
+                                    if (!wasRecentlyShown()) {
+                                        if (isLoaded()) {
+                                            runCatching { showIfAvailable(act, true) }.onFailure { Log.w(TAG, "lifecycle: showIfAvailable failed: ${it.message}") }
+                                        } else {
+                                            Log.d(TAG, "lifecycle: no loaded ad -> triggering preload and scheduling short retry")
+                                            try {
+                                                // trigger preload for next show attempt
+                                                application.applicationContext?.let { ctx -> preload(ctx) }
+                                                if (!pendingShowAttempt) {
+                                                    pendingShowAttempt = true
+                                                    // short delay to allow load to start/complete; 700ms is a balance between UX and load time
+                                                    mainHandler.postDelayed({
+                                                        try {
+                                                            pendingShowAttempt = false
+                                                            val curAct = try { kr.sweetapps.alcoholictimer.MainApplication.currentActivity } catch (_: Throwable) { null } ?: act
+                                                            if (!wasRecentlyShown() && isLoaded()) {
+                                                                Log.d(TAG, "lifecycle: retry show after preload delay on ${curAct.javaClass.simpleName}")
+                                                                runCatching { showIfAvailable(curAct, true) }.onFailure { Log.w(TAG, "lifecycle retry show failed: ${it.message}") }
+                                                            } else {
+                                                                Log.d(TAG, "lifecycle: retry show aborted (not loaded or recently shown)")
+                                                            }
+                                                        } catch (_: Throwable) { pendingShowAttempt = false }
+                                                    }, 700L)
+                                                }
+                                            } catch (_: Throwable) {
+                                                Log.d(TAG, "lifecycle: preload trigger failed")
+                                            }
+                                        }
+                                    } else {
+                                        Log.d(TAG, "lifecycle: recently shown -> skip")
+                                    }
+                                }
+                            }
+                        } catch (_: Throwable) {}
+                    }
+                    override fun onActivityResumed(activity: android.app.Activity) {}
+                    override fun onActivityPaused(activity: android.app.Activity) {}
+                    override fun onActivityStopped(activity: android.app.Activity) {
+                        try {
+                            startedCount = (startedCount - 1).coerceAtLeast(0)
+                            if (startedCount == 0) {
+                                Log.d(TAG, "lifecycle: app moved to background -> scheduling preload for next foreground")
+                                try {
+                                    // don't preload if an ad is currently showing
+                                    if (!isShowing && !isLoading && !loaded) {
+                                        application.applicationContext?.let { ctx ->
+                                            mainHandler.post { try { preload(ctx) } catch (_: Throwable) {} }
+                                        }
+                                    } else {
+                                        Log.d(TAG, "lifecycle: skip preload (isShowing=$isShowing isLoading=$isLoading loaded=$loaded)")
+                                    }
+                                } catch (_: Throwable) {}
+                            }
+                        } catch (_: Throwable) {}
+                    }
+                    override fun onActivitySaveInstanceState(activity: android.app.Activity, outState: android.os.Bundle) {}
+                    override fun onActivityDestroyed(activity: android.app.Activity) {}
+                })
+            } catch (_: Throwable) {}
+        }
     }
 
     fun noteAppStart() {
@@ -87,11 +168,42 @@ object AppOpenAdManager {
                     try { onLoadedListener?.invoke() } catch (_: Throwable) {}
                     for (l in loadedListeners) runCatching { l.invoke() }
 
+                    // If the app is currently foreground and autoShow is enabled, try to show immediately.
+                    try {
+                        if (autoShowEnabled) {
+                            mainHandler.post {
+                                try {
+                                    // Use MainApplication.currentActivity if available, else skip
+                                    val act = try { kr.sweetapps.alcoholictimer.MainApplication.currentActivity } catch (_: Throwable) { null }
+                                    if (act != null) {
+                                        val cls = act.javaClass.simpleName
+                                        if (cls != "SplashScreen" && cls != "AppOpenOverlayActivity") {
+                                          if (!wasRecentlyShown() && isLoaded()) {
+                                                Log.d(TAG, "onAdLoaded: app in foreground -> attempting immediate show on ${act.javaClass.simpleName}")
+                                                runCatching { showIfAvailable(act, true) }.onFailure { Log.w(TAG, "onAdLoaded immediate show failed: ${it.message}") }
+                                            } else {
+                                                Log.d(TAG, "onAdLoaded: not showing now (recently shown or not loaded)")
+                                            }
+                                        } else {
+                                            Log.d(TAG, "onAdLoaded: current activity is $cls -> skip immediate show")
+                                        }
+                                    } else {
+                                        Log.d(TAG, "onAdLoaded: no current activity -> skip immediate show")
+                                    }
+                                } catch (_: Throwable) {}
+                            }
+                        }
+                    } catch (_: Throwable) {}
+
+                    // assign fullscreen callback to manage show/dismiss events
                     ad.fullScreenContentCallback = object : FullScreenContentCallback() {
                         override fun onAdShowedFullScreenContent() {
                             Log.d(TAG, "AppOpen onAdShowedFullScreenContent")
                             isShowing = true
                             lastShownAt = System.currentTimeMillis()
+                            // Record shown in central controller so policy counters update
+                            try { applicationRef?.let { AdController.recordAppOpenShown(it.applicationContext) } } catch (_: Throwable) {}
+                            try { AdController.setFullScreenAdShowing(true) } catch (_: Throwable) {}
                             try { onShownListener?.invoke() } catch (_: Throwable) {}
                             for (l in shownListeners) runCatching { l.invoke() }
                         }
@@ -102,6 +214,7 @@ object AppOpenAdManager {
                             isShowing = false
                             appOpenAd = null
                             loaded = false
+                            try { AdController.notifyFullScreenDismissed() } catch (_: Throwable) {}
                             performFinishFlow()
                         }
 
@@ -111,6 +224,7 @@ object AppOpenAdManager {
                             appOpenAd = null
                             loaded = false
                             lastDismissedAt = System.currentTimeMillis()
+                            try { AdController.notifyFullScreenDismissed() } catch (_: Throwable) {}
                             performFinishFlow()
                         }
                     }
@@ -123,6 +237,14 @@ object AppOpenAdManager {
                     appOpenAd = null
                     try { onLoadFailedListener?.invoke() } catch (_: Throwable) {}
                     for (l in loadFailedListeners) runCatching { l.invoke() }
+                    // schedule a short retry to handle transient network/no-fill situations
+                    try {
+                        applicationRef?.applicationContext?.let { ctx ->
+                            val retryMs = 1000L
+                            Log.d(TAG, "onAdFailedToLoad -> scheduling retry preload in ${retryMs}ms")
+                            mainHandler.postDelayed({ try { preload(ctx) } catch (_: Throwable) {} }, retryMs)
+                        }
+                    } catch (_: Throwable) {}
                 }
             })
         } catch (t: Throwable) {
@@ -170,6 +292,16 @@ object AppOpenAdManager {
         Log.d(TAG, "showIfAvailable called - loaded=$loaded isShowing=$isShowing activity=${activity.javaClass.simpleName}")
         if (!loaded || isShowing) return false
 
+        // Consult central policy controller before showing
+        try {
+            val can = try { AdController.canShowAppOpen(activity) } catch (_: Throwable) { false }
+            Log.d(TAG, "showIfAvailable: AdController.canShowAppOpen=$can; debug=${try { AdController.debugSnapshot() } catch (_: Throwable) { "<err>" }}")
+            if (!can) {
+                Log.d(TAG, "showIfAvailable: AdController denies app-open by policy")
+                return false
+            }
+        } catch (_: Throwable) {}
+
         // Basic suppression: if recently shown within 5s, treat as recent
         if (!bypassRecentFullscreenSuppression && wasRecentlyShown()) {
             Log.d(TAG, "showIfAvailable: suppressed due to recent show")
@@ -194,7 +326,16 @@ object AppOpenAdManager {
             try { onFinishedListener?.invoke() } catch (_: Throwable) {}
             try { AnalyticsManager.logAdImpression("app_open") } catch (_: Throwable) {}
             applicationRef?.applicationContext?.let { ctx ->
-                mainHandler.postDelayed({ try { preload(ctx) } catch (_: Throwable) {} }, 30_000L)
+                try {
+                    val debug = try { AdController.debugSnapshot() } catch (_: Throwable) { "<err>" }
+                    Log.d(TAG, "performFinishFlow -> AdController.debugSnapshot before scheduling preload: $debug")
+                    // Prepare next load quickly: preload shortly after ad dismissal so future foregrounds have a loaded ad.
+                    val delayMs = 0L
+                    Log.d(TAG, "performFinishFlow -> scheduling immediate preload after ${delayMs}ms (prepare next ad)")
+                    mainHandler.postDelayed({ try { preload(ctx) } catch (_: Throwable) {} }, delayMs)
+                 } catch (_: Throwable) {
+                     mainHandler.postDelayed({ try { preload(ctx) } catch (_: Throwable) {} }, 30_000L)
+                 }
             }
         } catch (_: Throwable) {}
     }
@@ -211,6 +352,12 @@ object AppOpenAdManager {
         val last = lastShownAt
         if (last <= 0L) return false
         val elapsed = System.currentTimeMillis() - last
-        return elapsed < 5_000L
+        return try {
+            val minGapSec = AdController.getMinFullscreenGapSeconds()
+            elapsed < (minGapSec.coerceAtLeast(1).toLong() * 1000L)
+        } catch (_: Throwable) {
+            // fallback to 5s
+            elapsed < 5_000L
+        }
     }
 }
