@@ -64,16 +64,34 @@ class UmpConsentManager(private val context: Context) {
         val params = try {
             val builder = ConsentRequestParameters.Builder()
             if (BuildConfig.DEBUG && DebugSettings.isUmpForceEeaEnabled(context)) {
-                val testDeviceId = "44A19A7AB27DC2FEEC73259C8D892E01"
                 val debugBuilder = ConsentDebugSettings.Builder(context)
                     .setDebugGeography(ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA)
-                    .addTestDeviceHashedId(testDeviceId)
-                builder.setConsentDebugSettings(debugBuilder.build())
-            }
-            builder.build()
-        } catch (_: Throwable) {
-            ConsentRequestParameters.Builder().build()
-        }
+                // BuildConfig.UMP_TEST_DEVICE_HASH가 비어있지 않다면 테스트 기기 해시를 추가
+                // Collect hashes from BuildConfig and from persisted ump_prefs (if SDK recorded one)
+                try {
+                    val hashSet = mutableSetOf<String>()
+                    try {
+                        val cfg = try { BuildConfig.UMP_TEST_DEVICE_HASH } catch (_: Throwable) { "" }
+                        if (!cfg.isNullOrBlank()) {
+                            cfg.split(',').map { it.trim() }.filter { it.isNotEmpty() }.forEach { hashSet.add(it) }
+                        }
+                    } catch (_: Throwable) {}
+                    try {
+                        val sp = context.getSharedPreferences("ump_prefs", Context.MODE_PRIVATE)
+                        val stored = sp.getString("test_device_hash", "") ?: ""
+                        if (stored.isNotBlank()) hashSet.add(stored)
+                    } catch (_: Throwable) {}
+
+                    for (h in hashSet) {
+                        try { debugBuilder.addTestDeviceHashedId(h) } catch (_: Throwable) {}
+                    }
+                } catch (_: Throwable) {}
+                 builder.setConsentDebugSettings(debugBuilder.build())
+             }
+             builder.build()
+         } catch (_: Throwable) {
+             ConsentRequestParameters.Builder().build()
+         }
 
         consentInformation.requestConsentInfoUpdate(
             activity,

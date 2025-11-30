@@ -81,7 +81,6 @@ fun AboutScreen(
     val scrollState = rememberScrollState()
 
     // preview values or real state from UMP
-    val isPrivacyOptionsRequired: Boolean
     val isPersonalizedAdsAllowed: Boolean
     val versionInfo: String
     val onPrivacyClick: () -> Unit
@@ -91,7 +90,6 @@ fun AboutScreen(
     val showDebugMenu: Boolean
 
     if (isInPreview) {
-        isPrivacyOptionsRequired = true
         isPersonalizedAdsAllowed = true
         versionInfo = "1.0.0-preview"
         onPrivacyClick = {}
@@ -106,7 +104,6 @@ fun AboutScreen(
         val isPrivacyOptionsRequiredState by umpConsentManager?.isPrivacyOptionsRequired?.collectAsState(initial = false) ?: remember { mutableStateOf(false) }
         val isPersonalizedAdsAllowedState by umpConsentManager?.isPersonalizedAdsAllowed?.collectAsState(initial = false) ?: remember { mutableStateOf(false) }
 
-        isPrivacyOptionsRequired = isPrivacyOptionsRequiredState
         isPersonalizedAdsAllowed = isPersonalizedAdsAllowedState
         // Avoid double "-debug-debug" if VERSION_NAME already contains debug suffix
         versionInfo = if (BuildConfig.DEBUG) {
@@ -266,15 +263,13 @@ fun AboutScreen(
             })
             Box(modifier = Modifier.fillMaxWidth().height(dims.divider.thin).background(dims.divider.lightColor))
 
-            // Personalized Ads (switch) - show only if required
-            if (isPrivacyOptionsRequired) {
-                SettingsMenuWithSwitch(
-                    title = "Personalized Ads",
-                    checked = isPersonalizedAdsAllowed,
-                    onClick = onAdsClick
-                )
-                Box(modifier = Modifier.fillMaxWidth().height(dims.divider.thin).background(dims.divider.lightColor))
-            }
+            // Personalized Ads (switch) - always visible so user can open privacy options at any time
+            SettingsMenuWithSwitch(
+                title = "Personalized Ads",
+                checked = isPersonalizedAdsAllowed,
+                onClick = onAdsClick
+            )
+            Box(modifier = Modifier.fillMaxWidth().height(dims.divider.thin).background(dims.divider.lightColor))
 
             // Debug menu
             if (showDebugMenu) {

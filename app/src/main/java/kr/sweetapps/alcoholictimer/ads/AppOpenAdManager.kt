@@ -3,35 +3,33 @@ package kr.sweetapps.alcoholictimer.ads
 import android.app.Activity
 import android.app.Application
 import android.content.Context
-import android.content.Intent
+import android.util.Log
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.FullScreenContentCallback
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.appopen.AppOpenAd
+import com.google.android.gms.ads.MobileAds
 import java.util.concurrent.CopyOnWriteArraySet
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 
-/**
- * 경량화된 AppOpen 광고 관리자 스텁
- * - 원래 구현의 외부 API를 유지하되, 파일이 잘려 발생하는 컴파일 오류를 제거합니다.
- * - 개발/테스트 환경에서 빌드가 통과하도록 최소 기능만 제공합니다.
- * - 실제 프로덕션 로직(Google SDK 호출)은 필요시 원래 구현으로 교체하세요.
- */
 object AppOpenAdManager {
     private const val TAG = "AppOpenAdManager"
 
     private var applicationRef: Application? = null
     private val mainHandler = Handler(Looper.getMainLooper())
-    @Volatile private var dismissalRunnable: Runnable? = null
 
-    @Volatile private var autoShowEnabled: Boolean = true
-    fun isAutoShowEnabled(): Boolean = autoShowEnabled
     @Volatile private var isShowing: Boolean = false
-    @Volatile private var isShowScheduled: Boolean = false
     @Volatile private var loaded: Boolean = false
+    @Volatile private var isLoading: Boolean = false
+    @Volatile private var autoShowEnabled: Boolean = true
 
-    // Timestamps for simple suppression logic
-    @Volatile private var lastShownAt: Long = 0L
-    @Volatile private var lastDismissedAt: Long = 0L
+    fun setAutoShowEnabled(enabled: Boolean) { autoShowEnabled = enabled }
+
+    fun isAutoShowEnabled(): Boolean = autoShowEnabled
+
+    private var appOpenAd: AppOpenAd? = null
 
     private val loadedListeners = CopyOnWriteArraySet<() -> Any?>()
     private val shownListeners = CopyOnWriteArraySet<() -> Any?>()
@@ -43,40 +41,103 @@ object AppOpenAdManager {
     @Volatile private var onFinishedListener: (() -> Unit)? = null
     @Volatile private var onLoadFailedListener: (() -> Unit)? = null
 
+    // Timestamps for suppression logic
+    @Volatile private var lastShownAt: Long = 0L
+    @Volatile private var lastDismissedAt: Long = 0L
+
     fun initialize(application: Application, registerLifecycle: Boolean = true) {
         applicationRef = application
+        try {
+            MobileAds.initialize(application.applicationContext) { initializationStatus ->
+                Log.d(TAG, "MobileAds initialized: $initializationStatus")
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "MobileAds.initialize failed: ${t.message}")
+        }
         Log.d(TAG, "initialize: application set. registerLifecycle=$registerLifecycle")
     }
 
     fun noteAppStart() {
-        // optional hook retained for compatibility
         Log.d(TAG, "noteAppStart called")
     }
 
-    fun setAutoShowEnabled(enabled: Boolean) { autoShowEnabled = enabled }
-
     fun preload(context: Context) {
-        try {
-            if (applicationRef == null && context.applicationContext is Application) {
-                applicationRef = context.applicationContext as Application
-            }
-        } catch (_: Throwable) {}
-
-        // Simulate a successful load for build/test purposes
-        if (loaded) {
-            Log.d(TAG, "preload: already loaded")
+        // don't start loading if already loading or loaded
+        if (loaded || isLoading) {
+            Log.d(TAG, "preload: already loaded or loading")
             return
         }
-        loaded = true
-        Log.d(TAG, "preload: simulated load complete")
-        try { onLoadedListener?.invoke() } catch (_: Throwable) {}
-        for (l in loadedListeners) runCatching { l.invoke() }
+        isLoading = true
+        // BuildConfig is in the application package; reference fully-qualified to avoid unresolved reference
+        val adUnitId = try { kr.sweetapps.alcoholictimer.BuildConfig.ADMOB_APP_OPEN_UNIT_ID } catch (_: Throwable) { "" }
+        if (adUnitId.isBlank()) {
+            Log.w(TAG, "preload: missing App Open ad unit id")
+            isLoading = false
+            return
+        }
+        val request = AdRequest.Builder().build()
+        Log.d(TAG, "preload: loading unit=$adUnitId")
+        try {
+            AppOpenAd.load(context, adUnitId, request, AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT, object : AppOpenAd.AppOpenAdLoadCallback() {
+                override fun onAdLoaded(ad: AppOpenAd) {
+                    Log.d(TAG, "onAdLoaded app-open")
+                    appOpenAd = ad
+                    loaded = true
+                    isLoading = false
+                    try { onLoadedListener?.invoke() } catch (_: Throwable) {}
+                    for (l in loadedListeners) runCatching { l.invoke() }
+
+                    ad.fullScreenContentCallback = object : FullScreenContentCallback() {
+                        override fun onAdShowedFullScreenContent() {
+                            Log.d(TAG, "AppOpen onAdShowedFullScreenContent")
+                            isShowing = true
+                            lastShownAt = System.currentTimeMillis()
+                            try { onShownListener?.invoke() } catch (_: Throwable) {}
+                            for (l in shownListeners) runCatching { l.invoke() }
+                        }
+
+                        override fun onAdFailedToShowFullScreenContent(error: com.google.android.gms.ads.AdError) {
+                            Log.w(TAG, "AppOpen onAdFailedToShowFullScreenContent: ${error.message}")
+                            // treat as finished to continue app flow
+                            isShowing = false
+                            appOpenAd = null
+                            loaded = false
+                            performFinishFlow()
+                        }
+
+                        override fun onAdDismissedFullScreenContent() {
+                            Log.d(TAG, "AppOpen onAdDismissedFullScreenContent")
+                            isShowing = false
+                            appOpenAd = null
+                            loaded = false
+                            lastDismissedAt = System.currentTimeMillis()
+                            performFinishFlow()
+                        }
+                    }
+                }
+
+                override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                    Log.w(TAG, "onAdFailedToLoad app-open: ${loadAdError.message}")
+                    isLoading = false
+                    loaded = false
+                    appOpenAd = null
+                    try { onLoadFailedListener?.invoke() } catch (_: Throwable) {}
+                    for (l in loadFailedListeners) runCatching { l.invoke() }
+                }
+            })
+        } catch (t: Throwable) {
+            Log.w(TAG, "preload exception: ${t.message}")
+            isLoading = false
+        }
     }
 
     fun isLoaded(): Boolean = loaded
     fun isShowingAd(): Boolean = isShowing
 
-    fun clearLoadedAd() { loaded = false }
+    fun clearLoadedAd() {
+        appOpenAd = null
+        loaded = false
+    }
 
     fun setOnAdFinishedListener(listener: (() -> Unit)?) { onFinishedListener = listener }
     fun setOnAdLoadedListener(listener: (() -> Unit)?) {
@@ -115,63 +176,34 @@ object AppOpenAdManager {
             return false
         }
 
-        isShowing = true
-        isShowScheduled = false
-        lastShownAt = System.currentTimeMillis()
-        Log.d(TAG, "showIfAvailable: marking isShowing=true, lastShownAt=${lastShownAt}")
+        // Show the loaded AppOpenAd
         try {
-            for (l in shownListeners) runCatching { l.invoke() }
-            Log.d(TAG, "showIfAvailable: invoked shownListeners count=${shownListeners.size}")
-        } catch (_: Throwable) {}
-        try {
-            Log.d(TAG, "showIfAvailable: invoking onShownListener")
-            onShownListener?.invoke()
-        } catch (_: Throwable) {}
-
-        // Launch debug overlay activity to make ad visible in tests
-        try {
-            val intent = Intent(activity, AppOpenOverlayActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            Log.d(TAG, "showIfAvailable: launching overlay activity")
-            activity.startActivity(intent)
+            appOpenAd?.show(activity)
+            Log.d(TAG, "showIfAvailable: appOpenAd.show() called")
+            return true
         } catch (t: Throwable) {
-            Log.w(TAG, "showIfAvailable: failed to launch overlay activity: ${t.message}")
+            Log.w(TAG, "showIfAvailable: failed to show app open ad: ${t.message}")
+            return false
         }
-
-        // Simulate dismissal shortly after to allow lifecycle listeners to react
-        val run = Runnable {
-             try {
-                Log.d(TAG, "showIfAvailable: simulated dismissal running (wasShowing=$isShowing)")
-                performFinishFlow()
-             } catch (_: Throwable) {}
-        }
-        dismissalRunnable = run
-        // Use slightly longer delay to ensure overlay activity has time to display in debug builds
-        mainHandler.postDelayed(run, 1800L)
-
-         return true
-     }
-
-    /** Called by overlay activity when it finishes so we don't double-run dismissal logic. */
-    fun notifyAdFinishedFromOverlay() {
-        try {
-            dismissalRunnable?.let { mainHandler.removeCallbacks(it) }
-        } catch (_: Throwable) {}
-        performFinishFlow()
     }
 
     private fun performFinishFlow() {
         try {
-            isShowing = false
-            loaded = false
-            lastDismissedAt = System.currentTimeMillis()
-            Log.d(TAG, "performFinishFlow -> lastDismissedAt=${lastDismissedAt}")
+            Log.d(TAG, "performFinishFlow -> finishing ad flow")
             for (l in finishedListeners) runCatching { l.invoke() }
             try { onFinishedListener?.invoke() } catch (_: Throwable) {}
             try { AnalyticsManager.logAdImpression("app_open") } catch (_: Throwable) {}
             applicationRef?.applicationContext?.let { ctx ->
                 mainHandler.postDelayed({ try { preload(ctx) } catch (_: Throwable) {} }, 30_000L)
             }
+        } catch (_: Throwable) {}
+    }
+
+    /** Called by external overlay activity (if any) to notify ad finished. */
+    fun notifyAdFinishedFromOverlay() {
+        try {
+            Log.d(TAG, "notifyAdFinishedFromOverlay called")
+            performFinishFlow()
         } catch (_: Throwable) {}
     }
 

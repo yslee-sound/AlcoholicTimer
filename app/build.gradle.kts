@@ -26,12 +26,19 @@ if (localPropertiesFile.exists()) {
 // Helper: sanitize property values (remove surrounding quotes and whitespace)
 fun String?.sanitizeProp(): String? = this?.trim()?.trim('"')?.trim('\'')?.trim()
 
+// UMP 테스트 기기 해시 (local.properties에서 읽어 Debug 빌드에 주입)
+val umpTestDeviceHash = localProperties.getProperty("UMP_TEST_DEVICE_HASH")?.sanitizeProp() ?: ""
+
 // release 관련 태스크 실행 여부 (configuration 시점에 1회 계산)
 // bundleRelease / assembleRelease / publishRelease / 끝이 Release 인 태스크 포함
 val isReleaseTaskRequested: Boolean = gradle.startParameter.taskNames.any { name ->
     val lower = name.lowercase()
     ("release" in lower && ("assemble" in lower || "bundle" in lower || "publish" in lower)) || lower.endsWith("release")
 }
+
+// 안전: 릴리즈 관련 태스크가 요청된 경우(릴리즈 빌드 파이프라인 등) 디버그 전용 해시를 빈값으로 강제합니다.
+// 이렇게 하면 실수로 릴리즈 빌드에 로컬 디버그 해시가 포함되는 것을 방지합니다.
+val debugUmpTestDeviceHash = if (isReleaseTaskRequested) "" else umpTestDeviceHash
 
 android {
     namespace = "kr.sweetapps.alcoholictimer"
@@ -114,8 +121,12 @@ android {
             // 변경: 디버그 빌드의 배너 광고 유닛 ID를 적응형 배너 테스트 ID로 교체함
             buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"ca-app-pub-3940256099942544/9214589741\"")
             // 앱 오프닝 광고 유닛 ID
-            buildConfigField("String", "ADMOB_APP_OPEN_UNIT_ID", "\"ca-app-pub-3940256099942544/3419835294\"") // 테스트용 앱 오프닝 광고 단위 ID
+            buildConfigField("String", "ADMOB_APP_OPEN_UNIT_ID", "\"ca-app-pub-3940256099942544/9257395921\"") // 테스트용 앱 오프닝 광고 단위 ID (user-provided)
             manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-3940256099942544~3347511713"
+
+            // UMP 테스트 기기 해시 주입 (디버그 전용)
+            // Use debugUmpTestDeviceHash which is blanked when a release task is requested
+            buildConfigField("String", "UMP_TEST_DEVICE_HASH", "\"$debugUmpTestDeviceHash\"")
         }
     }
 

@@ -61,10 +61,11 @@ class MainApplication : Application() {
             } catch (_: Throwable) {}
         }
 
-        val testDeviceIds = (
-            listOf("03BB67FC09646C26F9D03C998F4FC6C6") +
-            if (BuildConfig.DEBUG) listOf("33BE2250B43518CCDA7DE426D04EE231") else emptyList()
-        ).distinct()
+        // UMP / AdMob test device hashes: primary list comes from BuildConfig (injected from local.properties for debug)
+        val configuredHashes = try { kr.sweetapps.alcoholictimer.BuildConfig.UMP_TEST_DEVICE_HASH } catch (_: Throwable) { "" }
+        val fromConfig = configuredHashes.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+        val debugDefault = if (BuildConfig.DEBUG) listOf("33BE2250B43518CCDA7DE426D04EE231") else emptyList()
+        val testDeviceIds = (fromConfig + debugDefault).distinct()
 
         val config = RequestConfiguration.Builder()
             .setMaxAdContentRating(RequestConfiguration.MAX_AD_CONTENT_RATING_T)

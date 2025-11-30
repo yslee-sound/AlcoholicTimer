@@ -47,15 +47,6 @@
             android:theme="@android:style/Theme.Translucent"
             tools:replace="android:theme" />
 
-        <!-- AppOpen overlay activity (투명 테마로 변경) -->
-        <activity
-            android:name="kr.sweetapps.alcoholictimer.ads.AppOpenOverlayActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@android:style/Theme.Translucent"
-            android:taskAffinity=""
-            android:excludeFromRecents="true" />
-
         <!-- 사용자 기록 추가 화면 -->
         <activity
             android:name="kr.sweetapps.alcoholictimer.feature.addrecord.AddRecordActivity"

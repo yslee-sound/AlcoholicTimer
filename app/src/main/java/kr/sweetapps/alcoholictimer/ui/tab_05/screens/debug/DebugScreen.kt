@@ -2,6 +2,7 @@ package kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug
 
 import android.widget.Toast
 import android.util.Log
+import android.app.Activity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,16 @@ import kr.sweetapps.alcoholictimer.core.ui.BackTopBar
 import androidx.compose.ui.platform.LocalContext
 import kr.sweetapps.alcoholictimer.ads.UmpConsentManager as AdsUmpConsentManager
 import kr.sweetapps.alcoholictimer.ads.AppOpenAdManager
+
+// Helper: get Activity from Context
+private fun ContextToActivity(context: android.content.Context): Activity? {
+    var ctx: android.content.Context? = context
+    while (ctx is android.content.ContextWrapper) {
+        if (ctx is Activity) return ctx
+        ctx = ctx.baseContext
+    }
+    return null
+}
 
 @Composable
 fun DebugScreen(
@@ -63,6 +74,21 @@ fun DebugScreen(
             DebugSwitch(title = "UMP EEA 강제(디버그)", checked = uiState.umpForceEea, onCheckedChange = {
                 viewModel.setSwitch(6, it)
                 Toast.makeText(context, if (it) "UMP: EEA 강제 활성화" else "UMP: EEA 강제 비활성화", Toast.LENGTH_SHORT).show()
+                // If an Activity is available from the composable context, trigger ads-side UMP request immediately
+                try {
+                    val act = ContextToActivity(context)
+                    if (act != null) {
+                        try {
+                            AdsUmpConsentManager.requestAndLoadIfRequired(act) { can ->
+                                Log.d("DebugScreen", "UMP EEA toggle -> Ads UMP request finished -> canRequestAds=$can")
+                            }
+                        } catch (e: Throwable) {
+                            Log.d("DebugScreen", "AdsUmpConsentManager.requestAndLoadIfRequired failed: ${e.message}")
+                        }
+                    } else {
+                        Log.d("DebugScreen", "UMP EEA toggle changed -> no current Activity available from UI context")
+                    }
+                } catch (_: Throwable) {}
             })
             DebugSwitch(title = "Analytics 이벤트 전송", checked = uiState.switch3, onCheckedChange = {
                 viewModel.setSwitch(3, it)
