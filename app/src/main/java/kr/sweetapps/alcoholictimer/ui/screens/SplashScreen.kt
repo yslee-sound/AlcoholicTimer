@@ -15,6 +15,7 @@ import kr.sweetapps.alcoholictimer.constants.Constants
 import kr.sweetapps.alcoholictimer.MainActivity
 import android.graphics.Color as AndroidColor
 import androidx.compose.runtime.mutableStateOf
+import kr.sweetapps.alcoholictimer.ui.screens.StartScreen
 
 // 추가: AdMob AppOpen 로드/콜백 (디버그용 직접 로드)
 import com.google.android.gms.ads.AdRequest
@@ -72,6 +73,31 @@ class SplashScreen : BaseActivity() {
 
         // DecorView 안정화
         runCatching { window.decorView.setWillNotDraw(false) }
+
+        // Ensure primary consent flow runs early on Splash so consent form (if required) is presented
+        try {
+            val mainApp = application as? kr.sweetapps.alcoholictimer.MainApplication
+            if (mainApp != null) {
+                try {
+                    android.util.Log.d("SplashScreen", "Invoking primary UMP gatherConsent from SplashScreen")
+                    // Release splash so consent form can be visible on top
+                    try { holdSplashAtomic.set(false); holdSplashState.value = false } catch (_: Throwable) {}
+                    // Mark full-screen showing to suppress AppOpen while consent UI is active
+                    try { kr.sweetapps.alcoholictimer.ads.AdController.setFullScreenAdShowing(true) } catch (_: Throwable) {}
+                    // Also ensure AppOpen auto-show disabled while consent is handled
+                    try { kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setAutoShowEnabled(false) } catch (_: Throwable) {}
+
+                    mainApp.umpConsentManager.gatherConsent(this) { canRequest ->
+                        android.util.Log.d("SplashScreen", "gatherConsent callback -> canRequestAds=$canRequest")
+                        // Sync ads-side manager and re-enable full-screen ads after consent resolved
+                        try { kr.sweetapps.alcoholictimer.ads.UmpConsentManager.requestAndLoadIfRequired(this) {} } catch (_: Throwable) {}
+                        try { kr.sweetapps.alcoholictimer.ads.AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
+                        try { kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setAutoShowEnabled(false) } catch (_: Throwable) {}
+                        // keep splash state as-is; AppOpenAdManager.onConsentUpdated will decide preload/show
+                    }
+                } catch (_: Throwable) {}
+            }
+        } catch (_: Throwable) {}
 
         // 광고 로드 관련 리스너를 먼저 등록하여 이벤트를 놓치지 않도록 함
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdLoadedListener {

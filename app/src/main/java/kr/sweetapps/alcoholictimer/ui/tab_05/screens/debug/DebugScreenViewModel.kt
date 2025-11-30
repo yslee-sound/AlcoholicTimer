@@ -1,13 +1,14 @@
 package kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug
 
 import android.app.Application
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.ump.UserMessagingPlatform
 import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.analytics.ktx.logEvent
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.perf.ktx.performance
@@ -19,10 +20,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kr.sweetapps.alcoholictimer.core.util.DebugSettings
 import kr.sweetapps.alcoholictimer.BuildConfig
+import kr.sweetapps.alcoholictimer.ads.UmpConsentManager as AdsUmpConsentManager
+import kr.sweetapps.alcoholictimer.MainApplication
 
 data class DebugScreenUiState(
     val switch1: Boolean = false,
     val demoMode: Boolean = false,
+    val umpForceEea: Boolean = false,
     val switch3: Boolean = false,
     val switch4: Boolean = false,
     val switch5: Boolean = false,
@@ -35,7 +39,10 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
 
     init {
         _uiState.update {
-            it.copy(demoMode = DebugSettings.isDemoModeEnabled(application))
+            it.copy(
+                demoMode = DebugSettings.isDemoModeEnabled(application),
+                umpForceEea = DebugSettings.isUmpForceEeaEnabled(application)
+            )
         }
     }
 
@@ -50,6 +57,30 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
                 3 -> currentState.copy(switch3 = value)
                 4 -> currentState.copy(switch4 = value)
                 5 -> currentState.copy(switch5 = value)
+                6 -> {
+                    DebugSettings.setUmpForceEeaEnabled(getApplication(), value)
+                    // When debug toggle changes, immediately reset primary and ads-side consent and re-request so test effect is immediate
+                    if (BuildConfig.DEBUG) {
+                        try {
+                            // Reset primary UMP manager (if available) and ads-side stored prefs
+                            try { kr.sweetapps.alcoholictimer.consent.UmpConsentManager(getApplication()).resetConsent() } catch (_: Throwable) {}
+                        } catch (_: Throwable) {}
+                        try {
+                            AdsUmpConsentManager.resetConsent(getApplication())
+                        } catch (_: Throwable) {}
+                        try {
+                            val act = MainApplication.currentActivity
+                            if (act != null) {
+                                AdsUmpConsentManager.requestAndLoadIfRequired(act) { can ->
+                                    Log.d("DebugScreenVM", "UMP EEA toggle changed -> Ads UMP request finished -> canRequestAds=$can")
+                                }
+                            } else {
+                                Log.d("DebugScreenVM", "UMP EEA toggle changed -> no currentActivity to trigger Ads UMP request")
+                            }
+                        } catch (_: Throwable) {}
+                    }
+                    currentState.copy(umpForceEea = value)
+                }
                 else -> currentState
             }
         }
@@ -57,8 +88,31 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
 
     fun resetConsent() {
         if (!BuildConfig.DEBUG) return
+        Log.d("DebugScreenVM", "resetConsent called")
         val consentInformation = UserMessagingPlatform.getConsentInformation(getApplication())
         consentInformation.reset()
+        // Ensure ads.UmpConsentManager persisted flags are cleared so ads flow will re-check consent
+        try {
+            val sp = getApplication<Application>().applicationContext.getSharedPreferences("ump_prefs", Context.MODE_PRIVATE)
+            sp.edit { clear() }
+            Log.d("DebugScreenVM", "resetConsent: cleared umb_prefs (ump_prefs)")
+            // Also clear ads-side manager internal state immediately
+            try {
+                AdsUmpConsentManager.resetConsent(getApplication())
+                Log.d("DebugScreenVM", "Called AdsUmpConsentManager.resetConsent")
+            } catch (_: Throwable) { Log.d("DebugScreenVM", "AdsUmpConsentManager.resetConsent failed") }
+            // If there's a foreground activity, trigger ads-side consent re-check immediately
+            try {
+                val act = MainApplication.currentActivity
+                if (act != null) {
+                    AdsUmpConsentManager.requestAndLoadIfRequired(act) { canReq ->
+                        Log.d("DebugScreenVM", "Ads UMP request finished after debug reset -> canRequestAds=$canReq")
+                    }
+                } else {
+                    Log.d("DebugScreenVM", "No currentActivity available to trigger Ads UMP request")
+                }
+            } catch (_: Throwable) {}
+        } catch (_: Throwable) {}
     }
 
     /**

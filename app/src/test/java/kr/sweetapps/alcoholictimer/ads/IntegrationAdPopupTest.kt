@@ -1,10 +1,10 @@
 package kr.sweetapps.alcoholictimer.ads
 
-import com.alcoholictimer.ad.AdManager
-import com.alcoholictimer.ad.AdPolicyConfig
-import com.alcoholictimer.ad.AdType
-import com.alcoholictimer.ad.InMemoryPreferencesStore
-import com.alcoholictimer.ad.TimeProvider
+import kr.sweetapps.alcoholictimer.ad.AdManager
+import kr.sweetapps.alcoholictimer.ad.AdPolicyConfig
+import kr.sweetapps.alcoholictimer.ad.AdType
+import kr.sweetapps.alcoholictimer.ad.InMemoryPreferencesStore
+import kr.sweetapps.alcoholictimer.ad.TimeProvider
 import kr.sweetapps.alcoholictimer.popup.MockPolicyRepository
 import kr.sweetapps.alcoholictimer.popup.MockSharedPreferences
 import kr.sweetapps.alcoholictimer.popup.MockSystemInfo

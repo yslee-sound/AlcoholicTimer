@@ -196,20 +196,32 @@ object AppOpenAdManager {
     fun showIfAvailable(activity: Activity): Boolean {
         Log.d(TAG, "showIfAvailable called - loaded=${appOpenAd != null} showing=$isShowing autoShow=$autoShowEnabled activity=${activity.javaClass.simpleName} finishing=${activity.isFinishing} destroyed=${if (android.os.Build.VERSION.SDK_INT>=17) activity.isDestroyed else false}")
         try {
+            // Additional debug tag for easier logcat filtering in devs' environment
+            try { Log.d("DebugScreenVM", "showIfAvailable called - loaded=${appOpenAd != null} showing=$isShowing autoShow=$autoShowEnabled activity=${activity.javaClass.simpleName}") } catch (_: Throwable) {}
             val privacyRequired = try { UmpConsentManager.isPrivacyOptionsRequired(activity) } catch (_: Throwable) { false }
             if (privacyRequired && !UmpConsentManager.consentChecked) {
                 Log.d(TAG, "showIfAvailable suppressed: UMP privacy required and consent not yet checked")
+                try { Log.d("DebugScreenVM", "suppress_reason=privacy_required_and_consent_not_checked privacyRequired=$privacyRequired consentChecked=${UmpConsentManager.consentChecked}") } catch (_: Throwable) {}
                 return false
             }
             try {
                 if (UmpConsentManager.isFormShowing()) {
                     Log.d(TAG, "showIfAvailable suppressed: UMP consent form is currently showing")
+                    try { Log.d("DebugScreenVM", "suppress_reason=form_showing") } catch (_: Throwable) {}
                     return false
                 }
             } catch (_: Throwable) {}
         } catch (_: Throwable) {}
 
         if (appOpenAd == null || isShowing) return false
+        if (appOpenAd == null) {
+            try { Log.d("DebugScreenVM", "suppress_reason=no_loaded_ad appOpenAd=null") } catch (_: Throwable) {}
+            return false
+        }
+        if (isShowing) {
+            try { Log.d("DebugScreenVM", "suppress_reason=already_showing isShowing=true") } catch (_: Throwable) {}
+            return false
+        }
         try {
             val lastDismissFromController = try { AdController.getLastFullScreenDismissedAt() } catch (_: Throwable) { 0L }
             val lastAppOpenShown = try { AdController.getLastAppOpenShownAt() } catch (_: Throwable) { 0L }
@@ -225,6 +237,7 @@ object AppOpenAdManager {
                 val elapsed = System.currentTimeMillis() - lastDismiss
                 if (elapsed < gapMs) {
                     Log.d(TAG, "showIfAvailable: suppressed because recent full-screen ad dismissed (elapsed=${elapsed}ms < ${gapMs}ms). controllerDismiss=$lastDismissFromController appOpenShown=$lastAppOpenShown local=$lastDismissedAt")
+                    try { Log.d("DebugScreenVM", "suppress_reason=recent_fullscreen elapsed=${elapsed} gapMs=${gapMs} lastDismiss=$lastDismiss") } catch (_: Throwable) {}
                     return false
                 }
             } else {
@@ -234,6 +247,7 @@ object AppOpenAdManager {
                 } catch (_: Throwable) { 0L }
                 if (sinceProcessStart < startupSuppressionMs) {
                     Log.d(TAG, "showIfAvailable: applying small startup suppression (${startupSuppressionMs}ms) due to missing timestamps")
+                    try { Log.d("DebugScreenVM", "suppress_reason=startup_suppression sinceProcessStart=${sinceProcessStart}ms") } catch (_: Throwable) {}
                     return false
                 }
             }
@@ -242,10 +256,12 @@ object AppOpenAdManager {
             try {
                 if (!AdController.canShowAppOpen(activity)) {
                     Log.d(TAG, "showIfAvailable: policy disallows app-open -> returning false")
+                    try { Log.d("DebugScreenVM", "suppress_reason=policy_disallow canShowAppOpen=false") } catch (_: Throwable) {}
                     return false
                 }
                 if (AdController.isFullScreenAdShowing() || AdController.isInterstitialShowingNow()) {
                     Log.d(TAG, "showIfAvailable: another full-screen/interstitial is active -> skipping app-open")
+                    try { Log.d("DebugScreenVM", "suppress_reason=other_fullscreen_active") } catch (_: Throwable) {}
                     return false
                 }
             } catch (t: Throwable) {
@@ -319,6 +335,15 @@ object AppOpenAdManager {
                         if (!finishing && !destroyed && !isShowing) {
                             try {
                                 try { AdController.setFullScreenAdShowing(true) } catch (_: Throwable) {}
+                                // Extra guard: if UMP consent form is showing or controller indicates full-screen, cancel show
+                                try {
+                                    if (UmpConsentManager.isFormShowing() || AdController.isFullScreenAdShowing()) {
+                                        Log.d(TAG, "showIfAvailable cancelled: consent form or other full-screen active -> aborting show")
+                                        isShowScheduled = false
+                                        try { AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
+                                        return@Runnable
+                                    }
+                                } catch (_: Throwable) {}
                                 ad.show(activity)
                                 shown = true
                                 Log.d(TAG, "ad.show() invoked via decorView.post")

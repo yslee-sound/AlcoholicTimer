@@ -1,6 +1,7 @@
 package kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug
 
 import android.widget.Toast
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.BackTopBar
 import androidx.compose.ui.platform.LocalContext
+import kr.sweetapps.alcoholictimer.ads.UmpConsentManager as AdsUmpConsentManager
+import kr.sweetapps.alcoholictimer.ads.AppOpenAdManager
 
 @Composable
 fun DebugScreen(
@@ -44,11 +47,23 @@ fun DebugScreen(
                         Toast
                             .makeText(context, "광고 동의 상태가 초기화되었습니다.", Toast.LENGTH_SHORT)
                             .show()
+                        try {
+                            AdsUmpConsentManager.resetConsent(context.applicationContext)
+                            Log.d("DebugScreen", "Direct AdsUmpConsentManager.resetConsent invoked from UI")
+                        } catch (_: Throwable) { Log.d("DebugScreen", "AdsUmpConsentManager.resetConsent failed") }
+                        try {
+                            AppOpenAdManager.preload(context.applicationContext)
+                            Log.d("DebugScreen", "Triggered AppOpenAdManager.preload from debug UI")
+                        } catch (_: Throwable) { Log.d("DebugScreen", "AppOpenAdManager.preload failed") }
                     }
                     .padding(vertical = 8.dp)
             )
             DebugSwitch(title = "기능 1", checked = uiState.switch1, onCheckedChange = { viewModel.setSwitch(1, it) })
             DebugSwitch(title = "데모 모드", checked = uiState.demoMode, onCheckedChange = { viewModel.setSwitch(2, it) })
+            DebugSwitch(title = "UMP EEA 강제(디버그)", checked = uiState.umpForceEea, onCheckedChange = {
+                viewModel.setSwitch(6, it)
+                Toast.makeText(context, if (it) "UMP: EEA 강제 활성화" else "UMP: EEA 강제 비활성화", Toast.LENGTH_SHORT).show()
+            })
             DebugSwitch(title = "Analytics 이벤트 전송", checked = uiState.switch3, onCheckedChange = {
                 viewModel.setSwitch(3, it)
                 // trigger analytics test event when toggled on

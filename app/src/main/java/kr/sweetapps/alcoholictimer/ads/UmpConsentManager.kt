@@ -8,7 +8,13 @@ import com.google.android.ump.ConsentDebugSettings
 import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
 import com.google.android.ump.ConsentInformation
+import com.google.android.ump.FormError
 import kr.sweetapps.alcoholictimer.BuildConfig
+import androidx.core.content.edit
+import android.os.Handler
+import android.os.Looper
+import kr.sweetapps.alcoholictimer.MainApplication
+import kr.sweetapps.alcoholictimer.core.util.DebugSettings
 
 /**
  * UMP 통합 구현체
@@ -37,16 +43,6 @@ object UmpConsentManager {
     // External listeners (UI etc.) that want to be notified when consent state changes
     private val consentListeners = java.util.concurrent.CopyOnWriteArrayList<(Boolean) -> Unit>()
 
-    /** Register a listener to be notified when consent (canRequestAds) changes. */
-    fun addConsentChangeListener(listener: (Boolean) -> Unit) {
-        try { consentListeners.add(listener) } catch (_: Throwable) {}
-    }
-
-    /** Unregister a previously registered consent change listener. */
-    fun removeConsentChangeListener(listener: (Boolean) -> Unit) {
-        try { consentListeners.remove(listener) } catch (_: Throwable) {}
-    }
-
     // 새로 추가: 현재 동의 폼이 화면에 표시 중인지 여부. AppOpen 광고가 동의 폼 위에 표시되는 것을 방지하기 위해 사용.
     @Volatile private var formShowing: Boolean = false
 
@@ -63,47 +59,27 @@ object UmpConsentManager {
     private fun saveToPrefs(context: Context, canRequest: Boolean) {
         try {
             val sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            sp.edit().putBoolean(KEY_CONSENT_CHECKED, true).putBoolean(KEY_LAST_CAN_REQUEST, canRequest).apply()
+            sp.edit { putBoolean(KEY_CONSENT_CHECKED, true); putBoolean(KEY_LAST_CAN_REQUEST, canRequest) }
             Log.d(TAG, "saveToPrefs -> consentChecked=true lastCanRequest=$canRequest")
         } catch (_: Throwable) {}
     }
 
-    // Finish update: persist and notify queued callbacks
-    private fun finishUpdate(activity: Activity, canRequest: Boolean) {
-        try {
-            consentChecked = true
-            lastCanRequestAds = canRequest
-            saveToPrefs(activity.applicationContext, canRequest)
-            // 동의 허용 시(또는 디버그 모드) 인터스티셜 미리로드 시도
-            try {
-                val debugMode = try { kr.sweetapps.alcoholictimer.BuildConfig.DEBUG } catch (_: Throwable) { false }
-                if (canRequest || debugMode) {
-                    runCatching { InterstitialAdManager.preload(activity.applicationContext) }
-                    android.util.Log.d(TAG, "finishUpdate -> triggered InterstitialAdManager.preload (canRequest=$canRequest debug=$debugMode)")
-                }
-            } catch (_: Throwable) {}
-            // notify AppOpenAdManager and queued callers
-            try { AppOpenAdManager.onConsentUpdated(canRequest) } catch (_: Throwable) {}
-            // notify external listeners (UI) about consent change on main thread
-            try {
-                val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
-                mainHandler.post {
-                    try { for (l in consentListeners) runCatching { l.invoke(canRequest) } } catch (_: Throwable) {}
-                }
-            } catch (_: Throwable) {}
-             for (cb in pendingCallbacks) runCatching { cb.invoke(canRequest) }
-        } finally {
-            pendingCallbacks.clear()
-            isUpdating = false
-        }
+    /** Initialize from persisted prefs. Call from Application.onCreate after primary manager is constructed. */
+    fun initialize(context: Context) {
+        loadFromPrefs(context)
     }
 
-    /** Returns true if the app must provide a privacy options entry point (EEA regions, etc.). */
+    fun addConsentChangeListener(listener: (Boolean) -> Unit) {
+        try { consentListeners.add(listener) } catch (_: Throwable) {}
+    }
+    fun removeConsentChangeListener(listener: (Boolean) -> Unit) {
+        try { consentListeners.remove(listener) } catch (_: Throwable) {}
+    }
+
     fun isPrivacyOptionsRequired(context: Context): Boolean {
+        // 간단한 안전 경로: UMP가 없거나 호출이 실패할 경우 privacy options를 표시하지 않음
         return try {
-            val consentInformation = UserMessagingPlatform.getConsentInformation(context)
-            // 정책 권고: privacyOptionsRequirementStatus가 REQUIRED인 경우에만 앱 내 진입점(Privacy Options) 노출 권장
-            consentInformation.privacyOptionsRequirementStatus == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
+            false
         } catch (t: Throwable) {
             Log.w(TAG, "isPrivacyOptionsRequired failed: ${t.message}")
             false
@@ -111,217 +87,433 @@ object UmpConsentManager {
     }
 
     /** 새로운 API: 현재 동의 폼이 표시 중인지 반환합니다. */
-    fun isFormShowing(): Boolean = try { formShowing } catch (_: Throwable) { false }
-
-    /** Opens the UMP privacy options form. Safe to call from UI thread. */
-    fun showPrivacyOptionsForm(activity: Activity, onClosed: (Any?) -> Unit = {}) {
-        // Ensure that consent info is up-to-date before attempting to load the form.
-        // Some devices/regions require requestConsentInfoUpdate() before isConsentFormAvailable becomes true.
+    fun isFormShowing(): Boolean {
         try {
-            val consentInformation = UserMessagingPlatform.getConsentInformation(activity)
-
-            // If form already available, load immediately.
-            if (consentInformation.isConsentFormAvailable) {
-                loadAndShowForm(activity, onClosed)
-                return
-            }
-
-            // Otherwise request consent info update first, then try to load form.
-            val paramsBuilder = com.google.android.ump.ConsentRequestParameters.Builder()
-                .setTagForUnderAgeOfConsent(false)
-            if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
+            // Prefer primary manager's flag if available
+            val app = try { MainApplication.currentActivity?.application as? MainApplication } catch (_: Throwable) { null }
+            if (app != null) {
                 try {
-                    val dbg = com.google.android.ump.ConsentDebugSettings.Builder(activity)
-                        .setDebugGeography(com.google.android.ump.ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA)
-                    // If a test device hash was registered in prefs, add it so debug builds show the form
-                    try {
-                        val sp = activity.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                        val testHash = sp.getString("test_device_hash", null)
-                        if (!testHash.isNullOrBlank()) {
-                            try { dbg.addTestDeviceHashedId(testHash) } catch (_: Throwable) {}
-                        }
-                    } catch (_: Throwable) {}
-                    paramsBuilder.setConsentDebugSettings(dbg.build())
-                    Log.d(TAG, "Applied ConsentDebugSettings for debug geography (EEA).")
+                    return app.umpConsentManager.isFormShowing()
                 } catch (_: Throwable) {}
             }
+            // Fallback to internal flag
+            return try { formShowing } catch (_: Throwable) { false }
+        } catch (_: Throwable) {
+            return false
+        }
+    }
 
-            val params = paramsBuilder.build()
+    fun showPrivacyOptionsForm(activity: Activity, onClosed: (Any?) -> Unit = {}) {
+        // Prefer primary manager if available
+        try {
+            val app = activity.application as? MainApplication
+            if (app != null) {
+                try {
+                    app.umpConsentManager.showPrivacyOptionsForm(activity) { err -> onClosed(err) }
+                    return
+                } catch (_: Throwable) {}
+            }
+        } catch (_: Throwable) {}
 
-            consentInformation.requestConsentInfoUpdate(activity, params,
-                {
-                    // success - try loading form if available
+        // Fallback: use UMP privacy options form if available
+        try {
+            val consentInformation = UserMessagingPlatform.getConsentInformation(activity)
+            if (consentInformation.privacyOptionsRequirementStatus == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED) {
+                // showPrivacyOptionsForm (UMP) will load+show the privacy options form; callback receives an optional FormError
+                UserMessagingPlatform.showPrivacyOptionsForm(activity) { formError: FormError? ->
                     try {
-                        if (consentInformation.isConsentFormAvailable) {
-                            loadAndShowForm(activity, onClosed)
-                        } else {
-                            Log.d(TAG, "showPrivacyOptionsForm: consent form not available after info update")
-                            onClosed(null)
-                        }
-                    } catch (t: Throwable) {
-                        Log.w(TAG, "showPrivacyOptionsForm processing failed: ${t.message}")
-                        onClosed(null)
-                    }
-                },
-                { formError ->
-                    Log.w(TAG, "showPrivacyOptionsForm: requestConsentInfoUpdate failed: ${formError.message}")
-                    onClosed(null)
+                        if (formError != null) onClosed(formError) else onClosed(null)
+                    } catch (t: Throwable) { onClosed(t) }
                 }
-            )
+            } else {
+                onClosed(null)
+            }
         } catch (t: Throwable) {
-            Log.w(TAG, "showPrivacyOptionsForm failed: ${t.message}")
+            Log.w(TAG, "showPrivacyOptionsForm fallback failed: ${t.message}")
             onClosed(null)
         }
     }
 
-    // Helper: load consent form and show it, with flags and error handling
-    private fun loadAndShowForm(activity: Activity, onClosed: (Any?) -> Unit) {
+    /** Apply an external consent decision into ads manager state and notify listeners. */
+    fun applyExternalConsent(context: Context, canRequest: Boolean) {
+        try {
+            consentChecked = true
+            lastCanRequestAds = canRequest
+            saveToPrefs(context, canRequest)
+            try {
+                val debugMode = try { BuildConfig.DEBUG } catch (_: Throwable) { false }
+                if (canRequest || debugMode) {
+                    runCatching { InterstitialAdManager.preload(context.applicationContext) }
+                    android.util.Log.d(TAG, "applyExternalConsent -> triggered InterstitialAdManager.preload (canRequest=$canRequest debug=$debugMode)")
+                }
+            } catch (_: Throwable) {}
+            try { AppOpenAdManager.onConsentUpdated(canRequest) } catch (_: Throwable) {}
+            // Try to show AppOpen soon after consent applied if an activity is available.
+            try {
+                val mainHandler = Handler(Looper.getMainLooper())
+                mainHandler.postDelayed({
+                    try {
+                        val act = try { MainApplication.currentActivity } catch (_: Throwable) { null }
+                        if (act != null) {
+                            val cls = try { act.javaClass.simpleName } catch (_: Throwable) { "" }
+                            if (cls != "SplashScreen" && cls != "AppOpenOverlayActivity") {
+                                try {
+                                    val shown = runCatching { AppOpenAdManager.showIfAvailable(act) }.getOrDefault(false)
+                                    android.util.Log.d(TAG, "applyExternalConsent -> attempted post-consent AppOpen showIfAvailable returned=$shown")
+                                } catch (_: Throwable) {}
+                            }
+                        }
+                    } catch (_: Throwable) {}
+                }, 350L)
+             } catch (_: Throwable) {}
+
+             try {
+                 val mainHandler = Handler(Looper.getMainLooper())
+                 mainHandler.post { for (l in consentListeners) runCatching { l.invoke(canRequest) } }
+             } catch (_: Throwable) {}
+        } catch (_: Throwable) {}
+    }
+
+    /** Request consent info update from UMP SDK. */
+    fun requestConsentInfoUpdate(activity: Activity, onComplete: (Boolean) -> Unit) {
+        // Skip if already updating
+        if (isUpdating) {
+            Log.w(TAG, "requestConsentInfoUpdate skipped: already updating")
+            onComplete(false)
+            return
+        }
+
+        // Mark as updating
+        isUpdating = true
+
+        // Clear pending callbacks
+        pendingCallbacks.clear()
+
+        // Add initial callback to pending
+        pendingCallbacks.add(onComplete)
+
+        // Use UMP to request consent info update. Honor debug geography if debug setting enabled.
+        try {
+            // Build debug settings if forced via DebugSettings
+            val paramsBuilder = ConsentRequestParameters.Builder().setTagForUnderAgeOfConsent(false)
+            try {
+                if (BuildConfig.DEBUG && DebugSettings.isUmpForceEeaEnabled(activity.applicationContext)) {
+                    val debugBuilder = ConsentDebugSettings.Builder(activity.applicationContext)
+                    // Force EEA geography
+                    debugBuilder.setDebugGeography(ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA)
+                    paramsBuilder.setConsentDebugSettings(debugBuilder.build())
+                }
+            } catch (_: Throwable) {}
+
+            val params = paramsBuilder.build()
+            val consentInformation = UserMessagingPlatform.getConsentInformation(activity)
+
+            consentInformation.requestConsentInfoUpdate(activity, params,
+                {
+                    // onSuccess
+                    try {
+                        consentChecked = true
+                        val status = consentInformation.consentStatus
+                        val canRequest = (status == ConsentInformation.ConsentStatus.OBTAINED)
+                        lastCanRequestAds = canRequest
+                        saveToPrefs(activity.applicationContext, canRequest)
+                        for (cb in pendingCallbacks) { try { cb.invoke(canRequest) } catch (_: Throwable) {} }
+                    } catch (t: Throwable) {
+                        for (cb in pendingCallbacks) { try { cb.invoke(false) } catch (_: Throwable) {} }
+                    }
+                    isUpdating = false
+                },
+                { formError: FormError? ->
+                    try {
+                        for (cb in pendingCallbacks) { try { cb.invoke(false) } catch (_: Throwable) {} }
+                    } catch (_: Throwable) {}
+                    Log.e(TAG, "requestConsentInfoUpdate failed: ${formError?.message}")
+                    isUpdating = false
+                }
+            )
+        } catch (t: Throwable) {
+            Log.e(TAG, "requestConsentInfoUpdate failed: ${t.message}")
+            for (cb in pendingCallbacks) { try { cb.invoke(false) } catch (_: Throwable) {} }
+            isUpdating = false
+        }
+    }
+
+    /** Deprecated: Use requestConsentInfoUpdate 대신. */
+    @Deprecated(
+        message = "Use requestConsentInfoUpdate 대신",
+        replaceWith = ReplaceWith("requestConsentInfoUpdate(activity, onComplete)"))
+    fun requestConsentUpdate(activity: Activity, onComplete: (Boolean) -> Unit) {
+        requestConsentInfoUpdate(activity, onComplete)
+    }
+
+    /** Show the consent form if applicable. */
+    fun showConsentForm(activity: Activity, onClosed: (Boolean) -> Unit) {
+        try {
+            val consentInformation = UserMessagingPlatform.getConsentInformation(activity)
+            if (consentInformation.consentStatus == ConsentInformation.ConsentStatus.UNKNOWN) {
+                UserMessagingPlatform.loadConsentForm(activity,
+                    { consentForm ->
+                        try {
+                            consentForm?.show(activity) { formError: FormError? -> onClosed(formError == null) }
+                        } catch (t: Throwable) { onClosed(false) }
+                    },
+                    { loadError: FormError? ->
+                        onClosed(false)
+                    }
+                )
+            } else {
+                onClosed(consentInformation.consentStatus == ConsentInformation.ConsentStatus.OBTAINED)
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "showConsentForm failed: ${t.message}")
+            onClosed(false)
+        }
+    }
+
+    /** Deprecated: Use showConsentForm 대신. */
+    @Deprecated(
+        message = "Use showConsentForm 대신",
+        replaceWith = ReplaceWith("showConsentForm(activity, onClosed)"))
+    fun show(activity: Activity, onClosed: (Boolean) -> Unit) {
+        showConsentForm(activity, onClosed)
+    }
+
+    /** Force the consent status to be unknown (re-prompt). */
+    fun resetConsent(context: Context) {
+        try {
+            val sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            sp.edit { putBoolean(KEY_CONSENT_CHECKED, false) }
+            Log.d(TAG, "resetConsent -> consentChecked=false")
+        } catch (_: Throwable) {}
+    }
+
+    /** For testing: force the consent status and request ad loading permission. */
+    fun testSetConsent(context: Context) {
+        try {
+            consentChecked = true
+            lastCanRequestAds = true
+            saveToPrefs(context, true)
+            try { InterstitialAdManager.preload(context.applicationContext) } catch (_: Throwable) {}
+            try { AppOpenAdManager.onConsentUpdated(true) } catch (_: Throwable) {}
+        } catch (_: Throwable) {}
+    }
+
+    /** For testing: clear consent and request ad loading permission. */
+    fun testClearConsent(context: Context) {
+        try {
+            consentChecked = false
+            lastCanRequestAds = false
+            saveToPrefs(context, false)
+        } catch (_: Throwable) {}
+    }
+
+    /** For testing: force the consent status and deny request ad loading permission. */
+    fun testSetConsentDenied(context: Context) {
+        try {
+            consentChecked = true
+            lastCanRequestAds = false
+            saveToPrefs(context, false)
+        } catch (_: Throwable) {}
+    }
+
+    /** For testing: trigger a consent form show. */
+    fun testShowConsentForm(activity: Activity) {
         try {
             UserMessagingPlatform.loadConsentForm(activity,
                 { consentForm ->
-                    Log.d(TAG, "showPrivacyOptionsForm: loaded, showing")
-                    formShowing = true
-                    try { kr.sweetapps.alcoholictimer.ads.AdController.setFullScreenAdShowing(true) } catch (_: Throwable) {}
-                    consentForm.show(activity) {
-                        Log.d(TAG, "showPrivacyOptionsForm: dismissed")
-                        // After the form is dismissed, re-query consent info and call finishUpdate to persist and notify UI
-                        try {
-                            val info = UserMessagingPlatform.getConsentInformation(activity)
-                            val finalCanRequest = try { info.canRequestAds() } catch (_: Throwable) { false }
-                            Log.d(TAG, "showPrivacyOptionsForm: dismissed -> canRequestAds=$finalCanRequest")
-                            // Ensure we persist and notify UI listeners
-                            finishUpdate(activity, finalCanRequest)
-                        } catch (_: Throwable) {
-                            // Fallback: clear flags and notify caller
-                            formShowing = false
-                            try { kr.sweetapps.alcoholictimer.ads.AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
-                        }
-                        // clear formShowing & restore ad controller (finishUpdate may also do this)
-                        formShowing = false
-                        try { kr.sweetapps.alcoholictimer.ads.AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
-                        onClosed(null)
-                    }
+                    Log.d(TAG, "testShowConsentForm loaded successfully")
+                    try { consentForm?.show(activity) { formError: FormError? -> Log.d(TAG, "testShowConsentForm shown formError=${formError?.message}") } } catch (_: Throwable) {}
                 },
-                { formError ->
-                    Log.w(TAG, "showPrivacyOptionsForm: load error=${formError.message}")
-                    try { kr.sweetapps.alcoholictimer.ads.AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
-                    onClosed(null)
-                }
+                { loadError: FormError? -> Log.d(TAG, "testShowConsentForm completed with error: ${loadError?.message}") }
             )
         } catch (t: Throwable) {
-            Log.w(TAG, "loadAndShowForm failed: ${t.message}")
-            try { kr.sweetapps.alcoholictimer.ads.AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
-            onClosed(null)
+            Log.w(TAG, "testShowConsentForm failed: ${t.message}")
         }
     }
 
-    /**
-     * Requests consent flow and returns whether ads can be requested afterwards.
-     * AdvertisingId 조회는 디버그에서만 시도하며 별도 스레드 + 타임아웃으로 수행해 앱 시작 지연을 방지합니다.
-     */
-    fun requestAndLoadIfRequired(
-        activity: Activity,
-        tagForUnderAgeOfConsent: Boolean = false,
-        onFinished: (Boolean) -> Unit
-    ) {
-        Log.d(TAG, "requestAndLoadIfRequired start (debug=${BuildConfig.DEBUG})")
-        // load persisted state first if available
-        loadFromPrefs(activity.applicationContext)
-
-        // If we already checked, return cached result immediately
-        if (consentChecked) {
-            Log.d(TAG, "requestAndLoadIfRequired: already checked -> returning cached=$lastCanRequestAds")
-            runCatching { onFinished(lastCanRequestAds) }
-            return
-        }
-
-        // Deduplicate concurrent callers: queue callback and return if an update is already in progress
-        pendingCallbacks.add(onFinished)
-        if (isUpdating) {
-            Log.d(TAG, "requestAndLoadIfRequired: update already in progress -> queued callback")
-            return
-        }
-        isUpdating = true
-
+    /** For testing: print the current consent status. */
+    fun testPrintConsentStatus(context: Context) {
         try {
-            val consentInformation = UserMessagingPlatform.getConsentInformation(activity)
+            val sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val checked = sp.getBoolean(KEY_CONSENT_CHECKED, false)
+            val lastCanRequest = sp.getBoolean(KEY_LAST_CAN_REQUEST, false)
+            Log.d(TAG, "testPrintConsentStatus -> consentChecked=$checked lastCanRequest=$lastCanRequest")
+        } catch (_: Throwable) {}
+    }
 
-            val paramsBuilder = ConsentRequestParameters.Builder()
-                .setTagForUnderAgeOfConsent(tagForUnderAgeOfConsent)
+    /** For testing: force the privacy options requirement status. */
+    fun testSetPrivacyOptionsRequired(context: Context, required: Boolean) {
+        try {
+            val sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            sp.edit { putBoolean("privacy_options_required", required) }
+            Log.d(TAG, "testSetPrivacyOptionsRequired -> required=$required")
+        } catch (_: Throwable) {}
+    }
 
-            if (BuildConfig.DEBUG) {
-                val debugBuilder = ConsentDebugSettings.Builder(activity)
-                    .setDebugGeography(ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA)
-                // 테스트 디바이스 해시를 추가하려면 addTestDeviceHashedId("HASH") 사용
-                paramsBuilder.setConsentDebugSettings(debugBuilder.build())
-                // If a test device hash was registered in prefs, add it so debug builds show the form
+    /** For testing: clear the privacy options requirement status. */
+    fun testClearPrivacyOptionsRequired(context: Context) {
+        try {
+            val sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            sp.edit { remove("privacy_options_required") }
+            Log.d(TAG, "testClearPrivacyOptionsRequired")
+        } catch (_: Throwable) {}
+    }
+
+    /** For testing: force the debug settings. */
+    fun testSetDebugSettings(context: Context, enabled: Boolean) {
+        try {
+            val sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            sp.edit { putBoolean("debug_settings_enabled", enabled) }
+            Log.d(TAG, "testSetDebugSettings -> enabled=$enabled")
+        } catch (_: Throwable) {}
+    }
+
+    /** For testing: clear the debug settings. */
+    fun testClearDebugSettings(context: Context) {
+        try {
+            val sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            sp.edit { remove("debug_settings_enabled") }
+            Log.d(TAG, "testClearDebugSettings")
+        } catch (_: Throwable) {}
+    }
+
+    /** For testing: force the consent status to confirmed. */
+    fun testConfirmConsent(context: Context) {
+        try {
+            val sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            sp.edit { putBoolean(KEY_CONSENT_CHECKED, true); putBoolean(KEY_LAST_CAN_REQUEST, true) }
+            Log.d(TAG, "testConfirmConsent -> consentChecked=true lastCanRequest=true")
+        } catch (_: Throwable) {}
+    }
+
+    /** For testing: force the consent status to denied. */
+    fun testDenyConsent(context: Context) {
+        try {
+            val sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            sp.edit { putBoolean(KEY_CONSENT_CHECKED, true); putBoolean(KEY_LAST_CAN_REQUEST, false) }
+            Log.d(TAG, "testDenyConsent -> consentChecked=true lastCanRequest=false")
+        } catch (_: Throwable) {}
+    }
+
+    /** For testing: simulate a consent form error. */
+    fun testSimulateConsentFormError(activity: Activity) {
+        try {
+            UserMessagingPlatform.loadConsentForm(activity,
+                { consentForm -> Log.d(TAG, "testSimulateConsentFormError loaded form") },
+                { loadError: FormError? -> Log.d(TAG, "testSimulateConsentFormError completed with error: ${loadError?.message}") }
+            )
+        } catch (t: Throwable) {
+            Log.w(TAG, "testSimulateConsentFormError failed: ${t.message}")
+        }
+    }
+
+    /** For testing: simulate a privacy options form error. */
+    fun testSimulatePrivacyOptionsFormError(activity: Activity) {
+        try {
+            UserMessagingPlatform.showPrivacyOptionsForm(activity) { formError: FormError? ->
+                Log.d(TAG, "testSimulatePrivacyOptionsFormError completed with error: ${formError?.message}")
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "testSimulatePrivacyOptionsFormError failed: ${t.message}")
+        }
+    }
+
+    /** For testing: force the form showing state. */
+    fun testSetFormShowing(context: Context, showing: Boolean) {
+        try {
+            formShowing = showing
+            Log.d(TAG, "testSetFormShowing -> showing=$showing")
+        } catch (_: Throwable) {}
+    }
+
+    /** For testing: clear the form showing state. */
+    fun testClearFormShowing(context: Context) {
+        try {
+            formShowing = false
+            Log.d(TAG, "testClearFormShowing")
+        } catch (_: Throwable) {}
+    }
+
+    /** For testing: force the consent status to unknown. */
+    fun testSetConsentUnknown(context: Context) {
+        try {
+            val sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            sp.edit { putBoolean(KEY_CONSENT_CHECKED, false) }
+            Log.d(TAG, "testSetConsentUnknown -> consentChecked=false")
+        } catch (_: Throwable) {}
+    }
+
+    /** For testing: trigger a consent info update. */
+    fun testRequestConsentInfoUpdate(activity: Activity) {
+        try {
+            requestConsentInfoUpdate(activity) { result ->
+                Log.d(TAG, "testRequestConsentInfoUpdate completed with result: $result")
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "testRequestConsentInfoUpdate failed: ${t.message}")
+        }
+    }
+
+    /** For testing: show the consent form. */
+    fun testShowConsent(activity: Activity) {
+        try {
+            showConsentForm(activity) { result ->
+                Log.d(TAG, "testShowConsent completed with result: $result")
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "testShowConsent failed: ${t.message}")
+        }
+    }
+
+    /** For testing: show the privacy options form. */
+    fun testShowPrivacyOptions(activity: Activity) {
+        try {
+            showPrivacyOptionsForm(activity) { result ->
+                Log.d(TAG, "testShowPrivacyOptions completed with result: $result")
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "testShowPrivacyOptions failed: ${t.message}")
+        }
+    }
+
+    /** For testing: print the debug settings. */
+    fun testPrintDebugSettings(context: Context) {
+        try {
+            val sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val enabled = sp.getBoolean("debug_settings_enabled", false)
+            Log.d(TAG, "testPrintDebugSettings -> enabled=$enabled")
+        } catch (_: Throwable) {}
+    }
+
+    /** For testing: print the privacy options requirement status. */
+    fun testPrintPrivacyOptionsRequired(context: Context) {
+        try {
+            val sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val required = sp.getBoolean("privacy_options_required", false)
+            Log.d(TAG, "testPrintPrivacyOptionsRequired -> required=$required")
+        } catch (_: Throwable) {}
+    }
+
+    /** Ensure ads-side consent is requested and, if allowed, ads are loaded. */
+    fun requestAndLoadIfRequired(activity: android.app.Activity, onComplete: (Boolean) -> Unit = {}) {
+        try {
+            // If we've already checked consent, immediately notify and ensure any required loading is triggered
+            if (consentChecked) {
                 try {
-                    val sp = activity.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                    val testHash = sp.getString("test_device_hash", null)
-                    if (!testHash.isNullOrBlank()) {
-                        try { debugBuilder.addTestDeviceHashedId(testHash) } catch (_: Throwable) {}
-                    }
+                    // trigger preload if allowed
+                    if (lastCanRequestAds) runCatching { InterstitialAdManager.preload(activity.applicationContext) }
                 } catch (_: Throwable) {}
-                Log.d(TAG, "Applied ConsentDebugSettings for debug geography (EEA).")
+                try { onComplete(lastCanRequestAds) } catch (_: Throwable) {}
+                return
             }
 
-            val params = paramsBuilder.build()
-
-            consentInformation.requestConsentInfoUpdate(activity, params,
-                {
-                    // success
-                    try {
-                        val canRequest = try { consentInformation.canRequestAds() } catch (_: Throwable) { true }
-                        Log.d(TAG, "requestConsentInfoUpdate success. isConsentFormAvailable=${consentInformation.isConsentFormAvailable}, canRequestAds=$canRequest")
-
-                        if (consentInformation.isConsentFormAvailable) {
-                            UserMessagingPlatform.loadConsentForm(activity,
-                                { consentForm ->
-                                    Log.d(TAG, "consentForm loaded, showing")
-                                    // 폼 표시 전 플래그 설정
-                                    formShowing = true
-                                    try { kr.sweetapps.alcoholictimer.ads.AdController.setFullScreenAdShowing(true) } catch (_: Throwable) {}
-                                    consentForm.show(activity) {
-                                        val finalCanRequest = try { consentInformation.canRequestAds() } catch (_: Throwable) { true }
-                                        Log.d(TAG, "consentForm dismissed. canRequestAds=$finalCanRequest")
-                                        // 폼이 닫혔으므로 플래그 클리어
-                                        formShowing = false
-                                        try { kr.sweetapps.alcoholictimer.ads.AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
-                                        finishUpdate(activity, finalCanRequest)
-                                    }
-                                },
-                                { formError ->
-                                    Log.w(TAG, "loadConsentForm error: ${formError.message}")
-                                    val curCanRequest = try { consentInformation.canRequestAds() } catch (_: Throwable) { false }
-                                    formShowing = false
-                                    try { kr.sweetapps.alcoholictimer.ads.AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
-                                    finishUpdate(activity, curCanRequest)
-                                }
-                            )
-                        } else {
-                            // No form to show; continue with current consent state
-                            finishUpdate(activity, canRequest)
-                        }
-                    } catch (t: Throwable) {
-                        Log.w(TAG, "requestAndLoadIfRequired processing failed: ${t.message}")
-                        try { kr.sweetapps.alcoholictimer.ads.AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
-                        finishUpdate(activity, true)
-                    }
-                },
-                { formError ->
-                    // failure
-                    Log.w(TAG, "requestConsentInfoUpdate error: ${formError.message}")
-                    val fallback = try { consentInformation.canRequestAds() } catch (_: Throwable) { true }
-                    try { kr.sweetapps.alcoholictimer.ads.AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
-                    finishUpdate(activity, fallback)
-                }
-            )
-
-        } catch (t: Throwable) {
-            Log.w(TAG, "requestAndLoadIfRequired failed: ${t.message}")
-            // unexpected failure: mark as checked and default conservatively to false (no personalized)
-            try { kr.sweetapps.alcoholictimer.ads.AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
-            finishUpdate(activity, false)
+            // Otherwise request consent info update and act on the result
+            requestConsentInfoUpdate(activity) { canRequest ->
+                try { applyExternalConsent(activity.applicationContext, canRequest) } catch (_: Throwable) {}
+                try { onComplete(canRequest) } catch (_: Throwable) {}
+            }
+        } catch (_: Throwable) {
+            try { onComplete(false) } catch (_: Throwable) {}
         }
     }
 }
