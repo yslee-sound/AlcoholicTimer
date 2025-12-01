@@ -22,7 +22,7 @@ import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.screens.DetailScreen
-import kr.sweetapps.alcoholictimer.feature.level.LevelScreen
+import kr.sweetapps.alcoholictimer.ui.tab_03.LevelScreen
 import kr.sweetapps.alcoholictimer.feature.records.components.AllRecordsScreen
 import kr.sweetapps.alcoholictimer.ui.screens.RecordsScreen
 import kr.sweetapps.alcoholictimer.ui.screens.QuitScreenComposable
@@ -36,7 +36,7 @@ import android.app.Activity
 import androidx.compose.runtime.mutableStateOf
 import kr.sweetapps.alcoholictimer.feature.addrecord.AddRecordScreenComposable
 import kr.sweetapps.alcoholictimer.feature.debug.DebugAdsScreen
-import kr.sweetapps.alcoholictimer.ui.tab_04.screens.CurrencySettingsScreen
+import kr.sweetapps.alcoholictimer.ui.tab_04.screens.CurrencyScreen
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DebugScreen
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.policy.DocumentScreen
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
@@ -228,7 +228,7 @@ fun AlcoholicTimerNavGraph(
         }
 
         composable(Screen.CurrencySettings.route) {
-            CurrencySettingsScreen(onBack = { navController.popBackStack() })
+            CurrencyScreen(onBack = { navController.popBackStack() })
         }
 
         composable(Screen.DebugAds.route) {

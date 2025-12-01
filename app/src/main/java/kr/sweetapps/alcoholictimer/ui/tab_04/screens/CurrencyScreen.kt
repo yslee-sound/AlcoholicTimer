@@ -36,7 +36,7 @@ import kr.sweetapps.alcoholictimer.core.util.CurrencyManager
  * 통화 설정 화면 (tab_04에서 관리)
  */
 @Composable
-fun CurrencySettingsScreen(onBack: () -> Unit = {}) {
+fun CurrencyScreen(onBack: () -> Unit = {}) {
     val context = LocalContext.current
 
     Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
@@ -125,3 +125,4 @@ fun CurrencyOptionRow(
         )
     }
 }
+
