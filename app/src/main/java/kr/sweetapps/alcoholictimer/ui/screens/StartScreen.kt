@@ -29,6 +29,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
@@ -181,6 +183,10 @@ fun StartScreen(
 
     var targetDays by rememberSaveable { mutableIntStateOf(21) }
 
+    // [NEW] 3, 2, 1 카운트다운 오버레이 표시 여부
+    var showCountdown by remember { mutableStateOf(false) }
+    var countdownNumber by remember { mutableIntStateOf(3) }
+
     val showSplashOverlay = holdSplashState != null && holdSplashState.value
 
     LaunchedEffect(showSplashOverlay) {
@@ -216,6 +222,55 @@ fun StartScreen(
 
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    // [NEW] 카운트다운 로직 처리
+    val coroutineScope = rememberCoroutineScope()
+    LaunchedEffect(showCountdown) {
+        if (showCountdown) {
+            // 키보드 숨기기
+            try {
+                focusManager.clearFocus()
+                keyboardController?.hide()
+            } catch (_: Exception) {}
+
+            // 3초 카운트다운 (3 → 2 → 1)
+            countdownNumber = 3
+            delay(1000L)
+            countdownNumber = 2
+            delay(1000L)
+            countdownNumber = 1
+            delay(1000L)
+
+            // 카운트다운 종료 후 타이머 시작 및 화면 전환
+            try {
+                val hadActiveGoal = sharedPref.getLong("start_time", 0L) > 0L
+                AnalyticsManager.logTimerStart(
+                    targetDays = targetDays,
+                    hadActiveGoal = hadActiveGoal,
+                    startTs = System.currentTimeMillis()
+                )
+            } catch (_: Throwable) {}
+
+            val formatted = String.format(Locale.US, "%.6f", targetDays.toFloat()).toFloat()
+            sharedPref.edit {
+                putFloat("target_days", formatted)
+                putLong("start_time", System.currentTimeMillis())
+                putBoolean("timer_completed", false)
+            }
+
+            if (onStart != null) {
+                onStart(targetDays)
+            } else {
+                val intent = Intent(context, MainActivity::class.java)
+                intent.putExtra("route", "run")
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                context.startActivity(intent)
+                (context as? Activity)?.finish()
+            }
+
+            InterstitialAdManager.preload(context.applicationContext)
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize().pointerInput(Unit) {
         detectTapGestures(onTap = {
@@ -370,35 +425,9 @@ fun StartScreen(
             bottomButton = {
                 MainActionButton(
                     onClick = {
-                        // Log timer_start event
-                        try {
-                            val hadActiveGoal = sharedPref.getLong("start_time", 0L) > 0L
-                            AnalyticsManager.logTimerStart(
-                                targetDays = targetDays,
-                                hadActiveGoal = hadActiveGoal,
-                                startTs = System.currentTimeMillis()
-                            )
-                        } catch (_: Throwable) {}
-
-                        val formatted = String.format(Locale.US, "%.6f", targetDays.toFloat()).toFloat()
-                        sharedPref.edit {
-                            putFloat("target_days", formatted)
-                            putLong("start_time", System.currentTimeMillis())
-                            putBoolean("timer_completed", false)
-                        }
-                        val launchRun: () -> Unit = {
-                            if (onStart != null) {
-                                onStart(targetDays)
-                            } else {
-                                val intent = Intent(context, MainActivity::class.java)
-                                intent.putExtra("route", "run")
-                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                                context.startActivity(intent)
-                                (context as? Activity)?.finish()
-                            }
-                        }
-                        launchRun()
-                        InterstitialAdManager.preload(context.applicationContext)
+                        // [NEW] 카운트다운 오버레이 시작
+                        showCountdown = true
+                        countdownNumber = 3
                     }
                 )
             },
@@ -434,6 +463,15 @@ fun StartScreen(
                     modifier = Modifier.size(240.dp)
                 )
             }
+        }
+
+        // [NEW] 3, 2, 1 카운트다운 오버레이
+        AnimatedVisibility(
+            visible = showCountdown,
+            enter = EnterTransition.None,
+            exit = ExitTransition.None
+        ) {
+            CountdownOverlay(countdownNumber = countdownNumber)
         }
      }
  }
@@ -546,6 +584,64 @@ private fun DurationBadge(
                 textAlign = TextAlign.Center
             )
         }
+    }
+}
+
+// [NEW] 3, 2, 1 카운트다운 오버레이 (전체 화면) - 스케일 애니메이션 포함
+@Composable
+private fun CountdownOverlay(countdownNumber: Int) {
+    // [NEW] 숫자가 바뀔 때마다 스케일 애니메이션 초기화
+    var animationTrigger by remember { mutableStateOf(0f) }
+
+    LaunchedEffect(countdownNumber) {
+        animationTrigger = 0f
+        delay(50)
+        animationTrigger = 1f
+    }
+
+    // [NEW] 숫자가 바뀔 때마다 스케일 애니메이션 (0.3 → 1.0)
+    val scale by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = animationTrigger,
+        animationSpec = androidx.compose.animation.core.spring(
+            dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
+            stiffness = androidx.compose.animation.core.Spring.StiffnessLow
+        ),
+        label = "countdown_scale"
+    )
+
+    // [NEW] 숫자가 바뀔 때마다 투명도 애니메이션 (0.0 → 1.0)
+    val alpha by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = animationTrigger,
+        animationSpec = androidx.compose.animation.core.tween(
+            durationMillis = 400,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        ),
+        label = "countdown_alpha"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.85f))
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) { /* 터치 무시 (클릭 방지) */ },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = countdownNumber.toString(),
+            style = MaterialTheme.typography.displayLarge.copy(
+                fontSize = 120.dp.value.sp,
+                color = Color.White.copy(alpha = alpha),
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+            ),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.graphicsLayer(
+                scaleX = 0.3f + (scale * 0.7f), // 0.3 → 1.0 스케일
+                scaleY = 0.3f + (scale * 0.7f)
+            )
+        )
     }
 }
 
