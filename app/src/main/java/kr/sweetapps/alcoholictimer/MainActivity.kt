@@ -41,6 +41,9 @@ class MainActivity : BaseActivity() {
     private var pendingShowOnResume: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // 📊 타이밍 진단: MainActivity 진입 시각 기록
+        kr.sweetapps.alcoholictimer.ads.AdTimingLogger.logMainActivityCreate()
+
         super.onCreate(savedInstanceState)
 
         // 스플래시를 광고가 끝날 때까지 유지하는 상태
@@ -119,6 +122,10 @@ class MainActivity : BaseActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+
+        // 📊 타이밍 진단: 최종 리포트 출력
+        kr.sweetapps.alcoholictimer.ads.AdTimingLogger.printTimingReport()
+
         // 리스너 해제
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdLoadedListener(null)
         kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdFinishedListener(null)
@@ -154,6 +161,21 @@ class MainActivity : BaseActivity() {
     override fun onPause() {
         super.onPause()
         isResumed = false
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        // 🚀 장기 최적화: AppOpen 광고 프리캐싱
+        // 앱이 백그라운드로 갈 때 다음 AppOpen 광고를 미리 로드
+        // 효과: 다음 실행 시 광고가 이미 준비되어 즉시 표시 가능
+        // 예상 개선: 노출률 70% → 80% (추가 10% 개선)
+        try {
+            android.util.Log.d("MainActivity", "onStop: preloading next AppOpen ad for future use")
+            kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.preload(applicationContext)
+        } catch (e: Throwable) {
+            android.util.Log.w("MainActivity", "onStop: AppOpen preload failed: ${e.message}")
+        }
     }
 
     // BaseActivity의 추상 함수 구현

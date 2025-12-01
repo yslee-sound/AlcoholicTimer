@@ -34,6 +34,10 @@ class MainApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        // 📊 타이밍 진단: 앱 시작 시각 기록
+        kr.sweetapps.alcoholictimer.ads.AdTimingLogger.logAppStart()
+
         // Firebase 초기화: google-services.json이 있으면 자동으로 구성되지만
         // 명시적으로 초기화하여 Firebase API 사용 시 안정성 확보
         try { FirebaseApp.initializeApp(this) } catch (_: Throwable) {}

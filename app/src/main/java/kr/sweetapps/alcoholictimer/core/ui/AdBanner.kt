@@ -272,6 +272,14 @@ fun AdmobBanner(
                         adListener = object : AdListener() {
                             override fun onAdLoaded() {
                                 Log.d(TAG, "Banner onAdLoaded retryCount=$retryCount")
+
+                                // 📊 타이밍 진단: 배너 광고 로드 완료 시각 기록 + Activity 상태 확인
+                                val currentActivity = try {
+                                    (context as? android.app.Activity)
+                                } catch (_: Throwable) { null }
+                                val isActivityFinishing = currentActivity?.isFinishing ?: false
+                                kr.sweetapps.alcoholictimer.ads.AdTimingLogger.logBannerLoadComplete(isActivityFinishing)
+
                                 val first = !hasSuccessfulLoad
                                 hasSuccessfulLoad = true
                                 consecutiveNoFill = 0
@@ -364,6 +372,10 @@ fun AdmobBanner(
 
                     if (isPolicyEnabledState.value && canRequest && !hasSuccessfulLoad && loadState is BannerLoadState.Loading && !publisherMisconfigured) {
                         Log.d(TAG, "Issuing initial banner loadAd (canRequest=$canRequest debug=${isDebugBuild()})")
+
+                        // 📊 타이밍 진단: 배너 광고 로드 요청 시각 기록
+                        kr.sweetapps.alcoholictimer.ads.AdTimingLogger.logBannerLoadRequest()
+
                         runCatching { adView.loadAd(AdRequestFactory.create(adView.context)) }.onFailure { e -> Log.w(TAG, "initial loadAd threw: ${e.message}") }
                     } else {
                         Log.d(TAG, "Banner load skipped (policy=${isPolicyEnabledState.value} canRequest=$canRequest hasSuccess=$hasSuccessfulLoad state=$loadState publisherMisconfigured=$publisherMisconfigured)")

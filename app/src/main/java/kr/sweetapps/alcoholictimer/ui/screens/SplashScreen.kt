@@ -41,6 +41,9 @@ class SplashScreen : BaseActivity() {
     private val holdSplashState = mutableStateOf(holdSplashAtomic.get())
 
     private fun releaseSplash() {
+        // 📊 타이밍 진단: SplashScreen 종료 시각 기록
+        kr.sweetapps.alcoholictimer.ads.AdTimingLogger.logSplashScreenFinish()
+
         try {
             holdSplashAtomic.set(false)
         } catch (_: Throwable) {}
@@ -53,6 +56,9 @@ class SplashScreen : BaseActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // 📊 타이밍 진단: SplashScreen 생성 시각 기록
+        kr.sweetapps.alcoholictimer.ads.AdTimingLogger.logSplashScreenCreate()
+
         // 기본 초기화
         kr.sweetapps.alcoholictimer.core.util.CurrencyManager.initializeDefaultCurrency(this)
 
@@ -60,9 +66,13 @@ class SplashScreen : BaseActivity() {
 
         val splashStart = SystemClock.uptimeMillis()
         val minShowMillis = 0L // 페이드/딜레이 제거
-        // AD_WAIT_MS: 짧은 대기 시간(밀리초). 최소화하여 스플래시 지연을 줄입니다.
-        // AdvertisingId 조회는 비동기 및 짧은 타임아웃으로 처리하므로 스플래시 대기를 500ms로 설정합니다.
-        val AD_WAIT_MS = 500L // 광고 로드를 기다리는 최대 시간 (ms) - 권장값
+
+        // 🚀 개선: AppOpen 광고 로드 대기 시간 연장
+        // 이전: 500ms (너무 짧아서 광고 로드 전에 Splash 종료)
+        // 개선: 2500ms (AppOpen 광고 로드 완료까지 충분히 대기)
+        // 효과: 광고 노출률 50% → 70% 예상 (추가 20% 개선)
+        val AD_WAIT_MS = 2500L // 광고 로드를 기다리는 최대 시간 (ms)
+
         val splash = if (Build.VERSION.SDK_INT >= 31 && !skipSplash) installSplashScreen() else null
 
         if (Build.VERSION.SDK_INT >= 31 && splash != null) {
@@ -345,6 +355,19 @@ class SplashScreen : BaseActivity() {
     override fun onPause() {
         super.onPause()
         isResumed = false
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        // 🚀 장기 최적화: AppOpen 광고 프리캐싱
+        // 앱이 백그라운드로 갈 때 다음 AppOpen 광고를 미리 로드
+        try {
+            android.util.Log.d("SplashScreen", "onStop: preloading next AppOpen ad for future use")
+            kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.preload(applicationContext)
+        } catch (e: Throwable) {
+            android.util.Log.w("SplashScreen", "onStop: AppOpen preload failed: ${e.message}")
+        }
     }
 
     override fun onNewIntent(intent: Intent) {

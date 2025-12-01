@@ -166,6 +166,9 @@ object AppOpenAdManager {
     }
 
     fun preload(context: Context) {
+        // 📊 타이밍 진단: AppOpen 광고 로드 요청 시각 기록
+        kr.sweetapps.alcoholictimer.ads.AdTimingLogger.logAppOpenLoadRequest()
+
         // don't start loading if already loading or loaded
         if (loaded || isLoading) {
             Log.d(TAG, "preload: already loaded or loading")
@@ -185,6 +188,10 @@ object AppOpenAdManager {
             AppOpenAd.load(context, adUnitId, request, AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT, object : AppOpenAd.AppOpenAdLoadCallback() {
                 override fun onAdLoaded(ad: AppOpenAd) {
                     Log.d(TAG, "onAdLoaded app-open")
+
+                    // 📊 타이밍 진단: AppOpen 광고 로드 완료 시각 기록
+                    kr.sweetapps.alcoholictimer.ads.AdTimingLogger.logAppOpenLoadComplete()
+
                     appOpenAd = ad
                     loaded = true
                     isLoading = false
