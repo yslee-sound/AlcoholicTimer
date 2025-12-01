@@ -1,6 +1,5 @@
 package kr.sweetapps.alcoholictimer.ui.tab_04
 
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -25,12 +24,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,7 +40,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.edit
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.MainApplication
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.constants.Constants
@@ -70,14 +67,16 @@ class SettingsActivity : BaseActivity() {
 }
 
 @Composable
-fun SettingsScreen(onNavigateCurrencySettings: () -> Unit = {}) {
+fun SettingsScreen(
+    onNavigateCurrencySettings: () -> Unit = {},
+    viewModel: Tab04ViewModel = viewModel()
+) {
     val context = LocalContext.current
-    val (initialCost, initialFrequency, initialDuration) = Constants.getUserSettings(context)
-    val sharedPref = context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
 
-    val selectedCostState = remember { mutableStateOf(initialCost) }
-    val selectedFrequencyState = remember { mutableStateOf(initialFrequency) }
-    val selectedDurationState = remember { mutableStateOf(initialDuration) }
+    // [NEW] ViewModel에서 상태 구독
+    val selectedCost by viewModel.selectedCost.collectAsState()
+    val selectedFrequency by viewModel.selectedFrequency.collectAsState()
+    val selectedDuration by viewModel.selectedDuration.collectAsState()
 
     val safePadding = LocalSafeContentPadding.current
     val scrollState = rememberScrollState()
@@ -107,7 +106,7 @@ fun SettingsScreen(onNavigateCurrencySettings: () -> Unit = {}) {
                 titleColor = Color.Black
             ) {
                 SettingsOptionGroup(
-                    selectedOption = selectedCostState.value,
+                    selectedOption = selectedCost,
                     options = listOf(
                         Constants.KEY_COST_LOW,
                         Constants.KEY_COST_MEDIUM,
@@ -119,8 +118,7 @@ fun SettingsScreen(onNavigateCurrencySettings: () -> Unit = {}) {
                         stringResource(R.string.settings_cost_high_label)
                     ),
                     onOptionSelected = { newValue ->
-                        selectedCostState.value = newValue
-                        sharedPref.edit { putString(Constants.PREF_SELECTED_COST, newValue) }
+                        viewModel.updateCost(newValue)
                     }
                 )
             }
@@ -149,7 +147,7 @@ fun SettingsScreen(onNavigateCurrencySettings: () -> Unit = {}) {
                 titleColor = Color.Black
             ) {
                 SettingsOptionGroup(
-                    selectedOption = selectedFrequencyState.value,
+                    selectedOption = selectedFrequency,
                     options = listOf(
                         Constants.KEY_FREQUENCY_LOW,
                         Constants.KEY_FREQUENCY_MEDIUM,
@@ -161,8 +159,7 @@ fun SettingsScreen(onNavigateCurrencySettings: () -> Unit = {}) {
                         stringResource(R.string.settings_frequency_high)
                     ),
                     onOptionSelected = { newValue ->
-                        selectedFrequencyState.value = newValue
-                        sharedPref.edit { putString(Constants.PREF_SELECTED_FREQUENCY, newValue) }
+                        viewModel.updateFrequency(newValue)
                     }
                 )
             }
@@ -173,7 +170,7 @@ fun SettingsScreen(onNavigateCurrencySettings: () -> Unit = {}) {
                 titleColor = Color.Black
             ) {
                 SettingsOptionGroup(
-                    selectedOption = selectedDurationState.value,
+                    selectedOption = selectedDuration,
                     options = listOf(
                         Constants.KEY_DURATION_SHORT,
                         Constants.KEY_DURATION_MEDIUM,
@@ -185,8 +182,7 @@ fun SettingsScreen(onNavigateCurrencySettings: () -> Unit = {}) {
                         stringResource(R.string.settings_duration_long_label)
                     ),
                     onOptionSelected = { newValue ->
-                        selectedDurationState.value = newValue
-                        sharedPref.edit { putString(Constants.PREF_SELECTED_DURATION, newValue) }
+                        viewModel.updateDuration(newValue)
                     }
                 )
             }
