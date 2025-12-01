@@ -226,7 +226,15 @@ fun StartScreen(
               forceFillMaxWidth = true,
               topContent = {
                 Column { 
-                    AppBrandTitleBar()
+                    AppBrandTitleBar(
+                        selectedDays = targetDays,
+                        onDaysSelected = { days ->
+                            targetDays = days
+                            // [NEW] 배지 선택 시 입력 필드도 업데이트
+                            focusManager.clearFocus()
+                            try { keyboardController?.hide() } catch (_: Exception) {}
+                        }
+                    )
                     Spacer(modifier = Modifier.height(START_TITLE_CARD_GAP))
 
                     Card(
@@ -269,6 +277,12 @@ fun StartScreen(
                                 ) {
                                     val targetFocusRequester = remember { FocusRequester() }
                                     var targetText by remember { mutableStateOf(TextFieldValue(text = targetDays.toString(), selection = TextRange(targetDays.toString().length))) }
+
+                                    // [NEW] targetDays가 외부에서 변경되면 TextField 업데이트
+                                    LaunchedEffect(targetDays) {
+                                        val newText = targetDays.toString()
+                                        targetText = TextFieldValue(text = newText, selection = TextRange(newText.length))
+                                    }
 
                                     val coroutineScope = rememberCoroutineScope()
                                     Box(modifier = Modifier.fillMaxSize().padding(8.dp), contentAlignment = Alignment.Center) {
@@ -419,24 +433,108 @@ fun StartScreen(
      }
  }
 
+// [NEW] 기간 선택 배지를 포함한 타이틀바
 @Composable
-private fun AppBrandTitleBar() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(54.dp)
-            .padding(horizontal = 30.dp),
-        contentAlignment = Alignment.Center
+private fun AppBrandTitleBar(
+    selectedDays: Int = 30,
+    onDaysSelected: (Int) -> Unit = {}
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.alcoholic_timer_logo),
-            contentDescription = stringResource(id = R.string.app_name),
-            contentScale = ContentScale.Fit,
-            alignment = Alignment.Center,
+        // 로고
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(54.dp)
+                .padding(horizontal = 30.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.alcoholic_timer_logo),
+                contentDescription = stringResource(id = R.string.app_name),
+                contentScale = ContentScale.Fit,
+                alignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // [NEW] 기간 선택 배지
+        DurationBadgeRow(
+            selectedDays = selectedDays,
+            onDaysSelected = onDaysSelected
         )
+    }
+}
+
+// [NEW] 기간 선택 배지 컴포넌트
+@Composable
+private fun DurationBadgeRow(
+    selectedDays: Int,
+    onDaysSelected: (Int) -> Unit
+) {
+    val presetDays = listOf(7, 14, 30, 60, 90)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        presetDays.forEachIndexed { index, days ->
+            DurationBadge(
+                days = days,
+                isSelected = selectedDays == days,
+                onClick = { onDaysSelected(days) }
+            )
+
+            if (index < presetDays.size - 1) {
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+        }
+    }
+}
+
+// [NEW] 개별 배지 컴포넌트 (이미지 참고: 둥근 테두리, 선택시 검은 배경, 미선택시 흰 배경)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DurationBadge(
+    days: Int,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val backgroundColor = if (isSelected) Color(0xFF1A1A1A) else Color.White
+    val textColor = if (isSelected) Color.White else Color(0xFF666666)
+    val borderColor = if (isSelected) Color(0xFF1A1A1A) else Color(0xFFE0E0E0)
+
+    Surface(
+        onClick = onClick,
+        modifier = Modifier
+            .height(36.dp)
+            .widthIn(min = 52.dp),
+        shape = RoundedCornerShape(18.dp),
+        color = backgroundColor,
+        border = BorderStroke(1.dp, borderColor),
+        shadowElevation = if (isSelected) 2.dp else 0.dp
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "${days}일",
+                style = MaterialTheme.typography.bodyMedium,
+                color = textColor,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
 
