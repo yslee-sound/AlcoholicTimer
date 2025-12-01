@@ -94,6 +94,10 @@ fun StartScreen(
 
     if (holdSplashState != null) {
         LaunchedEffect(key1 = holdSplashState) {
+            // [NEW] 광고 표시 상태 추적
+            var adShown = false
+            var adLoadAttempted = false
+
             val onLoaded = fun(): Unit {
                 try {
                     val act = context as? Activity
@@ -101,6 +105,10 @@ fun StartScreen(
                     if (act != null && holdSplashState.value && AppOpenAdManager.isLoaded()) {
                         val shown = AppOpenAdManager.showIfAvailable(act)
                         Log.d("StartScreen", "AppOpen showIfAvailable returned: $shown")
+                        // [NEW] 광고가 표시되면 플래그 설정
+                        if (shown) {
+                            adShown = true
+                        }
                     }
                 } catch (t: Throwable) { kotlin.run { Log.w("StartScreen", "onAdLoaded handler failed: $t") } }
             }
@@ -114,7 +122,8 @@ fun StartScreen(
 
             val onLoadFailed = fun(): Unit {
                 try {
-                    Log.d("StartScreen", "AppOpen load failed -> releasing splash")
+                    Log.d("StartScreen", "AppOpen load failed -> releasing splash immediately")
+                    adLoadAttempted = true
                     holdSplashState.value = false
                 } catch (t: Throwable) { kotlin.run { Log.w("StartScreen", "onAdLoadFailed handler failed: $t") } }
             }
@@ -131,8 +140,10 @@ fun StartScreen(
 
                  try {
                      AppOpenAdManager.preload(context.applicationContext)
+                     adLoadAttempted = true
                  } catch (t: Throwable) {
                      Log.w("StartScreen", "preload call failed: $t")
+                     adLoadAttempted = true
                  }
 
                  try {
@@ -140,14 +151,25 @@ fun StartScreen(
                      if (act != null && AppOpenAdManager.isLoaded()) {
                          val shown = AppOpenAdManager.showIfAvailable(act)
                          Log.d("StartScreen", "Immediate showIfAvailable returned: $shown")
+                         // [NEW] 광고가 표시되면 플래그 설정
+                         if (shown) {
+                             adShown = true
+                         }
                      }
                  } catch (t: Throwable) { Log.w("StartScreen", "immediate showIfAvailable failed: $t") }
 
-                 delay(8000L)
+                 // [NEW] 타임아웃 개선: 광고가 표시 중이면 타임아웃 무시
+                 // 업계 표준 4초 적용 (Google AdMob 권장)
+                 delay(4000L)
                  if (holdSplashState.value) {
-                     Log.d("StartScreen", "Safety timeout reached -> releasing splash")
-                     holdSplashState.value = false
-                     try { kr.sweetapps.alcoholictimer.ads.AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
+                     // [NEW] 광고가 표시되지 않았고 스플래시가 여전히 활성화되어 있으면 해제
+                     if (!adShown) {
+                         Log.d("StartScreen", "Safety timeout reached (no ad shown) -> releasing splash")
+                         holdSplashState.value = false
+                         try { kr.sweetapps.alcoholictimer.ads.AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
+                     } else {
+                         Log.d("StartScreen", "Safety timeout reached but ad is showing -> keep splash active")
+                     }
                  }
 
              } catch (t: Throwable) {
