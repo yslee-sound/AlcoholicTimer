@@ -105,6 +105,7 @@ object AdController {
     fun setBannerForceHidden(hidden: Boolean) {
         try {
             _bannerForceHidden.value = hidden
+            Log.d(TAG, "setBannerForceHidden: $hidden")
         } catch (_: Throwable) {}
         // notify listeners immediately
         val copy: List<(Boolean) -> Unit>
@@ -112,6 +113,20 @@ object AdController {
         for (l in copy) {
             try { l.invoke(hidden) } catch (_: Throwable) {}
         }
+    }
+
+    /**
+     * 배너 광고를 강제로 보이도록 복구
+     * - bannerForceHidden을 false로 설정
+     * - bannerReloadTick을 갱신하여 배너 재로드 트리거
+     * 🔧 재발 방지: AppOpen/Interstitial 종료 시 반드시 호출
+     */
+    fun ensureBannerVisible(reason: String? = null) {
+        try {
+            Log.d(TAG, "ensureBannerVisible reason=$reason (current: forceHidden=${_bannerForceHidden.value}, fullScreen=${_fullScreenAdShowingFlow.value})")
+        } catch (_: Throwable) {}
+        try { setBannerForceHidden(false) } catch (_: Throwable) {}
+        try { triggerBannerReload() } catch (_: Throwable) {}
     }
 
     fun addBannerForceHiddenListener(listener: (Boolean) -> Unit) {
@@ -301,7 +316,7 @@ object AdController {
         } catch (_: Throwable) {
         }
 
-        // If a full-screen ad was showing and now closed, request banner reload to avoid stale/empty banner.
+        // 🔧 재발 방지: FullScreen이 닫히면 배너를 확실하게 복구
         if (previous && !showing) {
             try {
                 // record dismissal time for cross-ad suppression logic
@@ -309,7 +324,9 @@ object AdController {
             } catch (_: Throwable) {
             }
             try {
-                triggerBannerReload()
+                Log.d(TAG, "setFullScreenAdShowing: false -> triggering banner restore")
+                // 배너 강제 복구 (forceHidden 해제 + 재로드 트리거)
+                ensureBannerVisible("fullScreenDismissed")
             } catch (_: Throwable) {
             }
         }

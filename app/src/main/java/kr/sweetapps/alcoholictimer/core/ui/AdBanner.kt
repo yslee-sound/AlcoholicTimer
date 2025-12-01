@@ -160,33 +160,35 @@ fun AdmobBanner(
     // Observe banner reload tick to retry loads immediately on demand
     val bannerReloadTick by kr.sweetapps.alcoholictimer.ads.AdController.bannerReloadTick.collectAsState(initial = 0L)
 
-    // isFullScreenAdShowing 변경에 따라 adViewRef의 pause/resume 및 visibility를 안전하게 처리
-    LaunchedEffect(isFullScreenAdShowing) {
+    // isFullScreenAdShowing + isBannerForceHidden 변경에 따라 배너 상태 제어
+    // 🔧 재발 방지: 두 상태를 모두 감지하여 확실하게 복구
+    LaunchedEffect(isFullScreenAdShowing, isBannerForceHidden) {
         try {
             val view = adViewRef
             if (view != null) {
-                if (isFullScreenAdShowing) {
+                // FullScreen이 보이거나 강제 숨김 상태면 GONE
+                if (isFullScreenAdShowing || isBannerForceHidden) {
                     try { view.pause() } catch (_: Throwable) {}
                     try { view.visibility = View.GONE } catch (_: Throwable) {}
-                    Log.d(TAG, "FullScreen showing -> banner paused and hidden")
+                    Log.d(TAG, "FullScreen/ForceHidden active -> banner paused and hidden (fullScreen=$isFullScreenAdShowing, forceHidden=$isBannerForceHidden)")
                 } else {
-                    // FullScreen ad dismissed -> restore banner
+                    // 둘 다 false면 배너 복구
                     delay(300L)
                     try { view.resume() } catch (_: Throwable) {}
 
                     // 광고가 이미 로드되었으면 VISIBLE, 아니면 INVISIBLE
                     val targetVisibility = if (hasSuccessfulLoad) View.VISIBLE else View.INVISIBLE
                     try { view.visibility = targetVisibility } catch (_: Throwable) {}
-                    Log.d(TAG, "FullScreen dismissed -> banner resumed and visibility=${if (targetVisibility == View.VISIBLE) "VISIBLE" else "INVISIBLE"} (hasLoad=$hasSuccessfulLoad)")
+                    Log.d(TAG, "FullScreen/ForceHidden released -> banner resumed and visibility=${if (targetVisibility == View.VISIBLE) "VISIBLE" else "INVISIBLE"} (hasLoad=$hasSuccessfulLoad, fullScreen=$isFullScreenAdShowing, forceHidden=$isBannerForceHidden)")
 
                     // Trigger load if not yet loaded
                     try {
                         val consentInfo = runCatching { UserMessagingPlatform.getConsentInformation(view.context) }.getOrNull()
                         val canRequestNow = (consentInfo?.canRequestAds() == true) || isDebugBuild()
                         if (isPolicyEnabledState.value && canRequestNow && !hasSuccessfulLoad) {
-                            Log.d(TAG, "FullScreen dismissed -> triggering banner load")
+                            Log.d(TAG, "FullScreen/ForceHidden released -> triggering banner load")
                             runCatching { view.loadAd(AdRequestFactory.create(view.context)) }.onFailure { e ->
-                                Log.w(TAG, "FullScreen dismissed loadAd threw: ${e.message}")
+                                Log.w(TAG, "FullScreen/ForceHidden released loadAd threw: ${e.message}")
                             }
                         }
                     } catch (_: Throwable) {}

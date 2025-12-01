@@ -246,8 +246,12 @@ object AppOpenAdManager {
                             isShowing = false
                             appOpenAd = null
                             loaded = false
+
+                            // 🔧 재발 방지: 배너 복구를 확실하게 보장
+                            try { AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
                             try { kr.sweetapps.alcoholictimer.ads.AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
                             try { AdController.notifyFullScreenDismissed() } catch (_: Throwable) {}
+                            try { AdController.ensureBannerVisible("appOpenFailedToShow") } catch (_: Throwable) {}
                             performFinishFlow()
                         }
 
@@ -257,8 +261,12 @@ object AppOpenAdManager {
                             appOpenAd = null
                             loaded = false
                             lastDismissedAt = System.currentTimeMillis()
+
+                            // 🔧 재발 방지: 배너 복구를 확실하게 보장 (순서 중요!)
+                            try { AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
                             try { kr.sweetapps.alcoholictimer.ads.AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
                             try { AdController.notifyFullScreenDismissed() } catch (_: Throwable) {}
+                            try { AdController.ensureBannerVisible("appOpenDismissed") } catch (_: Throwable) {}
                             try { Log.d(TAG, "onAdDismissed -> AdController.debugSnapshot=${AdController.debugSnapshot()}") } catch (_: Throwable) {}
                             performFinishFlow()
                         }
