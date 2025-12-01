@@ -41,13 +41,14 @@ data class AdPolicy(
     companion object {
         // Default fallback policy used when remote policy cannot be fetched or parsed.
         // Values chosen to preserve revenue while being conservative about frequency.
+        // [REMOVED] 배너 광고 제거: adBannerEnabled = false로 설정 (2025-12-01)
         val DEFAULT_FALLBACK = AdPolicy(
             id = 0L,
             appId = "",
             isActive = true,
             adAppOpenEnabled = true,
             adInterstitialEnabled = true,
-            adBannerEnabled = true,
+            adBannerEnabled = false, // [REMOVED] 배너 광고 제거
             appOpenMaxPerHour = 2,
             appOpenMaxPerDay = 15,
             adInterstitialMaxPerHour = 2,

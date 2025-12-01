@@ -18,6 +18,7 @@
 - 프롬프트: `docs/MODAL_BARRIER_PROMPT.txt` (다른 앱에서 재사용 가능한 입력 가드 구현 지시문)
 - 문서: `docs/IN_APP_UPDATE_TROUBLESHOOTING.md` (In‑App Update 데모/다이얼로그/스플래시 관련 트러블슈팅 및 QA 체크리스트)
 - 문서: `docs/TARGET_DAYS_PICKER.md` (목표 일수 3자리 가로 다이얼 전환 가이드)
+- 문서: `docs/BANNER_AD_REMOVAL.md` (배너 광고 제거 작업 완료 보고서)
 
 ### Changed
 - 접근성 개선 (터치 타깃/콘트라스트)
@@ -26,6 +27,9 @@
 - 문서: `docs/a_SETTINGS_SCREEN_UI_PROMPT.md` v1.1.0 — 설정 화면 가이드 카드형 → 목록형(비스크롤 기본), 흰 배경, 섹션 Divider, 컴팩트 라디오(40dp), 배너 위 8dp 완충, 전역 배너 갭 0dp 반영
 
 ### Removed
+- **배너 광고 제거** (2025-12-01): 사용자 경험 개선을 위해 앱 전체에서 배너 광고 완전 제거 (앱 오픈 광고, 전면 광고는 유지)
+  - `BaseScaffold.kt`: 상단 배너 컴포넌트 제거
+  - `AdPolicy.kt`: 기본 폴백 정책에서 `adBannerEnabled = false` 설정
 - Start 화면: '목표 기간 설정' 제목/선택 박스 롱프레스 업데이트 팝업 데모 기능 제거 (설정 > 디버그 모드에서 별도의 업데이트 팝업 테스트 기능 사용)
 - 문서: `docs/a_UPDATE_UI_GUIDE.md` 삭제 (롱프레스 데모 기능 삭제로 인해 더 이상 유효하지 않음)
 

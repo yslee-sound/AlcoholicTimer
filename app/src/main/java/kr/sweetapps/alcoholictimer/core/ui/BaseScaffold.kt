@@ -56,14 +56,10 @@ fun BaseScaffold(
                     .fillMaxSize()
                     .windowInsetsPadding(WindowInsets.statusBars)
             ) {
-                // 배너: 항상 렌더링하고 내부에서 공간 예약하여 레이아웃 시프트 방지
-                AdmobBanner(
-                    modifier = Modifier.fillMaxWidth(),
-                    reserveSpaceWhenDisabled = true
-                )
-
-                // 구분선도 항상 유지하여 상단 영역 높이 변화를 없앰
-                HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
+                // [REMOVED] 배너 광고 제거 (2025-12-01)
+                // 기존 코드:
+                // AdmobBanner(modifier = Modifier.fillMaxWidth(), reserveSpaceWhenDisabled = true)
+                // HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
 
                 // 중앙 콘텐츠
                 val effectiveBg = when (currentRoute) {
