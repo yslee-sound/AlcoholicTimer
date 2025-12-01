@@ -136,26 +136,33 @@ object AdController {
     // `fullScreenAdShowingFlow` already exposes a JVM getter. Avoid duplicate JVM signature.
 
     fun initialize(context: Context) {
-        Log.d(TAG, "initialize: loading policy from Supabase repo")
+        Log.d(TAG, "initialize: reading local policy cache first")
         // keep application context for counters persistence
         try {
             appContext = context.applicationContext
         } catch (_: Throwable) {
         }
 
-        // Release 빌드에서는 원격 정책을 기다리지 않고 즉시 DEFAULT_FALLBACK을 사용하여
-        // 광고가 초기화되지 않는 문제를 방지합니다. Debug 빌드는 기존의 '정책 없음 -> 광고 비활성' 유지.
-        try {
-            val isDebuggable = try {
-                (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
-            } catch (_: Throwable) {
-                false
-            }
-            if (!isDebuggable && currentPolicy == null) {
-                currentPolicy = AdPolicy.DEFAULT_FALLBACK
-                Log.d(TAG, "initialize: pre-set DEFAULT_FALLBACK for release to avoid blocking ads while fetching remote policy")
-            }
+        // 1️⃣ 즉시 로컬 캐시에서 정책 읽기 (동기, 네트워크 없음)
+        val repo = AdPolicyRepository(context.packageName, ctx = context.applicationContext)
+        val cachedPolicy = try {
+            repo.getCachedPolicySync()
         } catch (_: Throwable) {
+            null
+        }
+
+        if (cachedPolicy != null) {
+            // 캐시된 정책이 있으면 즉시 적용
+            currentPolicy = cachedPolicy
+            Log.d(TAG, "initialize: loaded cached policy immediately -> appOpen=${cachedPolicy.adAppOpenEnabled} banner=${cachedPolicy.adBannerEnabled}")
+            // 즉시 리스너에게 알림
+            notifyPolicyListeners()
+        } else {
+            // 캐시가 없으면 기본값 사용 (Debug/Release 모두 DEFAULT_FALLBACK)
+            currentPolicy = AdPolicy.DEFAULT_FALLBACK
+            Log.d(TAG, "initialize: no cache found, using DEFAULT_FALLBACK -> appOpen=${AdPolicy.DEFAULT_FALLBACK.adAppOpenEnabled} banner=${AdPolicy.DEFAULT_FALLBACK.adBannerEnabled}")
+            // 즉시 리스너에게 알림
+            notifyPolicyListeners()
         }
 
         val mainApp = context.applicationContext as MainApplication
@@ -170,33 +177,35 @@ object AdController {
             }
         }
 
-        // async fetch policy and keep cached snapshot
+        // 2️⃣ 백그라운드에서 최신 정책 가져오기 (비동기, 네트워크)
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val repo = AdPolicyRepository(context.packageName)
+                Log.d(TAG, "initialize: fetching latest policy from Supabase in background")
                 val res = runCatching { repo.getPolicy() }
                 val policy = res.getOrNull()
                 if (policy != null) {
+                    val policyChanged = currentPolicy?.let {
+                        it.adBannerEnabled != policy.adBannerEnabled ||
+                        it.adInterstitialEnabled != policy.adInterstitialEnabled ||
+                        it.adAppOpenEnabled != policy.adAppOpenEnabled
+                    } ?: true
+
                     currentPolicy = policy
                     Log.d(
                         TAG,
-                        "initialize: policy loaded: appOpen=${policy.adAppOpenEnabled} hourMax=${policy.appOpenMaxPerHour} dayMax=${policy.appOpenMaxPerDay}"
+                        "initialize: background fetch complete -> appOpen=${policy.adAppOpenEnabled} banner=${policy.adBannerEnabled} (changed=$policyChanged)"
                     )
+
+                    // 정책이 변경되었으면 리스너에게 알림
+                    if (policyChanged) {
+                        notifyPolicyListeners()
+                        // 배너 정책이 변경되었으면 리로드 트리거
+                        if (policy.adBannerEnabled) {
+                            triggerBannerReload()
+                        }
+                    }
                 } else {
-                    // no remote policy: 릴리즈 빌드에서는 보수적 폴백을 사용, 디버그는 기존 동작 유지
-                    val isDebuggable = try {
-                        (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
-                    } catch (_: Throwable) {
-                        false
-                    }
-                    if (!isDebuggable) {
-                        // Release-ish: fallback policy to keep ads working with conservative limits
-                        currentPolicy = AdPolicy.DEFAULT_FALLBACK
-                        Log.d(TAG, "initialize: no policy returned from repo -> using DEFAULT_FALLBACK for release")
-                    } else {
-                        // Debug: keep previous safe behavior (treat as disabled)
-                        Log.d(TAG, "initialize: no policy returned from repo; using defaults (treat as disabled)")
-                    }
+                    Log.d(TAG, "initialize: background fetch returned null, keeping current policy")
                 }
                 // load persisted interstitial counters/window start if available
                 try {
@@ -213,14 +222,13 @@ object AdController {
                     }
                 } catch (_: Throwable) {
                 }
-                notifyPolicyListeners()
                 // If policy explicitly disables app-open, inform listeners to release splash etc.
                 if (currentPolicy?.adAppOpenEnabled == false) {
                     Log.d(TAG, "initialize: policy disables app-open -> triggering splash release listeners")
                     triggerSplashRelease()
                 }
             } catch (t: Throwable) {
-                Log.w(TAG, "initialize: failed to fetch policy: $t")
+                Log.w(TAG, "initialize: background policy fetch failed: $t")
             }
         }
     }

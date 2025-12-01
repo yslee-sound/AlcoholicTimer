@@ -133,6 +133,41 @@ class AdPolicyRepository(
         try { ctx?.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)?.let { sp -> sp.edit { remove(KEY_CACHED_JSON); remove(KEY_CACHED_TS) } } } catch (_: Throwable) {}
     }
 
+    /**
+     * 동기적으로 로컬 캐시에서 정책을 읽습니다. (메인 스레드에서 호출 가능)
+     * 네트워크 호출 없이 즉시 반환되므로 앱 시작 시 광고 초기화를 지연시키지 않습니다.
+     *
+     * @return 캐시된 정책이 있고 유효하면 AdPolicy, 없으면 null
+     */
+    fun getCachedPolicySync(): AdPolicy? {
+        // 메모리 캐시 우선 반환
+        cached?.let { return it }
+
+        // SharedPreferences에서 복원 시도
+        try {
+            val c = ctx ?: return null
+            val sp = c.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val json = sp.getString(KEY_CACHED_JSON, null)
+            val ts = try { sp.getLong(KEY_CACHED_TS, 0L) } catch (_: Throwable) { 0L }
+
+            if (!json.isNullOrBlank()) {
+                val now = System.currentTimeMillis()
+                val valid = (ts > 0L) && (now - ts <= cacheTtlMs)
+                if (valid) {
+                    val policy = parsePolicyFromJson(json, appId)
+                    cached = policy
+                    try { Log.d("AdPolicyRepository", "getCachedPolicySync: restored from prefs app_id=${policy.appId} (age=${now - ts}ms)") } catch (_: Throwable) {}
+                    return policy
+                } else {
+                    try { Log.d("AdPolicyRepository", "getCachedPolicySync: cached policy expired (age=${if (ts>0) now-ts else "na"}ms)") } catch (_: Throwable) {}
+                }
+            }
+        } catch (e: Throwable) {
+            try { Log.w("AdPolicyRepository", "getCachedPolicySync failed: $e") } catch (_: Throwable) {}
+        }
+        return null
+    }
+
     companion object {
         /**
          * JSON 파싱 로직을 분리하여 단위 테스트로 다양한 응답을 검증할 수 있게 함.
