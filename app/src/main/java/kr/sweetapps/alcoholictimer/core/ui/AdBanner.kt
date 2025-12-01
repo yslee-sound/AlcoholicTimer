@@ -138,8 +138,6 @@ fun AdmobBanner(
     var hasSuccessfulLoad by remember { mutableStateOf(false) }
     var finalFailureEmitted by remember { mutableStateOf(false) }
     var consecutiveNoFill by remember { mutableStateOf(0) }
-    // 앱 시작 시 기본적으로 숨김. 앱오프닝 광고가 완전히 닫힌 후에만 표시/로딩을 허용합니다.
-    var hideUntilFirstDismiss by remember { mutableStateOf(true) }
 
     val maxRetry = retryConfig.maxRetry.coerceAtLeast(0)
     val retryDelays = retryConfig.retryDelaysMs.take(maxRetry.coerceAtLeast(1))
@@ -170,41 +168,28 @@ fun AdmobBanner(
                 if (isFullScreenAdShowing) {
                     try { view.pause() } catch (_: Throwable) {}
                     try { view.visibility = View.GONE } catch (_: Throwable) {}
+                    Log.d(TAG, "FullScreen showing -> banner paused and hidden")
                 } else {
-                    // If we are still in startup-hide mode, check whether a full-screen dismiss event occurred.
-                    val lastDismiss = try { kr.sweetapps.alcoholictimer.ads.AdController.getLastFullScreenDismissedAt() } catch (_: Throwable) { 0L }
-                    if (hideUntilFirstDismiss) {
-                        if (lastDismiss > 0L) {
-                            // First real full-screen dismiss observed -> reveal and load
-                            hideUntilFirstDismiss = false
-                            try {
-                                if (!kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing()) try { view.visibility = View.VISIBLE } catch (_: Throwable) {}
-                            } catch (_: Throwable) {}
-                            // small delay to stabilize UI
-                            kotlinx.coroutines.delay(200L)
-                            try {
-                                if (!kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing()) runCatching { view.loadAd(AdRequestFactory.create(view.context)) }.onFailure { e -> Log.w(TAG, "initial show loadAd threw: ${e?.message}") }
-                            } catch (_: Throwable) {}
-                        } else {
-                            // still waiting for first dismiss; keep hidden
-                            try { view.visibility = View.GONE } catch (_: Throwable) {}
-                        }
-                    } else {
-                        // normal behavior after initial dismiss: restore view and attempt load if needed
-                        kotlinx.coroutines.delay(300L)
-                        try { view.resume() } catch (_: Throwable) {}
-                        try {
-                            if (!kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing()) try { view.visibility = View.VISIBLE } catch (_: Throwable) {}
-                        } catch (_: Throwable) {}
-                        try {
-                            val consentInfo = runCatching { UserMessagingPlatform.getConsentInformation(view.context) }.getOrNull()
-                            val canRequestNow = (consentInfo?.canRequestAds() == true) || isDebugBuild()
-                            if (!kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing() && isPolicyEnabledState.value && canRequestNow && !hasSuccessfulLoad && loadState is BannerLoadState.Loading) {
-                                Log.d(TAG, "fullScreenHidden -> triggering immediate banner load")
-                                runCatching { view.loadAd(AdRequestFactory.create(view.context)) }.onFailure { e -> Log.w(TAG, "fullScreenHidden loadAd threw: ${e.message}") }
+                    // FullScreen ad dismissed -> restore banner
+                    delay(300L)
+                    try { view.resume() } catch (_: Throwable) {}
+
+                    // 광고가 이미 로드되었으면 VISIBLE, 아니면 INVISIBLE
+                    val targetVisibility = if (hasSuccessfulLoad) View.VISIBLE else View.INVISIBLE
+                    try { view.visibility = targetVisibility } catch (_: Throwable) {}
+                    Log.d(TAG, "FullScreen dismissed -> banner resumed and visibility=${if (targetVisibility == View.VISIBLE) "VISIBLE" else "INVISIBLE"} (hasLoad=$hasSuccessfulLoad)")
+
+                    // Trigger load if not yet loaded
+                    try {
+                        val consentInfo = runCatching { UserMessagingPlatform.getConsentInformation(view.context) }.getOrNull()
+                        val canRequestNow = (consentInfo?.canRequestAds() == true) || isDebugBuild()
+                        if (isPolicyEnabledState.value && canRequestNow && !hasSuccessfulLoad) {
+                            Log.d(TAG, "FullScreen dismissed -> triggering banner load")
+                            runCatching { view.loadAd(AdRequestFactory.create(view.context)) }.onFailure { e ->
+                                Log.w(TAG, "FullScreen dismissed loadAd threw: ${e.message}")
                             }
-                        } catch (_: Throwable) {}
-                    }
+                        }
+                    } catch (_: Throwable) {}
                 }
             }
         } catch (_: Throwable) {}
@@ -217,17 +202,19 @@ fun AdmobBanner(
         try {
             val consentInfo = runCatching { UserMessagingPlatform.getConsentInformation(view.context) }.getOrNull()
             val canRequestNow = (consentInfo?.canRequestAds() == true) || isDebugBuild()
-            // Do not trigger banner load before we've seen the first full-screen dismiss event.
-            if (hideUntilFirstDismiss || kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing() || isBannerForceHidden) {
-                Log.d(TAG, "bannerReloadTick -> suppressed because full-screen present or initial hide or forceHidden=$isBannerForceHidden")
+
+            if (kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing() || isBannerForceHidden) {
+                Log.d(TAG, "bannerReloadTick -> suppressed because full-screen present or forceHidden=$isBannerForceHidden")
                 return@LaunchedEffect
             }
 
-            if (!kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing() && !isBannerForceHidden && isPolicyEnabledState.value && canRequestNow && !hasSuccessfulLoad && loadState is BannerLoadState.Loading) {
+            if (!hasSuccessfulLoad && isPolicyEnabledState.value && canRequestNow) {
                 Log.d(TAG, "bannerReloadTick -> triggering immediate banner load")
-                runCatching { view.loadAd(AdRequestFactory.create(view.context)) }.onFailure { e -> Log.w(TAG, "bannerReloadTick loadAd threw: ${e.message}") }
+                runCatching { view.loadAd(AdRequestFactory.create(view.context)) }.onFailure { e ->
+                    Log.w(TAG, "bannerReloadTick loadAd threw: ${e.message}")
+                }
             } else {
-                Log.d(TAG, "bannerReloadTick -> no load (policy=${isPolicyEnabledState.value} canRequest=$canRequestNow hasSuccess=$hasSuccessfulLoad state=$loadState)")
+                Log.d(TAG, "bannerReloadTick -> no load (policy=${isPolicyEnabledState.value} canRequest=$canRequestNow hasSuccess=$hasSuccessfulLoad)")
             }
         } catch (_: Throwable) {}
     }
@@ -236,7 +223,32 @@ fun AdmobBanner(
     // 예약 공간이 비활성 상태일 때도 배경이 흰색이 되도록 surface를 기본으로 사용합니다.
     val placeholderColor = MaterialTheme.colorScheme.surface
 
-    LaunchedEffect(shouldShowBanner) { Log.d(TAG, "banner visible=$shouldShowBanner h=$predictedHeight") }
+    LaunchedEffect(shouldShowBanner) {
+        Log.d(TAG, "banner visible=$shouldShowBanner h=$predictedHeight (policy=${isPolicyEnabledState.value} interstitial=$isInterstitialShowing fullScreen=$isFullScreenAdShowing forceHidden=$isBannerForceHidden)")
+    }
+
+    // shouldShowBanner 변경 시 즉시 AdView visibility 강제 업데이트
+    LaunchedEffect(adViewRef, shouldShowBanner, hasSuccessfulLoad, isBannerForceHidden, isFullScreenAdShowing) {
+        val view = adViewRef
+        if (view != null) {
+            val targetVisibility = when {
+                !shouldShowBanner -> View.GONE
+                hasSuccessfulLoad -> View.VISIBLE
+                else -> View.INVISIBLE
+            }
+            if (view.visibility != targetVisibility) {
+                view.visibility = targetVisibility
+                val visStr = when (targetVisibility) {
+                    View.VISIBLE -> "VISIBLE"
+                    View.INVISIBLE -> "INVISIBLE"
+                    else -> "GONE"
+                }
+                Log.d(TAG, "LaunchedEffect(shouldShow=$shouldShowBanner, hasLoad=$hasSuccessfulLoad, forceHidden=$isBannerForceHidden, fullScreen=$isFullScreenAdShowing) -> forcing visibility=$visStr")
+            }
+        } else {
+            Log.d(TAG, "LaunchedEffect skipped - adViewRef is null")
+        }
+    }
 
     // Always compose the banner container so AdView instance survives full-screen overlay.
     Surface(modifier = modifier.fillMaxWidth().height(predictedHeight), color = MaterialTheme.colorScheme.surfaceVariant, tonalElevation = 0.dp, shadowElevation = 0.dp) {
@@ -254,7 +266,8 @@ fun AdmobBanner(
                             val adaptive = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(ctx, screenWidthDp)
                             setAdSize(adaptive)
                         } catch (_: Throwable) { try { setAdSize(AdSize.BANNER) } catch (_: Throwable) {} }
-                        try { visibility = View.GONE } catch (_: Throwable) {}
+                        // 초기에는 INVISIBLE로 시작 (GONE이 아님 - 레이아웃 측정은 되도록)
+                        try { visibility = View.INVISIBLE } catch (_: Throwable) {}
 
                         adListener = object : AdListener() {
                             override fun onAdLoaded() {
@@ -263,6 +276,18 @@ fun AdmobBanner(
                                 hasSuccessfulLoad = true
                                 consecutiveNoFill = 0
                                 loadState = BannerLoadState.Success
+
+                                // 광고 로드 성공 시 즉시 VISIBLE 처리
+                                try {
+                                    if (!kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing() &&
+                                        !kr.sweetapps.alcoholictimer.ads.AdController.bannerForceHiddenFlow.value) {
+                                        visibility = View.VISIBLE
+                                        Log.d(TAG, "Banner onAdLoaded -> set VISIBLE")
+                                    } else {
+                                        Log.d(TAG, "Banner onAdLoaded but keeping hidden (fullscreen or forceHidden)")
+                                    }
+                                } catch (_: Throwable) {}
+
                                 if (first) {
                                     onFirstLoaded?.invoke()
                                     analytics.onFirstLoaded()
@@ -311,11 +336,22 @@ fun AdmobBanner(
                 },
                 update = { adView ->
                     try {
-                        if (kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing() || isBannerForceHidden) {
-                            if (adView.visibility != View.GONE) adView.visibility = View.GONE
+                        // 전체화면 광고나 강제 숨김 상태 확인
+                        val shouldHide = kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing() || isBannerForceHidden
+
+                        if (shouldHide) {
+                            if (adView.visibility != View.GONE) {
+                                adView.visibility = View.GONE
+                                Log.d(TAG, "Banner update -> GONE (fullscreen=$isFullScreenAdShowing forceHidden=$isBannerForceHidden)")
+                            }
                             try { adView.pause() } catch (_: Throwable) {}
                         } else {
-                            if (adView.visibility != View.VISIBLE) adView.visibility = View.VISIBLE
+                            // 광고가 로드되었으면 VISIBLE, 아니면 INVISIBLE
+                            val targetVisibility = if (hasSuccessfulLoad) View.VISIBLE else View.INVISIBLE
+                            if (adView.visibility != targetVisibility) {
+                                adView.visibility = targetVisibility
+                                Log.d(TAG, "Banner update -> ${if (targetVisibility == View.VISIBLE) "VISIBLE" else "INVISIBLE"} (hasLoad=$hasSuccessfulLoad)")
+                            }
                             try { adView.resume() } catch (_: Throwable) {}
                         }
                     } catch (_: Throwable) {}
@@ -347,13 +383,8 @@ fun AdmobBanner(
                                         try { view.pause() } catch (_: Throwable) {}
                                         try { view.visibility = View.GONE } catch (_: Throwable) {}
                                     } else {
-                                        val lastDismiss = try { kr.sweetapps.alcoholictimer.ads.AdController.getLastFullScreenDismissedAt() } catch (_: Throwable) { 0L }
-                                        if (hideUntilFirstDismiss && lastDismiss <= 0L) {
-                                            try { view.visibility = View.GONE } catch (_: Throwable) {}
-                                        } else {
-                                            try { view.visibility = View.VISIBLE } catch (_: Throwable) {}
-                                            try { view.resume() } catch (_: Throwable) {}
-                                        }
+                                        try { view.visibility = View.VISIBLE } catch (_: Throwable) {}
+                                        try { view.resume() } catch (_: Throwable) {}
                                     }
                                 } catch (_: Throwable) {}
                             }
@@ -367,13 +398,8 @@ fun AdmobBanner(
                                         try { view.pause() } catch (_: Throwable) {}
                                         try { view.visibility = View.GONE } catch (_: Throwable) {}
                                     } else {
-                                        val lastDismiss = try { kr.sweetapps.alcoholictimer.ads.AdController.getLastFullScreenDismissedAt() } catch (_: Throwable) { 0L }
-                                        if (hideUntilFirstDismiss && lastDismiss <= 0L) {
-                                            try { view.visibility = View.GONE } catch (_: Throwable) {}
-                                        } else {
-                                            try { view.visibility = View.VISIBLE } catch (_: Throwable) {}
-                                            try { view.resume() } catch (_: Throwable) {}
-                                        }
+                                        try { view.visibility = View.VISIBLE } catch (_: Throwable) {}
+                                        try { view.resume() } catch (_: Throwable) {}
                                     }
                                 } catch (_: Throwable) {}
                             }
