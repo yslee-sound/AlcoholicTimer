@@ -61,6 +61,11 @@ import kotlinx.coroutines.delay
 import kr.sweetapps.alcoholictimer.ads.AppOpenAdManager
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 
+// 추가된 import (LazyRow 사용)
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.PaddingValues
+
 private val START_CARD_TOP_INNER_PADDING: Dp = 50.dp
 private val START_TITLE_TOP_MARGIN: Dp = 30.dp
 private val START_TITLE_CARD_GAP: Dp = 20.dp
@@ -174,7 +179,7 @@ fun StartScreen(
         return
     }
 
-    var targetDays by rememberSaveable { mutableIntStateOf(30) }
+    var targetDays by rememberSaveable { mutableIntStateOf(21) }
 
     val showSplashOverlay = holdSplashState != null && holdSplashState.value
 
@@ -472,39 +477,45 @@ private fun AppBrandTitleBar(
     }
 }
 
-// [NEW] 기간 선택 배지 컴포넌트
+// [NEW] 기간 선택 배지 컴포넌트 (수정: 프리셋 변경 및 가로 스크롤)
 @Composable
 private fun DurationBadgeRow(
     selectedDays: Int,
     onDaysSelected: (Int) -> Unit
 ) {
-    val presetDays = listOf(7, 14, 30, 60, 90)
+    val presets = listOf(
+        "3주 챌린지" to 21,
+        "딱 하루만" to 1,
+        "작심 3일" to 3,
+        "6개월" to 180,
+        "묻지도 말고 1년" to 365
+    )
 
-    Row(
+    LazyRow(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+            .padding(horizontal = 12.dp),
+        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        presetDays.forEachIndexed { index, days ->
+        items(presets) { item ->
+            val label = item.first
+            val days = item.second
             DurationBadge(
+                label = label,
                 days = days,
                 isSelected = selectedDays == days,
                 onClick = { onDaysSelected(days) }
             )
-
-            if (index < presetDays.size - 1) {
-                Spacer(modifier = Modifier.width(8.dp))
-            }
         }
     }
 }
 
-// [NEW] 개별 배지 컴포넌트 (이미지 참고: 둥근 테두리, 선택시 검은 배경, 미선택시 흰 배경)
+// [NEW] 개별 배지 컴포넌트 (레이블 지원)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DurationBadge(
+    label: String,
     days: Int,
     isSelected: Boolean,
     onClick: () -> Unit
@@ -516,9 +527,9 @@ private fun DurationBadge(
     Surface(
         onClick = onClick,
         modifier = Modifier
-            .height(36.dp)
-            .widthIn(min = 52.dp),
-        shape = RoundedCornerShape(18.dp),
+            .height(40.dp)
+            .widthIn(min = 72.dp),
+        shape = RoundedCornerShape(20.dp),
         color = backgroundColor,
         border = BorderStroke(1.dp, borderColor),
         shadowElevation = if (isSelected) 2.dp else 0.dp
@@ -529,7 +540,7 @@ private fun DurationBadge(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "${days}일",
+                text = label,
                 style = MaterialTheme.typography.bodyMedium,
                 color = textColor,
                 textAlign = TextAlign.Center
