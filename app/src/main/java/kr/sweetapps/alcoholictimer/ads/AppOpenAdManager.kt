@@ -233,8 +233,8 @@ object AppOpenAdManager {
                             lastShownAt = System.currentTimeMillis()
                             // Record shown in central controller so policy counters update
                             try { applicationRef?.let { AdController.recordAppOpenShown(it.applicationContext) } } catch (_: Throwable) {}
+                            // Note: setBannerForceHidden(true)는 이미 show() 호출 전에 실행됨 (중복 방지)
                             try { AdController.setFullScreenAdShowing(true) } catch (_: Throwable) {}
-                            try { kr.sweetapps.alcoholictimer.ads.AdController.setBannerForceHidden(true) } catch (_: Throwable) {}
                             try { Log.d(TAG, "onAdShowed -> AdController.debugSnapshot=${AdController.debugSnapshot()}") } catch (_: Throwable) {}
                             try { onShownListener?.invoke() } catch (_: Throwable) {}
                             for (l in shownListeners) runCatching { l.invoke() }
@@ -351,25 +351,28 @@ object AppOpenAdManager {
             return false
         }
 
-        // Before calling show(), ensure banner is hidden immediately to avoid overlap.
+        // 🚨 AdMob 정책 준수: show() 호출 직전에 배너를 즉시 숨겨서 겹침 방지
         try {
-            Log.d(TAG, "showIfAvailable: forcing banner hidden via AdController.setBannerForceHidden(true) and setFullScreenAdShowing(true)")
-            try { Log.d(TAG, "showIfAvailable: AdController.debugSnapshot(beforeSet)=${AdController.debugSnapshot()}") } catch (_: Throwable) {}
+            Log.d(TAG, "showIfAvailable: hiding banner IMMEDIATELY before show() to prevent overlap (AdMob policy)")
+            try { AdController.hideBannerImmediately("appOpenBeforeShow") } catch (_: Throwable) {}
+
+            // 추가 안전장치: StateFlow도 업데이트
             try { kr.sweetapps.alcoholictimer.ads.AdController.setBannerForceHidden(true) } catch (_: Throwable) {}
             try { AdController.setFullScreenAdShowing(true) } catch (_: Throwable) {}
-            try { Log.d(TAG, "showIfAvailable: AdController.debugSnapshot(afterSet)=${AdController.debugSnapshot()}") } catch (_: Throwable) {}
-            // Small delay to allow UI listeners to process bannerForceHidden -> ensures banner is GONE before show
+
+            // 150ms 지연으로 Compose가 확실히 recomposition 완료하도록 보장
+            // (80ms → 150ms로 증가: 더 확실한 배너 숨김 보장)
             try {
                 mainHandler.postDelayed({
                     try {
                         appOpenAd?.show(activity)
-                        Log.d(TAG, "showIfAvailable: appOpenAd.show() called after delay")
+                        Log.d(TAG, "showIfAvailable: appOpenAd.show() called after 150ms delay")
                     } catch (t: Throwable) {
                         Log.w(TAG, "delayed show failed: ${t.message}")
                         try { kr.sweetapps.alcoholictimer.ads.AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
-                        try { AdController.notifyFullScreenDismissed() } catch (_: Throwable) {}
+                        try { AdController.ensureBannerVisible("appOpenShowException") } catch (_: Throwable) {}
                     }
-                }, 80L)
+                }, 150L)
             } catch (_: Throwable) {
                 try { appOpenAd?.show(activity); Log.d(TAG, "showIfAvailable: appOpenAd.show() called fallback") } catch (_: Throwable) { Log.w(TAG, "show fallback failed") }
             }
@@ -378,7 +381,7 @@ object AppOpenAdManager {
              Log.w(TAG, "showIfAvailable: failed to show app open ad: ${t.message}")
              // Revert full-screen flag if show failed immediately
              try { kr.sweetapps.alcoholictimer.ads.AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
-             try { AdController.notifyFullScreenDismissed() } catch (_: Throwable) {}
+             try { AdController.ensureBannerVisible("appOpenShowException") } catch (_: Throwable) {}
              return false
          }
     }

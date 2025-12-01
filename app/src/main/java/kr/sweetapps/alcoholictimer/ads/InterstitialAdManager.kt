@@ -129,14 +129,29 @@ object InterstitialAdManager {
     private fun tryShowAd(activity: Activity, ad: InterstitialAd, onDismiss: (() -> Unit)?) {
         try {
             isShowing = true
+
+            // 🚨 AdMob 정책 준수: show() 직전에 배너를 즉시 숨겨서 겹침 방지
+            try {
+                Log.d(TAG, "tryShowAd: hiding banner IMMEDIATELY before show() to prevent overlap")
+                AdController.hideBannerImmediately("interstitialBeforeShow")
+            } catch (_: Throwable) {}
+
+            // 추가 안전장치
+            try { AdController.setBannerForceHidden(true) } catch (_: Throwable) {}
             try { AdController.setInterstitialShowing(true); AdController.setFullScreenAdShowing(true) } catch (_: Throwable) {}
+
             ad.fullScreenContentCallback = object : FullScreenContentCallback() {
                 override fun onAdDismissedFullScreenContent() {
                     Log.d(TAG, "onAdDismissedFullScreenContent")
                     isShowing = false
                     interstitial = null
+
+                    // 🔧 Interstitial 종료 시 배너 복구 (AppOpen과 동일한 처리)
+                    try { AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
                     try { AdController.setInterstitialShowing(false) } catch (_: Throwable) {}
+                    try { AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
                     try { AdController.notifyFullScreenDismissed() } catch (_: Throwable) {}
+                    try { AdController.ensureBannerVisible("interstitialDismissed") } catch (_: Throwable) {}
                     try { onDismiss?.invoke() } catch (_: Throwable) {}
                 }
 
@@ -144,8 +159,13 @@ object InterstitialAdManager {
                     Log.e(TAG, "onAdFailedToShowFullScreenContent: ${adError.message}")
                     isShowing = false
                     interstitial = null
+
+                    // 🔧 Interstitial 표시 실패 시 배너 복구
+                    try { AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
                     try { AdController.setInterstitialShowing(false) } catch (_: Throwable) {}
+                    try { AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
                     try { AdController.notifyFullScreenDismissed() } catch (_: Throwable) {}
+                    try { AdController.ensureBannerVisible("interstitialFailedToShow") } catch (_: Throwable) {}
                     try { AdController.unreserveInterstitialSlot() } catch (_: Throwable) {}
                     try { onDismiss?.invoke() } catch (_: Throwable) {}
                 }
@@ -165,7 +185,10 @@ object InterstitialAdManager {
                 if (!AdController.canShowInterstitial(activity)) {
                     Log.d(TAG, "tryShowAd: final policy check denied -> unreserve and skip show")
                     try { AdController.unreserveInterstitialSlot() } catch (_: Throwable) {}
-                    try { AdController.setInterstitialShowing(false); AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
+                    try { AdController.setFullScreenAdShowing(false); AdController.setInterstitialShowing(false) } catch (_: Throwable) {}
+                    // 🔧 정책으로 차단된 경우 배너 복구
+                    try { AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
+                    try { AdController.ensureBannerVisible("interstitialPolicyDenied") } catch (_: Throwable) {}
                     isShowing = false
                     interstitial = null
                     try { onDismiss?.invoke() } catch (_: Throwable) {}
@@ -173,7 +196,10 @@ object InterstitialAdManager {
                 }
             } catch (_: Throwable) { 
                 try { AdController.unreserveInterstitialSlot() } catch (_: Throwable) {}
-                try { AdController.setInterstitialShowing(false); AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
+                try { AdController.setFullScreenAdShowing(false); AdController.setInterstitialShowing(false) } catch (_: Throwable) {}
+                // 🔧 예외 발생 시 배너 복구
+                try { AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
+                try { AdController.ensureBannerVisible("interstitialException") } catch (_: Throwable) {}
                 isShowing = false
                 interstitial = null
                 try { onDismiss?.invoke() } catch (_: Throwable) {}
@@ -185,6 +211,10 @@ object InterstitialAdManager {
             Log.e(TAG, "show failed", t)
             isShowing = false
             interstitial = null
+            // 🔧 show 실패 시 배너 복구
+            try { AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
+            try { AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
+            try { AdController.ensureBannerVisible("interstitialShowException") } catch (_: Throwable) {}
             try { AdController.unreserveInterstitialSlot() } catch (_: Throwable) {}
             forceShowDebug(activity, onDismiss)
         }
@@ -197,7 +227,11 @@ object InterstitialAdManager {
                 .setMessage("This simulates an interstitial ad for testing. Press Close to continue.")
                 .setCancelable(false)
                 .setPositiveButton("Close") { _, _ ->
+                    try { AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
                     try { AdController.setInterstitialShowing(false) } catch (_: Throwable) {}
+                    // 🔧 Debug Interstitial 종료 시에도 배너 복구
+                    try { AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
+                    try { AdController.ensureBannerVisible("debugInterstitialClosed") } catch (_: Throwable) {}
                     try { AdController.notifyFullScreenDismissed() } catch (_: Throwable) {}
                     try { onDismiss?.invoke() } catch (_: Throwable) {}
                 }

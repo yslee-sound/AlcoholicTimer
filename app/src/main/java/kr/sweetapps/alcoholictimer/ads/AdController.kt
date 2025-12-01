@@ -129,6 +129,37 @@ object AdController {
         try { triggerBannerReload() } catch (_: Throwable) {}
     }
 
+    /**
+     * 🚨 AdMob 정책 준수: 전면광고와 배너 광고 겹침 방지
+     *
+     * 배너를 즉시 숨김 (StateFlow + 모든 리스너 즉시 호출)
+     * - show() 호출 직전에 사용하여 배너가 전면광고 위에 나타나지 않도록 보장
+     *
+     * @param reason 숨기는 이유 (로그용)
+     */
+    fun hideBannerImmediately(reason: String? = null) {
+        try {
+            Log.d(TAG, "hideBannerImmediately reason=$reason - forcing GONE immediately")
+        } catch (_: Throwable) {}
+
+        // StateFlow 즉시 업데이트
+        try { _bannerForceHidden.value = true } catch (_: Throwable) {}
+        try { _fullScreenAdShowingFlow.value = true } catch (_: Throwable) {}
+
+        // 모든 리스너 즉시 동기 호출 (Compose recomposition 트리거)
+        val forceHiddenCopy: List<(Boolean) -> Unit>
+        synchronized(bannerForceHiddenListeners) { forceHiddenCopy = bannerForceHiddenListeners.toList() }
+        for (l in forceHiddenCopy) {
+            try { l.invoke(true) } catch (_: Throwable) {}
+        }
+
+        val fullScreenCopy: List<(Boolean) -> Unit>
+        synchronized(fullScreenListeners) { fullScreenCopy = fullScreenListeners.toList() }
+        for (l in fullScreenCopy) {
+            try { l.invoke(true) } catch (_: Throwable) {}
+        }
+    }
+
     fun addBannerForceHiddenListener(listener: (Boolean) -> Unit) {
         synchronized(bannerForceHiddenListeners) { bannerForceHiddenListeners.add(listener) }
         try { listener.invoke(_bannerForceHidden.value) } catch (_: Throwable) {}

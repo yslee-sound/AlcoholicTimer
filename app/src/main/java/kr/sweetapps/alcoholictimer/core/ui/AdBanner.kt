@@ -157,45 +157,28 @@ fun AdmobBanner(
     )
     val isBannerForceHidden by kr.sweetapps.alcoholictimer.ads.AdController.bannerForceHiddenFlow.collectAsState(initial = false)
 
+    // 🚨 업계 표준 해결책: 조건부 렌더링
+    // 전면광고가 표시 중이거나 강제 숨김 상태면 배너를 아예 렌더링하지 않음
+    // → AdView가 메모리에 없으므로 겹칠 수 없음!
+    val shouldRenderBanner = isPolicyEnabledState.value &&
+                            !isInterstitialShowing &&
+                            !isFullScreenAdShowing &&
+                            !isBannerForceHidden
+
+    if (!shouldRenderBanner) {
+        Log.d(TAG, "Banner NOT rendered (policy=${isPolicyEnabledState.value} interstitial=$isInterstitialShowing fullScreen=$isFullScreenAdShowing forceHidden=$isBannerForceHidden)")
+        // 아무것도 렌더링하지 않음 - 완벽한 겹침 방지
+        return
+    }
+
+    // 여기서부터는 배너를 렌더링
+    Log.d(TAG, "Banner WILL be rendered")
+
     // Observe banner reload tick to retry loads immediately on demand
     val bannerReloadTick by kr.sweetapps.alcoholictimer.ads.AdController.bannerReloadTick.collectAsState(initial = 0L)
 
-    // isFullScreenAdShowing + isBannerForceHidden 변경에 따라 배너 상태 제어
-    // 🔧 재발 방지: 두 상태를 모두 감지하여 확실하게 복구
-    LaunchedEffect(isFullScreenAdShowing, isBannerForceHidden) {
-        try {
-            val view = adViewRef
-            if (view != null) {
-                // FullScreen이 보이거나 강제 숨김 상태면 GONE
-                if (isFullScreenAdShowing || isBannerForceHidden) {
-                    try { view.pause() } catch (_: Throwable) {}
-                    try { view.visibility = View.GONE } catch (_: Throwable) {}
-                    Log.d(TAG, "FullScreen/ForceHidden active -> banner paused and hidden (fullScreen=$isFullScreenAdShowing, forceHidden=$isBannerForceHidden)")
-                } else {
-                    // 둘 다 false면 배너 복구
-                    delay(300L)
-                    try { view.resume() } catch (_: Throwable) {}
-
-                    // 광고가 이미 로드되었으면 VISIBLE, 아니면 INVISIBLE
-                    val targetVisibility = if (hasSuccessfulLoad) View.VISIBLE else View.INVISIBLE
-                    try { view.visibility = targetVisibility } catch (_: Throwable) {}
-                    Log.d(TAG, "FullScreen/ForceHidden released -> banner resumed and visibility=${if (targetVisibility == View.VISIBLE) "VISIBLE" else "INVISIBLE"} (hasLoad=$hasSuccessfulLoad, fullScreen=$isFullScreenAdShowing, forceHidden=$isBannerForceHidden)")
-
-                    // Trigger load if not yet loaded
-                    try {
-                        val consentInfo = runCatching { UserMessagingPlatform.getConsentInformation(view.context) }.getOrNull()
-                        val canRequestNow = (consentInfo?.canRequestAds() == true) || isDebugBuild()
-                        if (isPolicyEnabledState.value && canRequestNow && !hasSuccessfulLoad) {
-                            Log.d(TAG, "FullScreen/ForceHidden released -> triggering banner load")
-                            runCatching { view.loadAd(AdRequestFactory.create(view.context)) }.onFailure { e ->
-                                Log.w(TAG, "FullScreen/ForceHidden released loadAd threw: ${e.message}")
-                            }
-                        }
-                    } catch (_: Throwable) {}
-                }
-            }
-        } catch (_: Throwable) {}
-    }
+    // 🔧 조건부 렌더링 방식에서는 LaunchedEffect로 visibility 제어 불필요
+    // Compose가 자동으로 렌더링/제거를 처리함
 
     // Trigger immediate retry when bannerReloadTick updates (emitted by AdController)
     LaunchedEffect(bannerReloadTick) {
@@ -205,10 +188,6 @@ fun AdmobBanner(
             val consentInfo = runCatching { UserMessagingPlatform.getConsentInformation(view.context) }.getOrNull()
             val canRequestNow = (consentInfo?.canRequestAds() == true) || isDebugBuild()
 
-            if (kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing() || isBannerForceHidden) {
-                Log.d(TAG, "bannerReloadTick -> suppressed because full-screen present or forceHidden=$isBannerForceHidden")
-                return@LaunchedEffect
-            }
 
             if (!hasSuccessfulLoad && isPolicyEnabledState.value && canRequestNow) {
                 Log.d(TAG, "bannerReloadTick -> triggering immediate banner load")

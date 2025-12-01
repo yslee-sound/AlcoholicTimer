@@ -55,12 +55,26 @@ class MainActivity : BaseActivity() {
         // note: condition called on main thread
         splash.setKeepOnScreenCondition { holdSplashState.value }
 
-        // 광고가 표시되지 않을 경우 안전 타임아웃
-        val timeoutRunnable = Runnable {
-            android.util.Log.d("MainActivity", "splash timeout fired -> releasing holdSplashState")
-            holdSplashState.value = false
+        // 🚨 AdMob 정책 준수: 광고가 표시되지 않을 경우에만 타임아웃
+        // 광고가 표시 중이면 타임아웃 취소하여 뒤에 앱이 보이지 않도록 함
+        var timeoutRunnable: Runnable? = null
+        timeoutRunnable = Runnable {
+            // 타임아웃 발동 시 AppOpen 광고가 표시 중인지 확인
+            val isAppOpenShowing = try {
+                kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.isShowingAd()
+            } catch (_: Throwable) { false }
+
+            if (isAppOpenShowing) {
+                // 광고가 표시 중이면 타임아웃을 연장 (1초 후 다시 확인)
+                android.util.Log.d("MainActivity", "splash timeout deferred - AppOpen ad is showing")
+                window.decorView.postDelayed(timeoutRunnable!!, 1000)
+            } else {
+                // 광고가 없으면 Splash 해제
+                android.util.Log.d("MainActivity", "splash timeout fired -> releasing holdSplashState")
+                holdSplashState.value = false
+            }
         }
-        window.decorView.postDelayed(timeoutRunnable, 5000)
+        window.decorView.postDelayed(timeoutRunnable, 3000) // 초기 타임아웃 3초로 단축
 
         // Helper to change holdSplashState with logging
         val setHoldSplash: (Boolean) -> Unit = { v ->
@@ -85,6 +99,19 @@ class MainActivity : BaseActivity() {
                 runOnUiThread {
                     android.util.Log.d("MainActivity", "AdController splashReleaseListener invoked -> release splash")
                     setHoldSplash(false)
+                }
+            }
+        } catch (_: Throwable) {}
+
+        // 🚨 AdMob 정책 준수: AppOpen 광고가 닫힐 때만 Splash 해제
+        // 광고가 표시되는 동안 뒤에 앱이 보이지 않도록 함
+        try {
+            kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdFinishedListener {
+                runOnUiThread {
+                    android.util.Log.d("MainActivity", "AppOpen ad finished -> releasing splash")
+                    setHoldSplash(false)
+                    // 타임아웃도 취소
+                    timeoutRunnable?.let { window.decorView.removeCallbacks(it) }
                 }
             }
         } catch (_: Throwable) {}

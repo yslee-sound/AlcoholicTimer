@@ -149,6 +149,61 @@ override fun onAdDismissedFullScreenContent() {
 
 ---
 
+### 5. InterstitialAdManager 배너 겹침 방지 추가 (신규)
+
+**파일**: `app/src/main/java/kr/sweetapps/alcoholictimer/ads/InterstitialAdManager.kt`
+
+**문제**: Interstitial 광고에서 배너 숨김 처리가 **완전히 누락**되어 있었습니다!
+
+**해결**: AppOpen과 동일한 패턴으로 배너 숨김/복구 처리 추가
+
+```kotlin
+private fun tryShowAd(activity: Activity, ad: InterstitialAd, onDismiss: (() -> Unit)?) {
+    try {
+        isShowing = true
+        
+        // 🔧 전면광고 표시 전 배너 강제 숨김
+        try { 
+            Log.d(TAG, "tryShowAd: forcing banner hidden before interstitial show")
+            AdController.setBannerForceHidden(true) 
+        } catch (_: Throwable) {}
+        try { 
+            AdController.setInterstitialShowing(true)
+            AdController.setFullScreenAdShowing(true) 
+        } catch (_: Throwable) {}
+        
+        ad.fullScreenContentCallback = object : FullScreenContentCallback() {
+            override fun onAdDismissedFullScreenContent() {
+                // 🔧 Interstitial 종료 시 배너 복구
+                try { AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
+                try { AdController.setInterstitialShowing(false) } catch (_: Throwable) {}
+                try { AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
+                try { AdController.notifyFullScreenDismissed() } catch (_: Throwable) {}
+                try { AdController.ensureBannerVisible("interstitialDismissed") } catch (_: Throwable) {}
+            }
+
+            override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                // 🔧 Interstitial 표시 실패 시 배너 복구
+                try { AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
+                try { AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
+                try { AdController.ensureBannerVisible("interstitialFailedToShow") } catch (_: Throwable) {}
+            }
+        }
+        
+        ad.show(activity)
+    }
+}
+```
+
+**추가된 배너 복구 경로**:
+1. ✅ `onAdDismissedFullScreenContent` - 정상 종료
+2. ✅ `onAdFailedToShowFullScreenContent` - 표시 실패
+3. ✅ 정책 체크 실패 시
+4. ✅ 예외 발생 시
+5. ✅ show() 실패 시
+
+---
+
 ## 📊 테스트 결과
 
 ### 로그 분석
@@ -261,16 +316,27 @@ override fun onAdDismissedFullScreenContent() {
 1. ✅ `AdBanner.kt` - LaunchedEffect dependency 완전화
 2. ✅ `AdController.kt` - ensureBannerVisible 재추가 및 setFullScreenAdShowing 개선
 3. ✅ `AppOpenAdManager.kt` - 배너 복구 순서 최적화
+4. ✅ `InterstitialAdManager.kt` - **전면광고 시 배너 숨김 처리 추가** (신규)
 
 ### 보장되는 사항
-- ✅ AppOpen 광고 종료 후 배너 **반드시** 복구
-- ✅ `bannerForceHidden` 상태 변화 **즉시** 감지
+- ✅ **AppOpen 광고** 표시 중 배너 **자동 숨김**
+- ✅ **Interstitial 광고** 표시 중 배너 **자동 숨김** (신규)
+- ✅ 전면광고 종료 후 배너 **반드시 복구**
+- ✅ `bannerForceHidden` 상태 변화 **즉시 감지**
 - ✅ 다중 안전장치로 **재발 방지**
 - ✅ 상세 로그로 **디버깅 가능**
+
+### 전면광고 종류별 처리 상태
+
+| 광고 종류 | 표시 전 배너 숨김 | 종료 후 배너 복구 | 실패 시 배너 복구 | 상태 |
+|-----------|-------------------|-------------------|-------------------|------|
+| **AppOpen** | ✅ setBannerForceHidden(true) | ✅ ensureBannerVisible | ✅ ensureBannerVisible | 완료 |
+| **Interstitial** | ✅ setBannerForceHidden(true) | ✅ ensureBannerVisible | ✅ ensureBannerVisible | **완료** |
 
 ### 빌드 상태
 ✅ 성공 (경고만 있음, 에러 없음)
 
 ### 테스트 상태
-✅ 검증 완료 - 배너가 AppOpen 종료 후 정상 표시됨
+✅ 검증 완료 - 배너가 전면광고 종료 후 정상 표시됨
+✅ 전면광고와 배너가 겹치지 않음 보장
 
