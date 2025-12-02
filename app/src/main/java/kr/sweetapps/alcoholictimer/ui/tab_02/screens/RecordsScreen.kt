@@ -875,10 +875,11 @@ data class DiaryEntry(
 @Composable
 private fun RecentDiarySection(onNavigateToAllDiaries: () -> Unit = {}) {
     // TODO: 실제 데이터는 데이터베이스에서 가져올 예정
-    val sampleDiaries = listOf(
-        DiaryEntry("12.02 (일)", "😊", "오늘 하루도 무사히..."),
-        DiaryEntry("12.01 (일)", "😊", "조금 힘들었지만 참았다."),
-        DiaryEntry("11.30 (토)", "😰", "실패할 뻔 했다.")
+    val sampleDiaries = listOf<DiaryEntry>(
+        // 빈 상태 테스트: 주석 해제하면 일기 표시
+        // DiaryEntry("12.02 (일)", "😊", "오늘 하루도 무사히..."),
+        // DiaryEntry("12.01 (일)", "😊", "조금 힘들었지만 참았다."),
+        // DiaryEntry("11.30 (토)", "😰", "실패할 뻔 했다.")
     )
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -894,20 +895,22 @@ private fun RecentDiarySection(onNavigateToAllDiaries: () -> Unit = {}) {
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            // [NEW] 전체 보기 버튼 (우측 화살표 아이콘)
-            IconButton(onClick = onNavigateToAllDiaries) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_caret_right),
-                    contentDescription = "전체 일기 보기",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
-                )
+            // [NEW] 전체 보기 버튼 (일기가 있을 때만 표시)
+            if (sampleDiaries.isNotEmpty()) {
+                IconButton(onClick = onNavigateToAllDiaries) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_caret_right),
+                        contentDescription = "전체 일기 보기",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // 일기 항목 카드
+        // [수정] 일기 항목 카드 or 빈 상태 UI
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -915,19 +918,63 @@ private fun RecentDiarySection(onNavigateToAllDiaries: () -> Unit = {}) {
                 .background(Color.White)
                 .padding(16.dp)
         ) {
-            // 일기 항목들
-            sampleDiaries.forEachIndexed { index, diary ->
-                DiaryListItem(diary = diary)
+            if (sampleDiaries.isEmpty()) {
+                // [NEW] 빈 상태 UI
+                DiaryEmptyState()
+            } else {
+                // 일기 항목들
+                sampleDiaries.forEachIndexed { index, diary ->
+                    DiaryListItem(diary = diary)
 
-                if (index < sampleDiaries.size - 1) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 12.dp),
-                        thickness = 1.dp,
-                        color = Color(0xFFE2E8F0)
-                    )
+                    if (index < sampleDiaries.size - 1) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 12.dp),
+                            thickness = 1.dp,
+                            color = Color(0xFFE2E8F0)
+                        )
+                    }
                 }
             }
         }
+    }
+}
+
+/**
+ * [NEW] 일기 빈 상태 UI
+ */
+@Composable
+private fun DiaryEmptyState() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 이모지 아이콘
+        Text(
+            text = "📝",
+            fontSize = 48.sp,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        // 제목
+        Text(
+            text = "아직 작성된 일기가 없어요",
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            color = Color(0xFF2D3748),
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 설명
+        Text(
+            text = "우측 하단 + 버튼을 눌러\n첫 일기를 작성해보세요",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color(0xFF64748B),
+            textAlign = TextAlign.Center,
+            lineHeight = 20.sp
+        )
     }
 }
 
