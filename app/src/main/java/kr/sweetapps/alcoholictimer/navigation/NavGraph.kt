@@ -261,7 +261,8 @@ fun AlcoholicTimerNavGraph(
                         isCompleted = record.isCompleted
                     )
                     navController.navigate(route)
-                }
+                },
+                onAddRecord = { navController.navigate(Screen.AddRecord.route) } // [NEW] 기록 추가 기능 연결
             )
         }
 

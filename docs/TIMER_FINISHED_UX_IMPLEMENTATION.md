@@ -243,7 +243,72 @@ onNewTimerStart = {
 
 ---
 
+## 📱 '모든 기록 보기' 화면 UI/UX 개선 사항 (2025-01-02 추가)
+
+### 변경 내용 요약
+
+| 변경 전 | 변경 후 |
+|:---|:---|
+| 우측 상단 'X' 버튼 | 점 3개 메뉴 (MoreVert) |
+| 전체 삭제 버튼 직접 노출 | 메뉴 내 "모든 기록 삭제" 옵션 |
+| 기록 추가 기능 없음 | FAB (+ 버튼) 추가 |
+
+### UI 구성
+
+```
+┌─────────────────────────┐
+│  ← 모든 기록        ⋮   │ ← 점 3개 메뉴
+├─────────────────────────┤
+│                         │
+│   [기록 카드 1]         │
+│   [기록 카드 2]         │
+│   [기록 카드 3]         │
+│        ...              │
+│                         │
+│                    ┌─┐  │
+│                    │+│  │ ← FAB (기록 추가)
+└────────────────────┴─┘──┘
+```
+
+### 구현 상세
+
+#### 1. Floating Action Button (FAB)
+- **위치**: 화면 우측 하단
+- **아이콘**: `Icons.Filled.Add` (+ 모양)
+- **기능**: Tab02의 기록 추가 기능과 동일 (`onAddRecord` 콜백 연결)
+- **스타일**: Primary 색상, 스크롤 시에도 항상 최상단 표시
+
+#### 2. 상단 앱바 메뉴
+- **변경**: 'X' 버튼 → '점 3개' 아이콘 (`Icons.Filled.MoreVert`)
+- **메뉴 항목**: "모든 기록 삭제"
+- **동작**: 메뉴 클릭 → 확인 다이얼로그 표시 → 전체 삭제 로직 실행
+- **안전 장치**: 삭제 전 확인 다이얼로그 유지
+
+### String 리소스 추가
+
+**한국어** (`values/strings.xml`):
+```xml
+<string name="cd_more_options">더보기</string>
+<string name="menu_delete_all_records">모든 기록 삭제</string>
+<string name="cd_add_record">기록 추가</string>
+```
+
+**영어** (`values-en/strings.xml`):
+```xml
+<string name="cd_more_options">More options</string>
+<string name="menu_delete_all_records">Delete all records</string>
+<string name="cd_add_record">Add record</string>
+```
+
+### 수정된 파일
+
+1. **`AllRecords.kt`** - UI 구조 변경 (FAB 추가, 메뉴 변경)
+2. **`NavGraph.kt`** - `onAddRecord` 콜백 연결
+3. **`strings.xml` (한국어/영어)** - 필요한 string 리소스 추가
+
+---
+
 **작성일**: 2025-01-02  
 **작성자**: GitHub Copilot (유지보수 담당 시니어 개발자)  
-**버전**: 1.0.0
+**버전**: 1.1.0
 

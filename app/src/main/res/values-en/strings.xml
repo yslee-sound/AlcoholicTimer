@@ -15,6 +15,10 @@
     <string name="all_records_delete_title">Delete All Records</string>
     <string name="all_records_delete_message">Are you sure you want to delete all sobriety records?&#10;This action cannot be undone.</string>
     <string name="all_records_delete_confirm">Delete All</string>
+    <!-- [NEW] All records screen additional resources -->
+    <string name="cd_more_options">More options</string>
+    <string name="menu_delete_all_records">Delete all records</string>
+    <string name="cd_add_record">Add record</string>
 
     <!-- Run screen -->
     <string name="run_title">Sobriety Progress</string>

@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -24,7 +23,8 @@ import kr.sweetapps.alcoholictimer.core.ui.BackTopBar
 import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -32,7 +32,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kr.sweetapps.alcoholictimer.ui.tab_02.components.RecordSummaryCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,6 +39,7 @@ fun AllRecordsScreen(
     externalRefreshTrigger: Int = 0,
     onNavigateBack: () -> Unit = {},
     onNavigateToDetail: (SobrietyRecord) -> Unit = {},
+    onAddRecord: () -> Unit = {}, // [NEW] 기록 추가 콜백 추가
     fontScale: Float = 1.0f,
     externalDeleteDialog: MutableState<Boolean>? = null
 ) {
@@ -70,28 +70,49 @@ fun AllRecordsScreen(
     LaunchedEffect(retryTrigger) { loadRecords() }
     LaunchedEffect(externalRefreshTrigger) { loadRecords() }
 
-    // Keep BackTopBar outside fontScale override so its title uses system font scale
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-    ) {
-        // 상단 공통 BackTopBar: 뒤로가기 및 삭제 버튼(옵션)을 오른쪽에 배치
+    // [수정] Box로 감싸서 FAB을 오버레이로 배치
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Keep BackTopBar outside fontScale override so its title uses system font scale
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+        // [수정] 상단 공통 BackTopBar: 점 3개 메뉴로 변경
         BackTopBar(
             title = stringResource(id = R.string.all_records_title),
             onBack = onNavigateBack,
             trailingContent = if (externalDeleteDialog == null) {
                 {
-                    IconButton(
-                        onClick = { dialogState.value = true },
-                        enabled = !isLoading && records.isNotEmpty()
-                    ) {
-                        Icon(
-                            painter = painterResource(id = kr.sweetapps.alcoholictimer.R.drawable.ic_x),
-                            contentDescription = stringResource(id = R.string.cd_delete_all_records),
-                            tint = if (!isLoading && records.isNotEmpty()) Color.Black else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                            modifier = Modifier.size(24.dp)
-                        )
+                    // [NEW] 메뉴 확장 상태 관리
+                    var showMenu by remember { mutableStateOf(false) }
+
+                    Box {
+                        // [NEW] 점 3개 아이콘 버튼
+                        IconButton(
+                            onClick = { showMenu = true },
+                            enabled = !isLoading && records.isNotEmpty()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.MoreVert,
+                                contentDescription = stringResource(id = R.string.cd_more_options),
+                                tint = if (!isLoading && records.isNotEmpty()) Color.Black else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                            )
+                        }
+
+                        // [NEW] 드롭다운 메뉴
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(id = R.string.menu_delete_all_records)) },
+                                onClick = {
+                                    showMenu = false
+                                    dialogState.value = true
+                                }
+                            )
+                        }
                     }
                 }
             } else null
@@ -189,7 +210,27 @@ fun AllRecordsScreen(
                 dismissButton = { TextButton(onClick = { dialogState.value = false }) { Text(stringResource(id = R.string.dialog_cancel)) } }
             )
         }
+    } // Column 닫기
+
+    // [NEW] Floating Action Button - 기록 추가
+    val safePadding = LocalSafeContentPadding.current
+    FloatingActionButton(
+        onClick = { onAddRecord() },
+        modifier = Modifier
+            .align(Alignment.BottomEnd)
+            .padding(
+                end = 16.dp,
+                bottom = safePadding.calculateBottomPadding() + 16.dp
+            ),
+        containerColor = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Add,
+            contentDescription = stringResource(id = R.string.cd_add_record)
+        )
     }
+} // Box 닫기
 }
 
 @Composable
