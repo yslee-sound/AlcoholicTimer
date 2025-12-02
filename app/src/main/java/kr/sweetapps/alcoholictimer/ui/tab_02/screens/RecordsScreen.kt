@@ -862,32 +862,35 @@ private fun RecentDiarySection() {
         DiaryEntry("11.30 (토)", "😰", "실패할 뻔 했다.")
     )
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.White)
-            .padding(16.dp)
-    ) {
-        // 헤더
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // [수정] 헤더를 카드 밖으로 이동
         Text(
             text = "최근 금주 일기",
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            color = Color(0xFF2D3748)
+            color = MaterialTheme.colorScheme.onSurface
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        // 일기 항목들
-        sampleDiaries.forEachIndexed { index, diary ->
-            DiaryListItem(diary = diary)
+        // 일기 항목 카드
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.White)
+                .padding(16.dp)
+        ) {
+            // 일기 항목들
+            sampleDiaries.forEachIndexed { index, diary ->
+                DiaryListItem(diary = diary)
 
-            if (index < sampleDiaries.size - 1) {
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 12.dp),
-                    thickness = 1.dp,
-                    color = Color(0xFFE2E8F0)
-                )
+                if (index < sampleDiaries.size - 1) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 12.dp),
+                        thickness = 1.dp,
+                        color = Color(0xFFE2E8F0)
+                    )
+                }
             }
         }
     }
