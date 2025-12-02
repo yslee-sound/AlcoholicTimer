@@ -1,7 +1,7 @@
 package kr.sweetapps.alcoholictimer.ad
 
 import kotlin.math.max
-import kr.sweetapps.alcoholictimer.ads.AdController
+import kr.sweetapps.alcoholictimer.ui.ad.AdController
 
 interface PreferencesStore {
     fun getLong(key: String, default: Long): Long
@@ -26,11 +26,11 @@ class AdManager(
     private val prefs: PreferencesStore,
     private val timeProvider: TimeProvider
 ) {
-    // 상태
+    // ?�태
     var isShowingInterstitialAd: Boolean = false
         private set
 
-    // 저장 키
+    // ?�????
     private val KEY_HOUR_WINDOW_START = "ad_hour_window_start"
     private val KEY_DAY_WINDOW_START = "ad_day_window_start"
     private val KEY_HOUR_COUNT_INTERSTITIAL = "hour_count_interstitial"
@@ -104,9 +104,9 @@ class AdManager(
         val now = timeProvider.nowMillis()
         // If a full-screen popup/overlay is active (e.g., emergency/update), never show ads
         try {
-            if (kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing()) return false
+            if (kr.sweetapps.alcoholictimer.ui.ad.AdController.isFullScreenAdShowing()) return false
         } catch (_: Throwable) {}
-        // 최상위 정책 비활성화 시 모든 광고 표시 불가
+        // 최상???�책 비활?�화 ??모든 광고 ?�시 불�?
         try {
             if (!policy.is_active) return false
         } catch (_: Throwable) {}
@@ -146,13 +146,13 @@ class AdManager(
                 lastAppOpenTime = now
             }
             AdType.BANNER -> {
-                // 배너는 카운트하지 않음
+                // 배너??카운?�하지 ?�음
             }
         }
         saveWindowStarts()
     }
 
-    // 테스트용 접근자
+    // ?�스?�용 ?�근??
     fun getHourCountInterstitial(): Int = hourCountInterstitial
     fun getDayCountInterstitial(): Int = dayCountInterstitial
     fun getHourCountAppOpen(): Int = hourCountAppOpen

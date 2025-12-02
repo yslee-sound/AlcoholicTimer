@@ -21,7 +21,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.ads.AdListener
-import kr.sweetapps.alcoholictimer.ads.AdRequestFactory
+import kr.sweetapps.alcoholictimer.data.source.remote.AdRequestFactory
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.AdValue
@@ -29,7 +29,7 @@ import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 import com.google.android.ump.UserMessagingPlatform
 import kotlinx.coroutines.delay
 
-// BuildConfig 안전 접근자: 정적분석 경고를 줄이기 위해 특정 필드만 읽음
+// BuildConfig ?�전 ?�근?? ?�적분석 경고�?줄이�??�해 ?�정 ?�드�??�음
 private fun getAdmobBannerUnitId(): String {
     return try {
         val cls = Class.forName("kr.sweetapps.alcoholictimer.BuildConfig")
@@ -76,7 +76,7 @@ interface BannerAdAnalytics {
 
 object NoOpBannerAdAnalytics : BannerAdAnalytics
 
-/** 재시도 구성 값 */
+/** ?�시??구성 �?*/
 data class BannerRetryConfig(
     val maxRetry: Int = 3,
     val retryDelaysMs: List<Long> = listOf(2000, 5000, 10000),
@@ -101,8 +101,8 @@ fun AdmobBanner(
     val windowInfo = LocalWindowInfo.current
     val configuration = LocalConfiguration.current
 
-    // 화면 폭(dp) 계산: WindowMetrics API를 우선 사용하여 Lint 경고 제거
-    // (API 레벨/예외 상황에서는 Configuration.screenWidthDp를 fallback으로 사용)
+    // ?�면 ??dp) 계산: WindowMetrics API�??�선 ?�용?�여 Lint 경고 ?�거
+    // (API ?�벨/?�외 ?�황?�서??Configuration.screenWidthDp�?fallback?�로 ?�용)
     val screenWidthDp: Int = remember(configuration) {
         val widthPx = try {
             // avoid API-23+ getSystemService(Class) usage: use string constant and cast
@@ -118,12 +118,12 @@ fun AdmobBanner(
             } else 0
         } catch (_: Throwable) { 0 }
         val d = density.density
-        // 우선 LocalWindowInfo containerSize(px) 사용, 없으면 configuration fallback
+        // ?�선 LocalWindowInfo containerSize(px) ?�용, ?�으�?configuration fallback
         val fallbackPx = windowInfo.containerSize.width
         if (widthPx > 0) (widthPx / d).toInt() else if (fallbackPx > 0) (fallbackPx / d).toInt() else configuration.screenWidthDp
     }
 
-    // Anchored Adaptive 높이 계산
+    // Anchored Adaptive ?�이 계산
     val predictedHeight: Dp = remember(screenWidthDp) {
         try {
             val adaptive = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, screenWidthDp)
@@ -131,7 +131,7 @@ fun AdmobBanner(
         } catch (_: Throwable) { 50.dp }
     }
 
-    // 상태
+    // ?�태
     var adViewRef by remember { mutableStateOf<AdView?>(null) }
     var loadState by remember { mutableStateOf<BannerLoadState>(BannerLoadState.Loading) }
     var retryCount by remember { mutableStateOf(0) }
@@ -142,24 +142,24 @@ fun AdmobBanner(
     val maxRetry = retryConfig.maxRetry.coerceAtLeast(0)
     val retryDelays = retryConfig.retryDelaysMs.take(maxRetry.coerceAtLeast(1))
 
-    // 정책/전면 상태 구독 (간단화)
-    val isPolicyEnabledState = remember { mutableStateOf(kr.sweetapps.alcoholictimer.ads.AdController.isBannerEnabled()) }
+    // ?�책/?�면 ?�태 구독 (간단??
+    val isPolicyEnabledState = remember { mutableStateOf(kr.sweetapps.alcoholictimer.ui.ad.AdController.isBannerEnabled()) }
     DisposableEffect(Unit) {
-        val listener: (kr.sweetapps.alcoholictimer.ads.AdController.Policy?) -> Unit = { p -> isPolicyEnabledState.value = p?.adBannerEnabled ?: false }
-        kr.sweetapps.alcoholictimer.ads.AdController.addPolicyFetchListener(listener)
-        onDispose { kr.sweetapps.alcoholictimer.ads.AdController.removePolicyFetchListener(listener) }
+        val listener: (kr.sweetapps.alcoholictimer.ui.ad.AdController.Policy?) -> Unit = { p -> isPolicyEnabledState.value = p?.adBannerEnabled ?: false }
+        kr.sweetapps.alcoholictimer.ui.ad.AdController.addPolicyFetchListener(listener)
+        onDispose { kr.sweetapps.alcoholictimer.ui.ad.AdController.removePolicyFetchListener(listener) }
     }
 
-    val isInterstitialShowing = kr.sweetapps.alcoholictimer.ads.AdController.isInterstitialShowingNow()
+    val isInterstitialShowing = kr.sweetapps.alcoholictimer.ui.ad.AdController.isInterstitialShowingNow()
     // Observe reactive StateFlow from AdController so banner visibility updates reliably
-    val isFullScreenAdShowing by kr.sweetapps.alcoholictimer.ads.AdController.fullScreenAdShowingFlow.collectAsState(
-        initial = kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing()
+    val isFullScreenAdShowing by kr.sweetapps.alcoholictimer.ui.ad.AdController.fullScreenAdShowingFlow.collectAsState(
+        initial = kr.sweetapps.alcoholictimer.ui.ad.AdController.isFullScreenAdShowing()
     )
-    val isBannerForceHidden by kr.sweetapps.alcoholictimer.ads.AdController.bannerForceHiddenFlow.collectAsState(initial = false)
+    val isBannerForceHidden by kr.sweetapps.alcoholictimer.ui.ad.AdController.bannerForceHiddenFlow.collectAsState(initial = false)
 
-    // 🚨 업계 표준 해결책: 조건부 렌더링
-    // 전면광고가 표시 중이거나 강제 숨김 상태면 배너를 아예 렌더링하지 않음
-    // → AdView가 메모리에 없으므로 겹칠 수 없음!
+    // ?�� ?�계 ?��? ?�결�? 조건부 ?�더�?
+    // ?�면광고가 ?�시 중이거나 강제 ?��? ?�태�?배너�??�예 ?�더링하지 ?�음
+    // ??AdView가 메모리에 ?�으므�?겹칠 ???�음!
     val shouldRenderBanner = isPolicyEnabledState.value &&
                             !isInterstitialShowing &&
                             !isFullScreenAdShowing &&
@@ -167,18 +167,18 @@ fun AdmobBanner(
 
     if (!shouldRenderBanner) {
         Log.d(TAG, "Banner NOT rendered (policy=${isPolicyEnabledState.value} interstitial=$isInterstitialShowing fullScreen=$isFullScreenAdShowing forceHidden=$isBannerForceHidden)")
-        // 아무것도 렌더링하지 않음 - 완벽한 겹침 방지
+        // ?�무것도 ?�더링하지 ?�음 - ?�벽??겹침 방�?
         return
     }
 
-    // 여기서부터는 배너를 렌더링
+    // ?�기?��??�는 배너�??�더�?
     Log.d(TAG, "Banner WILL be rendered")
 
     // Observe banner reload tick to retry loads immediately on demand
-    val bannerReloadTick by kr.sweetapps.alcoholictimer.ads.AdController.bannerReloadTick.collectAsState(initial = 0L)
+    val bannerReloadTick by kr.sweetapps.alcoholictimer.ui.ad.AdController.bannerReloadTick.collectAsState(initial = 0L)
 
-    // 🔧 조건부 렌더링 방식에서는 LaunchedEffect로 visibility 제어 불필요
-    // Compose가 자동으로 렌더링/제거를 처리함
+    // ?�� 조건부 ?�더�?방식?�서??LaunchedEffect�?visibility ?�어 불필??
+    // Compose가 ?�동?�로 ?�더�??�거�?처리??
 
     // Trigger immediate retry when bannerReloadTick updates (emitted by AdController)
     LaunchedEffect(bannerReloadTick) {
@@ -201,14 +201,14 @@ fun AdmobBanner(
     }
 
     val shouldShowBanner = isPolicyEnabledState.value && !isInterstitialShowing && !isFullScreenAdShowing && !isBannerForceHidden
-    // 예약 공간이 비활성 상태일 때도 배경이 흰색이 되도록 surface를 기본으로 사용합니다.
+    // ?�약 공간??비활???�태???�도 배경???�색???�도�?surface�?기본?�로 ?�용?�니??
     val placeholderColor = MaterialTheme.colorScheme.surface
 
     LaunchedEffect(shouldShowBanner) {
         Log.d(TAG, "banner visible=$shouldShowBanner h=$predictedHeight (policy=${isPolicyEnabledState.value} interstitial=$isInterstitialShowing fullScreen=$isFullScreenAdShowing forceHidden=$isBannerForceHidden)")
     }
 
-    // shouldShowBanner 변경 시 즉시 AdView visibility 강제 업데이트
+    // shouldShowBanner 변�???즉시 AdView visibility 강제 ?�데?�트
     LaunchedEffect(adViewRef, shouldShowBanner, hasSuccessfulLoad, isBannerForceHidden, isFullScreenAdShowing) {
         val view = adViewRef
         if (view != null) {
@@ -247,29 +247,29 @@ fun AdmobBanner(
                             val adaptive = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(ctx, screenWidthDp)
                             setAdSize(adaptive)
                         } catch (_: Throwable) { try { setAdSize(AdSize.BANNER) } catch (_: Throwable) {} }
-                        // 초기에는 INVISIBLE로 시작 (GONE이 아님 - 레이아웃 측정은 되도록)
+                        // 초기?�는 INVISIBLE�??�작 (GONE???�님 - ?�이?�웃 측정?� ?�도�?
                         try { visibility = View.INVISIBLE } catch (_: Throwable) {}
 
                         adListener = object : AdListener() {
                             override fun onAdLoaded() {
                                 Log.d(TAG, "Banner onAdLoaded retryCount=$retryCount")
 
-                                // 📊 타이밍 진단: 배너 광고 로드 완료 시각 기록 + Activity 상태 확인
+                                // ?�� ?�?�밍 진단: 배너 광고 로드 ?�료 ?�각 기록 + Activity ?�태 ?�인
                                 val currentActivity = try {
                                     (context as? android.app.Activity)
                                 } catch (_: Throwable) { null }
                                 val isActivityFinishing = currentActivity?.isFinishing ?: false
-                                kr.sweetapps.alcoholictimer.ads.AdTimingLogger.logBannerLoadComplete(isActivityFinishing)
+                                kr.sweetapps.alcoholictimer.ui.ad.AdTimingLogger.logBannerLoadComplete(isActivityFinishing)
 
                                 val first = !hasSuccessfulLoad
                                 hasSuccessfulLoad = true
                                 consecutiveNoFill = 0
                                 loadState = BannerLoadState.Success
 
-                                // 광고 로드 성공 시 즉시 VISIBLE 처리
+                                // 광고 로드 ?�공 ??즉시 VISIBLE 처리
                                 try {
-                                    if (!kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing() &&
-                                        !kr.sweetapps.alcoholictimer.ads.AdController.bannerForceHiddenFlow.value) {
+                                    if (!kr.sweetapps.alcoholictimer.ui.ad.AdController.isFullScreenAdShowing() &&
+                                        !kr.sweetapps.alcoholictimer.ui.ad.AdController.bannerForceHiddenFlow.value) {
                                         visibility = View.VISIBLE
                                         Log.d(TAG, "Banner onAdLoaded -> set VISIBLE")
                                     } else {
@@ -325,8 +325,8 @@ fun AdmobBanner(
                 },
                 update = { adView ->
                     try {
-                        // 전체화면 광고나 강제 숨김 상태 확인
-                        val shouldHide = kr.sweetapps.alcoholictimer.ads.AdController.isFullScreenAdShowing() || isBannerForceHidden
+                        // ?�체?�면 광고??강제 ?��? ?�태 ?�인
+                        val shouldHide = kr.sweetapps.alcoholictimer.ui.ad.AdController.isFullScreenAdShowing() || isBannerForceHidden
 
                         if (shouldHide) {
                             if (adView.visibility != View.GONE) {
@@ -335,7 +335,7 @@ fun AdmobBanner(
                             }
                             try { adView.pause() } catch (_: Throwable) {}
                         } else {
-                            // 광고가 로드되었으면 VISIBLE, 아니면 INVISIBLE
+                            // 광고가 로드?�었?�면 VISIBLE, ?�니�?INVISIBLE
                             val targetVisibility = if (hasSuccessfulLoad) View.VISIBLE else View.INVISIBLE
                             if (adView.visibility != targetVisibility) {
                                 adView.visibility = targetVisibility
@@ -354,8 +354,8 @@ fun AdmobBanner(
                     if (isPolicyEnabledState.value && canRequest && !hasSuccessfulLoad && loadState is BannerLoadState.Loading && !publisherMisconfigured) {
                         Log.d(TAG, "Issuing initial banner loadAd (canRequest=$canRequest debug=${isDebugBuild()})")
 
-                        // 📊 타이밍 진단: 배너 광고 로드 요청 시각 기록
-                        kr.sweetapps.alcoholictimer.ads.AdTimingLogger.logBannerLoadRequest()
+                        // ?�� ?�?�밍 진단: 배너 광고 로드 ?�청 ?�각 기록
+                        kr.sweetapps.alcoholictimer.ui.ad.AdTimingLogger.logBannerLoadRequest()
 
                         runCatching { adView.loadAd(AdRequestFactory.create(adView.context)) }.onFailure { e -> Log.w(TAG, "initial loadAd threw: ${e.message}") }
                     } else {
@@ -398,11 +398,11 @@ fun AdmobBanner(
                             }
                         } catch (_: Throwable) {}
                     }
-                    try { kr.sweetapps.alcoholictimer.ads.AdController.addFullScreenShowListener(fsListener) } catch (_: Throwable) {}
-                    try { kr.sweetapps.alcoholictimer.ads.AdController.addBannerForceHiddenListener(bfListener) } catch (_: Throwable) {}
+                    try { kr.sweetapps.alcoholictimer.ui.ad.AdController.addFullScreenShowListener(fsListener) } catch (_: Throwable) {}
+                    try { kr.sweetapps.alcoholictimer.ui.ad.AdController.addBannerForceHiddenListener(bfListener) } catch (_: Throwable) {}
                     onDispose {
-                        try { kr.sweetapps.alcoholictimer.ads.AdController.removeFullScreenShowListener(fsListener) } catch (_: Throwable) {}
-                        try { kr.sweetapps.alcoholictimer.ads.AdController.removeBannerForceHiddenListener(bfListener) } catch (_: Throwable) {}
+                        try { kr.sweetapps.alcoholictimer.ui.ad.AdController.removeFullScreenShowListener(fsListener) } catch (_: Throwable) {}
+                        try { kr.sweetapps.alcoholictimer.ui.ad.AdController.removeBannerForceHiddenListener(bfListener) } catch (_: Throwable) {}
                     }
                 } else {
                     onDispose { }
@@ -423,7 +423,7 @@ fun AdmobBanner(
         }
     }
 
-    // 재시도 루프
+    // ?�시??루프
     LaunchedEffect(retryCount) {
         if (retryCount in 1..maxRetry && !hasSuccessfulLoad) {
             val delayMs = retryDelays.getOrNull(retryCount - 1) ?: retryDelays.lastOrNull() ?: 4000L
@@ -452,7 +452,7 @@ fun AdmobBanner(
         }
     }
 
-    // 초기 동의 대기 및 주기적 체크는 LaunchedEffect에서 유지
+    // 초기 ?�의 ?��?�?주기??체크??LaunchedEffect?�서 ?��?
     LaunchedEffect(adViewRef) {
         val view = adViewRef ?: return@LaunchedEffect
         var attempts = 0
@@ -510,7 +510,7 @@ fun AdmobBanner(
         }
     }
 
-    // adView 리소스 해제
+    // adView 리소???�제
     DisposableEffect(adViewRef) {
         onDispose {
             try { adViewRef?.destroy() } catch (_: Throwable) {}

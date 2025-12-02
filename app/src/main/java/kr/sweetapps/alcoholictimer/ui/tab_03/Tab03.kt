@@ -39,8 +39,8 @@ import androidx.compose.foundation.BorderStroke
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.ads.AdController
-import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
+import kr.sweetapps.alcoholictimer.ui.ad.AdController
+import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.AppCard
 import kr.sweetapps.alcoholictimer.core.ui.AppColors

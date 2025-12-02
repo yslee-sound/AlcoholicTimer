@@ -31,7 +31,7 @@ import kr.sweetapps.alcoholictimer.ui.tab_04.SettingsScreen
 import kr.sweetapps.alcoholictimer.ui.tab_01.screens.StartScreen
 import kr.sweetapps.alcoholictimer.feature.profile.NicknameEditScreen
 import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
-import kr.sweetapps.alcoholictimer.ads.HomeAdTrigger
+import kr.sweetapps.alcoholictimer.ui.ad.HomeAdTrigger
 import android.app.Activity
 import androidx.compose.runtime.mutableStateOf
 import kr.sweetapps.alcoholictimer.feature.addrecord.AddRecordScreenComposable

@@ -22,8 +22,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.BackTopBar
 import androidx.compose.ui.platform.LocalContext
-import kr.sweetapps.alcoholictimer.ads.UmpConsentManager as AdsUmpConsentManager
-import kr.sweetapps.alcoholictimer.ads.AppOpenAdManager
+import kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager
 
 // Helper: get Activity from Context
 private fun ContextToActivity(context: android.content.Context): Activity? {
@@ -59,9 +58,11 @@ fun DebugScreen(
                             .makeText(context, "광고 동의 상태가 초기화되었습니다.", Toast.LENGTH_SHORT)
                             .show()
                         try {
-                            AdsUmpConsentManager.resetConsent(context.applicationContext)
-                            Log.d("DebugScreen", "Direct AdsUmpConsentManager.resetConsent invoked from UI")
-                        } catch (_: Throwable) { Log.d("DebugScreen", "AdsUmpConsentManager.resetConsent failed") }
+                            // [수정] MainApplication에서 umpConsentManager 인스턴스 가져오기
+                            val app = context.applicationContext as? kr.sweetapps.alcoholictimer.MainApplication
+                            app?.umpConsentManager?.resetConsent(context.applicationContext)
+                            Log.d("DebugScreen", "Direct umpConsentManager.resetConsent invoked from UI")
+                        } catch (_: Throwable) { Log.d("DebugScreen", "umpConsentManager.resetConsent failed") }
                         try {
                             AppOpenAdManager.preload(context.applicationContext)
                             Log.d("DebugScreen", "Triggered AppOpenAdManager.preload from debug UI")
@@ -71,7 +72,7 @@ fun DebugScreen(
             )
             DebugSwitch(title = "기능 1", checked = uiState.switch1, onCheckedChange = { viewModel.setSwitch(1, it) })
             DebugSwitch(title = "데모 모드", checked = uiState.demoMode, onCheckedChange = { viewModel.setSwitch(2, it) })
-            DebugSwitch(title = "UMP EEA 강제(디버그)", checked = uiState.umpForceEea, onCheckedChange = {
+            DebugSwitch(title = "UMP EEA 강제(서버)", checked = uiState.umpForceEea, onCheckedChange = {
                 viewModel.setSwitch(6, it)
                 Toast.makeText(context, if (it) "UMP: EEA 강제 활성화" else "UMP: EEA 강제 비활성화", Toast.LENGTH_SHORT).show()
                 // If an Activity is available from the composable context, trigger ads-side UMP request immediately
@@ -79,11 +80,13 @@ fun DebugScreen(
                     val act = ContextToActivity(context)
                     if (act != null) {
                         try {
-                            AdsUmpConsentManager.requestAndLoadIfRequired(act) { can ->
-                                Log.d("DebugScreen", "UMP EEA toggle -> Ads UMP request finished -> canRequestAds=$can")
+                            // [수정] MainApplication에서 umpConsentManager 인스턴스 가져오기
+                            val app = context.applicationContext as? kr.sweetapps.alcoholictimer.MainApplication
+                            app?.umpConsentManager?.requestAndLoadIfRequired(act) { can ->
+                                Log.d("DebugScreen", "UMP EEA toggle -> UMP request finished -> canRequestAds=$can")
                             }
                         } catch (e: Throwable) {
-                            Log.d("DebugScreen", "AdsUmpConsentManager.requestAndLoadIfRequired failed: ${e.message}")
+                            Log.d("DebugScreen", "umpConsentManager.requestAndLoadIfRequired failed: ${e.message}")
                         }
                     } else {
                         Log.d("DebugScreen", "UMP EEA toggle changed -> no current Activity available from UI context")

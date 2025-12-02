@@ -18,7 +18,7 @@ import kr.sweetapps.alcoholictimer.core.ui.components.BottomNavBar
 import kotlinx.coroutines.delay
 
 /**
- * 공통 스캐폴드: 상단 배너 광고 + 중앙 콘텐츠 + 하단 Bottom Navigation
+ * 공통 ?�캐?�드: ?�단 배너 광고 + 중앙 콘텐�?+ ?�단 Bottom Navigation
  */
 @Composable
 fun BaseScaffold(
@@ -26,14 +26,14 @@ fun BaseScaffold(
     contentBackground: Color? = null,
     content: @Composable () -> Unit
 ) {
-    // 전면광고 표시 상태 구독
-    val isInterstitialShowing = kr.sweetapps.alcoholictimer.ads.AdController.isInterstitialShowingState()
+    // ?�면광고 ?�시 ?�태 구독
+    val isInterstitialShowing = kr.sweetapps.alcoholictimer.ui.ad.AdController.isInterstitialShowingState()
 
     LaunchedEffect(isInterstitialShowing) {
-        Log.d("BaseScaffold", "🎬 isInterstitialShowing changed: $isInterstitialShowing")
+        Log.d("BaseScaffold", "?�� isInterstitialShowing changed: $isInterstitialShowing")
     }
 
-    // 전면광고 종료 후 짧은 홀드로 시각적 슬라이드를 완충 (애니메이션 제거)
+    // ?�면광고 종료 ??짧�? ?�?�로 ?�각???�라?�드�??�충 (?�니메이???�거)
     var overlayHoldActive by remember { mutableStateOf(false) }
     LaunchedEffect(isInterstitialShowing) {
         if (!isInterstitialShowing) {
@@ -56,12 +56,12 @@ fun BaseScaffold(
                     .fillMaxSize()
                     .windowInsetsPadding(WindowInsets.statusBars)
             ) {
-                // [REMOVED] 배너 광고 제거 (2025-12-01)
+                // [REMOVED] 배너 광고 ?�거 (2025-12-01)
                 // 기존 코드:
                 // AdmobBanner(modifier = Modifier.fillMaxWidth(), reserveSpaceWhenDisabled = true)
                 // HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
 
-                // 중앙 콘텐츠
+                // 중앙 콘텐�?
                 val effectiveBg = when (currentRoute) {
                     Screen.Run.route -> Color(0xFFEEEDE9)
                     else -> contentBackground ?: Color.White
@@ -74,10 +74,10 @@ fun BaseScaffold(
                     content()
                 }
 
-                // 하단 구분선
+                // ?�단 구분??
                 HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
 
-                // Bottom Navigation (제스처/3버튼과 겹치지 않도록 패딩)
+                // Bottom Navigation (?�스�?3버튼�?겹치지 ?�도�??�딩)
                 Surface(
                     modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
                     color = Color.White,
@@ -88,7 +88,7 @@ fun BaseScaffold(
                 }
             }
 
-            // 전면광고 표시 중/종료 직후: 검은 오버레이로 즉시 덮기 (애니메이션 없음)
+            // ?�면광고 ?�시 �?종료 직후: 검?� ?�버?�이�?즉시 ??�� (?�니메이???�음)
             if (overlayVisible) {
                 Box(
                     modifier = Modifier

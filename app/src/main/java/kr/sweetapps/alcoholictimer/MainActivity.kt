@@ -9,7 +9,7 @@ import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
 import kr.sweetapps.alcoholictimer.core.ui.BaseScaffold
 import kr.sweetapps.alcoholictimer.navigation.AlcoholicTimerNavGraph
 import kr.sweetapps.alcoholictimer.navigation.Screen
-import kr.sweetapps.alcoholictimer.ads.InterstitialAdManager
+import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.runtime.Composable
@@ -29,8 +29,8 @@ import kr.sweetapps.alcoholictimer.ui.dialogs.EmergencyRedirectDialog
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.google.android.gms.ads.MobileAds
-import kr.sweetapps.alcoholictimer.ads.AdController
-import kr.sweetapps.alcoholictimer.ads.UmpConsentManager as AdsUmpConsentManager
+import kr.sweetapps.alcoholictimer.ui.ad.AdController
+import kr.sweetapps.alcoholictimer.consent.UmpConsentManager as AdsUmpConsentManager
 
 // small noop comment to trigger reindex
 // MainActivity integrity check
@@ -41,40 +41,40 @@ class MainActivity : BaseActivity() {
     private var pendingShowOnResume: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // 📊 타이밍 진단: MainActivity 진입 시각 기록
-        kr.sweetapps.alcoholictimer.ads.AdTimingLogger.logMainActivityCreate()
+        // ?�� ?�?�밍 진단: MainActivity 진입 ?�각 기록
+        kr.sweetapps.alcoholictimer.ui.ad.AdTimingLogger.logMainActivityCreate()
 
         super.onCreate(savedInstanceState)
 
-        // 스플래시를 광고가 끝날 때까지 유지하는 상태
+        // ?�플?�시�?광고가 ?�날 ?�까지 ?��??�는 ?�태
         val holdSplashState = androidx.compose.runtime.mutableStateOf(true)
 
-        // AndroidX SplashScreen: 테마 스플래시를 holdSplashState가 true인 동안 유지
+        // AndroidX SplashScreen: ?�마 ?�플?�시�?holdSplashState가 true???�안 ?��?
         val splash = installSplashScreen()
         // keep on screen while we want to hold the splash (waiting for ad)
         // note: condition called on main thread
         splash.setKeepOnScreenCondition { holdSplashState.value }
 
-        // 🚨 AdMob 정책 준수: 광고가 표시되지 않을 경우에만 타임아웃
-        // 광고가 표시 중이면 타임아웃 취소하여 뒤에 앱이 보이지 않도록 함
+        // ?�� AdMob ?�책 준?? 광고가 ?�시?��? ?�을 경우?�만 ?�?�아??
+        // 광고가 ?�시 중이�??�?�아??취소?�여 ?�에 ?�이 보이지 ?�도�???
         var timeoutRunnable: Runnable? = null
         timeoutRunnable = Runnable {
-            // 타임아웃 발동 시 AppOpen 광고가 표시 중인지 확인
+            // ?�?�아??발동 ??AppOpen 광고가 ?�시 중인지 ?�인
             val isAppOpenShowing = try {
-                kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.isShowingAd()
+                kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.isShowingAd()
             } catch (_: Throwable) { false }
 
             if (isAppOpenShowing) {
-                // 광고가 표시 중이면 타임아웃을 연장 (1초 후 다시 확인)
+                // 광고가 ?�시 중이�??�?�아?�을 ?�장 (1�????�시 ?�인)
                 android.util.Log.d("MainActivity", "splash timeout deferred - AppOpen ad is showing")
                 window.decorView.postDelayed(timeoutRunnable!!, 1000)
             } else {
-                // 광고가 없으면 Splash 해제
+                // 광고가 ?�으�?Splash ?�제
                 android.util.Log.d("MainActivity", "splash timeout fired -> releasing holdSplashState")
                 holdSplashState.value = false
             }
         }
-        window.decorView.postDelayed(timeoutRunnable, 3000) // 초기 타임아웃 3초로 단축
+        window.decorView.postDelayed(timeoutRunnable, 3000) // 초기 ?�?�아??3초로 ?�축
 
         // Helper to change holdSplashState with logging
         val setHoldSplash: (Boolean) -> Unit = { v ->
@@ -83,7 +83,7 @@ class MainActivity : BaseActivity() {
                 // subsequent background->foreground transitions may trigger AppOpen ads normally.
                 if (!v) {
                     try {
-                        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setAutoShowEnabled(true)
+                        kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setAutoShowEnabled(true)
                         android.util.Log.d("MainActivity", "auto-show re-enabled after splash release")
                     } catch (_: Throwable) {}
                 }
@@ -93,7 +93,7 @@ class MainActivity : BaseActivity() {
         // Use AppOpenAdManager lifecycle handling for foreground shows.
         // Do not disable auto-show or attempt to show manually here; the AppOpenAdManager handles lifecycle-triggered shows.
 
-        // 정책이 비활성화될 때 스플래시를 즉시 해제할 수 있도록 리스너 등록
+        // ?�책??비활?�화?????�플?�시�?즉시 ?�제?????�도�?리스???�록
         try {
             AdController.addSplashReleaseListener {
                 runOnUiThread {
@@ -103,23 +103,23 @@ class MainActivity : BaseActivity() {
             }
         } catch (_: Throwable) {}
 
-        // 🚨 AdMob 정책 준수: AppOpen 광고가 닫힐 때만 Splash 해제
-        // 광고가 표시되는 동안 뒤에 앱이 보이지 않도록 함
+        // ?�� AdMob ?�책 준?? AppOpen 광고가 ?�힐 ?�만 Splash ?�제
+        // 광고가 ?�시?�는 ?�안 ?�에 ?�이 보이지 ?�도�???
         try {
-            kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdFinishedListener {
+            kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdFinishedListener {
                 runOnUiThread {
                     android.util.Log.d("MainActivity", "AppOpen ad finished -> releasing splash")
                     setHoldSplash(false)
-                    // 타임아웃도 취소
+                    // ?�?�아?�도 취소
                     timeoutRunnable?.let { window.decorView.removeCallbacks(it) }
                 }
             }
         } catch (_: Throwable) {}
 
-        // 광고가 실제로 화면에 나타나는 시점에 스플래시를 해제하여 검은 화면 간격을 제거
+        // 광고가 ?�제�??�면???��??�는 ?�점???�플?�시�??�제?�여 검?� ?�면 간격???�거
         // Leave ad shown handling to the AppOpenAdManager; keep only the splash timeout to avoid permanent blocking
 
-        // 강제 라이트 모드 설정
+        // 강제 ?�이??모드 ?�정
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
         val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
@@ -130,16 +130,16 @@ class MainActivity : BaseActivity() {
         val umpConsentManager = (application as MainApplication).umpConsentManager
         umpConsentManager.gatherConsent(this) { canInitializeAds ->
             if (canInitializeAds) {
-                // 광고 SDK 초기화 코드
+                // 광고 SDK 초기??코드
                 MobileAds.initialize(this) {}
                 InterstitialAdManager.preload(this)
                 // Ensure AppOpen preload runs after MobileAds initialization / consent
                 try {
                     android.util.Log.d("MainActivity", "Post-initialize: preloading AppOpen via AppOpenAdManager")
-                    kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.preload(this)
+                    kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.preload(this)
                 } catch (_: Throwable) { android.util.Log.w("MainActivity", "AppOpen preload failed post-initialize") }
                 // Ads-side consent proxy: ensure ads-side manager has checked consent and loads if allowed
-                try { AdsUmpConsentManager.requestAndLoadIfRequired(this) { _ -> } } catch (_: Throwable) {}
+                // [수정] AdsUmpConsentManager는 umpConsentManager 인스턴스를 통해 이미 처리됨
             }
         }
 
@@ -150,13 +150,13 @@ class MainActivity : BaseActivity() {
     override fun onDestroy() {
         super.onDestroy()
 
-        // 📊 타이밍 진단: 최종 리포트 출력
-        kr.sweetapps.alcoholictimer.ads.AdTimingLogger.printTimingReport()
+        // ?�� ?�?�밍 진단: 최종 리포??출력
+        kr.sweetapps.alcoholictimer.ui.ad.AdTimingLogger.printTimingReport()
 
-        // 리스너 해제
-        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdLoadedListener(null)
-        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdFinishedListener(null)
-        kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.setOnAdShownListener(null)
+        // 리스???�제
+        kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdLoadedListener(null)
+        kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdFinishedListener(null)
+        kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdShownListener(null)
     }
 
     override fun onResume() {
@@ -167,9 +167,9 @@ class MainActivity : BaseActivity() {
             android.util.Log.d("MainActivity", "onResume: pendingShowOnResume=true -> attempting show")
             pendingShowOnResume = false
             runCatching {
-                if (kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.isLoaded()) {
+                if (kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.isLoaded()) {
                     android.util.Log.d("MainActivity", "onResume: ad loaded -> attempting show while keeping splash")
-                    val shown = kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.showIfAvailable(this)
+                    val shown = kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.showIfAvailable(this)
                     android.util.Log.d("MainActivity", "onResume: showIfAvailable returned=$shown")
                     if (shown) {
                         window.decorView.post { applySystemBarAppearance() }
@@ -182,7 +182,7 @@ class MainActivity : BaseActivity() {
             }
         }
 
-        // 시스템바 appearance 직접 재적용 코드 제거됨 (BaseActivity에서 일괄 적용)
+        // ?�스?�바 appearance 직접 ?�적??코드 ?�거??(BaseActivity?�서 ?�괄 ?�용)
     }
 
     override fun onPause() {
@@ -193,19 +193,19 @@ class MainActivity : BaseActivity() {
     override fun onStop() {
         super.onStop()
 
-        // 🚀 장기 최적화: AppOpen 광고 프리캐싱
-        // 앱이 백그라운드로 갈 때 다음 AppOpen 광고를 미리 로드
-        // 효과: 다음 실행 시 광고가 이미 준비되어 즉시 표시 가능
-        // 예상 개선: 노출률 70% → 80% (추가 10% 개선)
+        // ?? ?�기 최적?? AppOpen 광고 ?�리캐싱
+        // ?�이 백그?�운?�로 �????�음 AppOpen 광고�?미리 로드
+        // ?�과: ?�음 ?�행 ??광고가 ?��? 준비되??즉시 ?�시 가??
+        // ?�상 개선: ?�출�?70% ??80% (추�? 10% 개선)
         try {
             android.util.Log.d("MainActivity", "onStop: preloading next AppOpen ad for future use")
-            kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.preload(applicationContext)
+            kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.preload(applicationContext)
         } catch (e: Throwable) {
             android.util.Log.w("MainActivity", "onStop: AppOpen preload failed: ${e.message}")
         }
     }
 
-    // BaseActivity의 추상 함수 구현
+    // BaseActivity??추상 ?�수 구현
     @Deprecated("Overrides deprecated API from BaseActivity")
     override fun getScreenTitle(): String = getString(R.string.app_name)
 }
@@ -273,7 +273,7 @@ private fun AppContentWithStart(
         OptionalUpdateDialog(
             isForce = policy.isForceUpdate,
             title = stringResource(id = R.string.update_dialog_title),
-            features = listOf(policy.releaseNotes ?: "업데이트 안내 없음"),
+            features = listOf(policy.releaseNotes ?: "?�데?�트 ?�내 ?�음"),
             updateButtonText = stringResource(id = R.string.update_dialog_update),
             laterButtonText = stringResource(id = R.string.update_dialog_later),
             onUpdateClick = {

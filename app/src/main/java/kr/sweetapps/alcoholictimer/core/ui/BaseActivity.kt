@@ -34,11 +34,11 @@ import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.predictAnchoredBannerHeightDp
 
-// 전역 입력 잠금 요청을 위한 CompositionLocal
+// ?�역 ?�력 ?�금 ?�청???�한 CompositionLocal
 @Suppress("unused")
 val LocalRequestGlobalLock = compositionLocalOf<(Long) -> Unit> { { _: Long -> } }
 
-// 전역 안전 패딩(LocalSafeContentPadding) 제공
+// ?�역 ?�전 ?�딩(LocalSafeContentPadding) ?�공
 val LocalSafeContentPadding = compositionLocalOf { PaddingValues(bottom = 0.dp) }
 
 abstract class BaseActivity : ComponentActivity() {
@@ -52,8 +52,8 @@ abstract class BaseActivity : ComponentActivity() {
         applySystemBarAppearance()
 
         // Check and prevent simultaneous ad displays
-        if (kr.sweetapps.alcoholictimer.ads.AppOpenAdManager.isShowingAd() ||
-            kr.sweetapps.alcoholictimer.ads.InterstitialAdManager.isShowingAd()) {
+        if (kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.isShowingAd() ||
+            kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isShowingAd()) {
             android.util.Log.d("BaseActivity", "Ad display suppressed: another ad is already showing")
             return
         }
@@ -101,7 +101,7 @@ abstract class BaseActivity : ComponentActivity() {
      */
     @Suppress("unused")
     protected fun shouldHideBanner(): Boolean {
-        // note: verification script searches for both forms below — keep both present in file as literal
+        // note: verification script searches for both forms below ??keep both present in file as literal
         // if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) { /* ... */ } // verifyReleaseAdConfig matcher
         // if (BuildConfig.DEBUG) { /* ... */ } // verifyReleaseAdConfig matcher
         return BuildConfig.DEBUG
@@ -125,7 +125,7 @@ abstract class BaseActivity : ComponentActivity() {
         AlcoholicTimerTheme(darkTheme = false, applySystemBars = applySystemBars) {
             val blurRadius = animateFloatAsState(0f, tween(0), label = "blur").value
 
-            // 하단 패딩 계산(내비/IME + 추가 여백)
+            // ?�단 ?�딩 계산(?�비/IME + 추�? ?�백)
             val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
             val imeBottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
             val effectiveBottom = maxOf(navBottom, imeBottom)
@@ -190,7 +190,7 @@ abstract class BaseActivity : ComponentActivity() {
                     contentWindowInsets = WindowInsets(0, 0, 0, 0)
                 ) { paddingValues ->
                     Column(modifier = Modifier.fillMaxSize()) {
-                        // 콘텐츠
+                        // 콘텐�?
                         Box(modifier = Modifier.fillMaxSize().weight(1f)) {
                             Box(modifier = Modifier.matchParentSize().background(MaterialTheme.colorScheme.surfaceVariant))
                             val insetModifier = if (applyBottomInsets) {
@@ -206,7 +206,7 @@ abstract class BaseActivity : ComponentActivity() {
                                     .blur(radius = blurRadius.dp)
                             ) { content() }
                         }
-                        // 하단 배너 영역(옵션)
+                        // ?�단 배너 ?�역(?�션)
                         val showOrReserveAd = (bottomAd != null) || reserveSpaceForBottomAd
                         if (!manageBottomAreaExternally) {
                             if (showOrReserveAd) {
@@ -218,9 +218,9 @@ abstract class BaseActivity : ComponentActivity() {
                                             .background(MaterialTheme.colorScheme.surfaceVariant)
                                     )
                                 }
-                                // 배너 상단 헤어라인
+                                // 배너 ?�단 ?�어?�인
                                 HorizontalDivider(thickness = AppBorder.Hairline, color = Color(0xFFE0E0E0))
-                                // 화면 폭 기준 Anchored Adaptive 배너 예상 높이
+                                // ?�면 ??기�? Anchored Adaptive 배너 ?�상 ?�이
                                 val predictedBannerH = predictAnchoredBannerHeightDp()
                                 Surface(color = Color.White, shadowElevation = 0.dp, tonalElevation = 0.dp) {
                                     Box(
@@ -241,7 +241,7 @@ abstract class BaseActivity : ComponentActivity() {
         }
     }
 
-    /** 메인 홈 화면으로 이동 - Compose NavHost(MainActivity)로 통합 */
+    /** 메인 ???�면?�로 ?�동 - Compose NavHost(MainActivity)�??�합 */
     @Suppress("DEPRECATION")
     protected fun navigateToMainHome() {
         if (this is MainActivity) return
