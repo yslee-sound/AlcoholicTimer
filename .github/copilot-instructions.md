@@ -105,3 +105,9 @@ Define the purpose of this chat mode and how AI should behave: response style, a
   - 무엇을 변경했는지 (한 줄 요약)
   - 빌드 결과 (성공/실패)
   - 다음 단계 안내 (필요 시)
+
+# 문서 작성 규칙
+
+- **CHANGELOG.md 작성 금지**: 변경 사항을 CHANGELOG.md에 기록하지 마세요. 이 파일은 일관적으로 관리되지 않으므로 작성하지 않습니다.
+- Git 커밋 메시지로 변경 이력을 관리합니다.
+
