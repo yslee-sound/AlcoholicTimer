@@ -90,5 +90,53 @@ object TimerStateRepository {
         }
         Log.d(TAG, "타이머 초기화 완료")
     }
+
+    // [NEW] 타이머 테스트 모드 관련 함수들
+    private const val PREF_IS_TIMER_TEST_MODE_ENABLED = "IS_TIMER_TEST_MODE_ENABLED"
+
+    /**
+     * 타이머 테스트 모드 설정 저장
+     * @param isEnabled true이면 N일 → N초, false이면 정상 모드
+     */
+    fun setTimerTestModeEnabled(isEnabled: Boolean) {
+        sharedPreferences?.edit()?.apply {
+            putBoolean(PREF_IS_TIMER_TEST_MODE_ENABLED, isEnabled)
+            apply()
+        }
+        Log.d(TAG, "타이머 테스트 모드 설정: $isEnabled (${if (isEnabled) "N일 → N초" else "정상 모드"})")
+    }
+
+    /**
+     * 타이머 테스트 모드 상태 확인
+     * @return true이면 테스트 모드 활성화 (N일 → N초), false이면 정상 모드
+     */
+    fun isTimerTestModeEnabled(): Boolean {
+        val isEnabled = sharedPreferences?.getBoolean(PREF_IS_TIMER_TEST_MODE_ENABLED, false) ?: false
+        Log.d(TAG, "타이머 테스트 모드 확인: $isEnabled")
+        return isEnabled
+    }
+
+    /**
+     * 타이머 시간 스케일링 팩터 반환
+     * @return 테스트 모드면 1L (초), 정상 모드면 86400L (1일의 초)
+     */
+    fun getTimeScalingFactor(): Long {
+        val isTestMode = isTimerTestModeEnabled()
+        val factor = if (isTestMode) 1L else 86400L
+        Log.d(TAG, "시간 스케일링 팩터: $factor (${if (isTestMode) "테스트 모드: 1초" else "정상 모드: 1일"})")
+        return factor
+    }
+
+    /**
+     * 입력된 일수를 실제 초로 변환
+     * @param inputDays 사용자가 입력한 일수
+     * @return 실제 타이머에 사용될 총 초 (테스트 모드면 inputDays초, 정상 모드면 inputDays*86400초)
+     */
+    fun convertDaysToSeconds(inputDays: Long): Long {
+        val scalingFactor = getTimeScalingFactor()
+        val totalSeconds = inputDays * scalingFactor
+        Log.d(TAG, "일수 변환: $inputDays 일 → $totalSeconds 초 (팩터: $scalingFactor)")
+        return totalSeconds
+    }
 }
 

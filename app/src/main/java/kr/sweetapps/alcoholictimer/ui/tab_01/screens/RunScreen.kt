@@ -120,10 +120,13 @@ fun RunScreenComposable(
         }
     }
 
+    // [NEW] 타이머 테스트 모드를 고려한 동적 DAY_IN_MILLIS
+    val dayInMillis = remember { Constants.getDayInMillis(context) }
+
     val elapsedMillis by remember(now, startTime, isDemoMode) {
         derivedStateOf {
             if (isDemoMode) {
-                (DemoData.DEMO_ELAPSED_DAYS * Constants.DAY_IN_MILLIS).toLong()
+                (DemoData.DEMO_ELAPSED_DAYS * dayInMillis).toLong()
             } else if (startTime > 0) {
                 now - startTime
             } else {
@@ -132,9 +135,9 @@ fun RunScreenComposable(
         }
     }
 
-    val elapsedDaysFloat = remember(elapsedMillis) { elapsedMillis / Constants.DAY_IN_MILLIS.toFloat() }
+    val elapsedDaysFloat = remember(elapsedMillis, dayInMillis) { elapsedMillis / dayInMillis.toFloat() }
 
-    val levelDays = remember(elapsedMillis) { Constants.calculateLevelDays(elapsedMillis) }
+    val levelDays = remember(elapsedMillis, dayInMillis) { (elapsedMillis / dayInMillis).toInt() }
     val levelInfo = remember(levelDays) { LevelDefinitions.getLevelInfo(levelDays) }
     val levelNumber = if (isDemoMode) DemoData.DEMO_LEVEL else remember(levelDays) { LevelDefinitions.getLevelNumber(levelDays) + 1 } // +1 for display (1-indexed)
     val levelDisplayText = "Lv.$levelNumber"
@@ -180,7 +183,7 @@ fun RunScreenComposable(
         out
     }
 
-    val totalTargetMillis = (targetDays * Constants.DAY_IN_MILLIS).toLong()
+    val totalTargetMillis = remember(targetDays, dayInMillis) { (targetDays * dayInMillis).toLong() }
     val progress = remember(elapsedMillis, totalTargetMillis) {
         if (totalTargetMillis > 0) (elapsedMillis.toFloat() / totalTargetMillis).coerceIn(0f, 1f) else 0f
     }
@@ -202,7 +205,7 @@ fun RunScreenComposable(
             if (!hasCompleted && progress >= 1f && startTime > 0) {
                 try {
                     val endTs = System.currentTimeMillis()
-                    val actualDaysInt = (elapsedMillis / Constants.DAY_IN_MILLIS).toInt()
+                    val actualDaysInt = (elapsedMillis / dayInMillis).toInt()
                     saveCompletedRecord(
                         context = context,
                         startTime = startTime,
@@ -230,7 +233,7 @@ fun RunScreenComposable(
                             startTime = startTime,
                             endTime = System.currentTimeMillis(),
                             targetDays = targetDays,
-                            actualDays = (elapsedMillis / Constants.DAY_IN_MILLIS).toInt(),
+                            actualDays = (elapsedMillis / dayInMillis).toInt(),
                             isCompleted = true
                         )
                         onCompletedNavigateToDetail?.invoke(route)

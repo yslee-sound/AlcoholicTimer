@@ -98,6 +98,21 @@ object Constants {
     const val MINUTE_IN_MILLIS = 1000L * 60
     const val SECOND_IN_MILLIS = 1000L
 
+    // [NEW] 타이머 테스트 모드를 고려한 동적 DAY_IN_MILLIS
+    /**
+     * 타이머 테스트 모드 상태에 따라 1일의 밀리초 값을 반환
+     * @param context Context (SharedPreferences 접근용)
+     * @return 테스트 모드면 1000L (1초), 정상 모드면 86400000L (1일)
+     */
+    fun getDayInMillis(context: Context): Long {
+        return try {
+            val scalingFactor = kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.getTimeScalingFactor()
+            scalingFactor * 1000L // 초를 밀리초로 변환
+        } catch (t: Throwable) {
+            DAY_IN_MILLIS // 오류 시 기본값
+        }
+    }
+
     const val RESULT_SCREEN_DELAY = 2000
     const val DEFAULT_VALUE = 2000
     const val DEFAULT_HANGOVER_HOURS = 5
