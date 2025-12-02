@@ -99,6 +99,27 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
+    // [NEW] 디버그 모드 광고 쿨타임 설정
+    fun setDebugAdCoolDown(context: Context, seconds: Long) {
+        if (!BuildConfig.DEBUG) return
+        try {
+            kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.setDebugCoolDownSeconds(context, seconds)
+            Log.d("DebugScreenVM", "광고 쿨타임 설정: $seconds 초")
+        } catch (t: Throwable) {
+            Log.e("DebugScreenVM", "광고 쿨타임 설정 실패", t)
+        }
+    }
+
+    // [NEW] 디버그 모드 광고 쿨타임 가져오기
+    fun getDebugAdCoolDown(context: Context): Long {
+        return try {
+            kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.getDebugCoolDownSeconds(context)
+        } catch (t: Throwable) {
+            Log.e("DebugScreenVM", "광고 쿨타임 로드 실패", t)
+            -1L
+        }
+    }
+
     fun resetConsent() {
         if (!BuildConfig.DEBUG) return
         Log.d("DebugScreenVM", "resetConsent called")

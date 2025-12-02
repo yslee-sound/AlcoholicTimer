@@ -66,8 +66,11 @@ fun FinishedScreen(
                     Log.d("FinishedScreen", "결과 확인 버튼 클릭")
                     val activity = context as? Activity
 
-                    if (activity != null && InterstitialAdManager.isLoaded()) {
-                        Log.d("FinishedScreen", "전면 광고 표시 시작")
+                    // [NEW] AdPolicyManager로 전면 광고 정책 확인
+                    val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
+
+                    if (shouldShowAd && activity != null && InterstitialAdManager.isLoaded()) {
+                        Log.d("FinishedScreen", "전면 광고 쿨타임 OK -> 광고 표시 시작")
                         InterstitialAdManager.show(activity) { success ->
                             if (success) {
                                 Log.d("FinishedScreen", "전면 광고 닫힘 -> 결과 확인")
@@ -77,7 +80,11 @@ fun FinishedScreen(
                             onResultCheck()
                         }
                     } else {
-                        Log.d("FinishedScreen", "전면 광고 없음 -> 즉시 결과 확인")
+                        if (!shouldShowAd) {
+                            Log.d("FinishedScreen", "전면 광고 쿨타임 중 -> 광고 스킵하고 결과 확인")
+                        } else {
+                            Log.d("FinishedScreen", "전면 광고 없음 -> 즉시 결과 확인")
+                        }
                         onResultCheck()
                     }
                 },

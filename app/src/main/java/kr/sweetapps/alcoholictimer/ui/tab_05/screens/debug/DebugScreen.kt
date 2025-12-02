@@ -18,6 +18,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.BackTopBar
@@ -87,6 +96,58 @@ fun DebugScreen(
                     Log.d("DebugScreen", "타이머 테스트 모드 변경: $it")
                 }
             )
+
+            // [NEW] 전면 광고 쿨타임 설정 (초 단위)
+            if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    Text(
+                        text = "전면 광고 쿨타임 (초)",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    val coolDownInput = remember {
+                        mutableStateOf(
+                            viewModel.getDebugAdCoolDown(context).let {
+                                if (it > 0) it.toString() else "1"
+                            }
+                        )
+                    }
+
+                    OutlinedTextField(
+                        value = coolDownInput.value,
+                        onValueChange = { newValue ->
+                            // 숫자만 입력 가능
+                            if (newValue.isEmpty() || newValue.all { it.isDigit() }) {
+                                coolDownInput.value = newValue
+                                // 값이 비어있지 않으면 즉시 저장
+                                if (newValue.isNotEmpty()) {
+                                    val seconds = newValue.toLongOrNull() ?: 1L
+                                    viewModel.setDebugAdCoolDown(context, seconds)
+                                    Log.d("DebugScreen", "전면 광고 쿨타임 설정: $seconds 초")
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number
+                        ),
+                        singleLine = true,
+                        placeholder = { Text("1 (테스트용)") },
+                        supportingText = {
+                            Text(
+                                "1초 권장 (빠른 테스트용). 릴리즈는 30분 고정.",
+                                fontSize = 12.sp
+                            )
+                        }
+                    )
+                }
+            }
 
             DebugSwitch(title = "UMP EEA 강제(서버)", checked = uiState.umpForceEea, onCheckedChange = {
                 viewModel.setSwitch(6, it)
