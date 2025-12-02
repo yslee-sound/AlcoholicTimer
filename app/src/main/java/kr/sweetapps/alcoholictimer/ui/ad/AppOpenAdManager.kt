@@ -166,7 +166,7 @@ object AppOpenAdManager {
     }
 
     fun preload(context: Context) {
-        // ?�� ?�?�밍 진단: AppOpen 광고 로드 ?�청 ?�각 기록
+        // ?�� ?�?�밍 진단: AppOpen 광고 로드 ?�청 ?�각 기록
         kr.sweetapps.alcoholictimer.ui.ad.AdTimingLogger.logAppOpenLoadRequest()
 
         // don't start loading if already loading or loaded
@@ -189,7 +189,7 @@ object AppOpenAdManager {
                 override fun onAdLoaded(ad: AppOpenAd) {
                     Log.d(TAG, "onAdLoaded app-open")
 
-                    // ?�� ?�?�밍 진단: AppOpen 광고 로드 ?�료 ?�각 기록
+                    // ?�� ?�?�밍 진단: AppOpen 광고 로드 ?�료 ?�각 기록
                     kr.sweetapps.alcoholictimer.ui.ad.AdTimingLogger.logAppOpenLoadComplete()
 
                     appOpenAd = ad
@@ -233,7 +233,7 @@ object AppOpenAdManager {
                             lastShownAt = System.currentTimeMillis()
                             // Record shown in central controller so policy counters update
                             try { applicationRef?.let { AdController.recordAppOpenShown(it.applicationContext) } } catch (_: Throwable) {}
-                            // Note: setBannerForceHidden(true)???��? show() ?�출 ?�에 ?�행??(중복 방�?)
+                            // Note: setBannerForceHidden(true)???��? show() ?�출 ?�에 ?�행??(중복 방�?)
                             try { AdController.setFullScreenAdShowing(true) } catch (_: Throwable) {}
                             try { Log.d(TAG, "onAdShowed -> AdController.debugSnapshot=${AdController.debugSnapshot()}") } catch (_: Throwable) {}
                             try { onShownListener?.invoke() } catch (_: Throwable) {}
@@ -247,7 +247,7 @@ object AppOpenAdManager {
                             appOpenAd = null
                             loaded = false
 
-                            // ?�� ?�발 방�?: 배너 복구�??�실?�게 보장
+                            // ?�� ?�발 방�?: 배너 복구�??�실?�게 보장
                             try { AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
                             try { kr.sweetapps.alcoholictimer.ui.ad.AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
                             try { AdController.notifyFullScreenDismissed() } catch (_: Throwable) {}
@@ -262,7 +262,7 @@ object AppOpenAdManager {
                             loaded = false
                             lastDismissedAt = System.currentTimeMillis()
 
-                            // ?�� ?�발 방�?: 배너 복구�??�실?�게 보장 (?�서 중요!)
+                            // ?�� ?�발 방�?: 배너 복구�??�실?�게 보장 (?�서 중요!)
                             try { AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
                             try { kr.sweetapps.alcoholictimer.ui.ad.AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
                             try { AdController.notifyFullScreenDismissed() } catch (_: Throwable) {}
@@ -351,30 +351,25 @@ object AppOpenAdManager {
             return false
         }
 
-        // ?�� AdMob ?�책 준?? show() ?�출 직전??배너�?즉시 ?�겨??겹침 방�?
+        // ?�� AdMob ?�책 준?? show() ?�출 직전??배너�?즉시 ?�겨??겹침 방�?
         try {
             Log.d(TAG, "showIfAvailable: hiding banner IMMEDIATELY before show() to prevent overlap (AdMob policy)")
             try { AdController.hideBannerImmediately("appOpenBeforeShow") } catch (_: Throwable) {}
 
-            // 추�? ?�전?�치: StateFlow???�데?�트
+            // 추�? ?�전?�치: StateFlow???�데?�트
             try { kr.sweetapps.alcoholictimer.ui.ad.AdController.setBannerForceHidden(true) } catch (_: Throwable) {}
             try { AdController.setFullScreenAdShowing(true) } catch (_: Throwable) {}
 
-            // 150ms 지?�으�?Compose가 ?�실??recomposition ?�료?�도�?보장
-            // (80ms ??150ms�?증�?: ???�실??배너 ?��? 보장)
+            // [수정] 150ms 지연 제거 - 광고를 즉시 표시하여 스플래시 화면이 먼저 해제되는 것 방지
+            // AdMob 정책: 광고가 완전히 표시되고 사용자가 닫을 때까지 다른 화면으로 이동 금지
             try {
-                mainHandler.postDelayed({
-                    try {
-                        appOpenAd?.show(activity)
-                        Log.d(TAG, "showIfAvailable: appOpenAd.show() called after 150ms delay")
-                    } catch (t: Throwable) {
-                        Log.w(TAG, "delayed show failed: ${t.message}")
-                        try { kr.sweetapps.alcoholictimer.ui.ad.AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
-                        try { AdController.ensureBannerVisible("appOpenShowException") } catch (_: Throwable) {}
-                    }
-                }, 150L)
-            } catch (_: Throwable) {
-                try { appOpenAd?.show(activity); Log.d(TAG, "showIfAvailable: appOpenAd.show() called fallback") } catch (_: Throwable) { Log.w(TAG, "show fallback failed") }
+                appOpenAd?.show(activity)
+                Log.d(TAG, "showIfAvailable: appOpenAd.show() called immediately (AdMob policy compliance)")
+            } catch (t: Throwable) {
+                Log.w(TAG, "show failed: ${t.message}")
+                try { kr.sweetapps.alcoholictimer.ui.ad.AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
+                try { AdController.ensureBannerVisible("appOpenShowException") } catch (_: Throwable) {}
+                return false
             }
              return true
          } catch (t: Throwable) {

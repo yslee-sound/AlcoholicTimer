@@ -215,6 +215,20 @@ fun RunScreenComposable(
                     )
                     sp!!.edit().remove(Constants.PREF_START_TIME).putBoolean(Constants.PREF_TIMER_COMPLETED, true).apply()
 
+                    // [NEW] 완료된 기록 정보를 SharedPreferences에 저장 (FinishedScreen에서 사용)
+                    try {
+                        sp!!.edit().apply {
+                            putLong("completed_start_time", startTime)
+                            putLong("completed_end_time", endTs)
+                            putFloat("completed_target_days", targetDays)
+                            putInt("completed_actual_days", actualDaysInt)
+                            apply()
+                        }
+                        android.util.Log.d("RunScreen", "완료 기록 저장: startTime=$startTime, endTime=$endTs, targetDays=$targetDays, actualDays=$actualDaysInt")
+                    } catch (t: Throwable) {
+                        android.util.Log.e("RunScreen", "완료 기록 저장 실패", t)
+                    }
+
                     // [NEW] TimerStateRepository에 만료 상태 저장
                     try {
                         kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(true)

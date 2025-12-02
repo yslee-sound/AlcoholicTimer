@@ -18,7 +18,7 @@ import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
 /**
  * 타이머 완료 화면 (임시 UI)
  * - "목표 달성 완료!" 메시지
- * - "결과 확인" 버튼 (전면 광고 연동)
+ * - "결과 확인" 버튼 (전면 광고 연동 → 기록 상세 화면)
  * - "새 타이머 시작" 버튼
  */
 @Composable
@@ -27,6 +27,17 @@ fun FinishedScreen(
     onNewTimerStart: () -> Unit = {}
 ) {
     val context = LocalContext.current
+
+    // [NEW] SharedPreferences에서 완료된 기록 정보 가져오기
+    val sharedPref = remember {
+        context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+    }
+
+    // 완료된 타이머의 정보
+    val completedStartTime = remember { sharedPref.getLong("completed_start_time", 0L) }
+    val completedEndTime = remember { sharedPref.getLong("completed_end_time", 0L) }
+    val completedTargetDays = remember { sharedPref.getFloat("completed_target_days", 0f) }
+    val completedActualDays = remember { sharedPref.getInt("completed_actual_days", 0) }
 
     Box(
         modifier = Modifier

@@ -123,15 +123,45 @@ fun AlcoholicTimerNavGraph(
 
         // [NEW] 타이머 완료 화면
         composable(Screen.Finished.route) {
+            val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+
             kr.sweetapps.alcoholictimer.ui.tab_01.screens.FinishedScreen(
                 onResultCheck = {
-                    // 결과 확인 버튼 - 결과 화면으로 이동 (추후 구현)
-                    android.util.Log.d("NavGraph", "결과 확인 -> Records 화면으로 이동")
-                    navController.navigate(Screen.Records.route) {
-                        popUpTo(Screen.Finished.route) { inclusive = true }
-                        launchSingleTop = true
+                    // [NEW] 완료된 기록의 상세 화면으로 이동
+                    try {
+                        val completedStartTime = sharedPref.getLong("completed_start_time", 0L)
+                        val completedEndTime = sharedPref.getLong("completed_end_time", 0L)
+                        val completedTargetDays = sharedPref.getFloat("completed_target_days", 21f)
+                        val completedActualDays = sharedPref.getInt("completed_actual_days", 0)
+
+                        if (completedStartTime > 0 && completedEndTime > 0) {
+                            // 기록 상세 화면으로 이동
+                            val route = Screen.Detail.createRoute(
+                                startTime = completedStartTime,
+                                endTime = completedEndTime,
+                                targetDays = completedTargetDays,
+                                actualDays = completedActualDays,
+                                isCompleted = true
+                            )
+
+                            android.util.Log.d("NavGraph", "결과 확인 -> Detail 화면으로 이동: $route")
+                            navController.navigate(route)
+                        } else {
+                            // 기록 정보가 없으면 Records 화면으로
+                            android.util.Log.w("NavGraph", "완료 기록 없음 -> Records 화면으로 이동")
+                            navController.navigate(Screen.Records.route) {
+                                popUpTo(Screen.Finished.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                            recordsRefreshCounter++
+                        }
+                    } catch (t: Throwable) {
+                        android.util.Log.e("NavGraph", "결과 확인 실패", t)
+                        navController.navigate(Screen.Records.route) {
+                            popUpTo(Screen.Finished.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
                     }
-                    recordsRefreshCounter++ // 기록 목록 갱신
                 },
                 onNewTimerStart = {
                     // 새 타이머 시작 버튼
@@ -150,7 +180,6 @@ fun AlcoholicTimerNavGraph(
                     navController.navigate(Screen.Start.route) {
                         popUpTo(navController.graph.startDestinationId) { inclusive = true }
                         launchSingleTop = true
-                        restoreState = true
                     }
                 },
                 onCancel = { navController.popBackStack() }
@@ -211,7 +240,6 @@ fun AlcoholicTimerNavGraph(
                     navController.navigate(Screen.Start.route) {
                         popUpTo(navController.graph.startDestinationId) { inclusive = true }
                         launchSingleTop = true
-                        restoreState = true
                     }
                 }
             })
