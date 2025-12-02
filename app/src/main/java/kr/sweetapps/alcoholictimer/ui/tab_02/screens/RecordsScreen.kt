@@ -339,6 +339,25 @@ fun RecordsScreen(
                     CircularProgressIndicator()
                 }
             }
+
+            // [NEW] 글쓰기 FAB (우측 하단)
+            FloatingActionButton(
+                onClick = { onAddRecord() },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(
+                        end = 16.dp,
+                        bottom = safePadding.calculateBottomPadding() + 16.dp
+                    ),
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_plus),
+                    contentDescription = "일기 작성",
+                    modifier = Modifier.size(24.dp)
+                )
+            }
         }
     }
 
@@ -854,7 +873,7 @@ data class DiaryEntry(
  * [NEW] 최근 금주 일기 섹션
  */
 @Composable
-private fun RecentDiarySection() {
+private fun RecentDiarySection(onNavigateToAllDiaries: () -> Unit = {}) {
     // TODO: 실제 데이터는 데이터베이스에서 가져올 예정
     val sampleDiaries = listOf(
         DiaryEntry("12.02 (일)", "😊", "오늘 하루도 무사히..."),
@@ -863,12 +882,28 @@ private fun RecentDiarySection() {
     )
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        // [수정] 헤더를 카드 밖으로 이동
-        Text(
-            text = "최근 금주 일기",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        // [NEW] 헤더: 제목 + 전체 보기 버튼
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "최근 금주 일기",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            // [NEW] 전체 보기 버튼 (우측 화살표 아이콘)
+            IconButton(onClick = onNavigateToAllDiaries) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_caret_right),
+                    contentDescription = "전체 일기 보기",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
 
