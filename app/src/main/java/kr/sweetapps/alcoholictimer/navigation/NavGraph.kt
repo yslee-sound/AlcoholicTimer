@@ -233,7 +233,7 @@ fun AlcoholicTimerNavGraph(
                     )
                     navController.navigate(route)
                 },
-                onAddRecord = { navController.navigate(Screen.AddRecord.route) }
+                onAddRecord = { navController.navigate(Screen.DiaryWrite.route) } // [수정] 일기 작성 화면으로 연결
             )
         }
 
@@ -263,6 +263,41 @@ fun AlcoholicTimerNavGraph(
                     navController.navigate(route)
                 },
                 onAddRecord = { navController.navigate(Screen.AddRecord.route) } // [NEW] 기록 추가 기능 연결
+            )
+        }
+
+        // [NEW] 일기 작성 화면
+        composable(Screen.DiaryWrite.route) {
+            kr.sweetapps.alcoholictimer.ui.diary.DiaryWriteScreen(
+                onDismiss = { navController.popBackStack() },
+                onSave = { emoji, content, cravingLevel ->
+                    android.util.Log.d("NavGraph", "일기 저장: emoji=$emoji, craving=$cravingLevel")
+
+                    // [수익화] 저장 후 광고 정책 체크
+                    val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
+
+                    val proceedToComplete: () -> Unit = {
+                        // TODO: 실제 데이터베이스에 저장
+                        android.util.Log.d("NavGraph", "일기 저장 완료 -> Records 화면으로 복귀")
+                        navController.popBackStack()
+                    }
+
+                    if (shouldShowAd && activity != null) {
+                        android.util.Log.d("NavGraph", "일기 저장 광고 정책 통과 -> 전면 광고 노출")
+                        if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
+                            kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(activity) { success ->
+                                android.util.Log.d("NavGraph", "일기 저장 광고 결과: success=$success")
+                                proceedToComplete()
+                            }
+                        } else {
+                            android.util.Log.d("NavGraph", "일기 저장 광고 로드 안됨 -> 즉시 완료")
+                            proceedToComplete()
+                        }
+                    } else {
+                        android.util.Log.d("NavGraph", "일기 저장 광고 쿨타임 중 -> 즉시 완료")
+                        proceedToComplete()
+                    }
+                }
             )
         }
 

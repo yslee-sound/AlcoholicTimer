@@ -95,6 +95,9 @@ sealed class Screen(val route: String) {
 
     /** 기록 추가 화면 (하위 페이지로 표시) */
     data object AddRecord : Screen("add_record")
+
+    /** [NEW] 일기 작성 화면 */
+    data object DiaryWrite : Screen("diary_write")
 }
 
 /**
