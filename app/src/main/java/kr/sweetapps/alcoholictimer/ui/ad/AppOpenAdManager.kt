@@ -298,6 +298,7 @@ object AppOpenAdManager {
 
     fun isLoaded(): Boolean = loaded
     fun isShowingAd(): Boolean = isShowing
+    fun isLoading(): Boolean = isLoading
 
     fun clearLoadedAd() {
         appOpenAd = null
