@@ -123,25 +123,24 @@ fun AlcoholicTimerNavGraph(
 
         // [NEW] 타이머 완료 화면
         composable(Screen.Finished.route) {
-            val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
-
             kr.sweetapps.alcoholictimer.ui.tab_01.screens.FinishedScreen(
                 onResultCheck = {
-                    // [NEW] 광고 정책 체크 후 전면 광고 노출
+                    // [수정] 광고 정책 체크 후 전면 광고 노출, 해당 기록 상세 화면으로 이동
                     android.util.Log.d("NavGraph", "결과 확인 클릭 -> 광고 정책 체크")
 
                     val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
 
                     val proceedToDetail: () -> Unit = {
-                        // 완료된 기록의 상세 화면으로 이동
+                        // [수정] 광고 후 완료된 기록의 상세 화면으로 이동
                         try {
+                            val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
                             val completedStartTime = sharedPref.getLong("completed_start_time", 0L)
                             val completedEndTime = sharedPref.getLong("completed_end_time", 0L)
                             val completedTargetDays = sharedPref.getFloat("completed_target_days", 21f)
                             val completedActualDays = sharedPref.getInt("completed_actual_days", 0)
 
                             if (completedStartTime > 0 && completedEndTime > 0) {
-                                // 기록 상세 화면으로 이동
+                                // [중요] 완료 기록 상세 화면으로 이동
                                 val route = Screen.Detail.createRoute(
                                     startTime = completedStartTime,
                                     endTime = completedEndTime,
@@ -150,13 +149,16 @@ fun AlcoholicTimerNavGraph(
                                     isCompleted = true
                                 )
 
-                                android.util.Log.d("NavGraph", "Detail 화면으로 이동: $route")
-                                navController.navigate(route)
+                                android.util.Log.d("NavGraph", "완료 기록 Detail 화면으로 이동: $route")
+
+                                // [중요] 만료 상태 플래그는 true로 유지
+                                navController.navigate(route) {
+                                    launchSingleTop = true
+                                }
                             } else {
-                                // 기록 정보가 없으면 Records 화면으로
+                                // 기록 정보가 없으면 Records 화면으로 폴백
                                 android.util.Log.w("NavGraph", "완료 기록 없음 -> Records 화면으로 이동")
                                 navController.navigate(Screen.Records.route) {
-                                    popUpTo(Screen.Finished.route) { inclusive = true }
                                     launchSingleTop = true
                                 }
                                 recordsRefreshCounter++
@@ -164,7 +166,6 @@ fun AlcoholicTimerNavGraph(
                         } catch (t: Throwable) {
                             android.util.Log.e("NavGraph", "결과 확인 실패", t)
                             navController.navigate(Screen.Records.route) {
-                                popUpTo(Screen.Finished.route) { inclusive = true }
                                 launchSingleTop = true
                             }
                         }

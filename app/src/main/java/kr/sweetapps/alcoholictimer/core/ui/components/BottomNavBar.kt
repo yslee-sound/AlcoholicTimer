@@ -39,8 +39,8 @@ private val bottomItems: List<BottomItem> = listOf(
         R.drawable.ic_nav_play,
         R.string.drawer_menu_sobriety,
         R.string.drawer_menu_sobriety,
-        // 1번째 버튼 그룹: 금주시작(Start), 금주 진행(Run), 금주 종료(Quit)
-        associatedRoutes = setOf(Screen.Start.route, Screen.Run.route, Screen.Quit.route)
+        // [NEW] 1번째 버튼 그룹: 금주시작(Start), 금주 진행(Run), 금주 종료(Quit), 목표 달성(Finished)
+        associatedRoutes = setOf(Screen.Start.route, Screen.Run.route, Screen.Quit.route, Screen.Finished.route)
     ),
     BottomItem(
         Screen.Records,
@@ -111,15 +111,38 @@ fun BottomNavBar(navController: NavHostController, modifier: Modifier = Modifier
                             item = item,
                             isSelected = selected,
                             onClick = {
-                                // 기록 보기(두 번째 버튼) 클릭 시 이벤트 전송
-                                if (index == 1) {
-                                    try { AnalyticsManager.logViewRecords() } catch (_: Throwable) {}
-                                }
-                                if (!selected) {
-                                    navController.navigate(item.screen.route) {
-                                        launchSingleTop = true
-                                        restoreState = true
-                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                // [NEW] 1번째 탭(index=0) 클릭 시: 만료 상태 확인
+                                if (index == 0) {
+                                    val isFinished = kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.isTimerFinished()
+                                    Log.d("BottomNavBar", "1번째 탭 클릭: isFinished=$isFinished")
+
+                                    // [중요] 만료 상태가 true면 Finished 화면으로 강제 이동
+                                    val targetRoute = if (isFinished) {
+                                        Screen.Finished.route
+                                    } else {
+                                        // 만료 상태가 아니면 타이머 시작 시간 확인
+                                        val startTime = kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.getStartTime()
+                                        if (startTime > 0) Screen.Run.route else Screen.Start.route
+                                    }
+
+                                    if (currentRoute != targetRoute) {
+                                        navController.navigate(targetRoute) {
+                                            launchSingleTop = true
+                                            restoreState = true
+                                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                        }
+                                    }
+                                } else {
+                                    // 기록 보기(두 번째 버튼) 클릭 시 이벤트 전송
+                                    if (index == 1) {
+                                        try { AnalyticsManager.logViewRecords() } catch (_: Throwable) {}
+                                    }
+                                    if (!selected) {
+                                        navController.navigate(item.screen.route) {
+                                            launchSingleTop = true
+                                            restoreState = true
+                                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                        }
                                     }
                                 }
                             }

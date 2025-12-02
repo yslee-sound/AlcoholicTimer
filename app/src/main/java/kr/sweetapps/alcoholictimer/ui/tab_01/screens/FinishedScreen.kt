@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.util.Log
@@ -34,7 +35,36 @@ fun FinishedScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // ...existing code...
+        // [NEW] 목표 달성 완료 아이콘
+        Icon(
+            imageVector = Icons.Filled.CheckCircle,
+            contentDescription = "완료",
+            modifier = Modifier.size(80.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // [NEW] 목표 달성 완료 메시지
+        Text(
+            text = "🎉 목표 달성 완료!",
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = "축하합니다!\n금주 목표를 성공적으로 완료했습니다.",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Normal,
+            color = Color.Gray,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 32.dp)
+        )
+
+        Spacer(modifier = Modifier.height(48.dp))
 
         // 결과 확인 버튼 (광고 노출)
         Button(
