@@ -15,7 +15,7 @@ import kr.sweetapps.alcoholictimer.constants.Constants
 import kr.sweetapps.alcoholictimer.MainActivity
 import android.graphics.Color as AndroidColor
 import androidx.compose.runtime.mutableStateOf
-import kr.sweetapps.alcoholictimer.ui.screens.StartScreen
+import kr.sweetapps.alcoholictimer.ui.tab_01.screens.StartScreen
 
 // 추가: AdMob AppOpen 로드/콜백 (디버그용 직접 로드)
 import com.google.android.gms.ads.AdRequest
