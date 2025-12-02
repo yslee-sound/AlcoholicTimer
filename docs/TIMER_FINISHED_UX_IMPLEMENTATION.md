@@ -308,7 +308,166 @@ onNewTimerStart = {
 
 ---
 
+## 📋 Tab02(통계) 화면 헤더 버튼 교체 (2025-01-02 추가)
+
+### 변경 내용 요약
+
+| 변경 전 | 변경 후 |
+|:---|:---|
+| '월 통계' 우측: + 버튼 (기록 추가) | 리스트 아이콘 (전체 기록 보기) |
+
+### UI 구성
+
+**변경 전**:
+```
+월 통계                  [+]  ← 기록 추가 버튼
+```
+
+**변경 후**:
+```
+월 통계                  [≡]  ← 전체 기록 보기 아이콘
+```
+
+### 구현 상세
+
+#### 1. 헤더 버튼 교체
+- **위치**: '월 통계' 텍스트 우측 끝
+- **아이콘**: `ic_list.xml` (리스트 아이콘)
+- **색상**: `MaterialTheme.colorScheme.onSurfaceVariant` (회색 계열)
+- **기능**: 클릭 시 '모든 기록 보기' 화면으로 이동
+
+#### 2. 아이콘 리소스 추가
+**파일**: `ic_list.xml`
+```xml
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#000000"
+        android:pathData="M3,13h2v-2H3V13zM3,17h2v-2H3V17zM3,9h2V7H3V9zM7,13h14v-2H7V13zM7,17h14v-2H7V17zM7,7v2h14V7H7z"/>
+</vector>
+```
+
+#### 3. String 리소스 추가
+
+**한국어** (`values/strings.xml`):
+```xml
+<string name="records_view_all_icon_cd">전체 기록 보기</string>
+```
+
+**영어** (`values-en/strings.xml`):
+```xml
+<string name="records_view_all_icon_cd">View all records</string>
+```
+
+#### 4. 코드 변경
+
+**파일**: `RecordsScreen.kt`
+
+**변경 전**:
+```kotlin
+@Composable
+private fun PeriodHeaderRow(onAddRecord: () -> Unit) {
+    Row(...) {
+        Text(text = stringResource(R.string.records_monthly_stats), ...)
+        IconButton(onClick = onAddRecord) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_plus),
+                contentDescription = stringResource(R.string.records_add),
+                ...
+            )
+        }
+    }
+}
+```
+
+**변경 후**:
+```kotlin
+@Composable
+private fun PeriodHeaderRow(onNavigateToAllRecords: () -> Unit) {
+    Row(...) {
+        Text(text = stringResource(R.string.records_monthly_stats), ...)
+        IconButton(onClick = onNavigateToAllRecords) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_list),
+                contentDescription = stringResource(R.string.records_view_all_icon_cd),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                ...
+            )
+        }
+    }
+}
+```
+
+### 수정된 파일
+
+1. **`RecordsScreen.kt`** - `PeriodHeaderRow` 함수 수정 (+ 버튼 → 리스트 아이콘)
+2. **`ic_list.xml`** - 리스트 아이콘 리소스 추가
+3. **`strings.xml` (한국어/영어)** - 아이콘 설명 추가
+
+---
+
+## 🗑️ Tab02(통계) 화면 기록 목록 제거 (2025-01-02 추가)
+
+### 변경 내용 요약
+
+Tab02(통계) 화면에서 다음 요소들이 제거되었습니다:
+- 기록 카드 목록 (RecordSummaryCard 항목들)
+- '전체 기록 보기' 버튼
+- 기록 없을 때 메시지
+
+### 목적
+
+향후 '금주 일기' 기능을 추가하기 위한 공간 확보
+
+### 코드 변경
+
+**파일**: `RecordsScreen.kt`
+
+**제거된 코드**:
+```kotlin
+// 기록이 없을 때 메시지 표시
+if (records.isEmpty() && !isLoading) { ... }
+
+// 기록 항목 리스트
+items(records) { record ->
+    RecordSummaryCard(...)
+}
+
+// '모든 기록 보기' 버튼
+if (records.isNotEmpty()) {
+    Button(onClick = { onNavigateToAllRecords() }, ...)
+}
+```
+
+**변경 후**:
+```kotlin
+// [제거] 기록 카드 목록과 '전체 기록 보기' 버튼 제거됨
+// TODO: 여기에 '금주 일기' 기능 추가 예정
+```
+
+### 남아있는 기능
+
+✅ 기간 선택 (주/월/년)  
+✅ 월 통계 헤더 (전체 기록 보기 아이콘)  
+✅ 통계 카드 (성공률, 평균 일수 등)
+
+### 제거된 기능
+
+❌ 기록 카드 목록  
+❌ '전체 기록 보기' 버튼  
+❌ 기록 없을 때 메시지
+
+### 참고
+
+- 기록 조회 기능은 '모든 기록 보기' 화면에서 여전히 사용 가능
+- '월 통계' 헤더의 리스트 아이콘을 통해 전체 기록 화면으로 이동 가능
+
+---
+
 **작성일**: 2025-01-02  
 **작성자**: GitHub Copilot (유지보수 담당 시니어 개발자)  
-**버전**: 1.1.0
+**버전**: 1.3.0
 

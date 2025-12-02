@@ -298,7 +298,7 @@ fun RecordsScreen(
 
                     // header: allow different left padding (same visual grouping, no inter-item spacing)
                     Box(modifier = Modifier.fillMaxWidth().padding(start = RECORDS_HEADER_START_PADDING, end = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
-                        PeriodHeaderRow(onAddRecord = onAddRecord)
+                        PeriodHeaderRow(onNavigateToAllRecords = onNavigateToAllRecords)
                     }
                     Spacer(modifier = Modifier.height(RECORDS_HEADER_TO_CARD_GAP))
 
@@ -315,57 +315,8 @@ fun RecordsScreen(
                     }
                 }
 
-                // 기록이 없을 때 메시지 표시
-                if (records.isEmpty() && !isLoading) {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 32.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(R.string.records_no_records),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-                }
-
-                // 기록 항목: 어떤 기간을 선택하든 전체 기록 목록은 항상 표시합니다.
-                items(records) { record ->
-                    Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
-                        RecordSummaryCard(
-                            record = record,
-                            compact = false,
-                            headerIconSizeDp = 56.dp,
-                            onClick = { onNavigateToDetail(record) }
-                        )
-                    }
-                }
-
-                // '모든 기록 보기' 버튼 (기록이 있을 때만)
-                if (records.isNotEmpty()) {
-                    item {
-                        Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
-                            val viewAllText = stringResource(R.string.records_view_all, records.size)
-                            Button(
-                                onClick = { onNavigateToAllRecords() },
-                                modifier = Modifier.fillMaxWidth(),
-                                contentPadding = PaddingValues(vertical = 12.dp, horizontal = 16.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = MaterialTheme.colorScheme.onPrimary
-                                ),
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Text(text = viewAllText, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium))
-                            }
-                        }
-                    }
-                }
+                // [제거] 기록 카드 목록과 '전체 기록 보기' 버튼 제거됨
+                // TODO: 여기에 '금주 일기' 기능 추가 예정
 
                 // ... no terminal spacer here; bottom spacing is controlled by recordsContentPadding (RECORDS_LIST_BOTTOM_PADDING)
             }
@@ -446,7 +397,7 @@ fun RecordsScreenPreview() {
 }
 
 @Composable
-private fun PeriodHeaderRow(onAddRecord: () -> Unit) {
+private fun PeriodHeaderRow(onNavigateToAllRecords: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth(),
@@ -458,10 +409,12 @@ private fun PeriodHeaderRow(onAddRecord: () -> Unit) {
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface
         )
-        IconButton(onClick = onAddRecord) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_plus),
-                contentDescription = stringResource(R.string.records_add),
+        // [수정] + 버튼 -> 전체 기록 보기 아이콘으로 변경
+        IconButton(onClick = onNavigateToAllRecords) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_list),
+                contentDescription = stringResource(R.string.records_view_all_icon_cd),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(24.dp)
             )
         }

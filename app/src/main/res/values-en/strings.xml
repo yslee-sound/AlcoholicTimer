@@ -137,6 +137,7 @@
     <string name="records_total_days">Total Sober Days</string>
     <string name="records_no_records">No sobriety records yet</string>
     <string name="records_view_all">View All Records (%d)</string>
+    <string name="records_view_all_icon_cd">View all records</string>
     <string name="records_add">Add Sobriety Record</string>
     <string name="records_day_unit">d</string>
     <string name="records_percent_unit">%</string>

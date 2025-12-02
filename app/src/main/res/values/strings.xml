@@ -141,8 +141,9 @@
     <string name="records_avg_duration">평균 지속일</string>
     <string name="records_max_duration">최대 지속일</string>
     <string name="records_total_days">총 누적 금주일</string>
-    <string name="records_no_records">아직 금주 기록이 없습니다</string>
-    <string name="records_view_all">모든 기록 보기 (%d개)</string>
+    <string name="records_no_records">금주 기록이 아직 없습니다</string>
+    <string name="records_view_all">전체 기록 보기 (%d)</string>
+    <string name="records_view_all_icon_cd">전체 기록 보기</string>
     <string name="records_add">금주 기록 추가</string>
     <string name="records_day_unit">일</string>
     <string name="records_percent_unit">%</string>
