@@ -105,11 +105,39 @@ fun AlcoholicTimerNavGraph(
                     navController.navigate(Screen.Quit.route) { launchSingleTop = true }
                 },
                 onCompletedNavigateToDetail = { route ->
-                    navController.navigate(route) { launchSingleTop = true }
+                    // [수정] 타이머 완료 시 Finished 화면으로 이동
+                    android.util.Log.d("NavGraph", "타이머 완료 -> Finished 화면으로 이동")
+                    navController.navigate(Screen.Finished.route) {
+                        popUpTo(Screen.Run.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 },
                 onRequireBackToStart = {
                     navController.navigate(Screen.Start.route) {
                         popUpTo(Screen.Run.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        // [NEW] 타이머 완료 화면
+        composable(Screen.Finished.route) {
+            kr.sweetapps.alcoholictimer.ui.tab_01.screens.FinishedScreen(
+                onResultCheck = {
+                    // 결과 확인 버튼 - 결과 화면으로 이동 (추후 구현)
+                    android.util.Log.d("NavGraph", "결과 확인 -> Records 화면으로 이동")
+                    navController.navigate(Screen.Records.route) {
+                        popUpTo(Screen.Finished.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                    recordsRefreshCounter++ // 기록 목록 갱신
+                },
+                onNewTimerStart = {
+                    // 새 타이머 시작 버튼
+                    android.util.Log.d("NavGraph", "새 타이머 시작 -> Start 화면으로 이동")
+                    navController.navigate(Screen.Start.route) {
+                        popUpTo(Screen.Finished.route) { inclusive = true }
                         launchSingleTop = true
                     }
                 }

@@ -15,6 +15,9 @@ object TimerStateRepository {
 
     private var sharedPreferences: SharedPreferences? = null
 
+    // [NEW] SharedPreferences 키 상수
+    private const val KEY_IS_TIMER_ACTIVE = "is_timer_active"
+
     /**
      * 레포지토리 초기화 (Application.onCreate에서 호출)
      */
@@ -48,6 +51,28 @@ object TimerStateRepository {
         val isFinished = sharedPreferences?.getBoolean(Constants.PREF_TIMER_COMPLETED, false) ?: false
         Log.d(TAG, "타이머 만료 상태 확인: $isFinished")
         return isFinished
+    }
+
+    /**
+     * 타이머 작동 중 상태 저장
+     * @param isActive true이면 타이머 작동 중, false이면 중지/설정 전
+     */
+    fun setTimerActive(isActive: Boolean) {
+        sharedPreferences?.edit()?.apply {
+            putBoolean(KEY_IS_TIMER_ACTIVE, isActive)
+            apply()
+        }
+        Log.d(TAG, "타이머 작동 중 상태 저장: $isActive")
+    }
+
+    /**
+     * 타이머 작동 중 상태 확인
+     * @return true이면 타이머 작동 중, false이면 중지/설정 전 (기본값: false)
+     */
+    fun isTimerActive(): Boolean {
+        val isActive = sharedPreferences?.getBoolean(KEY_IS_TIMER_ACTIVE, false) ?: false
+        Log.d(TAG, "타이머 작동 중 상태 확인: $isActive")
+        return isActive
     }
 
     /**
@@ -86,6 +111,7 @@ object TimerStateRepository {
         sharedPreferences?.edit()?.apply {
             putLong(Constants.PREF_START_TIME, 0L)
             putBoolean(Constants.PREF_TIMER_COMPLETED, false)
+            putBoolean(KEY_IS_TIMER_ACTIVE, false)
             apply()
         }
         Log.d(TAG, "타이머 초기화 완료")

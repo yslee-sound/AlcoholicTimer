@@ -218,7 +218,8 @@ fun RunScreenComposable(
                     // [NEW] TimerStateRepository에 만료 상태 저장
                     try {
                         kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(true)
-                        android.util.Log.d("RunScreen", "타이머 만료 상태 저장 완료")
+                        kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(false) // [NEW] 타이머 작동 중지
+                        android.util.Log.d("RunScreen", "타이머 만료 상태 저장 완료 (작동 중: false)")
                     } catch (t: Throwable) {
                         android.util.Log.e("RunScreen", "타이머 만료 상태 저장 실패", t)
                     }

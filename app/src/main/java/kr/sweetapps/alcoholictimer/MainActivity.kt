@@ -128,7 +128,13 @@ class MainActivity : BaseActivity() {
         val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
         val startTime = sharedPref.getLong("start_time", 0L)
         val timerCompleted = sharedPref.getBoolean("timer_completed", false)
-        val startDestinationRoute = if (startTime > 0L && !timerCompleted) Screen.Run.route else Screen.Start.route
+
+        // [NEW] 타이머 상태에 따라 초기 라우트 결정
+        val startDestinationRoute = when {
+            timerCompleted -> Screen.Finished.route  // 타이머 완료 시
+            startTime > 0L -> Screen.Run.route       // 타이머 진행 중
+            else -> Screen.Start.route               // 타이머 설정 전
+        }
 
         val umpConsentManager = (application as MainApplication).umpConsentManager
         umpConsentManager.gatherConsent(this) { canInitializeAds ->
@@ -166,20 +172,39 @@ class MainActivity : BaseActivity() {
     private fun checkTimerStateAndSwitchUI() {
         try {
             val isFinished = kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.isTimerFinished()
-            if (isFinished) {
-                showFinishedTimerUI()
-            } else {
-                showActiveTimerUI()
+            val isActive = kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.isTimerActive()
+
+            android.util.Log.d("MainActivity", "타이머 상태 확인: isFinished=$isFinished, isActive=$isActive")
+
+            when {
+                isFinished -> {
+                    // 타이머 만료 상태
+                    showFinishedTimerUI()
+                }
+                isActive -> {
+                    // 타이머 작동 중
+                    showActiveTimerUI()
+                }
+                else -> {
+                    // 타이머 설정 전 (초기 상태)
+                    showInitialSetupUI()
+                }
             }
         } catch (t: Throwable) {
             android.util.Log.e("MainActivity", "타이머 상태 확인 실패", t)
-            showActiveTimerUI() // 기본값으로 작동 중 UI 표시
+            showInitialSetupUI() // 기본값으로 초기 설정 UI 표시
         }
+    }
+
+    // [NEW] 타이머 설정 전 초기 UI 표시
+    private fun showInitialSetupUI() {
+        android.util.Log.d("MainActivity", "타이머 설정 전 초기 UI 표시: 시작 버튼 활성화")
+        // 실제 UI 변경은 Compose에서 상태에 따라 자동으로 처리됨
     }
 
     // [NEW] 타이머 작동 중 UI 표시
     private fun showActiveTimerUI() {
-        android.util.Log.d("MainActivity", "타이머 작동 중 UI 표시: 시작 버튼 활성화")
+        android.util.Log.d("MainActivity", "타이머 작동 중 UI 표시: 남은 시간 및 정보 표시")
         // 실제 UI 변경은 Compose에서 상태에 따라 자동으로 처리됨
     }
 
@@ -201,6 +226,7 @@ class MainActivity : BaseActivity() {
     private fun resetTimer() {
         android.util.Log.d("MainActivity", "타이머 리셋 실행")
         kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.resetTimer()
+        kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(true) // 새 타이머 시작
     }
 
     // [NEW] 결과 확인 및 기록 (전면 광고 연동)

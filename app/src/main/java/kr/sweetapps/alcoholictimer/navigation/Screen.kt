@@ -16,6 +16,11 @@ sealed class Screen(val route: String) {
     data object Run : Screen("run")
 
     /**
+     * 금주 완료 화면 (타이머 만료)
+     */
+    data object Finished : Screen("finished")
+
+    /**
      * 종료 확인 화면
      */
     data object Quit : Screen("quit")
