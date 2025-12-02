@@ -32,6 +32,7 @@ import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.MainActivity
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
+import kr.sweetapps.alcoholictimer.ui.tab_01.components.predictAnchoredBannerHeightDp
 
 // 전역 입력 잠금 요청을 위한 CompositionLocal
 @Suppress("unused")
