@@ -40,6 +40,9 @@ class MainActivity : BaseActivity() {
     private var isResumed: Boolean = false
     private var pendingShowOnResume: Boolean = false
 
+    // [NEW] 콜드 스타트 플래그 - 첫 실행 시에만 광고 표시
+    private var isColdStart: Boolean = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // ?�� ?�?�밍 진단: MainActivity 진입 ?�각 기록
         kr.sweetapps.alcoholictimer.ui.ad.AdTimingLogger.logMainActivityCreate()
@@ -75,8 +78,8 @@ class MainActivity : BaseActivity() {
                 holdSplashState.value = false
             }
         }
-        // [수정] 타임아웃을 5초로 증가 (광고 로드 및 표시 시간 고려)
-        window.decorView.postDelayed(timeoutRunnable, 5000)
+        // 타임아웃 3초 (업계 표준)
+        window.decorView.postDelayed(timeoutRunnable, 3000)
 
         // Helper to change holdSplashState with logging
         val setHoldSplash: (Boolean) -> Unit = { v ->
@@ -108,12 +111,18 @@ class MainActivity : BaseActivity() {
         // ?�� AdMob ?�책 준?? AppOpen 광고가 ?�힐 ?�만 Splash ?�제
         // 광고가 ?�시?�는 ?�안 ?�에 ?�이 보이지 ?�도�???
         try {
+            // [NEW] 광고 표시 시작 시 타임아웃 취소 (AdMob 정책: 광고 표시 중 화면 전환 금지)
+            kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdShownListener {
+                runOnUiThread {
+                    android.util.Log.d("MainActivity", "AppOpen ad shown -> canceling timeout (AdMob policy)")
+                    timeoutRunnable?.let { window.decorView.removeCallbacks(it) }
+                }
+            }
+
             kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdFinishedListener {
                 runOnUiThread {
                     android.util.Log.d("MainActivity", "AppOpen ad finished -> releasing splash (AdMob policy)")
                     setHoldSplash(false)
-                    // ?�?�아?�도 취소
-                    timeoutRunnable?.let { window.decorView.removeCallbacks(it) }
                 }
             }
         } catch (_: Throwable) {}
@@ -156,28 +165,36 @@ class MainActivity : BaseActivity() {
                 MobileAds.initialize(this) {}
                 InterstitialAdManager.preload(this)
 
-                // [수정] 콜드 스타트 시에도 광고 표시 - 앱 최초 실행 시 노출수 0 문제 해결
+                // [수정] 콜드 스타트 시에만 광고 표시 - 앱 최초 실행 시 노출수 0 문제 해결
                 try {
                     android.util.Log.d("MainActivity", "Post-initialize: setting up AppOpen ad for cold start")
 
-                    // 광고 로드 완료 리스너 설정 (콜드 스타트 시 즉시 표시)
+                    // 광고 로드 완료 리스너 설정 (콜드 스타트 시에만 즉시 표시)
                     kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdLoadedListener {
                         runOnUiThread {
-                            android.util.Log.d("MainActivity", "AppOpen ad loaded (cold start) -> attempting to show immediately")
+                            // [중요] 콜드 스타트 시에만 광고 표시, 이후는 lifecycle 핸들링에 맡김
+                            if (isColdStart) {
+                                android.util.Log.d("MainActivity", "AppOpen ad loaded (cold start) -> attempting to show immediately")
 
-                            // 광고가 로드되면 즉시 표시 시도 (콜드 스타트 = 앱 최초 실행)
-                            if (kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.isLoaded()) {
-                                val shown = kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.showIfAvailable(
-                                    this,
-                                    bypassRecentFullscreenSuppression = true  // 첫 실행이므로 억제 무시
-                                )
-                                android.util.Log.d("MainActivity", "AppOpen ad show result (cold start): $shown")
+                                // 광고가 로드되면 즉시 표시 시도 (콜드 스타트 = 앱 최초 실행)
+                                if (kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.isLoaded()) {
+                                    val shown = kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.showIfAvailable(
+                                        this,
+                                        bypassRecentFullscreenSuppression = true  // 첫 실행이므로 억제 무시
+                                    )
+                                    android.util.Log.d("MainActivity", "AppOpen ad show result (cold start): $shown")
 
-                                if (!shown) {
-                                    // 광고 표시 실패 시 스플래시 해제 (무한 대기 방지)
-                                    android.util.Log.w("MainActivity", "AppOpen ad failed to show (cold start) -> releasing splash")
-                                    setHoldSplash(false)
+                                    // [중요] 광고 표시 시도 후 콜드 스타트 플래그 해제
+                                    isColdStart = false
+
+                                    if (!shown) {
+                                        // [수정] 광고 표시 실패 시 즉시 스플래시 해제하지 않음
+                                        // 타임아웃이 처리하도록 함 (네트워크 지연 등 고려)
+                                        android.util.Log.w("MainActivity", "AppOpen ad failed to show (cold start) -> will wait for timeout")
+                                    }
                                 }
+                            } else {
+                                android.util.Log.d("MainActivity", "AppOpen ad loaded (not cold start) -> skipping auto-show, lifecycle will handle")
                             }
                         }
                     }
@@ -186,13 +203,13 @@ class MainActivity : BaseActivity() {
                     android.util.Log.d("MainActivity", "Starting AppOpen ad preload for cold start")
                     kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.preload(this)
                 } catch (_: Throwable) {
-                    android.util.Log.w("MainActivity", "AppOpen setup failed (cold start) -> releasing splash")
-                    setHoldSplash(false)  // 오류 시 스플래시 해제
+                    android.util.Log.w("MainActivity", "AppOpen setup failed (cold start) -> will wait for timeout")
+                    isColdStart = false  // 오류 시에도 플래그 해제
+                    // [수정] 오류 시에도 즉시 스플래시 해제하지 않고 타임아웃에 맡김
                 }
             } else {
-                // 동의 없으면 스플래시 즉시 해제
-                android.util.Log.d("MainActivity", "User did not consent to ads -> releasing splash")
-                setHoldSplash(false)
+                // [수정] 동의 없어도 즉시 스플래시 해제하지 않고 타임아웃에 맡김
+                android.util.Log.d("MainActivity", "User did not consent to ads -> will wait for timeout")
             }
         }
 

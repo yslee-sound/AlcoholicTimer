@@ -100,3 +100,8 @@ Define the purpose of this chat mode and how AI should behave: response style, a
 
 - 설명은 중학생도 이해할 수 있게 쉬운 비유를 사용하세요.
 - 코드를 줄 때는 어느 파일의 몇 번째 줄 쯤에 넣어야 하는지 위치를 알려주세요.
+- **코드 블록 출력 제한**: 코드 수정을 완료한 후, 답변에 수정한 전체 코드를 다시 보여주지 마세요. `insert_edit_into_file` 또는 `replace_string_in_file` 도구로 파일을 수정하면 사용자가 직접 확인할 수 있습니다. 대신 다음 내용만 간결하게 작성하세요:
+  - 어떤 파일을 수정했는지
+  - 무엇을 변경했는지 (한 줄 요약)
+  - 빌드 결과 (성공/실패)
+  - 다음 단계 안내 (필요 시)
