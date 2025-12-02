@@ -155,12 +155,39 @@ class MainActivity : BaseActivity() {
                 // 광고 SDK 초기화 코드
                 MobileAds.initialize(this) {}
                 InterstitialAdManager.preload(this)
-                // Ensure AppOpen preload runs after MobileAds initialization / consent
+
+                // [수정] 콜드 스타트 시에도 광고 표시 - 앱 최초 실행 시 노출수 0 문제 해결
                 try {
-                    android.util.Log.d("MainActivity", "Post-initialize: preloading AppOpen via AppOpenAdManager")
+                    android.util.Log.d("MainActivity", "Post-initialize: setting up AppOpen ad for cold start")
+
+                    // 광고 로드 완료 리스너 설정 (콜드 스타트 시 즉시 표시)
+                    kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdLoadedListener {
+                        runOnUiThread {
+                            android.util.Log.d("MainActivity", "AppOpen ad loaded (cold start) -> attempting to show immediately")
+
+                            // 광고가 로드되면 즉시 표시 시도 (콜드 스타트 = 앱 최초 실행)
+                            if (kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.isLoaded()) {
+                                val shown = kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.showIfAvailable(
+                                    this,
+                                    bypassRecentFullscreenSuppression = true  // 첫 실행이므로 억제 무시
+                                )
+                                android.util.Log.d("MainActivity", "AppOpen ad show result (cold start): $shown")
+
+                                if (!shown) {
+                                    // 광고 표시 실패 시 스플래시 해제 (무한 대기 방지)
+                                    android.util.Log.w("MainActivity", "AppOpen ad failed to show (cold start) -> releasing splash")
+                                    setHoldSplash(false)
+                                }
+                            }
+                        }
+                    }
+
+                    // 광고 로드 시작
+                    android.util.Log.d("MainActivity", "Starting AppOpen ad preload for cold start")
                     kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.preload(this)
                 } catch (_: Throwable) {
-                    android.util.Log.w("MainActivity", "AppOpen preload failed post-initialize")
+                    android.util.Log.w("MainActivity", "AppOpen setup failed (cold start) -> releasing splash")
+                    setHoldSplash(false)  // 오류 시 스플래시 해제
                 }
             } else {
                 // 동의 없으면 스플래시 즉시 해제
