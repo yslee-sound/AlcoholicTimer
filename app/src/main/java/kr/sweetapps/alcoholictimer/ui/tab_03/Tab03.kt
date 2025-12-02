@@ -46,7 +46,7 @@ import kr.sweetapps.alcoholictimer.core.ui.AppCard
 import kr.sweetapps.alcoholictimer.core.ui.AppColors
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
-import kr.sweetapps.alcoholictimer.feature.level.LevelDefinitions
+import kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelDefinitions
 import java.util.Locale
 
 /**
