@@ -273,11 +273,42 @@ fun AlcoholicTimerNavGraph(
                 onSave = { emoji, content, cravingLevel ->
                     android.util.Log.d("NavGraph", "일기 저장: emoji=$emoji, craving=$cravingLevel")
 
+                    // [NEW] SharedPreferences에 일기 저장
+                    try {
+                        val sharedPref = context.getSharedPreferences("diary_data", android.content.Context.MODE_PRIVATE)
+                        val currentDiaries = sharedPref.getString("diaries", "[]") ?: "[]"
+                        val diariesArray = org.json.JSONArray(currentDiaries)
+
+                        // 새 일기 객체 생성
+                        val newDiary = org.json.JSONObject().apply {
+                            put("timestamp", System.currentTimeMillis())
+                            put("date", java.text.SimpleDateFormat("M.dd (E)", java.util.Locale.KOREAN).format(java.util.Date()))
+                            put("emoji", emoji)
+                            put("content", content.ifEmpty { "내용 없음" })
+                            put("cravingLevel", cravingLevel)
+                        }
+
+                        // 배열 맨 앞에 추가 (최신순)
+                        val updatedArray = org.json.JSONArray().apply {
+                            put(newDiary)
+                            for (i in 0 until diariesArray.length()) {
+                                put(diariesArray.getJSONObject(i))
+                            }
+                        }
+
+                        sharedPref.edit().putString("diaries", updatedArray.toString()).apply()
+                        android.util.Log.d("NavGraph", "일기 저장 완료: ${updatedArray.length()}개")
+
+                        // Records 화면 새로고침 트리거
+                        recordsRefreshCounter++
+                    } catch (e: Exception) {
+                        android.util.Log.e("NavGraph", "일기 저장 실패", e)
+                    }
+
                     // [수익화] 저장 후 광고 정책 체크
                     val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
 
                     val proceedToComplete: () -> Unit = {
-                        // TODO: 실제 데이터베이스에 저장
                         android.util.Log.d("NavGraph", "일기 저장 완료 -> Records 화면으로 복귀")
                         navController.popBackStack()
                     }

@@ -874,13 +874,29 @@ data class DiaryEntry(
  */
 @Composable
 private fun RecentDiarySection(onNavigateToAllDiaries: () -> Unit = {}) {
-    // TODO: 실제 데이터는 데이터베이스에서 가져올 예정
-    val sampleDiaries = listOf<DiaryEntry>(
-        // 빈 상태 테스트: 주석 해제하면 일기 표시
-        // DiaryEntry("12.02 (일)", "😊", "오늘 하루도 무사히..."),
-        // DiaryEntry("12.01 (일)", "😊", "조금 힘들었지만 참았다."),
-        // DiaryEntry("11.30 (토)", "😰", "실패할 뻔 했다.")
-    )
+    val context = LocalContext.current
+
+    // [수정] SharedPreferences에서 실제 일기 데이터 불러오기
+    val diaries = remember(context) {
+        try {
+            val sharedPref = context.getSharedPreferences("diary_data", android.content.Context.MODE_PRIVATE)
+            val diariesJson = sharedPref.getString("diaries", "[]") ?: "[]"
+            val diariesArray = org.json.JSONArray(diariesJson)
+
+            // 최대 3개만 가져오기
+            (0 until minOf(3, diariesArray.length())).map { i ->
+                val item = diariesArray.getJSONObject(i)
+                DiaryEntry(
+                    date = item.getString("date"),
+                    emoji = item.getString("emoji"),
+                    content = item.getString("content")
+                )
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("RecordsScreen", "일기 불러오기 실패", e)
+            emptyList()
+        }
+    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         // [NEW] 헤더: 제목 + 전체 보기 버튼
@@ -896,7 +912,7 @@ private fun RecentDiarySection(onNavigateToAllDiaries: () -> Unit = {}) {
             )
 
             // [NEW] 전체 보기 버튼 (일기가 있을 때만 표시)
-            if (sampleDiaries.isNotEmpty()) {
+            if (diaries.isNotEmpty()) {
                 IconButton(onClick = onNavigateToAllDiaries) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_caret_right),
@@ -918,15 +934,15 @@ private fun RecentDiarySection(onNavigateToAllDiaries: () -> Unit = {}) {
                 .background(Color.White)
                 .padding(16.dp)
         ) {
-            if (sampleDiaries.isEmpty()) {
+            if (diaries.isEmpty()) {
                 // [NEW] 빈 상태 UI
                 DiaryEmptyState()
             } else {
                 // 일기 항목들
-                sampleDiaries.forEachIndexed { index, diary ->
+                diaries.forEachIndexed { index, diary ->
                     DiaryListItem(diary = diary)
 
-                    if (index < sampleDiaries.size - 1) {
+                    if (index < diaries.size - 1) {
                         HorizontalDivider(
                             modifier = Modifier.padding(vertical = 12.dp),
                             thickness = 1.dp,
