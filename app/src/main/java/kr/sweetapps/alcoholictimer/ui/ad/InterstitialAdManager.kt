@@ -78,6 +78,83 @@ object InterstitialAdManager {
 
     fun isShowingAd(): Boolean = isShowing
 
+    // [NEW] 전면 광고를 표시하는 간단한 메서드 (카운트다운 시작 전 사용)
+    fun show(activity: Activity, onComplete: (Boolean) -> Unit = {}) {
+        val ad = interstitial
+        if (ad == null) {
+            Log.d(TAG, "show: 광고가 로드되지 않음")
+            onComplete(false)
+            return
+        }
+
+        try {
+            isShowing = true
+
+            // 배너 숨기기
+            try {
+                Log.d(TAG, "show: 배너 숨김 시작")
+                AdController.hideBannerImmediately("interstitialBeforeShow")
+                AdController.setBannerForceHidden(true)
+                AdController.setInterstitialShowing(true)
+                AdController.setFullScreenAdShowing(true)
+            } catch (_: Throwable) {}
+
+            ad.fullScreenContentCallback = object : FullScreenContentCallback() {
+                override fun onAdDismissedFullScreenContent() {
+                    Log.d(TAG, "show: 광고 닫힘")
+                    isShowing = false
+                    interstitial = null
+
+                    // 배너 복구
+                    try { AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
+                    try { AdController.setInterstitialShowing(false) } catch (_: Throwable) {}
+                    try { AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
+                    try { AdController.ensureBannerVisible("interstitialDismissed") } catch (_: Throwable) {}
+
+                    onComplete(true)
+                }
+
+                override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                    Log.e(TAG, "show: 광고 표시 실패 - ${adError.message}")
+                    isShowing = false
+                    interstitial = null
+
+                    // 배너 복구
+                    try { AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
+                    try { AdController.setInterstitialShowing(false) } catch (_: Throwable) {}
+                    try { AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
+                    try { AdController.ensureBannerVisible("interstitialFailedToShow") } catch (_: Throwable) {}
+
+                    onComplete(false)
+                }
+
+                override fun onAdShowedFullScreenContent() {
+                    Log.d(TAG, "show: 광고 표시 완료")
+                    try { AnalyticsManager.logAdImpression("interstitial") } catch (_: Throwable) {}
+                }
+
+                override fun onAdClicked() {
+                    Log.d(TAG, "show: 광고 클릭됨")
+                    try { AnalyticsManager.logAdClick("interstitial") } catch (_: Throwable) {}
+                }
+            }
+
+            ad.show(activity)
+            Log.d(TAG, "show: ad.show() 호출 완료")
+        } catch (t: Throwable) {
+            Log.e(TAG, "show: 예외 발생", t)
+            isShowing = false
+            interstitial = null
+
+            // 배너 복구
+            try { AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
+            try { AdController.setFullScreenAdShowing(false) } catch (_: Throwable) {}
+            try { AdController.ensureBannerVisible("interstitialShowException") } catch (_: Throwable) {}
+
+            onComplete(false)
+        }
+    }
+
     fun addLoadListener(listener: (Boolean) -> Unit) { /* optional: could be implemented */ }
 
     fun resetColdStartGate() { /* no-op for now */ }

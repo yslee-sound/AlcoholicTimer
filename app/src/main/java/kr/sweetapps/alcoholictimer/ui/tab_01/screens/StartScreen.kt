@@ -448,9 +448,26 @@ fun StartScreen(
             bottomButton = {
                 MainActionButton(
                     onClick = {
-                        // [NEW] 카운?�다???�버?�이 ?�작
-                        showCountdown = true
-                        countdownNumber = 3
+                        // [NEW] 전면 광고 표시 후 카운트다운 시작
+                        val activity = context as? Activity
+                        if (activity != null && InterstitialAdManager.isLoaded()) {
+                            Log.d("StartScreen", "전면 광고 표시 시작")
+                            InterstitialAdManager.show(activity) { success ->
+                                if (success) {
+                                    Log.d("StartScreen", "전면 광고 닫힘 -> 카운트다운 시작")
+                                } else {
+                                    Log.d("StartScreen", "전면 광고 표시 실패 -> 즉시 카운트다운 시작")
+                                }
+                                // 광고가 닫히거나 실패하면 카운트다운 시작
+                                showCountdown = true
+                                countdownNumber = 3
+                            }
+                        } else {
+                            // 광고가 로드되지 않았으면 즉시 카운트다운 시작
+                            Log.d("StartScreen", "전면 광고 없음 -> 즉시 카운트다운 시작")
+                            showCountdown = true
+                            countdownNumber = 3
+                        }
                     }
                 )
             },
