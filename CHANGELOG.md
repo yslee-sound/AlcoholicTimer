@@ -5,6 +5,13 @@
 
 ## [Unreleased]
 ### Added
+- 🎯 **타이머 만료 UI 및 상태 잠금(State Lock)**: 타이머 완료 시 1번째 탭을 강제 점유하는 만료 전용 화면 추가
+  - `FinishedScreen`: 목표 달성 완료 UI (결과 확인/새 타이머 시작 버튼)
+  - **상태 잠금**: 만료 상태에서는 무조건 만료 UI만 표시 (앱 재시작/탭 복귀 시에도 유지)
+  - **전면 광고 연동**: '결과 확인' 버튼 클릭 시 광고 정책 체크 후 전면 광고 표시
+  - **유일한 해제 경로**: '새 타이머 시작' 버튼만이 만료 상태를 해제 가능
+  - 문서: `docs/TIMER_FINISHED_STATE_LOCK_GUIDE.md` (상태 잠금 완전 가이드)
+  - 문서: `docs/SEQUENTIAL_EXECUTION_GUIDE.md` 업데이트 (타이머 만료 UI 및 광고 연동 추가)
 - 🌐 **다국어 지원**: 영어(English) 번역 완료 (`values-en/strings.xml`, 50개 문자열)
 - 문서: `docs/INTERNATIONALIZATION_PLAN.md` (7개 언어 다국어 출시 전체 기획안)
 - 문서: `docs/I18N_IMPLEMENTATION_GUIDE.md` (다국어 구현 상세 가이드)

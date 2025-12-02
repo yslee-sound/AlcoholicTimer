@@ -390,9 +390,310 @@ MainActivity: 메인 액티비티 진입
 
 ---
 
+---
+
+## 📝 타이머 만료 UI 및 전면 광고 연동 구현 가이드
+
+### 개요
+
+타이머가 완료되면 **1번째 탭에서 만료 UI를 강제 표시**하고, **'결과 확인' 시 전면 광고 노출** 후 **2번째 탭(통계)으로 이동**하는 기능입니다.
+
+### 핵심 원칙
+
+1. **상태 기반 UI 전환**: `TimerStateRepository.isTimerFinished()` 플래그로 UI 제어
+2. **광고 정책 준수**: `AdPolicyManager.shouldShowInterstitialAd()`로 쿨타임 체크
+3. **명확한 흐름 분리**: 결과 확인(광고 O) vs 새 타이머 시작(광고 X)
+
+---
+
+### 1. 데이터 레이어 (`TimerStateRepository`)
+
+타이머 상태를 관리하는 싱글톤 객체입니다.
+
+**필수 함수**:
+- `setTimerFinished(isFinished: Boolean)`: 타이머 만료 상태 저장
+- `isTimerFinished(): Boolean`: 타이머 만료 상태 반환
+- `setTimerActive(isActive: Boolean)`: 타이머 작동 중 여부 저장
+- `isTimerActive(): Boolean`: 타이머 작동 중 여부 반환
+
+**만료 시 호출**:
+```kotlin
+// 타이머 만료 로직에서 반드시 호출
+TimerStateRepository.setTimerFinished(true)
+TimerStateRepository.setTimerActive(false)
+```
+
+---
+
+### 2. MainFragment UI 전환 로직 (1번째 탭)
+
+#### A. `checkTimerStateAndSwitchUI()` 함수
+
+`onResume()`에서 호출하여 상태에 따라 UI를 전환합니다.
+
+```kotlin
+private fun checkTimerStateAndSwitchUI() {
+    val isFinished = TimerStateRepository.isTimerFinished()
+    val isActive = TimerStateRepository.isTimerActive()
+    
+    when {
+        isFinished -> showFinishedTimerUI()  // 만료 UI
+        isActive -> showActiveTimerUI()      // 타이머 작동 중
+        else -> showInitialSetupUI()         // 초기 설정
+    }
+}
+
+override fun onResume() {
+    super.onResume()
+    checkTimerStateAndSwitchUI()
+}
+```
+
+#### B. `showFinishedTimerUI()` 함수
+
+만료 알림 UI를 표시하고 버튼 리스너를 연결합니다.
+
+```kotlin
+private fun showFinishedTimerUI() {
+    setContent {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.CheckCircle,
+                contentDescription = "완료",
+                modifier = Modifier.size(120.dp),
+                tint = Color(0xFF4CAF50)
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Text(
+                text = "목표 달성 완료!",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold
+            )
+            
+            Text(
+                text = "지금까지 잘 해왔어요!",
+                fontSize = 16.sp,
+                color = Color.Gray
+            )
+            
+            Spacer(modifier = Modifier.height(48.dp))
+            
+            // 결과 확인 버튼 (광고 노출)
+            Button(
+                onClick = { showResultAndRecord() },
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .height(56.dp)
+            ) {
+                Text("결과 확인", fontSize = 18.sp)
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // 새 타이머 시작 버튼 (광고 없음)
+            OutlinedButton(
+                onClick = { moveToTimerSetup() },
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .height(56.dp)
+            ) {
+                Text("새 타이머 시작", fontSize = 18.sp)
+            }
+        }
+    }
+}
+```
+
+---
+
+### 3. 전면 광고 연동 및 UI 이동 흐름
+
+#### A. '결과 확인' 흐름 (광고 노출 → 2번째 탭 이동)
+
+```kotlin
+private fun showResultAndRecord() {
+    Log.d("MainFragment", "결과 확인 클릭 -> 광고 정책 체크")
+    
+    // 광고 노출 가능 여부 확인
+    val shouldShow = AdPolicyManager.shouldShowInterstitialAd(requireContext())
+    
+    if (shouldShow) {
+        Log.d("MainFragment", "광고 정책 통과 -> 전면 광고 노출 시도")
+        
+        // 전면 광고 로드 및 표시
+        InterstitialAdManager.showIfAvailable(
+            activity = requireActivity(),
+            onAdShown = {
+                Log.d("MainFragment", "광고 표시 중")
+            },
+            onAdDismissed = {
+                Log.d("MainFragment", "광고 닫힘 -> 2번째 탭으로 이동")
+                moveToStatisticsTab()
+            },
+            onAdFailed = {
+                Log.w("MainFragment", "광고 실패 -> 2번째 탭으로 이동")
+                moveToStatisticsTab()
+            }
+        )
+    } else {
+        Log.d("MainFragment", "광고 정책 거부 (쿨타임) -> 즉시 2번째 탭으로 이동")
+        moveToStatisticsTab()
+    }
+}
+
+private fun moveToStatisticsTab() {
+    // NavController를 사용하여 2번째 탭으로 이동
+    findNavController().navigate(R.id.navigation_statistics)
+    
+    // 또는 BottomNavigationView 사용 시
+    (activity as? MainActivity)?.selectTab(1) // 2번째 탭 선택
+}
+```
+
+#### B. '새 타이머 시작' 흐름 (상태 초기화 → 타이머 설정 화면)
+
+```kotlin
+private fun moveToTimerSetup() {
+    Log.d("MainFragment", "새 타이머 시작 클릭 -> 만료 상태 해제")
+    
+    // 만료 상태 해제
+    TimerStateRepository.setTimerFinished(false)
+    TimerStateRepository.setTimerActive(false)
+    
+    // UI를 초기 설정 화면으로 전환
+    checkTimerStateAndSwitchUI()
+    
+    Log.d("MainFragment", "타이머 설정 화면으로 전환 완료")
+}
+```
+
+---
+
+### 4. 광고 정책 관리 (`AdPolicyManager`)
+
+전면 광고 노출 정책을 관리합니다.
+
+```kotlin
+object AdPolicyManager {
+    private const val KEY_LAST_INTERSTITIAL_TIME = "LAST_INTERSTITIAL_TIME_MS"
+    
+    /**
+     * 전면 광고 쿨타임 간격 (초)
+     * 디버그 설정이 있으면 우선 적용, 없으면 기본값 사용
+     */
+    fun getInterstitialIntervalSeconds(context: Context): Long {
+        if (BuildConfig.DEBUG) {
+            val prefs = context.getSharedPreferences("debug_settings", Context.MODE_PRIVATE)
+            val debugInterval = prefs.getLong("DEBUG_AD_COOL_DOWN_SECONDS", 0L)
+            if (debugInterval > 0) {
+                Log.d("AdPolicyManager", "Using debug interval: $debugInterval seconds")
+                return debugInterval
+            }
+        }
+        return 1800L // 기본 30분
+    }
+    
+    /**
+     * 전면 광고 노출 가능 여부 확인
+     */
+    fun shouldShowInterstitialAd(context: Context): Boolean {
+        val interval = getInterstitialIntervalSeconds(context)
+        val prefs = context.getSharedPreferences("ad_policy", Context.MODE_PRIVATE)
+        val lastTime = prefs.getLong(KEY_LAST_INTERSTITIAL_TIME, 0L)
+        val currentTime = System.currentTimeMillis()
+        val elapsedSeconds = (currentTime - lastTime) / 1000
+        
+        val canShow = elapsedSeconds >= interval
+        
+        if (canShow) {
+            // 노출 가능 - 시간 기록
+            prefs.edit().putLong(KEY_LAST_INTERSTITIAL_TIME, currentTime).apply()
+            Log.d("AdPolicyManager", "Ad can show - updating last shown time")
+        } else {
+            Log.d("AdPolicyManager", "Ad suppressed - cooldown not met ($elapsedSeconds/$interval seconds)")
+        }
+        
+        return canShow
+    }
+}
+```
+
+---
+
+### 5. 테스트 시나리오
+
+#### 시나리오 1: 타이머 만료 후 결과 확인
+
+```
+1. 타이머 테스트 모드 활성화 (N일 → N초)
+2. 타이머 시작 (예: 10초)
+3. 10초 대기 → 타이머 만료
+4. 1번째 탭으로 이동
+   ✅ '목표 달성 완료!' UI 표시
+5. '결과 확인' 버튼 클릭
+   ✅ 전면 광고 표시
+6. 광고 닫음
+   ✅ 2번째 탭(통계)으로 자동 이동
+```
+
+#### 시나리오 2: 타이머 만료 후 새 타이머 시작
+
+```
+1. 타이머 만료 상태
+2. 1번째 탭에서 '새 타이머 시작' 버튼 클릭
+   ✅ 만료 UI 사라짐
+   ✅ 타이머 설정 UI 표시
+3. 새로운 목표 기간 설정 후 시작
+   ✅ 광고 정책에 따라 전면 광고 표시 (시작 버튼)
+```
+
+#### 시나리오 3: 광고 쿨타임 테스트
+
+```
+1. 디버그 설정에서 쿨타임 1초로 설정
+2. 타이머 만료 → '결과 확인'
+   ✅ 광고 표시
+3. 다시 1번째 탭으로 돌아와서 즉시 '결과 확인'
+   ✅ 광고 스킵 (쿨타임 적용)
+   ✅ 즉시 2번째 탭 이동
+4. 1초 대기 후 다시 시도
+   ✅ 광고 표시
+```
+
+---
+
+### 6. 주의 사항
+
+#### ⚠️ 상태 초기화 타이밍
+
+- **만료 상태 설정**: 타이머 만료 로직에서 **반드시** 호출
+- **만료 상태 해제**: '새 타이머 시작' 버튼에서만 호출
+- **절대 자동 해제 금지**: 2번째 탭 이동 시 만료 상태를 해제하면 안 됨
+
+#### ⚠️ 광고 정책 준수
+
+- 광고 노출 실패 시에도 **반드시 다음 화면으로 이동**
+- 광고 로드 중 사용자를 **무한 대기시키지 않음**
+- 쿨타임 정책을 **명확히 로깅**
+
+#### ⚠️ UI 일관성
+
+- `onResume()`에서 항상 `checkTimerStateAndSwitchUI()` 호출
+- 만료 상태일 때는 **다른 UI를 절대 표시하지 않음**
+- 백그라운드 복귀 시에도 만료 UI 유지
+
+---
+
 ## 문서 버전
 
 - **작성일**: 2025-12-02
 - **적용 버전**: v1.0.0+
-- **업데이트**: 순차적 실행 구조로 전면 재작성
+- **업데이트**: 순차적 실행 구조로 전면 재작성, 타이머 만료 UI 및 광고 연동 추가
 
+---

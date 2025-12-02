@@ -127,45 +127,75 @@ fun AlcoholicTimerNavGraph(
 
             kr.sweetapps.alcoholictimer.ui.tab_01.screens.FinishedScreen(
                 onResultCheck = {
-                    // [NEW] 완료된 기록의 상세 화면으로 이동
-                    try {
-                        val completedStartTime = sharedPref.getLong("completed_start_time", 0L)
-                        val completedEndTime = sharedPref.getLong("completed_end_time", 0L)
-                        val completedTargetDays = sharedPref.getFloat("completed_target_days", 21f)
-                        val completedActualDays = sharedPref.getInt("completed_actual_days", 0)
+                    // [NEW] 광고 정책 체크 후 전면 광고 노출
+                    android.util.Log.d("NavGraph", "결과 확인 클릭 -> 광고 정책 체크")
 
-                        if (completedStartTime > 0 && completedEndTime > 0) {
-                            // 기록 상세 화면으로 이동
-                            val route = Screen.Detail.createRoute(
-                                startTime = completedStartTime,
-                                endTime = completedEndTime,
-                                targetDays = completedTargetDays,
-                                actualDays = completedActualDays,
-                                isCompleted = true
-                            )
+                    val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
 
-                            android.util.Log.d("NavGraph", "결과 확인 -> Detail 화면으로 이동: $route")
-                            navController.navigate(route)
-                        } else {
-                            // 기록 정보가 없으면 Records 화면으로
-                            android.util.Log.w("NavGraph", "완료 기록 없음 -> Records 화면으로 이동")
+                    val proceedToDetail: () -> Unit = {
+                        // 완료된 기록의 상세 화면으로 이동
+                        try {
+                            val completedStartTime = sharedPref.getLong("completed_start_time", 0L)
+                            val completedEndTime = sharedPref.getLong("completed_end_time", 0L)
+                            val completedTargetDays = sharedPref.getFloat("completed_target_days", 21f)
+                            val completedActualDays = sharedPref.getInt("completed_actual_days", 0)
+
+                            if (completedStartTime > 0 && completedEndTime > 0) {
+                                // 기록 상세 화면으로 이동
+                                val route = Screen.Detail.createRoute(
+                                    startTime = completedStartTime,
+                                    endTime = completedEndTime,
+                                    targetDays = completedTargetDays,
+                                    actualDays = completedActualDays,
+                                    isCompleted = true
+                                )
+
+                                android.util.Log.d("NavGraph", "Detail 화면으로 이동: $route")
+                                navController.navigate(route)
+                            } else {
+                                // 기록 정보가 없으면 Records 화면으로
+                                android.util.Log.w("NavGraph", "완료 기록 없음 -> Records 화면으로 이동")
+                                navController.navigate(Screen.Records.route) {
+                                    popUpTo(Screen.Finished.route) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                                recordsRefreshCounter++
+                            }
+                        } catch (t: Throwable) {
+                            android.util.Log.e("NavGraph", "결과 확인 실패", t)
                             navController.navigate(Screen.Records.route) {
                                 popUpTo(Screen.Finished.route) { inclusive = true }
                                 launchSingleTop = true
                             }
-                            recordsRefreshCounter++
                         }
-                    } catch (t: Throwable) {
-                        android.util.Log.e("NavGraph", "결과 확인 실패", t)
-                        navController.navigate(Screen.Records.route) {
-                            popUpTo(Screen.Finished.route) { inclusive = true }
-                            launchSingleTop = true
+                    }
+
+                    if (shouldShowAd && activity != null) {
+                        android.util.Log.d("NavGraph", "광고 정책 통과 -> 전면 광고 노출")
+                        if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
+                            kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(activity) { success ->
+                                android.util.Log.d("NavGraph", "광고 결과: success=$success -> Detail 화면으로 이동")
+                                proceedToDetail()
+                            }
+                        } else {
+                            android.util.Log.d("NavGraph", "광고 로드 안됨 -> 즉시 Detail 화면으로 이동")
+                            proceedToDetail()
                         }
+                    } else {
+                        android.util.Log.d("NavGraph", "광고 쿨타임 중 or activity null -> 즉시 Detail 화면으로 이동")
+                        proceedToDetail()
                     }
                 },
                 onNewTimerStart = {
-                    // 새 타이머 시작 버튼
-                    android.util.Log.d("NavGraph", "새 타이머 시작 -> Start 화면으로 이동")
+                    // [중요] 새 타이머 시작 버튼 - 만료 상태 해제 (유일한 해제 경로)
+                    android.util.Log.d("NavGraph", "새 타이머 시작 -> 만료 상태 해제 및 Start 화면으로 이동")
+
+                    // 만료 상태 해제 (이 버튼이 유일한 해제 경로)
+                    kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(false)
+                    kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(false)
+
+                    android.util.Log.d("NavGraph", "만료 상태 해제 완료: isFinished=false")
+
                     navController.navigate(Screen.Start.route) {
                         popUpTo(Screen.Finished.route) { inclusive = true }
                         launchSingleTop = true
