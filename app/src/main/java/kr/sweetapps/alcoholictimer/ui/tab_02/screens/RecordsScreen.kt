@@ -6,6 +6,7 @@ package kr.sweetapps.alcoholictimer.ui.tab_02.screens
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -315,8 +316,14 @@ fun RecordsScreen(
                     }
                 }
 
-                // [제거] 기록 카드 목록과 '전체 기록 보기' 버튼 제거됨
-                // TODO: 여기에 '금주 일기' 기능 추가 예정
+                // [NEW] 최근 금주 일기 섹션
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
+                        RecentDiarySection()
+                    }
+                }
 
                 // ... no terminal spacer here; bottom spacing is controlled by recordsContentPadding (RECORDS_LIST_BOTTOM_PADDING)
             }
@@ -833,5 +840,113 @@ private fun StatisticItem(
                 )
             }
         }
+    }
+}
+
+// [NEW] 최근 금주 일기 데이터 모델
+data class DiaryEntry(
+    val date: String,
+    val emoji: String,
+    val content: String
+)
+
+/**
+ * [NEW] 최근 금주 일기 섹션
+ */
+@Composable
+private fun RecentDiarySection() {
+    // TODO: 실제 데이터는 데이터베이스에서 가져올 예정
+    val sampleDiaries = listOf(
+        DiaryEntry("12.02 (일)", "😊", "오늘 하루도 무사히..."),
+        DiaryEntry("12.01 (일)", "😊", "조금 힘들었지만 참았다."),
+        DiaryEntry("11.30 (토)", "😰", "실패할 뻔 했다.")
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.White)
+            .padding(16.dp)
+    ) {
+        // 헤더
+        Text(
+            text = "최근 금주 일기",
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            color = Color(0xFF2D3748)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 일기 항목들
+        sampleDiaries.forEachIndexed { index, diary ->
+            DiaryListItem(diary = diary)
+
+            if (index < sampleDiaries.size - 1) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    thickness = 1.dp,
+                    color = Color(0xFFE2E8F0)
+                )
+            }
+        }
+    }
+}
+
+/**
+ * [NEW] 일기 항목 아이템
+ */
+@Composable
+private fun DiaryListItem(diary: DiaryEntry) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { /* TODO: 일기 상세 보기 */ }
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // 날짜
+            Text(
+                text = diary.date,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFF64748B),
+                modifier = Modifier.width(90.dp)
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // 이모지
+            Text(
+                text = diary.emoji,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.size(24.dp)
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // 내용 미리보기
+            Text(
+                text = diary.content,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFF1E293B),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        // 화살표 아이콘
+        Icon(
+            painter = painterResource(id = R.drawable.ic_caret_right),
+            contentDescription = "상세 보기",
+            tint = Color(0xFF94A3B8),
+            modifier = Modifier.size(20.dp)
+        )
     }
 }
