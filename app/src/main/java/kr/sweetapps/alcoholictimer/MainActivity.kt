@@ -119,8 +119,11 @@ class MainActivity : BaseActivity() {
         // 광고가 ?�제�??�면???��??�는 ?�점???�플?�시�??�제?�여 검?� ?�면 간격???�거
         // Leave ad shown handling to the AppOpenAdManager; keep only the splash timeout to avoid permanent blocking
 
-        // 강제 ?�이??모드 ?�정
+        // 강제 라이트 모드 설정
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+
+        // [NEW] 타이머 상태 확인 및 UI 전환 로직
+        checkTimerStateAndSwitchUI()
 
         val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
         val startTime = sharedPref.getLong("start_time", 0L)
@@ -150,13 +153,74 @@ class MainActivity : BaseActivity() {
     override fun onDestroy() {
         super.onDestroy()
 
-        // ?�� ?�?�밍 진단: 최종 리포??출력
+        // 앱 타이밍 진단: 최종 리포트 출력
         kr.sweetapps.alcoholictimer.ui.ad.AdTimingLogger.printTimingReport()
 
-        // 리스???�제
+        // 리스너 제거
         kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdLoadedListener(null)
         kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdFinishedListener(null)
         kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdShownListener(null)
+    }
+
+    // [NEW] 타이머 상태 확인 및 UI 전환 함수
+    private fun checkTimerStateAndSwitchUI() {
+        try {
+            val isFinished = kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.isTimerFinished()
+            if (isFinished) {
+                showFinishedTimerUI()
+            } else {
+                showActiveTimerUI()
+            }
+        } catch (t: Throwable) {
+            android.util.Log.e("MainActivity", "타이머 상태 확인 실패", t)
+            showActiveTimerUI() // 기본값으로 작동 중 UI 표시
+        }
+    }
+
+    // [NEW] 타이머 작동 중 UI 표시
+    private fun showActiveTimerUI() {
+        android.util.Log.d("MainActivity", "타이머 작동 중 UI 표시: 시작 버튼 활성화")
+        // 실제 UI 변경은 Compose에서 상태에 따라 자동으로 처리됨
+    }
+
+    // [NEW] 타이머 만료 UI 표시
+    private fun showFinishedTimerUI() {
+        android.util.Log.d("MainActivity", "타이머 만료 UI 표시: 결과 확인/새 시작 버튼 활성화")
+        // 실제 UI 변경은 Compose에서 상태에 따라 자동으로 처리됨
+    }
+
+    // [NEW] 타이머 만료 시뮬레이션 (테스트용)
+    @Suppress("unused")
+    private fun simulateTimerExpiration() {
+        android.util.Log.d("MainActivity", "타이머 만료 시뮬레이션 실행")
+        kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(true)
+    }
+
+    // [NEW] 타이머 리셋 (새 타이머 시작 시)
+    @Suppress("unused")
+    private fun resetTimer() {
+        android.util.Log.d("MainActivity", "타이머 리셋 실행")
+        kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.resetTimer()
+    }
+
+    // [NEW] 결과 확인 및 기록 (전면 광고 연동)
+    @Suppress("unused")
+    private fun showResultAndRecord() {
+        android.util.Log.d("MainActivity", "결과 확인 버튼 클릭 -> 전면 광고 표시 시도")
+
+        if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
+            kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(this) { success ->
+                if (success) {
+                    android.util.Log.d("MainActivity", "광고 종료 -> 결과 기록 화면으로 이동")
+                } else {
+                    android.util.Log.d("MainActivity", "광고 실패 -> 결과 기록 화면으로 이동")
+                }
+                // 실제 결과 화면 이동 로직은 여기에 추가
+            }
+        } else {
+            android.util.Log.d("MainActivity", "광고 없음 -> 즉시 결과 기록 화면으로 이동")
+            // 실제 결과 화면 이동 로직은 여기에 추가
+        }
     }
 
     override fun onResume() {

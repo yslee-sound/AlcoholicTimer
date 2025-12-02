@@ -211,9 +211,18 @@ fun RunScreenComposable(
                         actualDays = actualDaysInt
                     )
                     sp!!.edit().remove(Constants.PREF_START_TIME).putBoolean(Constants.PREF_TIMER_COMPLETED, true).apply()
+
+                    // [NEW] TimerStateRepository에 만료 상태 저장
+                    try {
+                        kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(true)
+                        android.util.Log.d("RunScreen", "타이머 만료 상태 저장 완료")
+                    } catch (t: Throwable) {
+                        android.util.Log.e("RunScreen", "타이머 만료 상태 저장 실패", t)
+                    }
+
                     hasCompleted = true
 
-                    // Analytics: 목표 ?�성 ?�벤??기록
+                    // Analytics: 목표 달성 이벤트 기록
                     try { AnalyticsManager.logTimerFinish(targetDays.toInt(), actualDaysInt, startTime, endTs) } catch (_: Throwable) {}
 
                     val goDetail: () -> Unit = {

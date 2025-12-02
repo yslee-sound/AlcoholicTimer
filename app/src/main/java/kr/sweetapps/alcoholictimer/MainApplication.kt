@@ -34,7 +34,15 @@ class MainApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        // ?�� ?�?�밍 진단: ???�작 ?�각 기록
+        // [NEW] 타이머 상태 레포지토리 초기화 (가장 먼저 실행)
+        try {
+            kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.initialize(this)
+            android.util.Log.d("MainApplication", "TimerStateRepository 초기화 완료")
+        } catch (t: Throwable) {
+            android.util.Log.e("MainApplication", "TimerStateRepository 초기화 실패", t)
+        }
+
+        // 앱 타이밍 진단: 앱 시작 시각 기록
         kr.sweetapps.alcoholictimer.ui.ad.AdTimingLogger.logAppStart()
 
         // Firebase 초기?? google-services.json???�으�??�동?�로 구성?��?�?
