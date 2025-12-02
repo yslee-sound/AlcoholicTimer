@@ -23,8 +23,8 @@ import com.google.firebase.ktx.Firebase
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.screens.DetailScreen
 import kr.sweetapps.alcoholictimer.ui.tab_03.LevelScreen
-import kr.sweetapps.alcoholictimer.feature.records.components.AllRecordsScreen
-import kr.sweetapps.alcoholictimer.ui.screens.RecordsScreen
+import kr.sweetapps.alcoholictimer.ui.tab_02.components.AllRecordsScreen
+import kr.sweetapps.alcoholictimer.ui.tab_02.screens.RecordsScreen
 import kr.sweetapps.alcoholictimer.ui.screens.QuitScreenComposable
 import kr.sweetapps.alcoholictimer.feature.run.RunScreenComposable
 import kr.sweetapps.alcoholictimer.ui.tab_04.SettingsScreen
