@@ -42,12 +42,15 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
     private val _levelVisits = MutableStateFlow(sharedPref.getInt(LEVEL_VISITS_KEY, 0))
     val levelVisits: StateFlow<Int> = _levelVisits.asStateFlow()
 
-    // [NEW] 현재 경과 시간 계산
+    // [NEW] 현재 경과 시간 계산 (타이머 완료 시 0으로 설정)
     val currentElapsedTime: StateFlow<Long> = MutableStateFlow(0L).apply {
         viewModelScope.launch {
             currentTime.collect { time ->
                 val start = _startTime.value
-                value = if (start > 0) time - start else 0L
+                // [FIX] 타이머 완료 상태 확인
+                val isCompleted = sharedPref.getBoolean(Constants.PREF_TIMER_COMPLETED, false)
+                // 타이머가 완료되었거나 시작 시간이 없으면 0
+                value = if (start > 0 && !isCompleted) time - start else 0L
             }
         }
     }
