@@ -515,35 +515,46 @@ fun StartScreen(
                 MainActionButton(
                     onClick = {
                         // [NEW] AdPolicyManager로 전면 광고 정책 확인
+                        android.util.Log.d("StartScreen", "========================================")
+                        android.util.Log.d("StartScreen", "타이머 시작 버튼 클릭 - 광고 체크 시작")
                         val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
+                        android.util.Log.d("StartScreen", "shouldShowInterstitialAd = $shouldShowAd")
 
                         if (shouldShowAd) {
                             // [NEW] 전면 광고 표시 후 카운트다운 시작
                             val activity = context as? Activity
-                            if (activity != null && InterstitialAdManager.isLoaded()) {
-                                android.util.Log.d("StartScreen", "전면 광고 쿨타임 OK -> 광고 표시 시작")
-                                InterstitialAdManager.show(activity) { success ->
-                                    if (success) {
-                                        android.util.Log.d("StartScreen", "전면 광고 닫힘 -> 카운트다운 시작")
-                                    } else {
-                                        android.util.Log.d("StartScreen", "전면 광고 표시 실패 -> 즉시 카운트다운 시작")
+                            android.util.Log.d("StartScreen", "activity = ${activity != null}")
+
+                            if (activity != null) {
+                                val adLoaded = InterstitialAdManager.isLoaded()
+                                android.util.Log.d("StartScreen", "InterstitialAdManager.isLoaded() = $adLoaded")
+
+                                if (adLoaded) {
+                                    android.util.Log.d("StartScreen", "✅ 전면 광고 표시 시작")
+                                    InterstitialAdManager.show(activity) { success ->
+                                        android.util.Log.d("StartScreen", "광고 콜백: success=$success")
+                                        // 광고가 닫히거나 실패하면 카운트다운 시작
+                                        showCountdown = true
+                                        countdownNumber = 3
                                     }
-                                    // 광고가 닫히거나 실패하면 카운트다운 시작
+                                } else {
+                                    // 광고가 로드되지 않았으면 즉시 카운트다운 시작
+                                    android.util.Log.d("StartScreen", "광고 로드 안됨 -> 즉시 카운트다운 시작")
                                     showCountdown = true
                                     countdownNumber = 3
                                 }
                             } else {
-                                // 광고가 로드되지 않았으면 즉시 카운트다운 시작
-                                android.util.Log.d("StartScreen", "전면 광고 없음 -> 즉시 카운트다운 시작")
+                                android.util.Log.d("StartScreen", "activity null -> 즉시 카운트다운 시작")
                                 showCountdown = true
                                 countdownNumber = 3
                             }
                         } else {
                             // 쿨타임 중이면 광고 없이 즉시 카운트다운 시작
-                            android.util.Log.d("StartScreen", "전면 광고 쿨타임 중 -> 광고 스킵하고 카운트다운 시작")
+                            android.util.Log.d("StartScreen", "쿨타임 중 -> 광고 스킵하고 카운트다운 시작")
                             showCountdown = true
                             countdownNumber = 3
                         }
+                        android.util.Log.d("StartScreen", "========================================")
                     }
                 )
             },

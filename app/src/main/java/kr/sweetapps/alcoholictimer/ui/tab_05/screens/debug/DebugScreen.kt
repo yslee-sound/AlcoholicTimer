@@ -25,6 +25,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -97,56 +98,109 @@ fun DebugScreen(
                 }
             )
 
-            // [NEW] 전면 광고 쿨타임 설정 (초 단위)
+            // [NEW] 전면 광고 쿨타임 설정 (초 단위) - 한 줄 레이아웃 + 스위치 제어
             if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
-                Column(
+                // 초기 상태 로드
+                val coolDownValue = remember {
+                    mutableStateOf(
+                        viewModel.getDebugAdCoolDown(context).let {
+                            if (it >= 0) it.toString() else "1"
+                        }
+                    )
+                }
+
+                // 스위치 상태 (SharedPreferences에서 로드)
+                val isCoolDownEnabled = remember {
+                    mutableStateOf(
+                        context.getSharedPreferences("ad_policy_prefs", android.content.Context.MODE_PRIVATE)
+                            .getBoolean("debug_cooldown_enabled", false)
+                    )
+                }
+
+                // 한 줄 레이아웃 (Row)
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp)
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+                    // 1. 라벨 (좌측, 남은 공간 차지)
                     Text(
                         text = "전면 광고 쿨타임 (초)",
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
 
-                    val coolDownInput = remember {
-                        mutableStateOf(
-                            viewModel.getDebugAdCoolDown(context).let {
-                                if (it > 0) it.toString() else "1"
-                            }
-                        )
-                    }
-
+                    // 2. 입력창 (좁은 너비, 중앙 정렬)
                     OutlinedTextField(
-                        value = coolDownInput.value,
+                        value = coolDownValue.value,
                         onValueChange = { newValue ->
                             // 숫자만 입력 가능
                             if (newValue.isEmpty() || newValue.all { it.isDigit() }) {
-                                coolDownInput.value = newValue
-                                // 값이 비어있지 않으면 즉시 저장
-                                if (newValue.isNotEmpty()) {
+                                coolDownValue.value = newValue
+                                // 스위치가 켜져 있고 값이 비어있지 않으면 즉시 저장
+                                if (isCoolDownEnabled.value && newValue.isNotEmpty()) {
                                     val seconds = newValue.toLongOrNull() ?: 1L
                                     viewModel.setDebugAdCoolDown(context, seconds)
                                     Log.d("DebugScreen", "전면 광고 쿨타임 설정: $seconds 초")
                                 }
                             }
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .width(80.dp)
+                            .padding(horizontal = 8.dp),
+                        enabled = isCoolDownEnabled.value, // 스위치로 제어
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Number
                         ),
                         singleLine = true,
-                        placeholder = { Text("1 (테스트용)") },
-                        supportingText = {
-                            Text(
-                                "1초 권장 (빠른 테스트용). 릴리즈는 30분 고정.",
-                                fontSize = 12.sp
-                            )
+                        textStyle = androidx.compose.ui.text.TextStyle(textAlign = androidx.compose.ui.text.style.TextAlign.Center),
+                        colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                            disabledTextColor = androidx.compose.ui.graphics.Color.Gray.copy(alpha = 0.5f),
+                            disabledBorderColor = androidx.compose.ui.graphics.Color.Gray.copy(alpha = 0.3f)
+                        )
+                    )
+
+                    // 3. 스위치 (우측 끝)
+                    androidx.compose.material3.Switch(
+                        checked = isCoolDownEnabled.value,
+                        onCheckedChange = { isChecked ->
+                            isCoolDownEnabled.value = isChecked
+
+                            // 상태 저장
+                            context.getSharedPreferences("ad_policy_prefs", android.content.Context.MODE_PRIVATE)
+                                .edit()
+                                .putBoolean("debug_cooldown_enabled", isChecked)
+                                .apply()
+
+                            Log.d("DebugScreen", "전면 광고 쿨타임 스위치: ${if (isChecked) "ON (테스트 모드)" else "OFF (기본 모드)"}")
+
+                            // 켤 때 현재 입력값 저장
+                            if (isChecked && coolDownValue.value.isNotEmpty()) {
+                                val seconds = coolDownValue.value.toLongOrNull() ?: 1L
+                                viewModel.setDebugAdCoolDown(context, seconds)
+                            }
+                            // 끌 때는 기본값 복원 (제거)
+                            else if (!isChecked) {
+                                viewModel.setDebugAdCoolDown(context, -1L) // 기본값으로 복원
+                            }
                         }
                     )
                 }
+
+                // 설명 텍스트 (별도 줄)
+                Text(
+                    text = if (isCoolDownEnabled.value) {
+                        "ON: ${coolDownValue.value}초 쿨타임 적용 (테스트 모드)"
+                    } else {
+                        "OFF: 기본 쿨타임 적용 (디버그: 1분, 릴리즈: 30분)"
+                    },
+                    fontSize = 12.sp,
+                    color = androidx.compose.ui.graphics.Color.Gray,
+                    modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+                )
             }
 
             DebugSwitch(title = "UMP EEA 강제(서버)", checked = uiState.umpForceEea, onCheckedChange = {

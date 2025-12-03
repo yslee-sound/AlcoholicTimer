@@ -120,8 +120,12 @@ fun RunScreenComposable(
         }
     }
 
-    // [NEW] 타이머 테스트 모드를 고려한 동적 DAY_IN_MILLIS
-    val dayInMillis = remember { Constants.getDayInMillis(context) }
+    // [FIX] 타이머 테스트 모드를 고려한 동적 DAY_IN_MILLIS (now를 의존성에 추가하여 매 초마다 재계산)
+    val dayInMillis = remember(now) {
+        val value = Constants.getDayInMillis(context)
+        android.util.Log.d("RunScreen", "dayInMillis 재계산: $value (${if (value == 1000L) "테스트 모드: 1초" else "정상 모드: 1일"})")
+        value
+    }
 
     val elapsedMillis by remember(now, startTime, isDemoMode) {
         derivedStateOf {

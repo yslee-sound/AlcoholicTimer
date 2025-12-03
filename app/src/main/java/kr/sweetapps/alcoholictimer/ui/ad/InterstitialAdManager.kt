@@ -130,7 +130,11 @@ object InterstitialAdManager {
 
                 override fun onAdShowedFullScreenContent() {
                     Log.d(TAG, "show: 광고 표시 완료")
-                    try { AnalyticsManager.logAdImpression("interstitial") } catch (_: Throwable) {}
+                    try {
+                        AnalyticsManager.logAdImpression("interstitial")
+                        // [NEW] 광고 표시 성공 시 쿨타임 시작
+                        kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.markInterstitialShown(activity)
+                    } catch (_: Throwable) {}
                 }
 
                 override fun onAdClicked() {
