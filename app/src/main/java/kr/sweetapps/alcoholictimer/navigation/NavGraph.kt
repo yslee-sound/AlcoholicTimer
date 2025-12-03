@@ -355,10 +355,10 @@ fun AlcoholicTimerNavGraph(
             SettingsScreen(
                 onNavigateCurrencySettings = { navController.navigate(Screen.CurrencySettings.route) },
                 onApplyAndGoHome = {
-                    // Navigate to Start (Tab1)
+                    // Navigate to Start (Tab1) and recreate Start so its LaunchedEffect runs
                     try {
                         navController.navigate(Screen.Start.route) {
-                            popUpTo(navController.graph.startDestinationId) { inclusive = false }
+                            popUpTo(Screen.Start.route) { inclusive = true }
                             launchSingleTop = true
                         }
                     } catch (_: Throwable) {}

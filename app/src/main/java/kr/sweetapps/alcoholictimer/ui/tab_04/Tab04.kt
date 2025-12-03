@@ -47,6 +47,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.MainApplication
+import android.util.Log
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.constants.Constants
 import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
@@ -209,17 +210,22 @@ fun SettingsScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
+                val hasChanges = tempCost != selectedCost || tempFrequency != selectedFrequency || tempDuration != selectedDuration
+
                 Button(
                     onClick = {
+                        Log.d("SettingsScreen", "Apply clicked: tempCost=$tempCost tempFrequency=$tempFrequency tempDuration=$tempDuration")
                         // 1) 저장
                         viewModel.updateCost(tempCost)
                         viewModel.updateFrequency(tempFrequency)
                         viewModel.updateDuration(tempDuration)
+                        Log.d("SettingsScreen", "Saved to ViewModel (async)")
 
                         // 2) 플래그 설정: Tab1에서 스낵바 표시
                         try {
                             val sp = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
                             sp.edit().putBoolean("settings_applied_snackbar_pending", true).apply()
+                            Log.d("SettingsScreen", "Set settings_applied_snackbar_pending=true in sharedPref")
                         } catch (_: Throwable) {}
 
                         // 3) 전면광고 호출 후 Tab1으로 이동
@@ -228,20 +234,24 @@ fun SettingsScreen(
                             val shouldShow = true
                             if (act != null && kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
                                 kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(act) { success ->
+                                    Log.d("SettingsScreen", "InterstitialAdManager.show callback: success=$success -> navigating home")
                                     // 이동(광고 닫힌 후)
                                     onApplyAndGoHome()
                                 }
                             } else {
                                 // 광고 준비 안됨 -> 즉시 이동
+                                Log.d("SettingsScreen", "Interstitial not loaded -> navigating home immediately")
                                 onApplyAndGoHome()
                             }
-                        } catch (_: Throwable) {
+                        } catch (t: Throwable) {
+                            Log.e("SettingsScreen", "Exception while showing interstitial or navigating", t)
                             onApplyAndGoHome()
                         }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .navigationBarsPadding(),
+                    enabled = hasChanges,
                     colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.color_accent_blue))
                 ) {
                     Text(text = "적용하고 절약 금액 확인하기 >", color = Color.White)

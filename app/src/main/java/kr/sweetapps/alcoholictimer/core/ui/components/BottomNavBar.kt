@@ -61,14 +61,15 @@ private val bottomItems: List<BottomItem> = listOf(
         Screen.Settings,
         R.drawable.ic_nav_gearsix,
         R.string.drawer_menu_settings,
-        R.string.drawer_menu_settings
+        R.string.drawer_menu_settings,
+        associatedRoutes = setOf(Screen.Settings.route, Screen.CurrencySettings.route)
     ),
     BottomItem(
         Screen.About,
         R.drawable.ic_nav_user,
         R.string.drawer_menu_about,
         R.string.drawer_menu_about,
-        associatedRoutes = setOf(Screen.About.route, Screen.AboutLicenses.route, Screen.NicknameEdit.route, Screen.CurrencySettings.route)
+        associatedRoutes = setOf(Screen.About.route, Screen.AboutLicenses.route, Screen.NicknameEdit.route)
     )
 )
 

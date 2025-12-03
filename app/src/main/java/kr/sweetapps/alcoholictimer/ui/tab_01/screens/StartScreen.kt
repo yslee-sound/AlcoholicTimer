@@ -60,6 +60,9 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.Lifecycle
 
 import kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
@@ -317,16 +320,45 @@ fun StartScreen(
     // Snackbar host for cross-screen transient messages (e.g., settings applied)
     val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
 
-    // If settings were applied via SettingsScreen, show a snackbar once
-    LaunchedEffect(Unit) {
-        try {
-            val pending = sharedPref.getBoolean("settings_applied_snackbar_pending", false)
+    // If settings were applied via SettingsScreen, show a snackbar whenever the screen is resumed
+    // or when this composable first appears. This uses a lifecycle observer to trigger the check
+    // on ON_RESUME instead of polling, which is more reliable across navigation events.
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    suspend fun checkAndShowSnackbarOnce() {
+         try {
+            val pending = try { sharedPref.getBoolean("settings_applied_snackbar_pending", false) } catch (_: Throwable) { false }
+            Log.d("StartScreen", "checkAndShowSnackbarOnce: pending=$pending")
             if (pending) {
-                // clear flag first to avoid duplicate notifications
-                sharedPref.edit().putBoolean("settings_applied_snackbar_pending", false).apply()
-                snackbarHostState.showSnackbar("설정이 반영되어 절약 금액이 업데이트되었습니다! 💰", duration = androidx.compose.material3.SnackbarDuration.Short)
+                Log.d("StartScreen", "checkAndShowSnackbarOnce: clearing flag and showing snackbar")
+                try { sharedPref.edit().putBoolean("settings_applied_snackbar_pending", false).apply() } catch (_: Throwable) {}
+                try {
+                    snackbarHostState.showSnackbar("설정이 반영되어 절약 금액이 업데이트되었습니다! 💰", duration = androidx.compose.material3.SnackbarDuration.Short)
+                    Log.d("StartScreen", "checkAndShowSnackbarOnce: snackbar.showSnackbar returned")
+                } catch (t: Throwable) {
+                    Log.e("StartScreen", "checkAndShowSnackbarOnce: snackbar show failed", t)
+                }
+            } else {
+                Log.d("StartScreen", "checkAndShowSnackbarOnce: no pending flag")
             }
-        } catch (_: Throwable) {}
+         } catch (_: Throwable) {}
+    }
+
+    // initial check when composed
+    LaunchedEffect(Unit) { checkAndShowSnackbarOnce() }
+
+    // lifecycle observer to run check on ON_RESUME
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                try {
+                    // use the composable's coroutine scope to run the suspend check
+                    coroutineScope.launch { checkAndShowSnackbarOnce() }
+                } catch (_: Throwable) {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     Box(modifier = Modifier.fillMaxSize().pointerInput(Unit) {
