@@ -216,11 +216,19 @@ fun SettingsScreen(
                 Button(
                     onClick = {
                         Log.d("SettingsScreen", "Apply clicked: tempCost=$tempCost tempFrequency=$tempFrequency tempDuration=$tempDuration")
+
                         // 1) 저장
                         viewModel.updateCost(tempCost)
                         viewModel.updateFrequency(tempFrequency)
                         viewModel.updateDuration(tempDuration)
                         Log.d("SettingsScreen", "Saved to ViewModel (async)")
+
+                        // [NEW] 저장 완료 Toast 메시지 (광고 전에 표시)
+                        android.widget.Toast.makeText(
+                            context,
+                            "설정이 저장되었습니다.",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
 
                         // 2) 플래그 설정: Tab1에서 스낵바 표시
                         try {
@@ -229,24 +237,29 @@ fun SettingsScreen(
                             Log.d("SettingsScreen", "Set settings_applied_snackbar_pending=true in sharedPref")
                         } catch (_: Throwable) {}
 
-                        // 3) 전면광고 호출 후 Tab1으로 이동
-                        try {
-                            val act = activity
-                            val shouldShow = true
-                            if (act != null && kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
-                                kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(act) { success ->
-                                    Log.d("SettingsScreen", "InterstitialAdManager.show callback: success=$success -> navigating home")
-                                    // 이동(광고 닫힌 후)
-                                    onApplyAndGoHome()
+                        // 3) [수익화] 광고 정책 체크 및 전면광고 호출 후 Tab1으로 이동
+                        val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
+
+                        // 화면 종료 함수
+                        val finishAndGoHome: () -> Unit = {
+                            Log.d("SettingsScreen", "설정 완료 -> Tab1으로 이동")
+                            onApplyAndGoHome()
+                        }
+
+                        if (shouldShowAd && activity != null) {
+                            Log.d("SettingsScreen", "광고 정책 통과 -> 전면 광고 노출")
+                            if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
+                                kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(activity) { success ->
+                                    Log.d("SettingsScreen", "광고 결과: success=$success -> Tab1 이동")
+                                    finishAndGoHome()
                                 }
                             } else {
-                                // 광고 준비 안됨 -> 즉시 이동
-                                Log.d("SettingsScreen", "Interstitial not loaded -> navigating home immediately")
-                                onApplyAndGoHome()
+                                Log.d("SettingsScreen", "광고 로드 안됨 -> 즉시 Tab1 이동")
+                                finishAndGoHome()
                             }
-                        } catch (t: Throwable) {
-                            Log.e("SettingsScreen", "Exception while showing interstitial or navigating", t)
-                            onApplyAndGoHome()
+                        } else {
+                            Log.d("SettingsScreen", "광고 쿨타임 중 또는 activity null -> 즉시 Tab1 이동")
+                            finishAndGoHome()
                         }
                     },
                     modifier = Modifier
