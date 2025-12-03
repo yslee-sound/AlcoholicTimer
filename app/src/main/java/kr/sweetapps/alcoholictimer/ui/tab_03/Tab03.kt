@@ -301,7 +301,10 @@ fun CurrentLevelCard(
             if (nextLevel != null) {
                 Spacer(modifier = Modifier.height(24.dp))
 
-                val remainingDaysFloat = (nextLevel.start - elapsedDaysFloat).coerceAtLeast(0f)
+                // [FIX] D-Day 계산: nextLevelStartDay - currentDay
+                // currentDay는 화면에 표시되는 'n일차' (1부터 시작)
+                // nextLevel.start는 다음 레벨 시작일 (예: Lv.2는 4일)
+                val remainingDaysFloat = (nextLevel.start - currentDays.toFloat()).coerceAtLeast(0f)
                 val remainingDaysInt = kotlin.math.floor(remainingDaysFloat.toDouble()).toInt()
                 val remainingHoursInt = kotlin.math.floor(((remainingDaysFloat - remainingDaysInt) * 24f).toDouble()).toInt()
                 val remainingText = when {
