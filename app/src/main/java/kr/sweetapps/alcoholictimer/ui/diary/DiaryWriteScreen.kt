@@ -20,26 +20,55 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.core.ui.BackTopBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Check
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
 
 /**
- * [NEW] 일기 작성 화면
- * 사용자가 하루의 기분과 메모를 기록하는 화면
+ * [NEW] 일기 작성/상세 화면
+ * - 새 일기 작성: diaryId = null
+ * - 기존 일기 보기/수정: diaryId != null (초기 모드는 읽기 모드)
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiaryWriteScreen(
+    diaryId: String? = null, // [NEW] 일기 ID (null이면 새 작성, 있으면 상세/수정)
+    initialMood: String? = null, // [NEW] 초기 기분 이모지
+    initialCraving: Int = 0, // [NEW] 초기 갈망 수치
+    initialText: String = "", // [NEW] 초기 일기 내용
+    initialDate: Long? = null, // [NEW] 초기 날짜 (timestamp)
     onDismiss: () -> Unit = {},
-    onSave: (String, String, Int) -> Unit = { _, _, _ -> }
+    onSave: (String, String, Int) -> Unit = { _, _, _ -> },
+    onUpdate: (String, String, Int) -> Unit = { _, _, _ -> }, // [NEW] 업데이트 콜백
+    onDelete: () -> Unit = {} // [NEW] 삭제 콜백
 ) {
+    // [NEW] 모드 관리: 읽기/수정
+    var isEditMode by remember { mutableStateOf(diaryId == null) } // 새 작성이면 수정 모드, 기존 일기면 읽기 모드
+    val isViewMode = diaryId != null && !isEditMode
+
     // 상태 관리
-    var selectedMood by remember { mutableStateOf<MoodType?>(null) }
-    var cravingLevel by remember { mutableFloatStateOf(0f) }
-    var diaryText by remember { mutableStateOf("") }
-    var selectedDate by remember { mutableStateOf(Calendar.getInstance()) }
+    var selectedMood by remember {
+        mutableStateOf<MoodType?>(
+            initialMood?.let { emoji -> MoodType.entries.find { it.emoji == emoji } }
+        )
+    }
+    var cravingLevel by remember { mutableFloatStateOf(initialCraving.toFloat()) }
+    var diaryText by remember { mutableStateOf(initialText) }
+    var selectedDate by remember {
+        mutableStateOf(
+            Calendar.getInstance().apply {
+                initialDate?.let { timeInMillis = it }
+            }
+        )
+    }
+
+    // [NEW] 더보기 메뉴 상태
+    var showMenu by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     // 날짜 포맷
     val dateFormat = remember { SimpleDateFormat("yyyy년 M월 d일 (E)", Locale.KOREAN) }
@@ -50,27 +79,96 @@ fun DiaryWriteScreen(
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // [수정] 공통 BackTopBar 사용
+        // [수정] 모드에 따른 TopBar 구성
         BackTopBar(
-            title = "일기 쓰기",
+            title = when {
+                isViewMode -> dateFormat.format(selectedDate.time) // 읽기 모드: 날짜 표시
+                diaryId != null -> "일기 수정" // 수정 모드 (기존 일기)
+                else -> "일기 쓰기" // 새 작성
+            },
             onBack = onDismiss,
             trailingContent = {
-                TextButton(
-                    onClick = {
-                        if (selectedMood != null) {
-                            onSave(selectedMood!!.emoji, diaryText, cravingLevel.toInt())
+                when {
+                    isViewMode -> {
+                        // [NEW] 읽기 모드: 점 3개 메뉴
+                        Box {
+                            IconButton(onClick = { showMenu = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.MoreVert,
+                                    contentDescription = "메뉴",
+                                    tint = Color(0xFF2D3748)
+                                )
+                            }
+
+                            DropdownMenu(
+                                expanded = showMenu,
+                                onDismissRequest = { showMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("수정하기") },
+                                    onClick = {
+                                        showMenu = false
+                                        isEditMode = true
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("삭제하기", color = Color(0xFFEF4444)) },
+                                    onClick = {
+                                        showMenu = false
+                                        showDeleteDialog = true
+                                    }
+                                )
+                            }
                         }
-                    },
-                    enabled = selectedMood != null
-                ) {
-                    Text(
-                        "저장",
-                        fontWeight = FontWeight.Bold,
-                        color = if (selectedMood != null) MaterialTheme.colorScheme.primary else Color.Gray
-                    )
+                    }
+                    isEditMode -> {
+                        // [NEW] 수정 모드: 저장 버튼
+                        IconButton(
+                            onClick = {
+                                if (selectedMood != null) {
+                                    if (diaryId != null) {
+                                        onUpdate(selectedMood!!.emoji, diaryText, cravingLevel.toInt())
+                                    } else {
+                                        onSave(selectedMood!!.emoji, diaryText, cravingLevel.toInt())
+                                    }
+                                }
+                            },
+                            enabled = selectedMood != null
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "저장",
+                                tint = if (selectedMood != null) MaterialTheme.colorScheme.primary else Color.Gray
+                            )
+                        }
+                    }
                 }
             }
         )
+
+        // [NEW] 삭제 확인 다이얼로그
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("일기 삭제") },
+                text = { Text("정말 이 일기를 삭제하시겠습니까?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDeleteDialog = false
+                            onDelete()
+                        }
+                    ) {
+                        Text("삭제", color = Color(0xFFEF4444))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text("취소")
+                    }
+                }
+            )
+        }
 
         Column(
             modifier = Modifier
@@ -90,7 +188,8 @@ fun DiaryWriteScreen(
             // 2. 오늘의 기분 선택 (필수)
             MoodSelectionSection(
                 selectedMood = selectedMood,
-                onMoodSelected = { selectedMood = it }
+                onMoodSelected = { selectedMood = it },
+                enabled = isEditMode // [NEW] 읽기 모드에서는 비활성화
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -98,7 +197,8 @@ fun DiaryWriteScreen(
             // 3. 음주 욕구 게이지 (선택)
             CravingSliderSection(
                 cravingLevel = cravingLevel,
-                onCravingChanged = { cravingLevel = it }
+                onCravingChanged = { cravingLevel = it },
+                enabled = isEditMode // [NEW] 읽기 모드에서는 비활성화
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -106,33 +206,40 @@ fun DiaryWriteScreen(
             // 4. 텍스트 입력 영역
             DiaryTextInputSection(
                 text = diaryText,
-                onTextChanged = { diaryText = it }
+                onTextChanged = { diaryText = it },
+                enabled = isEditMode // [NEW] 읽기 모드에서는 비활성화
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 5. 저장 버튼 (하단 고정 느낌)
-            Button(
-                onClick = {
-                    if (selectedMood != null) {
-                        onSave(selectedMood!!.emoji, diaryText, cravingLevel.toInt())
-                    }
-                },
-                enabled = selectedMood != null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    disabledContainerColor = Color(0xFFE0E0E0)
-                ),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text(
-                    "오늘의 기록 저장하기",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
+            // 5. 저장 버튼 (수정 모드에서만 표시)
+            if (isEditMode) {
+                Button(
+                    onClick = {
+                        if (selectedMood != null) {
+                            if (diaryId != null) {
+                                onUpdate(selectedMood!!.emoji, diaryText, cravingLevel.toInt())
+                            } else {
+                                onSave(selectedMood!!.emoji, diaryText, cravingLevel.toInt())
+                            }
+                        }
+                    },
+                    enabled = selectedMood != null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        disabledContainerColor = Color(0xFFE0E0E0)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        if (diaryId != null) "일기 수정 완료" else "오늘의 기록 저장하기",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -187,7 +294,8 @@ private fun DateTimeSection(date: String, time: String) {
 @Composable
 private fun MoodSelectionSection(
     selectedMood: MoodType?,
-    onMoodSelected: (MoodType) -> Unit
+    onMoodSelected: (MoodType) -> Unit,
+    enabled: Boolean = true // [NEW] 읽기 모드 지원
 ) {
     Column(
         modifier = Modifier
@@ -219,7 +327,8 @@ private fun MoodSelectionSection(
                 MoodItem(
                     mood = mood,
                     isSelected = selectedMood == mood,
-                    onClick = { onMoodSelected(mood) }
+                    onClick = { if (enabled) onMoodSelected(mood) }, // [NEW] enabled 체크
+                    enabled = enabled // [NEW] enabled 전달
                 )
             }
         }
@@ -233,12 +342,13 @@ private fun MoodSelectionSection(
 private fun MoodItem(
     mood: MoodType,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    enabled: Boolean = true // [NEW] 읽기 모드 지원
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .clickable(onClick = onClick)
+            .clickable(enabled = enabled, onClick = onClick) // [NEW] enabled 체크
             .padding(4.dp)
     ) {
         Box(
@@ -253,7 +363,11 @@ private fun MoodItem(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Text(mood.emoji, fontSize = 32.sp)
+            Text(
+                mood.emoji,
+                fontSize = 32.sp,
+                color = if (enabled) Color.Unspecified else Color.Gray.copy(alpha = 0.5f) // [NEW] 비활성 상태 표시
+            )
         }
 
         Spacer(modifier = Modifier.height(4.dp))
@@ -273,7 +387,8 @@ private fun MoodItem(
 @Composable
 private fun CravingSliderSection(
     cravingLevel: Float,
-    onCravingChanged: (Float) -> Unit
+    onCravingChanged: (Float) -> Unit,
+    enabled: Boolean = true // [NEW] 읽기 모드 지원
 ) {
     Column(
         modifier = Modifier
@@ -311,10 +426,13 @@ private fun CravingSliderSection(
             onValueChange = onCravingChanged,
             valueRange = 0f..10f,
             steps = 9,
+            enabled = enabled, // [NEW] 읽기 모드에서는 비활성화
             colors = SliderDefaults.colors(
                 thumbColor = MaterialTheme.colorScheme.primary,
                 activeTrackColor = MaterialTheme.colorScheme.primary,
-                inactiveTrackColor = Color(0xFFE2E8F0)
+                inactiveTrackColor = Color(0xFFE2E8F0),
+                disabledThumbColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), // [NEW] 비활성 색상
+                disabledActiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) // [NEW] 비활성 색상
             )
         )
 
@@ -333,7 +451,8 @@ private fun CravingSliderSection(
 @Composable
 private fun DiaryTextInputSection(
     text: String,
-    onTextChanged: (String) -> Unit
+    onTextChanged: (String) -> Unit,
+    enabled: Boolean = true // [NEW] 읽기 모드 지원
 ) {
     Column(
         modifier = Modifier
@@ -367,14 +486,19 @@ private fun DiaryTextInputSection(
                     color = Color(0xFFCBD5E1)
                 )
             },
+            enabled = enabled, // [NEW] 읽기 모드에서는 비활성화
+            readOnly = !enabled, // [NEW] 읽기 전용
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 150.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedBorderColor = Color(0xFFE2E8F0),
+                disabledBorderColor = Color(0xFFE2E8F0), // [NEW] 비활성 테두리
                 focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                unfocusedContainerColor = Color.White,
+                disabledContainerColor = Color(0xFFF8F9FA), // [NEW] 비활성 배경
+                disabledTextColor = Color(0xFF2D3748) // [NEW] 비활성 텍스트 색상 (읽기 가능하게)
             ),
             shape = RoundedCornerShape(8.dp),
             textStyle = MaterialTheme.typography.bodyMedium.copy(lineHeight = 24.sp)

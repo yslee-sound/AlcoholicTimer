@@ -11,6 +11,7 @@ import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
 import kr.sweetapps.alcoholictimer.ui.tab_02.screens.RecordsScreen
+import kr.sweetapps.alcoholictimer.ui.tab_02.screens.DiaryEntry // [NEW] DiaryEntry import
 
 /**
  * [NEW] Tab02 기록 화면 Activity
@@ -41,6 +42,7 @@ fun Tab02Screen(
     onNavigateToDetail: (SobrietyRecord) -> Unit = {},
     onNavigateToAllRecords: () -> Unit = {},
     onAddRecord: () -> Unit = {},
+    onDiaryClick: (DiaryEntry) -> Unit = {}, // [NEW] 일기 클릭 콜백
     viewModel: Tab02ViewModel = viewModel()
 ) {
     // [NEW] 현재는 RecordsScreen을 그대로 사용하지만,
@@ -49,7 +51,8 @@ fun Tab02Screen(
         externalRefreshTrigger = 0,
         onNavigateToDetail = onNavigateToDetail,
         onNavigateToAllRecords = onNavigateToAllRecords,
-        onAddRecord = onAddRecord
+        onAddRecord = onAddRecord,
+        onDiaryClick = onDiaryClick // [NEW] 일기 클릭 콜백 전달
     )
 }
 

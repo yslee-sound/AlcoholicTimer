@@ -85,6 +85,7 @@ fun RecordsScreen(
     onNavigateToDetail: (SobrietyRecord) -> Unit = {},
     onNavigateToAllRecords: () -> Unit = {},
     onAddRecord: () -> Unit = {},
+    onDiaryClick: (DiaryEntry) -> Unit = {}, // [NEW] 일기 클릭 콜백
     fontScale: Float = 1.06f
 ) {
     // view_records 이벤트는 하단 네비게이션 버튼 클릭에서 전송하도록 변경됨.
@@ -126,9 +127,12 @@ fun RecordsScreen(
                 val loadedDiaries = (0 until minOf(3, diariesArray.length())).map { i ->
                     val item = diariesArray.getJSONObject(i)
                     DiaryEntry(
+                        id = item.optLong("timestamp", 0L).toString(), // [NEW] timestamp를 ID로 사용
+                        timestamp = item.optLong("timestamp", 0L), // [NEW] timestamp 필드
                         date = item.optString("date", ""),
                         emoji = item.optString("emoji", ""),
-                        content = item.optString("content", "")
+                        content = item.optString("content", ""),
+                        cravingLevel = item.optInt("cravingLevel", 0) // [NEW] cravingLevel 필드
                     )
                 }
                 diaries = loadedDiaries
@@ -341,7 +345,11 @@ fun RecordsScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
-                        RecentDiarySection(diaries = diaries, onNavigateToAllDiaries = onNavigateToAllRecords)
+                        RecentDiarySection(
+                            diaries = diaries,
+                            onNavigateToAllDiaries = onNavigateToAllRecords,
+                            onDiaryClick = onDiaryClick // [NEW] 일기 클릭 콜백 전달
+                        )
                     }
                 }
 
@@ -884,16 +892,23 @@ private fun StatisticItem(
 
 // [NEW] 최근 금주 일기 데이터 모델
 data class DiaryEntry(
+    val id: String, // [NEW] 일기 고유 ID (timestamp 활용)
+    val timestamp: Long, // [NEW] 작성 시간 (상세보기에 필요)
     val date: String,
     val emoji: String,
-    val content: String
+    val content: String,
+    val cravingLevel: Int = 0 // [NEW] 음주 욕구 수치
 )
 
 /**
  * [NEW] 최근 금주 일기 섹션
  */
 @Composable
-private fun RecentDiarySection(diaries: List<DiaryEntry>, onNavigateToAllDiaries: () -> Unit = {}) {
+private fun RecentDiarySection(
+    diaries: List<DiaryEntry>,
+    onNavigateToAllDiaries: () -> Unit = {},
+    onDiaryClick: (DiaryEntry) -> Unit = {} // [NEW] 일기 클릭 콜백
+) {
 
     Column(modifier = Modifier.fillMaxWidth()) {
         // [NEW] 헤더: 제목 + 전체 보기 버튼
@@ -937,7 +952,10 @@ private fun RecentDiarySection(diaries: List<DiaryEntry>, onNavigateToAllDiaries
             } else {
                 // 일기 항목들
                 diaries.forEachIndexed { index, diary ->
-                    DiaryListItem(diary = diary)
+                    DiaryListItem(
+                        diary = diary,
+                        onClick = { onDiaryClick(diary) } // [NEW] 클릭 이벤트 전달
+                    )
 
                     if (index < diaries.size - 1) {
                         HorizontalDivider(
@@ -995,11 +1013,11 @@ private fun DiaryEmptyState() {
  * [NEW] 일기 항목 아이템
  */
 @Composable
-private fun DiaryListItem(diary: DiaryEntry) {
+private fun DiaryListItem(diary: DiaryEntry, onClick: () -> Unit = {}) { // [NEW] onClick 파라미터 추가
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { /* TODO: 일기 상세 보기 */ }
+            .clickable { onClick() } // [NEW] 클릭 이벤트 연결
             .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically

@@ -101,6 +101,11 @@ sealed class Screen(val route: String) {
 
     /** [NEW] 일기 작성 화면 */
     data object DiaryWrite : Screen("diary_write")
+
+    /** [NEW] 일기 상세보기/수정 화면 */
+    data object DiaryDetail : Screen("diary_detail/{diaryId}") {
+        fun createRoute(diaryId: String) = "diary_detail/$diaryId"
+    }
 }
 
 /**

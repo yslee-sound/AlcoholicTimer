@@ -233,7 +233,11 @@ fun AlcoholicTimerNavGraph(
                     )
                     navController.navigate(route)
                 },
-                onAddRecord = { navController.navigate(Screen.DiaryWrite.route) } // [수정] 일기 작성 화면으로 연결
+                onAddRecord = { navController.navigate(Screen.DiaryWrite.route) }, // [수정] 일기 작성 화면으로 연결
+                onDiaryClick = { diary -> // [NEW] 일기 클릭 시 상세보기로 이동
+                    val route = Screen.DiaryDetail.createRoute(diary.id)
+                    navController.navigate(route)
+                }
             )
         }
 
@@ -335,6 +339,101 @@ fun AlcoholicTimerNavGraph(
                     } else {
                         android.util.Log.d("NavGraph", "일기 저장 광고 쿨타임 중 -> 즉시 완료")
                         proceedToComplete()
+                    }
+                }
+            )
+        }
+
+        // [NEW] 일기 상세보기/수정 화면
+        composable(
+            route = Screen.DiaryDetail.route,
+            arguments = listOf(navArgument("diaryId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val diaryId = backStackEntry.arguments?.getString("diaryId") ?: return@composable
+
+            // [NEW] SharedPreferences에서 해당 일기 로드
+            val sharedPref = context.getSharedPreferences("diary_data", android.content.Context.MODE_PRIVATE)
+            val diariesJson = sharedPref.getString("diaries", "[]") ?: "[]"
+            val diariesArray = org.json.JSONArray(diariesJson)
+
+            var diaryData: org.json.JSONObject? = null
+            for (i in 0 until diariesArray.length()) {
+                val item = diariesArray.getJSONObject(i)
+                if (item.optLong("timestamp", 0L).toString() == diaryId) {
+                    diaryData = item
+                    break
+                }
+            }
+
+            if (diaryData == null) {
+                // 일기를 찾지 못한 경우 뒤로 가기
+                android.util.Log.e("NavGraph", "일기를 찾을 수 없음: diaryId=$diaryId")
+                navController.popBackStack()
+                return@composable
+            }
+
+            kr.sweetapps.alcoholictimer.ui.diary.DiaryWriteScreen(
+                diaryId = diaryId,
+                initialMood = diaryData.optString("emoji", ""),
+                initialCraving = diaryData.optInt("cravingLevel", 0),
+                initialText = diaryData.optString("content", ""),
+                initialDate = diaryData.optLong("timestamp", 0L),
+                onDismiss = { navController.popBackStack() },
+                onSave = { _, _, _ -> /* 상세보기에서는 사용 안함 */ },
+                onUpdate = { emoji, content, cravingLevel ->
+                    android.util.Log.d("NavGraph", "일기 수정: diaryId=$diaryId, emoji=$emoji")
+
+                    // [NEW] SharedPreferences에서 일기 업데이트
+                    try {
+                        val currentDiaries = sharedPref.getString("diaries", "[]") ?: "[]"
+                        val array = org.json.JSONArray(currentDiaries)
+
+                        for (i in 0 until array.length()) {
+                            val item = array.getJSONObject(i)
+                            if (item.optLong("timestamp", 0L).toString() == diaryId) {
+                                item.put("emoji", emoji)
+                                item.put("content", content.ifEmpty { "내용 없음" })
+                                item.put("cravingLevel", cravingLevel)
+                                break
+                            }
+                        }
+
+                        sharedPref.edit().putString("diaries", array.toString()).apply()
+                        android.util.Log.d("NavGraph", "일기 수정 완료")
+
+                        // Records 화면 새로고침 트리거
+                        recordsRefreshCounter++
+
+                        navController.popBackStack()
+                    } catch (e: Exception) {
+                        android.util.Log.e("NavGraph", "일기 수정 실패", e)
+                    }
+                },
+                onDelete = {
+                    android.util.Log.d("NavGraph", "일기 삭제: diaryId=$diaryId")
+
+                    // [NEW] SharedPreferences에서 일기 삭제
+                    try {
+                        val currentDiaries = sharedPref.getString("diaries", "[]") ?: "[]"
+                        val array = org.json.JSONArray(currentDiaries)
+                        val newArray = org.json.JSONArray()
+
+                        for (i in 0 until array.length()) {
+                            val item = array.getJSONObject(i)
+                            if (item.optLong("timestamp", 0L).toString() != diaryId) {
+                                newArray.put(item)
+                            }
+                        }
+
+                        sharedPref.edit().putString("diaries", newArray.toString()).apply()
+                        android.util.Log.d("NavGraph", "일기 삭제 완료")
+
+                        // Records 화면 새로고침 트리거
+                        recordsRefreshCounter++
+
+                        navController.popBackStack()
+                    } catch (e: Exception) {
+                        android.util.Log.e("NavGraph", "일기 삭제 실패", e)
                     }
                 }
             )
