@@ -58,11 +58,11 @@ private val bottomItems: List<BottomItem> = listOf(
         R.string.drawer_menu_level
     ),
     BottomItem(
-        Screen.Settings,
+        Screen.More,
         R.drawable.ic_nav_gearsix,
-        R.string.drawer_menu_settings,
-        R.string.drawer_menu_settings,
-        associatedRoutes = setOf(Screen.Settings.route, Screen.CurrencySettings.route)
+        R.string.drawer_menu_more,
+        R.string.drawer_menu_more,
+        associatedRoutes = setOf(Screen.More.route, Screen.CurrencySettings.route)
     ),
     BottomItem(
         Screen.About,

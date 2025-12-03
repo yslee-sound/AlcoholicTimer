@@ -46,7 +46,7 @@ sealed class Screen(val route: String) {
     /**
      * 설정 화면
      */
-    data object Settings : Screen("settings")
+    data object More : Screen("more")
 
     /**
      * 정보 화면
@@ -113,7 +113,7 @@ fun Screen.getTitleResId(): Int? = when (this) {
     is Screen.Records -> null // kr.sweetapps.alcoholictimer.R.string.records_title
     is Screen.AllRecords -> kr.sweetapps.alcoholictimer.R.string.all_records_title
     is Screen.Level -> kr.sweetapps.alcoholictimer.R.string.level_title
-    is Screen.Settings -> kr.sweetapps.alcoholictimer.R.string.settings_title
+    is Screen.More -> kr.sweetapps.alcoholictimer.R.string.more_title
     is Screen.About -> kr.sweetapps.alcoholictimer.R.string.about_title
     is Screen.AboutLicenses -> null // 리소스 없음
     is Screen.Privacy -> null

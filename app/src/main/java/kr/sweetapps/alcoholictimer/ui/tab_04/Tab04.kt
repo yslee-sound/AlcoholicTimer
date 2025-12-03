@@ -55,9 +55,10 @@ import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 import kr.sweetapps.alcoholictimer.core.ui.theme.LocalDimens
 
 class SettingsActivity : BaseActivity() {
-    override fun getScreenTitleResId(): Int = R.string.settings_title
+    // [NEW] Tab04은 '더보기'로 표시되어야 하므로 제목 리소스를 more_title로 변경
+    override fun getScreenTitleResId(): Int = R.string.more_title
     @Deprecated("Use getScreenTitleResId() instead for proper localization support")
-    override fun getScreenTitle(): String = getString(R.string.settings_title)
+    override fun getScreenTitle(): String = getString(R.string.more_title)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

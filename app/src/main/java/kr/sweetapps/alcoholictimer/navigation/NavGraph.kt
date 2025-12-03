@@ -351,7 +351,7 @@ fun AlcoholicTimerNavGraph(
             })
         }
 
-        composable(Screen.Settings.route) {
+        composable(Screen.More.route) {
             SettingsScreen(
                 onNavigateCurrencySettings = { navController.navigate(Screen.CurrencySettings.route) },
                 onApplyAndGoHome = {
