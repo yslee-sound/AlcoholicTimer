@@ -252,9 +252,11 @@ fun CurrentLevelCard(
                         contentAlignment = Alignment.Center
                     ) {
                         val levelNumber = LevelDefinitions.getLevelNumber(currentDays) + 1
+                        // [FIX] Legend 레벨(11)은 "L"로 표시
+                        val levelText = if (levelNumber == 11) "L" else "$levelNumber"
                         val badgeFontSize = if (isYellowBadge) 26.sp else 22.sp
                         Text(
-                            text = "LV.$levelNumber",
+                            text = "LV.$levelText",
                             style = MaterialTheme.typography.titleLarge.copy(
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold
@@ -412,8 +414,10 @@ private fun LevelItem(
                 contentAlignment = Alignment.Center
             ) {
                 val levelNumber = LevelDefinitions.levels.indexOf(level) + 1
+                // [FIX] Legend 레벨(11)은 "L"로 표시
+                val levelText = if (levelNumber == 11) "L" else "$levelNumber"
                 Text(
-                    text = "$levelNumber",
+                    text = levelText,
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.Bold,
                         color = if (isAchieved) Color.White else Color(0xFF757575)

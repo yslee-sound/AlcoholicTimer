@@ -149,7 +149,8 @@ fun RunScreenComposable(
     }
     val levelInfo = remember(levelDays) { LevelDefinitions.getLevelInfo(levelDays) }
     val levelNumber = if (isDemoMode) DemoData.DEMO_LEVEL else remember(levelDays) { LevelDefinitions.getLevelNumber(levelDays) + 1 } // +1 for display (1-indexed)
-    val levelDisplayText = "Lv.$levelNumber"
+    // [FIX] Legend 레벨(11)은 "L"로 표시
+    val levelDisplayText = if (levelNumber == 11) "Lv.L" else "Lv.$levelNumber"
 
     // Goal days format based on locale
     val goalDaysText = remember(targetDays) {
