@@ -35,6 +35,9 @@ sealed class Screen(val route: String) {
      */
     data object AllRecords : Screen("all_records")
 
+    /** 모든 일기(모든 금주 일지) 보기 화면 */
+    data object AllDiary : Screen("all_diaries")
+
     /**
      * 레벨 화면
      */

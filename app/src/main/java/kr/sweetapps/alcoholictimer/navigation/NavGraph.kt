@@ -220,7 +220,7 @@ fun AlcoholicTimerNavGraph(
         composable(Screen.Records.route) {
             RecordsScreen(
                 externalRefreshTrigger = recordsRefreshCounter,
-                onNavigateToAllRecords = { navController.navigate(Screen.AllRecords.route) },
+                onNavigateToAllRecords = { navController.navigate(Screen.AllDiary.route) },
                 onNavigateToDetail = { record: SobrietyRecord ->
                     // Analytics: 기록 상세 보기 이벤트 전송
                     try { AnalyticsManager.logViewRecordDetail(record.id) } catch (_: Throwable) {}
@@ -263,6 +263,14 @@ fun AlcoholicTimerNavGraph(
                     navController.navigate(route)
                 },
                 onAddRecord = { navController.navigate(Screen.AddRecord.route) } // [NEW] 기록 추가 기능 연결
+            )
+        }
+
+        // [NEW] 모든 일기 보기 화면 (AllDiary)
+        composable(Screen.AllDiary.route) {
+            kr.sweetapps.alcoholictimer.ui.tab_02.screens.AllDiaryScreen(
+                onNavigateBack = { if (!navController.popBackStack()) navController.navigate(Screen.Records.route) },
+                onOpenDiaryDetail = { /* TODO: 연결: 상세 편집/보기로 이동 */ }
             )
         }
 
