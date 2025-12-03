@@ -102,6 +102,15 @@ class MainActivity : BaseActivity() {
                 android.util.Log.d("MainActivity", "단계 4: 메인 액티비티 진입")
                 android.util.Log.d("MainActivity", "호출 스택 추적: ${Thread.currentThread().stackTrace.take(5).joinToString()}")
                 android.util.Log.d("MainActivity", "========================================")
+
+                // [FIX] 스플래시 화면 해제 전에 테마 변경 (검은색 배경 문제 해결)
+                try {
+                    setTheme(R.style.Theme_AlcoholicTimer)
+                    android.util.Log.d("MainActivity", "Theme changed to Theme.AlcoholicTimer")
+                } catch (t: Throwable) {
+                    android.util.Log.e("MainActivity", "Failed to change theme", t)
+                }
+
                 holdSplashState.value = false
                 android.util.Log.d("MainActivity", "Splash released - entering Compose UI")
 
