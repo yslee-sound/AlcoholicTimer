@@ -15,11 +15,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -28,6 +31,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,6 +74,7 @@ class SettingsActivity : BaseActivity() {
 @Composable
 fun SettingsScreen(
     onNavigateCurrencySettings: () -> Unit = {},
+    onApplyAndGoHome: () -> Unit = {}, // [NEW] 호출 시 Tab1으로 이동
     viewModel: Tab04ViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -77,6 +83,11 @@ fun SettingsScreen(
     val selectedCost by viewModel.selectedCost.collectAsState()
     val selectedFrequency by viewModel.selectedFrequency.collectAsState()
     val selectedDuration by viewModel.selectedDuration.collectAsState()
+
+    // [NEW] 로컬 임시 상태: 사용자는 옵션을 선택해도 즉시 저장되지 않고 Apply 버튼으로 저장됨
+    var tempCost by remember { mutableStateOf(selectedCost) }
+    var tempFrequency by remember { mutableStateOf(selectedFrequency) }
+    var tempDuration by remember { mutableStateOf(selectedDuration) }
 
     val safePadding = LocalSafeContentPadding.current
     val scrollState = rememberScrollState()
@@ -91,14 +102,15 @@ fun SettingsScreen(
 
     // 전체 바탕 흰색 + 스크롤 가능한 목록형 레이아웃
     Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
+        // Content area (scrollable)
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
                 .padding(top = 8.dp)
                 .padding(safePadding)
-                // 배너 바로 위 최소 8dp 완충
-                .padding(bottom = 8.dp),
+                // reserve bottom space so content is not obscured by the sticky button
+                .padding(bottom = safePadding.calculateBottomPadding() + 92.dp),
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             SettingsSection(
@@ -106,7 +118,7 @@ fun SettingsScreen(
                 titleColor = Color.Black
             ) {
                 SettingsOptionGroup(
-                    selectedOption = selectedCost,
+                    selectedOption = tempCost,
                     options = listOf(
                         Constants.KEY_COST_LOW,
                         Constants.KEY_COST_MEDIUM,
@@ -118,7 +130,8 @@ fun SettingsScreen(
                         stringResource(R.string.settings_cost_high_label)
                     ),
                     onOptionSelected = { newValue ->
-                        viewModel.updateCost(newValue)
+                        // [NEW] 임시 상태만 변경 (저장은 Apply 버튼에서)
+                        tempCost = newValue
                     }
                 )
             }
@@ -147,7 +160,7 @@ fun SettingsScreen(
                 titleColor = Color.Black
             ) {
                 SettingsOptionGroup(
-                    selectedOption = selectedFrequency,
+                    selectedOption = tempFrequency,
                     options = listOf(
                         Constants.KEY_FREQUENCY_LOW,
                         Constants.KEY_FREQUENCY_MEDIUM,
@@ -159,7 +172,7 @@ fun SettingsScreen(
                         stringResource(R.string.settings_frequency_high)
                     ),
                     onOptionSelected = { newValue ->
-                        viewModel.updateFrequency(newValue)
+                        tempFrequency = newValue
                     }
                 )
             }
@@ -170,7 +183,7 @@ fun SettingsScreen(
                 titleColor = Color.Black
             ) {
                 SettingsOptionGroup(
-                    selectedOption = selectedDuration,
+                    selectedOption = tempDuration,
                     options = listOf(
                         Constants.KEY_DURATION_SHORT,
                         Constants.KEY_DURATION_MEDIUM,
@@ -182,9 +195,57 @@ fun SettingsScreen(
                         stringResource(R.string.settings_duration_long_label)
                     ),
                     onOptionSelected = { newValue ->
-                        viewModel.updateDuration(newValue)
+                        tempDuration = newValue
                     }
                 )
+            }
+        }
+
+        // [NEW] 하단 고정 Apply 버튼 — 스크롤 영역 밖에 배치되어 항상 표시
+        val activity = (context as? android.app.Activity)
+        Column(modifier = Modifier.fillMaxSize()) {
+            Spacer(modifier = Modifier.weight(1f))
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                Button(
+                    onClick = {
+                        // 1) 저장
+                        viewModel.updateCost(tempCost)
+                        viewModel.updateFrequency(tempFrequency)
+                        viewModel.updateDuration(tempDuration)
+
+                        // 2) 플래그 설정: Tab1에서 스낵바 표시
+                        try {
+                            val sp = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+                            sp.edit().putBoolean("settings_applied_snackbar_pending", true).apply()
+                        } catch (_: Throwable) {}
+
+                        // 3) 전면광고 호출 후 Tab1으로 이동
+                        try {
+                            val act = activity
+                            val shouldShow = true
+                            if (act != null && kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
+                                kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(act) { success ->
+                                    // 이동(광고 닫힌 후)
+                                    onApplyAndGoHome()
+                                }
+                            } else {
+                                // 광고 준비 안됨 -> 즉시 이동
+                                onApplyAndGoHome()
+                            }
+                        } catch (_: Throwable) {
+                            onApplyAndGoHome()
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding(),
+                    colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.color_accent_blue))
+                ) {
+                    Text(text = "적용하고 절약 금액 확인하기 >", color = Color.White)
+                }
             }
         }
     }

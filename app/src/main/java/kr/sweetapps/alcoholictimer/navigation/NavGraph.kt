@@ -352,7 +352,18 @@ fun AlcoholicTimerNavGraph(
         }
 
         composable(Screen.Settings.route) {
-            SettingsScreen(onNavigateCurrencySettings = { navController.navigate(Screen.CurrencySettings.route) })
+            SettingsScreen(
+                onNavigateCurrencySettings = { navController.navigate(Screen.CurrencySettings.route) },
+                onApplyAndGoHome = {
+                    // Navigate to Start (Tab1)
+                    try {
+                        navController.navigate(Screen.Start.route) {
+                            popUpTo(navController.graph.startDestinationId) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    } catch (_: Throwable) {}
+                }
+            )
         }
 
         composable(Screen.About.route) {

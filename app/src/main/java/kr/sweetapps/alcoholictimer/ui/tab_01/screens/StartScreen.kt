@@ -314,6 +314,21 @@ fun StartScreen(
         }
     }
 
+    // Snackbar host for cross-screen transient messages (e.g., settings applied)
+    val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
+
+    // If settings were applied via SettingsScreen, show a snackbar once
+    LaunchedEffect(Unit) {
+        try {
+            val pending = sharedPref.getBoolean("settings_applied_snackbar_pending", false)
+            if (pending) {
+                // clear flag first to avoid duplicate notifications
+                sharedPref.edit().putBoolean("settings_applied_snackbar_pending", false).apply()
+                snackbarHostState.showSnackbar("설정이 반영되어 절약 금액이 업데이트되었습니다! 💰", duration = androidx.compose.material3.SnackbarDuration.Short)
+            }
+        } catch (_: Throwable) {}
+    }
+
     Box(modifier = Modifier.fillMaxSize().pointerInput(Unit) {
         detectTapGestures(onTap = {
             focusManager.clearFocus()
@@ -542,6 +557,14 @@ fun StartScreen(
         ) {
             CountdownOverlay(countdownNumber = countdownNumber)
         }
+
+        // Snackbar Host overlay (bottom)
+        androidx.compose.material3.SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 56.dp)
+        )
      }
  }
 
