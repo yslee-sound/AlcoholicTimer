@@ -124,7 +124,18 @@ object Constants {
 
     fun keyCurrentIndicator(startTime: Long): String = "current_indicator_${startTime}"
 
-    fun calculateLevelDays(elapsedTimeMillis: Long): Int = (elapsedTimeMillis / DAY_IN_MILLIS).toInt()
+    // [FIX] 레벨 계산: 1일 차부터 시작 (시작일 = 1일)
+    fun calculateLevelDays(elapsedTimeMillis: Long): Int {
+        val days = (elapsedTimeMillis / DAY_IN_MILLIS).toInt()
+        return if (days == 0) 1 else days + 1
+    }
+
+    // [NEW] 레벨 계산: 동적 dayInMillis를 받는 오버로드 (테스트 모드 대응)
+    fun calculateLevelDays(elapsedTimeMillis: Long, dayInMillis: Long): Int {
+        val days = (elapsedTimeMillis / dayInMillis).toInt()
+        return if (days == 0) 1 else days + 1
+    }
+
     fun calculateLevelDaysFloat(elapsedTimeMillis: Long): Float = (elapsedTimeMillis / DAY_IN_MILLIS.toFloat())
 
     fun init(context: Context) { currentTestMode = TEST_MODE_REAL }

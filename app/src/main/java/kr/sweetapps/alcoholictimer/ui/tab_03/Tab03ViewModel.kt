@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.constants.Constants
 import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
+import kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository
 import kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelDefinitions
 
 /**
@@ -98,11 +99,19 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
                 currentElapsedTime.collect { currentElapsed ->
                     val total = totalPastDuration + currentElapsed
                     _totalElapsedTime.value = total
-                    _totalElapsedDaysFloat.value = total / Constants.DAY_IN_MILLIS.toFloat()
 
-                    val days = Constants.calculateLevelDays(total)
+                    // [FIX] 타이머 테스트 모드를 고려한 동적 DAY_IN_MILLIS
+                    val dayInMillis = Constants.getDayInMillis(getApplication())
+                    _totalElapsedDaysFloat.value = total / dayInMillis.toFloat()
+
+                    val days = Constants.calculateLevelDays(total, dayInMillis)
                     _levelDays.value = days
                     _currentLevel.value = LevelDefinitions.getLevelInfo(days)
+
+                    // [DEBUG] 테스트 모드 시 로그 출력
+                    if (TimerStateRepository.isTimerTestModeEnabled()) {
+                        Log.d("Tab03ViewModel", "테스트 모드 레벨 업데이트: elapsed=${total}ms, dayInMillis=${dayInMillis}, days=$days")
+                    }
                 }
             } catch (e: Exception) {
                 Log.e("Tab03ViewModel", "Failed to load records", e)

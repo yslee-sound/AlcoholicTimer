@@ -141,7 +141,12 @@ fun RunScreenComposable(
 
     val elapsedDaysFloat = remember(elapsedMillis, dayInMillis) { elapsedMillis / dayInMillis.toFloat() }
 
-    val levelDays = remember(elapsedMillis, dayInMillis) { (elapsedMillis / dayInMillis).toInt() }
+    // [FIX] 레벨 계산: 1일 차부터 시작 (기존: 0일부터 시작)
+    val levelDays = remember(elapsedMillis, dayInMillis) {
+        val days = (elapsedMillis / dayInMillis).toInt()
+        // 0일이면 1일 차로, 1일이면 2일 차로 변환 (사용자가 시작한 날 = 1일 차)
+        if (days == 0) 1 else days + 1
+    }
     val levelInfo = remember(levelDays) { LevelDefinitions.getLevelInfo(levelDays) }
     val levelNumber = if (isDemoMode) DemoData.DEMO_LEVEL else remember(levelDays) { LevelDefinitions.getLevelNumber(levelDays) + 1 } // +1 for display (1-indexed)
     val levelDisplayText = "Lv.$levelNumber"

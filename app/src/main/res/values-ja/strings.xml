@@ -137,15 +137,18 @@
     <string name="records_day_unit">日</string>
     <string name="records_percent_unit">%</string>
 
-    <!-- Level names -->
-    <string name="level_0">7日間の生存者</string>
-    <string name="level_1">2週間の忍耐</string>
-    <string name="level_2">1ヶ月の奇跡</string>
-    <string name="level_3">習慣の孵化</string>
-    <string name="level_4">挑戦は続く</string>
-    <string name="level_5">1年への道</string>
-    <string name="level_6">禁酒マスター</string>
-    <string name="level_7">伝説中の伝説</string>
+    <!-- Level names - [再設計] 11段階システム (2025-12-03) -->
+    <string name="level_0">アルコールストップ</string>          <!-- Lv.1: 1~3日 -->
+    <string name="level_1">3日カット通過</string>               <!-- Lv.2: 4~7日 -->
+    <string name="level_2">1週間クリア</string>                 <!-- Lv.3: 8~14日 -->
+    <string name="level_3">肌の変化</string>                    <!-- Lv.4: 15~21日 -->
+    <string name="level_4">習慣形成（21日）</string>            <!-- Lv.5: 22~30日 -->
+    <string name="level_5">1ヶ月の奇跡</string>                 <!-- Lv.6: 31~60日 -->
+    <string name="level_6">変わったフィット</string>            <!-- Lv.7: 61~99日 -->
+    <string name="level_7">100日、プロ禁酒者</string>           <!-- Lv.8: 100~179日 -->
+    <string name="level_8">プラス通帳</string>                  <!-- Lv.9: 180~299日 -->
+    <string name="level_9">禁酒マスター</string>                <!-- Lv.10: 300~364日 -->
+    <string name="level_10">伝説中の伝説</string>               <!-- Legend: 365日+ -->
 
     <!-- Level screen -->
     <string name="level_title">禁酒レベル</string>

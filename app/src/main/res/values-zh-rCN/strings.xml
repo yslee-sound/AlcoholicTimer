@@ -135,15 +135,18 @@
     <string name="records_day_unit">天</string>
     <string name="records_percent_unit">%</string>
 
-    <!-- Level names (等级名称) -->
-    <string name="level_0">初心7天</string>
-    <string name="level_1">意志两周</string>
-    <string name="level_2">一月奇迹</string>
-    <string name="level_3">习惯养成</string>
-    <string name="level_4">持续挑战</string>
-    <string name="level_5">坚持近年</string>
-    <string name="level_6">戒酒大师</string>
-    <string name="level_7">自律传奇</string>
+    <!-- Level names (等级名称) - [重新设计] 11级系统 (2025-12-03) -->
+    <string name="level_0">戒酒开始</string>                <!-- Lv.1: 1~3天 -->
+    <string name="level_1">3天突破</string>                 <!-- Lv.2: 4~7天 -->
+    <string name="level_2">一周通关</string>                <!-- Lv.3: 8~14天 -->
+    <string name="level_3">皮肤变化</string>                <!-- Lv.4: 15~21天 -->
+    <string name="level_4">习惯养成（21天）</string>        <!-- Lv.5: 22~30天 -->
+    <string name="level_5">一月奇迹</string>                <!-- Lv.6: 31~60天 -->
+    <string name="level_6">改变的体型</string>              <!-- Lv.7: 61~99天 -->
+    <string name="level_7">100天，专业戒酒者</string>       <!-- Lv.8: 100~179天 -->
+    <string name="level_8">存款增加</string>                <!-- Lv.9: 180~299天 -->
+    <string name="level_9">戒酒大师</string>                <!-- Lv.10: 300~364天 -->
+    <string name="level_10">传说中的传奇</string>           <!-- Legend: 365天+ -->
 
     <!-- Level screen (等级画面) -->
     <string name="level_title">戒酒等级</string>

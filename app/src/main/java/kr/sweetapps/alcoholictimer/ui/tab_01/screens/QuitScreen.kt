@@ -273,9 +273,19 @@ fun QuitScreenComposable(
                                                     targetDays = targetDays,
                                                     actualDays = actualDays
                                                 )
+                                                // [FIX] 포기 시 완료 상태를 false로 설정 (취소는 완료가 아님)
                                                 sharedPref.edit {
-                                                    putBoolean(Constants.PREF_TIMER_COMPLETED, true)
+                                                    putBoolean(Constants.PREF_TIMER_COMPLETED, false)
                                                     remove(Constants.PREF_START_TIME)
+                                                }
+
+                                                // [FIX] TimerStateRepository에도 명확히 취소 상태 저장
+                                                try {
+                                                    kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(false)
+                                                    kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(false)
+                                                    android.util.Log.d("QuitScreen", "타이머 취소: 완료 상태 false로 설정")
+                                                } catch (t: Throwable) {
+                                                    android.util.Log.e("QuitScreen", "타이머 상태 저장 실패", t)
                                                 }
                                             } catch (_: Throwable) { }
                                             onQuitConfirmed()

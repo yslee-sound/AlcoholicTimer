@@ -148,15 +148,18 @@
     <string name="records_day_unit">일</string>
     <string name="records_percent_unit">%</string>
 
-    <!-- Level names (레벨 이름) -->
-    <string name="level_0">작심 7일</string>
-    <string name="level_1">의지의 2주</string>
-    <string name="level_2">한달의 기적</string>
-    <string name="level_3">습관의 탄생</string>
-    <string name="level_4">계속되는 도전</string>
-    <string name="level_5">거의 1년</string>
-    <string name="level_6">금주 마스터</string>
-    <string name="level_7">절제의 레전드</string>
+    <!-- Level names (레벨 이름) - [개편] 11단계 시스템 (2025-12-03) -->
+    <string name="level_0">알코올 스톱</string>           <!-- Lv.1: 1~3일 -->
+    <string name="level_1">3일 컷 통과</string>           <!-- Lv.2: 4~7일 -->
+    <string name="level_2">1주 클리어</string>            <!-- Lv.3: 8~14일 -->
+    <string name="level_3">피부의 변화</string>           <!-- Lv.4: 15~21일 -->
+    <string name="level_4">습관 형성 (21일)</string>      <!-- Lv.5: 22~30일 -->
+    <string name="level_5">한달의 기적</string>           <!-- Lv.6: 31~60일 -->
+    <string name="level_6">달라진 핏(Fit)</string>        <!-- Lv.7: 61~99일 -->
+    <string name="level_7">100일, 프로 금주러</string>    <!-- Lv.8: 100~179일 -->
+    <string name="level_8">플러스 통장</string>           <!-- Lv.9: 180~299일 -->
+    <string name="level_9">금주 마스터</string>           <!-- Lv.10: 300~364일 -->
+    <string name="level_10">전설의 레전드</string>        <!-- Legend: 365일+ -->
 
     <!-- Level screen (레벨 화면) -->
     <string name="level_title">금주 레벨</string>
