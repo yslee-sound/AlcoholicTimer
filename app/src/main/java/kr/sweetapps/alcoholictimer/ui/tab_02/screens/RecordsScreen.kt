@@ -92,6 +92,8 @@ fun RecordsScreen(
     val context = LocalContext.current
     var records by remember { mutableStateOf<List<SobrietyRecord>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+    // [NEW] 최근 일기 상태: SharedPreferences의 'diaries'를 반영합니다.
+    var diaries by remember { mutableStateOf<List<DiaryEntry>>(emptyList()) }
 
     val currentDate = Calendar.getInstance()
     val currentYear = currentDate.get(Calendar.YEAR)
@@ -116,6 +118,24 @@ fun RecordsScreen(
             val loadedRecords = RecordsDataLoader.loadSobrietyRecords(context)
             records = loadedRecords
             Log.d("RecordsScreen", "기록 로딩 완료: ${loadedRecords.size}개")
+            // [NEW] 최근 일기 로드 (최신순 최대 3개)
+            try {
+                val sharedPref = context.getSharedPreferences("diary_data", android.content.Context.MODE_PRIVATE)
+                val diariesJson = sharedPref.getString("diaries", "[]") ?: "[]"
+                val diariesArray = org.json.JSONArray(diariesJson)
+                val loadedDiaries = (0 until minOf(3, diariesArray.length())).map { i ->
+                    val item = diariesArray.getJSONObject(i)
+                    DiaryEntry(
+                        date = item.optString("date", ""),
+                        emoji = item.optString("emoji", ""),
+                        content = item.optString("content", "")
+                    )
+                }
+                diaries = loadedDiaries
+            } catch (e: Exception) {
+                Log.e("RecordsScreen", "일기 로드 실패", e)
+                diaries = emptyList()
+            }
         } catch (e: Exception) {
             Log.e("RecordsScreen", "기록 로딩 실패", e)
         } finally {
@@ -321,7 +341,7 @@ fun RecordsScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
-                        RecentDiarySection()
+                        RecentDiarySection(diaries = diaries, onNavigateToAllDiaries = onNavigateToAllRecords)
                     }
                 }
 
@@ -873,30 +893,7 @@ data class DiaryEntry(
  * [NEW] 최근 금주 일기 섹션
  */
 @Composable
-private fun RecentDiarySection(onNavigateToAllDiaries: () -> Unit = {}) {
-    val context = LocalContext.current
-
-    // [수정] SharedPreferences에서 실제 일기 데이터 불러오기
-    val diaries = remember(context) {
-        try {
-            val sharedPref = context.getSharedPreferences("diary_data", android.content.Context.MODE_PRIVATE)
-            val diariesJson = sharedPref.getString("diaries", "[]") ?: "[]"
-            val diariesArray = org.json.JSONArray(diariesJson)
-
-            // 최대 3개만 가져오기
-            (0 until minOf(3, diariesArray.length())).map { i ->
-                val item = diariesArray.getJSONObject(i)
-                DiaryEntry(
-                    date = item.getString("date"),
-                    emoji = item.getString("emoji"),
-                    content = item.getString("content")
-                )
-            }
-        } catch (e: Exception) {
-            android.util.Log.e("RecordsScreen", "일기 불러오기 실패", e)
-            emptyList()
-        }
-    }
+private fun RecentDiarySection(diaries: List<DiaryEntry>, onNavigateToAllDiaries: () -> Unit = {}) {
 
     Column(modifier = Modifier.fillMaxWidth()) {
         // [NEW] 헤더: 제목 + 전체 보기 버튼

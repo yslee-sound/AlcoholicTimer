@@ -1,11 +1,3 @@
-/**
- * 추후 요청에서는 불필요한 과정 설명, 추가 작업 제안은 필요없음. 꼭 필요한 설명, 필요작업은 100자 이내에서 쓸 것
- * 중요한 것은 질답식이 아니라 중학생도 이해할 수 있는 비유로 쉽게 설명할 것
- * 요청하지 않은 불필요한 작업은 절대 진행하지 말것.
- * 로그를 요청할 때는 정확한 로그명을 말하며 로그와 로그 사이에는 기호 등 | 등을 사용할 것 (현재 로그캣에서 로그를 확인중임
- * 문제의 해결 시 꼼수 방법이나 임시방편을 사용하지 말고, 근본적인 원인을 찾아서 해결할 것
- */
-
 // [NEW] Tab03 리팩토링: LevelScreen을 tab_03/screens로 이동
 package kr.sweetapps.alcoholictimer.ui.tab_03.screens
 
@@ -61,8 +53,6 @@ import androidx.annotation.DrawableRes
 import kr.sweetapps.alcoholictimer.core.ui.AppColors
 import kr.sweetapps.alcoholictimer.core.ui.AppCard
 import androidx.compose.ui.draw.scale
-import kr.sweetapps.alcoholictimer.ui.ad.AdController
-import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
 
 // LevelActivity removed. LevelScreen is now hosted by Compose NavHost (Screen.Level route).
 // If you need a legacy activity for other entry points, create a thin wrapper that calls LevelScreen via setContent.
@@ -86,41 +76,15 @@ fun LevelScreen(onNavigateBack: () -> Unit = {}) {
         } catch (_: Throwable) {}
     }
 
-    // 뒤로가기 처리: Supabase 정책 확인 후 전면광고 표출 여부 결정
+    // 뒤로가기 처리: 더 이상 레벨 화면에서 자동 전면광고를 트리거하지 않음
+    // [NEW] 방문 카운터는 뒤로가기 시 초기화하고 즉시 네비게이션을 수행합니다.
     val coroutineScope = rememberCoroutineScope()
     BackHandler(enabled = true) {
-        Log.d("LevelBack", "BackHandler triggered: policy check start")
+        Log.d("LevelBack", "BackHandler triggered: navigating back without interstitial")
         coroutineScope.launch {
             try {
-                val act = activity
-                val visits = try { sharedPref.getInt(LEVEL_VISITS_KEY, 0) } catch (_: Throwable) { 0 }
-                Log.d("LevelBack", "Back pressed, level visits=$visits")
-
-                // Centralized check: use AdController which holds supabase policy and counters
-                if (act == null || visits < 3) {
-                    try { onNavigateBack() } catch (_: Throwable) {}
-                } else {
-                    try {
-                        Log.d("LevelBack", "AdController.snapshot-before -> ${AdController.debugSnapshot()}")
-                        val allowed = AdController.canShowInterstitial(context)
-                        Log.d("LevelBack", "AdController.canShowInterstitial returned=$allowed | snapshot-after -> ${AdController.debugSnapshot()}")
-                        if (!allowed) {
-                            Log.d("LevelBack", "Interstitial suppressed by AdController policy")
-                            try { onNavigateBack() } catch (_: Throwable) {}
-                        } else {
-                            val showed = InterstitialAdManager.maybeShowIfEligible(act) {
-                                Log.d("LevelBack", "Interstitial dismissed callback -> ${AdController.debugSnapshot()}")
-                                try { sharedPref.edit().putInt(LEVEL_VISITS_KEY, 0).apply() } catch (_: Throwable) {}
-                                try { onNavigateBack() } catch (_: Throwable) {}
-                            }
-                            Log.d("LevelBack", "maybeShowIfEligible returned: $showed")
-                            if (!showed) try { onNavigateBack() } catch (_: Throwable) {}
-                        }
-                    } catch (t: Throwable) {
-                        Log.e("LevelBack", "ad check failed, navigating back", t)
-                        try { onNavigateBack() } catch (_: Throwable) {}
-                    }
-                }
+                try { sharedPref.edit().putInt(LEVEL_VISITS_KEY, 0).apply() } catch (_: Throwable) {}
+                try { onNavigateBack() } catch (_: Throwable) {}
             } catch (t: Throwable) {
                 Log.e("LevelBack", "BackHandler coroutine failed", t)
                 activity?.finish()
