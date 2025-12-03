@@ -9,7 +9,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,13 +38,9 @@ import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.MonthPickerBottomSheet
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.PeriodSelectionSection
-import kr.sweetapps.alcoholictimer.ui.tab_02.components.RecordSummaryCard
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.WeekPickerBottomSheet
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.YearPickerBottomSheet
 import java.util.*
-import kotlin.math.max
-import kotlin.math.min
-import kr.sweetapps.alcoholictimer.core.util.PercentUtils
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.text.font.FontWeight
@@ -576,59 +571,41 @@ private fun PeriodStatisticsSection(
         }
     }
 
-    val successRate = if (totalRecords > 0) {
-        if (selectedPeriod == periodWeek && periodRange != null) {
-            val (periodStart, periodEnd) = periodRange
-            val dayMillis = 24 * 60 * 60 * 1000.0
-            val intervals = records.mapNotNull { record ->
-                val s = max(record.startTime.toDouble(), periodStart.toDouble())
-                val e = min(record.endTime.toDouble(), periodEnd.toDouble())
-                if (s < e) s to e else null
-            }.sortedBy { it.first }
-            var mergedMs = 0.0
-            var curStart = Double.NaN
-            var curEnd = Double.NaN
-            for ((s, e) in intervals) {
-                if (curStart.isNaN()) {
-                    curStart = s; curEnd = e
-                } else if (s <= curEnd) {
-                    if (e > curEnd) curEnd = e
-                } else {
-                    mergedMs += (curEnd - curStart)
-                    curStart = s; curEnd = e
-                }
-            }
-            if (!curStart.isNaN()) {
-                mergedMs += (curEnd - curStart)
-            }
-            val periodDays = ((periodEnd - periodStart + 1) / dayMillis)
-            val unionDays = (mergedMs / dayMillis).coerceAtMost(periodDays)
-            val ratio = if (periodDays > 0) (unionDays / periodDays).coerceIn(0.0, 1.0) else 0.0
-            PercentUtils.roundPercent(ratio * 100.0)
-        } else {
-            val totalProgressPercent = records.sumOf { record ->
-                val actualDurationDays = overlappedDays(record).toFloat()
-                val progressPercent = if (record.targetDays > 0) {
-                    ((actualDurationDays / record.targetDays) * 100).coerceIn(0f, 100f)
-                } else {
-                    record.percentage?.toFloat() ?: ((actualDurationDays / 30f) * 100).coerceIn(0f, 100f)
-                }
-                progressPercent.toDouble()
-            }
-            PercentUtils.roundPercent(totalProgressPercent / totalRecords)
-        }
-    } else 0
-
+    // [NEW] 기간별 금주 일수 계산
     val totalDaysDouble = records.sumOf { record -> overlappedDays(record) }
     val totalDaysDisplay = String.format(Locale.getDefault(), "%.1f", totalDaysDouble)
 
-    val averageDaysDisplay = if (totalRecords > 0) {
-        String.format(Locale.getDefault(), "%.1f", records.map { record -> overlappedDays(record) }.average())
-    } else "0.0"
+    // [NEW] 사용자 설정값 가져오기
+    val context = LocalContext.current
+    val (userCost, userFreq, _) = remember { kr.sweetapps.alcoholictimer.constants.Constants.getUserSettings(context) }
 
-    val maxDaysDisplay = if (records.isNotEmpty()) {
-        String.format(Locale.getDefault(), "%.1f", records.maxOf { record -> overlappedDays(record) })
-    } else "0.0"
+    // [NEW] 일일 음주 확률 계산
+    val dailyFactor = kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.getFrequencyValue(userFreq) / 7.0
+
+    // [NEW] 1. 피한 칼로리 계산 (좌측)
+    val kcalPerSession = when (userCost) {
+        kr.sweetapps.alcoholictimer.constants.Constants.KEY_COST_LOW -> 500
+        kr.sweetapps.alcoholictimer.constants.Constants.KEY_COST_MEDIUM -> 1500
+        kr.sweetapps.alcoholictimer.constants.Constants.KEY_COST_HIGH -> 2800
+        else -> 1500
+    }
+    val totalKcal = (totalDaysDouble * dailyFactor * kcalPerSession).toInt()
+
+    // [NEW] 2. 안 마신 술 계산 (중앙)
+    val bottlesPerSession = when (userCost) {
+        kr.sweetapps.alcoholictimer.constants.Constants.KEY_COST_LOW -> 1.0
+        kr.sweetapps.alcoholictimer.constants.Constants.KEY_COST_MEDIUM -> 2.5
+        kr.sweetapps.alcoholictimer.constants.Constants.KEY_COST_HIGH -> 4.0
+        else -> 2.5
+    }
+    val totalBottles = (totalDaysDouble * dailyFactor * bottlesPerSession)
+
+    // [NEW] 3. 절약한 돈 계산 (우측)
+    val costPerSession = kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.getCostValue(userCost)
+    val totalMoney = (totalDaysDouble * dailyFactor * costPerSession).toLong()
+
+    // [NEW] 천 단위 콤마 포맷터
+    val decimalFormat = java.text.DecimalFormat("#,###")
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -672,36 +649,36 @@ private fun PeriodStatisticsSection(
             ) {
                 Spacer(modifier = Modifier.height(RECORDS_STATS_INTERNAL_TOP_GAP))
 
-                val dayUnit = stringResource(R.string.records_day_unit)
-                val percentUnit = stringResource(R.string.records_percent_unit)
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(RECORDS_CARD_IN_ROW_SPACING)
                 ) {
                     val statsScale = 1.3f
 
+                    // [NEW] 좌측: 피한 칼로리
                     StatisticItem(
-                        title = stringResource(R.string.records_success_rate) + "\n ",
-                        value = "$successRate$percentUnit",
+                        title = "피한\n칼로리",
+                        value = "-${decimalFormat.format(totalKcal)} kcal",
                         color = MaterialTheme.colorScheme.tertiary,
                         modifier = Modifier.weight(1f),
                         titleScale = statsScale,
                         valueScale = statsScale
                     )
+
+                    // [NEW] 중앙: 안 마신 술
                     StatisticItem(
-                        // Show as two lines: "평균\n지속일"
-                        title = stringResource(R.string.records_avg_duration).replace(" ", "\n"),
-                        value = "$averageDaysDisplay$dayUnit",
+                        title = "안 마신\n술",
+                        value = "-${String.format(Locale.getDefault(), "%.1f", totalBottles)} 병",
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f),
                         titleScale = statsScale,
                         valueScale = statsScale
                     )
+
+                    // [NEW] 우측: 절약한 돈
                     StatisticItem(
-                        // Show as two lines: "최대\n지속일"
-                        title = stringResource(R.string.records_max_duration).replace(" ", "\n"),
-                        value = "$maxDaysDisplay$dayUnit",
+                        title = "절약한\n돈",
+                        value = "+${decimalFormat.format(totalMoney)} 원",
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.weight(1f),
                         titleScale = statsScale,
@@ -711,13 +688,15 @@ private fun PeriodStatisticsSection(
 
                 Spacer(modifier = Modifier.height(RECORDS_STATS_ROW_SPACING))
 
+                val dayUnit = stringResource(R.string.records_day_unit)
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = stringResource(R.string.records_total_days),
+                        text = "총 금주일",
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
