@@ -351,18 +351,21 @@ fun AlcoholicTimerNavGraph(
         ) { backStackEntry ->
             val diaryId = backStackEntry.arguments?.getString("diaryId") ?: return@composable
 
-            // [NEW] SharedPreferences에서 해당 일기 로드
-            val sharedPref = context.getSharedPreferences("diary_data", android.content.Context.MODE_PRIVATE)
-            val diariesJson = sharedPref.getString("diaries", "[]") ?: "[]"
-            val diariesArray = org.json.JSONArray(diariesJson)
+            // [FIX] remember로 데이터를 메모리에 유지 - 삭제 후 리컴포지션되어도 빈 화면 방지
+            val diaryData = remember(diaryId) {
+                val sharedPref = context.getSharedPreferences("diary_data", android.content.Context.MODE_PRIVATE)
+                val diariesJson = sharedPref.getString("diaries", "[]") ?: "[]"
+                val diariesArray = org.json.JSONArray(diariesJson)
 
-            var diaryData: org.json.JSONObject? = null
-            for (i in 0 until diariesArray.length()) {
-                val item = diariesArray.getJSONObject(i)
-                if (item.optLong("timestamp", 0L).toString() == diaryId) {
-                    diaryData = item
-                    break
+                var foundData: org.json.JSONObject? = null
+                for (i in 0 until diariesArray.length()) {
+                    val item = diariesArray.getJSONObject(i)
+                    if (item.optLong("timestamp", 0L).toString() == diaryId) {
+                        foundData = item
+                        break
+                    }
                 }
+                foundData
             }
 
             if (diaryData == null) {
@@ -385,7 +388,8 @@ fun AlcoholicTimerNavGraph(
 
                     // [NEW] SharedPreferences에서 일기 업데이트
                     try {
-                        val currentDiaries = sharedPref.getString("diaries", "[]") ?: "[]"
+                        val updateSharedPref = context.getSharedPreferences("diary_data", android.content.Context.MODE_PRIVATE)
+                        val currentDiaries = updateSharedPref.getString("diaries", "[]") ?: "[]"
                         val array = org.json.JSONArray(currentDiaries)
 
                         for (i in 0 until array.length()) {
@@ -398,8 +402,15 @@ fun AlcoholicTimerNavGraph(
                             }
                         }
 
-                        sharedPref.edit().putString("diaries", array.toString()).apply()
+                        updateSharedPref.edit().putString("diaries", array.toString()).apply()
                         android.util.Log.d("NavGraph", "일기 수정 완료")
+
+                        // Toast 메시지
+                        android.widget.Toast.makeText(
+                            context,
+                            "일기가 수정되었습니다.",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
 
                         // Records 화면 새로고침 트리거
                         recordsRefreshCounter++
@@ -407,6 +418,11 @@ fun AlcoholicTimerNavGraph(
                         navController.popBackStack()
                     } catch (e: Exception) {
                         android.util.Log.e("NavGraph", "일기 수정 실패", e)
+                        android.widget.Toast.makeText(
+                            context,
+                            "일기 수정에 실패했습니다.",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
                     }
                 },
                 onDelete = {
@@ -414,7 +430,8 @@ fun AlcoholicTimerNavGraph(
 
                     // [NEW] SharedPreferences에서 일기 삭제
                     try {
-                        val currentDiaries = sharedPref.getString("diaries", "[]") ?: "[]"
+                        val deleteSharedPref = context.getSharedPreferences("diary_data", android.content.Context.MODE_PRIVATE)
+                        val currentDiaries = deleteSharedPref.getString("diaries", "[]") ?: "[]"
                         val array = org.json.JSONArray(currentDiaries)
                         val newArray = org.json.JSONArray()
 
@@ -425,8 +442,15 @@ fun AlcoholicTimerNavGraph(
                             }
                         }
 
-                        sharedPref.edit().putString("diaries", newArray.toString()).apply()
+                        deleteSharedPref.edit().putString("diaries", newArray.toString()).apply()
                         android.util.Log.d("NavGraph", "일기 삭제 완료")
+
+                        // Toast 메시지
+                        android.widget.Toast.makeText(
+                            context,
+                            "일기가 삭제되었습니다.",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
 
                         // Records 화면 새로고침 트리거
                         recordsRefreshCounter++
@@ -434,6 +458,11 @@ fun AlcoholicTimerNavGraph(
                         navController.popBackStack()
                     } catch (e: Exception) {
                         android.util.Log.e("NavGraph", "일기 삭제 실패", e)
+                        android.widget.Toast.makeText(
+                            context,
+                            "일기 삭제에 실패했습니다.",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             )
