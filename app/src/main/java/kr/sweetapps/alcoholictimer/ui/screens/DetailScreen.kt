@@ -138,9 +138,24 @@ fun DetailScreen(
         }
     }
 
-    val totalDurationMillis = if (startTime > 0) endTime - startTime else actualDays * kr.sweetapps.alcoholictimer.constants.Constants.DAY_IN_MILLIS
-    val totalHours = totalDurationMillis / (60 * 60 * 1000.0)
-    val totalDays = totalHours / 24.0
+    val totalDurationMillis = if (startTime > 0) endTime - startTime else {
+        // [FIX] 타이머 테스트 모드를 고려한 동적 DAY_IN_MILLIS
+        val dayInMillis = if (!previewMode) {
+            kr.sweetapps.alcoholictimer.constants.Constants.getDayInMillis(context)
+        } else {
+            kr.sweetapps.alcoholictimer.constants.Constants.DAY_IN_MILLIS
+        }
+        actualDays * dayInMillis
+    }
+
+    // [FIX] 타이머 테스트 모드를 고려한 동적 시간 계산
+    val dayInMillis = if (!previewMode) {
+        kr.sweetapps.alcoholictimer.constants.Constants.getDayInMillis(context)
+    } else {
+        kr.sweetapps.alcoholictimer.constants.Constants.DAY_IN_MILLIS
+    }
+    val totalHours = totalDurationMillis / (dayInMillis / 24.0)
+    val totalDays = totalDurationMillis / dayInMillis.toDouble()
 
     // guard platform/runtime-dependent settings for preview safety
     val selectedCost: String

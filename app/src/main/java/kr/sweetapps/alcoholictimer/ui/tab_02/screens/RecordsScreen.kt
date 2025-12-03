@@ -83,7 +83,8 @@ val RECORDS_LIST_BOTTOM_PADDING: Dp = 15.dp // default: 15.dp (was UiConstants.C
 fun RecordsScreen(
     externalRefreshTrigger: Int,
     onNavigateToDetail: (SobrietyRecord) -> Unit = {},
-    onNavigateToAllRecords: () -> Unit = {},
+    onNavigateToAllRecords: () -> Unit = {}, // [FIX] 모든 금주 기록 보기
+    onNavigateToAllDiaries: () -> Unit = {}, // [NEW] 모든 일기 보기
     onAddRecord: () -> Unit = {},
     onDiaryClick: (DiaryEntry) -> Unit = {}, // [NEW] 일기 클릭 콜백
     fontScale: Float = 1.06f
@@ -347,7 +348,7 @@ fun RecordsScreen(
                     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
                         RecentDiarySection(
                             diaries = diaries,
-                            onNavigateToAllDiaries = onNavigateToAllRecords,
+                            onNavigateToAllDiaries = onNavigateToAllDiaries, // [FIX] 모든 일기 보기 콜백 사용
                             onDiaryClick = onDiaryClick // [NEW] 일기 클릭 콜백 전달
                         )
                     }

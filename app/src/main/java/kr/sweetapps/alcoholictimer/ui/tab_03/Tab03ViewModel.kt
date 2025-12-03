@@ -69,10 +69,14 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
     val currentLevel: StateFlow<LevelDefinitions.LevelInfo> = _currentLevel.asStateFlow()
 
     init {
-        // [NEW] 현재 시간 1초마다 업데이트
+        // [FIX] 현재 시간 업데이트 (테스트 모드 시 더 빠르게)
         viewModelScope.launch {
             while (true) {
-                delay(1000)
+                // 타이머 테스트 모드 확인 (1초 = 1일)
+                val isTestMode = TimerStateRepository.isTimerTestModeEnabled()
+                val updateInterval = if (isTestMode) 100L else 1000L // 테스트 모드: 0.1초마다, 정상: 1초마다
+
+                delay(updateInterval)
                 _currentTime.value = System.currentTimeMillis()
             }
         }
@@ -108,10 +112,11 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
                     _levelDays.value = days
                     _currentLevel.value = LevelDefinitions.getLevelInfo(days)
 
-                    // [DEBUG] 테스트 모드 시 로그 출력
-                    if (TimerStateRepository.isTimerTestModeEnabled()) {
-                        Log.d("Tab03ViewModel", "테스트 모드 레벨 업데이트: elapsed=${total}ms, dayInMillis=${dayInMillis}, days=$days")
-                    }
+                    // [DEBUG] 항상 로그 출력하여 상태 확인
+                    val isTestMode = TimerStateRepository.isTimerTestModeEnabled()
+                    Log.d("Tab03ViewModel", "[${if (isTestMode) "테스트" else "정상"}] 레벨 업데이트: " +
+                            "total=${total}ms, dayInMillis=${dayInMillis}, days=$days, " +
+                            "level=${_currentLevel.value.nameResId}, daysFloat=${_totalElapsedDaysFloat.value}")
                 }
             } catch (e: Exception) {
                 Log.e("Tab03ViewModel", "Failed to load records", e)

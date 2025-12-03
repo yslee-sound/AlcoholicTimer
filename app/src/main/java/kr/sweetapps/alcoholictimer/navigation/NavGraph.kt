@@ -22,7 +22,7 @@ import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.screens.DetailScreen
-import kr.sweetapps.alcoholictimer.ui.tab_03.screens.LevelScreen
+import kr.sweetapps.alcoholictimer.ui.tab_03.LevelScreen // [FIX] Tab03의 ViewModel 사용 LevelScreen으로 변경
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.AllRecordsScreen
 import kr.sweetapps.alcoholictimer.ui.tab_02.screens.RecordsScreen
 import kr.sweetapps.alcoholictimer.ui.tab_01.screens.QuitScreenComposable
@@ -220,7 +220,8 @@ fun AlcoholicTimerNavGraph(
         composable(Screen.Records.route) {
             RecordsScreen(
                 externalRefreshTrigger = recordsRefreshCounter,
-                onNavigateToAllRecords = { navController.navigate(Screen.AllDiary.route) },
+                onNavigateToAllRecords = { navController.navigate(Screen.AllRecords.route) }, // [FIX] 모든 기록 보기로 수정 (AllDiary → AllRecords)
+                onNavigateToAllDiaries = { navController.navigate(Screen.AllDiary.route) }, // [NEW] 모든 일기 보기
                 onNavigateToDetail = { record: SobrietyRecord ->
                     // Analytics: 기록 상세 보기 이벤트 전송
                     try { AnalyticsManager.logViewRecordDetail(record.id) } catch (_: Throwable) {}
