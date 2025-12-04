@@ -54,6 +54,8 @@ import kotlin.math.round
 private object QuitUiConstants {
     // Per-screen horizontal padding for all cards in this screen (defaults to global card padding)
     val TOP_CARD_TOP_PADDING = 15.dp
+    // [NEW] 최상단 카드("정말 멈추시겠어요?") 아래 여백 (통계 카드와의 간격)
+    val TOP_CARD_BOTTOM_SPACING = 15.dp
     // Use same card horizontal padding by default
     val CARDS_VERTICAL_SPACING = 10.dp
     val CARD_HORIZONTAL_PADDING = 20.dp
@@ -160,7 +162,7 @@ fun QuitScreenComposable(
                 }
             }
 
-            Spacer(modifier = Modifier.height(QuitUiConstants.CARDS_VERTICAL_SPACING))
+            Spacer(modifier = Modifier.height(QuitUiConstants.TOP_CARD_BOTTOM_SPACING))
 
             // Indicators grid: total days, saved money, saved hours, life gain
             val start = previewStartTime ?: sharedPref.getLong(Constants.PREF_START_TIME, 0L)
