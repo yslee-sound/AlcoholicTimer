@@ -52,7 +52,7 @@ import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.rememberTextMeasurer
-import kr.sweetapps.alcoholictimer.util.DebugSettings
+import kr.sweetapps.alcoholictimer.util.debug.DebugSettings
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DemoData
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager

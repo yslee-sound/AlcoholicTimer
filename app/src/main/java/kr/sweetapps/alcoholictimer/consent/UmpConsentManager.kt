@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kr.sweetapps.alcoholictimer.MainApplication
-import kr.sweetapps.alcoholictimer.util.DebugSettings
+import kr.sweetapps.alcoholictimer.util.debug.DebugSettings
 import kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager
 import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
 

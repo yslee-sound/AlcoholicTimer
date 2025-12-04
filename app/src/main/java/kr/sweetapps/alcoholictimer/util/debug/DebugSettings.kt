@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.util
+package kr.sweetapps.alcoholictimer.util.debug
 
 import android.content.Context
 import android.content.SharedPreferences
