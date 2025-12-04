@@ -1,7 +1,11 @@
 package kr.sweetapps.alcoholictimer.ads
 
 import kr.sweetapps.alcoholictimer.ad.*
-import kr.sweetapps.alcoholictimer.ad.InMemoryPreferencesStore
+import kr.sweetapps.alcoholictimer.ui.main.AdManager
+import kr.sweetapps.alcoholictimer.ui.main.AdPolicyConfig
+import kr.sweetapps.alcoholictimer.ui.main.AdType
+import kr.sweetapps.alcoholictimer.ui.main.InMemoryPreferencesStore
+import kr.sweetapps.alcoholictimer.ui.main.TimeProvider
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -114,7 +118,12 @@ class AdsCombinedTest {
         val timeProvider = MockTimeProvider(1_600_000_000_000L)
         val prefs = InMemoryPreferencesStore()
         // 정책 전체 비활성화
-        val policy = AdPolicyConfig(is_active = false, ad_app_open_enabled = true, ad_interstitial_enabled = true, ad_banner_enabled = true)
+        val policy = AdPolicyConfig(
+            is_active = false,
+            ad_app_open_enabled = true,
+            ad_interstitial_enabled = true,
+            ad_banner_enabled = true
+        )
         val manager = AdManager(policy, prefs, timeProvider)
 
         assertFalse("is_active=false이면 APP_OPEN 불가", manager.canShowAd(AdType.APP_OPEN))
@@ -127,7 +136,12 @@ class AdsCombinedTest {
         val timeProvider = MockTimeProvider(1_600_000_000_000L)
         val prefs = InMemoryPreferencesStore()
         // 배너만 비활성화, 나머지는 활성
-        val policy = AdPolicyConfig(is_active = true, ad_app_open_enabled = true, ad_interstitial_enabled = true, ad_banner_enabled = false)
+        val policy = AdPolicyConfig(
+            is_active = true,
+            ad_app_open_enabled = true,
+            ad_interstitial_enabled = true,
+            ad_banner_enabled = false
+        )
         val manager = AdManager(policy, prefs, timeProvider)
 
         // APP_OPEN과 INTERSTITIAL은 기본 조건에서 노출 가능 (쿨다운/카운트가 없으므로 true)

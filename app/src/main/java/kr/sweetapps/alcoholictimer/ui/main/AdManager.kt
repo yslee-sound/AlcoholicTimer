@@ -1,7 +1,8 @@
-package kr.sweetapps.alcoholictimer.ad
+package kr.sweetapps.alcoholictimer.ui.main
 
 import kotlin.math.max
 import kr.sweetapps.alcoholictimer.ui.ad.AdController
+import java.util.TimeZone
 
 interface PreferencesStore {
     fun getLong(key: String, default: Long): Long
@@ -26,11 +27,11 @@ class AdManager(
     private val prefs: PreferencesStore,
     private val timeProvider: TimeProvider
 ) {
-    // ?�태
+    // ?�태
     var isShowingInterstitialAd: Boolean = false
         private set
 
-    // ?�????
+    // ?�????
     private val KEY_HOUR_WINDOW_START = "ad_hour_window_start"
     private val KEY_DAY_WINDOW_START = "ad_day_window_start"
     private val KEY_HOUR_COUNT_INTERSTITIAL = "hour_count_interstitial"
@@ -54,7 +55,7 @@ class AdManager(
 
     private fun startOfHour(millis: Long): Long = millis - (millis % 3_600_000L)
     private fun startOfDay(millis: Long): Long {
-        val tzOffset = java.util.TimeZone.getDefault().getOffset(millis)
+        val tzOffset = TimeZone.getDefault().getOffset(millis)
         return (millis + tzOffset) / 86_400_000L * 86_400_000L - tzOffset
     }
 
@@ -104,9 +105,9 @@ class AdManager(
         val now = timeProvider.nowMillis()
         // If a full-screen popup/overlay is active (e.g., emergency/update), never show ads
         try {
-            if (kr.sweetapps.alcoholictimer.ui.ad.AdController.isFullScreenAdShowing()) return false
+            if (AdController.isFullScreenAdShowing()) return false
         } catch (_: Throwable) {}
-        // 최상???�책 비활?�화 ??모든 광고 ?�시 불�?
+        // 최상???�책 비활?�화 ??모든 광고 ?�시 불�?
         try {
             if (!policy.is_active) return false
         } catch (_: Throwable) {}
@@ -146,13 +147,13 @@ class AdManager(
                 lastAppOpenTime = now
             }
             AdType.BANNER -> {
-                // 배너??카운?�하지 ?�음
+                // 배너??카운?�하지 ?�음
             }
         }
         saveWindowStarts()
     }
 
-    // ?�스?�용 ?�근??
+    // ?�스?�용 ?�근??
     fun getHourCountInterstitial(): Int = hourCountInterstitial
     fun getDayCountInterstitial(): Int = dayCountInterstitial
     fun getHourCountAppOpen(): Int = hourCountAppOpen

@@ -1,10 +1,10 @@
 package kr.sweetapps.alcoholictimer.ads
 
-import kr.sweetapps.alcoholictimer.ad.AdManager
-import kr.sweetapps.alcoholictimer.ad.AdPolicyConfig
-import kr.sweetapps.alcoholictimer.ad.AdType
-import kr.sweetapps.alcoholictimer.ad.InMemoryPreferencesStore
-import kr.sweetapps.alcoholictimer.ad.TimeProvider
+import kr.sweetapps.alcoholictimer.ui.main.AdManager
+import kr.sweetapps.alcoholictimer.ui.main.AdPolicyConfig
+import kr.sweetapps.alcoholictimer.ui.main.AdType
+import kr.sweetapps.alcoholictimer.ui.main.InMemoryPreferencesStore
+import kr.sweetapps.alcoholictimer.ui.main.TimeProvider
 import kr.sweetapps.alcoholictimer.popup.MockPolicyRepository
 import kr.sweetapps.alcoholictimer.popup.MockSharedPreferences
 import kr.sweetapps.alcoholictimer.popup.MockSystemInfo
@@ -13,7 +13,6 @@ import kr.sweetapps.alcoholictimer.popup.PopupManager
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.robolectric.Robolectric
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
