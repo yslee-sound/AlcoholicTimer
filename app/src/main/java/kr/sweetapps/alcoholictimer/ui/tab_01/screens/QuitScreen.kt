@@ -55,8 +55,8 @@ import kr.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
 import kr.sweetapps.alcoholictimer.core.ui.theme.LocalDimens
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
-import kr.sweetapps.alcoholictimer.core.util.FormatUtils
-import kr.sweetapps.alcoholictimer.core.util.CurrencyManager
+import kr.sweetapps.alcoholictimer.util.FormatUtils
+import kr.sweetapps.alcoholictimer.util.CurrencyManager
 import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.math.round

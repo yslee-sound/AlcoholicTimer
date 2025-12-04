@@ -583,9 +583,9 @@ private fun PeriodStatisticsSection(
 
     fun overlappedDays(record: SobrietyRecord): Double {
         return if (periodRange == null) {
-            kr.sweetapps.alcoholictimer.core.util.DateOverlapUtils.overlapDays(record.startTime, record.endTime, null, null)
+            kr.sweetapps.alcoholictimer.util.DateOverlapUtils.overlapDays(record.startTime, record.endTime, null, null)
         } else {
-            kr.sweetapps.alcoholictimer.core.util.DateOverlapUtils.overlapDays(record.startTime, record.endTime, periodRange.first, periodRange.second)
+            kr.sweetapps.alcoholictimer.util.DateOverlapUtils.overlapDays(record.startTime, record.endTime, periodRange.first, periodRange.second)
         }
     }
 

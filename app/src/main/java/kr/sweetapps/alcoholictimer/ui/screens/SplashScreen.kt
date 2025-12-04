@@ -60,7 +60,7 @@ class SplashScreen : BaseActivity() {
         kr.sweetapps.alcoholictimer.ui.ad.AdTimingLogger.logSplashScreenCreate()
 
         // 기본 초기??
-        kr.sweetapps.alcoholictimer.core.util.CurrencyManager.initializeDefaultCurrency(this)
+        kr.sweetapps.alcoholictimer.util.CurrencyManager.initializeDefaultCurrency(this)
 
         val skipSplash = intent.getBooleanExtra("skip_splash", false)
 

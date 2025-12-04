@@ -49,7 +49,7 @@ import java.util.Locale
 import kr.sweetapps.alcoholictimer.constants.Constants
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.StandardScreenWithBottomButton
 import kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelDefinitions
-import kr.sweetapps.alcoholictimer.core.util.FormatUtils
+import kr.sweetapps.alcoholictimer.util.FormatUtils
 import kotlinx.coroutines.delay
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.navigation.Screen
@@ -58,7 +58,7 @@ import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.rememberTextMeasurer
-import kr.sweetapps.alcoholictimer.core.util.DebugSettings
+import kr.sweetapps.alcoholictimer.util.DebugSettings
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DemoData
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 
@@ -447,7 +447,7 @@ fun RunScreenComposable(
                                             val isLifeGain = currentIndicator == 4
                                             if (isMoney) {
                                                 // 기존: 심볼을 정규식으로 분기하던 코드 -> 선택한 통화를 직접 가져와 처리
-                                                val selectedCurrency = kr.sweetapps.alcoholictimer.core.util.CurrencyManager.getSelectedCurrency(context)
+                                                val selectedCurrency = kr.sweetapps.alcoholictimer.util.CurrencyManager.getSelectedCurrency(context)
                                                 val symbol = selectedCurrency.symbol
                                                 if (selectedCurrency.code == "KRW") {
                                                     // KRW: 숫자를 보여주고 '원' 단위를 붙임

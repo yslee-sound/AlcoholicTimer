@@ -31,7 +31,7 @@ import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.core.ui.theme.AmberSecondaryLight
 import kr.sweetapps.alcoholictimer.core.ui.theme.BluePrimaryLight
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.predictAnchoredBannerHeightDp
-import kr.sweetapps.alcoholictimer.core.util.FormatUtils
+import kr.sweetapps.alcoholictimer.util.FormatUtils
 import kr.sweetapps.alcoholictimer.core.ui.AppCard
 import kr.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
 import androidx.compose.ui.tooling.preview.Preview
@@ -198,7 +198,7 @@ fun DetailScreen(
     val lifeExpectancyIncrease = totalDays / 30.0
 
     // Preview-safe display strings for values that normally require Context/FormatUtils
-    val savedMoneyStr = if (!previewMode) kr.sweetapps.alcoholictimer.core.util.CurrencyManager.formatMoneyNoDecimals(savedMoney.toDouble(), context) else "₩${savedMoney}"
+    val savedMoneyStr = if (!previewMode) kr.sweetapps.alcoholictimer.util.CurrencyManager.formatMoneyNoDecimals(savedMoney.toDouble(), context) else "₩${savedMoney}"
     val savedHoursStr = if (!previewMode) FormatUtils.formatHoursWithUnitFixed(context, savedHoursExact, 1) else String.format(Locale.getDefault(), "%.1f%s", savedHoursExact, stringResource(id = R.string.unit_hour))
     val lifeGainStr = if (!previewMode) FormatUtils.daysToDayHourStringFixed(context, lifeExpectancyIncrease, 1) else String.format(Locale.getDefault(), "%.1f %s", lifeExpectancyIncrease, stringResource(id = R.string.unit_day))
 

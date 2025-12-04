@@ -30,7 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.BackTopBar
-import kr.sweetapps.alcoholictimer.core.util.CurrencyManager
+import kr.sweetapps.alcoholictimer.util.CurrencyManager
 
 /**
  * 통화 설정 화면 (tab_04에서 관리)
