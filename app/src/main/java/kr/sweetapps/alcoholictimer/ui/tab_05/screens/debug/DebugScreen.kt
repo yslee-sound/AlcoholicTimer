@@ -84,7 +84,7 @@ fun DebugScreen(
             DebugSwitch(title = "기능 1", checked = uiState.switch1, onCheckedChange = { viewModel.setSwitch(1, it) })
             DebugSwitch(title = "데모 모드", checked = uiState.demoMode, onCheckedChange = { viewModel.setSwitch(2, it) })
 
-            // [NEW] 시간 배속 설정 (1배속 ~ 100배속)
+            // [NEW] Time acceleration settings (1x ~ 10,000x)
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "시간 배속 설정",
@@ -123,68 +123,42 @@ fun DebugScreen(
                 onValueChangeFinished = {
                     val factor = acceleration.value.toInt()
                     Constants.setTimeAcceleration(context, factor)
-                    Toast.makeText(
-                        context,
-                        "시간 배속: ${factor}x 적용 (1일 = ${86400000L / factor}ms)",
-                        Toast.LENGTH_SHORT
-                    ).show()
+
+                    val message = when {
+                        factor == 1 -> "정상 속도 (1x)"
+                        factor < 100 -> "시간 배속: ${factor}x"
+                        factor < 1000 -> "고속: ${factor}x ⚡"
+                        else -> "극한: ${factor}x 🚀"
+                    }
+
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                 },
                 valueRange = 1f..10000f,
                 steps = 9998,
                 modifier = Modifier.fillMaxWidth()
             )
 
+            // Min/Max labels only (aligned to slider edges)
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                androidx.compose.material3.Button(
-                    onClick = {
-                        acceleration.value = 1f
-                        Constants.setTimeAcceleration(context, 1)
-                        Toast.makeText(context, "정상 속도 (1x)", Toast.LENGTH_SHORT).show()
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("1x")
-                }
-                androidx.compose.material3.Button(
-                    onClick = {
-                        acceleration.value = 60f
-                        Constants.setTimeAcceleration(context, 60)
-                        Toast.makeText(context, "60배속", Toast.LENGTH_SHORT).show()
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("60x")
-                }
-                androidx.compose.material3.Button(
-                    onClick = {
-                        acceleration.value = 1000f
-                        Constants.setTimeAcceleration(context, 1000)
-                        Toast.makeText(context, "1000배속", Toast.LENGTH_SHORT).show()
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("1000x")
-                }
-                androidx.compose.material3.Button(
-                    onClick = {
-                        acceleration.value = 10000f
-                        Constants.setTimeAcceleration(context, 10000)
-                        Toast.makeText(context, "10000배속 (극한)", Toast.LENGTH_SHORT).show()
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("10000x")
-                }
+                Text("1x", fontSize = 11.sp, color = androidx.compose.ui.graphics.Color.Gray)
+                Text("10,000x", fontSize = 11.sp, color = androidx.compose.ui.graphics.Color.Gray)
             }
+
+            Text(
+                text = "※ 슬라이더를 드래그하여 1배속 ~ 10,000배속 범위에서 조절",
+                fontSize = 11.sp,
+                color = androidx.compose.ui.graphics.Color.Gray,
+                modifier = Modifier.padding(top = 4.dp)
+            )
 
             Text(
                 text = "※ 실제 시간은 변경되지 않으며, 경과 시간 계산만 배속됩니다.",
                 fontSize = 11.sp,
                 color = androidx.compose.ui.graphics.Color.Gray,
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier.padding(top = 2.dp)
             )
 
             // [SECURITY] 릴리즈 빌드 경고
