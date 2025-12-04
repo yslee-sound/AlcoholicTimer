@@ -34,6 +34,8 @@ import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import androidx.compose.ui.platform.LocalContext
 import kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager
 import kr.sweetapps.alcoholictimer.util.constants.Constants
+import kotlin.math.log10
+import kotlin.math.pow
 
 // Helper: get Activity from Context
 private fun ContextToActivity(context: android.content.Context): Activity? {
@@ -94,8 +96,13 @@ fun DebugScreen(
             )
 
             val acceleration = remember {
-                mutableStateOf(Constants.getTimeAcceleration(context).toFloat())
+                val currentFactor = Constants.getTimeAcceleration(context).toFloat()
+                // Convert to log scale (log base 10)
+                mutableStateOf(log10(currentFactor.coerceAtLeast(1f)))
             }
+
+            // Convert log value to actual factor for display
+            val actualFactor = 10.0.pow(acceleration.value.toDouble()).toInt().coerceIn(1, 10000)
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -104,10 +111,10 @@ fun DebugScreen(
             ) {
                 Text("현재 배속:", fontSize = 14.sp, modifier = Modifier.weight(1f))
                 Text(
-                    text = "${acceleration.value.toInt()}x",
+                    text = "${actualFactor}x",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = if (acceleration.value.toInt() == 1) {
+                    color = if (actualFactor == 1) {
                         androidx.compose.ui.graphics.Color.Gray
                     } else {
                         androidx.compose.material3.MaterialTheme.colorScheme.primary
@@ -121,7 +128,7 @@ fun DebugScreen(
                     acceleration.value = newValue
                 },
                 onValueChangeFinished = {
-                    val factor = acceleration.value.toInt()
+                    val factor = 10.0.pow(acceleration.value.toDouble()).toInt().coerceIn(1, 10000)
                     Constants.setTimeAcceleration(context, factor)
 
                     val message = when {
@@ -133,8 +140,8 @@ fun DebugScreen(
 
                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                 },
-                valueRange = 1f..10000f,
-                steps = 9998,
+                valueRange = 0f..4f, // log10(1) = 0, log10(10000) = 4
+                steps = 399, // 400 steps for smooth control
                 modifier = Modifier.fillMaxWidth()
             )
 

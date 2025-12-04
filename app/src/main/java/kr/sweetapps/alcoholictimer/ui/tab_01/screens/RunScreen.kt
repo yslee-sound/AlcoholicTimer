@@ -67,6 +67,7 @@ fun RunScreenComposable(
 
     // Local layout constants for RunScreen - keep local to avoid changing global constants
     val RUN_TOP_GROUP_TOP_PADDING = 15.dp            // vertical padding above top stat chips
+    val RUN_TOP_GROUP_CHIP_SPACING = 10.dp // 12.dp
     // Unified horizontal padding for the whole Run screen. Use this single constant to keep card widths consistent.
     val RUN_HORIZONTAL_PADDING = 20.dp               // (was RUN_TOP_GROUP_HORIZONTAL_PADDING)
     // Separated local variables: top group and card spacing, card and progress card spacing
@@ -77,12 +78,12 @@ fun RunScreenComposable(
     val RUN_CARD_CONTENT_HORIZONTAL_PADDING = 15.dp // Progress bar padding
     // Card internal vertical padding is a separate variable (default 12.dp previously)
     // If inner vertical padding is 0, the colored panel (Progress Surface) will stick to the card edges.
-    val RUN_CARD_CONTENT_VERTICAL_PADDING = 10.dp // 12.dp
+    val RUN_CARD_CONTENT_VERTICAL_PADDING = 10.dp //
 
     // Per-chip horizontal alignment (left / center / right)
     // All changed to center alignment (client request)
     val runStatAlignments = listOf(Alignment.CenterHorizontally, Alignment.CenterHorizontally, Alignment.CenterHorizontally)
-    val RUN_TOP_GROUP_CHIP_SPACING = 10.dp // 12.dp
+
 
     BackHandler(enabled = true) {
         // Inside NavHost, back action should not trigger background mode
