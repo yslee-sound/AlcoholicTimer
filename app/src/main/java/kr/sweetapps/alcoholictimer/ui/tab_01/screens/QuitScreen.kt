@@ -368,8 +368,10 @@ private fun saveCompletedRecord(context: Context, startTime: Long, endTime: Long
 @Preview(showBackground = true, widthDp = 360, heightDp = 900)
 @Composable
 fun QuitScreenPreview() {
-    // Use the fully hardcoded preview to avoid resource/runtime failures in the IDE renderer
-    QuitScreenFullPreview_Hardcoded()
+    QuitScreenComposable(
+        onQuitConfirmed = {},
+        onCancel = {}
+    )
 }
 
 @Composable
@@ -428,42 +430,3 @@ private fun SmallStatCard(title: String, value: String, accentColor: Color, modi
      }
  }
 
-@Preview(showBackground = true, widthDp = 360, heightDp = 900, name = "Quit Full (Hardcoded)")
-@Composable
-fun QuitScreenFullPreview_Hardcoded() {
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(horizontal = 16.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
-            Column(modifier = Modifier.fillMaxWidth().padding(vertical = UiConstants.CARD_PADDING), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = "🤔", fontSize = 48.sp)
-                Text(text = "정말 멈추시겠어요?", fontSize = 22.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp, bottom = 4.dp))
-                Text(text = "지금까지 잘 해오셨는데...", fontSize = 14.sp, color = Color(0xFF666666))
-            }
-        }
-
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(QuitUiConstants.STAT_CARD_GAP)) {
-            SmallStatCard(title = "총 금주 일수", value = "12.4일", accentColor = Color(0xFF2F80ED), modifier = Modifier.weight(1f))
-            SmallStatCard(title = "절약한 금액", value = "43,393원", accentColor = Color(0xFFEB5757), modifier = Modifier.weight(1f))
-        }
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(QuitUiConstants.STAT_CARD_GAP)) {
-            SmallStatCard(title = "절약한 시간", value = "28.2시간", accentColor = Color(0xFFF2994A), modifier = Modifier.weight(1f))
-            SmallStatCard(title = "기대 수명+", value = "1일 0.3시간", accentColor = Color(0xFF9B51E0), modifier = Modifier.weight(1f))
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(106.dp)) {
-                CircularProgressIndicator(progress = { 1f }, modifier = Modifier.size(106.dp), color = Color(0xFFE0E0E0), strokeWidth = 4.dp, trackColor = Color.Transparent)
-                CircularProgressIndicator(progress = { 0.6f }, modifier = Modifier.size(106.dp), color = Color(0xFFD32F2F), strokeWidth = 4.dp, trackColor = Color.Transparent)
-                Card(modifier = Modifier.size(96.dp), shape = CircleShape, colors = CardDefaults.cardColors(containerColor = Color(0xFFD32F2F)), elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("✕", color = Color.White, fontSize = 36.sp) }
-                }
-            }
-            OutlinedButton(onClick = {}) { Text(text = "취소") }
-        }
-    }
-}
