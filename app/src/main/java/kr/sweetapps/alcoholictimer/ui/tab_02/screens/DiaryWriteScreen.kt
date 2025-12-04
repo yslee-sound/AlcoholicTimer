@@ -1,5 +1,5 @@
 // [NEW] 일기 작성 화면
-package kr.sweetapps.alcoholictimer.ui.diary
+package kr.sweetapps.alcoholictimer.ui.tab_02.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

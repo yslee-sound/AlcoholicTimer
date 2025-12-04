@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.ui.screens
+package kr.sweetapps.alcoholictimer.ui.tab_02.screens
 
 import android.util.Log
 import android.widget.Toast
@@ -11,7 +11,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -95,6 +94,14 @@ fun DetailScreen(
                     Log.e("DetailScreen", "SharedPreferences.commit() failed")
                     Toast.makeText(context, "기록 삭제 실패(저장 오류)", Toast.LENGTH_SHORT).show()
                 } else {
+                    // [FIX] 타이머 상태 초기화 (기록 삭제 시 타이머 완료 상태도 리셋)
+                    sharedPref.edit().apply {
+                        putBoolean(kr.sweetapps.alcoholictimer.constants.Constants.PREF_TIMER_COMPLETED, false)
+                        putLong(kr.sweetapps.alcoholictimer.constants.Constants.PREF_START_TIME, 0L)
+                        commit()
+                    }
+                    Log.d("DetailScreen", "타이머 상태 초기화 완료")
+
                     try { onDeleted?.invoke() } catch (_: Exception) {}
                     Toast.makeText(context, "기록이 삭제되었습니다", Toast.LENGTH_SHORT).show()
                 }

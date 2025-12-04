@@ -21,7 +21,7 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.ui.screens.DetailScreen
+import kr.sweetapps.alcoholictimer.ui.tab_02.screens.DetailScreen
 import kr.sweetapps.alcoholictimer.ui.tab_03.LevelScreen // [FIX] Tab03의 ViewModel 사용 LevelScreen으로 변경
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.AllRecordsScreen
 import kr.sweetapps.alcoholictimer.ui.tab_02.screens.RecordsScreen
@@ -281,9 +281,9 @@ fun AlcoholicTimerNavGraph(
 
         // [NEW] 일기 작성 화면
         composable(Screen.DiaryWrite.route) {
-            kr.sweetapps.alcoholictimer.ui.diary.DiaryWriteScreen(
+            kr.sweetapps.alcoholictimer.ui.tab_02.screens.DiaryWriteScreen(
                 onDismiss = { navController.popBackStack() },
-                onSave = { emoji, content, cravingLevel ->
+                onSave = { emoji: String, content: String, cravingLevel: Int ->
                     android.util.Log.d("NavGraph", "일기 저장: emoji=$emoji, craving=$cravingLevel")
 
                     // [NEW] SharedPreferences에 일기 저장
@@ -297,7 +297,7 @@ fun AlcoholicTimerNavGraph(
                             put("timestamp", System.currentTimeMillis())
                             put("date", java.text.SimpleDateFormat("M.dd (E)", java.util.Locale.KOREAN).format(java.util.Date()))
                             put("emoji", emoji)
-                            put("content", content.ifEmpty { "내용 없음" })
+                            put("content", if (content.isEmpty()) "내용 없음" else content)
                             put("cravingLevel", cravingLevel)
                         }
 
@@ -389,15 +389,15 @@ fun AlcoholicTimerNavGraph(
                 return@composable
             }
 
-            kr.sweetapps.alcoholictimer.ui.diary.DiaryWriteScreen(
+            kr.sweetapps.alcoholictimer.ui.tab_02.screens.DiaryWriteScreen(
                 diaryId = diaryId,
                 initialMood = diaryData.optString("emoji", ""),
                 initialCraving = diaryData.optInt("cravingLevel", 0),
                 initialText = diaryData.optString("content", ""),
                 initialDate = diaryData.optLong("timestamp", 0L),
                 onDismiss = { navController.popBackStack() },
-                onSave = { _, _, _ -> /* 상세보기에서는 사용 안함 */ },
-                onUpdate = { emoji, content, cravingLevel ->
+                onSave = { _: String, _: String, _: Int -> /* 상세보기에서는 사용 안함 */ },
+                onUpdate = { emoji: String, content: String, cravingLevel: Int ->
                     android.util.Log.d("NavGraph", "일기 수정: diaryId=$diaryId, emoji=$emoji")
 
                     // [NEW] SharedPreferences에서 일기 업데이트
@@ -410,7 +410,7 @@ fun AlcoholicTimerNavGraph(
                             val item = array.getJSONObject(i)
                             if (item.optLong("timestamp", 0L).toString() == diaryId) {
                                 item.put("emoji", emoji)
-                                item.put("content", content.ifEmpty { "내용 없음" })
+                                item.put("content", if (content.isEmpty()) "내용 없음" else content)
                                 item.put("cravingLevel", cravingLevel)
                                 break
                             }
