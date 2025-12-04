@@ -181,7 +181,8 @@ fun RunScreenComposable(
     val savedHours = remember(weeks, freqVal, drinkHoursVal) { weeks * freqVal * (drinkHoursVal + Constants.DrinkingSettings.HANGOVER_HOURS) }
     val lifeGainDays = remember(elapsedDaysFloat) { elapsedDaysFloat / 30.0 }
     // Display saved money as integer without currency symbol, formatted with locale grouping
-    val savedMoneyRounded = remember(savedMoney) { kotlin.math.round(savedMoney).toLong() }
+    // [FIX] Use floor (truncate) instead of round for saved money display
+    val savedMoneyRounded = remember(savedMoney) { savedMoney.toLong() }
     val savedMoneyDisplay = remember(savedMoneyRounded) { java.text.NumberFormat.getNumberInstance(Locale.getDefault()).format(savedMoneyRounded) }
 
     // Debug: compute life gain explicitly (days + hours) with 1 decimal and log values
