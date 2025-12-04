@@ -52,7 +52,7 @@ import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.MainApplication
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.BackTopBar
-import kr.sweetapps.alcoholictimer.core.ui.theme.LocalDimens
+import kr.sweetapps.alcoholictimer.ui.theme.LocalDimens
 import kr.sweetapps.alcoholictimer.ui.tab_04.SettingsMenuWithSwitch
 import kr.sweetapps.alcoholictimer.ui.tab_04.SimpleAboutRow
 

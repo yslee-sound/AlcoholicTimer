@@ -28,12 +28,12 @@ import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.core.ui.AppElevation
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder
 import kr.sweetapps.alcoholictimer.constants.UiConstants
-import kr.sweetapps.alcoholictimer.core.ui.theme.AmberSecondaryLight
-import kr.sweetapps.alcoholictimer.core.ui.theme.BluePrimaryLight
+import kr.sweetapps.alcoholictimer.ui.theme.AmberSecondaryLight
+import kr.sweetapps.alcoholictimer.ui.theme.BluePrimaryLight
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.predictAnchoredBannerHeightDp
 import kr.sweetapps.alcoholictimer.util.FormatUtils
 import kr.sweetapps.alcoholictimer.core.ui.AppCard
-import kr.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
+import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme
 import androidx.compose.ui.tooling.preview.Preview
 import android.content.res.Configuration
 import androidx.compose.material3.ExperimentalMaterial3Api

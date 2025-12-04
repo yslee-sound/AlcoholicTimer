@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.core.ui.theme
+package kr.sweetapps.alcoholictimer.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

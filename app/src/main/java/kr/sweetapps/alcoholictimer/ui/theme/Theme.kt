@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.core.ui.theme
+package kr.sweetapps.alcoholictimer.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import androidx.compose.runtime.SideEffect
+import kr.sweetapps.alcoholictimer.ui.theme.AppTypography
 
 private val DarkColorScheme = darkColorScheme(
     primary = BluePrimaryDark,

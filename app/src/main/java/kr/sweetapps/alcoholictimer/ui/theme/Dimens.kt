@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.core.ui.theme
+package kr.sweetapps.alcoholictimer.ui.theme
 
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
