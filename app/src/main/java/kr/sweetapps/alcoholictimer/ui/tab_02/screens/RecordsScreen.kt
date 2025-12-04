@@ -496,6 +496,11 @@ private fun PeriodStatisticsSection(
     // [NEW] Context는 여기서 미리 가져오기
     val context = LocalContext.current
 
+    // [NEW] 배속된 하루 길이 가져오기 (실시간 업데이트)
+    val dayInMillis = remember(now) {
+        kr.sweetapps.alcoholictimer.constants.Constants.getDayInMillis(context)
+    }
+
     val totalRecords = records.size
     val periodRange: Pair<Long, Long>? = remember(selectedPeriod, selectedDetailPeriod, weekRange) {
         when (selectedPeriod) {
@@ -583,8 +588,8 @@ private fun PeriodStatisticsSection(
         }
     }
 
-    // [NEW] 현재 진행 중인 타이머의 경과 일수 계산 (실시간)
-    val currentTimerDays = remember(now, periodRange) {
+    // [FIX] 현재 진행 중인 타이머의 경과 일수 계산 (배속 반영)
+    val currentTimerDays = remember(now, periodRange, dayInMillis) {
         val sharedPref = context.getSharedPreferences(
             kr.sweetapps.alcoholictimer.constants.Constants.USER_SETTINGS_PREFS,
             android.content.Context.MODE_PRIVATE
@@ -595,11 +600,20 @@ private fun PeriodStatisticsSection(
         if (startTime > 0 && !timerCompleted) {
             // 현재 진행 중인 타이머가 있음
             val currentEndTime = now // 실시간 종료 시간
-            if (periodRange == null) {
-                kr.sweetapps.alcoholictimer.core.util.DateOverlapUtils.overlapDays(startTime, currentEndTime, null, null)
+
+            // [핵심] 배속된 dayInMillis를 사용하여 경과 일수 계산
+            val elapsedMillis = if (periodRange == null) {
+                // 기간 필터 없음: 전체 경과 시간
+                currentEndTime - startTime
             } else {
-                kr.sweetapps.alcoholictimer.core.util.DateOverlapUtils.overlapDays(startTime, currentEndTime, periodRange.first, periodRange.second)
+                // 기간 필터 있음: 범위 내에서 겹치는 시간만 계산
+                val start = maxOf(startTime, periodRange.first)
+                val end = minOf(currentEndTime, periodRange.second)
+                if (end > start) end - start else 0L
             }
+
+            // 배속이 적용된 일수로 변환
+            elapsedMillis.toDouble() / dayInMillis.toDouble()
         } else {
             0.0 // 진행 중인 타이머 없음
         }
@@ -699,7 +713,7 @@ private fun PeriodStatisticsSection(
                     // [NEW] 좌측: 줄인 칼로리
                     StatisticItem(
                         title = "줄인\n칼로리",
-                        value = "-${decimalFormat.format(totalKcal)} kcal",
+                        value = "+${decimalFormat.format(totalKcal)} kcal",
                         color = MaterialTheme.colorScheme.tertiary,
                         modifier = Modifier.weight(1f),
                         titleScale = statsScale,
@@ -709,7 +723,7 @@ private fun PeriodStatisticsSection(
                     // [NEW] 중앙: 참아낸 술
                     StatisticItem(
                         title = "참아낸\n술",
-                        value = "-${String.format(Locale.getDefault(), "%.1f", totalBottles)} 병",
+                        value = "+${String.format(Locale.getDefault(), "%.1f", totalBottles)} 병",
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f),
                         titleScale = statsScale,
