@@ -34,7 +34,7 @@ import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.ui.ad.HomeAdTrigger
 import android.app.Activity
 import androidx.compose.runtime.mutableStateOf
-import kr.sweetapps.alcoholictimer.feature.addrecord.AddRecordScreenComposable
+import kr.sweetapps.alcoholictimer.ui.tab_02.screens.AddRecordScreenComposable
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DebugAdsScreen
 import kr.sweetapps.alcoholictimer.ui.tab_04.screens.CurrencyScreen
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DebugScreen

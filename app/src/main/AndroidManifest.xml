@@ -49,7 +49,7 @@
 
         <!-- 사용자 기록 추가 화면 -->
         <activity
-            android:name="kr.sweetapps.alcoholictimer.feature.addrecord.AddRecordActivity"
+            android:name="kr.sweetapps.alcoholictimer.ui.tab_02.screens.AddRecordActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AlcoholicTimer" />
