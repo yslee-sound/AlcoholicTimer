@@ -37,7 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import java.util.Locale
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.StandardScreenWithBottomButton
-import kr.sweetapps.alcoholictimer.MainActivity
+import kr.sweetapps.alcoholictimer.ui.main.MainActivity
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.core.ui.AppBorder

@@ -12,7 +12,7 @@ import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.consent.UmpConsentManager
 import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
 import kr.sweetapps.alcoholictimer.constants.Constants
-import kr.sweetapps.alcoholictimer.MainActivity
+import kr.sweetapps.alcoholictimer.ui.main.MainActivity
 import android.graphics.Color as AndroidColor
 import androidx.compose.runtime.mutableStateOf
 import kr.sweetapps.alcoholictimer.ui.tab_01.screens.StartScreen

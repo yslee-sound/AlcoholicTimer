@@ -24,7 +24,7 @@
 
         <!-- 새 메인 진입점: Compose 기반 MainActivity -->
         <activity
-            android:name="kr.sweetapps.alcoholictimer.MainActivity"
+            android:name="kr.sweetapps.alcoholictimer.ui.main.MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
             android:screenOrientation="portrait"

@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.feature.debug
+package kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug
 
 import android.app.Activity
 import androidx.compose.foundation.layout.*
@@ -36,4 +36,5 @@ fun DebugAdsScreen() {
         }
     }
 }
+
 

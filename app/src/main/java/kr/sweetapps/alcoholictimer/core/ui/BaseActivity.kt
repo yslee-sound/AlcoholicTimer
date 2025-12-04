@@ -29,16 +29,16 @@ import androidx.core.content.ContextCompat.startActivity
 import androidx.core.view.WindowCompat
 import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.BuildConfig
-import kr.sweetapps.alcoholictimer.MainActivity
+import kr.sweetapps.alcoholictimer.ui.main.MainActivity
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.ui.theme.AlcoholicTimerTheme
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.predictAnchoredBannerHeightDp
 
-// ?�역 ?�력 ?�금 ?�청???�한 CompositionLocal
+// ?�역 ?�력 ?�금 ?�청???�한 CompositionLocal
 @Suppress("unused")
 val LocalRequestGlobalLock = compositionLocalOf<(Long) -> Unit> { { _: Long -> } }
 
-// ?�역 ?�전 ?�딩(LocalSafeContentPadding) ?�공
+// ?�역 ?�전 ?�딩(LocalSafeContentPadding) ?�공
 val LocalSafeContentPadding = compositionLocalOf { PaddingValues(bottom = 0.dp) }
 
 abstract class BaseActivity : ComponentActivity() {
@@ -125,7 +125,7 @@ abstract class BaseActivity : ComponentActivity() {
         AlcoholicTimerTheme(darkTheme = false, applySystemBars = applySystemBars) {
             val blurRadius = animateFloatAsState(0f, tween(0), label = "blur").value
 
-            // ?�단 ?�딩 계산(?�비/IME + 추�? ?�백)
+            // ?�단 ?�딩 계산(?�비/IME + 추�? ?�백)
             val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
             val imeBottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
             val effectiveBottom = maxOf(navBottom, imeBottom)
@@ -190,7 +190,7 @@ abstract class BaseActivity : ComponentActivity() {
                     contentWindowInsets = WindowInsets(0, 0, 0, 0)
                 ) { paddingValues ->
                     Column(modifier = Modifier.fillMaxSize()) {
-                        // 콘텐�?
+                        // 콘텐�?
                         Box(modifier = Modifier.fillMaxSize().weight(1f)) {
                             Box(modifier = Modifier.matchParentSize().background(MaterialTheme.colorScheme.surfaceVariant))
                             val insetModifier = if (applyBottomInsets) {
@@ -206,7 +206,7 @@ abstract class BaseActivity : ComponentActivity() {
                                     .blur(radius = blurRadius.dp)
                             ) { content() }
                         }
-                        // ?�단 배너 ?�역(?�션)
+                        // ?�단 배너 ?�역(?�션)
                         val showOrReserveAd = (bottomAd != null) || reserveSpaceForBottomAd
                         if (!manageBottomAreaExternally) {
                             if (showOrReserveAd) {
@@ -218,9 +218,9 @@ abstract class BaseActivity : ComponentActivity() {
                                             .background(MaterialTheme.colorScheme.surfaceVariant)
                                     )
                                 }
-                                // 배너 ?�단 ?�어?�인
+                                // 배너 ?�단 ?�어?�인
                                 HorizontalDivider(thickness = AppBorder.Hairline, color = Color(0xFFE0E0E0))
-                                // ?�면 ??기�? Anchored Adaptive 배너 ?�상 ?�이
+                                // ?�면 ??기�? Anchored Adaptive 배너 ?�상 ?�이
                                 val predictedBannerH = predictAnchoredBannerHeightDp()
                                 Surface(color = Color.White, shadowElevation = 0.dp, tonalElevation = 0.dp) {
                                     Box(
@@ -241,7 +241,7 @@ abstract class BaseActivity : ComponentActivity() {
         }
     }
 
-    /** 메인 ???�면?�로 ?�동 - Compose NavHost(MainActivity)�??�합 */
+    /** 메인 ???�면?�로 ?�동 - Compose NavHost(MainActivity)�??�합 */
     @Suppress("DEPRECATION")
     protected fun navigateToMainHome() {
         if (this is MainActivity) return
