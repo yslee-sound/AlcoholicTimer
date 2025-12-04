@@ -74,7 +74,7 @@ import androidx.compose.foundation.layout.PaddingValues
 private val START_CARD_TOP_INNER_PADDING: Dp = 50.dp
 private val START_TITLE_TOP_MARGIN: Dp = 30.dp
 private val START_TITLE_CARD_GAP: Dp = 20.dp
-private val START_CARD_HORIZONTAL_PADDING: Dp = 15.dp
+private val START_CARD_HORIZONTAL_PADDING: Dp = 20.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,26 +95,26 @@ fun StartScreen(
         timerCompleted = sharedPref.getBoolean("timer_completed", false)
     }
 
-    if (holdSplashState != null) {
-        LaunchedEffect(key1 = holdSplashState) {
-            // [NEW] 광고 ?�시 ?�태 추적
-            var adShown = false
-            var adLoadAttempted = false
+        if (holdSplashState != null) {
+            LaunchedEffect(key1 = holdSplashState) {
+                // [NEW] Track ad display state
+                var adShown = false
+                var adLoadAttempted = false
 
-            val onLoaded = fun(): Unit {
-                try {
-                    val act = context as? Activity
-                    Log.d("StartScreen", "AppOpen loaded listener invoked. loaded=${AppOpenAdManager.isLoaded()} holdSplash=${holdSplashState.value} activity=${act?.javaClass?.simpleName}")
-                    if (act != null && holdSplashState.value && AppOpenAdManager.isLoaded()) {
-                        val shown = AppOpenAdManager.showIfAvailable(act)
-                        Log.d("StartScreen", "AppOpen showIfAvailable returned: $shown")
-                        // [NEW] 광고가 ?�시?�면 ?�래�??�정
-                        if (shown) {
-                            adShown = true
+                val onLoaded = fun(): Unit {
+                    try {
+                        val act = context as? Activity
+                        Log.d("StartScreen", "AppOpen loaded listener invoked. loaded=${AppOpenAdManager.isLoaded()} holdSplash=${holdSplashState.value} activity=${act?.javaClass?.simpleName}")
+                        if (act != null && holdSplashState.value && AppOpenAdManager.isLoaded()) {
+                            val shown = AppOpenAdManager.showIfAvailable(act)
+                            Log.d("StartScreen", "AppOpen showIfAvailable returned: $shown")
+                            // [NEW] Set flag if ad was shown
+                            if (shown) {
+                                adShown = true
+                            }
                         }
-                    }
-                } catch (t: Throwable) { kotlin.run { Log.w("StartScreen", "onAdLoaded handler failed: $t") } }
-            }
+                    } catch (t: Throwable) { kotlin.run { Log.w("StartScreen", "onAdLoaded handler failed: $t") } }
+                }
 
             val onFinished = fun(): Unit {
                 try {
@@ -154,18 +154,18 @@ fun StartScreen(
                      if (act != null && AppOpenAdManager.isLoaded()) {
                          val shown = AppOpenAdManager.showIfAvailable(act)
                          Log.d("StartScreen", "Immediate showIfAvailable returned: $shown")
-                         // [NEW] 광고가 ?�시?�면 ?�래�??�정
+                         // [NEW] Set flag if ad was shown
                          if (shown) {
                              adShown = true
                          }
                      }
                  } catch (t: Throwable) { Log.w("StartScreen", "immediate showIfAvailable failed: $t") }
 
-                 // [NEW] ?�?�아??개선: 광고가 ?�시 중이�??�?�아??무시
-                 // ?�계 ?��? 4�??�용 (Google AdMob 권장)
+                 // [NEW] UX improvement: Ignore timeout if ad is showing
+                 // Use 4 second timeout (recommended by Google AdMob)
                  delay(4000L)
                  if (holdSplashState.value) {
-                     // [NEW] 광고가 ?�시?��? ?�았�??�플?�시가 ?�전???�성?�되???�으�??�제
+                     // [NEW] Release splash only if ad was not shown
                      if (!adShown) {
                          Log.d("StartScreen", "Safety timeout reached (no ad shown) -> releasing splash")
                          holdSplashState.value = false
@@ -208,7 +208,7 @@ fun StartScreen(
 
     var targetDays by rememberSaveable { mutableIntStateOf(21) }
 
-    // [NEW] 3, 2, 1 카운?�다???�버?�이 ?�시 ?��?
+    // [NEW] Show 3, 2, 1 countdown overlay
     var showCountdown by remember { mutableStateOf(false) }
     var countdownNumber by remember { mutableIntStateOf(3) }
 
@@ -248,17 +248,17 @@ fun StartScreen(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    // [NEW] 카운?�다??로직 처리
+    // [NEW] Countdown logic processing
     val coroutineScope = rememberCoroutineScope()
     LaunchedEffect(showCountdown) {
         if (showCountdown) {
-            // ?�보???�기�?
+            // Hide keyboard
             try {
                 focusManager.clearFocus()
                 keyboardController?.hide()
             } catch (_: Exception) {}
 
-            // 3�?카운?�다??(3 ??2 ??1)
+            // 3 second countdown (3 -> 2 -> 1)
             countdownNumber = 3
             delay(1000L)
             countdownNumber = 2
@@ -266,7 +266,7 @@ fun StartScreen(
             countdownNumber = 1
             delay(1000L)
 
-            // 카운?�다??종료 ???�?�머 ?�작 �??�면 ?�환
+            // After countdown ends, start timer and navigate to screen
             try {
                 val hadActiveGoal = sharedPref.getLong("start_time", 0L) > 0L
                 AnalyticsManager.logTimerStart(
@@ -283,14 +283,14 @@ fun StartScreen(
                 putBoolean("timer_completed", false)
             }
 
-            // [NEW] TimerStateRepository 초기화 (새 타이머 시작)
+            // [NEW] Initialize TimerStateRepository (new timer start)
             try {
                 kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.resetTimer()
                 kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setStartTime(System.currentTimeMillis())
                 kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(true)
-                android.util.Log.d("StartScreen", "타이머 시작: $targetDays 일, 작동 중: true")
+                android.util.Log.d("StartScreen", "Timer started: $targetDays days, active: true")
             } catch (t: Throwable) {
-                android.util.Log.e("StartScreen", "타이머 상태 초기화 실패", t)
+                android.util.Log.e("StartScreen", "Timer state initialization failed", t)
             }
 
             if (onStart != null) {
@@ -369,7 +369,7 @@ fun StartScreen(
                         selectedDays = targetDays,
                         onDaysSelected = { days ->
                             targetDays = days
-                            // [NEW] 배�? ?�택 ???�력 ?�드???�데?�트
+                            // [NEW] Update input field when badge is selected
                             focusManager.clearFocus()
                             try { keyboardController?.hide() } catch (_: Exception) {}
                         }
@@ -417,7 +417,7 @@ fun StartScreen(
                                     val targetFocusRequester = remember { FocusRequester() }
                                     var targetText by remember { mutableStateOf(TextFieldValue(text = targetDays.toString(), selection = TextRange(targetDays.toString().length))) }
 
-                                    // [NEW] targetDays가 ?��??�서 변경되�?TextField ?�데?�트
+                                    // [NEW] Update TextField when targetDays changes externally
                                     LaunchedEffect(targetDays) {
                                         val newText = targetDays.toString()
                                         targetText = TextFieldValue(text = newText, selection = TextRange(newText.length))
@@ -504,14 +504,14 @@ fun StartScreen(
             bottomButton = {
                 MainActionButton(
                     onClick = {
-                        // [NEW] AdPolicyManager로 전면 광고 정책 확인
+                        // [NEW] AdPolicyManager checks interstitial ad policy
                         android.util.Log.d("StartScreen", "========================================")
-                        android.util.Log.d("StartScreen", "타이머 시작 버튼 클릭 - 광고 체크 시작")
+                        android.util.Log.d("StartScreen", "Timer start button clicked - ad check started")
                         val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
                         android.util.Log.d("StartScreen", "shouldShowInterstitialAd = $shouldShowAd")
 
                         if (shouldShowAd) {
-                            // [NEW] 전면 광고 표시 후 카운트다운 시작
+                            // [NEW] Show interstitial ad then start countdown
                             val activity = context as? Activity
                             android.util.Log.d("StartScreen", "activity = ${activity != null}")
 
@@ -520,27 +520,27 @@ fun StartScreen(
                                 android.util.Log.d("StartScreen", "InterstitialAdManager.isLoaded() = $adLoaded")
 
                                 if (adLoaded) {
-                                    android.util.Log.d("StartScreen", "✅ 전면 광고 표시 시작")
+                                    android.util.Log.d("StartScreen", "✅ Showing interstitial ad")
                                     InterstitialAdManager.show(activity) { success ->
-                                        android.util.Log.d("StartScreen", "광고 콜백: success=$success")
-                                        // 광고가 닫히거나 실패하면 카운트다운 시작
+                                        android.util.Log.d("StartScreen", "Ad callback: success=$success")
+                                        // Start countdown after ad closes or fails
                                         showCountdown = true
                                         countdownNumber = 3
                                     }
                                 } else {
-                                    // 광고가 로드되지 않았으면 즉시 카운트다운 시작
-                                    android.util.Log.d("StartScreen", "광고 로드 안됨 -> 즉시 카운트다운 시작")
+                                    // If ad not loaded, start countdown immediately
+                                    android.util.Log.d("StartScreen", "Ad not loaded -> start countdown immediately")
                                     showCountdown = true
                                     countdownNumber = 3
                                 }
                             } else {
-                                android.util.Log.d("StartScreen", "activity null -> 즉시 카운트다운 시작")
+                                android.util.Log.d("StartScreen", "activity null -> start countdown immediately")
                                 showCountdown = true
                                 countdownNumber = 3
                             }
                         } else {
-                            // 쿨타임 중이면 광고 없이 즉시 카운트다운 시작
-                            android.util.Log.d("StartScreen", "쿨타임 중 -> 광고 스킵하고 카운트다운 시작")
+                            // If in cooldown, skip ad and start countdown immediately
+                            android.util.Log.d("StartScreen", "In cooldown -> skip ad and start countdown")
                             showCountdown = true
                             countdownNumber = 3
                         }
@@ -582,7 +582,7 @@ fun StartScreen(
             }
         }
 
-        // [NEW] 3, 2, 1 카운?�다???�버?�이
+        // [NEW] 3, 2, 1 countdown overlay
         AnimatedVisibility(
             visible = showCountdown,
             enter = EnterTransition.None,
@@ -601,7 +601,7 @@ fun StartScreen(
      }
  }
 
-// [NEW] 기간 ?�택 배�?�??�함???�?��?�?
+// [NEW] Brand title bar with duration selection badges
 @Composable
 private fun AppBrandTitleBar(
     selectedDays: Int = 30,
@@ -611,7 +611,7 @@ private fun AppBrandTitleBar(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 로고
+        // Logo
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -632,7 +632,7 @@ private fun AppBrandTitleBar(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // [NEW] 기간 ?�택 배�?
+        // [NEW] Duration selection badges
         DurationBadgeRow(
             selectedDays = selectedDays,
             onDaysSelected = onDaysSelected
@@ -640,7 +640,7 @@ private fun AppBrandTitleBar(
     }
 }
 
-// [NEW] 기간 선택 배지 컴포넌트 (수정: 가로로 변경 + 가독성 증가)
+// [NEW] Duration selection badge component (horizontal layout + improved readability)
 @Composable
 private fun DurationBadgeRow(
     selectedDays: Int,
@@ -674,7 +674,7 @@ private fun DurationBadgeRow(
     }
 }
 
-// [NEW] 개별 배�? 컴포?�트 (?�이�?지??
+// [NEW] Individual badge component (smaller size)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DurationBadge(
@@ -712,10 +712,10 @@ private fun DurationBadge(
     }
 }
 
-// [NEW] 3, 2, 1 카운?�다???�버?�이 (?�체 ?�면) - ?��????�니메이???�함
+// [NEW] 3, 2, 1 countdown overlay (fullscreen) - with bounce animation
 @Composable
 private fun CountdownOverlay(countdownNumber: Int) {
-    // [NEW] ?�자가 바�??�마???��????�니메이??초기??
+    // [NEW] Reset bounce animation each time number changes
     var animationTrigger by remember { mutableStateOf(0f) }
 
     LaunchedEffect(countdownNumber) {
@@ -724,7 +724,7 @@ private fun CountdownOverlay(countdownNumber: Int) {
         animationTrigger = 1f
     }
 
-    // [NEW] ?�자가 바�??�마???��????�니메이??(0.3 ??1.0)
+    // [NEW] Bounce animation when number changes (0.3 to 1.0)
     val scale by androidx.compose.animation.core.animateFloatAsState(
         targetValue = animationTrigger,
         animationSpec = androidx.compose.animation.core.spring(
@@ -734,7 +734,7 @@ private fun CountdownOverlay(countdownNumber: Int) {
         label = "countdown_scale"
     )
 
-    // [NEW] ?�자가 바�??�마???�명???�니메이??(0.0 ??1.0)
+    // [NEW] Fade animation when number changes (0.0 to 1.0)
     val alpha by androidx.compose.animation.core.animateFloatAsState(
         targetValue = animationTrigger,
         animationSpec = androidx.compose.animation.core.tween(
@@ -751,7 +751,7 @@ private fun CountdownOverlay(countdownNumber: Int) {
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
-            ) { /* ?�치 무시 (?�릭 방�?) */ },
+            ) { /* Ignore touch (prevent clicks) */ },
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -763,7 +763,7 @@ private fun CountdownOverlay(countdownNumber: Int) {
             ),
             textAlign = TextAlign.Center,
             modifier = Modifier.graphicsLayer(
-                scaleX = 0.3f + (scale * 0.7f), // 0.3 ??1.0 ?��???
+                scaleX = 0.3f + (scale * 0.7f), // Scale from 0.3 to 1.0
                 scaleY = 0.3f + (scale * 0.7f)
             )
         )
