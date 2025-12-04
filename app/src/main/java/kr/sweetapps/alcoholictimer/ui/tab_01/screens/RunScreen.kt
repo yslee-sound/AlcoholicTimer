@@ -120,19 +120,34 @@ fun RunScreenComposable(
         }
     }
 
+    // [NEW] 시간 배속 계수 가져오기 (화면에서 시각적으로 빠르게 흐르도록)
+    // [SECURITY] 릴리즈 빌드에서는 항상 1배속
+    val accelerationFactor = remember(now) {
+        if (isPreview || isDemoMode) {
+            1 // Preview/Demo 모드에서는 배속 적용 안 함
+        } else if (!kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
+            1 // 릴리즈 빌드에서는 항상 정상 속도
+        } else {
+            Constants.getTimeAcceleration(context)
+        }
+    }
+
     // [FIX] 타이머 테스트 모드를 고려한 동적 DAY_IN_MILLIS (now를 의존성에 추가하여 매 초마다 재계산)
     val dayInMillis = remember(now) {
         val value = Constants.getDayInMillis(context)
-        android.util.Log.d("RunScreen", "dayInMillis 재계산: $value (${if (value == 1000L) "테스트 모드: 1초" else "정상 모드: 1일"})")
+        android.util.Log.d("RunScreen", "dayInMillis 재계산: $value, 배속: ${accelerationFactor}x")
         value
     }
 
-    val elapsedMillis by remember(now, startTime, isDemoMode) {
+    // [NEW] 화면 표시용 경과 시간 (배속 적용)
+    val elapsedMillis by remember(now, startTime, isDemoMode, accelerationFactor) {
         derivedStateOf {
             if (isDemoMode) {
                 (DemoData.DEMO_ELAPSED_DAYS * dayInMillis).toLong()
             } else if (startTime > 0) {
-                now - startTime
+                // 실제 경과 시간에 배속 계수를 곱해서 화면에 보여줌
+                val realElapsed = now - startTime
+                realElapsed * accelerationFactor
             } else {
                 0L
             }

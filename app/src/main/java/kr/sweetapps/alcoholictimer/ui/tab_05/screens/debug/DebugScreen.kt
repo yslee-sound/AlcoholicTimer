@@ -186,6 +186,17 @@ fun DebugScreen(
                 modifier = Modifier.padding(top = 4.dp)
             )
 
+            // [SECURITY] 릴리즈 빌드 경고
+            if (!kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
+                Text(
+                    text = "⚠️ 릴리즈 빌드에서는 배속 기능이 비활성화됩니다.",
+                    fontSize = 11.sp,
+                    color = androidx.compose.ui.graphics.Color.Red,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
 

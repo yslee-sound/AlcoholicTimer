@@ -17,7 +17,7 @@
 
 ---
 
-## 🛠️ 수정된 파일 (총 4개)
+## 🛠️ 수정된 파일 (총 5개)
 
 ### 1️⃣ **Constants.kt** (핵심 로직)
 **경로**: `constants/Constants.kt`
@@ -98,7 +98,44 @@ val actualDays = (((endTime - start) / Constants.getDayInMillis(context))).toInt
 
 ---
 
-### 4️⃣ **DebugScreen.kt** (디버그 메뉴 UI)
+### 4️⃣ **RunScreen.kt** (타이머 실행 화면 UI)
+**경로**: `ui/tab_01/screens/RunScreen.kt`
+
+**수정된 로직**:
+```kotlin
+// [NEW] 시간 배속 계수 가져오기 (화면에서 시각적으로 빠르게 흐르도록)
+val accelerationFactor = remember(now) {
+    if (isPreview || isDemoMode) {
+        1 // Preview/Demo 모드에서는 배속 적용 안 함
+    } else {
+        Constants.getTimeAcceleration(context)
+    }
+}
+
+// [NEW] 화면 표시용 경과 시간 (배속 적용)
+val elapsedMillis by remember(now, startTime, isDemoMode, accelerationFactor) {
+    derivedStateOf {
+        if (isDemoMode) {
+            (DemoData.DEMO_ELAPSED_DAYS * dayInMillis).toLong()
+        } else if (startTime > 0) {
+            // 실제 경과 시간에 배속 계수를 곱해서 화면에 보여줌
+            val realElapsed = now - startTime
+            realElapsed * accelerationFactor
+        } else {
+            0L
+        }
+    }
+}
+```
+
+**효과**: 
+- 중앙 타이머 숫자(00:00:00)가 배속에 맞춰 빠르게 증가
+- 100배속 설정 시 실제 1초마다 타이머가 100초씩 증가
+- 사용자가 시각적으로 "시간이 빠르게 가고 있다"는 것을 체감
+
+---
+
+### 5️⃣ **DebugScreen.kt** (디버그 메뉴 UI)
 **경로**: `ui/tab_05/screens/debug/DebugScreen.kt`
 
 **추가된 UI 컴포넌트**:

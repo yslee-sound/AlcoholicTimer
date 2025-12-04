@@ -103,10 +103,17 @@ object Constants {
 
     /**
      * 시간 배속 계수 설정 (1 = 정상 속도, 60 = 60배속, 10000 = 10000배속)
+     * ⚠️ 릴리즈 빌드에서는 무시됨 (항상 1배속)
      * @param context Context
      * @param factor 배속 계수 (1~10000)
      */
     fun setTimeAcceleration(context: Context, factor: Int) {
+        // [SECURITY] 릴리즈 빌드에서는 설정 불가
+        if (!kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
+            android.util.Log.w("Constants", "릴리즈 빌드에서는 시간 배속 설정이 무시됩니다.")
+            return
+        }
+
         val prefs = context.getSharedPreferences(USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
         val safeFactor = factor.coerceIn(1, 10000)
         prefs.edit().putInt(PREF_TIME_ACCELERATION, safeFactor).apply()
@@ -115,20 +122,32 @@ object Constants {
 
     /**
      * 시간 배속 계수 가져오기 (기본값: 1 = 정상 속도)
+     * ⚠️ 릴리즈 빌드에서는 항상 1 반환
      * @param context Context
-     * @return 배속 계수 (1~10000)
+     * @return 배속 계수 (디버그: 1~10000, 릴리즈: 항상 1)
      */
     fun getTimeAcceleration(context: Context): Int {
+        // [SECURITY] 릴리즈 빌드에서는 항상 1배속
+        if (!kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
+            return 1
+        }
+
         val prefs = context.getSharedPreferences(USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
         return prefs.getInt(PREF_TIME_ACCELERATION, 1).coerceIn(1, 10000)
     }
 
     /**
      * 1일의 밀리초 값을 반환 (시간 배속 적용)
+     * ⚠️ 릴리즈 빌드에서는 항상 86,400,000ms (정상 속도)
      * @param context Context
-     * @return 배속 적용된 1일의 밀리초 (예: 60배속이면 1,440,000ms)
+     * @return 배속 적용된 1일의 밀리초 (디버그: 가변, 릴리즈: 86,400,000ms)
      */
     fun getDayInMillis(context: Context): Long {
+        // [SECURITY] 릴리즈 빌드에서는 항상 정상 속도
+        if (!kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
+            return DAY_IN_MILLIS
+        }
+
         val factor = getTimeAcceleration(context)
         val result = DAY_IN_MILLIS / factor
         android.util.Log.d("Constants", "getDayInMillis: factor=${factor}x, result=${result}ms")
