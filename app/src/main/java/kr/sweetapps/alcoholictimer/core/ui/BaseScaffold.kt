@@ -18,7 +18,7 @@ import kr.sweetapps.alcoholictimer.core.ui.components.BottomNavBar
 import kotlinx.coroutines.delay
 
 /**
- * 공통 ?�캐?�드: ?�단 배너 광고 + 중앙 콘텐�?+ ?�단 Bottom Navigation
+ * Common Scaffold: Top banner ad + center content + bottom navigation
  */
 @Composable
 fun BaseScaffold(
@@ -26,14 +26,14 @@ fun BaseScaffold(
     contentBackground: Color? = null,
     content: @Composable () -> Unit
 ) {
-    // ?�면광고 ?�시 ?�태 구독
+    // Subscribe to interstitial ad showing state
     val isInterstitialShowing = kr.sweetapps.alcoholictimer.ui.ad.AdController.isInterstitialShowingState()
 
     LaunchedEffect(isInterstitialShowing) {
-        Log.d("BaseScaffold", "?�� isInterstitialShowing changed: $isInterstitialShowing")
+        Log.d("BaseScaffold", "Ad isInterstitialShowing changed: $isInterstitialShowing")
     }
 
-    // ?�면광고 종료 ??짧�? ?�?�로 ?�각???�라?�드�??�충 (?�니메이???�거)
+    // Short overlay delay after interstitial closes (for animation)
     var overlayHoldActive by remember { mutableStateOf(false) }
     LaunchedEffect(isInterstitialShowing) {
         if (!isInterstitialShowing) {
@@ -50,18 +50,18 @@ fun BaseScaffold(
         val currentRoute = backStackEntry?.destination?.route
 
         Box(modifier = Modifier.fillMaxSize()) {
-            // 기본 UI
+            // Base UI
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .windowInsetsPadding(WindowInsets.statusBars)
             ) {
-                // [REMOVED] 배너 광고 ?�거 (2025-12-01)
-                // 기존 코드:
+                // [REMOVED] Banner ad removed (2025-12-01)
+                // Previous code:
                 // AdmobBanner(modifier = Modifier.fillMaxWidth(), reserveSpaceWhenDisabled = true)
                 // HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
 
-                // 중앙 콘텐�?
+                // Center content
                 val effectiveBg = when (currentRoute) {
                     Screen.Run.route -> Color(0xFFEEEDE9)
                     else -> contentBackground ?: Color.White
@@ -74,10 +74,10 @@ fun BaseScaffold(
                     content()
                 }
 
-                // ?�단 구분??
+                // Bottom divider
                 HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
 
-                // Bottom Navigation (?�스�?3버튼�?겹치지 ?�도�??�딩)
+                // Bottom Navigation (with padding to avoid overlap with system navigation buttons)
                 Surface(
                     modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
                     color = Color.White,
@@ -88,7 +88,7 @@ fun BaseScaffold(
                 }
             }
 
-            // ?�면광고 ?�시 �?종료 직후: 검?� ?�버?�이�?즉시 ??�� (?�니메이???�음)
+            // Interstitial ad showing or just after close: black overlay (no animation)
             if (overlayVisible) {
                 Box(
                     modifier = Modifier
