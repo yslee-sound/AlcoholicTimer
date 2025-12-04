@@ -1,4 +1,4 @@
-// [NEW] 타이머 만료 화면
+// [NEW] Timer completion screen
 package kr.sweetapps.alcoholictimer.ui.tab_01.screens
 
 import androidx.compose.foundation.layout.*
@@ -16,17 +16,17 @@ import androidx.compose.ui.unit.sp
 import android.util.Log
 
 /**
- * 타이머 만료 시 표시되는 화면
+ * Screen displayed when timer expires
  *
- * @param onResultCheck '결과 확인' 버튼 클릭 시 호출 (전면 광고 노출 후 기록 상세 화면 이동)
- * @param onNewTimerStart '새 타이머 시작' 버튼 클릭 시 호출 (만료 상태 해제)
+ * @param onResultCheck Called when 'Check Result' button is clicked (shows fullscreen ad then navigates to detail screen)
+ * @param onNewTimerStart Called when 'Start New Timer' button is clicked (resets expired state)
  */
 @Composable
 fun FinishedScreen(
     onResultCheck: () -> Unit = {},
     onNewTimerStart: () -> Unit = {}
 ) {
-    Log.d("FinishedScreen", "타이머 만료 화면 표시")
+    Log.d("FinishedScreen", "Timer completion screen displayed")
 
     Column(
         modifier = Modifier
@@ -35,19 +35,19 @@ fun FinishedScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // [NEW] 목표 달성 완료 아이콘
+        // [NEW] Goal completion icon
         Icon(
             imageVector = Icons.Filled.CheckCircle,
-            contentDescription = "완료",
+            contentDescription = "Completed",
             modifier = Modifier.size(80.dp),
             tint = MaterialTheme.colorScheme.primary
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // [NEW] 목표 달성 완료 메시지
+        // [NEW] Goal completion message
         Text(
-            text = "🎉 목표 달성 완료!",
+            text = "🎉 목표 달성!",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
@@ -66,10 +66,10 @@ fun FinishedScreen(
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        // 결과 확인 버튼 (광고 노출)
+        // Check result button (with ad display)
         Button(
             onClick = {
-                Log.d("FinishedScreen", "결과 확인 버튼 클릭 -> 광고 로직 실행")
+                Log.d("FinishedScreen", "Check result button clicked -> executing ad logic")
                 onResultCheck()
             },
             modifier = Modifier
@@ -88,10 +88,10 @@ fun FinishedScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 새 타이머 시작 버튼 (광고 없음)
+        // Start new timer button (without ad)
         OutlinedButton(
             onClick = {
-                Log.d("FinishedScreen", "새 타이머 시작 버튼 클릭 -> 만료 상태 해제")
+                Log.d("FinishedScreen", "Start new timer button clicked -> resetting completion state")
                 onNewTimerStart()
             },
             modifier = Modifier

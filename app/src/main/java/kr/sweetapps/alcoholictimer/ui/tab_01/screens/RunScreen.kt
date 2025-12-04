@@ -1,4 +1,4 @@
-// [NEW] Tab01 리팩?�링: RunScreen??tab_01/screens�??�동
+// [NEW] Tab01 Refactoring: RunScreen moved to tab_01/screens
 package kr.sweetapps.alcoholictimer.ui.tab_01.screens
 
 import android.content.Context
@@ -65,33 +65,33 @@ fun RunScreenComposable(
 ) {
     val context = LocalContext.current
 
-    // Local layout constants for RunScreen ??keep local to avoid changing global constants
-    val RUN_TOP_GROUP_TOP_PADDING = 15.dp            // vertical padding above top stat chips
+    // Local layout constants for RunScreen - keep local to avoid changing global constants
+    val RUN_TOP_GROUP_TOP_PADDING = 20.dp            // vertical padding above top stat chips
     // Unified horizontal padding for the whole Run screen. Use this single constant to keep card widths consistent.
-    val RUN_HORIZONTAL_PADDING = 15.dp               // (was RUN_TOP_GROUP_HORIZONTAL_PADDING)
-    // 분리??로컬 ?�수: ?�단 그룹�?�?카드 ?�이, 카드?� ?�로그레??카드 ?�이
-    val RUN_CARDS_VERTICAL_SPACING_TOP = 15.dp      // ?�면 ??카드???�이 간격
+    val RUN_HORIZONTAL_PADDING = 20.dp               // (was RUN_TOP_GROUP_HORIZONTAL_PADDING)
+    // Separated local variables: top group and card spacing, card and progress card spacing
+    val RUN_CARDS_VERTICAL_SPACING_TOP = 20.dp      // spacing between cards on screen
 
     // Progress card padding controls
-    // ?��? ?�백: ?�로그레??카드 주�????��? 마진(기본 0?�로 ?�정?�여 ?��? ?�백 ?�음)
-    val RUN_CARD_CONTENT_HORIZONTAL_PADDING = 15.dp // ?�로그레??바의 ?�딩
-    // 카드 ?��????�직 ?�딩?� 별도 ?�수(기존 12.dp ?��?)
-    // ?��? ?�직 ?�딩??0?�로 ?�면 ?�색 ?�널(Progress Surface) ?�단�???카드가 ??붙습?�다.
-    val RUN_CARD_CONTENT_VERTICAL_PADDING = 12.dp // ?�로그레???��? ?�딩 (기본 0) 12
+    // Inner padding: Progress card internal margin (set to 0 by default for no inner padding)
+    val RUN_CARD_CONTENT_HORIZONTAL_PADDING = 15.dp // Progress bar padding
+    // Card internal vertical padding is a separate variable (default 12.dp previously)
+    // If inner vertical padding is 0, the colored panel (Progress Surface) will stick to the card edges.
+    val RUN_CARD_CONTENT_VERTICAL_PADDING = 12.dp // Progress internal padding (default 0) 12
 
     // Per-chip horizontal alignment (left / center / right)
-    // 모두 중앙 ?�렬�?변�?(?�청?�항)
+    // All changed to center alignment (client request)
     val runStatAlignments = listOf(Alignment.CenterHorizontally, Alignment.CenterHorizontally, Alignment.CenterHorizontally)
     val RUN_TOP_GROUP_CHIP_SPACING = 12.dp
 
     BackHandler(enabled = true) {
-        // NavHost ?�에?�는 ?�로가기�? ?�비??백그?�운???�동 ?�???��?
+        // Inside NavHost, back action should not trigger background mode
     }
 
     val isPreview = LocalInspectionMode.current
     val isDemoMode = DebugSettings.isDemoModeEnabled(context)
 
-    // SharedPreferences ?�근?� ?��??�에?�만 ?�행 (Preview ?�전??
+    // SharedPreferences access is only executed at runtime (not during Preview)
     val sp = if (isPreview) null else context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
     val startTime = if (isPreview) (System.currentTimeMillis() - (2 * Constants.DAY_IN_MILLIS)) else sp!!.getLong(Constants.PREF_START_TIME, 0L)
     val targetDays = if (isDemoMode) DemoData.DEMO_TARGET_DAYS else if (isPreview) 30f else sp!!.getFloat(Constants.PREF_TARGET_DAYS, 30f)
@@ -235,7 +235,7 @@ fun RunScreenComposable(
                     )
                     sp!!.edit().remove(Constants.PREF_START_TIME).putBoolean(Constants.PREF_TIMER_COMPLETED, true).apply()
 
-                    // [NEW] 완료된 기록 정보를 SharedPreferences에 저장 (FinishedScreen에서 사용)
+                    // [NEW] Save completed record info to SharedPreferences (used by FinishedScreen)
                     try {
                         sp!!.edit().apply {
                             putLong("completed_start_time", startTime)
@@ -244,23 +244,23 @@ fun RunScreenComposable(
                             putInt("completed_actual_days", actualDaysInt)
                             apply()
                         }
-                        android.util.Log.d("RunScreen", "완료 기록 저장: startTime=$startTime, endTime=$endTs, targetDays=$targetDays, actualDays=$actualDaysInt")
+                        android.util.Log.d("RunScreen", "Saved completed record: startTime=$startTime, endTime=$endTs, targetDays=$targetDays, actualDays=$actualDaysInt")
                     } catch (t: Throwable) {
-                        android.util.Log.e("RunScreen", "완료 기록 저장 실패", t)
+                        android.util.Log.e("RunScreen", "Failed to save completed record", t)
                     }
 
-                    // [NEW] TimerStateRepository에 만료 상태 저장
+                    // [NEW] Save timer expiration state to TimerStateRepository
                     try {
                         kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(true)
-                        kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(false) // [NEW] 타이머 작동 중지
-                        android.util.Log.d("RunScreen", "타이머 만료 상태 저장 완료 (작동 중: false)")
+                        kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(false) // [NEW] Stop timer operation
+                        android.util.Log.d("RunScreen", "Timer expiration state saved (active: false)")
                     } catch (t: Throwable) {
-                        android.util.Log.e("RunScreen", "타이머 만료 상태 저장 실패", t)
+                        android.util.Log.e("RunScreen", "Failed to save timer expiration state", t)
                     }
 
                     hasCompleted = true
 
-                    // Analytics: 목표 달성 이벤트 기록
+                    // Analytics: Log goal achievement event
                     try { AnalyticsManager.logTimerFinish(targetDays.toInt(), actualDaysInt, startTime, endTs) } catch (_: Throwable) {}
 
                     val goDetail: () -> Unit = {
@@ -295,7 +295,7 @@ fun RunScreenComposable(
             cardVerticalSpacing = RUN_CARDS_VERTICAL_SPACING_TOP,
             topContent = {
                 Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(RUN_CARDS_VERTICAL_SPACING_TOP)) {
-                    // ?�단 그룹 카드 ?�거 ??3�?칩을 Card 밖으�?배치
+                    // Remove top group card and place 3 chips outside Card
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -351,11 +351,11 @@ fun RunScreenComposable(
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxSize()
                             )
-                            // 기존 ?�용?� ?��?지 ?�에 ?�일???�딩?�로 배치 (?��? ?�딩 ?�거)
+                            // Place composable content with the same padding as existing (no padding removal)
                             Box(modifier = Modifier.fillMaxSize().padding(0.dp), contentAlignment = Alignment.Center) {
-                                // 중앙 카드 ?�소 간격 축소: ?�벨/�??�트가 ??붙도�?조정
-                                // ?�벨/?�트 최소????Column?� 컨텐�??�이�??�핑?�여 박스 중앙??배치
-                                // label???�리??문제 ?�결???�해 최소 ?�이�??�보
+                                // Reduce center card element spacing: adjust so level/percentage are closer together
+                                // Wrap the minimal Column containing level/percentage content and place Box in center
+                                // Ensure minimum height to fix label float issue
                                 val label: String = when (currentIndicator) {
                                     0 -> stringResource(id = R.string.indicator_title_days)
                                     1 -> stringResource(id = R.string.indicator_title_time)
@@ -373,7 +373,7 @@ fun RunScreenComposable(
 
                                 // Layout: fill card height and center children so numeric value is visually centered
                                 Column(modifier = Modifier.fillMaxHeight().fillMaxWidth().padding(vertical = 0.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                                    // Top label: padding ?�거, includeFontPadding=false�?줄여 ?�자 중심 ?�렬 보정
+                                    // Top label: remove padding, use includeFontPadding=false to tighten and align text center
                                     Box(modifier = Modifier.fillMaxWidth().padding(top = 0.dp), contentAlignment = Alignment.Center) {
                                         val base = MaterialTheme.typography.titleMedium
                                         Text(
@@ -394,7 +394,7 @@ fun RunScreenComposable(
                                     // Middle: center main value (no weight so it stays close to label/hint)
                                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                                         val baseStyle = MaterialTheme.typography.headlineMedium
-                                        // ?�동 축소: 가???�비??맞춰 ???�자 ?�트 ?�기 계산
+                                        // Auto-resize: calculate optimal font size based on available width
                                         val textMeasurer = rememberTextMeasurer()
                                         val density = LocalDensity.current
                                         val baseFontSp = baseStyle.fontSize
@@ -403,9 +403,9 @@ fun RunScreenComposable(
 
                                         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
                                             val maxWpx = with(density) { maxWidth.toPx() }
-                                            // 초기 ?�트 ?�기(px)
+                                            // Initial font size (px)
                                             val initialSizeSp = (baseFontSp.value * maxMultiplier)
-                                            // 측정 루프: 초기 ?�기?�서 최소 ?�기까�? 감소?�키�?가�?공간??맞추�?
+                                            // Measurement loop: decrease from initial size to minimum size until it fits available space
                                             val chosenSizeSp = remember(valueText, maxWpx) {
                                                 var s = initialSizeSp
                                                 val minSize = baseFontSp.value * minMultiplier
@@ -414,7 +414,7 @@ fun RunScreenComposable(
                                                     val result = try { textMeasurer.measure(AnnotatedString(valueText), style = styleTry) } catch (_: Throwable) { null }
                                                     val textW = result?.size?.width ?: 0
                                                     if (textW <= maxWpx * 0.92f) break
-                                                    s -= 2f // 감소 ?�텝 (sp)
+                                                    s -= 2f // Decrease step (sp)
                                                 }
                                                 s.coerceAtLeast(minSize)
                                             }
@@ -438,15 +438,15 @@ fun RunScreenComposable(
                                                 shadow = Shadow(color = Color.Black.copy(alpha = 0.45f), offset = Offset(0f, 1f), blurRadius = 2f)
                                             )
 
-                                            // ?�자/?�위 ?�더링�? 기존 로직�??�일?�게 ?�용
+                                            // Render numeric/unit rendering using the same logic as before
                                             val isMoney = currentIndicator == 2
                                             val isLifeGain = currentIndicator == 4
                                             if (isMoney) {
-                                                // 기존: 심볼을 정규식으로 분기하던 코드 -> 선택한 통화를 직접 가져와 처리
+                                                // Previous: code that branched by symbol using regex -> directly process selected currency
                                                 val selectedCurrency = CurrencyManager.getSelectedCurrency(context)
                                                 val symbol = selectedCurrency.symbol
                                                 if (selectedCurrency.code == "KRW") {
-                                                    // KRW: 숫자를 보여주고 '원' 단위를 붙임
+                                                    // KRW: show number and append '원' unit
                                                     val numeric = valueText.replace("₩", "").replace("원", "").trim()
                                                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                                                         Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
@@ -454,8 +454,8 @@ fun RunScreenComposable(
                                                         Text(text = "원", style = unitStyle)
                                                     }
                                                 } else {
-                                                    // 기타 통화: 통화 심볼을 좌측에 두고 숫자 부분만 표시
-                                                    // 제거 대상: 통화 심볼, '원', '円' 등 아시아권을 제외하는 단위들을 모두 제거
+                                                    // Other currencies: place currency symbol on left and show only numeric part
+                                                    // Remove targets: currency symbol, '원', '円' and other Asian units
                                                     val numeric = valueText.replace(symbol, "")
                                                         .replace("₩", "")
                                                         .replace("원", "")
@@ -504,7 +504,7 @@ fun RunScreenComposable(
                                          }
                                      }
 
-                                    // Bottom hint (?��? ?�딩?�로 ?�자?� 가깝게 조정)
+                                    // Bottom hint (adjust minimal padding to bring closer to number)
                                     Box(modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp), contentAlignment = Alignment.Center) {
                                         val base = MaterialTheme.typography.labelMedium
                                         Text(
@@ -669,7 +669,7 @@ fun RunStatChip(
     contentAlignment: Alignment.Horizontal = Alignment.CenterHorizontally
 ) {
     // Card with white background and elevation matching the progress card
-    // 카드 ?�이�?증�??�켜 ?�단 ?�벨????보이?�록 ??
+    // Increase card height to make top level card more visible
     Card(
         modifier = modifier.height(148.dp),
         shape = RoundedCornerShape(12.dp),
@@ -679,7 +679,7 @@ fun RunStatChip(
         Column(modifier = Modifier.fillMaxSize().padding(12.dp), horizontalAlignment = contentAlignment, verticalArrangement = Arrangement.Center) {
             // Top circular icon
             if (icon != null || iconRes != null) {
-                // iconBg가 지?�된 칩에??공통?�으�??�래쪽이 ??밝�? ?�직 그라?�이?�과 ?�한 ?�리베이?�을 ?�용
+                // Apply common accent gradient with lighter bottom for chips with iconBg specified
                 val applyAccent = iconBg != null
                 if (applyAccent) {
                     val topColor = iconBg!!
@@ -767,7 +767,7 @@ private fun saveCompletedRecord(context: Context, startTime: Long, endTime: Long
         val sharedPref = context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
         val recordId = System.currentTimeMillis().toString()
         val isCompleted = actualDays >= targetDays
-        val status = if (isCompleted) "?�료" else "중�?"
+        val status = if (isCompleted) "completed" else "in_progress"
         val record = org.json.JSONObject().apply {
             put("id", recordId); put("startTime", startTime); put("endTime", endTime); put("targetDays", targetDays.toInt()); put("actualDays", actualDays); put("isCompleted", isCompleted); put("status", status); put("createdAt", System.currentTimeMillis())
         }

@@ -1,4 +1,4 @@
-// [NEW] Tab01 리팩토링: Start/Run 화면 ViewModel 추가
+// [NEW] Tab01 Refactoring: Add Start/Run screen ViewModel
 package kr.sweetapps.alcoholictimer.ui.tab_01
 
 import android.app.Application
@@ -12,9 +12,9 @@ import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.util.constants.Constants
 
 /**
- * [NEW] Tab01(시작/실행 화면) 상태 관리 ViewModel
- * - 타이머 상태 관리 (시작 시간, 목표 일수, 완료 여부)
- * - SharedPreferences 읽기/쓰기 처리
+ * [NEW] Tab01 (Start/Run screen) state management ViewModel
+ * - Timer state management (start time, target days, completion status)
+ * - SharedPreferences read/write operations
  */
 class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -23,36 +23,84 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
         android.content.Context.MODE_PRIVATE
     )
 
-    // [NEW] 타이머 시작 시간 상태
+    // [NEW] Timer start time state
     private val _startTime = MutableStateFlow(0L)
     val startTime: StateFlow<Long> = _startTime.asStateFlow()
 
-    // [NEW] 목표 일수 상태
+    // [NEW] Target days state
     private val _targetDays = MutableStateFlow(30f)
     val targetDays: StateFlow<Float> = _targetDays.asStateFlow()
 
-    // [NEW] 타이머 완료 여부 상태
+    // [NEW] Timer completion status state
     private val _timerCompleted = MutableStateFlow(false)
     val timerCompleted: StateFlow<Boolean> = _timerCompleted.asStateFlow()
 
     init {
-        // [NEW] 초기 타이머 상태 로드
+        // [NEW] Load initial timer state
         loadTimerState()
+
+        // [FIX] Self-Healing: Detect and fix zombie state
+        // If timer is marked as completed but app is restarted, auto-reset to prevent ghost touch
+        performSelfHealing()
     }
 
     /**
-     * [NEW] SharedPreferences에서 타이머 상태 불러오기
+     * [NEW] Self-Healing Logic: Automatic state recovery
+     * Prevents "ghost touch" bug caused by zombie state
+     */
+    private fun performSelfHealing() {
+        val isCompleted = _timerCompleted.value
+        val hasStartTime = _startTime.value > 0
+
+        if (isCompleted) {
+            // Case 1: Timer is marked as completed
+            // Check if user already acknowledged (more than 10 seconds passed)
+            val completedRecordExists = checkCompletedRecordExists()
+
+            if (completedRecordExists) {
+                // User already saw the result screen, reset the flag
+                Log.w("Tab01ViewModel", "[Self-Healing] Zombie state detected - resetting completed flag")
+                resetCompletedFlag()
+            } else {
+                Log.d("Tab01ViewModel", "[Self-Healing] Timer completion is fresh - keeping state")
+            }
+        } else if (!hasStartTime) {
+            // Case 2: No timer running and not completed - this is normal idle state
+            Log.d("Tab01ViewModel", "[Self-Healing] Idle state - no action needed")
+        }
+    }
+
+    /**
+     * Check if completed record data exists in SharedPreferences
+     */
+    private fun checkCompletedRecordExists(): Boolean {
+        val completedStartTime = sharedPref.getLong("completed_start_time", 0L)
+        return completedStartTime > 0L
+    }
+
+    /**
+     * Reset completed flag to allow new timer start
+     */
+    private fun resetCompletedFlag() {
+        _timerCompleted.value = false
+        sharedPref.edit()
+            .putBoolean(Constants.PREF_TIMER_COMPLETED, false)
+            .apply()
+    }
+
+    /**
+     * [NEW] Load timer state from SharedPreferences
      */
     private fun loadTimerState() {
         _startTime.value = sharedPref.getLong(Constants.PREF_START_TIME, 0L)
         _targetDays.value = sharedPref.getFloat(Constants.PREF_TARGET_DAYS, 30f)
         _timerCompleted.value = sharedPref.getBoolean(Constants.PREF_TIMER_COMPLETED, false)
 
-        Log.d("Tab01ViewModel", "타이머 상태 로드: startTime=${_startTime.value}, targetDays=${_targetDays.value}, completed=${_timerCompleted.value}")
+        Log.d("Tab01ViewModel", "Timer state loaded: startTime=${_startTime.value}, targetDays=${_targetDays.value}, completed=${_timerCompleted.value}")
     }
 
     /**
-     * [NEW] 타이머 시작
+     * [NEW] Start timer
      */
     fun startTimer(targetDays: Float) {
         viewModelScope.launch {
@@ -67,12 +115,12 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
                 .putBoolean(Constants.PREF_TIMER_COMPLETED, false)
                 .apply()
 
-            Log.d("Tab01ViewModel", "타이머 시작: targetDays=$targetDays")
+            Log.d("Tab01ViewModel", "Timer started: targetDays=$targetDays")
         }
     }
 
     /**
-     * [NEW] 타이머 중지
+     * [NEW] Stop timer
      */
     fun stopTimer() {
         viewModelScope.launch {
@@ -84,12 +132,12 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
                 .putBoolean(Constants.PREF_TIMER_COMPLETED, false)
                 .apply()
 
-            Log.d("Tab01ViewModel", "타이머 중지")
+            Log.d("Tab01ViewModel", "Timer stopped")
         }
     }
 
     /**
-     * [NEW] 타이머 완료 처리
+     * [NEW] Mark timer as completed
      */
     fun completeTimer() {
         viewModelScope.launch {
@@ -99,12 +147,12 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
                 .putBoolean(Constants.PREF_TIMER_COMPLETED, true)
                 .apply()
 
-            Log.d("Tab01ViewModel", "타이머 완료")
+            Log.d("Tab01ViewModel", "Timer completed")
         }
     }
 
     /**
-     * [NEW] 타이머 상태 새로고침
+     * [NEW] Refresh timer state
      */
     fun refreshTimerState() {
         loadTimerState()

@@ -127,8 +127,26 @@ fun AppNavHost(
         composable(Screen.Finished.route) {
             kr.sweetapps.alcoholictimer.ui.tab_01.screens.FinishedScreen(
                 onResultCheck = {
-                    // [수정] 광고 정책 체크 후 전면 광고 노출, 해당 기록 상세 화면으로 이동
-                    android.util.Log.d("NavGraph", "결과 확인 클릭 -> 광고 정책 체크")
+                    // [FIX] Reset timer completion state when user checks result
+                    // This prevents FinishedScreen from showing again when returning to Tab 1
+                    android.util.Log.d("NavGraph", "결과 확인 클릭 -> 타이머 완료 상태 초기화")
+
+                    try {
+                        // Reset timer completion flag
+                        kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(false)
+                        kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(false)
+
+                        // Also clear SharedPreferences
+                        val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+                        sharedPref.edit()
+                            .putBoolean(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_TIMER_COMPLETED, false)
+                            .remove(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_START_TIME)
+                            .apply()
+
+                        android.util.Log.d("NavGraph", "타이머 상태 초기화 완료 -> 광고 정책 체크")
+                    } catch (t: Throwable) {
+                        android.util.Log.e("NavGraph", "타이머 상태 초기화 실패", t)
+                    }
 
                     val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
 
@@ -153,14 +171,16 @@ fun AppNavHost(
 
                                 android.util.Log.d("NavGraph", "완료 기록 Detail 화면으로 이동: $route")
 
-                                // [중요] 만료 상태 플래그는 true로 유지
+                                // [FIX] Remove FinishedScreen from backstack to prevent loop when back button is pressed
                                 navController.navigate(route) {
+                                    popUpTo(Screen.Finished.route) { inclusive = true }
                                     launchSingleTop = true
                                 }
                             } else {
                                 // 기록 정보가 없으면 Records 화면으로 폴백
                                 android.util.Log.w("NavGraph", "완료 기록 없음 -> Records 화면으로 이동")
                                 navController.navigate(Screen.Records.route) {
+                                    popUpTo(Screen.Finished.route) { inclusive = true }
                                     launchSingleTop = true
                                 }
                                 recordsRefreshCounter++
@@ -168,6 +188,7 @@ fun AppNavHost(
                         } catch (t: Throwable) {
                             android.util.Log.e("NavGraph", "결과 확인 실패", t)
                             navController.navigate(Screen.Records.route) {
+                                popUpTo(Screen.Finished.route) { inclusive = true }
                                 launchSingleTop = true
                             }
                         }
@@ -579,7 +600,17 @@ fun AppNavHost(
                 targetDays = targetDays,
                 actualDays = actualDays,
                 isCompleted = isCompleted,
-                onBack = { navController.popBackStack() },
+                onBack = {
+                    // [FIX] Navigate to Records screen instead of popBackStack
+                    // because FinishedScreen was removed from backstack
+                    if (!navController.popBackStack()) {
+                        // If backstack is empty, navigate to Records screen
+                        navController.navigate(Screen.Records.route) {
+                            popUpTo(navController.graph.startDestinationId) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    }
+                },
                 onDeleted = { recordsRefreshCounter = recordsRefreshCounter + 1 },
                 onNavigateToHome = {
                     navController.navigate(Screen.Start.route) {
