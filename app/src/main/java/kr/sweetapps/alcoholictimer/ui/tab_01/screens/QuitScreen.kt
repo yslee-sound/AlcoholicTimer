@@ -48,7 +48,7 @@ import java.util.Locale
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 import kr.sweetapps.alcoholictimer.constants.Constants
-import kr.sweetapps.alcoholictimer.constants.UiConstants
+import kr.sweetapps.alcoholictimer.ui.theme.UiConstants
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.StandardScreenWithBottomButton
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.MainActionButton
 import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme

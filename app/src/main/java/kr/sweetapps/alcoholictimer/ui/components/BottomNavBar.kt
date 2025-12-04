@@ -22,7 +22,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
-import kr.sweetapps.alcoholictimer.constants.UiConstants
+import kr.sweetapps.alcoholictimer.ui.theme.UiConstants
 import kr.sweetapps.alcoholictimer.navigation.Screen
 
 private data class BottomItem(

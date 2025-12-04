@@ -30,7 +30,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.content.edit
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.TargetDaysBottomSheet
-import kr.sweetapps.alcoholictimer.constants.UiConstants
+import kr.sweetapps.alcoholictimer.ui.theme.UiConstants
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.predictAnchoredBannerHeightDp
 import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar

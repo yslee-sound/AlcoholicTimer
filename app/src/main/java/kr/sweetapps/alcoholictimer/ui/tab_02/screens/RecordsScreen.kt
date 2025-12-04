@@ -35,7 +35,7 @@ import kr.sweetapps.alcoholictimer.data.repository.RecordsDataLoader
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
 import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme
-import kr.sweetapps.alcoholictimer.constants.UiConstants
+import kr.sweetapps.alcoholictimer.ui.theme.UiConstants
 import kr.sweetapps.alcoholictimer.ui.common.LocalSafeContentPadding
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.MonthPickerBottomSheet
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.PeriodSelectionSection

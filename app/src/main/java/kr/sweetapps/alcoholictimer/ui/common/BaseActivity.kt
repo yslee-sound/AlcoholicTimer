@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.view.WindowCompat
-import kr.sweetapps.alcoholictimer.constants.UiConstants
+import kr.sweetapps.alcoholictimer.ui.theme.UiConstants
 import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.ui.main.MainActivity
 import kr.sweetapps.alcoholictimer.R

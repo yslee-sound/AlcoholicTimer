@@ -17,7 +17,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import kr.sweetapps.alcoholictimer.constants.UiConstants
+import kr.sweetapps.alcoholictimer.ui.theme.UiConstants
 import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
 import kr.sweetapps.alcoholictimer.ui.common.LocalSafeContentPadding
 

@@ -27,7 +27,7 @@ import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.ui.theme.AppElevation
 import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
-import kr.sweetapps.alcoholictimer.constants.UiConstants
+import kr.sweetapps.alcoholictimer.ui.theme.UiConstants
 import kr.sweetapps.alcoholictimer.ui.theme.AmberSecondaryLight
 import kr.sweetapps.alcoholictimer.ui.theme.BluePrimaryLight
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.predictAnchoredBannerHeightDp
