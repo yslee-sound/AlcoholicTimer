@@ -27,11 +27,11 @@ class AdManager(
     private val prefs: PreferencesStore,
     private val timeProvider: TimeProvider
 ) {
-    // ?�태
+    // State
     var isShowingInterstitialAd: Boolean = false
         private set
 
-    // ?�????
+    // Preference keys
     private val KEY_HOUR_WINDOW_START = "ad_hour_window_start"
     private val KEY_DAY_WINDOW_START = "ad_day_window_start"
     private val KEY_HOUR_COUNT_INTERSTITIAL = "hour_count_interstitial"
@@ -107,7 +107,7 @@ class AdManager(
         try {
             if (AdController.isFullScreenAdShowing()) return false
         } catch (_: Throwable) {}
-        // 최상???�책 비활?�화 ??모든 광고 ?�시 불�?
+        // If top-level policy is disabled, no ads can be shown
         try {
             if (!policy.is_active) return false
         } catch (_: Throwable) {}
@@ -147,13 +147,13 @@ class AdManager(
                 lastAppOpenTime = now
             }
             AdType.BANNER -> {
-                // 배너??카운?�하지 ?�음
+                // Banner ads are not counted
             }
         }
         saveWindowStarts()
     }
 
-    // ?�스?�용 ?�근??
+    // Test access methods
     fun getHourCountInterstitial(): Int = hourCountInterstitial
     fun getDayCountInterstitial(): Int = dayCountInterstitial
     fun getHourCountAppOpen(): Int = hourCountAppOpen

@@ -1,75 +1,75 @@
 package kr.sweetapps.alcoholictimer.navigation
 
 /**
- * 앱의 모든 화면을 정의하는 Sealed Class
- * Jetpack Compose Navigation의 route로 사용됨
+ * Sealed Class defining all screens in the app
+ * Used as routes for Jetpack Compose Navigation
  */
 sealed class Screen(val route: String) {
     /**
-     * 금주 시작 화면 (금주 진행 전)
+     * Start screen (before starting sobriety)
      */
     data object Start : Screen("start")
 
     /**
-     * 금주 진행 화면 (금주 진행 중)
+     * Running screen (during sobriety)
      */
     data object Run : Screen("run")
 
     /**
-     * 금주 완료 화면 (타이머 만료)
+     * Finished screen (timer expired)
      */
     data object Finished : Screen("finished")
 
     /**
-     * 종료 확인 화면
+     * Quit confirmation screen
      */
     data object Quit : Screen("quit")
 
     /**
-     * 기록 목록 화면 (최근 3개)
+     * Records list screen (recent 3 items)
      */
     data object Records : Screen("records")
 
     /**
-     * 전체 기록 화면
+     * All records screen
      */
     data object AllRecords : Screen("all_records")
 
-    /** 모든 일기(모든 금주 일지) 보기 화면 */
+    /** All diary entries (all sobriety journal entries) screen */
     data object AllDiary : Screen("all_diaries")
 
     /**
-     * 레벨 화면
+     * Level screen
      */
     data object Level : Screen("level")
 
     /**
-     * 설정 화면
+     * Settings screen
      */
     data object More : Screen("more")
 
     /**
-     * 정보 화면
+     * About screen
      */
     data object About : Screen("about")
 
     /**
-     * 라이선스 화면
+     * Licenses screen
      */
     data object AboutLicenses : Screen("about_licenses")
 
     /**
-     * 개인정보 처리방침 (웹 뷰 / 외부 링크)
+     * Privacy policy (web view / external link)
      */
     data object Privacy : Screen("about_privacy")
 
     /**
-     * 닉네임 편집 화면
+     * Nickname edit screen
      */
     data object NicknameEdit : Screen("nickname_edit")
 
     /**
-     * 통화 설정 화면
+     * Currency settings screen
      */
     data object CurrencySettings : Screen("currency_settings")
 
@@ -84,7 +84,7 @@ sealed class Screen(val route: String) {
     data object Debug : Screen("debug")
 
     /**
-     * 기록 상세 화면
+     * Record detail screen
      */
     data object Detail : Screen("detail/{startTime}/{endTime}/{targetDays}/{actualDays}/{isCompleted}") {
         fun createRoute(
@@ -96,20 +96,20 @@ sealed class Screen(val route: String) {
         ) = "detail/$startTime/$endTime/$targetDays/$actualDays/$isCompleted"
     }
 
-    /** 기록 추가 화면 (하위 페이지로 표시) */
+    /** Add record screen (shown as subpage) */
     data object AddRecord : Screen("add_record")
 
-    /** [NEW] 일기 작성 화면 */
+    /** [NEW] Diary write screen */
     data object DiaryWrite : Screen("diary_write")
 
-    /** [NEW] 일기 상세보기/수정 화면 */
+    /** [NEW] Diary detail/edit screen */
     data object DiaryDetail : Screen("diary_detail/{diaryId}") {
         fun createRoute(diaryId: String) = "diary_detail/$diaryId"
     }
 }
 
 /**
- * 화면 제목을 반환하는 확장 함수
+ * Extension function to return screen title resource ID
  */
 fun Screen.getTitleResId(): Int? = when (this) {
     is Screen.Start -> kr.sweetapps.alcoholictimer.R.string.start_screen_title
@@ -120,11 +120,11 @@ fun Screen.getTitleResId(): Int? = when (this) {
     is Screen.Level -> kr.sweetapps.alcoholictimer.R.string.level_title
     is Screen.More -> kr.sweetapps.alcoholictimer.R.string.more_title
     is Screen.About -> kr.sweetapps.alcoholictimer.R.string.about_title
-    is Screen.AboutLicenses -> null // 리소스 없음
+    is Screen.AboutLicenses -> null // No resource
     is Screen.Privacy -> null
-    is Screen.NicknameEdit -> null // 커스텀 제목 사용
+    is Screen.NicknameEdit -> null // Uses custom title
     is Screen.CurrencySettings -> kr.sweetapps.alcoholictimer.R.string.settings_currency
-    is Screen.Detail -> null // 커스텀 제목 사용
+    is Screen.Detail -> null // Uses custom title
     is Screen.AddRecord -> kr.sweetapps.alcoholictimer.R.string.add_record_title
     else -> null
 }
