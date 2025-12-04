@@ -120,34 +120,25 @@ fun RunScreenComposable(
         }
     }
 
-    // [NEW] 시간 배속 계수 가져오기 (화면에서 시각적으로 빠르게 흐르도록)
-    // [SECURITY] 릴리즈 빌드에서는 항상 1배속
-    val accelerationFactor = remember(now) {
-        if (isPreview || isDemoMode) {
-            1 // Preview/Demo 모드에서는 배속 적용 안 함
-        } else if (!kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
-            1 // 릴리즈 빌드에서는 항상 정상 속도
-        } else {
-            Constants.getTimeAcceleration(context)
-        }
-    }
-
     // [FIX] 타이머 테스트 모드를 고려한 동적 DAY_IN_MILLIS (now를 의존성에 추가하여 매 초마다 재계산)
     val dayInMillis = remember(now) {
         val value = Constants.getDayInMillis(context)
-        android.util.Log.d("RunScreen", "dayInMillis 재계산: $value, 배속: ${accelerationFactor}x")
+        val factor = if (isPreview || isDemoMode) 1 else {
+            if (!kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) 1
+            else Constants.getTimeAcceleration(context)
+        }
+        android.util.Log.d("RunScreen", "dayInMillis 재계산: $value, 배속: ${factor}x")
         value
     }
 
-    // [NEW] 화면 표시용 경과 시간 (배속 적용)
-    val elapsedMillis by remember(now, startTime, isDemoMode, accelerationFactor) {
+    // [FIX] 경과 시간 계산 (배속은 dayInMillis에만 적용, elapsedMillis는 실제 시간)
+    val elapsedMillis by remember(now, startTime, isDemoMode) {
         derivedStateOf {
             if (isDemoMode) {
                 (DemoData.DEMO_ELAPSED_DAYS * dayInMillis).toLong()
             } else if (startTime > 0) {
-                // 실제 경과 시간에 배속 계수를 곱해서 화면에 보여줌
-                val realElapsed = now - startTime
-                realElapsed * accelerationFactor
+                // 실제 경과 시간 (배속 적용 안 함)
+                now - startTime
             } else {
                 0L
             }
@@ -155,6 +146,13 @@ fun RunScreenComposable(
     }
 
     val elapsedDaysFloat = remember(elapsedMillis, dayInMillis) { elapsedMillis / dayInMillis.toFloat() }
+
+    // [NEW] 중앙 타이머 표시용 경과 시간 (배속 적용)
+    val displayElapsedMillis = remember(elapsedMillis, dayInMillis) {
+        // elapsedMillis는 실제 시간, dayInMillis는 배속이 적용된 "1일의 길이"
+        // 따라서 elapsedDaysFloat에 실제 1일(86,400,000ms)을 곱하면 표시용 시간
+        (elapsedDaysFloat * Constants.DAY_IN_MILLIS).toLong()
+    }
 
     // [FIX] 레벨 계산: 1일 차부터 시작 (기존: 0일부터 시작)
     val levelDays = remember(elapsedMillis, dayInMillis) {
@@ -172,9 +170,10 @@ fun RunScreenComposable(
         context.getString(R.string.stat_goal_days_format, targetDays.toInt())
     }
 
-    val elapsedHours = ((elapsedMillis % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)).toInt()
-    val elapsedMinutes = ((elapsedMillis % (60 * 60 * 1000)) / (60 * 1000)).toInt()
-    val elapsedSeconds = ((elapsedMillis % (60 * 1000)) / 1000).toInt()
+    // [FIX] 중앙 타이머 표시: displayElapsedMillis 사용 (배속 반영)
+    val elapsedHours = ((displayElapsedMillis % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)).toInt()
+    val elapsedMinutes = ((displayElapsedMillis % (60 * 60 * 1000)) / (60 * 1000)).toInt()
+    val elapsedSeconds = ((displayElapsedMillis % (60 * 1000)) / 1000).toInt()
     val progressTimeText = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds)
     val progressTimeTextHM = String.format(Locale.getDefault(), "%02d:%02d", elapsedHours, elapsedMinutes)
 

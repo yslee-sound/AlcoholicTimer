@@ -103,35 +103,33 @@ val actualDays = (((endTime - start) / Constants.getDayInMillis(context))).toInt
 
 **수정된 로직**:
 ```kotlin
-// [NEW] 시간 배속 계수 가져오기 (화면에서 시각적으로 빠르게 흐르도록)
-val accelerationFactor = remember(now) {
-    if (isPreview || isDemoMode) {
-        1 // Preview/Demo 모드에서는 배속 적용 안 함
-    } else {
-        Constants.getTimeAcceleration(context)
-    }
+// [FIX] 타이머 테스트 모드를 고려한 동적 DAY_IN_MILLIS
+val dayInMillis = remember(now) {
+    val value = Constants.getDayInMillis(context) // 배속이 적용된 값
+    value
 }
 
-// [NEW] 화면 표시용 경과 시간 (배속 적용)
-val elapsedMillis by remember(now, startTime, isDemoMode, accelerationFactor) {
+// [FIX] 경과 시간 계산 (배속은 dayInMillis에만 적용)
+val elapsedMillis by remember(now, startTime, isDemoMode) {
     derivedStateOf {
-        if (isDemoMode) {
-            (DemoData.DEMO_ELAPSED_DAYS * dayInMillis).toLong()
-        } else if (startTime > 0) {
-            // 실제 경과 시간에 배속 계수를 곱해서 화면에 보여줌
-            val realElapsed = now - startTime
-            realElapsed * accelerationFactor
+        if (startTime > 0) {
+            // 실제 경과 시간 (배속 적용 안 함)
+            now - startTime
         } else {
             0L
         }
     }
 }
+
+// 일수 계산 시 배속 반영
+val elapsedDaysFloat = elapsedMillis / dayInMillis.toFloat()
 ```
 
 **효과**: 
-- 중앙 타이머 숫자(00:00:00)가 배속에 맞춰 빠르게 증가
-- 100배속 설정 시 실제 1초마다 타이머가 100초씩 증가
-- 사용자가 시각적으로 "시간이 빠르게 가고 있다"는 것을 체감
+- 실제 경과 시간을 정상적으로 계산
+- "1일의 길이"를 줄여서 일수가 빠르게 증가
+- 10000배속: 실제 1시간 = 416.67일 표시 (정확함)
+- 이중 배속 버그 수정 완료
 
 ---
 
