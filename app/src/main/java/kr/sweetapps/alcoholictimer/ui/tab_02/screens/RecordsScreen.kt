@@ -484,6 +484,18 @@ private fun PeriodStatisticsSection(
     val periodMonth = stringResource(R.string.records_period_month)
     val periodYear = stringResource(R.string.records_period_year)
 
+    // [NEW] 실시간 업데이트를 위한 현재 시간 상태
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlinx.coroutines.delay(1000) // 1초마다 업데이트
+            now = System.currentTimeMillis()
+        }
+    }
+
+    // [NEW] Context는 여기서 미리 가져오기
+    val context = LocalContext.current
+
     val totalRecords = records.size
     val periodRange: Pair<Long, Long>? = remember(selectedPeriod, selectedDetailPeriod, weekRange) {
         when (selectedPeriod) {
@@ -571,38 +583,67 @@ private fun PeriodStatisticsSection(
         }
     }
 
-    // [NEW] 기간별 금주 일수 계산
-    val totalDaysDouble = records.sumOf { record -> overlappedDays(record) }
+    // [NEW] 현재 진행 중인 타이머의 경과 일수 계산 (실시간)
+    val currentTimerDays = remember(now, periodRange) {
+        val sharedPref = context.getSharedPreferences(
+            kr.sweetapps.alcoholictimer.constants.Constants.USER_SETTINGS_PREFS,
+            android.content.Context.MODE_PRIVATE
+        )
+        val startTime = sharedPref.getLong(kr.sweetapps.alcoholictimer.constants.Constants.PREF_START_TIME, 0L)
+        val timerCompleted = sharedPref.getBoolean(kr.sweetapps.alcoholictimer.constants.Constants.PREF_TIMER_COMPLETED, false)
+
+        if (startTime > 0 && !timerCompleted) {
+            // 현재 진행 중인 타이머가 있음
+            val currentEndTime = now // 실시간 종료 시간
+            if (periodRange == null) {
+                kr.sweetapps.alcoholictimer.core.util.DateOverlapUtils.overlapDays(startTime, currentEndTime, null, null)
+            } else {
+                kr.sweetapps.alcoholictimer.core.util.DateOverlapUtils.overlapDays(startTime, currentEndTime, periodRange.first, periodRange.second)
+            }
+        } else {
+            0.0 // 진행 중인 타이머 없음
+        }
+    }
+
+    // [FIX] 기간별 금주 일수 계산 (완료된 기록 + 현재 진행 중인 타이머)
+    val totalDaysDouble = remember(records, periodRange, currentTimerDays) {
+        records.sumOf { record -> overlappedDays(record) } + currentTimerDays
+    }
     val totalDaysDisplay = String.format(Locale.getDefault(), "%.1f", totalDaysDouble)
 
     // [NEW] 사용자 설정값 가져오기
-    val context = LocalContext.current
     val (userCost, userFreq, _) = remember { kr.sweetapps.alcoholictimer.constants.Constants.getUserSettings(context) }
 
     // [NEW] 일일 음주 확률 계산
     val dailyFactor = kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.getFrequencyValue(userFreq) / 7.0
 
-    // [NEW] 1. 피한 칼로리 계산 (좌측)
+    // [FIX] 1. 피한 칼로리 계산 (좌측) - 실시간 업데이트
     val kcalPerSession = when (userCost) {
         kr.sweetapps.alcoholictimer.constants.Constants.KEY_COST_LOW -> 500
         kr.sweetapps.alcoholictimer.constants.Constants.KEY_COST_MEDIUM -> 1500
         kr.sweetapps.alcoholictimer.constants.Constants.KEY_COST_HIGH -> 2800
         else -> 1500
     }
-    val totalKcal = (totalDaysDouble * dailyFactor * kcalPerSession).toInt()
+    val totalKcal = remember(totalDaysDouble, dailyFactor, kcalPerSession) {
+        (totalDaysDouble * dailyFactor * kcalPerSession).toInt()
+    }
 
-    // [NEW] 2. 안 마신 술 계산 (중앙)
+    // [FIX] 2. 안 마신 술 계산 (중앙) - 실시간 업데이트
     val bottlesPerSession = when (userCost) {
         kr.sweetapps.alcoholictimer.constants.Constants.KEY_COST_LOW -> 1.0
         kr.sweetapps.alcoholictimer.constants.Constants.KEY_COST_MEDIUM -> 2.5
         kr.sweetapps.alcoholictimer.constants.Constants.KEY_COST_HIGH -> 4.0
         else -> 2.5
     }
-    val totalBottles = (totalDaysDouble * dailyFactor * bottlesPerSession)
+    val totalBottles = remember(totalDaysDouble, dailyFactor, bottlesPerSession) {
+        (totalDaysDouble * dailyFactor * bottlesPerSession)
+    }
 
-    // [NEW] 3. 절약한 돈 계산 (우측)
+    // [FIX] 3. 절약한 돈 계산 (우측) - 실시간 업데이트
     val costPerSession = kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.getCostValue(userCost)
-    val totalMoney = (totalDaysDouble * dailyFactor * costPerSession).toLong()
+    val totalMoney = remember(totalDaysDouble, dailyFactor, costPerSession) {
+        (totalDaysDouble * dailyFactor * costPerSession).toLong()
+    }
 
     // [NEW] 천 단위 콤마 포맷터
     val decimalFormat = java.text.DecimalFormat("#,###")
@@ -655,9 +696,9 @@ private fun PeriodStatisticsSection(
                 ) {
                     val statsScale = 1.3f
 
-                    // [NEW] 좌측: 피한 칼로리
+                    // [NEW] 좌측: 줄인 칼로리
                     StatisticItem(
-                        title = "피한\n칼로리",
+                        title = "줄인\n칼로리",
                         value = "-${decimalFormat.format(totalKcal)} kcal",
                         color = MaterialTheme.colorScheme.tertiary,
                         modifier = Modifier.weight(1f),
@@ -665,9 +706,9 @@ private fun PeriodStatisticsSection(
                         valueScale = statsScale
                     )
 
-                    // [NEW] 중앙: 안 마신 술
+                    // [NEW] 중앙: 참아낸 술
                     StatisticItem(
-                        title = "안 마신\n술",
+                        title = "참아낸\n술",
                         value = "-${String.format(Locale.getDefault(), "%.1f", totalBottles)} 병",
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f),
@@ -675,9 +716,9 @@ private fun PeriodStatisticsSection(
                         valueScale = statsScale
                     )
 
-                    // [NEW] 우측: 절약한 돈
+                    // [NEW] 우측: 지켜낸 돈
                     StatisticItem(
-                        title = "절약한\n돈",
+                        title = "지켜낸\n돈",
                         value = "+${decimalFormat.format(totalMoney)} 원",
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.weight(1f),
