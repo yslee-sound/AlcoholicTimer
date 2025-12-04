@@ -73,7 +73,7 @@ import androidx.compose.foundation.layout.PaddingValues
 
 private val START_CARD_TOP_INNER_PADDING: Dp = 50.dp
 private val START_TITLE_TOP_MARGIN: Dp = 30.dp
-private val START_TITLE_CARD_GAP: Dp = 20.dp
+private val START_TITLE_CARD_GAP: Dp = 15.dp
 private val START_CARD_HORIZONTAL_PADDING: Dp = 20.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -389,7 +389,8 @@ fun StartScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = START_CARD_TOP_INNER_PADDING),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
                         ) {
                             Text(
                                 text = stringResource(R.string.target_days_title),
@@ -399,18 +400,19 @@ fun StartScreen(
                                     .align(Alignment.CenterHorizontally)
                                     .padding(bottom = 24.dp)
                             )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center,
+
+                            // Number input box centered in card
+                            Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(bottom = 24.dp)
+                                    .padding(bottom = 24.dp),
+                                contentAlignment = Alignment.Center
                             ) {
                                 Card(
-                                     modifier = Modifier
-                                         .width(120.dp)
-                                         .height(80.dp),
-                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier
+                                        .width(180.dp)
+                                        .height(100.dp),
+                                    shape = RoundedCornerShape(16.dp),
                                     colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.color_bg_card_light)),
                                     elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD)
                                 ) {
@@ -424,72 +426,100 @@ fun StartScreen(
                                     }
 
                                     val coroutineScope = rememberCoroutineScope()
-                                    Box(modifier = Modifier.fillMaxSize().padding(8.dp), contentAlignment = Alignment.Center) {
-                                        TextField(
-                                            value = targetText,
-                                            onValueChange = { newVal: TextFieldValue ->
-                                                val filtered = newVal.text.filter { it.isDigit() }
-                                                val truncated = filtered.take(4)
-                                                targetText = TextFieldValue(text = truncated, selection = TextRange(truncated.length))
-                                            },
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(64.dp)
-                                                .focusRequester(targetFocusRequester)
-                                                .onFocusChanged { fs ->
-                                                    if (fs.isFocused) {
-                                                        val t = targetText.text
-                                                        targetText = TextFieldValue(text = t, selection = TextRange(0, t.length))
-                                                    } else {
-                                                        val t = targetText.text
-                                                        targetText = TextFieldValue(text = t, selection = TextRange(t.length))
-                                                    }
-                                                },
-                                            textStyle = MaterialTheme.typography.headlineLarge.copy(color = colorResource(id = R.color.color_indicator_days), textAlign = TextAlign.Center),
-                                            singleLine = true,
-                                            readOnly = false,
-                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
-                                            keyboardActions = KeyboardActions(onDone = {
-                                                val parsed = targetText.text.toIntOrNull() ?: targetDays
-                                                targetDays = parsed.coerceIn(0, 999)
-                                                targetText = TextFieldValue(text = targetDays.toString(), selection = TextRange(targetDays.toString().length))
-                                                try { keyboardController?.hide() } catch (_: Exception) {}
-                                                focusManager.clearFocus()
-                                            }),
-                                            colors = TextFieldDefaults.colors(
-                                                focusedContainerColor = Color.Transparent,
-                                                unfocusedContainerColor = Color.Transparent,
-                                                disabledContainerColor = Color.Transparent,
-                                                errorContainerColor = Color.Transparent,
-                                                focusedIndicatorColor = Color.Transparent,
-                                                unfocusedIndicatorColor = Color.Transparent,
-                                                disabledIndicatorColor = Color.Transparent
-                                            )
-                                        )
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Center,
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Box(
+                                                modifier = Modifier.weight(1f),
+                                                contentAlignment = Alignment.CenterEnd
+                                            ) {
+                                                TextField(
+                                                    value = targetText,
+                                                    onValueChange = { newVal: TextFieldValue ->
+                                                        val filtered = newVal.text.filter { it.isDigit() }
+                                                        val truncated = filtered.take(4)
+                                                        targetText = TextFieldValue(text = truncated, selection = TextRange(truncated.length))
+                                                    },
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .focusRequester(targetFocusRequester)
+                                                        .onFocusChanged { fs ->
+                                                            if (fs.isFocused) {
+                                                                val t = targetText.text
+                                                                targetText = TextFieldValue(text = t, selection = TextRange(0, t.length))
+                                                            } else {
+                                                                val t = targetText.text
+                                                                targetText = TextFieldValue(text = t, selection = TextRange(t.length))
+                                                            }
+                                                        },
+                                                    textStyle = MaterialTheme.typography.displayMedium.copy(
+                                                        color = colorResource(id = R.color.color_indicator_days),
+                                                        textAlign = TextAlign.End,
+                                                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                                    ),
+                                                    singleLine = true,
+                                                    readOnly = false,
+                                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                                                    keyboardActions = KeyboardActions(onDone = {
+                                                        val parsed = targetText.text.toIntOrNull() ?: targetDays
+                                                        targetDays = parsed.coerceIn(0, 999)
+                                                        targetText = TextFieldValue(text = targetDays.toString(), selection = TextRange(targetDays.toString().length))
+                                                        try { keyboardController?.hide() } catch (_: Exception) {}
+                                                        focusManager.clearFocus()
+                                                    }),
+                                                    colors = TextFieldDefaults.colors(
+                                                        focusedContainerColor = Color.Transparent,
+                                                        unfocusedContainerColor = Color.Transparent,
+                                                        disabledContainerColor = Color.Transparent,
+                                                        errorContainerColor = Color.Transparent,
+                                                        focusedIndicatorColor = Color.Transparent,
+                                                        unfocusedIndicatorColor = Color.Transparent,
+                                                        disabledIndicatorColor = Color.Transparent
+                                                    )
+                                                )
+                                            }
 
-                                        Box(modifier = Modifier.matchParentSize().clickable(
-                                             indication = null,
-                                             interactionSource = remember { MutableInteractionSource() }
-                                         ) {
-                                              Log.d("StartScreen", "display area clicked ??selecting all and showing keyboard")
-                                              val s = targetDays.toString()
-                                              targetText = TextFieldValue(text = s, selection = TextRange(0, s.length))
-                                              coroutineScope.launch {
-                                                  try { targetFocusRequester.requestFocus() } catch (_: Exception) { Log.d("StartScreen","requestFocus failed") }
-                                                  try { keyboardController?.show() } catch (_: Exception) { Log.d("StartScreen","keyboard show failed") }
-                                                  try { delay(40L) } catch (_: Exception) {}
-                                                  targetText = TextFieldValue(text = s, selection = TextRange(0, s.length))
-                                              }
-                                         }) {}
+                                            Spacer(modifier = Modifier.width(8.dp))
+
+                                            Text(
+                                                text = stringResource(R.string.target_days_unit),
+                                                style = MaterialTheme.typography.headlineMedium.copy(
+                                                    color = colorResource(id = R.color.color_indicator_label_gray),
+                                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Normal
+                                                )
+                                            )
+                                        }
+
+                                        Box(
+                                            modifier = Modifier
+                                                .matchParentSize()
+                                                .clickable(
+                                                    indication = null,
+                                                    interactionSource = remember { MutableInteractionSource() }
+                                                ) {
+                                                    Log.d("StartScreen", "display area clicked - selecting all and showing keyboard")
+                                                    val s = targetDays.toString()
+                                                    targetText = TextFieldValue(text = s, selection = TextRange(0, s.length))
+                                                    coroutineScope.launch {
+                                                        try { targetFocusRequester.requestFocus() } catch (_: Exception) { Log.d("StartScreen","requestFocus failed") }
+                                                        try { keyboardController?.show() } catch (_: Exception) { Log.d("StartScreen","keyboard show failed") }
+                                                        try { delay(40L) } catch (_: Exception) {}
+                                                        targetText = TextFieldValue(text = s, selection = TextRange(0, s.length))
+                                                    }
+                                                }
+                                        ) {}
                                     }
                                 }
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Text(
-                                    text = stringResource(R.string.target_days_unit),
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = colorResource(id = R.color.color_indicator_label_gray)
-                                )
                             }
+
                             Text(
                                 text = stringResource(R.string.target_days_hint),
                                 style = MaterialTheme.typography.bodyMedium,
