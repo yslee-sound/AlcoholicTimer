@@ -109,8 +109,8 @@ fun LevelScreen(onNavigateBack: () -> Unit = {}) {
     val totalPastDuration = pastRecords.sumOf { record -> (record.endTime - record.startTime) }
 
     val totalElapsedTime = totalPastDuration + currentElapsedTime
-    // 추가: 총 경과 일수(소수점 포함) 계산
-    val totalElapsedDaysFloat = totalElapsedTime / Constants.DAY_IN_MILLIS.toFloat()
+    // [FIX] 시간 배속 적용: getDayInMillis() 함수 사용
+    val totalElapsedDaysFloat = totalElapsedTime / Constants.getDayInMillis(context).toFloat()
 
     val levelDays = Constants.calculateLevelDays(totalElapsedTime)
     val currentLevel = LevelDefinitions.getLevelInfo(levelDays)

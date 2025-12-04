@@ -98,13 +98,41 @@ object Constants {
     const val MINUTE_IN_MILLIS = 1000L * 60
     const val SECOND_IN_MILLIS = 1000L
 
+    // [NEW] 시간 배속 설정
+    private const val PREF_TIME_ACCELERATION = "time_acceleration_factor"
+
     /**
-     * 1일의 밀리초 값을 반환 (정상 모드 전용)
-     * @param context Context (호환성 유지용)
-     * @return 86400000L (1일)
+     * 시간 배속 계수 설정 (1 = 정상 속도, 60 = 60배속, 10000 = 10000배속)
+     * @param context Context
+     * @param factor 배속 계수 (1~10000)
+     */
+    fun setTimeAcceleration(context: Context, factor: Int) {
+        val prefs = context.getSharedPreferences(USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
+        val safeFactor = factor.coerceIn(1, 10000)
+        prefs.edit().putInt(PREF_TIME_ACCELERATION, safeFactor).apply()
+        android.util.Log.d("Constants", "시간 배속 설정: ${safeFactor}x")
+    }
+
+    /**
+     * 시간 배속 계수 가져오기 (기본값: 1 = 정상 속도)
+     * @param context Context
+     * @return 배속 계수 (1~10000)
+     */
+    fun getTimeAcceleration(context: Context): Int {
+        val prefs = context.getSharedPreferences(USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
+        return prefs.getInt(PREF_TIME_ACCELERATION, 1).coerceIn(1, 10000)
+    }
+
+    /**
+     * 1일의 밀리초 값을 반환 (시간 배속 적용)
+     * @param context Context
+     * @return 배속 적용된 1일의 밀리초 (예: 60배속이면 1,440,000ms)
      */
     fun getDayInMillis(context: Context): Long {
-        return DAY_IN_MILLIS
+        val factor = getTimeAcceleration(context)
+        val result = DAY_IN_MILLIS / factor
+        android.util.Log.d("Constants", "getDayInMillis: factor=${factor}x, result=${result}ms")
+        return result
     }
 
     const val RESULT_SCREEN_DELAY = 2000

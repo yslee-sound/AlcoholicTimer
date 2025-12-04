@@ -83,6 +83,111 @@ fun DebugScreen(
             DebugSwitch(title = "기능 1", checked = uiState.switch1, onCheckedChange = { viewModel.setSwitch(1, it) })
             DebugSwitch(title = "데모 모드", checked = uiState.demoMode, onCheckedChange = { viewModel.setSwitch(2, it) })
 
+            // [NEW] 시간 배속 설정 (1배속 ~ 100배속)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "시간 배속 설정",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            val acceleration = remember {
+                mutableStateOf(kr.sweetapps.alcoholictimer.constants.Constants.getTimeAcceleration(context).toFloat())
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("현재 배속:", fontSize = 14.sp, modifier = Modifier.weight(1f))
+                Text(
+                    text = "${acceleration.value.toInt()}x",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (acceleration.value.toInt() == 1) {
+                        androidx.compose.ui.graphics.Color.Gray
+                    } else {
+                        androidx.compose.material3.MaterialTheme.colorScheme.primary
+                    }
+                )
+            }
+
+            androidx.compose.material3.Slider(
+                value = acceleration.value,
+                onValueChange = { newValue ->
+                    acceleration.value = newValue
+                },
+                onValueChangeFinished = {
+                    val factor = acceleration.value.toInt()
+                    kr.sweetapps.alcoholictimer.constants.Constants.setTimeAcceleration(context, factor)
+                    Toast.makeText(
+                        context,
+                        "시간 배속: ${factor}x 적용 (1일 = ${86400000L / factor}ms)",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                },
+                valueRange = 1f..10000f,
+                steps = 9998,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                androidx.compose.material3.Button(
+                    onClick = {
+                        acceleration.value = 1f
+                        kr.sweetapps.alcoholictimer.constants.Constants.setTimeAcceleration(context, 1)
+                        Toast.makeText(context, "정상 속도 (1x)", Toast.LENGTH_SHORT).show()
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("1x")
+                }
+                androidx.compose.material3.Button(
+                    onClick = {
+                        acceleration.value = 60f
+                        kr.sweetapps.alcoholictimer.constants.Constants.setTimeAcceleration(context, 60)
+                        Toast.makeText(context, "60배속", Toast.LENGTH_SHORT).show()
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("60x")
+                }
+                androidx.compose.material3.Button(
+                    onClick = {
+                        acceleration.value = 1000f
+                        kr.sweetapps.alcoholictimer.constants.Constants.setTimeAcceleration(context, 1000)
+                        Toast.makeText(context, "1000배속", Toast.LENGTH_SHORT).show()
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("1000x")
+                }
+                androidx.compose.material3.Button(
+                    onClick = {
+                        acceleration.value = 10000f
+                        kr.sweetapps.alcoholictimer.constants.Constants.setTimeAcceleration(context, 10000)
+                        Toast.makeText(context, "10000배속 (극한)", Toast.LENGTH_SHORT).show()
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("10000x")
+                }
+            }
+
+            Text(
+                text = "※ 실제 시간은 변경되지 않으며, 경과 시간 계산만 배속됩니다.",
+                fontSize = 11.sp,
+                color = androidx.compose.ui.graphics.Color.Gray,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
 
             // [NEW] 전면 광고 쿨타임 설정 (초 단위) - 한 줄 레이아웃 + 스위치 제어
             if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
