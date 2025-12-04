@@ -17,8 +17,8 @@ import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.MainApplication
 import kr.sweetapps.alcoholictimer.ui.common.BaseActivity
 import kr.sweetapps.alcoholictimer.ui.common.BaseScaffold
-import kr.sweetapps.alcoholictimer.navigation.AlcoholicTimerNavGraph
-import kr.sweetapps.alcoholictimer.navigation.Screen
+// Navigation imports (now in ui.main package)
+// Note: Screen and AppNavHost are now in the same package
 import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.ui.ad.AdController
 import kr.sweetapps.alcoholictimer.data.supabase.repository.EmergencyPolicyRepository
@@ -465,7 +465,7 @@ private fun AppContentWithStart(
     if (!holdSplashState.value) {
         val contentBg = if (startDestination == Screen.Run.route) Color(0xFFEEEDE9) else null
         BaseScaffold(navController = navController, contentBackground = contentBg) {
-            AlcoholicTimerNavGraph(navController, startDestination)
+            AppNavHost(navController, startDestination)
         }
     }
 

@@ -46,7 +46,7 @@ import kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelDefinitions
 import kr.sweetapps.alcoholictimer.util.utils.FormatUtils
 import kotlinx.coroutines.delay
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.navigation.Screen
+import kr.sweetapps.alcoholictimer.ui.main.Screen
 import kr.sweetapps.alcoholictimer.ui.theme.AppElevation
 import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
 import androidx.compose.ui.platform.LocalDensity

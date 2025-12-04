@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme
-import kr.sweetapps.alcoholictimer.navigation.Screen
+import kr.sweetapps.alcoholictimer.ui.main.Screen
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.NavHostController
 import kr.sweetapps.alcoholictimer.ui.components.BottomNavBar

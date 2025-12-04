@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.navigation
+package kr.sweetapps.alcoholictimer.ui.main
 
 /**
  * Sealed Class defining all screens in the app

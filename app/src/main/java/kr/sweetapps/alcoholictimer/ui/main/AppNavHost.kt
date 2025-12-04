@@ -1,21 +1,9 @@
 @file:Suppress("UNUSED_IMPORT", "UNUSED_VARIABLE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 
-package kr.sweetapps.alcoholictimer.navigation
+package kr.sweetapps.alcoholictimer.ui.main
 
 import android.os.Bundle
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.NavType
+// ...existing imports...
 import androidx.navigation.navArgument
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
@@ -33,7 +21,21 @@ import kr.sweetapps.alcoholictimer.ui.tab_05.screens.NicknameEditScreen
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.ui.ad.HomeAdTrigger
 import android.app.Activity
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import kr.sweetapps.alcoholictimer.ui.tab_02.screens.AddRecordScreenComposable
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DebugAdsScreen
 import kr.sweetapps.alcoholictimer.ui.tab_04.screens.CurrencyScreen
@@ -43,10 +45,10 @@ import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 import kr.sweetapps.alcoholictimer.ui.tab_05.AboutScreen
 
 /**
- * Navigation Graph
+ * Navigation Host (App-level Navigation Graph)
  */
 @Composable
-fun AlcoholicTimerNavGraph(
+fun AppNavHost(
     navController: NavHostController,
     startDestination: String
 ) {
