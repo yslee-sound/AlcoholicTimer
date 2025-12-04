@@ -1,9 +1,3 @@
-/**
- * 답변만 간결하게 50자 이내로 할 것
- * 불필요한 추가작업 추천하지 말것
- * 불필요한 작업과정은 설명하지 말것
- */
-
 // [NEW] Core UI 리팩토링: QuitScreen을 tab_01/screens로 이동
 package kr.sweetapps.alcoholictimer.ui.tab_01.screens
 
@@ -61,11 +55,11 @@ private object QuitUiConstants {
     // Per-screen horizontal padding for all cards in this screen (defaults to global card padding)
     val TOP_CARD_TOP_PADDING = 15.dp
     // Use same card horizontal padding by default
-    val CARDS_VERTICAL_SPACING = 15.dp
-    val CARD_HORIZONTAL_PADDING = 15.dp
+    val CARDS_VERTICAL_SPACING = 10.dp
+    val CARD_HORIZONTAL_PADDING = 20.dp
     // STATS_HORIZONTAL_PADDING removed - not used
     // spacing between the four stat cards (horizontal gap inside rows)
-    val STAT_CARD_GAP = 15.dp
+    val STAT_CARD_GAP = 10.dp
     // Per-screen vertical spacing between cards (use global default unless overridden)
     // (removed STATS_ROWS_VERTICAL_SPACING; use CARDS_VERTICAL_SPACING for all card vertical gaps)
     // Reduced height to make cards more compact and place icon left of text

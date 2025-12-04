@@ -1,4 +1,3 @@
-// [NEW] Tab01 리팩?�링: StartScreen??tab_01/screens�??�동
 package kr.sweetapps.alcoholictimer.ui.tab_01.screens
 
 import android.app.Activity
@@ -67,7 +66,7 @@ import androidx.lifecycle.Lifecycle
 import kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 
-// 추�???import (LazyRow ?�용)
+// Additional imports (LazyRow usage)
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.PaddingValues

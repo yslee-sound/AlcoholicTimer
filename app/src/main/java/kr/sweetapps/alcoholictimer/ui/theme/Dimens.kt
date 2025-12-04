@@ -6,6 +6,41 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
+ * App-wide design tokens (Light mode only)
+ * - Elevation: Flat default (0) + Emphasis (2)
+ *   ZERO: Completely flat (0dp)
+ *   CARD (0dp): Default for regular cards/containers
+ *   CARD_HIGH (2dp): Primary actions / High-attention circular buttons, etc.
+ */
+object AppAlphas {
+    const val SurfaceTint: Float = 0.1f
+}
+
+object AppElevation {
+    val ZERO = 0.dp
+    val CARD = 1.dp
+    val CARD_HIGH = 2.dp
+}
+
+/** Global border thickness standards */
+object AppBorder {
+    // Hairline border thickness following guidelines
+    // Hairline: Thinnest border/line
+    // Set to 0.75dp for subtle dividing lines
+    val Hairline = 0.75.dp
+}
+
+/**
+ * Soft gray background for highlighting selected items.
+ * Uses a tone with higher brightness contrast to ensure visibility on white (#FFFFFF) backgrounds.
+ */
+object AppColors {
+    // Previous: Color(0xFFFBFBFC) -> Almost white, poor visibility
+    // Updated: Soft blue-gray tone for enhanced contrast
+    val SurfaceOverlaySoft = Color(0xFFE9EEF5)
+}
+
+/**
  * Design tokens: Groups common values such as spacing, sizes, component heights, etc.
  * Used consistently throughout the app via LocalDimens.
  */
