@@ -6,12 +6,14 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.ui.common.BaseActivity
 import kr.sweetapps.alcoholictimer.ui.tab_02.screens.RecordsScreen
 import kr.sweetapps.alcoholictimer.ui.tab_02.screens.DiaryEntry // [NEW] DiaryEntry import
+import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme
 
 /**
  * [NEW] Tab02 기록 화면 Activity
@@ -56,3 +58,14 @@ fun Tab02Screen(
     )
 }
 
+/**
+ * [NEW] Tab02Screen 프리뷰
+ * - RecordsScreen을 있는 그대로 보여주는 프리뷰
+ */
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun Tab02ScreenPreview() {
+    AlcoholicTimerTheme {
+        Tab02Screen()
+    }
+}
