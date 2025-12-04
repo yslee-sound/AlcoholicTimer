@@ -2,7 +2,7 @@ package kr.sweetapps.alcoholictimer.util.utils
 
 import android.content.Context
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.util.CurrencyManager
+import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager
 import java.util.Locale
 import kotlin.math.floor
 import kotlin.math.pow

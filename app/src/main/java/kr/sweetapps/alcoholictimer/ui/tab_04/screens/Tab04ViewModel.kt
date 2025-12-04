@@ -1,7 +1,7 @@
 package kr.sweetapps.alcoholictimer.ui.tab_04.screens
 
 import android.content.Context
-import kr.sweetapps.alcoholictimer.util.CurrencyManager
+import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager
 
 class Tab04ViewModel {
     fun getSelectedCurrencyCode(context: Context): String {

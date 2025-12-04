@@ -8,8 +8,6 @@ import androidx.activity.compose.setContent
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
-import kr.sweetapps.alcoholictimer.consent.UmpConsentManager
 import kr.sweetapps.alcoholictimer.ui.common.BaseActivity
 import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.ui.main.MainActivity
@@ -18,11 +16,7 @@ import androidx.compose.runtime.mutableStateOf
 import kr.sweetapps.alcoholictimer.ui.tab_01.screens.StartScreen
 
 // Added: AdMob AppOpen load/callback (for debug direct loading)
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdError
-import com.google.android.gms.ads.FullScreenContentCallback
-import com.google.android.gms.ads.LoadAdError
-import com.google.android.gms.ads.appopen.AppOpenAd
+import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager
 
 
 /**
@@ -60,7 +54,7 @@ class SplashScreen : BaseActivity() {
         kr.sweetapps.alcoholictimer.ui.ad.AdTimingLogger.logSplashScreenCreate()
 
         // Basic initialization
-        kr.sweetapps.alcoholictimer.util.CurrencyManager.initializeDefaultCurrency(this)
+        CurrencyManager.initializeDefaultCurrency(this)
 
         val skipSplash = intent.getBooleanExtra("skip_splash", false)
 

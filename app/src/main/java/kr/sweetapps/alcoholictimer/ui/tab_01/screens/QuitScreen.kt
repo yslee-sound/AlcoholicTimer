@@ -18,9 +18,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -51,12 +48,10 @@ import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.ui.theme.UiConstants
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.StandardScreenWithBottomButton
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.MainActionButton
-import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme
-import kr.sweetapps.alcoholictimer.ui.theme.LocalDimens
 import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
 import kr.sweetapps.alcoholictimer.ui.theme.AppElevation
 import kr.sweetapps.alcoholictimer.util.utils.FormatUtils
-import kr.sweetapps.alcoholictimer.util.CurrencyManager
+import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager
 import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.math.round

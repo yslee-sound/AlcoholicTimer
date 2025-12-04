@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.util
+package kr.sweetapps.alcoholictimer.util.manager
 
 import android.content.Context
 import kr.sweetapps.alcoholictimer.R

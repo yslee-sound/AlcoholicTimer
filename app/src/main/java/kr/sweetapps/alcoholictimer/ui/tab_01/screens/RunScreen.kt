@@ -1,11 +1,8 @@
 // [NEW] Tab01 리팩?�링: RunScreen??tab_01/screens�??�동
 package kr.sweetapps.alcoholictimer.ui.tab_01.screens
 
-import android.R.attr.numeric
 import android.content.Context
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,9 +11,6 @@ import androidx.compose.foundation.background
 import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.*
@@ -61,6 +55,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import kr.sweetapps.alcoholictimer.util.DebugSettings
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DemoData
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
+import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager
 
 @Composable
 fun RunScreenComposable(
@@ -447,7 +442,7 @@ fun RunScreenComposable(
                                             val isLifeGain = currentIndicator == 4
                                             if (isMoney) {
                                                 // 기존: 심볼을 정규식으로 분기하던 코드 -> 선택한 통화를 직접 가져와 처리
-                                                val selectedCurrency = kr.sweetapps.alcoholictimer.util.CurrencyManager.getSelectedCurrency(context)
+                                                val selectedCurrency = CurrencyManager.getSelectedCurrency(context)
                                                 val symbol = selectedCurrency.symbol
                                                 if (selectedCurrency.code == "KRW") {
                                                     // KRW: 숫자를 보여주고 '원' 단위를 붙임
