@@ -16,8 +16,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.core.ui.AppAlphas
-import kr.sweetapps.alcoholictimer.core.ui.components.NumberPicker
+import kr.sweetapps.alcoholictimer.ui.theme.AppAlphas
+import kr.sweetapps.alcoholictimer.ui.components.NumberPicker
 import android.content.Context
 import java.text.SimpleDateFormat
 import java.util.*

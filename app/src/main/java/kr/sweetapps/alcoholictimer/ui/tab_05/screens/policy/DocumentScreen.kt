@@ -41,7 +41,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.foundation.text.ClickableText
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.core.ui.BackTopBar
+import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 
 // 간단한 블록 표현
 private sealed class MDBlock {

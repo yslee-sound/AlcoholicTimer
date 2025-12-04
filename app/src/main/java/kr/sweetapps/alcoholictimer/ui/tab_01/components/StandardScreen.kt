@@ -18,8 +18,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import kr.sweetapps.alcoholictimer.constants.UiConstants
-import kr.sweetapps.alcoholictimer.core.ui.AppBorder
-import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
+import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
+import kr.sweetapps.alcoholictimer.ui.common.LocalSafeContentPadding
 
 private val MaxContentWidth: Dp = 600.dp
 

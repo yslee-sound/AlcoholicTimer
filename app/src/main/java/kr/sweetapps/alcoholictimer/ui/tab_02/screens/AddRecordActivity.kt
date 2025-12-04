@@ -25,14 +25,15 @@ import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme
 import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
-import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
+import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.content.edit
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.TargetDaysBottomSheet
 import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.predictAnchoredBannerHeightDp
-import kr.sweetapps.alcoholictimer.core.ui.AppBorder
+import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
+import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import androidx.core.view.WindowCompat
 
 class AddRecordActivity : ComponentActivity() {
@@ -175,7 +176,7 @@ private fun AddRecordScreen(
 
     Scaffold(
         topBar = {
-            kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = stringResource(R.string.add_record_title), onBack = onCancel)
+            BackTopBar(title = stringResource(R.string.add_record_title), onBack = onCancel)
         },
         // 전체 화면 배경을 흰색으로 고정
         containerColor = Color.White,

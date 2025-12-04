@@ -50,8 +50,8 @@ import kr.sweetapps.alcoholictimer.MainApplication
 import android.util.Log
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.constants.Constants
-import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
-import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
+import kr.sweetapps.alcoholictimer.ui.common.BaseActivity
+import kr.sweetapps.alcoholictimer.ui.common.LocalSafeContentPadding
 import kr.sweetapps.alcoholictimer.ui.theme.LocalDimens
 
 class SettingsActivity : BaseActivity() {

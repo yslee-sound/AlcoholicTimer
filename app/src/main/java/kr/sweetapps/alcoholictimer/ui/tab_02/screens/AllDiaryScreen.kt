@@ -19,7 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kr.sweetapps.alcoholictimer.core.ui.BackTopBar
+import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import org.json.JSONArray
 import java.util.*
 import kotlin.collections.LinkedHashMap

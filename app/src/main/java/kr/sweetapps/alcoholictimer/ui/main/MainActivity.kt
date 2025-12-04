@@ -15,8 +15,8 @@ import androidx.compose.ui.res.stringResource
 import com.google.android.gms.ads.MobileAds
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.MainApplication
-import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
-import kr.sweetapps.alcoholictimer.core.ui.BaseScaffold
+import kr.sweetapps.alcoholictimer.ui.common.BaseActivity
+import kr.sweetapps.alcoholictimer.ui.common.BaseScaffold
 import kr.sweetapps.alcoholictimer.navigation.AlcoholicTimerNavGraph
 import kr.sweetapps.alcoholictimer.navigation.Screen
 import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager

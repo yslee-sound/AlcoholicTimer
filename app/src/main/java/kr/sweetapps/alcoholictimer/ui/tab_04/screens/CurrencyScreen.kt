@@ -29,7 +29,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.core.ui.BackTopBar
+import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import kr.sweetapps.alcoholictimer.util.CurrencyManager
 
 /**

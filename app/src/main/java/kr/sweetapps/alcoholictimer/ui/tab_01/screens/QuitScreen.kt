@@ -53,8 +53,8 @@ import kr.sweetapps.alcoholictimer.ui.tab_01.components.StandardScreenWithBottom
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.MainActionButton
 import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme
 import kr.sweetapps.alcoholictimer.ui.theme.LocalDimens
-import kr.sweetapps.alcoholictimer.core.ui.AppBorder
-import kr.sweetapps.alcoholictimer.core.ui.AppElevation
+import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
+import kr.sweetapps.alcoholictimer.ui.theme.AppElevation
 import kr.sweetapps.alcoholictimer.util.FormatUtils
 import kr.sweetapps.alcoholictimer.util.CurrencyManager
 import org.json.JSONArray

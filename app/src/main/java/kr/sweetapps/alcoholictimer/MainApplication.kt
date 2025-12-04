@@ -138,7 +138,7 @@ class MainApplication : Application() {
                  override fun onActivityStarted(activity: Activity) {}
                  override fun onActivityResumed(activity: Activity) {
                      try {
-                         if (activity is kr.sweetapps.alcoholictimer.core.ui.BaseActivity) {
+                         if (activity is kr.sweetapps.alcoholictimer.ui.common.BaseActivity) {
                              activity.reapplySystemBars()
                          }
                      } catch (_: Throwable) {}

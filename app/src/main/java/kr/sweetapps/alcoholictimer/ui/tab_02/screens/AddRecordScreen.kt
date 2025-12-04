@@ -24,6 +24,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.TextFieldValue
+import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -33,7 +34,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
-import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
+import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.content.edit
@@ -167,7 +168,7 @@ fun AddRecordScreenComposable(
     // no per-field bounds tracking required; taps anywhere will clear focus
     Scaffold(
         topBar = {
-            kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = stringResource(R.string.add_record_title), onBack = onCancel)
+            BackTopBar(title = stringResource(R.string.add_record_title), onBack = onCancel)
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         containerColor = Color.White,

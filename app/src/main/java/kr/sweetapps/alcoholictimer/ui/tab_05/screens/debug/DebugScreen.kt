@@ -30,7 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.core.ui.BackTopBar
+import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import androidx.compose.ui.platform.LocalContext
 import kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager
 

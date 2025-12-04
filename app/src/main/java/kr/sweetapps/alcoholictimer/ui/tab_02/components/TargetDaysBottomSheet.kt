@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.core.ui.components.NumberPicker
+import kr.sweetapps.alcoholictimer.ui.components.NumberPicker
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

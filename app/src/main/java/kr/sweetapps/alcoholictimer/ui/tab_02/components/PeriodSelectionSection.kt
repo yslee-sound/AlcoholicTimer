@@ -22,8 +22,8 @@ import java.util.*
 import androidx.compose.foundation.BorderStroke
 import android.os.SystemClock
 import androidx.compose.ui.unit.sp
-import kr.sweetapps.alcoholictimer.core.ui.AppBorder
-import kr.sweetapps.alcoholictimer.core.ui.AppElevation
+import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
+import kr.sweetapps.alcoholictimer.ui.theme.AppElevation
 
 // Local layout constants for Records screen (screen #2). Adjust here to control spacing
 private val RECORDS_SELECTION_ROW_HEIGHT_LOCAL = 48.dp

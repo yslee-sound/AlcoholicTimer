@@ -19,6 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
@@ -50,7 +51,7 @@ fun NicknameEditScreen(
     // Scaffold with white background and top app bar (back)
     Scaffold(
         topBar = {
-            kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = stringResource(R.string.profile_edit_title), onBack = onCancel)
+            BackTopBar(title = stringResource(R.string.profile_edit_title), onBack = onCancel)
         },
         containerColor = Color.White
     ) { innerPadding ->

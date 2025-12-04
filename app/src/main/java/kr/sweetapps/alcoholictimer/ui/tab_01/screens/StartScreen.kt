@@ -40,8 +40,8 @@ import kr.sweetapps.alcoholictimer.ui.tab_01.components.StandardScreenWithBottom
 import kr.sweetapps.alcoholictimer.ui.main.MainActivity
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
-import kr.sweetapps.alcoholictimer.core.ui.AppBorder
-import kr.sweetapps.alcoholictimer.core.ui.AppElevation
+import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
+import kr.sweetapps.alcoholictimer.ui.theme.AppElevation
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.MainActionButton
 import androidx.core.content.edit
 import androidx.compose.ui.focus.FocusRequester

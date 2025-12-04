@@ -25,14 +25,15 @@ import java.util.*
 import kotlin.math.roundToInt
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.BuildConfig
-import kr.sweetapps.alcoholictimer.core.ui.AppElevation
-import kr.sweetapps.alcoholictimer.core.ui.AppBorder
+import kr.sweetapps.alcoholictimer.ui.theme.AppElevation
+import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
 import kr.sweetapps.alcoholictimer.constants.UiConstants
 import kr.sweetapps.alcoholictimer.ui.theme.AmberSecondaryLight
 import kr.sweetapps.alcoholictimer.ui.theme.BluePrimaryLight
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.predictAnchoredBannerHeightDp
 import kr.sweetapps.alcoholictimer.util.FormatUtils
-import kr.sweetapps.alcoholictimer.core.ui.AppCard
+import kr.sweetapps.alcoholictimer.ui.components.AppCard
+import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme
 import androidx.compose.ui.tooling.preview.Preview
 import android.content.res.Configuration
@@ -208,7 +209,7 @@ fun DetailScreen(
 
     Scaffold(
         topBar = {
-            kr.sweetapps.alcoholictimer.core.ui.BackTopBar(
+            BackTopBar(
                 title = if (previewMode) "Detail" else stringResource(id = R.string.detail_title),
                 onBack = if (previewMode) ({}) else onBack,
                 trailingContent = {
@@ -536,7 +537,7 @@ fun DetailScreenPreviewSafeDark() {
 @Composable
 fun BackTopBarPreviewLight() {
     AlcoholicTimerTheme(darkTheme = false) {
-        kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = "Detail", onBack = {}, trailingContent = {
+        BackTopBar(title = "Detail", onBack = {}, trailingContent = {
             Icon(painter = painterResource(id = R.drawable.ic_x), contentDescription = null, tint = Color.Black, modifier = Modifier.size(24.dp))
         })
     }
@@ -546,7 +547,7 @@ fun BackTopBarPreviewLight() {
 @Composable
 fun BackTopBarPreviewDark() {
     AlcoholicTimerTheme(darkTheme = true) {
-        kr.sweetapps.alcoholictimer.core.ui.BackTopBar(title = "Detail", onBack = {}, trailingContent = {
+        BackTopBar(title = "Detail", onBack = {}, trailingContent = {
             Icon(painter = painterResource(id = R.drawable.ic_x), contentDescription = null, tint = Color.Black, modifier = Modifier.size(24.dp))
         })
     }

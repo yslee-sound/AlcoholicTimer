@@ -34,7 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.core.ui.AppElevation
+import kr.sweetapps.alcoholictimer.ui.theme.AppElevation
 import kr.sweetapps.alcoholictimer.constants.Constants
 import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
 import kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelDefinitions
@@ -43,15 +43,15 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import android.util.Log
-import kr.sweetapps.alcoholictimer.core.ui.AppBorder
+import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
 import androidx.compose.foundation.BorderStroke
-import kr.sweetapps.alcoholictimer.core.ui.LocalSafeContentPadding
+import kr.sweetapps.alcoholictimer.ui.common.LocalSafeContentPadding
 import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.annotation.DrawableRes
-import kr.sweetapps.alcoholictimer.core.ui.AppColors
-import kr.sweetapps.alcoholictimer.core.ui.AppCard
+import kr.sweetapps.alcoholictimer.ui.theme.AppColors
+import kr.sweetapps.alcoholictimer.ui.components.AppCard
 import androidx.compose.ui.draw.scale
 
 // LevelActivity removed. LevelScreen is now hosted by Compose NavHost (Screen.Level route).

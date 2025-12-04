@@ -21,10 +21,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
-import kr.sweetapps.alcoholictimer.core.ui.AppAlphas
-import kr.sweetapps.alcoholictimer.core.ui.AppElevation
-import kr.sweetapps.alcoholictimer.core.ui.AppBorder
+import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
+import kr.sweetapps.alcoholictimer.ui.theme.AppAlphas
+import kr.sweetapps.alcoholictimer.ui.theme.AppElevation
+import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
 import java.text.SimpleDateFormat
 import java.util.*
 

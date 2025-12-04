@@ -15,9 +15,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.core.ui.AppAlphas
-import kr.sweetapps.alcoholictimer.core.ui.components.NumberPicker
-import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
+import kr.sweetapps.alcoholictimer.ui.theme.AppAlphas
+import kr.sweetapps.alcoholictimer.ui.components.NumberPicker
+import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)

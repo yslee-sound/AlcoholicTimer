@@ -8,8 +8,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
-import kr.sweetapps.alcoholictimer.core.ui.BaseActivity
+import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
+import kr.sweetapps.alcoholictimer.ui.common.BaseActivity
 import kr.sweetapps.alcoholictimer.ui.tab_02.screens.RecordsScreen
 import kr.sweetapps.alcoholictimer.ui.tab_02.screens.DiaryEntry // [NEW] DiaryEntry import
 

@@ -3,7 +3,7 @@ package kr.sweetapps.alcoholictimer.core.data
 import android.content.Context
 import android.util.Log
 import androidx.core.content.edit
-import kr.sweetapps.alcoholictimer.core.model.SobrietyRecord
+import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 
 object RecordsDataLoader {
     private const val TAG = "RecordsDataLoader"
