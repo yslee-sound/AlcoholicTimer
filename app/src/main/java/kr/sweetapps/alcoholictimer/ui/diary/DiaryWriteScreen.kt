@@ -112,7 +112,7 @@ fun DiaryWriteScreen(
                                     }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("삭제하기", color = Color(0xFFEF4444)) },
+                                    text = { Text("삭제하기") },
                                     onClick = {
                                         showMenu = false
                                         showDeleteDialog = true
