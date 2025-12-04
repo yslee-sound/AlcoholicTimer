@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
+import kr.sweetapps.alcoholictimer.data.repository.RecordsDataLoader
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import java.util.Calendar
 

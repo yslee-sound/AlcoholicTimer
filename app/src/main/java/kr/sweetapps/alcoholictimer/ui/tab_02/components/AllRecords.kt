@@ -17,7 +17,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.constants.UiConstants
-import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
+import kr.sweetapps.alcoholictimer.data.repository.RecordsDataLoader
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import kr.sweetapps.alcoholictimer.ui.common.LocalSafeContentPadding

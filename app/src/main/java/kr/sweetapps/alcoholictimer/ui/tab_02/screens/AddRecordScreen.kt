@@ -33,7 +33,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
+import kr.sweetapps.alcoholictimer.data.repository.RecordsDataLoader
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import java.text.SimpleDateFormat
 import java.util.*

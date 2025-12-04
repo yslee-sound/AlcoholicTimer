@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.core.data
+package kr.sweetapps.alcoholictimer.data.repository
 
 import android.content.Context
 import android.util.Log
@@ -14,32 +14,32 @@ object RecordsDataLoader {
         val records = SobrietyRecord.fromJsonArray(recordsJson)
         records.sortedByDescending { it.endTime }
     } catch (e: Exception) {
-        Log.e(TAG, "기록 로딩 중 오류 발생", e)
+        Log.e(TAG, "Error loading records", e)
         emptyList()
     }
 
     fun clearAllRecords(context: Context): Boolean = try {
         val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
 
-        // 삭제 전 로깅
+        // Log before deletion
         val beforeJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
-        Log.d(TAG, "삭제 전 기록: $beforeJson")
+        Log.d(TAG, "Records before deletion: $beforeJson")
 
-        // commit()을 사용하여 동기적으로 저장 (apply()는 비동기)
+        // Use commit() for synchronous save (apply() is asynchronous)
         val success = sharedPref.edit().putString("sobriety_records", "[]").commit()
 
         if (success) {
-            // 삭제 후 확인
+            // Verify after deletion
             val afterJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
-            Log.d(TAG, "삭제 후 기록: $afterJson")
-            Log.d(TAG, "모든 기록 삭제 성공")
+            Log.d(TAG, "Records after deletion: $afterJson")
+            Log.d(TAG, "All records deleted successfully")
         } else {
-            Log.e(TAG, "SharedPreferences commit 실패")
+            Log.e(TAG, "SharedPreferences commit failed")
         }
 
         success
     } catch (e: Exception) {
-        Log.e(TAG, "모든 기록 삭제 중 오류", e)
+        Log.e(TAG, "Error clearing all records", e)
         false
     }
 }

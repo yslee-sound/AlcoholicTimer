@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
-import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
+import kr.sweetapps.alcoholictimer.data.repository.RecordsDataLoader
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
 import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme

@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme
-import kr.sweetapps.alcoholictimer.core.data.RecordsDataLoader
+import kr.sweetapps.alcoholictimer.data.repository.RecordsDataLoader
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import java.text.SimpleDateFormat
 import java.util.*
