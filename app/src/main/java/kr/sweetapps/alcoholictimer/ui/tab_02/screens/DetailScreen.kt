@@ -31,7 +31,7 @@ import kr.sweetapps.alcoholictimer.ui.theme.UiConstants
 import kr.sweetapps.alcoholictimer.ui.theme.AmberSecondaryLight
 import kr.sweetapps.alcoholictimer.ui.theme.BluePrimaryLight
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.predictAnchoredBannerHeightDp
-import kr.sweetapps.alcoholictimer.util.FormatUtils
+import kr.sweetapps.alcoholictimer.util.utils.FormatUtils
 import kr.sweetapps.alcoholictimer.ui.components.AppCard
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme
@@ -42,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kr.sweetapps.alcoholictimer.util.constants.Constants
 
 // Local layout constants for DetailScreen (tweak here to change paddings)
 private val DETAIL_CARD_TOP_PADDING = 15.dp
@@ -97,8 +98,8 @@ fun DetailScreen(
                 } else {
                     // [FIX] 타이머 상태 초기화 (기록 삭제 시 타이머 완료 상태도 리셋)
                     sharedPref.edit().apply {
-                        putBoolean(kr.sweetapps.alcoholictimer.constants.Constants.PREF_TIMER_COMPLETED, false)
-                        putLong(kr.sweetapps.alcoholictimer.constants.Constants.PREF_START_TIME, 0L)
+                        putBoolean(Constants.PREF_TIMER_COMPLETED, false)
+                        putLong(Constants.PREF_START_TIME, 0L)
                         commit()
                     }
                     Log.d("DetailScreen", "타이머 상태 초기화 완료")
@@ -154,18 +155,18 @@ fun DetailScreen(
     val totalDurationMillis = if (startTime > 0) endTime - startTime else {
         // [FIX] 타이머 테스트 모드를 고려한 동적 DAY_IN_MILLIS
         val dayInMillis = if (!previewMode) {
-            kr.sweetapps.alcoholictimer.constants.Constants.getDayInMillis(context)
+            Constants.getDayInMillis(context)
         } else {
-            kr.sweetapps.alcoholictimer.constants.Constants.DAY_IN_MILLIS
+            Constants.DAY_IN_MILLIS
         }
         actualDays * dayInMillis
     }
 
     // [FIX] 타이머 테스트 모드를 고려한 동적 시간 계산
     val dayInMillis = if (!previewMode) {
-        kr.sweetapps.alcoholictimer.constants.Constants.getDayInMillis(context)
+        Constants.getDayInMillis(context)
     } else {
-        kr.sweetapps.alcoholictimer.constants.Constants.DAY_IN_MILLIS
+        Constants.DAY_IN_MILLIS
     }
     val totalHours = totalDurationMillis / (dayInMillis / 24.0)
     val totalDays = totalDurationMillis / dayInMillis.toDouble()
@@ -175,7 +176,7 @@ fun DetailScreen(
     val selectedFrequency: String
     val selectedDuration: String
     if (!previewMode) {
-        val settings = kr.sweetapps.alcoholictimer.constants.Constants.getUserSettings(context)
+        val settings = Constants.getUserSettings(context)
         selectedCost = settings.first
         selectedFrequency = settings.second
         selectedDuration = settings.third
@@ -187,10 +188,10 @@ fun DetailScreen(
     }
 
     // Numeric values for calculations (ensure correct numeric types)
-    val costVal: Int = if (!previewMode) kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.getCostValue(selectedCost) else 1000
-    val freqVal: Double = if (!previewMode) kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.getFrequencyValue(selectedFrequency) else 1.0
-    val drinkHoursVal: Double = if (!previewMode) kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.getDurationValue(selectedDuration) else 3.0
-    val hangoverHoursVal: Double = kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.HANGOVER_HOURS
+    val costVal: Int = if (!previewMode) Constants.DrinkingSettings.getCostValue(selectedCost) else 1000
+    val freqVal: Double = if (!previewMode) Constants.DrinkingSettings.getFrequencyValue(selectedFrequency) else 1.0
+    val drinkHoursVal: Double = if (!previewMode) Constants.DrinkingSettings.getDurationValue(selectedDuration) else 3.0
+    val hangoverHoursVal: Double = Constants.DrinkingSettings.HANGOVER_HOURS
 
     val exactWeeks = totalHours / (24.0 * 7.0)
     val savedMoney = (exactWeeks * freqVal * costVal.toDouble()).roundToInt()

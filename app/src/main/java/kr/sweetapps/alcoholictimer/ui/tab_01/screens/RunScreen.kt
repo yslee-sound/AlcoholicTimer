@@ -46,10 +46,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import java.util.Locale
-import kr.sweetapps.alcoholictimer.constants.Constants
+import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.StandardScreenWithBottomButton
 import kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelDefinitions
-import kr.sweetapps.alcoholictimer.util.FormatUtils
+import kr.sweetapps.alcoholictimer.util.utils.FormatUtils
 import kotlinx.coroutines.delay
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.navigation.Screen

@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.theme.AppElevation
-import kr.sweetapps.alcoholictimer.constants.Constants
+import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.data.repository.RecordsDataLoader
 import kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelDefinitions
 import kotlinx.coroutines.delay

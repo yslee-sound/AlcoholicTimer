@@ -47,7 +47,7 @@ import androidx.core.content.edit
 import java.util.Locale
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
-import kr.sweetapps.alcoholictimer.constants.Constants
+import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.ui.theme.UiConstants
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.StandardScreenWithBottomButton
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.MainActionButton
@@ -55,7 +55,7 @@ import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme
 import kr.sweetapps.alcoholictimer.ui.theme.LocalDimens
 import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
 import kr.sweetapps.alcoholictimer.ui.theme.AppElevation
-import kr.sweetapps.alcoholictimer.util.FormatUtils
+import kr.sweetapps.alcoholictimer.util.utils.FormatUtils
 import kr.sweetapps.alcoholictimer.util.CurrencyManager
 import org.json.JSONArray
 import org.json.JSONObject

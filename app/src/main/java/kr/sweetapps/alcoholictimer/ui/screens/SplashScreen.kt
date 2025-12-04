@@ -11,7 +11,7 @@ import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.consent.UmpConsentManager
 import kr.sweetapps.alcoholictimer.ui.common.BaseActivity
-import kr.sweetapps.alcoholictimer.constants.Constants
+import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.ui.main.MainActivity
 import android.graphics.Color as AndroidColor
 import androidx.compose.runtime.mutableStateOf

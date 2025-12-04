@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.util
+package kr.sweetapps.alcoholictimer.util.utils
 
 import java.util.Calendar
 import java.util.TimeZone
@@ -52,4 +52,3 @@ object DateOverlapUtils {
         return cal.timeInMillis
     }
 }
-

@@ -1,7 +1,8 @@
-package kr.sweetapps.alcoholictimer.util
+package kr.sweetapps.alcoholictimer.util.utils
 
 import android.content.Context
 import kr.sweetapps.alcoholictimer.R
+import kr.sweetapps.alcoholictimer.util.CurrencyManager
 import java.util.Locale
 import kotlin.math.floor
 import kotlin.math.pow
@@ -44,7 +45,7 @@ object FormatUtils {
         // Format numeric part with requested decimals and append localized unit strings
         val hourUnit = context.getString(R.string.unit_hour)
         val dayUnit = context.getString(R.string.unit_day)
-        val formattedHours = String.format(Locale.getDefault(), "%.${decimals}f", hoursRounded)
+        val formattedHours = String.Companion.format(Locale.getDefault(), "%.${decimals}f", hoursRounded)
         return if (dayInt == 0) {
             // e.g., "1.2시간"
             "$formattedHours$hourUnit"
@@ -95,7 +96,9 @@ object FormatUtils {
         val safe = if (hours.isNaN() || hours.isInfinite()) 0.0 else hours.coerceAtLeast(0.0)
         val scale = 10.0.pow(decimals)
         val rounded = round(safe * scale) / scale
-        return String.format(Locale.getDefault(), "%.${decimals}f%s", rounded, context.getString(R.string.unit_hour))
+        return String.Companion.format(
+            Locale.getDefault(), "%.${decimals}f%s", rounded, context.getString(
+                R.string.unit_hour))
     }
 
     @JvmStatic

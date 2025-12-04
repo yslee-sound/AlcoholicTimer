@@ -1,7 +1,9 @@
-package kr.sweetapps.alcoholictimer.constants
+package kr.sweetapps.alcoholictimer.util.constants
 
 import android.content.Context
+import android.util.Log
 import androidx.core.content.edit
+import kr.sweetapps.alcoholictimer.BuildConfig
 import java.io.File
 
 object Constants {
@@ -109,15 +111,15 @@ object Constants {
      */
     fun setTimeAcceleration(context: Context, factor: Int) {
         // [SECURITY] 릴리즈 빌드에서는 설정 불가
-        if (!kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
-            android.util.Log.w("Constants", "릴리즈 빌드에서는 시간 배속 설정이 무시됩니다.")
+        if (!BuildConfig.DEBUG) {
+            Log.w("Constants", "릴리즈 빌드에서는 시간 배속 설정이 무시됩니다.")
             return
         }
 
         val prefs = context.getSharedPreferences(USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
         val safeFactor = factor.coerceIn(1, 10000)
         prefs.edit().putInt(PREF_TIME_ACCELERATION, safeFactor).apply()
-        android.util.Log.d("Constants", "시간 배속 설정: ${safeFactor}x")
+        Log.d("Constants", "시간 배속 설정: ${safeFactor}x")
     }
 
     /**
@@ -128,7 +130,7 @@ object Constants {
      */
     fun getTimeAcceleration(context: Context): Int {
         // [SECURITY] 릴리즈 빌드에서는 항상 1배속
-        if (!kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
+        if (!BuildConfig.DEBUG) {
             return 1
         }
 
@@ -144,13 +146,13 @@ object Constants {
      */
     fun getDayInMillis(context: Context): Long {
         // [SECURITY] 릴리즈 빌드에서는 항상 정상 속도
-        if (!kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
+        if (!BuildConfig.DEBUG) {
             return DAY_IN_MILLIS
         }
 
         val factor = getTimeAcceleration(context)
         val result = DAY_IN_MILLIS / factor
-        android.util.Log.d("Constants", "getDayInMillis: factor=${factor}x, result=${result}ms")
+        Log.d("Constants", "getDayInMillis: factor=${factor}x, result=${result}ms")
         return result
     }
 

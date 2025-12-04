@@ -50,6 +50,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
+import kr.sweetapps.alcoholictimer.util.constants.Constants
+import kr.sweetapps.alcoholictimer.util.utils.DateOverlapUtils
 
 // Records screen constants (migrated from UiConstants)
 val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 15.dp // 15
@@ -499,7 +501,7 @@ private fun PeriodStatisticsSection(
 
     // [NEW] 배속된 하루 길이 가져오기 (실시간 업데이트)
     val dayInMillis = remember(now) {
-        kr.sweetapps.alcoholictimer.constants.Constants.getDayInMillis(context)
+        Constants.getDayInMillis(context)
     }
 
     val totalRecords = records.size
@@ -583,20 +585,20 @@ private fun PeriodStatisticsSection(
 
     fun overlappedDays(record: SobrietyRecord): Double {
         return if (periodRange == null) {
-            kr.sweetapps.alcoholictimer.util.DateOverlapUtils.overlapDays(record.startTime, record.endTime, null, null)
+            DateOverlapUtils.overlapDays(record.startTime, record.endTime, null, null)
         } else {
-            kr.sweetapps.alcoholictimer.util.DateOverlapUtils.overlapDays(record.startTime, record.endTime, periodRange.first, periodRange.second)
+            DateOverlapUtils.overlapDays(record.startTime, record.endTime, periodRange.first, periodRange.second)
         }
     }
 
     // [FIX] 현재 진행 중인 타이머의 경과 일수 계산 (배속 반영)
     val currentTimerDays = remember(now, periodRange, dayInMillis) {
         val sharedPref = context.getSharedPreferences(
-            kr.sweetapps.alcoholictimer.constants.Constants.USER_SETTINGS_PREFS,
+            Constants.USER_SETTINGS_PREFS,
             android.content.Context.MODE_PRIVATE
         )
-        val startTime = sharedPref.getLong(kr.sweetapps.alcoholictimer.constants.Constants.PREF_START_TIME, 0L)
-        val timerCompleted = sharedPref.getBoolean(kr.sweetapps.alcoholictimer.constants.Constants.PREF_TIMER_COMPLETED, false)
+        val startTime = sharedPref.getLong(Constants.PREF_START_TIME, 0L)
+        val timerCompleted = sharedPref.getBoolean(Constants.PREF_TIMER_COMPLETED, false)
 
         if (startTime > 0 && !timerCompleted) {
             // 현재 진행 중인 타이머가 있음
@@ -627,16 +629,16 @@ private fun PeriodStatisticsSection(
     val totalDaysDisplay = String.format(Locale.getDefault(), "%.1f", totalDaysDouble)
 
     // [NEW] 사용자 설정값 가져오기
-    val (userCost, userFreq, _) = remember { kr.sweetapps.alcoholictimer.constants.Constants.getUserSettings(context) }
+    val (userCost, userFreq, _) = remember { Constants.getUserSettings(context) }
 
     // [NEW] 일일 음주 확률 계산
-    val dailyFactor = kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.getFrequencyValue(userFreq) / 7.0
+    val dailyFactor = Constants.DrinkingSettings.getFrequencyValue(userFreq) / 7.0
 
     // [FIX] 1. 피한 칼로리 계산 (좌측) - 실시간 업데이트
     val kcalPerSession = when (userCost) {
-        kr.sweetapps.alcoholictimer.constants.Constants.KEY_COST_LOW -> 500
-        kr.sweetapps.alcoholictimer.constants.Constants.KEY_COST_MEDIUM -> 1500
-        kr.sweetapps.alcoholictimer.constants.Constants.KEY_COST_HIGH -> 2800
+        Constants.KEY_COST_LOW -> 500
+        Constants.KEY_COST_MEDIUM -> 1500
+        Constants.KEY_COST_HIGH -> 2800
         else -> 1500
     }
     val totalKcal = remember(totalDaysDouble, dailyFactor, kcalPerSession) {
@@ -645,9 +647,9 @@ private fun PeriodStatisticsSection(
 
     // [FIX] 2. 안 마신 술 계산 (중앙) - 실시간 업데이트
     val bottlesPerSession = when (userCost) {
-        kr.sweetapps.alcoholictimer.constants.Constants.KEY_COST_LOW -> 1.0
-        kr.sweetapps.alcoholictimer.constants.Constants.KEY_COST_MEDIUM -> 2.5
-        kr.sweetapps.alcoholictimer.constants.Constants.KEY_COST_HIGH -> 4.0
+        Constants.KEY_COST_LOW -> 1.0
+        Constants.KEY_COST_MEDIUM -> 2.5
+        Constants.KEY_COST_HIGH -> 4.0
         else -> 2.5
     }
     val totalBottles = remember(totalDaysDouble, dailyFactor, bottlesPerSession) {
@@ -655,7 +657,7 @@ private fun PeriodStatisticsSection(
     }
 
     // [FIX] 3. 절약한 돈 계산 (우측) - 실시간 업데이트
-    val costPerSession = kr.sweetapps.alcoholictimer.constants.Constants.DrinkingSettings.getCostValue(userCost)
+    val costPerSession = Constants.DrinkingSettings.getCostValue(userCost)
     val totalMoney = remember(totalDaysDouble, dailyFactor, costPerSession) {
         (totalDaysDouble * dailyFactor * costPerSession).toLong()
     }

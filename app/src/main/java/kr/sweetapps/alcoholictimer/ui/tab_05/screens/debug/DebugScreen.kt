@@ -33,6 +33,7 @@ import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import androidx.compose.ui.platform.LocalContext
 import kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager
+import kr.sweetapps.alcoholictimer.util.constants.Constants
 
 // Helper: get Activity from Context
 private fun ContextToActivity(context: android.content.Context): Activity? {
@@ -93,7 +94,7 @@ fun DebugScreen(
             )
 
             val acceleration = remember {
-                mutableStateOf(kr.sweetapps.alcoholictimer.constants.Constants.getTimeAcceleration(context).toFloat())
+                mutableStateOf(Constants.getTimeAcceleration(context).toFloat())
             }
 
             Row(
@@ -121,7 +122,7 @@ fun DebugScreen(
                 },
                 onValueChangeFinished = {
                     val factor = acceleration.value.toInt()
-                    kr.sweetapps.alcoholictimer.constants.Constants.setTimeAcceleration(context, factor)
+                    Constants.setTimeAcceleration(context, factor)
                     Toast.makeText(
                         context,
                         "시간 배속: ${factor}x 적용 (1일 = ${86400000L / factor}ms)",
@@ -140,7 +141,7 @@ fun DebugScreen(
                 androidx.compose.material3.Button(
                     onClick = {
                         acceleration.value = 1f
-                        kr.sweetapps.alcoholictimer.constants.Constants.setTimeAcceleration(context, 1)
+                        Constants.setTimeAcceleration(context, 1)
                         Toast.makeText(context, "정상 속도 (1x)", Toast.LENGTH_SHORT).show()
                     },
                     modifier = Modifier.weight(1f)
@@ -150,7 +151,7 @@ fun DebugScreen(
                 androidx.compose.material3.Button(
                     onClick = {
                         acceleration.value = 60f
-                        kr.sweetapps.alcoholictimer.constants.Constants.setTimeAcceleration(context, 60)
+                        Constants.setTimeAcceleration(context, 60)
                         Toast.makeText(context, "60배속", Toast.LENGTH_SHORT).show()
                     },
                     modifier = Modifier.weight(1f)
@@ -160,7 +161,7 @@ fun DebugScreen(
                 androidx.compose.material3.Button(
                     onClick = {
                         acceleration.value = 1000f
-                        kr.sweetapps.alcoholictimer.constants.Constants.setTimeAcceleration(context, 1000)
+                        Constants.setTimeAcceleration(context, 1000)
                         Toast.makeText(context, "1000배속", Toast.LENGTH_SHORT).show()
                     },
                     modifier = Modifier.weight(1f)
@@ -170,7 +171,7 @@ fun DebugScreen(
                 androidx.compose.material3.Button(
                     onClick = {
                         acceleration.value = 10000f
-                        kr.sweetapps.alcoholictimer.constants.Constants.setTimeAcceleration(context, 10000)
+                        Constants.setTimeAcceleration(context, 10000)
                         Toast.makeText(context, "10000배속 (극한)", Toast.LENGTH_SHORT).show()
                     },
                     modifier = Modifier.weight(1f)

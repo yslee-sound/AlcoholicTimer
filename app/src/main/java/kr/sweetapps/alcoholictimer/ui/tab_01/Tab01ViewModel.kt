@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kr.sweetapps.alcoholictimer.constants.Constants
+import kr.sweetapps.alcoholictimer.util.constants.Constants
 
 /**
  * [NEW] Tab01(시작/실행 화면) 상태 관리 ViewModel

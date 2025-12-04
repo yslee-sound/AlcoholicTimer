@@ -49,7 +49,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.MainApplication
 import android.util.Log
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.constants.Constants
+import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.ui.common.BaseActivity
 import kr.sweetapps.alcoholictimer.ui.common.LocalSafeContentPadding
 import kr.sweetapps.alcoholictimer.ui.theme.LocalDimens

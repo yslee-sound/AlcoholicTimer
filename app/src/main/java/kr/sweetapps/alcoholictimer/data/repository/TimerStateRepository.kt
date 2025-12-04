@@ -4,7 +4,7 @@ package kr.sweetapps.alcoholictimer.data.repository
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
-import kr.sweetapps.alcoholictimer.constants.Constants
+import kr.sweetapps.alcoholictimer.util.constants.Constants
 
 /**
  * 타이머 만료 상태를 관리하는 싱글톤 레포지토리
