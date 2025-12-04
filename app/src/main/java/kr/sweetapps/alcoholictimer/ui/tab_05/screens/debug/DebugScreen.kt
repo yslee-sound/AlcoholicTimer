@@ -83,20 +83,6 @@ fun DebugScreen(
             DebugSwitch(title = "기능 1", checked = uiState.switch1, onCheckedChange = { viewModel.setSwitch(1, it) })
             DebugSwitch(title = "데모 모드", checked = uiState.demoMode, onCheckedChange = { viewModel.setSwitch(2, it) })
 
-            // [NEW] 타이머 테스트 모드 스위치 (N일 → N초)
-            DebugSwitch(
-                title = "타이머 테스트 (N일 → N초)",
-                checked = uiState.timerTestMode,
-                onCheckedChange = {
-                    viewModel.setSwitch(7, it)
-                    Toast.makeText(
-                        context,
-                        if (it) "타이머 테스트 모드 활성화: N일 → N초" else "타이머 정상 모드: N일 → N일",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    Log.d("DebugScreen", "타이머 테스트 모드 변경: $it")
-                }
-            )
 
             // [NEW] 전면 광고 쿨타임 설정 (초 단위) - 한 줄 레이아웃 + 스위치 제어
             if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {

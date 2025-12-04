@@ -25,7 +25,6 @@ import kr.sweetapps.alcoholictimer.MainApplication
 data class DebugScreenUiState(
     val switch1: Boolean = false,
     val demoMode: Boolean = false,
-    val timerTestMode: Boolean = false, // [NEW] 타이머 테스트 모드 (N일 → N초)
     val umpForceEea: Boolean = false,
     val switch3: Boolean = false,
     val switch4: Boolean = false,
@@ -41,7 +40,6 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
         _uiState.update {
             it.copy(
                 demoMode = DebugSettings.isDemoModeEnabled(application),
-                timerTestMode = kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.isTimerTestModeEnabled(), // [NEW] 타이머 테스트 모드 초기값
                 umpForceEea = DebugSettings.isUmpForceEeaEnabled(application)
             )
         }
@@ -82,17 +80,6 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
                         } catch (_: Throwable) {}
                     }
                     currentState.copy(umpForceEea = value)
-                }
-                7 -> {
-                    // [NEW] 타이머 테스트 모드 (N일 → N초)
-                    try {
-                        kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerTestModeEnabled(value)
-                        val scalingFactor = kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.getTimeScalingFactor()
-                        Log.d("DebugScreenVM", "타이머 테스트 모드 변경: $value (스케일링 팩터: $scalingFactor)")
-                    } catch (t: Throwable) {
-                        Log.e("DebugScreenVM", "타이머 테스트 모드 설정 실패", t)
-                    }
-                    currentState.copy(timerTestMode = value)
                 }
                 else -> currentState
             }

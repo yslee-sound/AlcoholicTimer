@@ -288,17 +288,8 @@ fun StartScreen(
             try {
                 kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.resetTimer()
                 kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setStartTime(System.currentTimeMillis())
-                kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(true) // [NEW] 타이머 작동 중으로 설정
-
-                // [NEW] 타이머 테스트 모드 로그 출력
-                val scalingFactor = kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.getTimeScalingFactor()
-                val totalSeconds = kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.convertDaysToSeconds(targetDays.toLong())
-                android.util.Log.d("StartScreen", "타이머 시작 설정:")
-                android.util.Log.d("StartScreen", "  - 입력: $targetDays 일")
-                android.util.Log.d("StartScreen", "  - 스케일링 팩터: $scalingFactor")
-                android.util.Log.d("StartScreen", "  - 최종 타이머 시간: $totalSeconds 초")
-                android.util.Log.d("StartScreen", "  - 타이머 작동 중: true")
-                android.util.Log.d("StartScreen", "타이머 상태 초기화 완료")
+                kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(true)
+                android.util.Log.d("StartScreen", "타이머 시작: $targetDays 일, 작동 중: true")
             } catch (t: Throwable) {
                 android.util.Log.e("StartScreen", "타이머 상태 초기화 실패", t)
             }

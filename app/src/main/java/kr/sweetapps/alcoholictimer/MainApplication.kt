@@ -42,11 +42,12 @@ class MainApplication : Application() {
             android.util.Log.e("MainApplication", "TimerStateRepository 초기화 실패", t)
         }
 
+
         // 앱 타이밍 진단: 앱 시작 시각 기록
         kr.sweetapps.alcoholictimer.ui.ad.AdTimingLogger.logAppStart()
 
-        // Firebase 초기?? google-services.json???�으�??�동?�로 구성?��?�?
-        // 명시?�으�?초기?�하??Firebase API ?�용 ???�정???�보
+        // Firebase 초기화: google-services.json을 통해 자동으로 구성됨
+        // 명시적으로 초기화하여 Firebase API 사용 시 안정성 확보
         try { FirebaseApp.initializeApp(this) } catch (_: Throwable) {}
         // Analytics 슈퍼 초기화(Firebase 초기화 이후에 호출)
         try { AnalyticsManager.initialize(this) } catch (_: Throwable) {}
@@ -83,10 +84,10 @@ class MainApplication : Application() {
             .build()
         MobileAds.setRequestConfiguration(config)
 
-        // ???�작 ?�각 기록: 콜드 ?��???직후 초기 보호 �??�작
+        // 앱 시작 시각 기록: 콜드 스타트 직후 초기 보호 타이머 시작
         InterstitialAdManager.noteAppStart()
 
-        // App Open Ad 초기??(메인?�에??lifecycle ?��?줄링???�당?��?�??��? ?�록?� 비활?�화)
+        // App Open Ad 초기화 (메인 스레드에서 lifecycle 스케줄링을 담당하므로 등록은 비활성화)
         AppOpenAdManager.initialize(this, registerLifecycle = true)
         AppOpenAdManager.noteAppStart()
         // Preload app-open early to increase chance it's ready at splash time
