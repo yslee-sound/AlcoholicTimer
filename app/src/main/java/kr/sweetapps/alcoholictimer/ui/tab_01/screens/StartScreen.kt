@@ -376,6 +376,7 @@ fun StartScreen(
                     )
                     Spacer(modifier = Modifier.height(START_TITLE_CARD_GAP))
 
+                    // [NEW] Clean Box-less Design - Ghost Input Style
                     Card(
                         modifier = Modifier
                             .padding(horizontal = START_CARD_HORIZONTAL_PADDING)
@@ -389,143 +390,161 @@ fun StartScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = START_CARD_TOP_INNER_PADDING),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
+                            // Title
                             Text(
                                 text = stringResource(R.string.target_days_title),
                                 style = MaterialTheme.typography.titleLarge,
                                 color = colorResource(id = R.color.color_title_primary),
-                                modifier = Modifier
-                                    .align(Alignment.CenterHorizontally)
-                                    .padding(bottom = 24.dp)
+                                modifier = Modifier.padding(bottom = 32.dp)
                             )
 
-                            // Number input box centered in card
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 24.dp),
-                                contentAlignment = Alignment.Center
+                            // [NEW] Clean Input Area with Perfect Center Alignment
+                            val targetFocusRequester = remember { FocusRequester() }
+                            var targetText by remember { mutableStateOf(TextFieldValue(text = targetDays.toString(), selection = TextRange(targetDays.toString().length))) }
+
+                            // [NEW] Update TextField when targetDays changes externally (badge click)
+                            LaunchedEffect(targetDays) {
+                                val newText = targetDays.toString()
+                                targetText = TextFieldValue(text = newText, selection = TextRange(newText.length))
+                            }
+
+                            // [NEW] Unit text style for balance and consistency
+                            val unitTextStyle = MaterialTheme.typography.headlineSmall.copy(
+                                color = Color.Gray,
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Normal
+                            )
+
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(bottom = 16.dp)
                             ) {
-                                Card(
+                                Row(
+                                    horizontalArrangement = Arrangement.Center,
                                     modifier = Modifier
-                                        .width(180.dp)
-                                        .height(100.dp),
-                                    shape = RoundedCornerShape(16.dp),
-                                    colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.color_bg_card_light)),
-                                    elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD)
-                                ) {
-                                    val targetFocusRequester = remember { FocusRequester() }
-                                    var targetText by remember { mutableStateOf(TextFieldValue(text = targetDays.toString(), selection = TextRange(targetDays.toString().length))) }
-
-                                    // [NEW] Update TextField when targetDays changes externally
-                                    LaunchedEffect(targetDays) {
-                                        val newText = targetDays.toString()
-                                        targetText = TextFieldValue(text = newText, selection = TextRange(newText.length))
-                                    }
-
-                                    val coroutineScope = rememberCoroutineScope()
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.Center,
-                                            modifier = Modifier.fillMaxWidth()
+                                        .fillMaxWidth()
+                                        .height(100.dp)
+                                        .clickable(
+                                            indication = null,
+                                            interactionSource = remember { MutableInteractionSource() }
                                         ) {
-                                            Box(
-                                                modifier = Modifier.weight(1f),
-                                                contentAlignment = Alignment.CenterEnd
-                                            ) {
-                                                TextField(
-                                                    value = targetText,
-                                                    onValueChange = { newVal: TextFieldValue ->
-                                                        val filtered = newVal.text.filter { it.isDigit() }
-                                                        val truncated = filtered.take(4)
-                                                        targetText = TextFieldValue(text = truncated, selection = TextRange(truncated.length))
-                                                    },
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .focusRequester(targetFocusRequester)
-                                                        .onFocusChanged { fs ->
-                                                            if (fs.isFocused) {
-                                                                val t = targetText.text
-                                                                targetText = TextFieldValue(text = t, selection = TextRange(0, t.length))
-                                                            } else {
-                                                                val t = targetText.text
-                                                                targetText = TextFieldValue(text = t, selection = TextRange(t.length))
-                                                            }
-                                                        },
-                                                    textStyle = MaterialTheme.typography.displayMedium.copy(
-                                                        color = colorResource(id = R.color.color_indicator_days),
-                                                        textAlign = TextAlign.End,
-                                                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-                                                    ),
-                                                    singleLine = true,
-                                                    readOnly = false,
-                                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
-                                                    keyboardActions = KeyboardActions(onDone = {
-                                                        val parsed = targetText.text.toIntOrNull() ?: targetDays
-                                                        targetDays = parsed.coerceIn(0, 999)
-                                                        targetText = TextFieldValue(text = targetDays.toString(), selection = TextRange(targetDays.toString().length))
-                                                        try { keyboardController?.hide() } catch (_: Exception) {}
-                                                        focusManager.clearFocus()
-                                                    }),
-                                                    colors = TextFieldDefaults.colors(
-                                                        focusedContainerColor = Color.Transparent,
-                                                        unfocusedContainerColor = Color.Transparent,
-                                                        disabledContainerColor = Color.Transparent,
-                                                        errorContainerColor = Color.Transparent,
-                                                        focusedIndicatorColor = Color.Transparent,
-                                                        unfocusedIndicatorColor = Color.Transparent,
-                                                        disabledIndicatorColor = Color.Transparent
+                                            // [FIX] Improved interaction with timing
+                                            coroutineScope.launch {
+                                                try {
+                                                    targetFocusRequester.requestFocus()
+                                                    keyboardController?.show()
+                                                    // [FIX] Short delay to prevent selection reset
+                                                    delay(50)
+                                                    targetText = targetText.copy(
+                                                        selection = TextRange(0, targetText.text.length)
                                                     )
-                                                )
+                                                } catch (_: Exception) {}
                                             }
-
-                                            Spacer(modifier = Modifier.width(8.dp))
-
-                                            Text(
-                                                text = stringResource(R.string.target_days_unit),
-                                                style = MaterialTheme.typography.headlineMedium.copy(
-                                                    color = colorResource(id = R.color.color_indicator_label_gray),
-                                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Normal
-                                                )
-                                            )
                                         }
+                                ) {
+                                    // [NEW] Left Balance - Transparent unit text for perfect centering
+                                    Text(
+                                        text = stringResource(R.string.target_days_unit),
+                                        style = unitTextStyle.copy(color = Color.Transparent),
+                                        modifier = Modifier.alignByBaseline()
+                                    )
 
-                                        Box(
-                                            modifier = Modifier
-                                                .matchParentSize()
-                                                .clickable(
-                                                    indication = null,
-                                                    interactionSource = remember { MutableInteractionSource() }
-                                                ) {
-                                                    Log.d("StartScreen", "display area clicked - selecting all and showing keyboard")
-                                                    val s = targetDays.toString()
-                                                    targetText = TextFieldValue(text = s, selection = TextRange(0, s.length))
-                                                    coroutineScope.launch {
-                                                        try { targetFocusRequester.requestFocus() } catch (_: Exception) { Log.d("StartScreen","requestFocus failed") }
-                                                        try { keyboardController?.show() } catch (_: Exception) { Log.d("StartScreen","keyboard show failed") }
-                                                        try { delay(40L) } catch (_: Exception) {}
-                                                        targetText = TextFieldValue(text = s, selection = TextRange(0, s.length))
-                                                    }
+                                    Spacer(modifier = Modifier.width(4.dp))
+
+                                    // [NEW] Center - Number input with baseline alignment
+                                    androidx.compose.foundation.text.BasicTextField(
+                                        value = targetText,
+                                        onValueChange = { newValue ->
+                                            // Filter: digits only, max 4 chars
+                                            val filtered = newValue.text.filter { it.isDigit() }.take(4)
+                                            if (filtered != targetText.text) {
+                                                // Text changed - update normally
+                                                targetText = TextFieldValue(
+                                                    text = filtered,
+                                                    selection = TextRange(filtered.length)
+                                                )
+                                                targetDays = filtered.toIntOrNull()?.coerceIn(1, 9999) ?: 21
+                                            } else {
+                                                // Text same - preserve selection
+                                                targetText = newValue.copy(text = filtered)
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .width(IntrinsicSize.Min)
+                                            .focusRequester(targetFocusRequester)
+                                            .alignByBaseline()
+                                            .onFocusChanged { focusState ->
+                                                if (focusState.isFocused) {
+                                                    // [FIX] Select all on focus
+                                                    val text = targetText.text
+                                                    targetText = TextFieldValue(
+                                                        text = text,
+                                                        selection = TextRange(0, text.length)
+                                                    )
                                                 }
-                                        ) {}
-                                    }
+                                            },
+                                        textStyle = MaterialTheme.typography.displayLarge.copy(
+                                            color = colorResource(id = R.color.color_indicator_days),
+                                            textAlign = TextAlign.Center,
+                                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                                            fontSize = 72.sp
+                                        ),
+                                        singleLine = true,
+                                        keyboardOptions = KeyboardOptions(
+                                            keyboardType = KeyboardType.Number,
+                                            imeAction = ImeAction.Done
+                                        ),
+                                        keyboardActions = KeyboardActions(
+                                            onDone = {
+                                                val parsed = targetText.text.toIntOrNull() ?: 21
+                                                targetDays = parsed.coerceIn(1, 9999)
+                                                targetText = TextFieldValue(
+                                                    text = targetDays.toString(),
+                                                    selection = TextRange(targetDays.toString().length)
+                                                )
+                                                try { keyboardController?.hide() } catch (_: Exception) {}
+                                                focusManager.clearFocus()
+                                            }
+                                        ),
+                                        cursorBrush = androidx.compose.ui.graphics.SolidColor(colorResource(id = R.color.color_indicator_days)),
+                                        decorationBox = { innerTextField ->
+                                            Box(contentAlignment = Alignment.Center) {
+                                                if (targetText.text.isEmpty()) {
+                                                    Text(
+                                                        text = "0",
+                                                        style = MaterialTheme.typography.displayLarge.copy(
+                                                            color = colorResource(id = R.color.color_indicator_days).copy(alpha = 0.3f),
+                                                            textAlign = TextAlign.Center,
+                                                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                                                            fontSize = 72.sp
+                                                        )
+                                                    )
+                                                }
+                                                innerTextField()
+                                            }
+                                        }
+                                    )
+
+                                    Spacer(modifier = Modifier.width(4.dp))
+
+                                    // [NEW] Right - Actual unit text with baseline alignment
+                                    Text(
+                                        text = stringResource(R.string.target_days_unit),
+                                        style = unitTextStyle,
+                                        modifier = Modifier.alignByBaseline()
+                                    )
                                 }
                             }
 
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // Bottom hint
                             Text(
                                 text = stringResource(R.string.target_days_hint),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = colorResource(id = R.color.color_hint_gray),
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
