@@ -580,7 +580,13 @@ fun AppNavHost(
                 actualDays = actualDays,
                 isCompleted = isCompleted,
                 onBack = { navController.popBackStack() },
-                onDeleted = { recordsRefreshCounter = recordsRefreshCounter + 1 }
+                onDeleted = { recordsRefreshCounter = recordsRefreshCounter + 1 },
+                onNavigateToHome = {
+                    navController.navigate(Screen.Start.route) {
+                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
             )
         }
     }

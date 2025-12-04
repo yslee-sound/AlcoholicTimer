@@ -62,6 +62,7 @@ fun DetailScreen(
     onBack: () -> Unit,
     onDelete: ((Long, Long) -> Unit)? = null,
     onDeleted: (() -> Unit)? = null,
+    onNavigateToHome: () -> Unit = {},
     previewMode: Boolean = false
 ) {
     val context = LocalContext.current
@@ -409,8 +410,8 @@ fun DetailScreen(
                     // prefer caller-provided deletion; otherwise use internal deleteImpl which will call onDeleted
                     val action: (Long, Long) -> Unit = onDelete ?: { a, b -> deleteImpl(a, b) }
                     action(startTime, endTime)
-                    // no need to set showDeleteDialog false before navigating back
-                    onBack()
+                    // [FIX] Navigate to home instead of back to avoid returning to "Goal Achieved" screen
+                    onNavigateToHome()
                 }) {
                     Text(text = stringResource(id = R.string.dialog_delete_confirm), color = Color(0xFFE53E3E), fontWeight = FontWeight.Bold)
                 }
