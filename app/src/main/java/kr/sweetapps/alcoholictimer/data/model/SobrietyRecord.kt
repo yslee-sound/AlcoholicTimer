@@ -1,6 +1,6 @@
 package kr.sweetapps.alcoholictimer.data.model
 
-import kr.sweetapps.alcoholictimer.util.PercentUtils
+import kr.sweetapps.alcoholictimer.util.utils.PercentUtils
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.SimpleDateFormat

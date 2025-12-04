@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.util
+package kr.sweetapps.alcoholictimer.util.utils
 
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -9,4 +9,3 @@ object PercentUtils {
 
     fun roundPercentFromRatio(ratio: Double): Int = roundPercent(ratio * 100.0)
 }
-
