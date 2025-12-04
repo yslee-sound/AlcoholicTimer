@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -792,29 +793,49 @@ private fun AutoResizeSingleLineText(
     color: Color? = null,
     textAlign: TextAlign? = null,
 ) {
-    val minSpLocal = 10f
-    var style by remember(text) { mutableStateOf(baseStyle) }
-    var tried by remember(text) { mutableStateOf(0) }
-    Text(
-        text = text,
-        style = style,
-        color = color ?: style.color,
-        textAlign = textAlign,
-        maxLines = 1,
-        softWrap = false,
-        overflow = TextOverflow.Clip,
-        modifier = modifier,
-        onTextLayout = { result ->
-            if (result.hasVisualOverflow && tried < 20) {
-                val current = style.fontSize.value
-                val next = (current * step).coerceAtLeast(minSpLocal)
-                if (next < current - 0.1f) {
-                    style = style.copy(fontSize = next.sp, lineHeight = (next.sp * 1.1f))
-                    tried++
+    // [FIX] BoxWithConstraints로 크기를 측정하여 넘치지 않도록 자동 조절
+    BoxWithConstraints(modifier = modifier) {
+        val maxWidthPx = with(LocalDensity.current) { maxWidth.toPx() }
+        val textMeasurer = rememberTextMeasurer()
+
+        // 텍스트가 넘치지 않는 최적 크기 계산
+        val optimalFontSize = remember(text, baseStyle, maxWidthPx) {
+            var currentSize = baseStyle.fontSize.value
+            val minSize = 10f
+
+            while (currentSize > minSize) {
+                val testStyle = baseStyle.copy(fontSize = currentSize.sp)
+                val measured = textMeasurer.measure(
+                    text = text,
+                    style = testStyle,
+                    maxLines = 1
+                )
+
+                if (measured.size.width <= maxWidthPx) {
+                    break
                 }
+                currentSize *= step
             }
+
+            currentSize.coerceAtLeast(minSize)
         }
-    )
+
+        val finalStyle = baseStyle.copy(
+            fontSize = optimalFontSize.sp,
+            lineHeight = (optimalFontSize * 1.1f).sp
+        )
+
+        Text(
+            text = text,
+            style = finalStyle,
+            color = color ?: finalStyle.color,
+            textAlign = textAlign,
+            maxLines = 1,
+            softWrap = false,
+            overflow = TextOverflow.Clip,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
 }
 
 @Composable

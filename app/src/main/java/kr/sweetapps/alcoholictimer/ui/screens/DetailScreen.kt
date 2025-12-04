@@ -9,6 +9,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -107,6 +110,8 @@ fun DetailScreen(
     }
 
     val showDeleteDialog = remember { mutableStateOf(false) }
+    // [NEW] 메뉴 확장 상태
+    var showMenu by remember { mutableStateOf(false) }
     val accentColor = if (isCompleted) BluePrimaryLight else AmberSecondaryLight
 
     // banner visibility: ensure any hiding used for debug is guarded by BuildConfig.DEBUG (release validation)
@@ -200,13 +205,33 @@ fun DetailScreen(
                 title = if (previewMode) "Detail" else stringResource(id = R.string.detail_title),
                 onBack = if (previewMode) ({}) else onBack,
                 trailingContent = {
-                    IconButton(onClick = { if (!previewMode) showDeleteDialog.value = true }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_x),
-                            contentDescription = if (previewMode) null else stringResource(id = R.string.dialog_delete_title),
-                            tint = Color.Black,
-                            modifier = Modifier.size(24.dp)
-                        )
+                    // [NEW] 세로 3점 메뉴로 변경
+                    Box {
+                        IconButton(onClick = { if (!previewMode) showMenu = true }) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = if (previewMode) null else "메뉴",
+                                tint = Color.Black
+                            )
+                        }
+
+                        // [NEW] 드롭다운 메뉴
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = {
+                                    Text(text = "기록 삭제")
+                                },
+                                onClick = {
+                                    showMenu = false
+                                    if (!previewMode) {
+                                        showDeleteDialog.value = true
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
             )
