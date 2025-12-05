@@ -35,58 +35,40 @@ fun QuoteDisplay(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 6.dp), // [OPTIMIZED] 수직 밀도 최적화 (30dp,10dp → 24dp,6dp)
+            .padding(horizontal = 24.dp, vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // 1. 장식용 아이콘 (Visual Anchor)
-        // 레퍼런스의 원형 아이콘처럼, 시선을 모아주는 역할
-        // (아이콘이 없다면 텍스트로 대체 가능: "❝")
         Text(
             text = "❝",
-            style = MaterialTheme.typography.displayMedium,
-            color = Color(0xFFBDBDBD), // 연한 회색으로 은은하게
-            fontSize = 40.sp,
-            fontFamily = FontFamily.Serif
+            style = MaterialTheme.typography.displayMedium.copy(
+                fontSize = 40.sp,
+                lineHeight = 24.sp, // 라인 높이를 더 줄임
+                fontFamily = FontFamily.Serif
+            ),
+            color = Color(0xFFBDBDBD),
+            modifier = Modifier.offset(y = 8.dp) // 아래로 밀어서 텍스트에 붙임
         )
-
-        Spacer(modifier = Modifier.height(6.dp)) // [OPTIMIZED] 8dp → 6dp
 
         // 2. 명언 텍스트
         Text(
             text = displayQuote,
             style = MaterialTheme.typography.bodyLarge.copy(
-                fontFamily = FontFamily.Serif, // 클래식 명조체
-                fontSize = 16.sp,              // 크기 약간 키움
-                lineHeight = 26.sp,            // 줄간격 넉넉하게
+                fontFamily = FontFamily.Serif,
+                fontSize = 16.sp,
+                lineHeight = 26.sp,
                 textAlign = TextAlign.Center,
-                color = Color(0xFF4A4A4A),     // 짙은 회색 (종이에 쓴 느낌)
+                color = Color(0xFF4A4A4A),
                 fontWeight = FontWeight.Medium
             )
         )
-
-        // 3. (선택사항) 하단 닫는 따옴표 - 너무 장식적이면 제거해도 됨
-        /*
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "❞",
-            style = MaterialTheme.typography.displayMedium,
-            color = Color(0xFFBDBDBD),
-            fontSize = 40.sp,
-            fontFamily = FontFamily.Serif
-        )
-        */
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFEEEDE9) // 앱 배경색 적용 Preview
+@Preview(showBackground = true, backgroundColor = 0xFFEEEDE9)
 @Composable
-private fun QuoteDisplaySeamlessPreview() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center
-    ) {
-        QuoteDisplay(
-            quote = "인내의 무게는 몇 그램이지만,\n후회의 무게는 몇 톤이나 됩니다."
-        )
+private fun QuoteDisplayPreview() {
+    MaterialTheme {
+        QuoteDisplay()
     }
 }

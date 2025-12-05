@@ -58,12 +58,13 @@ import kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.StartScreenViewModel
 
 // [OPTIMIZED] Vertical Density Optimization for Small Screens
 // 작은 화면에서도 모든 요소가 보이도록 여백을 최적화했습니다.
-private val START_CARD_TOP_INNER_PADDING: Dp = 40.dp      // Card 내부 상단 여백 (50dp → 40dp)
-private val START_TITLE_TOP_MARGIN: Dp = 12.dp             // 화면 상단 여백 (30dp → 12dp)
-private val START_TITLE_CARD_GAP: Dp = 10.dp               // 타이틀바와 카드 간격 (15dp → 10dp)
+private val START_CARD_TOP_INNER_PADDING: Dp = 32.dp      // Card 내부 상단 여백 (40dp → 32dp, 80% 축소)
+private val START_TITLE_TOP_MARGIN: Dp = 12.dp             // 화면 상단 여백
+private val START_TITLE_CARD_GAP: Dp = 10.dp               // 타이틀바와 카드 간격
 private val START_CARD_HORIZONTAL_PADDING: Dp = 20.dp
-private val START_QUOTE_TOP_GAP: Dp = 12.dp                // 카드와 명언 사이 간격 (24dp → 12dp)
+private val START_QUOTE_TOP_GAP: Dp = 12.dp                // 카드와 명언 사이 간격
 private val START_BOTTOM_CLEARANCE: Dp = 100.dp            // 하단 버튼 가림 방지 여백
+private val START_CARD_TITLE_BOTTOM: Dp = 20.dp            // 카드 타이틀 하단 여백 (24dp → 20dp, 80% 축소)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -216,7 +217,7 @@ fun StartScreen(
                                 text = stringResource(R.string.target_days_title),
                                 style = MaterialTheme.typography.titleLarge,
                                 color = colorResource(id = R.color.color_title_primary),
-                                modifier = Modifier.padding(bottom = 24.dp) // [OPTIMIZED] 32dp → 24dp
+                                modifier = Modifier.padding(bottom = START_CARD_TITLE_BOTTOM) // [OPTIMIZED] 24dp → 20dp
                             )
 
                             // [NEW] Target Days Input Component (Extracted)
@@ -471,9 +472,96 @@ private fun CountdownOverlay(countdownNumber: Int) {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
-private fun StartScreenPreview() { StartScreen() }
+private fun StartScreenPreview() {
+    MaterialTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(BackgroundCream)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = START_TITLE_TOP_MARGIN)
+            ) {
+                // 타이틀바
+                AppBrandTitleBar(
+                    selectedDays = 21,
+                    onDaysSelected = {}
+                )
+
+                Spacer(modifier = Modifier.height(START_TITLE_CARD_GAP))
+
+                // 입력 카드
+                Card(
+                    modifier = Modifier
+                        .padding(horizontal = START_CARD_HORIZONTAL_PADDING)
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = START_CARD_TOP_INNER_PADDING),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "목표 기간 설정",
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(bottom = START_CARD_TITLE_BOTTOM)
+                        )
+
+                        // 간단한 입력 미리보기
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "21",
+                                style = MaterialTheme.typography.displayLarge.copy(
+                                    fontSize = 72.sp,
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                )
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "일",
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = "목표 일수를 터치하여 변경하세요",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(START_QUOTE_TOP_GAP))
+
+                // 명언
+                QuoteDisplay()
+            }
+
+            // 하단 버튼
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(20.dp)
+            ) {
+                MainActionButton(onClick = {})
+            }
+        }
+    }
+}
 
 /**
  * [NEW] 네비게이션 헬퍼 함수 (중복 제거)
