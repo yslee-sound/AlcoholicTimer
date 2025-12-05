@@ -160,13 +160,13 @@ fun AboutScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onNavigateEditNickname() }
-                .padding(start = dims.spacing.md, end = dims.spacing.md, top = 20.dp, bottom = 16.dp),
+                .padding(start = dims.padding.large, end = dims.padding.large, top = 45.dp, bottom = 0.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.usercircle),
                 contentDescription = null,
-                modifier = Modifier.size(dims.sizes.profileImage),
+                modifier = Modifier.size(80.dp),
                 tint = Color(0xFFBDBDBD)
             )
             Spacer(modifier = Modifier.width(dims.spacing.sm))
@@ -175,7 +175,7 @@ fun AboutScreen(
             Icon(
                 painter = painterResource(id = R.drawable.ic_caret_right),
                 contentDescription = null,
-                tint = Color(0xFF9CA3AF),
+                tint = Color.Black,
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.weight(1f))
@@ -189,7 +189,7 @@ fun AboutScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(dims.component.buttonHeight)
-                    .shadow(6.dp, RoundedCornerShape(12.dp))
+                    .shadow(4.dp, RoundedCornerShape(12.dp))
                     .background(
                         brush = Brush.linearGradient(listOf(Color(0xFF8A6CFF), Color(0xFF6F4EF6))),
                         shape = RoundedCornerShape(12.dp)
@@ -223,7 +223,7 @@ fun AboutScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(14.dp)) // 앱 평가하기 버튼 아래
 
         // --- Row of 3 action buttons (알림 / 고객 문의/제안 / 추천앱)
         Row(
