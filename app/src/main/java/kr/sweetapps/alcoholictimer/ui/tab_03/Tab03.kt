@@ -116,7 +116,7 @@ fun LevelScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surface),
-            verticalArrangement = Arrangement.spacedBy(15.dp)
+            verticalArrangement = Arrangement.spacedBy(15.dp) // 15
         ) {
             val appliedBottom = 15.dp
             Box(
@@ -131,7 +131,7 @@ fun LevelScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 15.dp, start = 15.dp, end = 15.dp),
+                        .padding(top = 15.dp, start = 20.dp, end = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
                     CurrentLevelCard(
@@ -217,7 +217,7 @@ fun CurrentLevelCard(
     val context = LocalContext.current
     val isActive = startTime > 0
 
-    // [REDESIGN] Gradient Card - 이미지 디자인 적용
+    // [REDESIGN] 단색 배경 카드 - 파란색
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -228,14 +228,7 @@ fun CurrentLevelCard(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            Color(0xFFC084FC), // 좌측 상단 (보라)
-                            Color(0xFFF43F5E)  // 우측 하단 (분홍)
-                        )
-                    )
-                )
+                .background(Color(0xFF1E40AF)) // 단색 파란색
                 .padding(20.dp)
         ) {
             Column(
@@ -464,7 +457,7 @@ private fun LevelListCard(currentLevel: LevelDefinitions.LevelInfo, currentDays:
                 modifier = Modifier.padding(start = 2.dp, bottom = 24.dp)
             )
 
-            Column(verticalArrangement = Arrangement.spacedBy(15.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 LevelDefinitions.levels.forEach { level ->
                     LevelItem(
                         level = level,
@@ -841,4 +834,21 @@ private fun CompactProgressBar(
     }
 }
 
+// ============================================================================
+// [NEW] Compose Preview - 전체 화면
+// ============================================================================
 
+@androidx.compose.ui.tooling.preview.Preview(
+    name = "Tab03 - 레벨 화면 전체",
+    showBackground = true,
+    heightDp = 800,
+    showSystemUi = true
+)
+@Composable
+private fun PreviewLevelScreen() {
+    MaterialTheme {
+        LevelScreen(
+            onNavigateBack = {}
+        )
+    }
+}
