@@ -106,6 +106,9 @@ sealed class Screen(val route: String) {
     data object DiaryDetail : Screen("diary_detail/{diaryId}") {
         fun createRoute(diaryId: String) = "diary_detail/$diaryId"
     }
+
+    /** [NEW] Notification list screen */
+    data object Notification : Screen("notification")
 }
 
 /**

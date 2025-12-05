@@ -538,7 +538,7 @@ fun AppNavHost(
                 onNavigateEditNickname = { navController.navigate(Screen.NicknameEdit.route) },
                 onNavigateCurrencySettings = { navController.navigate(Screen.CurrencySettings.route) },
                 onNavigateDebug = { navController.navigate(Screen.Debug.route) },
-                onNavigateNotification = { navController.navigate("notification") },
+                onNavigateNotification = { navController.navigate(Screen.Notification.route) },
                 onNavigateCustomer = { navController.navigate("customer") },
                 showBack = false
             )
@@ -577,6 +577,12 @@ fun AppNavHost(
 
         composable(Screen.Debug.route) {
             DebugScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.Notification.route) {
+            kr.sweetapps.alcoholictimer.ui.tab_05.screens.NotificationListScreen(
+                onBack = { navController.popBackStack() }
+            )
         }
 
         composable(
@@ -623,12 +629,6 @@ fun AppNavHost(
             )
         }
 
-        // Notification Screen
-        composable("notification") {
-            kr.sweetapps.alcoholictimer.ui.tab_05.screens.NotificationScreen(
-                onBack = { navController.popBackStack() }
-            )
-        }
 
         // Customer Screen
         composable("customer") {
