@@ -189,6 +189,8 @@ fun StartScreen(
              ignoreImeInsets = true,
               contentMaxWidth = screenWidthDp,
               forceFillMaxWidth = true,
+              disableScroll = true, // [NEW] 스크롤 비활성화
+              contentVerticalArrangement = Arrangement.Center, // [NEW] 컨텐츠 중앙 정렬
               topContent = {
                 Column { 
                     AppBrandTitleBar(
@@ -245,9 +247,8 @@ fun StartScreen(
                     Spacer(modifier = Modifier.height(START_QUOTE_TOP_GAP))
                     QuoteDisplay()
 
-                    // [OPTIMIZED] 하단 버튼 가림 방지 여백
-                    // 스크롤을 끝까지 내렸을 때 명언이 버튼 뒤에 숨지 않도록 충분한 공간 확보
-                    Spacer(modifier = Modifier.height(START_BOTTOM_CLEARANCE))
+                    // [REMOVED] 하단 여백 제거 - 스크롤 비활성화로 불필요
+                    // Spacer(modifier = Modifier.height(START_BOTTOM_CLEARANCE))
                 }
             },
             bottomButton = {

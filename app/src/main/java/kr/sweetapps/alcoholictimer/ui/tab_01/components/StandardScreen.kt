@@ -52,7 +52,11 @@ fun StandardScreenWithBottomButton(
     // Optional background color for the screen. If null, the default surface variant color is used.
     screenBackground: Color? = null,
     // New: per-screen vertical spacing between cards
-    cardVerticalSpacing: Dp = UiConstants.CARD_VERTICAL_SPACING
+    cardVerticalSpacing: Dp = UiConstants.CARD_VERTICAL_SPACING,
+    // [NEW] If true, disables scroll and centers content vertically
+    disableScroll: Boolean = false,
+    // [NEW] Vertical arrangement when scroll is disabled
+    contentVerticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(cardVerticalSpacing)
 ) {
     // banner visibility handled externally
     // Ensure debug-only hiding uses BuildConfig.DEBUG guard per release validation
@@ -92,7 +96,7 @@ fun StandardScreenWithBottomButton(
     // In Preview we want to avoid reserving large bottom space and disable scroll so
     // designers can see the full content without interacting with the Preview.
     val previewReservedBottom = if (isPreview) 0.dp else reservedBottom
-    val useScroll = !isPreview
+    val useScroll = !isPreview && !disableScroll // [MODIFIED] disableScroll 옵션 반영
 
     Box(modifier = rootModifier) {
         backgroundDecoration()
@@ -106,9 +110,10 @@ fun StandardScreenWithBottomButton(
                     top = topPadding,
                     bottom = previewReservedBottom
                 )
-                .then(if (useScroll) Modifier.verticalScroll(rememberScrollState()) else Modifier),
+                .then(if (useScroll) Modifier.verticalScroll(rememberScrollState()) else Modifier)
+                .then(if (!useScroll) Modifier.imePadding() else Modifier), // [NEW] 스크롤 비활성화 시 키보드 패딩 적용
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(cardVerticalSpacing)
+            verticalArrangement = if (disableScroll) contentVerticalArrangement else Arrangement.spacedBy(cardVerticalSpacing) // [NEW] 중앙 정렬 적용
         ) {
             val innerColumnModifier = if (forceFillMaxWidth) {
                 Modifier.fillMaxWidth()
