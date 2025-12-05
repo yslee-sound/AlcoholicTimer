@@ -76,7 +76,16 @@ fun TargetDaysInput(
         )
     }
 
-    // [NEW] Unit text style for balance and consistency
+    // [REFACTORED] Simplified number text style - no lineHeight constraint to prevent clipping
+    val numberTextStyle = MaterialTheme.typography.displayLarge.copy(
+        color = colorResource(id = R.color.color_indicator_days),
+        textAlign = TextAlign.Center,
+        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+        fontSize = 72.sp
+        // lineHeight removed - let the font breathe naturally
+    )
+
+    // [REFACTORED] Unit text style
     val unitTextStyle = MaterialTheme.typography.headlineSmall.copy(
         color = Color.Gray,
         fontWeight = androidx.compose.ui.text.font.FontWeight.Normal
@@ -86,21 +95,22 @@ fun TargetDaysInput(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier.padding(bottom = 16.dp)
     ) {
+        // [REFACTORED] Simplified layout - no transparent text trick
         Row(
             horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(100.dp)
+                .height(IntrinsicSize.Min)
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() }
                 ) {
-                    // [FIX] Improved interaction with timing
+                    // Trigger focus and selection
                     coroutineScope.launch {
                         try {
                             targetFocusRequester.requestFocus()
                             keyboardController?.show()
-                            // [FIX] Short delay to prevent selection reset
                             delay(50)
                             targetText = targetText.copy(
                                 selection = TextRange(0, targetText.text.length)
@@ -108,24 +118,15 @@ fun TargetDaysInput(
                         } catch (_: Exception) {}
                     }
                 }
+                .padding(vertical = 12.dp) // Safe padding to prevent clipping
         ) {
-            // [NEW] Left Balance - Transparent unit text for perfect centering
-            Text(
-                text = stringResource(R.string.target_days_unit),
-                style = unitTextStyle.copy(color = Color.Transparent),
-                modifier = Modifier.alignByBaseline()
-            )
-
-            Spacer(modifier = Modifier.width(4.dp))
-
-            // [NEW] Center - Number input with baseline alignment
+            // Input field
             androidx.compose.foundation.text.BasicTextField(
                 value = targetText,
                 onValueChange = { newValue ->
                     // Filter: digits only, max 4 chars
                     val filtered = newValue.text.filter { it.isDigit() }.take(4)
                     if (filtered != targetText.text) {
-                        // Text changed - update normally
                         targetText = TextFieldValue(
                             text = filtered,
                             selection = TextRange(filtered.length)
@@ -133,30 +134,21 @@ fun TargetDaysInput(
                         val parsedDays = filtered.toIntOrNull()?.coerceIn(1, 9999) ?: 21
                         onValueChange(parsedDays)
                     } else {
-                        // Text same - preserve selection
                         targetText = newValue.copy(text = filtered)
                     }
                 },
                 modifier = Modifier
-                    .width(IntrinsicSize.Min)
+                    .wrapContentWidth()
                     .focusRequester(targetFocusRequester)
-                    .alignByBaseline()
                     .onFocusChanged { focusState ->
                         if (focusState.isFocused) {
-                            // [FIX] Select all on focus
-                            val text = targetText.text
                             targetText = TextFieldValue(
-                                text = text,
-                                selection = TextRange(0, text.length)
+                                text = targetText.text,
+                                selection = TextRange(0, targetText.text.length)
                             )
                         }
                     },
-                textStyle = MaterialTheme.typography.displayLarge.copy(
-                    color = colorResource(id = R.color.color_indicator_days),
-                    textAlign = TextAlign.Center,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                    fontSize = 72.sp
-                ),
+                textStyle = numberTextStyle,
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
@@ -184,12 +176,9 @@ fun TargetDaysInput(
                         if (targetText.text.isEmpty()) {
                             Text(
                                 text = "0",
-                                style = MaterialTheme.typography.displayLarge.copy(
+                                style = numberTextStyle.copy(
                                     color = colorResource(id = R.color.color_indicator_days)
-                                        .copy(alpha = 0.3f),
-                                    textAlign = TextAlign.Center,
-                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                                    fontSize = 72.sp
+                                        .copy(alpha = 0.3f)
                                 )
                             )
                         }
@@ -198,25 +187,24 @@ fun TargetDaysInput(
                 }
             )
 
-            Spacer(modifier = Modifier.width(4.dp))
+            Spacer(modifier = Modifier.width(8.dp))
 
-            // [NEW] Right - Actual unit text with baseline alignment
+            // Unit text
             Text(
                 text = stringResource(R.string.target_days_unit),
-                style = unitTextStyle,
-                modifier = Modifier.alignByBaseline()
+                style = unitTextStyle
             )
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Bottom hint
+        Text(
+            text = stringResource(R.string.target_days_hint),
+            style = MaterialTheme.typography.bodyMedium,
+            color = colorResource(id = R.color.color_hint_gray),
+            textAlign = TextAlign.Center
+        )
     }
-
-    Spacer(modifier = Modifier.height(8.dp))
-
-    // Bottom hint
-    Text(
-        text = stringResource(R.string.target_days_hint),
-        style = MaterialTheme.typography.bodyMedium,
-        color = colorResource(id = R.color.color_hint_gray),
-        textAlign = TextAlign.Center
-    )
 }
 
