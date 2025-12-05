@@ -190,7 +190,7 @@ fun StartScreen(
               contentMaxWidth = screenWidthDp,
               forceFillMaxWidth = true,
               disableScroll = true, // [NEW] 스크롤 비활성화
-              contentVerticalArrangement = Arrangement.Center, // [NEW] 컨텐츠 중앙 정렬
+              contentVerticalArrangement = Arrangement.Top, // [FIX] Center → Top (상단 정렬로 변경)
               topContent = {
                 Column { 
                     AppBrandTitleBar(

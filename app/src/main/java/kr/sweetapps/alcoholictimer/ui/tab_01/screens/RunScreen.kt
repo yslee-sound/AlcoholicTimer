@@ -529,46 +529,45 @@ fun RunScreenComposable(
                     }
 
                     // Replace transparent card + surface with a single elevated white Card matching top cards
-                    Card(
+                    // [FIX] 프로그레스 카드와 응원 문구를 하나의 Column으로 묶어서 spacing 제거
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                        border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
+                        verticalArrangement = Arrangement.spacedBy(0.dp) // 간격 완전 제거
                     ) {
-                        Column(
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                            border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = RUN_CARD_CONTENT_HORIZONTAL_PADDING, vertical = RUN_CARD_CONTENT_VERTICAL_PADDING),
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                // Progress content
+                                ModernProgressIndicatorSimple(progress = progress, targetDays = targetDays)
+                            }
+                        }
+
+                        // [NEW] 응원 문구 (프로그레스 카드 바깥쪽 하단) - 간격 완전 제거
+                        val motivationalQuote = rememberSaveable {
+                            kr.sweetapps.alcoholictimer.data.model.MotivationalQuotes.getRandomQuote()
+                        }
+
+                        Text(
+                            text = "\" $motivationalQuote \"",
+                            style = kr.sweetapps.alcoholictimer.ui.tab_01.components.QuoteTextStyle.default, // [SHARED] 공통 스타일 사용
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = RUN_CARD_CONTENT_HORIZONTAL_PADDING, vertical = RUN_CARD_CONTENT_VERTICAL_PADDING),
-                            horizontalAlignment = Alignment.Start
-                        ) {
-                            // Progress content
-                            ModernProgressIndicatorSimple(progress = progress, targetDays = targetDays)
-                        }
-                    }
-
-                    // [NEW] 응원 문구 (프로그레스 카드 바깥쪽 하단)
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    val motivationalQuote = rememberSaveable {
-                        kr.sweetapps.alcoholictimer.data.model.MotivationalQuotes.getRandomQuote()
-                    }
-
-                    Text(
-                        text = "\" $motivationalQuote \"",
-                        style = TextStyle(
-                            color = Color(0xFF8D8D8D),
-                            fontSize = 14.sp,
-                            fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
-                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                                .padding(top = 15.dp, bottom = 20.dp)
+                                .padding(horizontal = 20.dp),
                             textAlign = TextAlign.Center,
-                            lineHeight = 20.sp
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = RUN_HORIZONTAL_PADDING),
-                        textAlign = TextAlign.Center
-                    )
+                            minLines = 2
+                        )
+                    }
                 }
             },
             bottomButton = {

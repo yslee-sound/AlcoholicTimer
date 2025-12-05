@@ -104,7 +104,7 @@ object UiConstants {
     val BANNER_TOP_GAP: Dp = 8.dp
     val BANNER_FIXED_HEIGHT: Dp = 64.dp
     val CLEARANCE_ABOVE_BUTTON: Dp = 32.dp
-    val BUTTON_BOTTOM_OFFSET: Dp = 24.dp
+    val BUTTON_BOTTOM_OFFSET: Dp = 1.dp // [OPTIMIZED] 24dp → 40dp (버튼 위치 하향 조정)
 
     // Bottom navigation sizes (used in BottomNavBar)
     val BOTTOM_NAV_ICON_SIZE: Dp = 28.dp // Icon size
