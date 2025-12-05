@@ -1,0 +1,170 @@
+package kr.sweetapps.alcoholictimer.ui.tab_03.components
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.BorderStroke
+import kr.sweetapps.alcoholictimer.R
+import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
+import kr.sweetapps.alcoholictimer.ui.theme.AppElevation
+
+/**
+ * 전체 레벨 리스트 카드
+ * 모든 레벨 정보를 표시하는 리스트 컴포넌트
+ */
+@Composable
+fun LevelListCard(
+    currentLevel: LevelDefinitions.LevelInfo,
+    currentDays: Int,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+    ) {
+        Column(modifier = Modifier.padding(top = 0.dp)) {
+            Text(
+                text = context.getString(R.string.level_all_levels),
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF333333)
+                ),
+                modifier = Modifier.padding(start = 2.dp, bottom = 24.dp)
+            )
+
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                LevelDefinitions.levels.forEach { level ->
+                    LevelItem(
+                        level = level,
+                        isCurrent = level == currentLevel,
+                        isAchieved = currentDays >= level.start,
+                        isNext = level == getNextLevel(currentLevel)
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 개별 레벨 아이템
+ */
+@Composable
+private fun LevelItem(
+    level: LevelDefinitions.LevelInfo,
+    isCurrent: Boolean,
+    isAchieved: Boolean,
+    isNext: Boolean
+) {
+    val context = LocalContext.current
+    val itemElevation = AppElevation.ZERO
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = when {
+                isCurrent -> level.color.copy(alpha = 0.1f)
+                isAchieved -> level.color.copy(alpha = 0.1f)
+                else -> MaterialTheme.colorScheme.surface
+            }
+        ),
+        border = when {
+            isCurrent -> BorderStroke(1.5.dp, level.color)
+            isAchieved -> BorderStroke(1.dp, level.color.copy(alpha = 0.6f))
+            else -> BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
+        },
+        elevation = CardDefaults.cardElevation(defaultElevation = itemElevation)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(if (isAchieved) level.color else Color(0xFFE0E0E0)),
+                contentAlignment = Alignment.Center
+            ) {
+                val levelNumber = LevelDefinitions.levels.indexOf(level) + 1
+                val levelText = if (levelNumber == 11) "L" else "$levelNumber"
+                Text(
+                    text = levelText,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = if (isAchieved) Color.White else Color(0xFF757575)
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = context.getString(level.nameResId),
+                    style = (if (isCurrent) MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold) else MaterialTheme.typography.titleMedium)
+                        .copy(color = if (isAchieved) level.color else Color(0xFF757575))
+                )
+
+                val dayUnit = context.getString(R.string.level_day_unit)
+                val rangeText = if (level.end == Int.MAX_VALUE) "${level.start}$dayUnit+" else "${level.start}~${level.end}$dayUnit"
+                Text(
+                    text = rangeText,
+                    style = MaterialTheme.typography.labelMedium.copy(color = Color(0xFF666666))
+                )
+            }
+
+            when {
+                isCurrent -> Icon(
+                    imageVector = Icons.Filled.Star,
+                    contentDescription = "현재 레벨",
+                    tint = level.color,
+                    modifier = Modifier.size(20.dp)
+                )
+                isAchieved -> Icon(
+                    imageVector = Icons.Filled.CheckCircle,
+                    contentDescription = "달성 완료",
+                    tint = level.color,
+                    modifier = Modifier.size(20.dp)
+                )
+                else -> Icon(
+                    imageVector = Icons.Filled.Lock,
+                    contentDescription = "미달성",
+                    tint = Color(0xFFBDBDBD),
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
+
+/**
+ * 다음 레벨 계산 헬퍼 함수
+ */
+private fun getNextLevel(currentLevel: LevelDefinitions.LevelInfo): LevelDefinitions.LevelInfo? {
+    val currentIndex = LevelDefinitions.levels.indexOf(currentLevel)
+    return if (currentIndex in 0 until LevelDefinitions.levels.size - 1) {
+        LevelDefinitions.levels[currentIndex + 1]
+    } else {
+        null
+    }
+}
+
