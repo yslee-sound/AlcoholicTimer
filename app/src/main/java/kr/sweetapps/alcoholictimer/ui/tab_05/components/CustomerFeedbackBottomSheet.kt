@@ -1,5 +1,6 @@
 package kr.sweetapps.alcoholictimer.ui.tab_05.components
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,12 +14,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kr.sweetapps.alcoholictimer.data.repository.FeedbackRepository
 
 /**
  * 고객 문의/제안 바텀 시트
@@ -30,12 +34,22 @@ fun CustomerFeedbackBottomSheet(
     onDismiss: () -> Unit,
     onSubmit: (category: String, content: String, email: String) -> Unit
 ) {
+    val context = LocalContext.current
+    val repository = remember { FeedbackRepository() }
+
     var selectedCategory by remember { mutableStateOf("기능 제안") }
     var contentText by remember { mutableStateOf("") }
     var emailText by remember { mutableStateOf("") }
+    var isSubmitting by remember { mutableStateOf(false) }
 
     val maxContentLength = 300
-    val isSubmitEnabled = contentText.trim().isNotEmpty()
+
+    // [NEW] 이메일 유효성 검사 로직
+    val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
+    val isEmailValid = emailText.isEmpty() || emailPattern.matches(emailText.trim())
+    val showEmailError = emailText.isNotEmpty() && !isEmailValid
+
+    val isSubmitEnabled = contentText.trim().isNotEmpty() && !isSubmitting
     val scrollState = rememberScrollState()
 
     ModalBottomSheet(
@@ -167,23 +181,39 @@ fun CustomerFeedbackBottomSheet(
                     )
                 },
                 singleLine = true,
+                isError = showEmailError, // [NEW] 에러 상태 표시
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email, // [핵심] 영문 키보드 & @ 기호 노출
-                    imeAction = ImeAction.Done // 마지막 입력 필드이므로 완료
+                    capitalization = KeyboardCapitalization.None,
+                    autoCorrectEnabled = false,
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Done
                 ),
                 supportingText = {
-                    Text(
-                        text = "답변을 받으시려면 이메일 주소를 입력해주세요.\n이메일 주소는 답변 용도 외에 사용되지 않습니다.",
-                        fontSize = 12.sp,
-                        color = Color(0xFF999999),
-                        lineHeight = 16.sp
-                    )
+                    if (showEmailError) {
+                        // [NEW] 에러 메시지 표시
+                        Text(
+                            text = "올바른 이메일 형식이 아닙니다.",
+                            fontSize = 12.sp,
+                            color = Color(0xFFD32F2F), // 빨간색
+                            lineHeight = 16.sp
+                        )
+                    } else {
+                        // 기본 안내 문구
+                        Text(
+                            text = "답변을 받으시려면 이메일 주소를 입력해주세요.\n이메일 주소는 답변 용도 외에 사용되지 않습니다.",
+                            fontSize = 12.sp,
+                            color = Color(0xFF999999),
+                            lineHeight = 16.sp
+                        )
+                    }
                 },
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedContainerColor = Color.White,
                     focusedContainerColor = Color.White,
                     unfocusedBorderColor = Color(0xFFDDDDDD),
                     focusedBorderColor = Color(0xFF8A6CFF),
+                    errorBorderColor = Color(0xFFD32F2F), // [NEW] 에러 테두리 색상
+                    errorContainerColor = Color.White,
                     unfocusedTextColor = Color(0xFF333333),
                     focusedTextColor = Color(0xFF333333)
                 ),
@@ -196,7 +226,32 @@ fun CustomerFeedbackBottomSheet(
             // E. 전송 버튼
             Button(
                 onClick = {
-                    onSubmit(selectedCategory, contentText.trim(), emailText.trim())
+                    isSubmitting = true
+
+                    // Firebase Firestore에 전송
+                    repository.submitFeedback(
+                        category = selectedCategory,
+                        content = contentText.trim(),
+                        email = emailText.trim(),
+                        onSuccess = {
+                            isSubmitting = false
+                            Toast.makeText(
+                                context,
+                                "소중한 의견 감사합니다 🙏",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            onSubmit(selectedCategory, contentText.trim(), emailText.trim())
+                            onDismiss()
+                        },
+                        onFailure = { errorMessage ->
+                            isSubmitting = false
+                            Toast.makeText(
+                                context,
+                                "전송에 실패했습니다\n$errorMessage",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    )
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -210,11 +265,26 @@ fun CustomerFeedbackBottomSheet(
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text(
-                    text = "보내기",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                if (isSubmitting) {
+                    // 전송 중 로딩 인디케이터
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "전송 중...",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                } else {
+                    Text(
+                        text = "보내기",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             // 하단 여백 확보 (키보드가 올라와도 버튼이 잘 보이도록)

@@ -187,6 +187,7 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-crashlytics-ktx")
     implementation("com.google.firebase:firebase-perf-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx") // [NEW] Firestore 추가
 
     // AdMob & UMP (명시 버전 사용)
     implementation("com.google.android.gms:play-services-ads:23.6.0")

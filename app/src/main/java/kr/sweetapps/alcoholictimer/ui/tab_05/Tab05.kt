@@ -370,10 +370,9 @@ fun AboutScreen(
         CustomerFeedbackBottomSheet(
             onDismiss = { showCustomerFeedbackSheet = false },
             onSubmit = { category, content, email ->
-                // TODO: 실제 전송 로직 구현
-                Log.d("CustomerFeedback", "Category: $category, Content: $content, Email: $email")
-                Toast.makeText(context, "문의가 접수되었습니다.", Toast.LENGTH_SHORT).show()
-                showCustomerFeedbackSheet = false
+                // Firebase 전송은 BottomSheet 내부에서 처리됨
+                // 여기서는 추가 로깅이나 분석 이벤트만 기록 가능
+                Log.d("Tab05", "Feedback submitted - Category: $category")
             }
         )
     }
