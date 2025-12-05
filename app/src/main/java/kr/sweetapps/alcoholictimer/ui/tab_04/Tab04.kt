@@ -23,11 +23,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -73,10 +76,11 @@ class SettingsActivity : BaseActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     onNavigateCurrencySettings: () -> Unit = {},
-    onApplyAndGoHome: () -> Unit = {}, // [NEW] 호출 시 Tab1으로 이동
+    onApplyAndGoHome: () -> Unit = {},
     viewModel: Tab04ViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -86,10 +90,22 @@ fun SettingsScreen(
     val selectedFrequency by viewModel.selectedFrequency.collectAsState()
     val selectedDuration by viewModel.selectedDuration.collectAsState()
 
-    // [NEW] 로컬 임시 상태: 사용자는 옵션을 선택해도 즉시 저장되지 않고 Apply 버튼으로 저장됨
+    // [NEW] 로컬 임시 상태
     var tempCost by remember { mutableStateOf(selectedCost) }
     var tempFrequency by remember { mutableStateOf(selectedFrequency) }
     var tempDuration by remember { mutableStateOf(selectedDuration) }
+
+    // [NEW] 통화 설정 임시 상태
+    val prefs = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+    val isExplicit = prefs.getBoolean("currency_explicit", false)
+    val initialCurrency = if (isExplicit) {
+        prefs.getString("selected_currency", "AUTO") ?: "AUTO"
+    } else {
+        "AUTO"
+    }
+    var tempCurrency by remember { mutableStateOf(initialCurrency) }
+    var showCurrencySheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
 
     val safePadding = LocalSafeContentPadding.current
     val scrollState = rememberScrollState()
@@ -140,13 +156,21 @@ fun SettingsScreen(
             HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
             SimpleAboutRow(
                 title = stringResource(R.string.settings_currency),
-                onClick = onNavigateCurrencySettings,
+                onClick = { showCurrencySheet = true },
                 trailing = {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_caret_right),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = if (tempCurrency == "AUTO") "자동" else tempCurrency,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_caret_right),
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             )
 
@@ -207,15 +231,40 @@ fun SettingsScreen(
                 .navigationBarsPadding()
                 .padding(horizontal = 16.dp, vertical = 20.dp)
         ) {
-            val hasChanges = tempCost != selectedCost || tempFrequency != selectedFrequency || tempDuration != selectedDuration
+            val hasChanges = tempCost != selectedCost ||
+                             tempFrequency != selectedFrequency ||
+                             tempDuration != selectedDuration ||
+                             tempCurrency != initialCurrency
 
             Button(
                 onClick = {
-                    Log.d("SettingsScreen", "Apply clicked: tempCost=$tempCost tempFrequency=$tempFrequency tempDuration=$tempDuration")
+                    Log.d("SettingsScreen", "Apply clicked: tempCost=$tempCost tempFrequency=$tempFrequency tempDuration=$tempDuration tempCurrency=$tempCurrency")
 
                     viewModel.updateCost(tempCost)
                     viewModel.updateFrequency(tempFrequency)
                     viewModel.updateDuration(tempDuration)
+
+                    // [NEW] 통화 설정 저장
+                    try {
+                        val sp = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+                        if (tempCurrency == "AUTO") {
+                            sp.edit().apply {
+                                putString("selected_currency", "AUTO")
+                                putBoolean("currency_explicit", false)
+                                apply()
+                            }
+                        } else {
+                            sp.edit().apply {
+                                putString("selected_currency", tempCurrency)
+                                putBoolean("currency_explicit", true)
+                                apply()
+                            }
+                        }
+                        kr.sweetapps.alcoholictimer.util.manager.CurrencyManager.saveCurrency(context, tempCurrency)
+                    } catch (e: Exception) {
+                        Log.e("SettingsScreen", "Failed to save currency: ${e.message}")
+                    }
+
                     Log.d("SettingsScreen", "Saved to ViewModel (async)")
 
                     android.widget.Toast.makeText(
@@ -262,6 +311,82 @@ fun SettingsScreen(
                 Text(text = "적용하고 절약 금액 확인하기 >", color = Color.White)
             }
         }
+    }
+
+    // [NEW] 통화 선택 BottomSheet
+    if (showCurrencySheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showCurrencySheet = false },
+            sheetState = sheetState
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 32.dp)
+            ) {
+                Text(
+                    text = "통화 설정",
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
+                )
+
+                // AUTO 옵션
+                CurrencyOptionRow(
+                    isSelected = tempCurrency == "AUTO",
+                    label = "자동(지역 기반)",
+                    onSelected = {
+                        tempCurrency = "AUTO"
+                        showCurrencySheet = false
+                    }
+                )
+
+                // 지원 통화 목록
+                kr.sweetapps.alcoholictimer.util.manager.CurrencyManager.supportedCurrencies.forEach { currency ->
+                    CurrencyOptionRow(
+                        isSelected = tempCurrency == currency.code,
+                        label = context.getString(currency.nameResId),
+                        onSelected = {
+                            tempCurrency = currency.code
+                            showCurrencySheet = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CurrencyOptionRow(
+    isSelected: Boolean,
+    label: String,
+    onSelected: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) { onSelected() }
+            .height(56.dp)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RadioButton(
+            selected = isSelected,
+            onClick = null,
+            colors = RadioButtonDefaults.colors(
+                selectedColor = colorResource(id = R.color.color_accent_blue),
+                unselectedColor = colorResource(id = R.color.color_radio_unselected)
+            )
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = label,
+            style = if (isSelected) MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold) else MaterialTheme.typography.bodyMedium,
+            color = if (isSelected) colorResource(id = R.color.color_indicator_days) else MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 
