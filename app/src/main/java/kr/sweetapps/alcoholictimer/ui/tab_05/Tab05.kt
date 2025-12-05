@@ -198,38 +198,71 @@ fun AboutScreen(
 
         Spacer(modifier = Modifier.height(dims.spacing.lg))
 
-        // --- Row of 4 action buttons (알림 / 고객 문의 / 앱 공유하기 / 추천앱)
+        // --- Row of 3 action buttons (알림 / 고객 문의 / 추천앱)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = dims.padding.large),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            val itemModifier = Modifier.weight(1f)
-
-            // 아이콘은 테두리/배경 없이 아이콘만 표시
-            Column(modifier = itemModifier.padding(vertical = dims.spacing.sm), horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(imageVector = Icons.Default.Notifications, contentDescription = null, tint = Color.Black, modifier = Modifier.size(dims.sizes.icon))
-                Spacer(modifier = Modifier.height(dims.spacing.sm))
-                Text(text = "알림", fontSize = 15.sp, color = Color.Black, fontWeight = FontWeight.Normal)
+            // 알림
+            Column(
+                modifier = Modifier.padding(vertical = dims.spacing.md),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Notifications,
+                    contentDescription = null,
+                    tint = Color.Black,
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "알림",
+                    fontSize = 14.sp,
+                    color = Color.Black,
+                    fontWeight = FontWeight.Normal
+                )
             }
 
-            Column(modifier = itemModifier.padding(vertical = dims.spacing.sm), horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(imageVector = Icons.Default.Person, contentDescription = null, tint = Color.Black, modifier = Modifier.size(dims.sizes.icon))
-                Spacer(modifier = Modifier.height(dims.spacing.sm))
-                Text(text = "고객 문의", fontSize = 15.sp, color = Color.Black, fontWeight = FontWeight.Normal)
+            // 고객 문의
+            Column(
+                modifier = Modifier.padding(vertical = dims.spacing.md),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = Color.Black,
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "고객 문의",
+                    fontSize = 14.sp,
+                    color = Color.Black,
+                    fontWeight = FontWeight.Normal
+                )
             }
 
-            Column(modifier = itemModifier.padding(vertical = dims.spacing.sm), horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(imageVector = Icons.Default.ChevronRight, contentDescription = null, tint = Color.Black, modifier = Modifier.size(dims.sizes.icon))
-                Spacer(modifier = Modifier.height(dims.spacing.sm))
-                Text(text = "앱 공유하기", fontSize = 15.sp, color = Color.Black, fontWeight = FontWeight.Normal)
-            }
-
-            Column(modifier = itemModifier.padding(vertical = dims.spacing.sm), horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(imageVector = Icons.Default.Person, contentDescription = null, tint = Color.Black, modifier = Modifier.size(dims.sizes.icon))
-                Spacer(modifier = Modifier.height(dims.spacing.sm))
-                Text(text = "추천앱", fontSize = 15.sp, color = Color.Black, fontWeight = FontWeight.Normal)
+            // 추천앱
+            Column(
+                modifier = Modifier.padding(vertical = dims.spacing.md),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = Color.Black,
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "추천앱",
+                    fontSize = 14.sp,
+                    color = Color.Black,
+                    fontWeight = FontWeight.Normal
+                )
             }
         }
 
