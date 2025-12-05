@@ -149,8 +149,7 @@ fun AboutScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onNavigateEditNickname() }
-                // 더 넉넉한 상하 여백을 적용해 스크린샷과 유사하게 만듭니다
-                .padding(start = dims.spacing.md, end = dims.spacing.md, top = dims.spacing.lg, bottom = dims.spacing.lg),
+                .padding(start = dims.spacing.md, end = dims.spacing.md, top = 20.dp, bottom = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -171,6 +170,8 @@ fun AboutScreen(
                 modifier = Modifier.size(20.dp)
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         // App Rating Button (simple)
         Column(modifier = Modifier.padding(horizontal = dims.padding.large)) {
@@ -200,18 +201,18 @@ fun AboutScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(dims.spacing.lg))
+        Spacer(modifier = Modifier.height(20.dp))
 
         // --- Row of 3 action buttons (알림 / 고객 문의 / 추천앱)
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 40.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             // 알림
             Column(
-                modifier = Modifier.padding(vertical = dims.spacing.md),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = dims.spacing.sm),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
@@ -231,7 +232,9 @@ fun AboutScreen(
 
             // 고객 문의
             Column(
-                modifier = Modifier.padding(vertical = dims.spacing.md),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = dims.spacing.sm),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
@@ -249,28 +252,30 @@ fun AboutScreen(
                 )
             }
 
-            // 추천앱
+            // 추천앱 (비활성화)
             Column(
-                modifier = Modifier.padding(vertical = dims.spacing.md),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = dims.spacing.sm),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.thumbsup),
                     contentDescription = null,
-                    tint = Color.Black,
+                    tint = Color(0xFFBDBDBD), // 비활성화 회색
                     modifier = Modifier.size(32.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "추천앱",
                     fontSize = 14.sp,
-                    color = Color.Black,
+                    color = Color(0xFFBDBDBD), // 비활성화 회색
                     fontWeight = FontWeight.Normal
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(dims.spacing.lg))
+        Spacer(modifier = Modifier.height(20.dp))
 
         // Thick section divider (light surface variant) - show light gray as in reference UI
         Box(modifier = Modifier
@@ -278,7 +283,7 @@ fun AboutScreen(
             .height(dims.divider.sectionThickness)
             .background(dims.divider.lightColor))
 
-        Spacer(modifier = Modifier.height(dims.spacing.xs))
+        Spacer(modifier = Modifier.height(0.dp))
 
         // Settings / About list
         Column(modifier = Modifier.background(Color.White)) {
