@@ -164,25 +164,37 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
             HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
-            SimpleAboutRow(
+
+            // 통화 설정 섹션
+            SettingsSection(
                 title = stringResource(R.string.settings_currency),
-                onClick = { showCurrencySheet = true },
-                trailing = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = if (tempCurrency == "AUTO") "자동" else tempCurrency,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray,
-                            modifier = Modifier.padding(end = 8.dp)
-                        )
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_caret_right),
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
+                titleColor = Color.Black
+            ) {
+                // 통화 선택 행
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { showCurrencySheet = true }
+                        .padding(horizontal = 20.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = if (tempCurrency == "AUTO") "자동(지역 기반)" else tempCurrency,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colorResource(id = R.color.color_text_primary_dark)
+                    )
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_caret_right),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
-            )
+            }
 
             HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
 
