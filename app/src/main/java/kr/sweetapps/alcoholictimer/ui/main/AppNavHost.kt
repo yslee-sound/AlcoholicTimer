@@ -538,6 +538,7 @@ fun AppNavHost(
                 onNavigateEditNickname = { navController.navigate(Screen.NicknameEdit.route) },
                 onNavigateCurrencySettings = { navController.navigate(Screen.CurrencySettings.route) },
                 onNavigateDebug = { navController.navigate(Screen.Debug.route) },
+                onNavigateNotification = { navController.navigate("notification") },
                 showBack = false
             )
         }
@@ -618,6 +619,13 @@ fun AppNavHost(
                         launchSingleTop = true
                     }
                 }
+            )
+        }
+
+        // Notification Screen
+        composable("notification") {
+            kr.sweetapps.alcoholictimer.ui.tab_05.screens.NotificationScreen(
+                onBack = { navController.popBackStack() }
             )
         }
     }

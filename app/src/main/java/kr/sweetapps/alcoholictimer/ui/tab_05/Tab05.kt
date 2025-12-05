@@ -72,6 +72,7 @@ fun AboutScreen(
     onNavigateEditNickname: () -> Unit = {},
     onNavigateCurrencySettings: () -> Unit = {},
     onNavigateDebug: () -> Unit = {},
+    onNavigateNotification: () -> Unit = {},
     showBack: Boolean = false,
     onBack: () -> Unit = {}
 ) {
@@ -197,7 +198,19 @@ fun AboutScreen(
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "앱 평가하기", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.star),
+                        contentDescription = null,
+                        tint = Color(0xFFFBC02D), // 노란색
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = "앱 평가하기", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                }
             }
         }
 
@@ -212,6 +225,7 @@ fun AboutScreen(
             Column(
                 modifier = Modifier
                     .weight(1f)
+                    .clickable { onNavigateNotification() }
                     .padding(vertical = dims.spacing.sm),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -341,5 +355,5 @@ fun AboutScreen(
 @Preview(showBackground = true)
 @Composable
 fun AboutScreenPreview() {
-    AboutScreen(onNavigateLicenses = {}, onNavigateDebug = {})
+    AboutScreen(onNavigateLicenses = {}, onNavigateDebug = {}, onNavigateNotification = {})
 }
