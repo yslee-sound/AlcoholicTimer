@@ -207,9 +207,12 @@ fun SettingsScreen(
         val activity = (context as? android.app.Activity)
         Column(modifier = Modifier.fillMaxSize()) {
             Spacer(modifier = Modifier.weight(1f))
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .navigationBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 val hasChanges = tempCost != selectedCost || tempFrequency != selectedFrequency || tempDuration != selectedDuration
 
@@ -264,8 +267,7 @@ fun SettingsScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp)
-                        .navigationBarsPadding(),
+                        .height(56.dp),
                     enabled = hasChanges,
                     colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.color_accent_blue))
                 ) {
