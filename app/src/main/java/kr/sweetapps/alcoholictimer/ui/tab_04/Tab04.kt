@@ -239,7 +239,7 @@ fun SettingsScreen(
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 20.dp)
+                .padding(horizontal = 20.dp, vertical = 20.dp)
         ) {
             val hasChanges = tempCost != selectedCost ||
                              tempFrequency != selectedFrequency ||
@@ -337,7 +337,7 @@ fun SettingsScreen(
                 Text(
                     text = "통화 설정",
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
                 )
 
                 // AUTO 옵션
@@ -380,7 +380,7 @@ fun CurrencyOptionRow(
                 interactionSource = remember { MutableInteractionSource() }
             ) { onSelected() }
             .height(56.dp)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         RadioButton(
@@ -409,7 +409,7 @@ fun SettingsSection(title: String, titleColor: Color, content: @Composable () ->
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = titleColor,
             // 상단/하단 패딩을 통일하여 각 섹션 간 간격을 일정하게 함
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 8.dp)
+            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 8.dp)
         )
         content()
     }
@@ -423,7 +423,7 @@ fun SettingsOptionGroup(
     onOptionSelected: (String) -> Unit
 ) {
     // 그룹 단위로 수평 패딩을 적용하고, 옵션 사이의 간격을 8.dp로 통일
-    Column(verticalArrangement = Arrangement.spacedBy(0.dp), modifier = Modifier.padding(horizontal = 16.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(0.dp), modifier = Modifier.padding(horizontal = 20.dp)) {
         options.forEachIndexed { index, option ->
             SettingsOptionItem(
                 isSelected = selectedOption == option,
