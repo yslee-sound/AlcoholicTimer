@@ -24,7 +24,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
@@ -43,6 +42,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -165,7 +165,12 @@ fun AboutScreen(
             }
             Spacer(modifier = Modifier.width(dims.spacing.sm))
             Text(text = stringResource(id = R.string.default_nickname), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black, modifier = Modifier.weight(1f))
-            Icon(imageVector = Icons.Default.ChevronRight, contentDescription = null, tint = Color.Black)
+            Icon(
+                painter = painterResource(id = R.drawable.ic_caret_right),
+                contentDescription = null,
+                tint = Color(0xFF9CA3AF),
+                modifier = Modifier.size(20.dp)
+            )
         }
 
         // App Rating Button (simple)
@@ -286,13 +291,23 @@ fun AboutScreen(
 
             // Privacy
             SimpleAboutRow(title = stringResource(id = R.string.document_title_privacy), onClick = onPrivacyClick, trailing = {
-                Icon(imageVector = Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFFBBBBBB), modifier = Modifier.size(20.dp))
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_caret_right),
+                    contentDescription = null,
+                    tint = Color(0xFF9CA3AF),
+                    modifier = Modifier.size(20.dp)
+                )
             })
             Box(modifier = Modifier.fillMaxWidth().height(dims.divider.thin).background(dims.divider.lightColor))
 
             // Open Source License
             SimpleAboutRow(title = stringResource(id = R.string.about_open_license_notice), onClick = onLicenseClick, trailing = {
-                Icon(imageVector = Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFFBBBBBB), modifier = Modifier.size(20.dp))
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_caret_right),
+                    contentDescription = null,
+                    tint = Color(0xFF9CA3AF),
+                    modifier = Modifier.size(20.dp)
+                )
             })
             Box(modifier = Modifier.fillMaxWidth().height(dims.divider.thin).background(dims.divider.lightColor))
 
@@ -307,7 +322,12 @@ fun AboutScreen(
             // Debug menu
             if (showDebugMenu) {
                 SimpleAboutRow(title = "Debug", onClick = onDebugClick, trailing = {
-                    Icon(imageVector = Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFFBBBBBB), modifier = Modifier.size(20.dp))
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_caret_right),
+                        contentDescription = null,
+                        tint = Color(0xFF9CA3AF),
+                        modifier = Modifier.size(20.dp)
+                    )
                 })
             }
         }

@@ -7,18 +7,18 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import org.json.JSONArray
 import java.util.*
@@ -156,7 +156,12 @@ private fun DiaryCardItem(diary: DiaryWithTimestamp, onClick: () -> Unit) {
                 )
             }
 
-            Icon(imageVector = Icons.Default.ChevronRight, contentDescription = "상세 보기")
+            Icon(
+                painter = painterResource(id = R.drawable.ic_caret_right),
+                contentDescription = "상세 보기",
+                tint = Color(0xFF9CA3AF),
+                modifier = Modifier.size(20.dp)
+            )
         }
     }
 }
