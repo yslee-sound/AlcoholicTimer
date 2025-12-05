@@ -19,7 +19,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.painterResource
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
@@ -36,7 +35,6 @@ import kr.sweetapps.alcoholictimer.ui.components.AppCard
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme
 import androidx.compose.ui.tooling.preview.Preview
-import android.content.res.Configuration
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -461,9 +459,13 @@ fun DetailStatCard(
     }
 }
 
-@Preview(showBackground = true, name = "DetailScreen - Light")
+@Preview(
+    name = "기록 상세 화면",
+    showBackground = true,
+    showSystemUi = true
+)
 @Composable
-fun DetailScreenPreviewLight() {
+fun DetailScreenPreview() {
     AlcoholicTimerTheme(darkTheme = false) {
         DetailScreen(
             startTime = System.currentTimeMillis() - 3L * 24L * 60L * 60L * 1000L,
@@ -472,86 +474,11 @@ fun DetailScreenPreviewLight() {
             actualDays = 3,
             isCompleted = false,
             onBack = {},
-            onDelete = { _, _ -> /* no-op in preview */ },
-            onDeleted = {},
-            previewMode = true
-        )
-    }
-}
-
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, name = "DetailScreen - Dark")
-@Composable
-fun DetailScreenPreviewDark() {
-    AlcoholicTimerTheme(darkTheme = true) {
-        DetailScreen(
-            startTime = System.currentTimeMillis() - 45L * 24L * 60L * 60L * 1000L,
-            endTime = System.currentTimeMillis(),
-            targetDays = 90f,
-            actualDays = 45,
-            isCompleted = true,
-            onBack = {},
             onDelete = { _, _ -> },
             onDeleted = {},
+            onNavigateToHome = {},
             previewMode = true
         )
     }
 }
 
-// A very safe preview that avoids any Android runtime APIs and uses static strings.
-@Preview(showBackground = true, name = "DetailScreen - Safe Light")
-@Composable
-fun DetailScreenPreviewSafeLight() {
-    AlcoholicTimerTheme(darkTheme = false) {
-        Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-            // Header card
-            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = "Start: 2025-11-14 - 3:00 PM", style = MaterialTheme.typography.bodyLarge)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = "End: 2025-11-17 - 11:00 AM", style = MaterialTheme.typography.bodyLarge)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(text = "3.0", style = MaterialTheme.typography.displayLarge, color = Color(0xFF1E88E5))
-                    Text(text = "days", style = MaterialTheme.typography.titleLarge)
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                DetailStatCard(value = "3.0", label = "Total Days", modifier = Modifier.weight(1f), valueColor = Color(0xFF2E7D32))
-                DetailStatCard(value = "₩3,000", label = "Saved", modifier = Modifier.weight(1f), valueColor = Color(0xFF1E88E5))
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                DetailStatCard(value = "9h", label = "Saved Hours", modifier = Modifier.weight(1f), valueColor = Color(0xFFFBC02D))
-                DetailStatCard(value = "1.5d", label = "Life Gain", modifier = Modifier.weight(1f), valueColor = Color(0xFF6B46C1))
-            }
-        }
-    }
-}
-
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, name = "DetailScreen - Safe Dark")
-@Composable
-fun DetailScreenPreviewSafeDark() {
-    AlcoholicTimerTheme(darkTheme = true) {
-        DetailScreenPreviewSafeLight()
-    }
-}
-
-@Preview(showBackground = true, name = "BackTopBar - Light")
-@Composable
-fun BackTopBarPreviewLight() {
-    AlcoholicTimerTheme(darkTheme = false) {
-        BackTopBar(title = "Detail", onBack = {}, trailingContent = {
-            Icon(painter = painterResource(id = R.drawable.ic_x), contentDescription = null, tint = Color.Black, modifier = Modifier.size(24.dp))
-        })
-    }
-}
-
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, name = "BackTopBar - Dark")
-@Composable
-fun BackTopBarPreviewDark() {
-    AlcoholicTimerTheme(darkTheme = true) {
-        BackTopBar(title = "Detail", onBack = {}, trailingContent = {
-            Icon(painter = painterResource(id = R.drawable.ic_x), contentDescription = null, tint = Color.Black, modifier = Modifier.size(24.dp))
-        })
-    }
-}

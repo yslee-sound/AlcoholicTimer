@@ -54,16 +54,16 @@ import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.util.utils.DateOverlapUtils
 
 // Records screen constants (migrated from UiConstants)
-val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 15.dp // 15
+val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 20.dp // 전체 화면 좌우 여백
 // header specific left/start padding (controls only the start of the "월 통계" title)
 // separate header horizontal padding so title start can be adjusted independently
-val RECORDS_STATS_INTERNAL_TOP_GAP: Dp = 12.dp // 12
-val RECORDS_STATS_ROW_SPACING: Dp = 12.dp // 12, 3칩 하단
-val RECORDS_CARD_IN_ROW_SPACING: Dp = 12.dp // 12, 3칩 사이 공간
+val RECORDS_STATS_INTERNAL_TOP_GAP: Dp = 10.dp // 12
+val RECORDS_STATS_ROW_SPACING: Dp = 10.dp // 12, 3칩 하단
+val RECORDS_CARD_IN_ROW_SPACING: Dp = 10.dp // 12, 3칩 사이 공간
 val RECORDS_SELECTION_ROW_HEIGHT: Dp = 56.dp // 56
 
 // Local small overrides used only inside this file
-val RECORDS_HEADER_START_PADDING: Dp = 17.dp // 15 + 2, 월 통계 왼쪽
+val RECORDS_HEADER_START_PADDING: Dp = 20.dp
 val RECORDS_TOP_SECTION_EXTERNAL_GAP: Dp = 15.dp // 15, 월 통계 상단 패딩
 private val RECORDS_HEADER_TO_CARD_GAP = 0.dp  // removed gap between selection card and header
 private val RECORDS_CARD_INTERNAL_TOP_PADDING = 8.dp // 8, 3칩 그룹 내부 상단
@@ -462,13 +462,13 @@ private fun PeriodHeaderRow(onNavigateToAllRecords: () -> Unit) {
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface
         )
-        // [수정] + 버튼 -> 전체 기록 보기 아이콘으로 변경
+        // [수정] 목록 아이콘 -> > 화살표 아이콘으로 변경
         IconButton(onClick = onNavigateToAllRecords) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_list),
+                painter = painterResource(id = R.drawable.ic_caret_right),
                 contentDescription = stringResource(R.string.records_view_all_icon_cd),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(20.dp)
             )
         }
     }
