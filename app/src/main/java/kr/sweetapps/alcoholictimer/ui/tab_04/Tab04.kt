@@ -111,8 +111,7 @@ fun SettingsScreen(
                 .verticalScroll(scrollState)
                 .padding(top = 8.dp)
                 .padding(safePadding)
-                // reserve bottom space so content is not obscured by the sticky button
-                .padding(bottom = safePadding.calculateBottomPadding() + 92.dp),
+                .padding(bottom = 140.dp), // 플로팅 버튼에 가려지지 않도록 충분한 여백 확보
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             SettingsSection(
@@ -132,14 +131,11 @@ fun SettingsScreen(
                         stringResource(R.string.settings_cost_high_label)
                     ),
                     onOptionSelected = { newValue ->
-                        // [NEW] 임시 상태만 변경 (저장은 Apply 버튼에서)
                         tempCost = newValue
                     }
                 )
             }
 
-            // 통화 설정 메뉴를 음주 비용 섹션 하단으로 이동
-            // Add a small spacing before the currency row and keep only a single thin divider below
             Spacer(modifier = Modifier.height(8.dp))
             HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
             SimpleAboutRow(
@@ -154,7 +150,6 @@ fun SettingsScreen(
                 }
             )
 
-            // 얇은 구분선: 아래 섹션과 구분 (single thin line)
             HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
 
             SettingsSection(
@@ -203,76 +198,68 @@ fun SettingsScreen(
             }
         }
 
-        // [NEW] 하단 고정 Apply 버튼 — 스크롤 영역 밖에 배치되어 항상 표시
+        // 하단 플로팅 버튼 (Overlay)
         val activity = (context as? android.app.Activity)
-        Column(modifier = Modifier.fillMaxSize()) {
-            Spacer(modifier = Modifier.weight(1f))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White)
-                    .navigationBarsPadding()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-            ) {
-                val hasChanges = tempCost != selectedCost || tempFrequency != selectedFrequency || tempDuration != selectedDuration
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 20.dp)
+        ) {
+            val hasChanges = tempCost != selectedCost || tempFrequency != selectedFrequency || tempDuration != selectedDuration
 
-                Button(
-                    onClick = {
-                        Log.d("SettingsScreen", "Apply clicked: tempCost=$tempCost tempFrequency=$tempFrequency tempDuration=$tempDuration")
+            Button(
+                onClick = {
+                    Log.d("SettingsScreen", "Apply clicked: tempCost=$tempCost tempFrequency=$tempFrequency tempDuration=$tempDuration")
 
-                        // 1) 저장
-                        viewModel.updateCost(tempCost)
-                        viewModel.updateFrequency(tempFrequency)
-                        viewModel.updateDuration(tempDuration)
-                        Log.d("SettingsScreen", "Saved to ViewModel (async)")
+                    viewModel.updateCost(tempCost)
+                    viewModel.updateFrequency(tempFrequency)
+                    viewModel.updateDuration(tempDuration)
+                    Log.d("SettingsScreen", "Saved to ViewModel (async)")
 
-                        // [NEW] 저장 완료 Toast 메시지 (광고 전에 표시)
-                        android.widget.Toast.makeText(
-                            context,
-                            "설정이 저장되었습니다.",
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
+                    android.widget.Toast.makeText(
+                        context,
+                        "설정이 저장되었습니다.",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
 
-                        // 2) 플래그 설정: Tab1에서 스낵바 표시
-                        try {
-                            val sp = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
-                            sp.edit().putBoolean("settings_applied_snackbar_pending", true).apply()
-                            Log.d("SettingsScreen", "Set settings_applied_snackbar_pending=true in sharedPref")
-                        } catch (_: Throwable) {}
+                    try {
+                        val sp = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+                        sp.edit().putBoolean("settings_applied_snackbar_pending", true).apply()
+                        Log.d("SettingsScreen", "Set settings_applied_snackbar_pending=true in sharedPref")
+                    } catch (_: Throwable) {}
 
-                        // 3) [수익화] 광고 정책 체크 및 전면광고 호출 후 Tab1으로 이동
-                        val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
+                    val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
 
-                        // 화면 종료 함수
-                        val finishAndGoHome: () -> Unit = {
-                            Log.d("SettingsScreen", "설정 완료 -> Tab1으로 이동")
-                            onApplyAndGoHome()
-                        }
+                    val finishAndGoHome: () -> Unit = {
+                        Log.d("SettingsScreen", "설정 완료 -> Tab1으로 이동")
+                        onApplyAndGoHome()
+                    }
 
-                        if (shouldShowAd && activity != null) {
-                            Log.d("SettingsScreen", "광고 정책 통과 -> 전면 광고 노출")
-                            if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
-                                kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(activity) { success ->
-                                    Log.d("SettingsScreen", "광고 결과: success=$success -> Tab1 이동")
-                                    finishAndGoHome()
-                                }
-                            } else {
-                                Log.d("SettingsScreen", "광고 로드 안됨 -> 즉시 Tab1 이동")
+                    if (shouldShowAd && activity != null) {
+                        Log.d("SettingsScreen", "광고 정책 통과 -> 전면 광고 노출")
+                        if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
+                            kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(activity) { success ->
+                                Log.d("SettingsScreen", "광고 결과: success=$success -> Tab1 이동")
                                 finishAndGoHome()
                             }
                         } else {
-                            Log.d("SettingsScreen", "광고 쿨타임 중 또는 activity null -> 즉시 Tab1 이동")
+                            Log.d("SettingsScreen", "광고 로드 안됨 -> 즉시 Tab1 이동")
                             finishAndGoHome()
                         }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    enabled = hasChanges,
-                    colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.color_accent_blue))
-                ) {
-                    Text(text = "적용하고 절약 금액 확인하기 >", color = Color.White)
-                }
+                    } else {
+                        Log.d("SettingsScreen", "광고 쿨타임 중 또는 activity null -> 즉시 Tab1 이동")
+                        finishAndGoHome()
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                enabled = hasChanges,
+                colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.color_accent_blue))
+            ) {
+                Text(text = "적용하고 절약 금액 확인하기 >", color = Color.White)
             }
         }
     }
