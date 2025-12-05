@@ -264,6 +264,7 @@ fun SettingsScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
+                        .height(56.dp)
                         .navigationBarsPadding(),
                     enabled = hasChanges,
                     colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.color_accent_blue))
