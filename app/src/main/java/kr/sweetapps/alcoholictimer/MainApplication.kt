@@ -49,6 +49,16 @@ class MainApplication : Application() {
         // Firebase 초기화: google-services.json을 통해 자동으로 구성됨
         // 명시적으로 초기화하여 Firebase API 사용 시 안정성 확보
         try { FirebaseApp.initializeApp(this) } catch (_: Throwable) {}
+
+        // [v1.0] Firebase Remote Config 초기화 (광고 정책용)
+        try {
+            kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.fetchRemoteConfig { success ->
+                android.util.Log.d("MainApplication", "Remote Config 초기화 완료: success=$success")
+            }
+        } catch (t: Throwable) {
+            android.util.Log.e("MainApplication", "Remote Config 초기화 실패", t)
+        }
+
         // Analytics 슈퍼 초기화(Firebase 초기화 이후에 호출)
         try { AnalyticsManager.initialize(this) } catch (_: Throwable) {}
         umpConsentManager = kr.sweetapps.alcoholictimer.consent.UmpConsentManager(this)

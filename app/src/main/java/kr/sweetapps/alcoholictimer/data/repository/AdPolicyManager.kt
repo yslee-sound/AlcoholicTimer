@@ -1,99 +1,164 @@
-// [NEW] 광고 정책 관리자 - 쿨타임 제어 통합
+// [NEW] 광고 정책 관리자 v1.0 - 통합 쿨타임 제어 (전면광고 + 앱오프닝)
 package kr.sweetapps.alcoholictimer.data.repository
 
 import android.content.Context
 import android.util.Log
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.remoteconfig.ktx.remoteConfig
+import com.google.firebase.ktx.Firebase
 import kr.sweetapps.alcoholictimer.BuildConfig
 
 /**
  * 광고 정책을 통합 관리하는 싱글톤 객체
- * - 전면 광고 쿨타임 관리
+ * - 전면 광고 + 앱 오프닝 통합 쿨타임 관리
+ * - Firebase Remote Config Kill Switch 지원
  * - 디버그 모드에서 쿨타임 오버라이드 가능
- * - 마지막 광고 노출 시간 추적
+ * - 실제 시간(System.currentTimeMillis) 기반 (타이머 배속과 독립)
  */
 object AdPolicyManager {
     private const val TAG = "AdPolicyManager"
 
     // SharedPreferences 키
     private const val PREFS_NAME = "ad_policy_prefs"
-    private const val KEY_LAST_INTERSTITIAL_TIME_MS = "last_interstitial_time_ms"
+    private const val KEY_LAST_AD_SHOWN_TIME_MS = "last_ad_shown_time_ms" // [통합] 모든 전면형 광고 공유
     private const val KEY_DEBUG_AD_COOL_DOWN_SECONDS = "debug_ad_cool_down_seconds"
-    private const val KEY_DEBUG_COOLDOWN_ENABLED = "debug_cooldown_enabled" // [NEW] 스위치 상태
+    private const val KEY_DEBUG_COOLDOWN_ENABLED = "debug_cooldown_enabled"
+    private const val KEY_DEBUG_AD_FORCE_DISABLED = "debug_ad_force_disabled" // [NEW] 디버그 광고 끄기
 
-    // 기본 정책 값
-    private const val RELEASE_INTERSTITIAL_INTERVAL_SECONDS = 1800L // 릴리즈: 30분
+    // Firebase Remote Config 키
+    private const val REMOTE_KEY_INTERSTITIAL_INTERVAL = "interstitial_interval_sec"
+    private const val REMOTE_KEY_IS_AD_ENABLED = "is_ad_enabled"
+
+    // 기본 정책 값 (v1.0)
+    private const val DEFAULT_INTERSTITIAL_INTERVAL_SECONDS = 300L // 5분 (정책 v1.0)
     private const val DEBUG_DEFAULT_INTERSTITIAL_INTERVAL_SECONDS = 60L // 디버그 기본: 1분
 
+    // Firebase Remote Config 인스턴스
+    private val remoteConfig: FirebaseRemoteConfig by lazy {
+        Firebase.remoteConfig.apply {
+            setDefaultsAsync(
+                mapOf(
+                    REMOTE_KEY_INTERSTITIAL_INTERVAL to DEFAULT_INTERSTITIAL_INTERVAL_SECONDS,
+                    REMOTE_KEY_IS_AD_ENABLED to true
+                )
+            )
+        }
+    }
+
     /**
-     * 전면 광고 쿨타임 간격(초)을 반환
+     * [v1.0] 전면형 광고(전면광고 + 앱오프닝) 쿨타임 간격(초)을 반환
      *
-     * 우선순위:
-     * 1. 디버그 모드 사용자 설정 값 (DEBUG 빌드 + 디버그 메뉴에서 설정)
-     * 2. Firebase Remote Config 값 (추후 구현)
-     * 3. 하드코딩된 기본값 (릴리즈: 30분, 디버그: 1분)
+     * 우선순위 (상위가 우선):
+     * 1. [DEBUG ONLY] 디버그 메뉴에서 설정한 커스텀 쿨타임
+     * 2. Firebase Remote Config의 "interstitial_interval_sec" 값
+     * 3. 기본값 300초 (5분)
      *
      * @param context Context
      * @return 쿨타임 간격(초)
      */
     fun getInterstitialIntervalSeconds(context: Context): Long {
-        // [1단계] 디버그 모드에서 스위치 및 사용자 설정값 확인 (최우선)
+        // [1순위] 디버그 모드 커스텀 설정 (최우선)
         if (BuildConfig.DEBUG) {
             try {
                 val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-
-                // 스위치 상태 확인
                 val isEnabled = prefs.getBoolean(KEY_DEBUG_COOLDOWN_ENABLED, false)
 
                 if (isEnabled) {
-                    // CASE A: 스위치 ON → 사용자 설정값 사용 (테스트 모드)
                     val debugInterval = prefs.getLong(KEY_DEBUG_AD_COOL_DOWN_SECONDS, -1L)
                     if (debugInterval >= 0) {
-                        Log.d(TAG, "✅ 디버그 모드 (스위치 ON): 사용자 설정 쿨타임 = $debugInterval 초 (테스트 모드)")
+                        Log.d(TAG, "✅ [1순위] 디버그 커스텀 쿨타임: $debugInterval 초")
                         return debugInterval
                     }
                 }
-
-                // CASE B: 스위치 OFF 또는 설정값 없음 → 디버그 기본값 (1분)
-                Log.d(TAG, "디버그 모드 (스위치 ${if (isEnabled) "ON이지만 값 없음" else "OFF"}): 기본 쿨타임 = $DEBUG_DEFAULT_INTERSTITIAL_INTERVAL_SECONDS 초 (1분)")
-                return DEBUG_DEFAULT_INTERSTITIAL_INTERVAL_SECONDS
             } catch (t: Throwable) {
-                Log.e(TAG, "디버그 쿨타임 로드 실패", t)
-                return DEBUG_DEFAULT_INTERSTITIAL_INTERVAL_SECONDS
+                Log.e(TAG, "디버그 설정 로드 실패", t)
             }
         }
 
-        // [2단계] Firebase Remote Config (추후 구현)
-        // TODO: Firebase Remote Config에서 값 가져오기
+        // [2순위] Firebase Remote Config
+        try {
+            val remoteInterval = remoteConfig.getLong(REMOTE_KEY_INTERSTITIAL_INTERVAL)
+            if (remoteInterval > 0) {
+                Log.d(TAG, "✅ [2순위] Firebase Remote Config 쿨타임: $remoteInterval 초")
+                return remoteInterval
+            }
+        } catch (t: Throwable) {
+            Log.w(TAG, "Remote Config 로드 실패, 기본값 사용", t)
+        }
 
-        // [3단계] 릴리즈 빌드 기본값 반환 (30분)
-        Log.d(TAG, "릴리즈 모드: 기본 쿨타임 = $RELEASE_INTERSTITIAL_INTERVAL_SECONDS 초 (30분)")
-        return RELEASE_INTERSTITIAL_INTERVAL_SECONDS
+        // [3순위] 기본값 (5분)
+        val defaultInterval = if (BuildConfig.DEBUG) {
+            DEBUG_DEFAULT_INTERSTITIAL_INTERVAL_SECONDS // 디버그: 1분
+        } else {
+            DEFAULT_INTERSTITIAL_INTERVAL_SECONDS // 릴리즈: 5분
+        }
+        Log.d(TAG, "✅ [3순위] 기본 쿨타임: $defaultInterval 초")
+        return defaultInterval
     }
 
     /**
-     * 전면 광고 노출 가능 여부를 결정 (체크만, 업데이트 안 함)
+     * [v1.0] 광고 활성화 여부 확인 (Kill Switch)
      *
      * @param context Context
-     * @return true이면 광고 노출 가능, false이면 쿨타임 중
+     * @return true이면 광고 표시 가능, false이면 긴급 차단
+     */
+    fun isAdEnabled(context: Context): Boolean {
+        // [예외] 디버그 모드에서 강제 비활성화 설정 확인
+        if (BuildConfig.DEBUG) {
+            try {
+                val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                val forceDisabled = prefs.getBoolean(KEY_DEBUG_AD_FORCE_DISABLED, false)
+                if (forceDisabled) {
+                    Log.d(TAG, "⚠️ [디버그] 광고 강제 비활성화됨")
+                    return false
+                }
+            } catch (t: Throwable) {
+                Log.e(TAG, "디버그 광고 설정 확인 실패", t)
+            }
+        }
+
+        // Firebase Remote Config Kill Switch 확인
+        return try {
+            val enabled = remoteConfig.getBoolean(REMOTE_KEY_IS_AD_ENABLED)
+            Log.d(TAG, "Firebase Kill Switch: is_ad_enabled = $enabled")
+            enabled
+        } catch (t: Throwable) {
+            Log.w(TAG, "Remote Config Kill Switch 확인 실패, 기본값 true 사용", t)
+            true // 기본적으로 광고 활성화
+        }
+    }
+
+    /**
+     * [v1.0 통합] 전면형 광고 노출 가능 여부를 결정
+     * (전면광고 + 앱오프닝 공통 사용)
+     *
+     * @param context Context
+     * @return true이면 광고 노출 가능, false이면 쿨타임 중 또는 Kill Switch 차단
      */
     fun shouldShowInterstitialAd(context: Context): Boolean {
+        // 1. Kill Switch 확인
+        if (!isAdEnabled(context)) {
+            Log.d(TAG, "❌ Kill Switch에 의해 광고 차단됨")
+            return false
+        }
+
         try {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-            // 1. 쿨타임 간격 가져오기
+            // 2. 쿨타임 간격 가져오기
             val intervalSeconds = getInterstitialIntervalSeconds(context)
             val intervalMillis = intervalSeconds * 1000L
 
-            // 2. 마지막 노출 시간 가져오기
-            val lastShownTime = prefs.getLong(KEY_LAST_INTERSTITIAL_TIME_MS, 0L)
+            // 3. 마지막 노출 시간 가져오기 (통합 키 사용)
+            val lastShownTime = prefs.getLong(KEY_LAST_AD_SHOWN_TIME_MS, 0L)
             val currentTime = System.currentTimeMillis()
             val elapsedTime = currentTime - lastShownTime
 
-            // 3. 쿨타임 검사
+            // 4. 쿨타임 검사
             val canShow = elapsedTime >= intervalMillis
 
             Log.d(TAG, "========================================")
-            Log.d(TAG, "전면 광고 노출 가능 여부 확인:")
+            Log.d(TAG, "[통합 쿨타임] 광고 노출 가능 여부 확인:")
             Log.d(TAG, "  - 쿨타임 간격: $intervalSeconds 초 (${intervalSeconds / 60}분)")
             Log.d(TAG, "  - 마지막 노출: $lastShownTime")
             Log.d(TAG, "  - 현재 시간: $currentTime")
@@ -105,7 +170,6 @@ object AdPolicyManager {
             }
             Log.d(TAG, "========================================")
 
-            // [수정] 체크만 하고 업데이트는 하지 않음 (광고 표시 성공 후 markInterstitialShown 호출 필요)
             return canShow
         } catch (t: Throwable) {
             Log.e(TAG, "광고 정책 확인 실패", t)
@@ -114,26 +178,55 @@ object AdPolicyManager {
     }
 
     /**
-     * 전면 광고가 성공적으로 표시된 후 호출 - 쿨타임 시작
+     * [v1.0 통합] 전면형 광고가 성공적으로 표시된 후 호출
+     * (전면광고, 앱오프닝 모두 이 함수 호출)
      *
      * @param context Context
+     * @param adType 광고 타입 (로그용)
      */
-    fun markInterstitialShown(context: Context) {
+    fun markAdShown(context: Context, adType: String = "unknown") {
         try {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val currentTime = System.currentTimeMillis()
-            prefs.edit().putLong(KEY_LAST_INTERSTITIAL_TIME_MS, currentTime).apply()
-            Log.d(TAG, "✅ 전면 광고 표시 완료 - 쿨타임 시작: $currentTime")
+            prefs.edit().putLong(KEY_LAST_AD_SHOWN_TIME_MS, currentTime).apply()
+            Log.d(TAG, "✅ [$adType] 광고 표시 완료 - 통합 쿨타임 시작: $currentTime")
         } catch (t: Throwable) {
             Log.e(TAG, "쿨타임 시작 실패", t)
         }
     }
 
     /**
-     * 디버그 모드 쿨타임 설정 (DEBUG 빌드만)
-     *
-     * @param context Context
-     * @param seconds 쿨타임 간격(초), 0 이하면 기본값 사용
+     * [Deprecated] 이전 버전 호환용 (markAdShown으로 대체)
+     */
+    @Deprecated("Use markAdShown() instead", ReplaceWith("markAdShown(context, \"interstitial\")"))
+    fun markInterstitialShown(context: Context) {
+        markAdShown(context, "interstitial")
+    }
+
+    /**
+     * Remote Config 새로고침 (앱 시작 시 호출 권장)
+     */
+    fun fetchRemoteConfig(onComplete: ((Boolean) -> Unit)? = null) {
+        try {
+            remoteConfig.fetchAndActivate()
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val updated = task.result
+                        Log.d(TAG, "✅ Remote Config 업데이트 완료: updated=$updated")
+                        onComplete?.invoke(true)
+                    } else {
+                        Log.w(TAG, "Remote Config 업데이트 실패")
+                        onComplete?.invoke(false)
+                    }
+                }
+        } catch (t: Throwable) {
+            Log.e(TAG, "Remote Config fetch 실패", t)
+            onComplete?.invoke(false)
+        }
+    }
+
+    /**
+     * [디버그] 쿨타임 커스텀 설정 (DEBUG 빌드만)
      */
     fun setDebugCoolDownSeconds(context: Context, seconds: Long) {
         if (!BuildConfig.DEBUG) {
@@ -143,39 +236,50 @@ object AdPolicyManager {
 
         try {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            Log.d(TAG, "=== 디버그 쿨타임 설정 시작 ===")
-            Log.d(TAG, "설정할 값: $seconds 초")
-            Log.d(TAG, "SharedPreferences 이름: $PREFS_NAME")
-            Log.d(TAG, "키: $KEY_DEBUG_AD_COOL_DOWN_SECONDS")
-
             prefs.edit().putLong(KEY_DEBUG_AD_COOL_DOWN_SECONDS, seconds).apply()
-
-            // 저장 확인
-            val saved = prefs.getLong(KEY_DEBUG_AD_COOL_DOWN_SECONDS, -999L)
-            Log.d(TAG, "✅ 저장 완료 - 확인값: $saved 초")
-            Log.d(TAG, "===========================")
+            Log.d(TAG, "✅ 디버그 쿨타임 설정: $seconds 초")
         } catch (t: Throwable) {
             Log.e(TAG, "디버그 쿨타임 설정 실패", t)
         }
     }
 
     /**
-     * 디버그 모드 쿨타임 가져오기 (DEBUG 빌드만)
-     *
-     * @param context Context
-     * @return 설정된 쿨타임(초), 설정되지 않았으면 -1
+     * [디버그] 쿨타임 가져오기 (DEBUG 빌드만)
      */
     fun getDebugCoolDownSeconds(context: Context): Long {
-        if (!BuildConfig.DEBUG) {
-            return -1L
-        }
-
+        if (!BuildConfig.DEBUG) return -1L
         return try {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             prefs.getLong(KEY_DEBUG_AD_COOL_DOWN_SECONDS, -1L)
         } catch (t: Throwable) {
-            Log.e(TAG, "디버그 쿨타임 로드 실패", t)
             -1L
+        }
+    }
+
+    /**
+     * [디버그] 광고 강제 비활성화 설정 (DEBUG 빌드만)
+     */
+    fun setDebugAdForceDisabled(context: Context, disabled: Boolean) {
+        if (!BuildConfig.DEBUG) return
+        try {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit().putBoolean(KEY_DEBUG_AD_FORCE_DISABLED, disabled).apply()
+            Log.d(TAG, "✅ 디버그 광고 강제 비활성화: $disabled")
+        } catch (t: Throwable) {
+            Log.e(TAG, "디버그 광고 설정 실패", t)
+        }
+    }
+
+    /**
+     * [디버그] 광고 강제 비활성화 여부 확인
+     */
+    fun isDebugAdForceDisabled(context: Context): Boolean {
+        if (!BuildConfig.DEBUG) return false
+        return try {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.getBoolean(KEY_DEBUG_AD_FORCE_DISABLED, false)
+        } catch (t: Throwable) {
+            false
         }
     }
 
@@ -185,8 +289,8 @@ object AdPolicyManager {
     fun resetLastShownTime(context: Context) {
         try {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            prefs.edit().remove(KEY_LAST_INTERSTITIAL_TIME_MS).apply()
-            Log.d(TAG, "마지막 광고 노출 시간 초기화 완료")
+            prefs.edit().remove(KEY_LAST_AD_SHOWN_TIME_MS).apply()
+            Log.d(TAG, "✅ 마지막 광고 노출 시간 초기화 완료")
         } catch (t: Throwable) {
             Log.e(TAG, "시간 초기화 실패", t)
         }

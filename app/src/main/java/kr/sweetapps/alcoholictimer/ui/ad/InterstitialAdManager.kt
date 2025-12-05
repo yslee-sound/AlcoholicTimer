@@ -132,8 +132,8 @@ object InterstitialAdManager {
                     Log.d(TAG, "show: 광고 표시 완료")
                     try {
                         AnalyticsManager.logAdImpression("interstitial")
-                        // [NEW] 광고 표시 성공 시 쿨타임 시작
-                        kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.markInterstitialShown(activity)
+                        // [v1.0 통합 쿨타임] 전면 광고 표시 기록
+                        kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.markAdShown(activity, "interstitial")
                     } catch (_: Throwable) {}
                 }
 

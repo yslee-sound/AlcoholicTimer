@@ -231,6 +231,19 @@ object AppOpenAdManager {
                             Log.d(TAG, "AppOpen onAdShowedFullScreenContent")
                             isShowing = true
                             lastShownAt = System.currentTimeMillis()
+
+                            // [통합 쿨타임 v1.0] 앱 오프닝 광고도 통합 타이머에 기록
+                            try {
+                                applicationRef?.let { app ->
+                                    kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.markAdShown(
+                                        app.applicationContext,
+                                        "app_open"
+                                    )
+                                }
+                            } catch (t: Throwable) {
+                                Log.e(TAG, "Failed to mark app open ad shown", t)
+                            }
+
                             // Record shown in central controller so policy counters update
                             try { applicationRef?.let { AdController.recordAppOpenShown(it.applicationContext) } } catch (_: Throwable) {}
                             // Note: setBannerForceHidden(true)???��? show() ?�출 ?�에 ?�행??(중복 방�?)
@@ -411,16 +424,29 @@ object AppOpenAdManager {
         } catch (_: Throwable) {}
     }
 
+    /**
+     * [v1.0 통합] 최근에 전면형 광고가 표시되었는지 확인
+     * AdPolicyManager의 통합 쿨타임을 사용
+     */
     fun wasRecentlyShown(): Boolean {
-        val last = lastShownAt
-        if (last <= 0L) return false
-        val elapsed = System.currentTimeMillis() - last
         return try {
-            val minGapSec = AdController.getMinFullscreenGapSeconds()
-            elapsed < (minGapSec.coerceAtLeast(1).toLong() * 1000L)
-        } catch (_: Throwable) {
-            // fallback to 5s
-            elapsed < 5_000L
+            val context = applicationRef?.applicationContext
+            if (context != null) {
+                // [통합 쿨타임] AdPolicyManager 사용
+                val canShow = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
+                !canShow // 광고를 보여줄 수 없으면 = 최근에 표시됨
+            } else {
+                // Fallback: 로컬 타이머 사용
+                val last = lastShownAt
+                if (last <= 0L) return false
+                val elapsed = System.currentTimeMillis() - last
+                val minGapSec = AdController.getMinFullscreenGapSeconds()
+                elapsed < (minGapSec.coerceAtLeast(1).toLong() * 1000L)
+            }
+        } catch (t: Throwable) {
+            Log.e(TAG, "wasRecentlyShown check failed", t)
+            // 에러 시 안전하게 true 반환 (광고 표시 안 함)
+            true
         }
     }
 }
