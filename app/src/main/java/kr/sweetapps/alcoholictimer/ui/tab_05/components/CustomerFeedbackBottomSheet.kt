@@ -4,7 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,6 +33,7 @@ fun CustomerFeedbackBottomSheet(
 
     val maxContentLength = 300
     val isSubmitEnabled = contentText.trim().isNotEmpty()
+    val scrollState = rememberScrollState()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -49,7 +52,10 @@ fun CustomerFeedbackBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(scrollState) // [필수] 스크롤 추가
                 .padding(horizontal = 24.dp)
+                .navigationBarsPadding() // [필수] 하단 네비게이션 바 패딩
+                .imePadding() // [필수] 키보드 패딩
                 .padding(bottom = 24.dp)
         ) {
             // A. 상단 타이틀
@@ -199,6 +205,9 @@ fun CustomerFeedbackBottomSheet(
                     fontWeight = FontWeight.Bold
                 )
             }
+
+            // 하단 여백 확보 (키보드가 올라와도 버튼이 잘 보이도록)
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
