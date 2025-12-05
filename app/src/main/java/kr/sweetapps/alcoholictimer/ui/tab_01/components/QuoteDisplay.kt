@@ -35,7 +35,7 @@ fun QuoteDisplay(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 6.dp),
+            .padding(horizontal = 24.dp, vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // 1. 장식용 아이콘 (Visual Anchor)
@@ -43,11 +43,10 @@ fun QuoteDisplay(
             text = "❝",
             style = MaterialTheme.typography.displayMedium.copy(
                 fontSize = 40.sp,
-                lineHeight = 24.sp, // 라인 높이를 더 줄임
+                lineHeight = 20.sp, // 라인 높이를 최소화
                 fontFamily = FontFamily.Serif
             ),
-            color = Color(0xFFBDBDBD),
-            modifier = Modifier.offset(y = 8.dp) // 아래로 밀어서 텍스트에 붙임
+            color = Color(0xFFBDBDBD)
         )
 
         // 2. 명언 텍스트

@@ -357,10 +357,8 @@ private fun DurationBadgeRow(
     )
 
     LazyRow(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp),
-        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp),
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = START_CARD_HORIZONTAL_PADDING, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(presets) { item ->
