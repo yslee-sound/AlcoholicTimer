@@ -107,6 +107,16 @@ fun SettingsScreen(
     var showCurrencySheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
+    // [NEW] 화면 진입 시 전면 광고 미리 로드 (성능 최적화)
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        Log.d("SettingsScreen", "Entering Settings -> Preloading Interstitial Ad")
+        try {
+            kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.preload(context)
+        } catch (e: Exception) {
+            Log.e("SettingsScreen", "Failed to preload ad: ${e.message}")
+        }
+    }
+
     val safePadding = LocalSafeContentPadding.current
     val scrollState = rememberScrollState()
 
