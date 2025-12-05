@@ -24,7 +24,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -207,8 +206,8 @@ fun AboutScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = dims.padding.large),
-            horizontalArrangement = Arrangement.SpaceEvenly
+                .padding(horizontal = 40.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             // 알림
             Column(
@@ -216,7 +215,7 @@ fun AboutScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
-                    imageVector = Icons.Default.Notifications,
+                    painter = painterResource(id = R.drawable.bell),
                     contentDescription = null,
                     tint = Color.Black,
                     modifier = Modifier.size(32.dp)
@@ -236,7 +235,7 @@ fun AboutScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
-                    imageVector = Icons.Default.Person,
+                    painter = painterResource(id = R.drawable.headset),
                     contentDescription = null,
                     tint = Color.Black,
                     modifier = Modifier.size(32.dp)
@@ -256,7 +255,7 @@ fun AboutScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
-                    imageVector = Icons.Default.Person,
+                    painter = painterResource(id = R.drawable.thumbsup),
                     contentDescription = null,
                     tint = Color.Black,
                     modifier = Modifier.size(32.dp)
