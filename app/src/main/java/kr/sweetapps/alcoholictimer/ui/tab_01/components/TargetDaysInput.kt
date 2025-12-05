@@ -106,9 +106,10 @@ fun TargetDaysInput(
     }
 
     // [REFACTORED] Simplified number text style - no lineHeight constraint to prevent clipping
+    // Right-aligned for stable layout (number grows to the left)
     val numberTextStyle = MaterialTheme.typography.displayLarge.copy(
         color = colorResource(id = R.color.color_indicator_days),
-        textAlign = TextAlign.Center,
+        textAlign = TextAlign.End, // [STABLE LAYOUT] Right-aligned for consistent unit position
         fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
         fontSize = 72.sp
         // lineHeight removed - let the font breathe naturally
@@ -125,6 +126,7 @@ fun TargetDaysInput(
         modifier = modifier.padding(bottom = 16.dp)
     ) {
         // [REFACTORED] Simplified layout - no transparent text trick
+        // Fixed width for stable layout
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
@@ -149,7 +151,7 @@ fun TargetDaysInput(
                 }
                 .padding(vertical = 12.dp) // Safe padding to prevent clipping
         ) {
-            // Input field
+            // Input field with FIXED WIDTH for stable layout
             androidx.compose.foundation.text.BasicTextField(
                 value = targetText,
                 onValueChange = { newValue ->
@@ -171,7 +173,7 @@ fun TargetDaysInput(
                     // This allows user to clear the field without auto-fill
                 },
                 modifier = Modifier
-                    .wrapContentWidth()
+                    .width(180.dp) // [STABLE LAYOUT] Fixed width prevents unit text from moving
                     .focusRequester(targetFocusRequester)
                     .onFocusChanged { focusState ->
                         isFocused = focusState.isFocused

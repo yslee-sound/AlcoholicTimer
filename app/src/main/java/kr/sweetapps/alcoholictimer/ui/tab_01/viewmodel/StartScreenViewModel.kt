@@ -119,10 +119,38 @@ class StartScreenViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     /**
-     * [NEW] 목표 일수 변경
+     * [NEW] 목표 일수 변경 (뱃지 클릭)
+     * 뱃지를 클릭하면 커스텀 입력 모드를 해제하고 해당 뱃지를 선택 상태로 만듭니다.
+     */
+    fun onBadgeSelected(days: Int) {
+        _uiState.update {
+            it.copy(
+                targetDays = days,
+                isCustomInputMode = false // 뱃지 선택 시 커스텀 모드 해제
+            )
+        }
+    }
+
+    /**
+     * [NEW] 목표 일수 변경 (직접 입력)
+     * 사용자가 입력 필드에 직접 입력하면 커스텀 입력 모드로 전환하고 모든 뱃지 선택을 해제합니다.
+     */
+    fun onCustomInputChanged(days: Int) {
+        _uiState.update {
+            it.copy(
+                targetDays = days,
+                isCustomInputMode = true // 직접 입력 시 커스텀 모드 활성화
+            )
+        }
+    }
+
+    /**
+     * [DEPRECATED] 목표 일수 변경 (하위 호환용)
+     * 새 코드에서는 onBadgeSelected 또는 onCustomInputChanged를 사용하세요.
      */
     fun onTargetDaysChanged(days: Int) {
-        _uiState.update { it.copy(targetDays = days) }
+        // 기본 동작: 커스텀 입력 모드로 간주
+        onCustomInputChanged(days)
     }
 
     /**
@@ -382,7 +410,8 @@ data class StartScreenUiState(
     val timerCompleted: Boolean = false,
     val showCountdown: Boolean = false,
     val countdownNumber: Int = 3,
-    val isSplashHeld: Boolean = false
+    val isSplashHeld: Boolean = false,
+    val isCustomInputMode: Boolean = false // [MANUAL OVERRIDE] 직접 입력 모드 플래그
 )
 
 /**

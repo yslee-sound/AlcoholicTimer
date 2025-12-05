@@ -187,8 +187,9 @@ fun StartScreen(
                 Column { 
                     AppBrandTitleBar(
                         selectedDays = uiState.targetDays,
+                        isCustomInputMode = uiState.isCustomInputMode, // [MANUAL OVERRIDE] 커스텀 입력 모드 전달
                         onDaysSelected = { days ->
-                            viewModel.onTargetDaysChanged(days)
+                            viewModel.onBadgeSelected(days) // [MANUAL OVERRIDE] 뱃지 클릭 시 전용 함수 호출
                             // [NEW] Update input field when badge is selected
                             focusManager.clearFocus()
                             try { keyboardController?.hide() } catch (_: Exception) {}
@@ -224,7 +225,7 @@ fun StartScreen(
                             TargetDaysInput(
                                 value = uiState.targetDays,
                                 onValueChange = { days ->
-                                    viewModel.onTargetDaysChanged(days)
+                                    viewModel.onCustomInputChanged(days) // [MANUAL OVERRIDE] 직접 입력 시 전용 함수 호출
                                 },
                                 onDone = {
                                     focusManager.clearFocus()
@@ -307,6 +308,7 @@ fun StartScreen(
 @Composable
 private fun AppBrandTitleBar(
     selectedDays: Int = 30,
+    isCustomInputMode: Boolean = false, // [MANUAL OVERRIDE] 커스텀 입력 모드
     onDaysSelected: (Int) -> Unit = {}
 ) {
     Column(
@@ -337,6 +339,7 @@ private fun AppBrandTitleBar(
         // [NEW] Duration selection badges
         DurationBadgeRow(
             selectedDays = selectedDays,
+            isCustomInputMode = isCustomInputMode, // [MANUAL OVERRIDE] 커스텀 입력 모드 전달
             onDaysSelected = onDaysSelected
         )
     }
@@ -346,6 +349,7 @@ private fun AppBrandTitleBar(
 @Composable
 private fun DurationBadgeRow(
     selectedDays: Int,
+    isCustomInputMode: Boolean, // [MANUAL OVERRIDE] 커스텀 입력 모드
     onDaysSelected: (Int) -> Unit
 ) {
     val presets = listOf(
@@ -367,7 +371,8 @@ private fun DurationBadgeRow(
             DurationBadge(
                 label = label,
                 days = days,
-                isSelected = selectedDays == days,
+                // [MANUAL OVERRIDE] 커스텀 입력 모드일 때는 숫자가 같아도 뱃지를 선택하지 않음
+                isSelected = !isCustomInputMode && selectedDays == days,
                 onClick = { onDaysSelected(days) }
             )
         }
@@ -484,11 +489,12 @@ private fun StartScreenPreview() {
                     .fillMaxSize()
                     .padding(top = START_TITLE_TOP_MARGIN)
             ) {
-                // 타이틀바
-                AppBrandTitleBar(
-                    selectedDays = 21,
-                    onDaysSelected = {}
-                )
+                        // 타이틀바
+                        AppBrandTitleBar(
+                            selectedDays = 21,
+                            isCustomInputMode = false,
+                            onDaysSelected = {}
+                        )
 
                 Spacer(modifier = Modifier.height(START_TITLE_CARD_GAP))
 
