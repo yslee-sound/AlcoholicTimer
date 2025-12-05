@@ -485,91 +485,12 @@ private fun CountdownOverlay(countdownNumber: Int) {
 @Composable
 private fun StartScreenPreview() {
     MaterialTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(BackgroundCream)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = START_TITLE_TOP_MARGIN)
-            ) {
-                        // 타이틀바
-                        AppBrandTitleBar(
-                            selectedDays = 21,
-                            isCustomInputMode = false,
-                            onDaysSelected = {}
-                        )
-
-                Spacer(modifier = Modifier.height(START_TITLE_CARD_GAP))
-
-                // 입력 카드
-                Card(
-                    modifier = Modifier
-                        .padding(horizontal = START_CARD_HORIZONTAL_PADDING)
-                        .fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = START_CARD_TOP_INNER_PADDING),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "목표 기간 설정",
-                            style = MaterialTheme.typography.titleLarge,
-                            modifier = Modifier.padding(bottom = START_CARD_TITLE_BOTTOM)
-                        )
-
-                        // 간단한 입력 미리보기
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "21",
-                                style = MaterialTheme.typography.displayLarge.copy(
-                                    fontSize = 72.sp,
-                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-                                )
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "일",
-                                style = MaterialTheme.typography.headlineSmall
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Text(
-                            text = "목표 일수를 터치하여 변경하세요",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(START_QUOTE_TOP_GAP))
-
-                // 명언
-                QuoteDisplay()
-            }
-
-            // 하단 버튼
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .padding(20.dp)
-            ) {
-                MainActionButton(onClick = {})
-            }
-        }
+        StartScreen(
+            gateNavigation = false,
+            onStart = {},
+            holdSplashState = null,
+            onSplashFinished = null
+        )
     }
 }
 
