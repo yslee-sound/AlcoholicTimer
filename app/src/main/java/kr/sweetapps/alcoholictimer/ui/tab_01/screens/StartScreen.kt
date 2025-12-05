@@ -59,13 +59,13 @@ import kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.StartScreenViewModel
 
 // [OPTIMIZED] Vertical Density Optimization for Small Screens
 // 작은 화면에서도 모든 요소가 보이도록 여백을 최적화했습니다.
-private val START_CARD_TOP_INNER_PADDING: Dp = 32.dp      // Card 내부 상단 여백 (40dp → 32dp, 80% 축소)
+private val START_CARD_TOP_INNER_PADDING: Dp = 20.dp      // Card 내부 상단 여백 (32dp → 20dp, 37% 축소)
 private val START_TITLE_TOP_MARGIN: Dp = 12.dp             // 화면 상단 여백
 private val START_TITLE_CARD_GAP: Dp = 10.dp               // 타이틀바와 카드 간격
 private val START_CARD_HORIZONTAL_PADDING: Dp = 20.dp
 private val START_QUOTE_TOP_GAP: Dp = 12.dp                // 카드와 명언 사이 간격
 private val START_BOTTOM_CLEARANCE: Dp = 100.dp            // 하단 버튼 가림 방지 여백
-private val START_CARD_TITLE_BOTTOM: Dp = 20.dp            // 카드 타이틀 하단 여백 (24dp → 20dp, 80% 축소)
+private val START_CARD_TITLE_BOTTOM: Dp = 12.dp            // 카드 타이틀 하단 여백 (20dp → 12dp, 40% 축소)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

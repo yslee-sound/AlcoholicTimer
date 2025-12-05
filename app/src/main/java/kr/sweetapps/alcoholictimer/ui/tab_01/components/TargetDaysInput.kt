@@ -125,13 +125,13 @@ fun TargetDaysInput(
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.padding(bottom = 16.dp)
+        modifier = modifier.padding(bottom = 8.dp) // [OPTIMIZED] 16dp → 8dp (50% 축소)
     ) {
         // [REFACTORED] Simplified layout - no transparent text trick
         // Fixed width for stable layout
         Row(
             horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.Bottom, // [IMPROVED] Bottom 정렬로 변경
             modifier = Modifier
                 .fillMaxWidth()
                 .height(IntrinsicSize.Min)
@@ -151,7 +151,7 @@ fun TargetDaysInput(
                         } catch (_: Exception) {}
                     }
                 }
-                .padding(vertical = 12.dp) // Safe padding to prevent clipping
+                .padding(vertical = 8.dp) // [OPTIMIZED] 12dp → 8dp (33% 축소)
         ) {
             // [CENTERED LAYOUT] 동적 너비로 변경 - 숫자 길이에 따라 자동 조절
             androidx.compose.foundation.text.BasicTextField(
@@ -239,14 +239,15 @@ fun TargetDaysInput(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Unit text
+            // Unit text - [IMPROVED] padding(bottom) 추가로 시각적 베이스라인 맞춤
             Text(
                 text = stringResource(R.string.target_days_unit),
-                style = unitTextStyle
+                style = unitTextStyle,
+                modifier = Modifier.padding(bottom = 14.dp) // [FINE-TUNING] 10dp → 14dp (글자 들어올림)
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp)) // [OPTIMIZED] 8dp → 4dp (50% 축소)
 
         // Bottom hint
         Text(
