@@ -165,7 +165,7 @@ fun AboutScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onNavigateEditNickname() }
-                .padding(start = dims.padding.large, end = dims.padding.large, top = 45.dp, bottom = 0.dp),
+                .padding(start = 20.dp, end = 20.dp, top = 45.dp, bottom = 0.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
@@ -189,7 +189,7 @@ fun AboutScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // App Rating Button (simple)
-        Column(modifier = Modifier.padding(horizontal = dims.padding.large)) {
+        Column(modifier = Modifier.padding(horizontal = 20.dp)) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -232,7 +232,9 @@ fun AboutScreen(
 
         // --- Row of 3 action buttons (알림 / 고객 문의/제안 / 추천앱)
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             // 알림

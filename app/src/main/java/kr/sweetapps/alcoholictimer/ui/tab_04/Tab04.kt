@@ -494,7 +494,7 @@ fun SettingsMenuWithSwitch(
             .fillMaxWidth()
             .height(dims.component.listItemHeight)
             .clickable { onClick() }
-            .padding(horizontal = dims.padding.large),
+            .padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -524,7 +524,7 @@ fun SimpleAboutRow(
             .fillMaxWidth()
             .height(dims.component.listItemHeight)
             .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { onClick() }
-            .padding(horizontal = dims.padding.large),
+            .padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(text = title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
