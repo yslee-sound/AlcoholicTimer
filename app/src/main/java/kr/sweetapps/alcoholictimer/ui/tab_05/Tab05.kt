@@ -20,11 +20,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,7 +32,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -73,6 +69,7 @@ fun AboutScreen(
     onNavigateCurrencySettings: () -> Unit = {},
     onNavigateDebug: () -> Unit = {},
     onNavigateNotification: () -> Unit = {},
+    onNavigateCustomer: () -> Unit = {},
     showBack: Boolean = false,
     onBack: () -> Unit = {}
 ) {
@@ -153,15 +150,12 @@ fun AboutScreen(
                 .padding(start = dims.spacing.md, end = dims.spacing.md, top = 20.dp, bottom = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(dims.sizes.profileImage)
-                    .clip(CircleShape)
-                    .background(Color(0xFFF0F0F0)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(imageVector = Icons.Default.Person, contentDescription = null, modifier = Modifier.size(dims.sizes.iconLarge), tint = Color(0xFFE0E0E0))
-            }
+            Icon(
+                painter = painterResource(id = R.drawable.usercircle),
+                contentDescription = null,
+                modifier = Modifier.size(dims.sizes.profileImage),
+                tint = Color(0xFFBDBDBD)
+            )
             Spacer(modifier = Modifier.width(dims.spacing.sm))
             Text(text = stringResource(id = R.string.default_nickname), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black, modifier = Modifier.weight(1f))
             Icon(
@@ -216,7 +210,7 @@ fun AboutScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // --- Row of 3 action buttons (알림 / 고객 문의 / 추천앱)
+        // --- Row of 3 action buttons (알림 / 고객 문의/제안 / 추천앱)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
@@ -244,10 +238,11 @@ fun AboutScreen(
                 )
             }
 
-            // 고객 문의
+            // 고객 문의/제안
             Column(
                 modifier = Modifier
                     .weight(1f)
+                    .clickable { onNavigateCustomer() }
                     .padding(vertical = dims.spacing.sm),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -259,7 +254,7 @@ fun AboutScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "고객 문의",
+                    text = "고객 문의/제안",
                     fontSize = 14.sp,
                     color = Color.Black,
                     fontWeight = FontWeight.Normal
@@ -355,5 +350,10 @@ fun AboutScreen(
 @Preview(showBackground = true)
 @Composable
 fun AboutScreenPreview() {
-    AboutScreen(onNavigateLicenses = {}, onNavigateDebug = {}, onNavigateNotification = {})
+    AboutScreen(
+        onNavigateLicenses = {},
+        onNavigateDebug = {},
+        onNavigateNotification = {},
+        onNavigateCustomer = {}
+    )
 }

@@ -3,7 +3,7 @@ package kr.sweetapps.alcoholictimer.ui.tab_05.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Send
+import androidx.compose.material.icons.rounded.Headset
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -14,14 +14,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kr.sweetapps.alcoholictimer.ui.tab_05.viewmodel.NotificationViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kr.sweetapps.alcoholictimer.ui.tab_05.viewmodel.CustomerScreenViewModel
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 
 @Composable
-fun NotificationScreen(
-    viewModel: NotificationViewModel = viewModel(),
-    onBack: () -> Unit
+fun CustomerScreen(
+    onBack: () -> Unit,
+    viewModel: CustomerScreenViewModel = viewModel()
 ) {
     val message by viewModel.message.collectAsState()
 
@@ -31,7 +31,7 @@ fun NotificationScreen(
             .background(MaterialTheme.colorScheme.surface)
     ) {
         BackTopBar(
-            title = "알림",
+            title = "고객 문의",
             onBack = onBack
         )
 
@@ -43,7 +43,7 @@ fun NotificationScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Icon(
-                imageVector = Icons.Rounded.Send,
+                imageVector = Icons.Rounded.Headset,
                 contentDescription = null,
                 tint = Color(0xFFB0BEC5),
                 modifier = Modifier.size(96.dp)
@@ -59,9 +59,11 @@ fun NotificationScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "알림이 도착하면 이곳에서 확인할 수 있어요",
+                text = "문의하실 내용이 있으시면 언제든 연락주세요",
                 style = MaterialTheme.typography.bodyMedium.copy(color = Color.Gray)
             )
         }
     }
 }
+
+
