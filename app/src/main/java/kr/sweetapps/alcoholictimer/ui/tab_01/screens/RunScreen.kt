@@ -39,6 +39,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.saveable.rememberSaveable
 import java.util.Locale
 import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.StandardScreenWithBottomButton
@@ -545,6 +546,29 @@ fun RunScreenComposable(
                             ModernProgressIndicatorSimple(progress = progress, targetDays = targetDays)
                         }
                     }
+
+                    // [NEW] 응원 문구 (프로그레스 카드 바깥쪽 하단)
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    val motivationalQuote = rememberSaveable {
+                        kr.sweetapps.alcoholictimer.data.model.MotivationalQuotes.getRandomQuote()
+                    }
+
+                    Text(
+                        text = "\" $motivationalQuote \"",
+                        style = TextStyle(
+                            color = Color(0xFF8D8D8D),
+                            fontSize = 14.sp,
+                            fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 20.sp
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = RUN_HORIZONTAL_PADDING),
+                        textAlign = TextAlign.Center
+                    )
                 }
             },
             bottomButton = {
