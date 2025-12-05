@@ -56,10 +56,14 @@ import androidx.compose.foundation.layout.PaddingValues
 import kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.NavigationEvent
 import kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.StartScreenViewModel
 
-private val START_CARD_TOP_INNER_PADDING: Dp = 50.dp
-private val START_TITLE_TOP_MARGIN: Dp = 30.dp
-private val START_TITLE_CARD_GAP: Dp = 15.dp
+// [OPTIMIZED] Vertical Density Optimization for Small Screens
+// 작은 화면에서도 모든 요소가 보이도록 여백을 최적화했습니다.
+private val START_CARD_TOP_INNER_PADDING: Dp = 40.dp      // Card 내부 상단 여백 (50dp → 40dp)
+private val START_TITLE_TOP_MARGIN: Dp = 12.dp             // 화면 상단 여백 (30dp → 12dp)
+private val START_TITLE_CARD_GAP: Dp = 10.dp               // 타이틀바와 카드 간격 (15dp → 10dp)
 private val START_CARD_HORIZONTAL_PADDING: Dp = 20.dp
+private val START_QUOTE_TOP_GAP: Dp = 12.dp                // 카드와 명언 사이 간격 (24dp → 12dp)
+private val START_BOTTOM_CLEARANCE: Dp = 100.dp            // 하단 버튼 가림 방지 여백
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -212,7 +216,7 @@ fun StartScreen(
                                 text = stringResource(R.string.target_days_title),
                                 style = MaterialTheme.typography.titleLarge,
                                 color = colorResource(id = R.color.color_title_primary),
-                                modifier = Modifier.padding(bottom = 32.dp)
+                                modifier = Modifier.padding(bottom = 24.dp) // [OPTIMIZED] 32dp → 24dp
                             )
 
                             // [NEW] Target Days Input Component (Extracted)
@@ -229,9 +233,13 @@ fun StartScreen(
                         }
                     }
 
-                    // [NEW] 동기부여 명언 표시
-                    Spacer(modifier = Modifier.height(24.dp))
+                    // [OPTIMIZED] 동기부여 명언 표시 - 간격 축소
+                    Spacer(modifier = Modifier.height(START_QUOTE_TOP_GAP))
                     QuoteDisplay()
+
+                    // [OPTIMIZED] 하단 버튼 가림 방지 여백
+                    // 스크롤을 끝까지 내렸을 때 명언이 버튼 뒤에 숨지 않도록 충분한 공간 확보
+                    Spacer(modifier = Modifier.height(START_BOTTOM_CLEARANCE))
                 }
             },
             bottomButton = {

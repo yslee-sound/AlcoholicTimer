@@ -1,8 +1,6 @@
 package kr.sweetapps.alcoholictimer.ui.tab_01.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -10,14 +8,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.data.model.MotivationalQuotes
 
 /**
@@ -39,7 +35,7 @@ fun QuoteDisplay(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 30.dp, vertical = 10.dp), // 좌우 여백을 넓혀서 안정감 부여
+            .padding(horizontal = 24.dp, vertical = 6.dp), // [OPTIMIZED] 수직 밀도 최적화 (30dp,10dp → 24dp,6dp)
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // 1. 장식용 아이콘 (Visual Anchor)
@@ -53,7 +49,7 @@ fun QuoteDisplay(
             fontFamily = FontFamily.Serif
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(6.dp)) // [OPTIMIZED] 8dp → 6dp
 
         // 2. 명언 텍스트
         Text(
