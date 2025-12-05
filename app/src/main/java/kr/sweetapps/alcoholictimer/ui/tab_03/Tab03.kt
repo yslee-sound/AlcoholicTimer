@@ -215,131 +215,232 @@ fun CurrentLevelCard(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    MainLevelCardFrame(
-        modifier = modifier.height(280.dp),
-        backgroundRes = R.drawable.for_you
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(start = 24.dp, top = 20.dp, end = 24.dp, bottom = 20.dp)
-                .fillMaxWidth()
-                .testTag("main_level_card_content"),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Badge - 30% 축소
-            val badgeColor = currentLevel.color
-            val isYellowBadge = badgeColor == Color(0xFFFBC02D)
-            val centerBlend = lerp(badgeColor, Color.White, 0.12f)
-            val midBlend = lerp(badgeColor, Color.White, 0.05f)
-            val badgeSize = 77.dp
+    val isActive = startTime > 0
 
-            Box(modifier = Modifier.padding(4.dp)) {
-                Surface(
-                    modifier = Modifier.size(badgeSize).testTag("main_level_badge"),
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surface,
-                    shadowElevation = 12.dp,
-                    tonalElevation = 4.dp
+    // [REDESIGN] Gradient Card - 이미지 디자인 적용
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(200.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFFC084FC), // 좌측 상단 (보라)
+                            Color(0xFFF43F5E)  // 우측 하단 (분홍)
+                        )
+                    )
+                )
+                .padding(20.dp)
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                // [상단] 뱃지 + 텍스트
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.Top
                 ) {
+                    // Level Badge + Status Indicator
                     Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(CircleShape)
-                            .background(
-                                Brush.radialGradient(
-                                    0.0f to centerBlend,
-                                    0.35f to midBlend,
-                                    1.0f to badgeColor
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
+                        modifier = Modifier.size(72.dp)
                     ) {
-                        val levelNumber = LevelDefinitions.getLevelNumber(currentDays) + 1
-                        // [FIX] Legend 레벨(11)은 "L"로 표시
-                        val levelText = if (levelNumber == 11) "L" else "$levelNumber"
-                        val badgeFontSize = if (isYellowBadge) 20.sp else 18.sp
+                        // Glassmorphism Badge
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color.White.copy(alpha = 0.2f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            val levelNumber = LevelDefinitions.getLevelNumber(currentDays) + 1
+                            val levelText = if (levelNumber == 11) "L" else "$levelNumber"
+                            Text(
+                                text = "LV.$levelText",
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp
+                                )
+                            )
+                        }
+
+                        // Status Indicator (우측 상단)
+                        Box(
+                            modifier = Modifier
+                                .size(16.dp)
+                                .align(Alignment.TopEnd)
+                                .offset(x = 4.dp, y = (-4).dp)
+                                .clip(CircleShape)
+                                .background(Color.White)
+                                .padding(2.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape)
+                                    .background(
+                                        if (isActive) Color(0xFF22C55E) else Color(0xFF9CA3AF)
+                                    )
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    // 텍스트 정보
+                    Column(
+                        verticalArrangement = Arrangement.Top,
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        // Title
                         Text(
-                            text = "LV.$levelText",
+                            text = context.getString(currentLevel.nameResId),
                             style = MaterialTheme.typography.titleLarge.copy(
                                 color = Color.White,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp
                             ),
-                            fontSize = badgeFontSize
+                            maxLines = 1
                         )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        // Subtitle (숫자 크게, 단위 작게)
+                        Row(
+                            verticalAlignment = Alignment.Bottom
+                        ) {
+                            Text(
+                                text = "$currentDays",
+                                style = MaterialTheme.typography.headlineMedium.copy(
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 32.sp
+                                )
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = context.getString(R.string.level_days_label),
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    color = Color.White.copy(alpha = 0.9f),
+                                    fontSize = 16.sp
+                                ),
+                                modifier = Modifier.padding(bottom = 4.dp)
+                            )
+                        }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(15.dp))
-            Text(
-                text = context.getString(currentLevel.nameResId),
-                style = MaterialTheme.typography.headlineLarge.copy(color = Color.White),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.testTag("main_level_title")
-            )
+                // [하단] 프로그레스 영역
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Label
+                    Text(
+                        text = context.getString(R.string.level_until_next),
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            color = Color.White,
+                            fontSize = 13.sp
+                        )
+                    )
 
-            Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.testTag("main_level_days_row")
-            ) {
-                Text(
-                    text = "$currentDays",
-                    style = MaterialTheme.typography.headlineLarge.copy(color = Color.White),
-                    modifier = Modifier.testTag("main_level_days_value")
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = context.getString(R.string.level_days_label),
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Medium,
-                        color = Color.White
-                    ),
-                    modifier = Modifier.testTag("main_level_days_label")
-                )
-            }
+                    // Progress Bar
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(Color.White.copy(alpha = 0.3f))
+                    ) {
+                        val animatedProgress by animateFloatAsState(
+                            targetValue = progress,
+                            animationSpec = tween(durationMillis = 1000),
+                            label = "gradient_progress"
+                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(animatedProgress)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(Color.White.copy(alpha = 0.9f))
+                        )
+                    }
 
-            if (nextLevel != null) {
-                Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                val remainingDaysFloat = (nextLevel.start - currentDays.toFloat()).coerceAtLeast(0f)
-                val remainingDaysInt = kotlin.math.floor(remainingDaysFloat.toDouble()).toInt()
-                val remainingHoursInt = kotlin.math.floor(((remainingDaysFloat - remainingDaysInt) * 24f).toDouble()).toInt()
-                val remainingText = when {
-                    remainingDaysInt > 0 && remainingHoursInt > 0 -> "$remainingDaysInt${context.getString(R.string.level_day_unit)} $remainingHoursInt${context.getString(R.string.level_hour_unit)} ${context.getString(R.string.level_days_remaining)}"
-                    remainingDaysInt > 0 -> "$remainingDaysInt${context.getString(R.string.level_day_unit)} ${context.getString(R.string.level_days_remaining)}"
-                    remainingHoursInt > 0 -> "$remainingHoursInt${context.getString(R.string.level_hour_unit)} ${context.getString(R.string.level_hours_remaining)}"
-                    else -> context.getString(R.string.level_soon_levelup)
+                    // Footer Info
+                    if (nextLevel != null) {
+                        val remainingDaysFloat = (nextLevel.start - currentDays.toFloat()).coerceAtLeast(0f)
+                        val remainingDaysInt = kotlin.math.floor(remainingDaysFloat.toDouble()).toInt()
+                        val remainingHoursInt = kotlin.math.floor(((remainingDaysFloat - remainingDaysInt) * 24f).toDouble()).toInt()
+                        val remainingText = when {
+                            remainingDaysInt > 0 && remainingHoursInt > 0 -> "$remainingDaysInt${context.getString(R.string.level_day_unit)} $remainingHoursInt${context.getString(R.string.level_hour_unit)} ${context.getString(R.string.level_days_remaining)}"
+                            remainingDaysInt > 0 -> "$remainingDaysInt${context.getString(R.string.level_day_unit)} ${context.getString(R.string.level_days_remaining)}"
+                            remainingHoursInt > 0 -> "$remainingHoursInt${context.getString(R.string.level_hour_unit)} ${context.getString(R.string.level_hours_remaining)}"
+                            else -> context.getString(R.string.level_soon_levelup)
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = String.format(Locale.getDefault(), "%.0f%%", progress * 100.0),
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    color = Color.White,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            )
+                            Text(
+                                text = remainingText,
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    color = Color.White,
+                                    fontSize = 14.sp
+                                )
+                            )
+                        }
+                    } else {
+                        val extraPercent = (elapsedDaysFloat - currentLevel.start).coerceAtLeast(0f)
+                        val displayPercent = 100.0 + extraPercent.toDouble()
+                        val rem = displayPercent % 100.0
+                        val progressFill = if (displayPercent >= 100.0) {
+                            if (rem == 0.0) 1.0f else (rem / 100.0).toFloat()
+                        } else {
+                            (displayPercent / 100.0).toFloat()
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = String.format(Locale.getDefault(), "%.0f%%", displayPercent),
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    color = Color.White,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            )
+                            Text(
+                                text = context.getString(currentLevel.nameResId),
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    color = Color.White,
+                                    fontSize = 14.sp
+                                )
+                            )
+                        }
+                    }
                 }
-
-                ProgressToNextLevel(
-                    progressFill = progress,
-                    displayPercent = (progress * 100.0),
-                    remainingDays = (nextLevel.start - currentDays).coerceAtLeast(0),
-                    remainingText = remainingText,
-                    isSobrietyActive = startTime > 0
-                )
-            } else {
-                Spacer(modifier = Modifier.height(12.dp))
-
-                val extraPercent = (elapsedDaysFloat - currentLevel.start).coerceAtLeast(0f)
-                val displayPercent = 100.0 + extraPercent.toDouble()
-                val rem = displayPercent % 100.0
-                val progressFill = if (displayPercent >= 100.0) {
-                    if (rem == 0.0) 1.0f else (rem / 100.0).toFloat()
-                } else {
-                    (displayPercent / 100.0).toFloat()
-                }
-
-                ProgressToNextLevel(
-                    progressFill = progressFill,
-                    displayPercent = displayPercent,
-                    remainingDays = 0,
-                    remainingText = context.getString(currentLevel.nameResId),
-                    isSobrietyActive = startTime > 0
-                )
             }
         }
     }
@@ -596,4 +697,148 @@ private fun ProgressToNextLevel(
         Row(verticalAlignment = Alignment.CenterVertically) { }
     }
 }
+
+/**
+ * [NEW] Full Width 프로그레스 바 - Hybrid Layout용
+ */
+@Composable
+private fun FullWidthProgressBar(
+    progressFill: Float,
+    displayPercent: Double,
+    remainingText: String
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.Start
+    ) {
+        // 진행률 & 남은 시간 라벨
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = String.format(Locale.getDefault(), "%.0f%%", displayPercent),
+                style = MaterialTheme.typography.labelMedium.copy(
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            )
+            Text(
+                text = remainingText,
+                style = MaterialTheme.typography.labelMedium.copy(
+                    color = Color.White.copy(alpha = 0.95f),
+                    fontSize = 14.sp
+                ),
+                maxLines = 1
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 프로그레스 바 (Full Width)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(8.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(Color.White.copy(alpha = 0.3f))
+                .testTag("fullwidth_progress")
+        ) {
+            val animatedProgress by animateFloatAsState(
+                targetValue = progressFill,
+                animationSpec = tween(durationMillis = 1000),
+                label = "fullwidth_progress"
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(animatedProgress)
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                Color(0xFFFBC528).copy(alpha = 0.8f),
+                                Color(0xFFFBC528)
+                            )
+                        )
+                    )
+                    .testTag("fullwidth_progress_fill")
+            )
+        }
+    }
+}
+
+/**
+ * [DEPRECATED] 컴팩트 프로그레스 바 - 가로 배치 레이아웃용
+ */
+@Composable
+private fun CompactProgressBar(
+    progressFill: Float,
+    displayPercent: Double,
+    remainingText: String,
+    isSobrietyActive: Boolean
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.Start
+    ) {
+        // 프로그레스 바
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .height(6.dp)
+                .clip(RoundedCornerShape(3.dp))
+                .background(Color.White.copy(alpha = 0.3f))
+                .testTag("compact_progress")
+        ) {
+            val animatedProgress by animateFloatAsState(
+                targetValue = progressFill,
+                animationSpec = tween(durationMillis = 1000),
+                label = "compact_progress"
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(animatedProgress)
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                Color(0xFFFBC528).copy(alpha = 0.8f),
+                                Color(0xFFFBC528)
+                            )
+                        )
+                    )
+                    .testTag("compact_progress_fill")
+            )
+        }
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // 진행률 & 남은 시간
+        Row(
+            modifier = Modifier.fillMaxWidth(0.9f),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = String.format(Locale.getDefault(), "%.0f%%", displayPercent),
+                style = MaterialTheme.typography.labelSmall.copy(
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            )
+            Text(
+                text = remainingText,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    color = Color.White.copy(alpha = 0.9f),
+                    fontSize = 13.sp
+                ),
+                maxLines = 1
+            )
+        }
+    }
+}
+
 
