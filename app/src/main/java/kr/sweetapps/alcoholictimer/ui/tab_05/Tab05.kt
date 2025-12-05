@@ -52,6 +52,7 @@ import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import kr.sweetapps.alcoholictimer.ui.theme.LocalDimens
 import kr.sweetapps.alcoholictimer.ui.tab_04.SettingsMenuWithSwitch
 import kr.sweetapps.alcoholictimer.ui.tab_04.SimpleAboutRow
+import kr.sweetapps.alcoholictimer.ui.tab_05.components.CustomerFeedbackBottomSheet
 
 private fun ContextToActivity(context: android.content.Context): Activity? {
     var ctx: android.content.Context? = context
@@ -78,6 +79,9 @@ fun AboutScreen(
     val context = LocalContext.current
     val isInPreview = LocalInspectionMode.current
     val scrollState = rememberScrollState()
+
+    // [NEW] 고객 문의 바텀 시트 상태
+    var showCustomerFeedbackSheet by remember { mutableStateOf(false) }
 
     // [NEW] SharedPreferences에서 닉네임 읽어오기
     val sp = remember { context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE) }
@@ -257,7 +261,7 @@ fun AboutScreen(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .clickable { onNavigateCustomer() }
+                    .clickable { showCustomerFeedbackSheet = true }
                     .padding(vertical = dims.spacing.sm),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -359,6 +363,19 @@ fun AboutScreen(
                 })
             }
         }
+    }
+
+    // 고객 문의 바텀 시트
+    if (showCustomerFeedbackSheet) {
+        CustomerFeedbackBottomSheet(
+            onDismiss = { showCustomerFeedbackSheet = false },
+            onSubmit = { category, content, email ->
+                // TODO: 실제 전송 로직 구현
+                Log.d("CustomerFeedback", "Category: $category, Content: $content, Email: $email")
+                Toast.makeText(context, "문의가 접수되었습니다.", Toast.LENGTH_SHORT).show()
+                showCustomerFeedbackSheet = false
+            }
+        )
     }
 }
 
