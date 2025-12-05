@@ -32,3 +32,21 @@ val OnSurfaceVariantDark = Color(0xFFB0BEC5)
 val ErrorLight = Color(0xFFE53935)
 val ErrorDark = Color(0xFFEF9A9A)
 
+// [NEW] StartScreen specific colors
+// Background colors
+val BackgroundCream = Color(0xFFEEEDE9) // Screen background with warm cream tone
+
+// Badge colors (Duration selection badges)
+val BadgeSelectedBackground = Color(0xFF1A1A1A) // Selected badge background (dark)
+val BadgeSelectedText = Color.White // Selected badge text
+val BadgeUnselectedBackground = Color.White // Unselected badge background
+val BadgeUnselectedText = Color(0xFF666666) // Unselected badge text (gray)
+val BadgeSelectedBorder = Color(0xFF1A1A1A) // Selected badge border (dark)
+val BadgeUnselectedBorder = Color(0xFFE0E0E0) // Unselected badge border (light gray)
+
+// Countdown overlay colors
+val CountdownOverlayBackground = Color.Black // Countdown background with 85% opacity
+val CountdownText = Color.White // Countdown number text
+
+// Gradient colors
+val GradientBottomShadow = Color.Black // Bottom shadow gradient with 12% opacity

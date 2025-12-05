@@ -1,6 +1,7 @@
 package kr.sweetapps.alcoholictimer.ui.tab_01.screens
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
@@ -36,27 +37,16 @@ import androidx.compose.ui.graphics.Brush
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.StandardScreenWithBottomButton
 import kr.sweetapps.alcoholictimer.ui.main.MainActivity
-import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.QuoteDisplay
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.TargetDaysInput
 import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
 import kr.sweetapps.alcoholictimer.ui.theme.AppElevation
+import kr.sweetapps.alcoholictimer.ui.theme.*
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.MainActionButton
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.TextRange
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 
 // Additional imports (LazyRow usage)
@@ -85,6 +75,11 @@ fun StartScreen(
     val navigationEvent by viewModel.navigationEvent.collectAsState()
     val snackbarEvent by viewModel.snackbarEvent.collectAsState()
 
+    // [NEW] ViewModel에 gateNavigation 플래그 전달
+    LaunchedEffect(gateNavigation) {
+        viewModel.setGateNavigation(gateNavigation)
+    }
+
     // [NEW] AppOpen Ad 초기화 (ViewModel에 위임)
     if (holdSplashState != null) {
         LaunchedEffect(Unit) {
@@ -102,37 +97,18 @@ fun StartScreen(
         }
     }
 
-    // [NEW] 즉시 네비게이션 체크 (기존 타이머가 실행 중일 때)
-    if (!gateNavigation && uiState.startTime != 0L && !uiState.timerCompleted) {
-        LaunchedEffect(Unit) {
-            Log.d("StartScreen", "Immediate navigation: startTime=${uiState.startTime}")
-            if (onStart != null) {
-                onStart(uiState.targetDays)
-            } else {
-                val intent = Intent(context, MainActivity::class.java)
-                intent.putExtra("route", "run")
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                context.startActivity(intent)
-                (context as? Activity)?.finish()
-            }
-        }
-        return
-    }
-
-    // [NEW] 네비게이션 이벤트 처리 (ViewModel → UI)
+    // [NEW] 통합된 네비게이션 처리 (ViewModel → UI)
+    // ViewModel에서 발행하는 모든 네비게이션 이벤트를 여기서 처리
     LaunchedEffect(navigationEvent) {
         navigationEvent?.let { event ->
             when (event) {
                 is NavigationEvent.NavigateToRun -> {
-                    if (onStart != null) {
-                        onStart(event.targetDays)
-                    } else {
-                        val intent = Intent(context, MainActivity::class.java)
-                        intent.putExtra("route", "run")
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                        context.startActivity(intent)
-                        (context as? Activity)?.finish()
-                    }
+                    Log.d("StartScreen", "Navigation event received: targetDays=${event.targetDays}")
+                    handleNavigation(
+                        context = context,
+                        targetDays = event.targetDays,
+                        onStart = onStart
+                    )
                     viewModel.onNavigationHandled()
                 }
             }
@@ -265,14 +241,14 @@ fun StartScreen(
                     }
                 )
             },
-            screenBackground = Color(0xFFEEEDE9),
+            screenBackground = BackgroundCream,
             backgroundDecoration = {
                 Box(
                     modifier = Modifier.matchParentSize().background(
                         Brush.verticalGradient(
                             0.0f to Color.Transparent,
                             0.88f to Color.Transparent,
-                            1.0f to Color.Black.copy(alpha = 0.12f)
+                            1.0f to GradientBottomShadow.copy(alpha = 0.12f)
                         )
                     )
                 )
@@ -400,9 +376,9 @@ private fun DurationBadge(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val backgroundColor = if (isSelected) Color(0xFF1A1A1A) else Color.White
-    val textColor = if (isSelected) Color.White else Color(0xFF666666)
-    val borderColor = if (isSelected) Color(0xFF1A1A1A) else Color(0xFFE0E0E0)
+    val backgroundColor = if (isSelected) BadgeSelectedBackground else BadgeUnselectedBackground
+    val textColor = if (isSelected) BadgeSelectedText else BadgeUnselectedText
+    val borderColor = if (isSelected) BadgeSelectedBorder else BadgeUnselectedBorder
 
     Surface(
         onClick = onClick,
@@ -464,7 +440,7 @@ private fun CountdownOverlay(countdownNumber: Int) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.85f))
+            .background(CountdownOverlayBackground.copy(alpha = 0.85f))
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
@@ -475,7 +451,7 @@ private fun CountdownOverlay(countdownNumber: Int) {
             text = countdownNumber.toString(),
             style = MaterialTheme.typography.displayLarge.copy(
                 fontSize = 120.dp.value.sp,
-                color = Color.White.copy(alpha = alpha),
+                color = CountdownText.copy(alpha = alpha),
                 fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
             ),
             textAlign = TextAlign.Center,
@@ -490,3 +466,30 @@ private fun CountdownOverlay(countdownNumber: Int) {
 @Preview(showBackground = true)
 @Composable
 private fun StartScreenPreview() { StartScreen() }
+
+/**
+ * [NEW] 네비게이션 헬퍼 함수 (중복 제거)
+ *
+ * RunScreen으로 이동하는 로직을 통합 관리합니다.
+ * - onStart 콜백이 있으면 콜백 호출 (앱 내 네비게이션)
+ * - onStart 콜백이 없으면 MainActivity로 직접 이동 (딥링크 등)
+ */
+private fun handleNavigation(
+    context: Context,
+    targetDays: Int,
+    onStart: ((Int) -> Unit)?
+) {
+    if (onStart != null) {
+        Log.d("StartScreen", "Navigation: using onStart callback")
+        onStart(targetDays)
+    } else {
+        Log.d("StartScreen", "Navigation: starting MainActivity directly")
+        val intent = Intent(context, MainActivity::class.java).apply {
+            putExtra("route", "run")
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        }
+        context.startActivity(intent)
+        (context as? Activity)?.finish()
+    }
+}
+

@@ -30,6 +30,7 @@ import java.util.Locale
  * - 카운트다운 로직
  * - 타이머 시작 로직
  * - Analytics 이벤트 전송
+ * - 네비게이션 로직 통합 관리
  */
 class StartScreenViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -37,6 +38,9 @@ class StartScreenViewModel(application: Application) : AndroidViewModel(applicat
         "user_settings",
         Context.MODE_PRIVATE
     )
+
+    // [NEW] 자동 네비게이션 제어 플래그 (Preview나 특정 케이스에서 자동 이동 방지)
+    private var gateNavigation: Boolean = false
 
     // UI 상태 관리
     private val _uiState = MutableStateFlow(StartScreenUiState())
@@ -56,7 +60,16 @@ class StartScreenViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     /**
+     * [NEW] 자동 네비게이션 제어 설정
+     */
+    fun setGateNavigation(gate: Boolean) {
+        gateNavigation = gate
+    }
+
+    /**
      * [NEW] 타이머 상태 로드 (SharedPreferences)
+     *
+     * 타이머가 이미 실행 중이라면 자동으로 RunScreen으로 이동하도록 네비게이션 이벤트를 발행합니다.
      */
     private fun loadTimerState() {
         viewModelScope.launch {
@@ -74,6 +87,12 @@ class StartScreenViewModel(application: Application) : AndroidViewModel(applicat
                 }
 
                 Log.d(TAG, "Timer state loaded: startTime=$startTime, completed=$timerCompleted, target=$targetDays")
+
+                // [NEW] 타이머가 이미 실행 중이고 gateNavigation이 false라면 자동으로 RunScreen으로 이동
+                if (!gateNavigation && startTime != 0L && !timerCompleted) {
+                    Log.d(TAG, "Active timer detected -> auto-navigating to RunScreen")
+                    _navigationEvent.value = NavigationEvent.NavigateToRun(targetDays)
+                }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load timer state", e)
             }
