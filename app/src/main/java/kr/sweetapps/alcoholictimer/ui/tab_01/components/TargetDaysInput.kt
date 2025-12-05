@@ -5,6 +5,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -23,11 +24,13 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -105,14 +108,13 @@ fun TargetDaysInput(
         }
     }
 
-    // [REFACTORED] Simplified number text style - no lineHeight constraint to prevent clipping
-    // Right-aligned for stable layout (number grows to the left)
+    // [FIXED] 텍스트 정렬 제거 - Row가 정렬을 담당하므로 불필요
+    // textAlign을 제거하여 BasicTextField가 불필요하게 여백을 차지하지 않도록 함
     val numberTextStyle = MaterialTheme.typography.displayLarge.copy(
         color = colorResource(id = R.color.color_indicator_days),
-        textAlign = TextAlign.End, // [STABLE LAYOUT] Right-aligned for consistent unit position
         fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
         fontSize = 72.sp
-        // lineHeight removed - let the font breathe naturally
+        // textAlign 제거 - 부모 Row의 Arrangement.Center가 정렬 담당
     )
 
     // [REFACTORED] Unit text style
@@ -151,7 +153,7 @@ fun TargetDaysInput(
                 }
                 .padding(vertical = 12.dp) // Safe padding to prevent clipping
         ) {
-            // Input field with FIXED WIDTH for stable layout
+            // [CENTERED LAYOUT] 동적 너비로 변경 - 숫자 길이에 따라 자동 조절
             androidx.compose.foundation.text.BasicTextField(
                 value = targetText,
                 onValueChange = { newValue ->
@@ -173,7 +175,7 @@ fun TargetDaysInput(
                     // This allows user to clear the field without auto-fill
                 },
                 modifier = Modifier
-                    .width(180.dp) // [STABLE LAYOUT] Fixed width prevents unit text from moving
+                    .width(IntrinsicSize.Min) // [FIXED] 실제 텍스트 너비만큼만 차지
                     .focusRequester(targetFocusRequester)
                     .onFocusChanged { focusState ->
                         isFocused = focusState.isFocused
@@ -256,3 +258,73 @@ fun TargetDaysInput(
     }
 }
 
+/**
+ * [PREVIEW] 다양한 입력 상태 비교 프리뷰
+ * "3일", "21일", "1000일" 입력 상태를 비교하여 중앙 정렬이 올바르게 작동하는지 확인
+ */
+@Preview(
+    name = "TargetDaysInput - 다양한 입력 상태",
+    showBackground = true,
+    backgroundColor = 0xFFEEEDE9
+)
+@Composable
+private fun TargetDaysInputComparisonPreview() {
+    MaterialTheme {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(40.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // "3일" 입력 상태 (짧은 숫자)
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    "3일 입력 (짧은 숫자)",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.Gray
+                )
+                Spacer(Modifier.height(8.dp))
+                TargetDaysInput(
+                    value = 3,
+                    onValueChange = {},
+                    onDone = {}
+                )
+            }
+
+            HorizontalDivider()
+
+            // "21일" 입력 상태 (기본값)
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    "21일 입력 (기본값)",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.Gray
+                )
+                Spacer(Modifier.height(8.dp))
+                TargetDaysInput(
+                    value = 21,
+                    onValueChange = {},
+                    onDone = {}
+                )
+            }
+
+            HorizontalDivider()
+
+            // "1000일" 입력 상태 (긴 숫자)
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    "1000일 입력 (긴 숫자)",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.Gray
+                )
+                Spacer(Modifier.height(8.dp))
+                TargetDaysInput(
+                    value = 1000,
+                    onValueChange = {},
+                    onDone = {}
+                )
+            }
+        }
+    }
+}

@@ -981,16 +981,14 @@ private fun RecentDiarySection(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            // [NEW] 전체 보기 버튼 (일기가 있을 때만 표시)
-            if (diaries.isNotEmpty()) {
-                IconButton(onClick = onNavigateToAllDiaries) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_caret_right),
-                        contentDescription = "전체 일기 보기",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+            // [FIXED] 전체 보기 버튼 (데이터 유무와 관계없이 항상 표시)
+            IconButton(onClick = onNavigateToAllDiaries) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_caret_right),
+                    contentDescription = "전체 일기 보기",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
+                )
             }
         }
 
