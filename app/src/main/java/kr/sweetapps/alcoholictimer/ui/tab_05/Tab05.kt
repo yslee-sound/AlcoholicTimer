@@ -26,10 +26,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -76,6 +78,17 @@ fun AboutScreen(
     val context = LocalContext.current
     val isInPreview = LocalInspectionMode.current
     val scrollState = rememberScrollState()
+
+    // [NEW] SharedPreferences에서 닉네임 읽어오기
+    val sp = remember { context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE) }
+    var nickname by remember {
+        mutableStateOf(sp.getString("nickname", context.getString(R.string.default_nickname)) ?: context.getString(R.string.default_nickname))
+    }
+
+    // [NEW] 화면이 다시 보일 때마다 닉네임 새로고침
+    LaunchedEffect(Unit) {
+        nickname = sp.getString("nickname", context.getString(R.string.default_nickname)) ?: context.getString(R.string.default_nickname)
+    }
 
     // preview values or real state from UMP
     val isPersonalizedAdsAllowed: Boolean
@@ -157,13 +170,15 @@ fun AboutScreen(
                 tint = Color(0xFFBDBDBD)
             )
             Spacer(modifier = Modifier.width(dims.spacing.sm))
-            Text(text = stringResource(id = R.string.default_nickname), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black, modifier = Modifier.weight(1f))
+            Text(text = nickname, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Spacer(modifier = Modifier.width(4.dp))
             Icon(
                 painter = painterResource(id = R.drawable.ic_caret_right),
                 contentDescription = null,
                 tint = Color(0xFF9CA3AF),
                 modifier = Modifier.size(20.dp)
             )
+            Spacer(modifier = Modifier.weight(1f))
         }
 
         Spacer(modifier = Modifier.height(16.dp))
