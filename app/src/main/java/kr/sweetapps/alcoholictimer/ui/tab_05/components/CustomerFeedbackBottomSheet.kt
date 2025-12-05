@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,6 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -114,6 +117,10 @@ fun CustomerFeedbackBottomSheet(
                         color = Color(0xFFAAAAAA)
                     )
                 },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Default // 다중 행 입력이므로 줄바꿈 가능
+                ),
                 supportingText = {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -160,6 +167,10 @@ fun CustomerFeedbackBottomSheet(
                     )
                 },
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email, // [핵심] 영문 키보드 & @ 기호 노출
+                    imeAction = ImeAction.Done // 마지막 입력 필드이므로 완료
+                ),
                 supportingText = {
                     Text(
                         text = "답변을 받으시려면 이메일 주소를 입력해주세요.\n이메일 주소는 답변 용도 외에 사용되지 않습니다.",
