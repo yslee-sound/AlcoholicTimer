@@ -1,7 +1,7 @@
-// [NEW] Tab01 Refactoring: Add Start/Run screen ViewModel
-package kr.sweetapps.alcoholictimer.ui.tab_01
+package kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -20,7 +20,7 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
 
     private val sharedPref = application.getSharedPreferences(
         Constants.USER_SETTINGS_PREFS,
-        android.content.Context.MODE_PRIVATE
+        Context.MODE_PRIVATE
     )
 
     // [NEW] Timer start time state
@@ -158,4 +158,3 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
         loadTimerState()
     }
 }
-

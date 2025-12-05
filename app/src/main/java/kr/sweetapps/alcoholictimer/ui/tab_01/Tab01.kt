@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.ui.tab_01.screens.RunScreenComposable
 import kr.sweetapps.alcoholictimer.ui.tab_01.screens.StartScreen
+import kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.Tab01ViewModel
 
 /**
  * Tab01 Start 화면 Composable
