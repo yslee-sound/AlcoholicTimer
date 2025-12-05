@@ -10,6 +10,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -42,6 +47,7 @@ import kr.sweetapps.alcoholictimer.R
  * @param onDone 키보드 완료 버튼을 눌렀을 때 호출되는 콜백
  * @param modifier 레이아웃 수정자
  */
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun TargetDaysInput(
     value: Int,
@@ -51,6 +57,9 @@ fun TargetDaysInput(
 ) {
     // [NEW] FocusRequester for programmatic focus control
     val targetFocusRequester = remember { FocusRequester() }
+
+    // [NEW] Track focus state
+    var isFocused by remember { mutableStateOf(false) }
 
     // [NEW] TextField state management
     var targetText by remember {
@@ -66,14 +75,34 @@ fun TargetDaysInput(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val coroutineScope = rememberCoroutineScope()
+    val density = LocalDensity.current
+
+    // [NEW] Detect keyboard visibility and clear focus when keyboard is dismissed
+    val ime = WindowInsets.ime
+    val imeBottom = ime.getBottom(density)
+    val isImeVisible = imeBottom > 0
+
+    LaunchedEffect(isImeVisible) {
+        if (!isImeVisible && isFocused) {
+            // Keyboard was dismissed - clear focus to hide cursor
+            focusManager.clearFocus()
+        }
+    }
 
     // [NEW] Update TextField when value changes externally (e.g., badge click)
+    // Don't overwrite if user is currently editing empty field
     LaunchedEffect(value) {
-        val newText = value.toString()
-        targetText = TextFieldValue(
-            text = newText,
-            selection = TextRange(newText.length)
-        )
+        if (targetText.text.isEmpty() && isFocused) {
+            // Only update when not focused and empty
+            return@LaunchedEffect
+        }
+        if (value != 0 || targetText.text.isNotEmpty()) {
+            val newText = value.toString()
+            targetText = TextFieldValue(
+                text = newText,
+                selection = TextRange(newText.length)
+            )
+        }
     }
 
     // [REFACTORED] Simplified number text style - no lineHeight constraint to prevent clipping
@@ -126,26 +155,37 @@ fun TargetDaysInput(
                 onValueChange = { newValue ->
                     // Filter: digits only, max 4 chars
                     val filtered = newValue.text.filter { it.isDigit() }.take(4)
-                    if (filtered != targetText.text) {
-                        targetText = TextFieldValue(
-                            text = filtered,
-                            selection = TextRange(filtered.length)
-                        )
-                        val parsedDays = filtered.toIntOrNull()?.coerceIn(1, 9999) ?: 21
+
+                    // Always update the text field state (even if empty)
+                    targetText = TextFieldValue(
+                        text = filtered,
+                        selection = TextRange(filtered.length)
+                    )
+
+                    // Notify parent only if not empty
+                    if (filtered.isNotEmpty()) {
+                        val parsedDays = filtered.toIntOrNull()?.coerceIn(1, 9999) ?: 1
                         onValueChange(parsedDays)
-                    } else {
-                        targetText = newValue.copy(text = filtered)
                     }
+                    // If empty, keep UI empty but don't call onValueChange
+                    // This allows user to clear the field without auto-fill
                 },
                 modifier = Modifier
                     .wrapContentWidth()
                     .focusRequester(targetFocusRequester)
                     .onFocusChanged { focusState ->
+                        isFocused = focusState.isFocused
                         if (focusState.isFocused) {
-                            targetText = TextFieldValue(
-                                text = targetText.text,
-                                selection = TextRange(0, targetText.text.length)
-                            )
+                            // Select all text with slight delay to avoid keyboard animation conflict
+                            coroutineScope.launch {
+                                try {
+                                    delay(50)
+                                    targetText = TextFieldValue(
+                                        text = targetText.text,
+                                        selection = TextRange(0, targetText.text.length)
+                                    )
+                                } catch (_: Exception) {}
+                            }
                         }
                     },
                 textStyle = numberTextStyle,
@@ -156,8 +196,14 @@ fun TargetDaysInput(
                 ),
                 keyboardActions = KeyboardActions(
                     onDone = {
-                        val parsed = targetText.text.toIntOrNull() ?: 21
-                        val finalDays = parsed.coerceIn(1, 9999)
+                        // If empty, set default value 21
+                        val finalDays = if (targetText.text.isEmpty()) {
+                            21
+                        } else {
+                            val parsed = targetText.text.toIntOrNull() ?: 21
+                            parsed.coerceIn(1, 9999)
+                        }
+
                         onValueChange(finalDays)
                         targetText = TextFieldValue(
                             text = finalDays.toString(),
