@@ -48,6 +48,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 // Additional imports (LazyRow usage)
 import androidx.compose.foundation.lazy.LazyRow
@@ -160,13 +161,18 @@ fun StartScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     // [NEW] Snackbar 이벤트 처리 (ViewModel → UI)
+    // [FIX] 이벤트 즉시 소비 패턴 적용 - 스낵바 무한 반복 버그 해결
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(snackbarEvent) {
         snackbarEvent?.let { message ->
-            snackbarHostState.showSnackbar(
-                message = message,
-                duration = SnackbarDuration.Short
-            )
+            // 스낵바 표시는 독립적인 코루틴으로 실행
+            launch {
+                snackbarHostState.showSnackbar(
+                    message = message,
+                    duration = SnackbarDuration.Short
+                )
+            }
+            // 이벤트를 즉시 소비하여 재진입 시 중복 표시 방지
             viewModel.onSnackbarShown()
         }
     }

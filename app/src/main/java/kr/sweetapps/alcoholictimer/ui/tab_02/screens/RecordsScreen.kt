@@ -995,17 +995,17 @@ private fun RecentDiarySection(
         Spacer(modifier = Modifier.height(12.dp))
 
         // [수정] 일기 항목 카드 or 빈 상태 UI
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color.White)
-                .padding(16.dp)
-        ) {
-            if (diaries.isEmpty()) {
-                // [NEW] 빈 상태 UI
-                DiaryEmptyState()
-            } else {
+        if (diaries.isEmpty()) {
+            // [REDESIGN] 빈 상태 UI - 심리스형 (배경 투명)
+            DiaryEmptyState()
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.White)
+                    .padding(16.dp)
+            ) {
                 // 일기 항목들
                 diaries.forEachIndexed { index, diary ->
                     DiaryListItem(
@@ -1027,14 +1027,16 @@ private fun RecentDiarySection(
 }
 
 /**
- * [NEW] 일기 빈 상태 UI
+ * [REDESIGN] 일기 빈 상태 UI - 심리스형
+ * - 배경색 제거, 크림색 배경에 자연스럽게 녹아듦
+ * - 여백 증가로 시각적 안정감 확보
  */
 @Composable
 private fun DiaryEmptyState() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 32.dp),
+            .padding(vertical = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // 이모지 아이콘

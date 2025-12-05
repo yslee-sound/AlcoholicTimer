@@ -215,22 +215,25 @@ fun CurrentLevelCard(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    MainLevelCardFrame(modifier = modifier, backgroundRes = R.drawable.for_you) {
+    MainLevelCardFrame(
+        modifier = modifier.height(280.dp),
+        backgroundRes = R.drawable.for_you
+    ) {
         Column(
             modifier = Modifier
-                .padding(start = 32.dp, top = 32.dp, end = 32.dp, bottom = 32.dp)
+                .padding(start = 24.dp, top = 20.dp, end = 24.dp, bottom = 20.dp)
                 .fillMaxWidth()
                 .testTag("main_level_card_content"),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Badge
+            // Badge - 30% 축소
             val badgeColor = currentLevel.color
             val isYellowBadge = badgeColor == Color(0xFFFBC02D)
             val centerBlend = lerp(badgeColor, Color.White, 0.12f)
             val midBlend = lerp(badgeColor, Color.White, 0.05f)
-            val badgeSize = 110.dp
+            val badgeSize = 77.dp
 
-            Box(modifier = Modifier.padding(6.dp)) {
+            Box(modifier = Modifier.padding(4.dp)) {
                 Surface(
                     modifier = Modifier.size(badgeSize).testTag("main_level_badge"),
                     shape = CircleShape,
@@ -254,7 +257,7 @@ fun CurrentLevelCard(
                         val levelNumber = LevelDefinitions.getLevelNumber(currentDays) + 1
                         // [FIX] Legend 레벨(11)은 "L"로 표시
                         val levelText = if (levelNumber == 11) "L" else "$levelNumber"
-                        val badgeFontSize = if (isYellowBadge) 26.sp else 22.sp
+                        val badgeFontSize = if (isYellowBadge) 20.sp else 18.sp
                         Text(
                             text = "LV.$levelText",
                             style = MaterialTheme.typography.titleLarge.copy(
@@ -267,7 +270,7 @@ fun CurrentLevelCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(15.dp))
             Text(
                 text = context.getString(currentLevel.nameResId),
                 style = MaterialTheme.typography.headlineLarge.copy(color = Color.White),
@@ -275,7 +278,7 @@ fun CurrentLevelCard(
                 modifier = Modifier.testTag("main_level_title")
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -299,11 +302,8 @@ fun CurrentLevelCard(
             }
 
             if (nextLevel != null) {
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                // [FIX] D-Day 계산: nextLevelStartDay - currentDay
-                // currentDay는 화면에 표시되는 'n일차' (1부터 시작)
-                // nextLevel.start는 다음 레벨 시작일 (예: Lv.2는 4일)
                 val remainingDaysFloat = (nextLevel.start - currentDays.toFloat()).coerceAtLeast(0f)
                 val remainingDaysInt = kotlin.math.floor(remainingDaysFloat.toDouble()).toInt()
                 val remainingHoursInt = kotlin.math.floor(((remainingDaysFloat - remainingDaysInt) * 24f).toDouble()).toInt()
@@ -322,7 +322,7 @@ fun CurrentLevelCard(
                     isSobrietyActive = startTime > 0
                 )
             } else {
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 val extraPercent = (elapsedDaysFloat - currentLevel.start).coerceAtLeast(0f)
                 val displayPercent = 100.0 + extraPercent.toDouble()
