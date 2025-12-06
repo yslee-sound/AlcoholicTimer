@@ -43,6 +43,7 @@ import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DebugScreen
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.policy.DocumentScreen
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 import kr.sweetapps.alcoholictimer.ui.tab_05.AboutScreen
+import java.util.Map.entry
 
 /**
  * Navigation Host (App-level Navigation Graph)
@@ -241,10 +242,8 @@ fun AppNavHost(
         }
 
         composable(Screen.Records.route) {
-            RecordsScreen(
-                externalRefreshTrigger = recordsRefreshCounter,
-                onNavigateToAllRecords = { navController.navigate(Screen.AllRecords.route) }, // [FIX] 모든 기록 보기로 수정 (AllDiary → AllRecords)
-                onNavigateToAllDiaries = { navController.navigate(Screen.AllDiary.route) }, // [NEW] 모든 일기 보기
+            // [UPDATED] Tab02Screen을 통해 Room DB 데이터 연결
+            kr.sweetapps.alcoholictimer.ui.tab_02.Tab02Screen(
                 onNavigateToDetail = { record: SobrietyRecord ->
                     // Analytics: 기록 상세 보기 이벤트 전송
                     try { AnalyticsManager.logViewRecordDetail(record.id) } catch (_: Throwable) {}
@@ -257,9 +256,11 @@ fun AppNavHost(
                     )
                     navController.navigate(route)
                 },
-                onAddRecord = { navController.navigate(Screen.DiaryWrite.route) }, // [수정] 일기 작성 화면으로 연결
-                onDiaryClick = { diary -> // [NEW] 일기 클릭 시 상세보기로 이동
-                    val route = Screen.DiaryDetail.createRoute(diary.id)
+                onNavigateToAllRecords = { navController.navigate(Screen.AllRecords.route) },
+                onNavigateToAllDiaries = { navController.navigate(Screen.AllDiary.route) },
+                onAddRecord = { navController.navigate(Screen.DiaryWrite.route) },
+                onDiaryClick = { diary -> // DiaryEntity 사용
+                    val route = Screen.DiaryDetail.createRoute(diary.id.toString())
                     navController.navigate(route)
                 }
             )
@@ -298,209 +299,39 @@ fun AppNavHost(
         composable(Screen.AllDiary.route) {
             kr.sweetapps.alcoholictimer.ui.tab_02.screens.AllDiaryScreen(
                 onNavigateBack = { if (!navController.popBackStack()) navController.navigate(Screen.Records.route) },
-                onOpenDiaryDetail = { /* TODO: 연결: 상세 편집/보기로 이동 */ }
-            )
-        }
-
-        // [NEW] 일기 작성 화면
-        composable(Screen.DiaryWrite.route) {
-            kr.sweetapps.alcoholictimer.ui.tab_02.screens.DiaryWriteScreen(
-                onDismiss = { navController.popBackStack() },
-                onSave = { emoji: String, content: String, cravingLevel: Int ->
-                    android.util.Log.d("NavGraph", "일기 저장: emoji=$emoji, craving=$cravingLevel")
-
-                    // [NEW] SharedPreferences에 일기 저장
-                    try {
-                        val sharedPref = context.getSharedPreferences("diary_data", android.content.Context.MODE_PRIVATE)
-                        val currentDiaries = sharedPref.getString("diaries", "[]") ?: "[]"
-                        val diariesArray = org.json.JSONArray(currentDiaries)
-
-                        // 새 일기 객체 생성
-                        val newDiary = org.json.JSONObject().apply {
-                            put("timestamp", System.currentTimeMillis())
-                            put("date", java.text.SimpleDateFormat("M.dd (E)", java.util.Locale.KOREAN).format(java.util.Date()))
-                            put("emoji", emoji)
-                            put("content", if (content.isEmpty()) "내용 없음" else content)
-                            put("cravingLevel", cravingLevel)
-                        }
-
-                        // 배열 맨 앞에 추가 (최신순)
-                        val updatedArray = org.json.JSONArray().apply {
-                            put(newDiary)
-                            for (i in 0 until diariesArray.length()) {
-                                put(diariesArray.getJSONObject(i))
-                            }
-                        }
-
-                        sharedPref.edit().putString("diaries", updatedArray.toString()).apply()
-                        android.util.Log.d("NavGraph", "일기 저장 완료: ${updatedArray.length()}개")
-
-                        // [NEW] 저장 완료 Toast 메시지
-                        android.widget.Toast.makeText(
-                            context,
-                            "일기가 저장되었습니다.",
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
-
-                        // Records 화면 새로고침 트리거
-                        recordsRefreshCounter++
-                    } catch (e: Exception) {
-                        android.util.Log.e("NavGraph", "일기 저장 실패", e)
-                        android.widget.Toast.makeText(
-                            context,
-                            "일기 저장에 실패했습니다.",
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
-                    }
-
-                    // [수익화] 저장 후 광고 정책 체크
-                    val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
-
-                    // 화면 종료 함수
-                    val finishScreen: () -> Unit = {
-                        android.util.Log.d("NavGraph", "일기 저장 완료 -> Records 화면으로 복귀")
-                        navController.popBackStack()
-                    }
-
-                    if (shouldShowAd && activity != null) {
-                        android.util.Log.d("NavGraph", "일기 저장 광고 정책 통과 -> 전면 광고 노출")
-                        if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
-                            kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(activity) { success ->
-                                android.util.Log.d("NavGraph", "일기 저장 광고 결과: success=$success")
-                                finishScreen()
-                            }
-                        } else {
-                            android.util.Log.d("NavGraph", "일기 저장 광고 로드 안됨 -> 즉시 완료")
-                            finishScreen()
-                        }
-                    } else {
-                        android.util.Log.d("NavGraph", "일기 저장 광고 쿨타임 중 -> 즉시 완료")
-                        finishScreen()
-                    }
+                onOpenDiaryDetail = { diaryId -> // [UPDATED] diaryId (Long) 받음
+                    val route = Screen.DiaryDetail.createRoute(diaryId.toString())
+                    navController.navigate(route)
                 }
             )
         }
 
-        // [NEW] 일기 상세보기/수정 화면
+        // [NEW] 일기 작성 화면 (Room DB 기반)
+        composable(Screen.DiaryWrite.route) {
+            kr.sweetapps.alcoholictimer.ui.tab_02.screens.DiaryWriteScreen(
+                onDismiss = {
+                    // Records 화면 새로고침 트리거
+                    recordsRefreshCounter++
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // [NEW] 일기 상세보기/수정 화면 (Room DB 기반)
         composable(
             route = Screen.DiaryDetail.route,
             arguments = listOf(navArgument("diaryId") { type = NavType.StringType })
         ) { backStackEntry ->
             val diaryId = backStackEntry.arguments?.getString("diaryId") ?: return@composable
 
-            // [FIX] remember로 데이터를 메모리에 유지 - 삭제 후 리컴포지션되어도 빈 화면 방지
-            val diaryData = remember(diaryId) {
-                val sharedPref = context.getSharedPreferences("diary_data", android.content.Context.MODE_PRIVATE)
-                val diariesJson = sharedPref.getString("diaries", "[]") ?: "[]"
-                val diariesArray = org.json.JSONArray(diariesJson)
 
-                var foundData: org.json.JSONObject? = null
-                for (i in 0 until diariesArray.length()) {
-                    val item = diariesArray.getJSONObject(i)
-                    if (item.optLong("timestamp", 0L).toString() == diaryId) {
-                        foundData = item
-                        break
-                    }
-                }
-                foundData
-            }
-
-            if (diaryData == null) {
-                // 일기를 찾지 못한 경우 뒤로 가기
-                android.util.Log.e("NavGraph", "일기를 찾을 수 없음: diaryId=$diaryId")
-                navController.popBackStack()
-                return@composable
-            }
-
+            // [UPDATED] Room DB 기반 DiaryWriteScreen (ViewModel 사용)
             kr.sweetapps.alcoholictimer.ui.tab_02.screens.DiaryWriteScreen(
-                diaryId = diaryId,
-                initialMood = diaryData.optString("emoji", ""),
-                initialCraving = diaryData.optInt("cravingLevel", 0),
-                initialText = diaryData.optString("content", ""),
-                initialDate = diaryData.optLong("timestamp", 0L),
-                onDismiss = { navController.popBackStack() },
-                onSave = { _: String, _: String, _: Int -> /* 상세보기에서는 사용 안함 */ },
-                onUpdate = { emoji: String, content: String, cravingLevel: Int ->
-                    android.util.Log.d("NavGraph", "일기 수정: diaryId=$diaryId, emoji=$emoji")
-
-                    // [NEW] SharedPreferences에서 일기 업데이트
-                    try {
-                        val updateSharedPref = context.getSharedPreferences("diary_data", android.content.Context.MODE_PRIVATE)
-                        val currentDiaries = updateSharedPref.getString("diaries", "[]") ?: "[]"
-                        val array = org.json.JSONArray(currentDiaries)
-
-                        for (i in 0 until array.length()) {
-                            val item = array.getJSONObject(i)
-                            if (item.optLong("timestamp", 0L).toString() == diaryId) {
-                                item.put("emoji", emoji)
-                                item.put("content", if (content.isEmpty()) "내용 없음" else content)
-                                item.put("cravingLevel", cravingLevel)
-                                break
-                            }
-                        }
-
-                        updateSharedPref.edit().putString("diaries", array.toString()).apply()
-                        android.util.Log.d("NavGraph", "일기 수정 완료")
-
-                        // Toast 메시지
-                        android.widget.Toast.makeText(
-                            context,
-                            "일기가 수정되었습니다.",
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
-
-                        // Records 화면 새로고침 트리거
-                        recordsRefreshCounter++
-
-                        navController.popBackStack()
-                    } catch (e: Exception) {
-                        android.util.Log.e("NavGraph", "일기 수정 실패", e)
-                        android.widget.Toast.makeText(
-                            context,
-                            "일기 수정에 실패했습니다.",
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                },
-                onDelete = {
-                    android.util.Log.d("NavGraph", "일기 삭제: diaryId=$diaryId")
-
-                    // [NEW] SharedPreferences에서 일기 삭제
-                    try {
-                        val deleteSharedPref = context.getSharedPreferences("diary_data", android.content.Context.MODE_PRIVATE)
-                        val currentDiaries = deleteSharedPref.getString("diaries", "[]") ?: "[]"
-                        val array = org.json.JSONArray(currentDiaries)
-                        val newArray = org.json.JSONArray()
-
-                        for (i in 0 until array.length()) {
-                            val item = array.getJSONObject(i)
-                            if (item.optLong("timestamp", 0L).toString() != diaryId) {
-                                newArray.put(item)
-                            }
-                        }
-
-                        deleteSharedPref.edit().putString("diaries", newArray.toString()).apply()
-                        android.util.Log.d("NavGraph", "일기 삭제 완료")
-
-                        // Toast 메시지
-                        android.widget.Toast.makeText(
-                            context,
-                            "일기가 삭제되었습니다.",
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
-
-                        // Records 화면 새로고침 트리거
-                        recordsRefreshCounter++
-
-                        navController.popBackStack()
-                    } catch (e: Exception) {
-                        android.util.Log.e("NavGraph", "일기 삭제 실패", e)
-                        android.widget.Toast.makeText(
-                            context,
-                            "일기 삭제에 실패했습니다.",
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                diaryId = diaryId?.toLongOrNull(), // String -> Long 변환
+                onDismiss = {
+                    // Records 화면 새로고침 트리거
+                    recordsRefreshCounter++
+                    navController.popBackStack()
                 }
             )
         }

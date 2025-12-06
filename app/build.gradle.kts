@@ -6,9 +6,11 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.androidx.navigation.safeargs) // [NEW] Navigation Safe Args 플러그인 적용
-    id("com.google.gms.google-services") // 명시적으로 적용하여 variant 콜백 시점 문제 해결
-    id("com.google.firebase.crashlytics")
+    id("com.google.devtools.ksp") version "2.0.21-1.0.28" // [NEW] Room Database용 KSP 플러그인 (KAPT 대체)
+    id("com.google.gms.google-services") // Google Services
+    // [NOTE] Crashlytics: Debug 빌드에서는 비활성화 (google-services.json 필요)
+    // Release 빌드 시에만 활성화하려면 주석 해제
+    // id("com.google.firebase.crashlytics")
     id("com.google.firebase.firebase-perf")
 }
 
@@ -186,7 +188,9 @@ dependencies {
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
     implementation("com.google.firebase:firebase-analytics-ktx")
-    implementation("com.google.firebase:firebase-crashlytics-ktx")
+    // [NOTE] Crashlytics: Debug 빌드 크래시 방지를 위해 주석 처리
+    // Release 빌드 시 google-services.json 추가 후 주석 해제
+    // implementation("com.google.firebase:firebase-crashlytics-ktx")
     implementation("com.google.firebase:firebase-perf-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx") // [NEW] Firestore 추가
 
@@ -206,6 +210,12 @@ dependencies {
     implementation(libs.ktor.client.android)
     implementation(libs.ktor.client.core)
     implementation(libs.kotlinx.serialization.json)
+
+    // [NEW] Room Database (KSP 방식 - Kotlin 2.0 호환)
+    val roomVersion = "2.6.1"
+    implementation("androidx.room:room-runtime:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
 
     testImplementation(libs.junit)
     testImplementation(libs.androidx.ui.test.junit4)

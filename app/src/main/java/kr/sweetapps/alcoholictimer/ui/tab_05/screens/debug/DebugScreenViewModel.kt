@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug
+﻿package kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug
 
 import android.app.Application
 import android.content.Context
@@ -9,7 +9,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.ump.UserMessagingPlatform
 import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.crashlytics.FirebaseCrashlytics
+// [NOTE] Crashlytics: Debug 빌드에서 비활성화
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.perf.ktx.performance
 import com.google.firebase.perf.metrics.Trace
@@ -160,8 +160,11 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
             }
 
             4 -> {
+                // [NOTE] Crashlytics: Debug 빌드에서 비활성화됨
                 // non-fatal Crashlytics report
                 viewModelScope.launch {
+                    Log.w("DebugScreenVM", "Crashlytics is disabled in debug build")
+                    /* Crashlytics 비활성화로 주석 처리
                     try {
                         // Ensure collection enabled in debug so reports are uploaded
                         try {
@@ -185,6 +188,7 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
                     } catch (e: Exception) {
                         Log.w("DebugScreenVM", "Crashlytics action failed: ${e.message}")
                     }
+                    */
                 }
             }
 

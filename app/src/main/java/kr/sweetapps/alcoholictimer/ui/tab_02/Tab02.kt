@@ -6,13 +6,13 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.ui.common.BaseActivity
 import kr.sweetapps.alcoholictimer.ui.tab_02.screens.RecordsScreen
-import kr.sweetapps.alcoholictimer.ui.tab_02.screens.DiaryEntry // [NEW] DiaryEntry import
 import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme
 
 /**
@@ -37,22 +37,32 @@ class RecordsActivity : BaseActivity() {
 /**
  * [NEW] Tab02 메인 화면 Composable
  * - RecordsScreen을 래핑하여 일관된 구조 제공
- * - ViewModel을 통한 상태 관리 (향후 확장 가능)
+ * - DiaryViewModel을 통해 Room DB 데이터를 관찰하고 전달
  */
 @Composable
 fun Tab02Screen(
     onNavigateToDetail: (SobrietyRecord) -> Unit = {},
     onNavigateToAllRecords: () -> Unit = {},
+    onNavigateToAllDiaries: () -> Unit = {}, // [NEW] 모든 일기 보기 콜백 추가
     onAddRecord: () -> Unit = {},
-    onDiaryClick: (DiaryEntry) -> Unit = {}, // [NEW] 일기 클릭 콜백
+    onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {}, // [UPDATED] DiaryEntity 사용
     viewModel: Tab02ViewModel = viewModel()
 ) {
-    // [NEW] 현재는 RecordsScreen을 그대로 사용하지만,
-    // 향후 필요시 ViewModel의 상태를 활용하여 확장 가능
+    // [NEW] DiaryViewModel을 통해 Room DB의 일기 데이터를 실시간으로 관찰
+    val diaryViewModel: kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.DiaryViewModel = viewModel()
+    val allDiaries by diaryViewModel.uiState.collectAsState()
+
+    // [NEW] 최신 3개의 일기만 추출 (이미 timestamp 내림차순 정렬됨)
+    val recentDiaries = remember(allDiaries) {
+        allDiaries.take(3)
+    }
+
     RecordsScreen(
         externalRefreshTrigger = 0,
+        recentDiaries = recentDiaries, // [NEW] Room DB 데이터 전달
         onNavigateToDetail = onNavigateToDetail,
         onNavigateToAllRecords = onNavigateToAllRecords,
+        onNavigateToAllDiaries = onNavigateToAllDiaries, // [NEW] 모든 일기 보기 콜백 전달
         onAddRecord = onAddRecord,
         onDiaryClick = onDiaryClick // [NEW] 일기 클릭 콜백 전달
     )

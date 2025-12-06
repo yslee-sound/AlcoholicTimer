@@ -19,12 +19,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
+import kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.DiaryViewModel
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Check
-import org.json.JSONArray
-import org.json.JSONObject
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -36,16 +37,31 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiaryWriteScreen(
-    diaryId: String? = null, // [NEW] 일기 ID (null이면 새 작성, 있으면 상세/수정)
-    initialMood: String? = null, // [NEW] 초기 기분 이모지
-    initialCraving: Int = 0, // [NEW] 초기 갈망 수치
-    initialText: String = "", // [NEW] 초기 일기 내용
-    initialDate: Long? = null, // [NEW] 초기 날짜 (timestamp)
-    onDismiss: () -> Unit = {},
-    onSave: (String, String, Int) -> Unit = { _, _, _ -> },
-    onUpdate: (String, String, Int) -> Unit = { _, _, _ -> }, // [NEW] 업데이트 콜백
-    onDelete: () -> Unit = {} // [NEW] 삭제 콜백
+    diaryId: Long? = null, // [UPDATED] Room DB의 ID (Long 타입)
+    onDismiss: () -> Unit = {}
 ) {
+    // [NEW] ViewModel 연결
+    val viewModel: DiaryViewModel = viewModel()
+    val scope = rememberCoroutineScope()
+
+    // [NEW] 기존 일기 데이터 로드
+    var initialMood by remember { mutableStateOf<String?>(null) }
+    var initialCraving by remember { mutableIntStateOf(0) }
+    var initialText by remember { mutableStateOf("") }
+    var initialDate by remember { mutableLongStateOf(System.currentTimeMillis()) }
+
+    LaunchedEffect(diaryId) {
+        if (diaryId != null) {
+            val diary = viewModel.getDiaryById(diaryId)
+            if (diary != null) {
+                initialMood = diary.emoji
+                initialCraving = diary.cravingLevel
+                initialText = diary.content
+                initialDate = diary.timestamp
+            }
+        }
+    }
+
     // [NEW] 모드 관리: 읽기/수정
     var isEditMode by remember { mutableStateOf(diaryId == null) } // 새 작성이면 수정 모드, 기존 일기면 읽기 모드
     val isViewMode = diaryId != null && !isEditMode
@@ -56,14 +72,33 @@ fun DiaryWriteScreen(
             initialMood?.let { emoji -> MoodType.entries.find { it.emoji == emoji } }
         )
     }
+
+    // [FIX] initialMood가 변경되면 selectedMood 업데이트
+    LaunchedEffect(initialMood) {
+        if (initialMood != null) {
+            selectedMood = MoodType.entries.find { it.emoji == initialMood }
+        }
+    }
+
     var cravingLevel by remember { mutableFloatStateOf(initialCraving.toFloat()) }
     var diaryText by remember { mutableStateOf(initialText) }
     var selectedDate by remember {
         mutableStateOf(
             Calendar.getInstance().apply {
-                initialDate?.let { timeInMillis = it }
+                timeInMillis = initialDate
             }
         )
+    }
+
+    // [FIX] initial 값들이 변경되면 상태 업데이트
+    LaunchedEffect(initialCraving) {
+        cravingLevel = initialCraving.toFloat()
+    }
+    LaunchedEffect(initialText) {
+        diaryText = initialText
+    }
+    LaunchedEffect(initialDate) {
+        selectedDate = Calendar.getInstance().apply { timeInMillis = initialDate }
     }
 
     // [NEW] 더보기 메뉴 상태
@@ -126,10 +161,24 @@ fun DiaryWriteScreen(
                         IconButton(
                             onClick = {
                                 if (selectedMood != null) {
-                                    if (diaryId != null) {
-                                        onUpdate(selectedMood!!.emoji, diaryText, cravingLevel.toInt())
-                                    } else {
-                                        onSave(selectedMood!!.emoji, diaryText, cravingLevel.toInt())
+                                    scope.launch {
+                                        if (diaryId != null) {
+                                            // [NEW] Room DB 업데이트
+                                            viewModel.updateDiary(
+                                                id = diaryId,
+                                                emoji = selectedMood!!.emoji,
+                                                content = diaryText,
+                                                cravingLevel = cravingLevel.toInt()
+                                            )
+                                        } else {
+                                            // [NEW] Room DB 저장
+                                            viewModel.saveDiary(
+                                                emoji = selectedMood!!.emoji,
+                                                content = diaryText,
+                                                cravingLevel = cravingLevel.toInt()
+                                            )
+                                        }
+                                        onDismiss()
                                     }
                                 }
                             },
@@ -156,7 +205,13 @@ fun DiaryWriteScreen(
                     TextButton(
                         onClick = {
                             showDeleteDialog = false
-                            onDelete()
+                            scope.launch {
+                                if (diaryId != null) {
+                                    // [NEW] Room DB 삭제
+                                    viewModel.deleteDiary(diaryId)
+                                }
+                                onDismiss()
+                            }
                         }
                     ) {
                         Text("삭제", color = Color(0xFFEF4444))
@@ -217,10 +272,24 @@ fun DiaryWriteScreen(
                 Button(
                     onClick = {
                         if (selectedMood != null) {
-                            if (diaryId != null) {
-                                onUpdate(selectedMood!!.emoji, diaryText, cravingLevel.toInt())
-                            } else {
-                                onSave(selectedMood!!.emoji, diaryText, cravingLevel.toInt())
+                            scope.launch {
+                                if (diaryId != null) {
+                                    // [NEW] Room DB 업데이트
+                                    viewModel.updateDiary(
+                                        id = diaryId,
+                                        emoji = selectedMood!!.emoji,
+                                        content = diaryText,
+                                        cravingLevel = cravingLevel.toInt()
+                                    )
+                                } else {
+                                    // [NEW] Room DB 저장
+                                    viewModel.saveDiary(
+                                        emoji = selectedMood!!.emoji,
+                                        content = diaryText,
+                                        cravingLevel = cravingLevel.toInt()
+                                    )
+                                }
+                                onDismiss()
                             }
                         }
                     },

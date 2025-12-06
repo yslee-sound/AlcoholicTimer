@@ -18,9 +18,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
-import org.json.JSONArray
+import kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.DiaryViewModel
+import kr.sweetapps.alcoholictimer.data.room.DiaryEntity
+import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.LinkedHashMap
 
@@ -28,41 +31,16 @@ import kotlin.collections.LinkedHashMap
 @Composable
 fun AllDiaryScreen(
     onNavigateBack: () -> Unit = {},
-    onOpenDiaryDetail: (Long) -> Unit = {} // TODO: 상세화면으로 이동할 때 사용할 파라미터
+    onOpenDiaryDetail: (Long) -> Unit = {} // 상세화면으로 이동할 때 사용할 ID
 ) {
-    val context = LocalContext.current
+    // [NEW] ViewModel을 통해 Room DB 데이터 가져오기
+    val viewModel: DiaryViewModel = viewModel()
+    val diaries by viewModel.uiState.collectAsState()
 
-    // Load diaries from SharedPreferences (same format used in NavGraph.save)
-    var diaries by remember { mutableStateOf<List<DiaryWithTimestamp>>(emptyList()) }
-    LaunchedEffect(Unit) {
-        try {
-            val sp = context.getSharedPreferences("diary_data", android.content.Context.MODE_PRIVATE)
-            val json = sp.getString("diaries", "[]") ?: "[]"
-            val arr = JSONArray(json)
-            val list = mutableListOf<DiaryWithTimestamp>()
-            for (i in 0 until arr.length()) {
-                val obj = arr.getJSONObject(i)
-                val ts = obj.optLong("timestamp", System.currentTimeMillis())
-                list.add(
-                    DiaryWithTimestamp(
-                        timestamp = ts,
-                        date = obj.optString("date", ""),
-                        emoji = obj.optString("emoji", ""),
-                        content = obj.optString("content", ""),
-                        craving = obj.optInt("cravingLevel", 0)
-                    )
-                )
-            }
-            diaries = list
-        } catch (_: Exception) {
-            diaries = emptyList()
-        }
-    }
-
-    // Group diaries by year/month (preserve order newest -> oldest)
+    // [NEW] Group diaries by year/month (preserve order newest -> oldest)
     val grouped = remember(diaries) {
-        val map = LinkedHashMap<String, MutableList<DiaryWithTimestamp>>()
-        diaries.sortedByDescending { it.timestamp }.forEach { d ->
+        val map = LinkedHashMap<String, MutableList<DiaryEntity>>()
+        diaries.forEach { d ->
             val cal = Calendar.getInstance().apply { timeInMillis = d.timestamp }
             val key = "${cal.get(Calendar.YEAR)}년 ${cal.get(Calendar.MONTH) + 1}월"
             val list = map.getOrPut(key) { mutableListOf() }
@@ -107,8 +85,8 @@ fun AllDiaryScreen(
                     }
                 }
 
-                items(items = list, key = { it.timestamp }) { diary ->
-                    DiaryCardItem(diary = diary, onClick = { onOpenDiaryDetail(diary.timestamp) })
+                items(items = list, key = { it.id }) { diary ->
+                    DiaryCardItem(diary = diary, onClick = { onOpenDiaryDetail(diary.id) })
                 }
             }
 
@@ -118,7 +96,11 @@ fun AllDiaryScreen(
 }
 
 @Composable
-private fun DiaryCardItem(diary: DiaryWithTimestamp, onClick: () -> Unit) {
+private fun DiaryCardItem(diary: DiaryEntity, onClick: () -> Unit) {
+    val weekday = remember(diary.timestamp) {
+        SimpleDateFormat("E", Locale.KOREAN).format(Date(diary.timestamp))
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -132,7 +114,7 @@ private fun DiaryCardItem(diary: DiaryWithTimestamp, onClick: () -> Unit) {
             // Left: date and weekday
             Column(modifier = Modifier.width(72.dp)) {
                 Text(text = diary.date, fontWeight = FontWeight.Medium, fontSize = 14.sp)
-                Text(text = diary.weekday, color = Color(0xFF64748B), fontSize = 12.sp)
+                Text(text = weekday, color = Color(0xFF64748B), fontSize = 12.sp)
             }
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -140,7 +122,7 @@ private fun DiaryCardItem(diary: DiaryWithTimestamp, onClick: () -> Unit) {
             // Center: status badge + content
             Column(modifier = Modifier.weight(1f)) {
                 // Status badge (based on craving or success heuristic)
-                val isSuccess = diary.craving <= 2
+                val isSuccess = diary.cravingLevel <= 2
                 val badgeColor = if (isSuccess) Color(0xFF3B82F6) else Color(0xFFEF4444)
                 Box(modifier = Modifier
                     .size(10.dp)
@@ -166,16 +148,3 @@ private fun DiaryCardItem(diary: DiaryWithTimestamp, onClick: () -> Unit) {
     }
 }
 
-// Simple data holder used by this screen
-private data class DiaryWithTimestamp(
-    val timestamp: Long,
-    val date: String,
-    val emoji: String,
-    val content: String,
-    val craving: Int
-) {
-    val weekday: String
-        get() {
-            return java.text.SimpleDateFormat("E", Locale.KOREAN).format(Date(timestamp))
-        }
-}

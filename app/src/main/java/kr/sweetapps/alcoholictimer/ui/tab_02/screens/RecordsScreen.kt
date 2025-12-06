@@ -80,11 +80,12 @@ val RECORDS_LIST_BOTTOM_PADDING: Dp = 15.dp // default: 15.dp (was UiConstants.C
 @Composable
 fun RecordsScreen(
     externalRefreshTrigger: Int,
+    recentDiaries: List<kr.sweetapps.alcoholictimer.data.room.DiaryEntity> = emptyList(), // [NEW] Room DB에서 전달받은 최근 일기 3개
     onNavigateToDetail: (SobrietyRecord) -> Unit = {},
     onNavigateToAllRecords: () -> Unit = {}, // [FIX] 모든 금주 기록 보기
     onNavigateToAllDiaries: () -> Unit = {}, // [NEW] 모든 일기 보기
     onAddRecord: () -> Unit = {},
-    onDiaryClick: (DiaryEntry) -> Unit = {}, // [NEW] 일기 클릭 콜백
+    onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {}, // [NEW] 일기 클릭 콜백 (DiaryEntity 사용)
     fontScale: Float = 1.06f
 ) {
     // view_records 이벤트는 하단 네비게이션 버튼 클릭에서 전송하도록 변경됨.
@@ -92,8 +93,7 @@ fun RecordsScreen(
     val context = LocalContext.current
     var records by remember { mutableStateOf<List<SobrietyRecord>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
-    // [NEW] 최근 일기 상태: SharedPreferences의 'diaries'를 반영합니다.
-    var diaries by remember { mutableStateOf<List<DiaryEntry>>(emptyList()) }
+    // [REMOVED] 일기는 이제 파라미터로 전달받으므로 로컬 상태 제거
 
     val currentDate = Calendar.getInstance()
     val currentYear = currentDate.get(Calendar.YEAR)
@@ -118,27 +118,7 @@ fun RecordsScreen(
             val loadedRecords = RecordsDataLoader.loadSobrietyRecords(context)
             records = loadedRecords
             Log.d("RecordsScreen", "기록 로딩 완료: ${loadedRecords.size}개")
-            // [NEW] 최근 일기 로드 (최신순 최대 3개)
-            try {
-                val sharedPref = context.getSharedPreferences("diary_data", android.content.Context.MODE_PRIVATE)
-                val diariesJson = sharedPref.getString("diaries", "[]") ?: "[]"
-                val diariesArray = org.json.JSONArray(diariesJson)
-                val loadedDiaries = (0 until minOf(3, diariesArray.length())).map { i ->
-                    val item = diariesArray.getJSONObject(i)
-                    DiaryEntry(
-                        id = item.optLong("timestamp", 0L).toString(), // [NEW] timestamp를 ID로 사용
-                        timestamp = item.optLong("timestamp", 0L), // [NEW] timestamp 필드
-                        date = item.optString("date", ""),
-                        emoji = item.optString("emoji", ""),
-                        content = item.optString("content", ""),
-                        cravingLevel = item.optInt("cravingLevel", 0) // [NEW] cravingLevel 필드
-                    )
-                }
-                diaries = loadedDiaries
-            } catch (e: Exception) {
-                Log.e("RecordsScreen", "일기 로드 실패", e)
-                diaries = emptyList()
-            }
+            // [REMOVED] 일기 로드 로직 제거 - 파라미터로 전달받음
         } catch (e: Exception) {
             Log.e("RecordsScreen", "기록 로딩 실패", e)
         } finally {
@@ -339,13 +319,13 @@ fun RecordsScreen(
                     }
                 }
 
-                // [NEW] 최근 금주 일기 섹션
+                // [NEW] 최근 금주 일기 섹션 (Room DB 기반)
                 item {
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
                         RecentDiarySection(
-                            diaries = diaries,
+                            diaries = recentDiaries, // [UPDATED] 파라미터로 전달받은 Room DB 데이터 사용
                             onNavigateToAllDiaries = onNavigateToAllDiaries, // [FIX] 모든 일기 보기 콜백 사용
                             onDiaryClick = onDiaryClick // [NEW] 일기 클릭 콜백 전달
                         )
@@ -959,13 +939,13 @@ data class DiaryEntry(
 )
 
 /**
- * [NEW] 최근 금주 일기 섹션
+ * [NEW] 최근 금주 일기 섹션 (Room DB 기반)
  */
 @Composable
 private fun RecentDiarySection(
-    diaries: List<DiaryEntry>,
+    diaries: List<kr.sweetapps.alcoholictimer.data.room.DiaryEntity>, // [UPDATED] DiaryEntity 사용
     onNavigateToAllDiaries: () -> Unit = {},
-    onDiaryClick: (DiaryEntry) -> Unit = {} // [NEW] 일기 클릭 콜백
+    onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {} // [UPDATED] DiaryEntity 사용
 ) {
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -1068,10 +1048,13 @@ private fun DiaryEmptyState() {
 }
 
 /**
- * [NEW] 일기 항목 아이템
+ * [NEW] 일기 항목 아이템 (Room DB 기반)
  */
 @Composable
-private fun DiaryListItem(diary: DiaryEntry, onClick: () -> Unit = {}) { // [NEW] onClick 파라미터 추가
+private fun DiaryListItem(
+    diary: kr.sweetapps.alcoholictimer.data.room.DiaryEntity, // [UPDATED] DiaryEntity 사용
+    onClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
