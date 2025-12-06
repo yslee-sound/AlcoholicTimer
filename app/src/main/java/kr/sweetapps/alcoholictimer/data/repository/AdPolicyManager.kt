@@ -46,10 +46,10 @@ object AdPolicyManager {
     }
 
     /**
-     * [v1.0] 전면형 광고(전면광고 + 앱오프닝) 쿨타임 간격(초)을 반환
+     * (v1.0) 전면형 광고(전면광고 + 앱오프닝) 쿨타임 간격(초)을 반환
      *
      * 우선순위 (상위가 우선):
-     * 1. [DEBUG ONLY] 디버그 메뉴에서 설정한 커스텀 쿨타임
+     * 1. (DEBUG ONLY) 디버그 메뉴에서 설정한 커스텀 쿨타임
      * 2. Firebase Remote Config의 "interstitial_interval_sec" 값
      * 3. 기본값 300초 (5분)
      *
@@ -97,7 +97,7 @@ object AdPolicyManager {
     }
 
     /**
-     * [v1.0] 광고 활성화 여부 확인 (Kill Switch)
+     * (v1.0) 광고 활성화 여부 확인 (Kill Switch)
      *
      * @param context Context
      * @return true이면 광고 표시 가능, false이면 긴급 차단
@@ -129,7 +129,7 @@ object AdPolicyManager {
     }
 
     /**
-     * [v1.0 통합] 전면형 광고 노출 가능 여부를 결정
+     * (v1.0 통합) 전면형 광고 노출 가능 여부를 결정
      * (전면광고 + 앱오프닝 공통 사용)
      *
      * @param context Context
@@ -178,7 +178,7 @@ object AdPolicyManager {
     }
 
     /**
-     * [v1.0 통합] 전면형 광고가 성공적으로 표시된 후 호출
+     * (v1.0 통합) 전면형 광고가 성공적으로 표시된 후 호출
      * (전면광고, 앱오프닝 모두 이 함수 호출)
      *
      * @param context Context
@@ -226,7 +226,7 @@ object AdPolicyManager {
     }
 
     /**
-     * [디버그] 쿨타임 커스텀 설정 (DEBUG 빌드만)
+     * (디버그) 쿨타임 커스텀 설정 (DEBUG 빌드만)
      */
     fun setDebugCoolDownSeconds(context: Context, seconds: Long) {
         if (!BuildConfig.DEBUG) {
@@ -244,7 +244,7 @@ object AdPolicyManager {
     }
 
     /**
-     * [디버그] 쿨타임 가져오기 (DEBUG 빌드만)
+     * (디버그) 쿨타임 가져오기 (DEBUG 빌드만)
      */
     fun getDebugCoolDownSeconds(context: Context): Long {
         if (!BuildConfig.DEBUG) return -1L
@@ -257,7 +257,7 @@ object AdPolicyManager {
     }
 
     /**
-     * [디버그] 광고 강제 비활성화 설정 (DEBUG 빌드만)
+     * (디버그) 광고 강제 비활성화 설정 (DEBUG 빌드만)
      */
     fun setDebugAdForceDisabled(context: Context, disabled: Boolean) {
         if (!BuildConfig.DEBUG) return
@@ -271,7 +271,7 @@ object AdPolicyManager {
     }
 
     /**
-     * [디버그] 광고 강제 비활성화 여부 확인
+     * (디버그) 광고 강제 비활성화 여부 확인
      */
     fun isDebugAdForceDisabled(context: Context): Boolean {
         if (!BuildConfig.DEBUG) return false
