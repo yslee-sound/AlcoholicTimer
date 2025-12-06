@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.androidx.navigation.safeargs) // [NEW] Navigation Safe Args 플러그인 적용
     id("com.google.gms.google-services") // 명시적으로 적용하여 variant 콜백 시점 문제 해결
     id("com.google.firebase.crashlytics")
     id("com.google.firebase.firebase-perf")
@@ -162,7 +163,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     // Compose Navigation
-    implementation("androidx.navigation:navigation-compose:2.7.0")
+    implementation("androidx.navigation:navigation-compose:2.8.0")
     implementation(libs.androidx.fragment.ktx)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.material3)
