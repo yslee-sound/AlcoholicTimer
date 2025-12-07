@@ -69,24 +69,42 @@ fun AllDiaryScreen(
             state = state,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .background(Color.White) // [UPDATED] Clean white background
+                .padding(innerPadding),
+            contentPadding = PaddingValues(bottom = 100.dp) // [NEW] Breathing room at bottom
         ) {
             grouped.forEach { (month, list) ->
                 // Sticky header effect: using item with full width header above group
                 item(key = "header_$month") {
                     Surface(
-                        tonalElevation = 1.dp,
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(Color(0xFFF8FAFC))
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .padding(horizontal = 20.dp, vertical = 12.dp)
                     ) {
-                        Text(text = month, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            text = month,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = Color(0xFF2D3748)
+                        )
                     }
                 }
 
-                items(items = list, key = { it.id }) { diary ->
-                    DiaryCardItem(diary = diary, onClick = { onOpenDiaryDetail(diary.id) })
+                list.forEachIndexed { index, diary ->
+                    item(key = diary.id) {
+                        // [UPDATED] Clean white background list item (matches Tab 1 style)
+                        CleanDiaryListItem(diary = diary, onClick = { onOpenDiaryDetail(diary.id) })
+
+                        // [NEW] Add divider between items (not after last item in group)
+                        if (index < list.size - 1) {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 20.dp),
+                                thickness = 1.dp,
+                                color = Color(0xFFE2E8F0)
+                            )
+                        }
+                    }
                 }
             }
 
@@ -95,6 +113,95 @@ fun AllDiaryScreen(
     }
 }
 
+/**
+ * [UPDATED] Clean white background list item (matches Tab 1 "최근 금주 일기" style)
+ * - No Card, No elevation, No grey background
+ * - Simple Row with Date + Emoji + Content
+ * - Dividers added between items in parent
+ * - [FIX] Date split into 2 lines, Emoji in fixed box, Content uses weight(1f)
+ */
+@Composable
+private fun CleanDiaryListItem(diary: DiaryEntity, onClick: () -> Unit) {
+    // Parse date string (e.g., "2025년 12월 7일") into parts
+    val dateText = diary.date
+    val (yearMonth, day) = remember(dateText) {
+        try {
+            // Extract year, month, day from "yyyy년 MM월 dd일"
+            val parts = dateText.split("년", "월", "일").map { it.trim() }
+            if (parts.size >= 3) {
+                val year = parts[0].takeLast(2) // Last 2 digits of year (e.g., "25")
+                val month = parts[1].padStart(2, '0')
+                val day = parts[2].padStart(2, '0')
+                "$year.$month" to "${day}일"
+            } else {
+                dateText to "" // Fallback
+            }
+        } catch (e: Exception) {
+            dateText to ""
+        }
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .background(Color.White) // Clean white background
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // 1. Date Column (Fixed Width, 2 lines)
+        Column(
+            modifier = Modifier.width(50.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
+            // Line 1: Year.Month (e.g., "25.12")
+            Text(
+                text = yearMonth,
+                fontSize = 12.sp,
+                color = Color(0xFF94A3B8), // Light grey
+                lineHeight = 14.sp
+            )
+            // Line 2: Day (e.g., "07일")
+            Text(
+                text = day,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF2D3748), // Dark grey/black
+                lineHeight = 18.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        // 2. Emoji (Fixed Size Box to prevent clipping)
+        Box(
+            modifier = Modifier.size(40.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = diary.emoji,
+                fontSize = 28.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        // 3. Content Preview (Fills remaining space with weight)
+        Text(
+            text = diary.content.ifEmpty { "내용 없음" },
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color(0xFF1E293B), // Dark grey/black
+            fontSize = 15.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f) // [FIX] Take remaining space
+        )
+    }
+}
+
+/**
+ * [DEPRECATED] Old grey card style - kept for reference
+ */
 @Composable
 private fun DiaryCardItem(diary: DiaryEntity, onClick: () -> Unit) {
     val weekday = remember(diary.timestamp) {
