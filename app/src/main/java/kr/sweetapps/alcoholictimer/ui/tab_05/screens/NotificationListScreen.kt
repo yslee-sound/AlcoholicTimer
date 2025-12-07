@@ -199,7 +199,7 @@ private fun NotificationCard(notification: NotificationItem) {
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = formatTimestamp(notification.timestamp),
+                    text = formatTimestamp(notification.timestamp), // [NEW] Date? 타입 처리
                     fontSize = 12.sp,
                     color = Color(0xFF999999)
                 )
@@ -208,12 +208,11 @@ private fun NotificationCard(notification: NotificationItem) {
     }
 }
 
-/**
- * 타임스탬프를 "yyyy.MM.dd" 포맷으로 변환
- */
-private fun formatTimestamp(timestamp: Long): String {
+// [NEW] Date?을 받아서 안전하게 포맷. null이면 오늘 날짜로 포맷하여 표시(빈 공간 방지)
+private fun formatTimestamp(timestamp: Date?): String {
+    val dateToFormat = timestamp ?: Date() // null이면 현재 날짜 사용
     val dateFormat = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault())
-    return dateFormat.format(Date(timestamp))
+    return dateFormat.format(dateToFormat)
 }
 
 // ==================== Preview ====================
@@ -227,21 +226,21 @@ fun NotificationListScreenPreview() {
             id = "1",
             title = "앱 업데이트 안내",
             content = "새로운 기능이 추가되었습니다. 지금 업데이트하세요!",
-            timestamp = System.currentTimeMillis(),
+            timestamp = Date(), // [NEW] Date 객체 사용
             type = "UPDATE"
         ),
         NotificationItem(
             id = "2",
             title = "이벤트 공지",
             content = "7일 챌린지 완료 시 특별 보상을 드립니다.",
-            timestamp = System.currentTimeMillis() - 86400000L, // 1일 전
+            timestamp = Date(System.currentTimeMillis() - 86400000L), // 1일 전
             type = "EVENT"
         ),
         NotificationItem(
             id = "3",
             title = "서비스 점검 안내",
             content = "서버 점검이 진행됩니다.\n시간: 2025.12.10 02:00~04:00",
-            timestamp = System.currentTimeMillis() - 172800000L, // 2일 전
+            timestamp = Date(System.currentTimeMillis() - 172800000L), // 2일 전
             type = "NOTICE"
         )
     )
@@ -255,4 +254,3 @@ fun NotificationListScreenPreview() {
         NotificationList(notifications = dummyNotifications)
     }
 }
-

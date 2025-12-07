@@ -1,6 +1,7 @@
 package kr.sweetapps.alcoholictimer.data.repository
 
 import android.util.Log
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kr.sweetapps.alcoholictimer.BuildConfig
@@ -38,7 +39,8 @@ class FeedbackRepository {
             "category" to category,
             "content" to content,
             "email" to email.ifEmpty { null },
-            "createdAt" to System.currentTimeMillis(),
+            // [NEW] 서버에서 생성된 Timestamp를 사용하도록 토큰 전달
+            "createdAt" to FieldValue.serverTimestamp(),
             "appVersion" to BuildConfig.VERSION_NAME,
             "deviceModel" to android.os.Build.MODEL,
             "osVersion" to "Android ${android.os.Build.VERSION.RELEASE}"
@@ -56,4 +58,3 @@ class FeedbackRepository {
             }
     }
 }
-
