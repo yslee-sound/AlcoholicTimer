@@ -137,7 +137,7 @@ fun SettingsScreen(
                 .verticalScroll(scrollState)
                 .padding(top = 8.dp)
                 .padding(safePadding)
-                .padding(bottom = 200.dp), // [UPDATED] Increased to 200dp for extra breathing room
+                .padding(bottom = 140.dp), // [UPDATED] Increased to 200dp for extra breathing room
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             SettingsSection(
