@@ -6,16 +6,22 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme
 import kr.sweetapps.alcoholictimer.ui.main.Screen
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.NavHostController
 import kr.sweetapps.alcoholictimer.ui.components.BottomNavBar
 import kotlinx.coroutines.delay
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 
 /**
  * Common Scaffold: Top banner ad + center content + bottom navigation
@@ -49,6 +55,17 @@ fun BaseScaffold(
         val backStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = backStackEntry?.destination?.route
 
+        // [NEW] 탭 2(Records), 탭 3(Level), 탭 4(More)에서만 표시되는 상단 타이틀 바 결정
+        val topTitle: String? = when {
+            // 탭 2 그룹: Records 및 관련 라우트
+            currentRoute == Screen.Records.route || currentRoute == Screen.AllRecords.route || currentRoute == Screen.AddRecord.route || (currentRoute?.startsWith("detail/") == true) -> "금주 기록"
+            // 탭 3: Level
+            currentRoute == Screen.Level.route -> "금주 레벨"
+            // 탭 4 그룹: More 및 관련 라우트
+            currentRoute == Screen.More.route || currentRoute == Screen.CurrencySettings.route -> "금주 습관"
+            else -> null
+        }
+
         Box(modifier = Modifier.fillMaxSize()) {
             // Base UI
             Column(
@@ -56,10 +73,27 @@ fun BaseScaffold(
                     .fillMaxSize()
                     .windowInsetsPadding(WindowInsets.statusBars)
             ) {
-                // [REMOVED] Banner ad removed (2025-12-01)
-                // Previous code:
-                // AdmobBanner(modifier = Modifier.fillMaxWidth(), reserveSpaceWhenDisabled = true)
-                // HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
+                // [NEW] 상단 타이틀 바: 탭 2/3/4에서만 보이도록 함
+                if (topTitle != null) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .padding(start = 16.dp, end = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = topTitle,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF111111),
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        // 우측 아이콘 공간(추후 아이콘 추가 가능)
+                        Spacer(modifier = Modifier.width(48.dp))
+                    }
+                }
 
                 // Center content
                 val effectiveBg = when (currentRoute) {
