@@ -928,15 +928,6 @@ private fun StatisticItem(
     }
 }
 
-// [NEW] 최근 금주 일기 데이터 모델
-data class DiaryEntry(
-    val id: String, // [NEW] 일기 고유 ID (timestamp 활용)
-    val timestamp: Long, // [NEW] 작성 시간 (상세보기에 필요)
-    val date: String,
-    val emoji: String,
-    val content: String,
-    val cravingLevel: Int = 0 // [NEW] 음주 욕구 수치
-)
 
 /**
  * [NEW] 최근 금주 일기 섹션 (Room DB 기반)
