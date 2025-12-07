@@ -4,6 +4,8 @@ import android.widget.Toast
 import android.util.Log
 import android.app.Activity
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -60,7 +62,11 @@ fun DebugScreen(
             title = stringResource(id = R.string.debug_menu_title),
             onBack = onBack
         )
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState()) // [NEW] Enable scrolling
+                .padding(16.dp)
+        ) {
             Text(
                 text = "맞춤형 광고 재설정",
                 modifier = Modifier
@@ -330,6 +336,9 @@ fun DebugScreen(
                     Toast.makeText(context, "Performance trace started (debug)", Toast.LENGTH_SHORT).show()
                 }
             })
+
+            // [NEW] Bottom spacer for breathing room
+            Spacer(modifier = Modifier.height(100.dp))
         }
     }
 }
