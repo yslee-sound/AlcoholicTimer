@@ -109,126 +109,97 @@ fun DiaryWriteScreen(
     val dateFormat = remember { SimpleDateFormat("yyyy년 M월 d일 (E)", Locale.KOREAN) }
     val timeFormat = remember { SimpleDateFormat("a h:mm", Locale.KOREAN) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
-        // [수정] 모드에 따른 TopBar 구성
-        BackTopBar(
-            title = when {
-                isViewMode -> dateFormat.format(selectedDate.time) // 읽기 모드: 날짜 표시
-                diaryId != null -> "일기 수정" // 수정 모드 (기존 일기)
-                else -> "일기 쓰기" // 새 작성
-            },
-            onBack = onDismiss,
-            trailingContent = {
-                when {
-                    isViewMode -> {
-                        // [NEW] 읽기 모드: 점 3개 메뉴
-                        Box {
-                            IconButton(onClick = { showMenu = true }) {
-                                Icon(
-                                    imageVector = Icons.Default.MoreVert,
-                                    contentDescription = "메뉴",
-                                    tint = Color(0xFF2D3748)
-                                )
-                            }
-
-                            DropdownMenu(
-                                expanded = showMenu,
-                                onDismissRequest = { showMenu = false }
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text("수정하기") },
-                                    onClick = {
-                                        showMenu = false
-                                        isEditMode = true
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("삭제하기") },
-                                    onClick = {
-                                        showMenu = false
-                                        showDeleteDialog = true
-                                    }
-                                )
-                            }
-                        }
-                    }
-                    isEditMode -> {
-                        // [NEW] 수정 모드: 저장 버튼
-                        IconButton(
-                            onClick = {
-                                if (selectedMood != null) {
-                                    scope.launch {
-                                        if (diaryId != null) {
-                                            // [NEW] Room DB 업데이트
-                                            viewModel.updateDiary(
-                                                id = diaryId,
-                                                emoji = selectedMood!!.emoji,
-                                                content = diaryText,
-                                                cravingLevel = cravingLevel.toInt()
-                                            )
-                                        } else {
-                                            // [NEW] Room DB 저장
-                                            viewModel.saveDiary(
-                                                emoji = selectedMood!!.emoji,
-                                                content = diaryText,
-                                                cravingLevel = cravingLevel.toInt()
-                                            )
-                                        }
-                                        onDismiss()
-                                    }
-                                }
-                            },
-                            enabled = selectedMood != null
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = "저장",
-                                tint = if (selectedMood != null) MaterialTheme.colorScheme.primary else Color.Gray
-                            )
-                        }
-                    }
-                }
-            }
-        )
-
-        // [NEW] 삭제 확인 다이얼로그
-        if (showDeleteDialog) {
-            AlertDialog(
-                onDismissRequest = { showDeleteDialog = false },
-                title = { Text("일기 삭제") },
-                text = { Text("정말 이 일기를 삭제하시겠습니까?") },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            showDeleteDialog = false
-                            scope.launch {
-                                if (diaryId != null) {
-                                    // [NEW] Room DB 삭제
-                                    viewModel.deleteDiary(diaryId)
-                                }
-                                onDismiss()
-                            }
-                        }
-                    ) {
-                        Text("삭제", color = Color(0xFFEF4444))
-                    }
+    // [FIX] Scaffold 패턴 적용: TopBar 고정, Content 스크롤 분리
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            // [MOVED] BackTopBar를 Scaffold의 topBar 슬롯으로 이동 → 화면 상단에 고정
+            BackTopBar(
+                title = when {
+                    isViewMode -> dateFormat.format(selectedDate.time)
+                    diaryId != null -> "일기 수정"
+                    else -> "일기 쓰기"
                 },
-                dismissButton = {
-                    TextButton(onClick = { showDeleteDialog = false }) {
-                        Text("취소")
+                onBack = onDismiss,
+                trailingContent = {
+                    when {
+                        isViewMode -> {
+                            // 읽기 모드: 점 3개 메뉴
+                            Box {
+                                IconButton(onClick = { showMenu = true }) {
+                                    Icon(
+                                        imageVector = Icons.Default.MoreVert,
+                                        contentDescription = "메뉴",
+                                        tint = Color(0xFF2D3748)
+                                    )
+                                }
+
+                                DropdownMenu(
+                                    expanded = showMenu,
+                                    onDismissRequest = { showMenu = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("수정하기") },
+                                        onClick = {
+                                            showMenu = false
+                                            isEditMode = true
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("삭제하기") },
+                                        onClick = {
+                                            showMenu = false
+                                            showDeleteDialog = true
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                        isEditMode -> {
+                            // [UPDATED] 수정/작성 모드: "저장" 텍스트 버튼
+                            TextButton(
+                                onClick = {
+                                    if (selectedMood != null) {
+                                        scope.launch {
+                                            if (diaryId != null) {
+                                                viewModel.updateDiary(
+                                                    id = diaryId,
+                                                    emoji = selectedMood!!.emoji,
+                                                    content = diaryText,
+                                                    cravingLevel = cravingLevel.toInt()
+                                                )
+                                            } else {
+                                                viewModel.saveDiary(
+                                                    emoji = selectedMood!!.emoji,
+                                                    content = diaryText,
+                                                    cravingLevel = cravingLevel.toInt()
+                                                )
+                                            }
+                                            onDismiss()
+                                        }
+                                    }
+                                },
+                                enabled = selectedMood != null
+                            ) {
+                                Text(
+                                    "저장",
+                                    color = if (selectedMood != null) Color(0xFF2D3748) else Color.Gray,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
                     }
                 }
             )
         }
-
+    ) { innerPadding ->
+        // [FIX] Content 영역: innerPadding 적용하여 TopBar와 겹치지 않도록
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFF8F9FA))
+                .padding(innerPadding) // [NEW] Scaffold의 innerPadding 적용
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
@@ -265,54 +236,37 @@ fun DiaryWriteScreen(
                 enabled = isEditMode // [NEW] 읽기 모드에서는 비활성화
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp)) // [UPDATED] 저장 버튼 제거 (TopBar로 이동)
+        }
+    }
 
-            // 5. 저장 버튼 (수정 모드에서만 표시)
-            if (isEditMode) {
-                Button(
+    // [NEW] 삭제 확인 다이얼로그 (Scaffold 외부에 배치)
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("일기 삭제") },
+            text = { Text("정말 이 일기를 삭제하시겠습니까?") },
+            confirmButton = {
+                TextButton(
                     onClick = {
-                        if (selectedMood != null) {
-                            scope.launch {
-                                if (diaryId != null) {
-                                    // [NEW] Room DB 업데이트
-                                    viewModel.updateDiary(
-                                        id = diaryId,
-                                        emoji = selectedMood!!.emoji,
-                                        content = diaryText,
-                                        cravingLevel = cravingLevel.toInt()
-                                    )
-                                } else {
-                                    // [NEW] Room DB 저장
-                                    viewModel.saveDiary(
-                                        emoji = selectedMood!!.emoji,
-                                        content = diaryText,
-                                        cravingLevel = cravingLevel.toInt()
-                                    )
-                                }
-                                onDismiss()
+                        showDeleteDialog = false
+                        scope.launch {
+                            if (diaryId != null) {
+                                viewModel.deleteDiary(diaryId)
                             }
+                            onDismiss()
                         }
-                    },
-                    enabled = selectedMood != null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        disabledContainerColor = Color(0xFFE0E0E0)
-                    ),
-                    shape = RoundedCornerShape(12.dp)
+                    }
                 ) {
-                    Text(
-                        if (diaryId != null) "일기 수정 완료" else "오늘의 기록 저장하기",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text("삭제", color = Color(0xFFEF4444))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("취소")
                 }
             }
-
-            Spacer(modifier = Modifier.height(32.dp))
-        }
+        )
     }
 }
 
