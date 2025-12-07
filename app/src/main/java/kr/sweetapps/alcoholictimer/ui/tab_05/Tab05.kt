@@ -200,7 +200,8 @@ fun AboutScreen(
                         shape = RoundedCornerShape(12.dp)
                     )
                     .clickable {
-                        val packageName = BuildConfig.APPLICATION_ID
+                        // [FIX] 디버그 빌드에서도 실제 앱의 플레이스토어 페이지로 이동
+                        val packageName = "kr.sweetapps.alcoholictimer" // 실제 릴리즈 앱의 패키지명 (하드코딩)
                         try {
                             val intent = Intent(Intent.ACTION_VIEW, "market://details?id=$packageName".toUri())
                             intent.setPackage("com.android.vending")
