@@ -4,9 +4,13 @@ package kr.sweetapps.alcoholictimer.data.repository
 import android.content.Context
 import android.util.Log
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import com.google.firebase.remoteconfig.ktx.remoteConfig
 import com.google.firebase.ktx.Firebase
 import kr.sweetapps.alcoholictimer.BuildConfig
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * 광고 정책을 통합 관리하는 싱글톤 객체
@@ -33,9 +37,23 @@ object AdPolicyManager {
     private const val DEFAULT_INTERSTITIAL_INTERVAL_SECONDS = 300L // 5분 (정책 v1.0)
     private const val DEBUG_DEFAULT_INTERSTITIAL_INTERVAL_SECONDS = 60L // 디버그 기본: 1분
 
+    // [NEW] UI 반응형 상태 관리 (StateFlow)
+    private val _isAdEnabledState = MutableStateFlow(true) // 기본값: 광고 활성화
+    val isAdEnabledState: StateFlow<Boolean> = _isAdEnabledState.asStateFlow()
+
     // Firebase Remote Config 인스턴스
     private val remoteConfig: FirebaseRemoteConfig by lazy {
         Firebase.remoteConfig.apply {
+            // [FIX] Debug 빌드에서는 fetch interval을 0으로 설정하여 즉시 업데이트
+            val configSettings = FirebaseRemoteConfigSettings.Builder()
+                .setMinimumFetchIntervalInSeconds(
+                    if (BuildConfig.DEBUG) 0L // Debug: 즉시 fetch
+                    else 3600L // Release: 1시간 캐시
+                )
+                .build()
+            setConfigSettingsAsync(configSettings)
+
+            // 기본값 설정
             setDefaultsAsync(
                 mapOf(
                     REMOTE_KEY_INTERSTITIAL_INTERVAL to DEFAULT_INTERSTITIAL_INTERVAL_SECONDS,
@@ -110,6 +128,7 @@ object AdPolicyManager {
                 val forceDisabled = prefs.getBoolean(KEY_DEBUG_AD_FORCE_DISABLED, false)
                 if (forceDisabled) {
                     Log.d(TAG, "⚠️ [디버그] 광고 강제 비활성화됨")
+                    _isAdEnabledState.value = false // [NEW] StateFlow 업데이트
                     return false
                 }
             } catch (t: Throwable) {
@@ -121,9 +140,11 @@ object AdPolicyManager {
         return try {
             val enabled = remoteConfig.getBoolean(REMOTE_KEY_IS_AD_ENABLED)
             Log.d(TAG, "Firebase Kill Switch: is_ad_enabled = $enabled")
+            _isAdEnabledState.value = enabled // [NEW] StateFlow 업데이트 (UI 자동 갱신)
             enabled
         } catch (t: Throwable) {
             Log.w(TAG, "Remote Config Kill Switch 확인 실패, 기본값 true 사용", t)
+            _isAdEnabledState.value = true // [NEW] StateFlow 업데이트
             true // 기본적으로 광고 활성화
         }
     }
@@ -205,22 +226,35 @@ object AdPolicyManager {
 
     /**
      * Remote Config 새로고침 (앱 시작 시 호출 권장)
+     * [IMPROVED] Fetch 성공 시 자동으로 StateFlow 업데이트하여 UI가 즉시 반응하도록 개선
+     *
+     * @param context Context (StateFlow 업데이트용)
+     * @param onComplete 완료 콜백 (성공 여부)
      */
-    fun fetchRemoteConfig(onComplete: ((Boolean) -> Unit)? = null) {
+    fun fetchRemoteConfig(context: Context? = null, onComplete: ((Boolean) -> Unit)? = null) {
         try {
+            Log.d(TAG, "🔄 Remote Config Fetch 시작...")
             remoteConfig.fetchAndActivate()
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         val updated = task.result
                         Log.d(TAG, "✅ Remote Config 업데이트 완료: updated=$updated")
+
+                        // [NEW] Fetch 성공 시 즉시 상태 업데이트 (UI 자동 갱신)
+                        if (context != null) {
+                            val enabled = remoteConfig.getBoolean(REMOTE_KEY_IS_AD_ENABLED)
+                            _isAdEnabledState.value = enabled
+                            Log.d(TAG, "🔄 StateFlow 업데이트: isAdEnabled = $enabled")
+                        }
+
                         onComplete?.invoke(true)
                     } else {
-                        Log.w(TAG, "Remote Config 업데이트 실패")
+                        Log.w(TAG, "❌ Remote Config 업데이트 실패: ${task.exception?.message}")
                         onComplete?.invoke(false)
                     }
                 }
         } catch (t: Throwable) {
-            Log.e(TAG, "Remote Config fetch 실패", t)
+            Log.e(TAG, "❌ Remote Config fetch 실패", t)
             onComplete?.invoke(false)
         }
     }

@@ -56,6 +56,15 @@ class MainActivity : BaseActivity() {
 
         super.onCreate(savedInstanceState)
 
+        // [NEW] Firebase Remote Config 즉시 fetch (Debug에서는 캐시 없이 즉시 업데이트)
+        try {
+            kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.fetchRemoteConfig(this) { success ->
+                android.util.Log.d("MainActivity", "Remote Config fetch completed: success=$success")
+            }
+        } catch (t: Throwable) {
+            android.util.Log.e("MainActivity", "Remote Config fetch failed", t)
+        }
+
         // [중요] 앱 오프닝 광고 자동 표시 비활성화 (수동으로 제어하여 중첩 방지)
         try {
             kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setAutoShowEnabled(false)
