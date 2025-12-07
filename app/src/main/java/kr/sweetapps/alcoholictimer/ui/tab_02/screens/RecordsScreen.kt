@@ -72,7 +72,7 @@ private val RECORDS_CARD_INTERNAL_TOP_PADDING = 8.dp // 8, 3칩 그룹 내부 �
 val RECORDS_STATS_CARD_ELEVATION: Dp = 2.dp // <- change this number in this file to control this card's elevation
 // Local bottom padding used for the Records screen list content (controls the space under the last item).
 // Change this value here to adjust the visible gap under the "View all records" button.
-val RECORDS_LIST_BOTTOM_PADDING: Dp = 15.dp // default: 15.dp (was UiConstants.CARD_VERTICAL_SPACING)
+val RECORDS_LIST_BOTTOM_PADDING: Dp = 100.dp // [UPDATED] Increased from 15.dp to 100.dp for breathing room at bottom
 // use RECORDS_TOP_SECTION_EXTERNAL_GAP to control top spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1054,47 +1054,35 @@ private fun DiaryListItem(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.weight(1f),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 날짜
-            Text(
-                text = diary.date,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF64748B),
-                modifier = Modifier.width(90.dp)
-            )
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            // 이모지
-            Text(
-                text = diary.emoji,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.size(24.dp)
-            )
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            // 내용 미리보기
-            Text(
-                text = diary.content,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF1E293B),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        // 화살표 아이콘
-        Icon(
-            painter = painterResource(id = R.drawable.ic_caret_right),
-            contentDescription = "상세 보기",
-            tint = Color(0xFF94A3B8),
-            modifier = Modifier.size(20.dp)
+        // 날짜
+        Text(
+            text = diary.date,
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color(0xFF64748B),
+            modifier = Modifier.width(90.dp)
         )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        // 이모지
+        Text(
+            text = diary.emoji,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.size(24.dp)
+        )
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        // 내용 미리보기
+        Text(
+            text = diary.content,
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color(0xFF1E293B),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+
+        // [REMOVED] 화살표 아이콘 제거 (사용자 요청)
     }
 }

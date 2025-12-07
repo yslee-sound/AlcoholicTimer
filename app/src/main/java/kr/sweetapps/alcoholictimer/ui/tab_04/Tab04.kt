@@ -137,7 +137,7 @@ fun SettingsScreen(
                 .verticalScroll(scrollState)
                 .padding(top = 8.dp)
                 .padding(safePadding)
-                .padding(bottom = 140.dp), // 플로팅 버튼에 가려지지 않도록 충분한 여백 확보
+                .padding(bottom = 200.dp), // [UPDATED] Increased to 200dp for extra breathing room
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             SettingsSection(

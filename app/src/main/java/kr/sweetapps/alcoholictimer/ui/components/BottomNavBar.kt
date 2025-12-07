@@ -47,9 +47,17 @@ private val bottomItems: List<BottomItem> = listOf(
         R.drawable.ic_nav_calendardots,
         R.string.drawer_menu_records,
         R.string.drawer_menu_records,
-        // 2번째 버튼 그룹: 금주 기록(Records), 모든 기록(AllRecords), 기록 상세(Detail)
-        // 포함: 기록 추가(add_record)도 같은 그룹으로 처리
-        associatedRoutes = setOf(Screen.Records.route, Screen.AllRecords.route, Screen.AddRecord.route, "detail/")
+        // [UPDATED] 2번째 버튼 그룹: 금주 기록(Records), 모든 기록(AllRecords), 기록 상세(Detail), 일기 관련
+        // 포함: 기록 추가(add_record), 일기 쓰기(diary_write), 일기 상세(diary_detail/), 모든 일기(all_diaries)도 같은 그룹으로 처리
+        associatedRoutes = setOf(
+            Screen.Records.route,
+            Screen.AllRecords.route,
+            Screen.AddRecord.route,
+            "detail/",
+            "diary_write",      // [NEW] 일기 작성 화면
+            "diary_detail/",    // [NEW] 일기 상세/수정 화면
+            "all_diaries"       // [NEW] 모든 일기 목록 화면
+        )
     ),
     BottomItem(
         Screen.Level,
