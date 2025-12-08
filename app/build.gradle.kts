@@ -8,8 +8,17 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     id("com.google.devtools.ksp") version "2.0.21-1.0.28" // [NEW] Room Database용 KSP 플러그인 (KAPT 대체)
     id("com.google.gms.google-services") // Google Services
-    id("com.google.firebase.crashlytics") // [FIX] Crashlytics 플러그인 활성화
+    // Crashlytics는 조건부로 apply (아래 참조)
     id("com.google.firebase.firebase-perf")
+}
+
+// [FIX] Crashlytics 플러그인 조건부 적용 (Release 빌드에서만)
+// KSP와의 순환 의존성을 방지하기 위해 Debug 빌드에서는 플러그인을 적용하지 않음
+if (gradle.startParameter.taskNames.any { task ->
+    task.contains("Release", ignoreCase = true) &&
+    !task.contains("Debug", ignoreCase = true)
+}) {
+    apply(plugin = "com.google.firebase.crashlytics")
 }
 
 // 중복 commonmark(com.atlassian.commonmark)으로 인한 Duplicate class 에러 방지
