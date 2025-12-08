@@ -45,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.MainApplication
 import kr.sweetapps.alcoholictimer.R
@@ -53,6 +54,7 @@ import kr.sweetapps.alcoholictimer.ui.theme.LocalDimens
 import kr.sweetapps.alcoholictimer.ui.tab_04.SettingsMenuWithSwitch
 import kr.sweetapps.alcoholictimer.ui.tab_04.SimpleAboutRow
 import kr.sweetapps.alcoholictimer.ui.tab_05.components.CustomerFeedbackBottomSheet
+import kr.sweetapps.alcoholictimer.ui.tab_05.viewmodel.Tab05ViewModel
 import kr.sweetapps.alcoholictimer.ui.main.Screen
 
 private fun ContextToActivity(context: android.content.Context): Activity? {
@@ -75,25 +77,24 @@ fun AboutScreen(
     onNavigateNotification: () -> Unit = {},
     onNavigateCustomer: () -> Unit = {},
     showBack: Boolean = false,
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    viewModel: Tab05ViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val isInPreview = LocalInspectionMode.current
     val scrollState = rememberScrollState()
 
-    // [NEW] 고객 문의 바텀 시트 상태
-    var showCustomerFeedbackSheet by remember { mutableStateOf(false) }
-
-    // [NEW] SharedPreferences에서 닉네임 읽어오기
-    val sp = remember { context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE) }
-    var nickname by remember {
-        mutableStateOf(sp.getString("nickname", context.getString(R.string.default_nickname)) ?: context.getString(R.string.default_nickname))
-    }
-
-    // [NEW] 화면이 다시 보일 때마다 닉네임 새로고침
+    // [NEW] ViewModel 초기화
+    val defaultNickname = stringResource(R.string.default_nickname)
     LaunchedEffect(Unit) {
-        nickname = sp.getString("nickname", context.getString(R.string.default_nickname)) ?: context.getString(R.string.default_nickname)
+        viewModel.initialize(context, defaultNickname)
+        viewModel.refreshNickname(defaultNickname)
     }
+
+    // [NEW] ViewModel 상태 구독
+    val uiState by viewModel.uiState.collectAsState()
+    val nickname = uiState.nickname
+    val showCustomerFeedbackSheet = uiState.showCustomerFeedbackSheet
 
     // preview values or real state from UMP
     val isPersonalizedAdsAllowed: Boolean
@@ -265,7 +266,7 @@ fun AboutScreen(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .clickable { showCustomerFeedbackSheet = true }
+                    .clickable { viewModel.setShowCustomerFeedbackSheet(true) }
                     .padding(vertical = dims.spacing.sm),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -372,7 +373,7 @@ fun AboutScreen(
     // 고객 문의 바텀 시트
     if (showCustomerFeedbackSheet) {
         CustomerFeedbackBottomSheet(
-            onDismiss = { showCustomerFeedbackSheet = false },
+            onDismiss = { viewModel.setShowCustomerFeedbackSheet(false) },
             onSubmit = { category, content, email ->
                 // Firebase 전송은 BottomSheet 내부에서 처리됨
                 // 여기서는 추가 로깅이나 분석 이벤트만 기록 가능
