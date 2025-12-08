@@ -1,5 +1,4 @@
-// [NEW] Tab02 리팩토링: 기록 화면 ViewModel 추가
-package kr.sweetapps.alcoholictimer.ui.tab_02
+package kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel
 
 import android.app.Application
 import android.util.Log
@@ -9,8 +8,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kr.sweetapps.alcoholictimer.data.repository.RecordsDataLoader
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
+import kr.sweetapps.alcoholictimer.data.repository.RecordsDataLoader
 import java.util.Calendar
 
 /**
@@ -203,4 +202,3 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
         return yearStart to yearEnd
     }
 }
-

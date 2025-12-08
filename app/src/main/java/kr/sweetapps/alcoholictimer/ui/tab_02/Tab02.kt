@@ -13,6 +13,7 @@ import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.ui.common.BaseActivity
 import kr.sweetapps.alcoholictimer.ui.tab_02.screens.RecordsScreen
+import kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.Tab02ViewModel
 import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme
 
 /**
