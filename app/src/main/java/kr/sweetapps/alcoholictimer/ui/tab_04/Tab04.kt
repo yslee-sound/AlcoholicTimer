@@ -2,6 +2,7 @@ package kr.sweetapps.alcoholictimer.ui.tab_04
 
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
+import kr.sweetapps.alcoholictimer.ui.tab_04.viewmodel.Tab04ViewModel
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

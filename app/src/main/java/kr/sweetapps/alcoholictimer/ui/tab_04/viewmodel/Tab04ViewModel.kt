@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.ui.tab_04
+package kr.sweetapps.alcoholictimer.ui.tab_04.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -85,3 +85,4 @@ class Tab04ViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 }
+
