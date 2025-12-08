@@ -73,10 +73,6 @@ sealed class Screen(val route: String) {
      */
     data object CurrencySettings : Screen("currency_settings")
 
-    /**
-     * Debug: Ad verifier screen (development only)
-     */
-    data object DebugAds : Screen("debug_ads")
 
     /**
      * Debug screen for UMP consent verification

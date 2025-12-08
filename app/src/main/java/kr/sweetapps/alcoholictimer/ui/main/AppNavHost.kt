@@ -37,7 +37,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import kr.sweetapps.alcoholictimer.ui.tab_02.screens.AddRecordScreenComposable
-import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DebugAdsScreen
 import kr.sweetapps.alcoholictimer.ui.tab_04.screens.CurrencyScreen
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DebugScreen
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.policy.DocumentScreen
@@ -402,9 +401,6 @@ fun AppNavHost(
             CurrencyScreen(onBack = { navController.popBackStack() })
         }
 
-        composable(Screen.DebugAds.route) {
-            DebugAdsScreen()
-        }
 
         composable(Screen.Debug.route) {
             DebugScreen(onBack = { navController.popBackStack() })
