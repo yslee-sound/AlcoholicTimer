@@ -8,9 +8,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     id("com.google.devtools.ksp") version "2.0.21-1.0.28" // [NEW] Room Database용 KSP 플러그인 (KAPT 대체)
     id("com.google.gms.google-services") // Google Services
-    // [NOTE] Crashlytics: Debug 빌드에서는 비활성화 (google-services.json 필요)
-    // Release 빌드 시에만 활성화하려면 주석 해제
-    // id("com.google.firebase.crashlytics")
+    id("com.google.firebase.crashlytics") // [FIX] Crashlytics 플러그인 활성화
     id("com.google.firebase.firebase-perf")
 }
 
@@ -52,13 +50,16 @@ android {
     val releaseVersionCode = 2025112500
     val releaseVersionName = "1.1.5"
     defaultConfig {
-        applicationId = "kr.sweetapps.alcoholictimer" // Play Console용 applicationId는 유지
+        applicationId = "kr.sweetapps.alcoholictimer"
         minSdk = 21
         targetSdk = 36
         versionCode = releaseVersionCode
         versionName = releaseVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // [NEW] Crashlytics 기본값 설정 (buildType에서 오버라이드됨)
+        manifestPlaceholders["crashlyticsCollectionEnabled"] = "false"
 
         ndk {
             // Play Console 경고 대응: 네이티브 심볼 업로드용 심볼 테이블 생성 (FULL 은 용량↑)
@@ -91,6 +92,7 @@ android {
         }
     }
 
+
     buildTypes {
         release {
             // 릴리스 번들 최적화: 코드/리소스 축소 (ProGuard/R8)
@@ -108,6 +110,8 @@ android {
             if (hasKeystore) {
                 signingConfig = signingConfigs.getByName("release")
             }
+            // [NEW] Crashlytics 자동 활성화 (Release 빌드)
+            manifestPlaceholders["crashlyticsCollectionEnabled"] = "true"
             // 빌드타입별 배너 광고 유닛ID (릴리즈 실제 ID)
             buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"ca-app-pub-8420908105703273/3187272865\"")
             // 빌드타입별 전면 광고 유닛ID (릴리즈 실제 ID)
@@ -120,6 +124,8 @@ android {
         getByName("debug") {
             applicationIdSuffix = ".debug"  // kr.sweetapps.alcoholictimer.debug
             versionNameSuffix = "-debug"
+            // [NEW] Crashlytics 자동 비활성화 (Debug 빌드 - 데이터 오염 방지)
+            manifestPlaceholders["crashlyticsCollectionEnabled"] = "false"
             buildConfigField("String", "ADMOB_INTERSTITIAL_UNIT_ID", "\"ca-app-pub-3940256099942544/1033173712\"")
             // 변경: 디버그 빌드의 배너 광고 유닛 ID를 적응형 배너 테스트 ID로 교체함
             buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"ca-app-pub-3940256099942544/9214589741\"")
@@ -159,6 +165,7 @@ kotlin {
     compilerOptions { jvmTarget.set(JvmTarget.JVM_11) }
 }
 
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -188,9 +195,8 @@ dependencies {
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
     implementation("com.google.firebase:firebase-analytics-ktx")
-    // [NOTE] Crashlytics: Debug 빌드 크래시 방지를 위해 주석 처리
-    // Release 빌드 시 google-services.json 추가 후 주석 해제
-    // implementation("com.google.firebase:firebase-crashlytics-ktx")
+    // [NEW] Crashlytics: Gradle로 자동 제어 (Debug=비활성화, Release=활성화)
+    implementation("com.google.firebase:firebase-crashlytics-ktx")
     implementation("com.google.firebase:firebase-perf-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx") // [NEW] Firestore 추가
 

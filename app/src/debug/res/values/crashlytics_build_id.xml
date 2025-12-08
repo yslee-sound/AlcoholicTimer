@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        [DEBUG BUILD ONLY] Dummy Crashlytics Build ID
+        이 파일은 Debug 빌드에서 Crashlytics 플러그인이 injectCrashlyticsMappingFileId
+        태스크를 실행하지 않도록 더미 빌드 ID를 제공합니다.
+
+        순환 의존성 방지: KSP(Room) ↔ Crashlytics 매핑 파일 주입
+
+        Release 빌드에서는 이 파일이 사용되지 않으며,
+        Crashlytics 플러그인이 자동으로 실제 빌드 ID를 생성합니다.
+    -->
+    <string name="com.crashlytics.android.build_id" translatable="false">debug-build-no-mapping</string>
+</resources>
+

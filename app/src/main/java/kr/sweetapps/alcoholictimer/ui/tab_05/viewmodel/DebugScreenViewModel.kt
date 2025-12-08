@@ -9,7 +9,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.ump.UserMessagingPlatform
 import com.google.firebase.analytics.ktx.analytics
-// [NOTE] Crashlytics: Debug 빌드에서 비활성화
+import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.perf.ktx.performance
 import com.google.firebase.perf.metrics.Trace
@@ -151,45 +151,39 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
 
         when (actionIndex) {
             3 -> {
-                // Analytics test event (use Bundle to avoid deprecated param API)
+                // [수정] 로그를 명확하게 찍도록 변경
+                Log.d("MY_TEST", "Analytics 이벤트 전송 시도 중...") // 시도 로그
                 try {
                     val b = Bundle().apply { putString("source", "DebugScreen") }
                     Firebase.analytics.logEvent("debug_test_event", b)
-                } catch (_: Exception) {
-                    // swallow in debug
+                    Log.d("MY_TEST", "Analytics 이벤트 전송 명령 성공!") // 성공 로그
+                } catch (e: Exception) {
+                    Log.e("MY_TEST", "Analytics 전송 실패: ${e.message}") // 실패 로그 (에러 내용 확인)
                 }
             }
 
             4 -> {
-                // [NOTE] Crashlytics: Debug 빌드에서 비활성화됨
-                // non-fatal Crashlytics report
+                // [NEW] Crashlytics 테스트: 버튼 클릭 시에만 일시적으로 활성화하여 전송
                 viewModelScope.launch {
-                    Log.w("DebugScreenVM", "Crashlytics is disabled in debug build")
-                    /* Crashlytics 비활성화로 주석 처리
                     try {
-                        // Ensure collection enabled in debug so reports are uploaded
-                        try {
-                            FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(true)
-                        } catch (e: Throwable) {
-                            Log.w("DebugScreenVM", "Failed to enable Crashlytics collection: ${e.message}")
-                        }
+                        // 1. 일시적으로 수집 활성화 (이 세션에서만)
+                        Firebase.crashlytics.setCrashlyticsCollectionEnabled(true)
+                        Log.d("DebugScreenVM", "Crashlytics collection enabled for test")
 
-                        // Record non-fatal exception
-                        FirebaseCrashlytics.getInstance().recordException(Exception("Debug non-fatal from DebugScreen"))
+                        // 2. 비치명 예외 기록
+                        Firebase.crashlytics.recordException(Exception("Debug non-fatal test from DebugScreen"))
                         Log.d("DebugScreenVM", "Recorded non-fatal exception to Crashlytics")
 
-                        // Attempt to send unsent reports immediately (best-effort)
+                        // 3. 즉시 전송 시도 (best-effort)
                         try {
-                            // sendUnsentReports can throw; call in try-catch
-                            FirebaseCrashlytics.getInstance().sendUnsentReports()
+                            Firebase.crashlytics.sendUnsentReports()
                             Log.d("DebugScreenVM", "Requested sendUnsentReports()")
                         } catch (e: Throwable) {
                             Log.w("DebugScreenVM", "sendUnsentReports failed: ${e.message}")
                         }
                     } catch (e: Exception) {
-                        Log.w("DebugScreenVM", "Crashlytics action failed: ${e.message}")
+                        Log.w("DebugScreenVM", "Crashlytics test action failed: ${e.message}")
                     }
-                    */
                 }
             }
 
