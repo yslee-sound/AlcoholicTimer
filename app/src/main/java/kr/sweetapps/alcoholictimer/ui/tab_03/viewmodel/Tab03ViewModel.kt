@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.ui.tab_03
+package kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel
 
 import android.app.Application
 import android.content.Context
@@ -10,10 +10,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.data.repository.RecordsDataLoader
-import kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository
 import kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelDefinitions
+import kr.sweetapps.alcoholictimer.util.constants.Constants
 
 /**
  * [NEW] Tab03(레벨 화면) 상태 관리 ViewModel
@@ -186,4 +185,3 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 }
-

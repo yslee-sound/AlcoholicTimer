@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.ui.ad.AdController
 import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.ui.common.LocalSafeContentPadding
-import kr.sweetapps.alcoholictimer.ui.tab_03.Tab03ViewModel
+import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab03ViewModel
 import kr.sweetapps.alcoholictimer.ui.tab_03.components.CurrentLevelCard
 import kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelListCard
 

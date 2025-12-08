@@ -13,6 +13,7 @@ package kr.sweetapps.alcoholictimer.ui.tab_03
 
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab03ViewModel
 import kr.sweetapps.alcoholictimer.ui.tab_03.screens.LevelScreen as LevelScreenImpl
 
 /**
