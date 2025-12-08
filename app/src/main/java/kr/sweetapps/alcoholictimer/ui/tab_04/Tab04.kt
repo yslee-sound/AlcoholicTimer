@@ -136,8 +136,7 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .verticalScroll(scrollState)
                 .padding(top = 8.dp)
-                .padding(safePadding)
-                .padding(bottom = 150.dp), // [UPDATED] Increased to 200dp for extra breathing room
+                .padding(safePadding),
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             SettingsSection(
@@ -242,6 +241,9 @@ fun SettingsScreen(
                     }
                 )
             }
+
+            // [NEW] Bottom spacer for breathing room (consistent with other tabs)
+            Spacer(modifier = Modifier.height(200.dp))
         }
 
         // 하단 플로팅 버튼 (Overlay)

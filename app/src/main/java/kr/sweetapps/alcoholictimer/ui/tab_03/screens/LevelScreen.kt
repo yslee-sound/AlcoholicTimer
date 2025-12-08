@@ -88,16 +88,12 @@ fun LevelScreen(
                 .background(MaterialTheme.colorScheme.surface),
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            val appliedBottom = 100.dp // [UPDATED] Increased from 15.dp to 100.dp for breathing room
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surface)
                     .verticalScroll(rememberScrollState())
-                    .padding(bottom = appliedBottom)
             ) {
-                Log.d("LevelScreenDebug", "LEVEL_SCREEN_BOTTOM_PADDING=100.dp, appliedBottom=$appliedBottom")
-
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -122,6 +118,9 @@ fun LevelScreen(
                         currentLevel = currentLevel,
                         currentDays = levelDays
                     )
+
+                    // [UPDATED] Bottom spacer for breathing room (changed from padding to Spacer)
+                    Spacer(modifier = Modifier.height(100.dp))
                 }
             }
         }

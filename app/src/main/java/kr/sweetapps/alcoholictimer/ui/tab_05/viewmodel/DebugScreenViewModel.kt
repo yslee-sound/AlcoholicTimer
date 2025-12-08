@@ -1,4 +1,4 @@
-﻿package kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug
+﻿package kr.sweetapps.alcoholictimer.ui.tab_05.viewmodel
 
 import android.app.Application
 import android.content.Context
@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.update
 import kr.sweetapps.alcoholictimer.util.debug.DebugSettings
 import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.MainApplication
+import kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager
 
 data class DebugScreenUiState(
     val switch1: Boolean = false,
@@ -90,7 +91,7 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
     fun setDebugAdCoolDown(context: Context, seconds: Long) {
         if (!BuildConfig.DEBUG) return
         try {
-            kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.setDebugCoolDownSeconds(context, seconds)
+            AdPolicyManager.setDebugCoolDownSeconds(context, seconds)
             Log.d("DebugScreenVM", "광고 쿨타임 설정: $seconds 초")
         } catch (t: Throwable) {
             Log.e("DebugScreenVM", "광고 쿨타임 설정 실패", t)
@@ -100,7 +101,7 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
     // [NEW] 디버그 모드 광고 쿨타임 가져오기
     fun getDebugAdCoolDown(context: Context): Long {
         return try {
-            kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.getDebugCoolDownSeconds(context)
+            AdPolicyManager.getDebugCoolDownSeconds(context)
         } catch (t: Throwable) {
             Log.e("DebugScreenVM", "광고 쿨타임 로드 실패", t)
             -1L
