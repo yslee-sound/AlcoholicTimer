@@ -296,22 +296,23 @@ class StartScreenViewModel(application: Application) : AndroidViewModel(applicat
 
     /**
      * [NEW] 카운트다운 시작 (3 -> 2 -> 1)
+     * 각 숫자마다 펄스 애니메이션이 완전히 보이도록 1.2초씩 표시
      */
     private fun startCountdown() {
         viewModelScope.launch {
             try {
                 _uiState.update { it.copy(showCountdown = true, countdownNumber = 3) }
 
-                // 3
-                delay(1000L)
+                // 3 - 펄스 애니메이션 완료 대기
+                delay(1200L)
                 _uiState.update { it.copy(countdownNumber = 2) }
 
-                // 2
-                delay(1000L)
+                // 2 - 펄스 애니메이션 완료 대기
+                delay(1200L)
                 _uiState.update { it.copy(countdownNumber = 1) }
 
-                // 1
-                delay(1000L)
+                // 1 - 펄스 애니메이션 완료 대기
+                delay(1200L)
 
                 // 타이머 시작
                 startTimer()

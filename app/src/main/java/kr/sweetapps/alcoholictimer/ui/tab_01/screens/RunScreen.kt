@@ -180,7 +180,7 @@ fun RunScreenComposable(
     val drinkHoursVal = Constants.DrinkingSettings.getDurationValue(selectedDuration)
     val weeks = elapsedDaysFloat / 7.0
     val savedMoney = remember(weeks, freqVal, costVal) { weeks * freqVal * costVal }
-    val savedHours = remember(weeks, freqVal, drinkHoursVal) { weeks * freqVal * (drinkHoursVal + Constants.DrinkingSettings.HANGOVER_HOURS) }
+    val savedHours = remember(weeks, freqVal, drinkHoursVal) { weeks * freqVal * drinkHoursVal }
     val lifeGainDays = remember(elapsedDaysFloat) { elapsedDaysFloat / 30.0 }
     // Display saved money as integer without currency symbol, formatted with locale grouping
     // [FIX] Use floor (truncate) instead of round for saved money display

@@ -363,7 +363,7 @@ private fun DurationBadgeRow(
         "딱 하루만" to 1,
         "작심삼일" to 3,
         "1주 챌린지" to 7,
-        "습관 만들기" to 21,
+        "21일 습관 만들기" to 21,
         "한 달의 기적" to 30,
         "100일의 약속" to 100
     )
@@ -428,7 +428,7 @@ private fun DurationBadge(
 // [NEW] 3, 2, 1 countdown overlay (fullscreen) - with bounce animation
 @Composable
 private fun CountdownOverlay(countdownNumber: Int) {
-    // [NEW] Reset bounce animation each time number changes
+    // [NEW] Reset animation trigger each time number changes
     var animationTrigger by remember { mutableStateOf(0f) }
 
     LaunchedEffect(countdownNumber) {
@@ -437,21 +437,21 @@ private fun CountdownOverlay(countdownNumber: Int) {
         animationTrigger = 1f
     }
 
-    // [NEW] Bounce animation when number changes (0.3 to 1.0)
+    // [NEW] Pulse scale animation: 크게 시작(1.8) -> 작아짐(1.0)
     val scale by androidx.compose.animation.core.animateFloatAsState(
-        targetValue = animationTrigger,
+        targetValue = if (animationTrigger == 0f) 1.8f else 1.0f,
         animationSpec = androidx.compose.animation.core.spring(
             dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
-            stiffness = androidx.compose.animation.core.Spring.StiffnessLow
+            stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow
         ),
-        label = "countdown_scale"
+        label = "countdown_pulse_scale"
     )
 
-    // [NEW] Fade animation when number changes (0.0 to 1.0)
+    // [NEW] Fade animation: 숫자가 선명하게 나타남
     val alpha by androidx.compose.animation.core.animateFloatAsState(
         targetValue = animationTrigger,
         animationSpec = androidx.compose.animation.core.tween(
-            durationMillis = 400,
+            durationMillis = 300,
             easing = androidx.compose.animation.core.FastOutSlowInEasing
         ),
         label = "countdown_alpha"
@@ -476,8 +476,8 @@ private fun CountdownOverlay(countdownNumber: Int) {
             ),
             textAlign = TextAlign.Center,
             modifier = Modifier.graphicsLayer(
-                scaleX = 0.3f + (scale * 0.7f), // Scale from 0.3 to 1.0
-                scaleY = 0.3f + (scale * 0.7f)
+                scaleX = scale,  // 1.8 → 1.0 (펄스 효과만)
+                scaleY = scale
             )
         )
     }

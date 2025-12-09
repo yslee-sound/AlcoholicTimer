@@ -176,7 +176,7 @@ fun QuitScreenComposable(
             val freqVal = Constants.DrinkingSettings.getFrequencyValue(selectedFrequency)
             val drinkHoursVal = Constants.DrinkingSettings.getDurationValue(selectedDuration)
             val savedMoney = weeks * freqVal * costVal
-            val savedHours = weeks * freqVal * (drinkHoursVal + Constants.DrinkingSettings.HANGOVER_HOURS)
+            val savedHours = weeks * freqVal * drinkHoursVal
             val lifeGainDays = elapsedDaysFloat / 30.0
 
             Column(modifier = Modifier.fillMaxWidth()) {

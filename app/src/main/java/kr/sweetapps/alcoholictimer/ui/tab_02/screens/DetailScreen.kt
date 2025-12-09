@@ -191,11 +191,10 @@ fun DetailScreen(
     val costVal: Int = if (!previewMode) Constants.DrinkingSettings.getCostValue(selectedCost) else 1000
     val freqVal: Double = if (!previewMode) Constants.DrinkingSettings.getFrequencyValue(selectedFrequency) else 1.0
     val drinkHoursVal: Double = if (!previewMode) Constants.DrinkingSettings.getDurationValue(selectedDuration) else 3.0
-    val hangoverHoursVal: Double = Constants.DrinkingSettings.HANGOVER_HOURS
 
     val exactWeeks = totalHours / (24.0 * 7.0)
     val savedMoney = (exactWeeks * freqVal * costVal.toDouble()).roundToInt()
-    val savedHoursExact = (exactWeeks * freqVal * (drinkHoursVal + hangoverHoursVal))
+    val savedHoursExact = (exactWeeks * freqVal * drinkHoursVal)
     val achievementRate = ((totalDays / targetDays) * 100.0).coerceAtMost(100.0)
     val lifeExpectancyIncrease = totalDays / 30.0
 

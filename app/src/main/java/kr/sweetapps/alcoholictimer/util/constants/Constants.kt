@@ -56,7 +56,8 @@ object Constants {
         const val DURATION_LONG = 6.0
         const val DURATION_DEFAULT = DURATION_MEDIUM
 
-        const val HANGOVER_HOURS = 5.0
+        // [REMOVED] 숙취 시간 상수 - 계산식에서 제거됨
+        // const val HANGOVER_HOURS = 5.0
 
         fun getCostValue(cost: String): Int {
             return when (cost) {
@@ -158,7 +159,8 @@ object Constants {
 
     const val RESULT_SCREEN_DELAY = 2000
     const val DEFAULT_VALUE = 2000
-    const val DEFAULT_HANGOVER_HOURS = 5
+    // [REMOVED] 숙취 시간 기본값 - 더 이상 사용하지 않음
+    // const val DEFAULT_HANGOVER_HOURS = 5
 
     val LEVEL_TIME_UNIT_MILLIS: Long get() = DAY_IN_MILLIS
     val LEVEL_TIME_UNIT_TEXT: String get() = "일"
