@@ -360,11 +360,12 @@ private fun DurationBadgeRow(
     onDaysSelected: (Int) -> Unit
 ) {
     val presets = listOf(
-        "3주 챌린지" to 21,
         "딱 하루만" to 1,
-        "진심 3일" to 3,
-        "6개월" to 180,
-        "묻지도 말고 1년" to 365
+        "작심삼일" to 3,
+        "1주 챌린지" to 7,
+        "습관 만들기" to 21,
+        "한 달의 기적" to 30,
+        "100일의 약속" to 100
     )
 
     LazyRow(
