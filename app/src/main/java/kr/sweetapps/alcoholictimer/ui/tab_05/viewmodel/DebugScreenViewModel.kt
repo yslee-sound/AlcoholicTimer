@@ -163,42 +163,39 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
             }
 
             4 -> {
-                // [NEW] Crashlytics 테스트: 버튼 클릭 시에만 일시적으로 활성화하여 전송
+                // Crashlytics 테스트 (여기가 수정됨!)
                 viewModelScope.launch {
+                    Log.d("MY_TEST", "Crashlytics 비치명 보고 시도 중...") // 태그 통일
                     try {
-                        // 1. 일시적으로 수집 활성화 (이 세션에서만)
+                        // 1. 강제 활성화
                         Firebase.crashlytics.setCrashlyticsCollectionEnabled(true)
-                        Log.d("DebugScreenVM", "Crashlytics collection enabled for test")
 
-                        // 2. 비치명 예외 기록
-                        Firebase.crashlytics.recordException(Exception("Debug non-fatal test from DebugScreen"))
-                        Log.d("DebugScreenVM", "Recorded non-fatal exception to Crashlytics")
+                        // 2. 세션 로그 남기기
+                        Firebase.crashlytics.log("Debug Session Start")
 
-                        // 3. 즉시 전송 시도 (best-effort)
-                        try {
-                            Firebase.crashlytics.sendUnsentReports()
-                            Log.d("DebugScreenVM", "Requested sendUnsentReports()")
-                        } catch (e: Throwable) {
-                            Log.w("DebugScreenVM", "sendUnsentReports failed: ${e.message}")
-                        }
+                        // 3. 에러 전송
+                        Firebase.crashlytics.recordException(RuntimeException("테스트용 비치명 에러입니다! (Debug Menu Test)"))
+
+                        Log.d("MY_TEST", "Crashlytics 서버로 예외 전송 명령 성공!")
                     } catch (e: Exception) {
-                        Log.w("DebugScreenVM", "Crashlytics test action failed: ${e.message}")
+                        Log.e("MY_TEST", "Crashlytics 전송 실패: ${e.message}")
                     }
                 }
             }
 
             5 -> {
-                // Performance trace: run short trace asynchronously
+                // Performance 테스트
                 viewModelScope.launch {
+                    Log.d("MY_TEST", "Performance Trace 시작")
                     try {
                         val perf = Firebase.performance
                         val trace: Trace = perf.newTrace("debug_trace")
                         trace.start()
-                        // simulate short work
                         delay(1500)
                         trace.stop()
-                    } catch (_: Exception) {
-                        // ignore
+                        Log.d("MY_TEST", "Performance Trace 종료 및 전송")
+                    } catch (e: Exception) {
+                        Log.e("MY_TEST", "Performance 실패: ${e.message}")
                     }
                 }
             }
