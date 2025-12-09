@@ -165,8 +165,11 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
             4 -> {
                 // Crashlytics 테스트 (여기가 수정됨!)
                 viewModelScope.launch {
-                    Log.d("MY_TEST", "Crashlytics 비치명 보고 시도 중...") // 태그 통일
+                    Log.d("MY_TEST", "Crashlytics 비치명 보고 시도 중...")
                     try {
+                        // 타임스탬프 생성
+                        val timeStamp = System.currentTimeMillis()
+
                         // 1. 강제 활성화
                         Firebase.crashlytics.setCrashlyticsCollectionEnabled(true)
 
@@ -174,9 +177,9 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
                         Firebase.crashlytics.log("Debug Session Start")
 
                         // 3. 에러 전송
-                        Firebase.crashlytics.recordException(RuntimeException("테스트용 비치명 에러입니다! (Debug Menu Test)"))
+                        Firebase.crashlytics.recordException(RuntimeException("테스트용 비치명 에러입니다! (시간: $timeStamp)"))
 
-                        Log.d("MY_TEST", "Crashlytics 서버로 예외 전송 명령 성공!")
+                        Log.d("MY_TEST", "Crashlytics 서버로 예외 전송 명령 성공! (시간: $timeStamp)")
                     } catch (e: Exception) {
                         Log.e("MY_TEST", "Crashlytics 전송 실패: ${e.message}")
                     }
