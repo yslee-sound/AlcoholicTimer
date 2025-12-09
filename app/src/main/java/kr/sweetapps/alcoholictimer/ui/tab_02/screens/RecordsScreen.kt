@@ -695,8 +695,8 @@ private fun PeriodStatisticsSection(
 
                     // [NEW] 좌측: 줄인 칼로리
                     StatisticItem(
-                        title = "줄인\n칼로리",
-                        value = "+${decimalFormat.format(totalKcal)} kcal",
+                        title = "줄인 칼로리",
+                        value = "${decimalFormat.format(totalKcal)} kcal",
                         color = MaterialTheme.colorScheme.tertiary,
                         modifier = Modifier.weight(1f),
                         titleScale = statsScale,
@@ -705,8 +705,8 @@ private fun PeriodStatisticsSection(
 
                     // [NEW] 중앙: 참아낸 술
                     StatisticItem(
-                        title = "참아낸\n술",
-                        value = "+${String.format(Locale.getDefault(), "%.1f", totalBottles)} 병",
+                        title = "참아낸 술",
+                        value = "${String.format(Locale.getDefault(), "%.1f", totalBottles)} 병",
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f),
                         titleScale = statsScale,
@@ -715,8 +715,8 @@ private fun PeriodStatisticsSection(
 
                     // [NEW] 우측: 지켜낸 돈
                     StatisticItem(
-                        title = "지켜낸\n돈",
-                        value = "+${decimalFormat.format(totalMoney)} 원",
+                        title = "지켜낸 돈",
+                        value = "${decimalFormat.format(totalMoney)} 원",
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.weight(1f),
                         titleScale = statsScale,
@@ -844,62 +844,70 @@ private fun StatisticItem(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            val valueBoxH = 40.dp
             val minTitleHeight = 48.dp
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(valueBoxH),
-                contentAlignment = Alignment.Center
-            ) {
-                val base = MaterialTheme.typography.titleMedium
-                val numSize = (base.fontSize * valueScale)
-                val numStyle = base.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = numSize,
-                    lineHeight = numSize * 1.1f,
-                    platformStyle = PlatformTextStyle(includeFontPadding = true),
-                    fontFeatureSettings = "tnum"
-                )
-                val unitStyle = base.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = base.fontSize * 0.9f,
-                    lineHeight = base.fontSize * 1.1f,
-                    platformStyle = PlatformTextStyle(includeFontPadding = true)
-                )
-                val regex = Regex("^\\s*([0-9]+(?:\\.[0-9]+)?)\\s*(.*)")
-                val m = regex.find(value)
-                if (m != null) {
-                    val num = m.groupValues[1]
-                    val unit = m.groupValues[2]
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                        // Numeric value and unit should be white for contrast over the background image/overlay
-                        AutoResizeSingleLineText(
-                            text = num,
-                            baseStyle = numStyle,
-                            color = Color.White,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.alignByBaseline().wrapContentWidth()
-                        )
-                        if (unit.isNotBlank()) {
-                            Spacer(modifier = Modifier.width(2.dp))
-                            Text(
-                                text = unit,
-                                style = unitStyle,
-                                color = Color.White,
-                                modifier = Modifier.alignByBaseline()
-                            )
-                        }
-                    }
-                } else {
-                    AutoResizeSingleLineText(
-                        text = value,
-                        baseStyle = numStyle,
+
+            // [개선] 숫자와 단위를 수직으로 분리하여 표시
+            val base = MaterialTheme.typography.titleMedium
+            val numSize = (base.fontSize * valueScale)
+            val numStyle = base.copy(
+                fontWeight = FontWeight.Bold,
+                fontSize = numSize,
+                lineHeight = numSize * 1.1f,
+                platformStyle = PlatformTextStyle(includeFontPadding = false)
+            )
+            val unitStyle = MaterialTheme.typography.bodySmall.copy(
+                fontSize = base.fontSize * 0.7f,
+                fontWeight = FontWeight.Normal
+            )
+
+            val regex = Regex("^\\s*([0-9,]+(?:\\.[0-9]+)?)\\s*(.*)")
+            val m = regex.find(value)
+
+            if (m != null) {
+                val num = m.groupValues[1]
+                val unit = m.groupValues[2]
+
+                // 숫자와 단위를 수직으로 배치
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    // 숫자: 크고 굵게 (핵심 정보)
+                    Text(
+                        text = num,
+                        style = numStyle,
                         color = Color.White,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
+
+                    if (unit.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(2.dp))
+
+                        // 단위: 작고 옅게 (보조 정보)
+                        Text(
+                            text = unit,
+                            style = unitStyle,
+                            color = Color.White.copy(alpha = 0.75f),
+                            textAlign = TextAlign.Center,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
+            } else {
+                // 파싱 실패 시 전체 문자열 표시
+                Text(
+                    text = value,
+                    style = numStyle,
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
             Spacer(modifier = Modifier.height(6.dp))
             Box(
@@ -909,10 +917,10 @@ private fun StatisticItem(
                 contentAlignment = Alignment.Center
             ) {
                 val baseLabel = MaterialTheme.typography.labelMedium
-                val scaledLabelFontSize = baseLabel.fontSize * titleScale
+                val scaledLabelFontSize = baseLabel.fontSize * titleScale * 0.9f // [개선] 폰트 크기 10% 축소
                 val scaledLabelStyle = baseLabel.copy(
                     fontSize = scaledLabelFontSize,
-                    lineHeight = scaledLabelFontSize * 1.28f,
+                    lineHeight = scaledLabelFontSize * 1.2f,
                     platformStyle = PlatformTextStyle(includeFontPadding = false),
                     fontWeight = FontWeight.Bold
                 )
@@ -921,7 +929,8 @@ private fun StatisticItem(
                     style = scaledLabelStyle,
                     color = Color.White,
                     textAlign = TextAlign.Center,
-                    maxLines = 2
+                    maxLines = 1, // [개선] 한 줄로 제한
+                    overflow = TextOverflow.Ellipsis // [개선] 넘침 방지
                 )
             }
         }
