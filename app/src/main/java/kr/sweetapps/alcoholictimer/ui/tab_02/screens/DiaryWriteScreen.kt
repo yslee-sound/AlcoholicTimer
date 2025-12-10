@@ -46,7 +46,7 @@ fun DiaryWriteScreen(
 
     // [NEW] 기존 일기 데이터 로드
     var initialMood by remember { mutableStateOf<String?>(null) }
-    var initialCraving by remember { mutableIntStateOf(0) }
+    var initialCraving by remember { mutableIntStateOf(1) } // [FIX] 기본값 1 (새 작성 시)
     var initialText by remember { mutableStateOf("") }
     var initialDate by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
@@ -66,20 +66,7 @@ fun DiaryWriteScreen(
     var isEditMode by remember { mutableStateOf(diaryId == null) } // 새 작성이면 수정 모드, 기존 일기면 읽기 모드
     val isViewMode = diaryId != null && !isEditMode
 
-    // 상태 관리
-    var selectedMood by remember {
-        mutableStateOf<MoodType?>(
-            initialMood?.let { emoji -> MoodType.entries.find { it.emoji == emoji } }
-        )
-    }
-
-    // [FIX] initialMood가 변경되면 selectedMood 업데이트
-    LaunchedEffect(initialMood) {
-        if (initialMood != null) {
-            selectedMood = MoodType.entries.find { it.emoji == initialMood }
-        }
-    }
-
+    // [FIX] 갈망도 슬라이더 값 (필수)
     var cravingLevel by remember { mutableFloatStateOf(initialCraving.toFloat()) }
     var diaryText by remember { mutableStateOf(initialText) }
     var selectedDate by remember {
@@ -101,9 +88,22 @@ fun DiaryWriteScreen(
         selectedDate = Calendar.getInstance().apply { timeInMillis = initialDate }
     }
 
+    // [NEW] 갈망도 점수에 따라 이모지 자동 생성
+    fun getEmojiByScore(score: Int): String {
+        return when (score) {
+            in 1..2 -> "🥰" // 아주 좋음 (사랑/행복)
+            in 3..4 -> "🙂" // 좋음 (미소)
+            in 5..6 -> "😐" // 보통 (무표정)
+            in 7..8 -> "😥" // 나쁨/참기 힘듦 (식은땀/걱정)
+            in 9..10 -> "😫" // 아주 나쁨/위기 (괴로움/절규)
+            else -> "😐" // 기본값
+        }
+    }
+
     // [NEW] 더보기 메뉴 상태
     var showMenu by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) } // [NEW] 날짜 선택 다이얼로그 상태
 
     // 날짜 포맷
     val dateFormat = remember { SimpleDateFormat("yyyy년 M월 d일 (E)", Locale.KOREAN) }
@@ -159,31 +159,34 @@ fun DiaryWriteScreen(
                             // [UPDATED] 수정/작성 모드: "저장" 텍스트 버튼
                             TextButton(
                                 onClick = {
-                                    if (selectedMood != null) {
-                                        scope.launch {
-                                            if (diaryId != null) {
-                                                viewModel.updateDiary(
-                                                    id = diaryId,
-                                                    emoji = selectedMood!!.emoji,
-                                                    content = diaryText,
-                                                    cravingLevel = cravingLevel.toInt()
-                                                )
-                                            } else {
-                                                viewModel.saveDiary(
-                                                    emoji = selectedMood!!.emoji,
-                                                    content = diaryText,
-                                                    cravingLevel = cravingLevel.toInt()
-                                                )
-                                            }
-                                            onDismiss()
+                                    // [FIX] 갈망도 점수에 따라 이모지 자동 생성
+                                    val autoEmoji = getEmojiByScore(cravingLevel.toInt())
+
+                                    scope.launch {
+                                        if (diaryId != null) {
+                                            viewModel.updateDiary(
+                                                id = diaryId,
+                                                emoji = autoEmoji,
+                                                content = diaryText,
+                                                cravingLevel = cravingLevel.toInt(),
+                                                timestamp = selectedDate.timeInMillis // [NEW] 선택된 날짜 사용
+                                            )
+                                        } else {
+                                            viewModel.saveDiary(
+                                                emoji = autoEmoji,
+                                                content = diaryText,
+                                                cravingLevel = cravingLevel.toInt(),
+                                                timestamp = selectedDate.timeInMillis // [NEW] 선택된 날짜 사용
+                                            )
                                         }
+                                        onDismiss()
                                     }
                                 },
-                                enabled = selectedMood != null
+                                enabled = true // [FIX] 갈망도는 기본값이 있으므로 항상 활성화
                             ) {
                                 Text(
                                     "저장",
-                                    color = if (selectedMood != null) Color(0xFF2D3748) else Color.Gray,
+                                    color = Color(0xFF2D3748),
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Medium
                                 )
@@ -206,21 +209,13 @@ fun DiaryWriteScreen(
             // 1. 날짜/시간 영역
             DateTimeSection(
                 date = dateFormat.format(selectedDate.time),
-                time = timeFormat.format(selectedDate.time)
+                time = timeFormat.format(selectedDate.time),
+                onClick = { if (isEditMode) showDatePicker = true } // [NEW] 수정 모드에서만 날짜 변경 가능
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 2. 오늘의 기분 선택 (필수)
-            MoodSelectionSection(
-                selectedMood = selectedMood,
-                onMoodSelected = { selectedMood = it },
-                enabled = isEditMode // [NEW] 읽기 모드에서는 비활성화
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // 3. 음주 욕구 게이지 (선택)
+            // 2. [FIX] 음주 욕구 게이지 (필수) - 첫 번째 섹션으로 이동
             CravingSliderSection(
                 cravingLevel = cravingLevel,
                 onCravingChanged = { cravingLevel = it },
@@ -229,7 +224,7 @@ fun DiaryWriteScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 4. 텍스트 입력 영역
+            // 3. 텍스트 입력 영역
             DiaryTextInputSection(
                 text = diaryText,
                 onTextChanged = { diaryText = it },
@@ -268,29 +263,65 @@ fun DiaryWriteScreen(
             }
         )
     }
+
+    // [NEW] 날짜 선택 다이얼로그
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = selectedDate.timeInMillis,
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    // 미래 날짜 선택 불가
+                    return utcTimeMillis <= System.currentTimeMillis()
+                }
+            }
+        )
+
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            selectedDate = Calendar.getInstance().apply {
+                                timeInMillis = millis
+                                // 시간은 현재 시간으로 유지
+                                set(Calendar.HOUR_OF_DAY, Calendar.getInstance().get(Calendar.HOUR_OF_DAY))
+                                set(Calendar.MINUTE, Calendar.getInstance().get(Calendar.MINUTE))
+                            }
+                        }
+                        showDatePicker = false
+                    }
+                ) {
+                    Text("확인")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("취소")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 }
 
-/**
- * [NEW] 기분 타입 정의
- */
-enum class MoodType(val emoji: String, val label: String, val color: Color) {
-    PROUD("😊", "뿌듯", Color(0xFFFCD34D)),
-    CALM("😌", "평온", Color(0xFF93C5FD)),
-    SAD("😢", "우울", Color(0xFFA78BFA)),
-    ANGRY("😡", "화남", Color(0xFFFCA5A5)),
-    CRAVING("😰", "갈망", Color(0xFFFB923C))
-}
 
 /**
  * [NEW] 날짜/시간 섹션
  */
 @Composable
-private fun DateTimeSection(date: String, time: String) {
+private fun DateTimeSection(
+    date: String,
+    time: String,
+    onClick: () -> Unit = {} // [NEW] 클릭 이벤트
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(Color.White)
+            .clickable(onClick = onClick) // [NEW] 클릭 가능
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -312,100 +343,7 @@ private fun DateTimeSection(date: String, time: String) {
 }
 
 /**
- * [NEW] 기분 선택 섹션
- */
-@Composable
-private fun MoodSelectionSection(
-    selectedMood: MoodType?,
-    onMoodSelected: (MoodType) -> Unit,
-    enabled: Boolean = true // [NEW] 읽기 모드 지원
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.White)
-            .padding(20.dp)
-    ) {
-        Text(
-            "오늘 하루, 어떠셨나요?",
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            color = Color(0xFF2D3748)
-        )
-
-        Text(
-            "하나를 선택해주세요 (필수)",
-            style = MaterialTheme.typography.bodySmall,
-            color = Color(0xFF94A3B8),
-            modifier = Modifier.padding(top = 4.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            MoodType.entries.forEach { mood ->
-                MoodItem(
-                    mood = mood,
-                    isSelected = selectedMood == mood,
-                    onClick = { if (enabled) onMoodSelected(mood) }, // [NEW] enabled 체크
-                    enabled = enabled // [NEW] enabled 전달
-                )
-            }
-        }
-    }
-}
-
-/**
- * [NEW] 기분 아이템
- */
-@Composable
-private fun MoodItem(
-    mood: MoodType,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    enabled: Boolean = true // [NEW] 읽기 모드 지원
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .clickable(enabled = enabled, onClick = onClick) // [NEW] enabled 체크
-            .padding(4.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(60.dp)
-                .clip(CircleShape)
-                .background(if (isSelected) mood.color.copy(alpha = 0.2f) else Color(0xFFF1F5F9))
-                .border(
-                    width = if (isSelected) 2.dp else 0.dp,
-                    color = if (isSelected) mood.color else Color.Transparent,
-                    shape = CircleShape
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                mood.emoji,
-                fontSize = 32.sp,
-                color = if (enabled) Color.Unspecified else Color.Gray.copy(alpha = 0.5f) // [NEW] 비활성 상태 표시
-            )
-        }
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            mood.label,
-            style = MaterialTheme.typography.bodySmall,
-            color = if (isSelected) Color(0xFF2D3748) else Color(0xFF94A3B8),
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-        )
-    }
-}
-
-/**
- * [NEW] 음주 욕구 슬라이더 섹션
+ * [FIX] 음주 욕구 슬라이더 섹션 (필수)
  */
 @Composable
 private fun CravingSliderSection(
@@ -421,13 +359,13 @@ private fun CravingSliderSection(
             .padding(20.dp)
     ) {
         Text(
-            "술 생각이 나셨나요?",
+            "오늘 하루, 술 생각이 나셨나요?",
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = Color(0xFF2D3748)
         )
 
         Text(
-            "선택사항",
+            "필수 항목입니다",
             style = MaterialTheme.typography.bodySmall,
             color = Color(0xFF94A3B8),
             modifier = Modifier.padding(top = 4.dp)

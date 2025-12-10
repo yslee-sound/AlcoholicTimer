@@ -40,10 +40,15 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
      * @param emoji 기분 이모티콘
      * @param content 일기 내용
      * @param cravingLevel 갈망 수치 (0~10)
+     * @param timestamp 일기 작성 시간 (기본값: 현재 시간)
      */
-    fun saveDiary(emoji: String, content: String, cravingLevel: Int) {
+    fun saveDiary(
+        emoji: String,
+        content: String,
+        cravingLevel: Int,
+        timestamp: Long = System.currentTimeMillis() // [NEW] 파라미터로 받도록 수정
+    ) {
         viewModelScope.launch {
-            val timestamp = System.currentTimeMillis()
             val dateString = formatDate(timestamp)
 
             val diary = DiaryEntity(
@@ -65,14 +70,26 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
      * @param emoji 기분 이모티콘
      * @param content 일기 내용
      * @param cravingLevel 갈망 수치 (0~10)
+     * @param timestamp 일기 작성 시간 (선택사항, 지정하지 않으면 기존 값 유지)
      */
-    fun updateDiary(id: Long, emoji: String, content: String, cravingLevel: Int) {
+    fun updateDiary(
+        id: Long,
+        emoji: String,
+        content: String,
+        cravingLevel: Int,
+        timestamp: Long? = null // [NEW] 파라미터로 받도록 수정
+    ) {
         viewModelScope.launch {
             // 기존 일기 데이터 가져오기
             val existingDiary = repository.getDiaryById(id)
             if (existingDiary != null) {
-                // timestamp와 date는 유지하고 내용만 수정
+                // [NEW] timestamp가 변경되었으면 date도 업데이트
+                val newTimestamp = timestamp ?: existingDiary.timestamp
+                val newDate = formatDate(newTimestamp)
+
                 val updatedDiary = existingDiary.copy(
+                    timestamp = newTimestamp,
+                    date = newDate,
                     emoji = emoji,
                     content = content,
                     cravingLevel = cravingLevel
