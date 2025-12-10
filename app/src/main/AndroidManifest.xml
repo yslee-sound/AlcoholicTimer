@@ -45,12 +45,7 @@
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- 사용자 기록 추가 화면 -->
-        <activity
-            android:name="kr.sweetapps.alcoholictimer.ui.tab_02.screens.AddRecordActivity"
-            android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AlcoholicTimer" />
+        <!-- [REMOVED] AddRecordActivity: Navigation Compose로 대체됨 (AddRecordScreenComposable 사용) -->
 
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
