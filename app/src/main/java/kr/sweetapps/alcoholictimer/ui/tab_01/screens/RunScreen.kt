@@ -2,6 +2,7 @@
 package kr.sweetapps.alcoholictimer.ui.tab_01.screens
 
 import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -63,7 +64,9 @@ fun RunScreenComposable(
     onRequestQuit: (() -> Unit)? = null,
     onCompletedNavigateToDetail: ((String) -> Unit)? = null,
     onRequireBackToStart: (() -> Unit)? = null,
-    viewModel: kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.Tab01ViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.Tab01ViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+        viewModelStoreOwner = androidx.activity.compose.LocalActivity.current as ComponentActivity
+    )
 ) {
     val context = LocalContext.current
 

@@ -47,6 +47,22 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
         // [NEW] Load initial timer state
         loadTimerState()
 
+        // [FIX] Initialize virtual time correctly for running timer
+        // If timer is already running, set virtual time to current real time
+        // (acceleration will be applied in the loop)
+        _currentVirtualTime.value = System.currentTimeMillis()
+
+        // [FIX] Calculate initial elapsed time if timer is running
+        val currentStartTime = _startTime.value
+        if (currentStartTime > 0 && !_timerCompleted.value) {
+            // Timer is running - calculate elapsed time
+            _elapsedMillis.value = System.currentTimeMillis() - currentStartTime
+            Log.d("Tab01ViewModel", "Timer is running - initial elapsed: ${_elapsedMillis.value}ms")
+        } else {
+            _elapsedMillis.value = 0L
+            Log.d("Tab01ViewModel", "Timer is not running - elapsed: 0ms")
+        }
+
         // [FIX] Self-Healing: Detect and fix zombie state
         // If timer is marked as completed but app is restarted, auto-reset to prevent ghost touch
         performSelfHealing()
@@ -58,12 +74,13 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
 
     /**
      * [NEW] Real-time timer loop running in viewModelScope
-     * Continuously updates virtual time with acceleration factor applied
+     * Continuously updates elapsed time based on actual time difference
      * Runs independently of UI - survives screen rotations and tab switches
      */
     private fun startTimerLoop() {
         viewModelScope.launch {
             var lastRealTime = System.currentTimeMillis()
+
             while (true) {
                 kotlinx.coroutines.delay(100L) // Update every 0.1 seconds for smooth animation
 
@@ -82,14 +99,15 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
                     1
                 }
 
-                // [FIX] Accumulate virtual time (not assign)
-                val virtualDelta = realDelta * factor
-                _currentVirtualTime.value += virtualDelta
-
                 // [FIX] Update elapsed time if timer is running
+                // Use real elapsed time from start, not accumulated virtual delta
                 val currentStartTime = _startTime.value
                 if (currentStartTime > 0 && !_timerCompleted.value) {
-                    _elapsedMillis.value = _currentVirtualTime.value - currentStartTime
+                    // Calculate actual elapsed time from start
+                    val realElapsed = currentRealTime - currentStartTime
+                    // Apply acceleration factor
+                    val virtualElapsed = realElapsed * factor
+                    _elapsedMillis.value = virtualElapsed
                 } else {
                     _elapsedMillis.value = 0L
                 }
