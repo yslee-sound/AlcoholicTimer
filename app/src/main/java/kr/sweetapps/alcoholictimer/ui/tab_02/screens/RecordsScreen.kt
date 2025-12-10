@@ -63,11 +63,10 @@ val RECORDS_SELECTION_ROW_HEIGHT: Dp = 56.dp // 56
 
 // Local small overrides used only inside this file
 val RECORDS_HEADER_START_PADDING: Dp = 20.dp
-val RECORDS_TOP_SECTION_EXTERNAL_GAP: Dp = 15.dp // 15, 월 통계 상단 패딩
+val RECORDS_TOP_SECTION_EXTERNAL_GAP: Dp = 15.dp // 화면 최상단 패딩
 private val RECORDS_HEADER_TO_CARD_GAP = 0.dp  // removed gap between selection card and header
 private val RECORDS_CARD_INTERNAL_TOP_PADDING = 8.dp // 8, 3칩 그룹 내부 상단
-// Local elevation for the monthly statistics card (override the value below to adjust only this card).
-// Set it to 0.dp / 2.dp / 4.dp according to design tokens (0 = flat, 2 = normal card, 4 = high emphasis).
+private val RECORDS_SELECTION_TO_HEADER_GAP = 20.dp // [NEW] 기간 선택 섹션 → "월 통계" 헤더 간격
 val RECORDS_STATS_CARD_ELEVATION: Dp = 2.dp // <- change this number in this file to control this card's elevation
 // Local bottom padding used for the Records screen list content (controls the space under the last item).
 // Change this value here to adjust the visible gap under the "View all records" button.
@@ -169,6 +168,9 @@ fun RecordsScreen(
                             horizontalPadding = RECORDS_SCREEN_HORIZONTAL_PADDING
                         )
                     }
+
+                    // [NEW] 기간 선택 섹션과 "월 통계" 헤더 사이 간격
+                    Spacer(modifier = Modifier.height(RECORDS_SELECTION_TO_HEADER_GAP))
 
                     // header: allow different left padding (same visual grouping, no inter-item spacing)
                     Box(modifier = Modifier.fillMaxWidth().padding(start = RECORDS_HEADER_START_PADDING, end = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
