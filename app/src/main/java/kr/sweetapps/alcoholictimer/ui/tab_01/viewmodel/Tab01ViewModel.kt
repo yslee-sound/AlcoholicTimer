@@ -35,6 +35,14 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
     private val _timerCompleted = MutableStateFlow(false)
     val timerCompleted: StateFlow<Boolean> = _timerCompleted.asStateFlow()
 
+    // [NEW] Current virtual time (with acceleration applied)
+    private val _currentVirtualTime = MutableStateFlow(System.currentTimeMillis())
+    val currentVirtualTime: StateFlow<Long> = _currentVirtualTime.asStateFlow()
+
+    // [NEW] Elapsed time in milliseconds (with acceleration applied)
+    private val _elapsedMillis = MutableStateFlow(0L)
+    val elapsedMillis: StateFlow<Long> = _elapsedMillis.asStateFlow()
+
     init {
         // [NEW] Load initial timer state
         loadTimerState()
@@ -42,6 +50,51 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
         // [FIX] Self-Healing: Detect and fix zombie state
         // If timer is marked as completed but app is restarted, auto-reset to prevent ghost touch
         performSelfHealing()
+
+        // [NEW] Start real-time timer loop in viewModelScope
+        // This runs independently of UI lifecycle - survives tab switches
+        startTimerLoop()
+    }
+
+    /**
+     * [NEW] Real-time timer loop running in viewModelScope
+     * Continuously updates virtual time with acceleration factor applied
+     * Runs independently of UI - survives screen rotations and tab switches
+     */
+    private fun startTimerLoop() {
+        viewModelScope.launch {
+            var lastRealTime = System.currentTimeMillis()
+            while (true) {
+                kotlinx.coroutines.delay(100L) // Update every 0.1 seconds for smooth animation
+
+                val currentRealTime = System.currentTimeMillis()
+                val realDelta = currentRealTime - lastRealTime
+                lastRealTime = currentRealTime
+
+                // [NEW] Get acceleration factor (debug mode only)
+                val factor = if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
+                    try {
+                        Constants.getTimeAcceleration(getApplication())
+                    } catch (e: Exception) {
+                        1 // Fallback to 1x if error
+                    }
+                } else {
+                    1
+                }
+
+                // [FIX] Accumulate virtual time (not assign)
+                val virtualDelta = realDelta * factor
+                _currentVirtualTime.value += virtualDelta
+
+                // [FIX] Update elapsed time if timer is running
+                val currentStartTime = _startTime.value
+                if (currentStartTime > 0 && !_timerCompleted.value) {
+                    _elapsedMillis.value = _currentVirtualTime.value - currentStartTime
+                } else {
+                    _elapsedMillis.value = 0L
+                }
+            }
+        }
     }
 
     /**
@@ -108,6 +161,8 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
             _startTime.value = now
             _targetDays.value = targetDays
             _timerCompleted.value = false
+            _currentVirtualTime.value = now // [FIX] Reset virtual time to current time
+            _elapsedMillis.value = 0L
 
             sharedPref.edit()
                 .putLong(Constants.PREF_START_TIME, now)
@@ -126,6 +181,7 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             _startTime.value = 0L
             _timerCompleted.value = false
+            _elapsedMillis.value = 0L
 
             sharedPref.edit()
                 .remove(Constants.PREF_START_TIME)

@@ -62,7 +62,8 @@ import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager
 fun RunScreenComposable(
     onRequestQuit: (() -> Unit)? = null,
     onCompletedNavigateToDetail: ((String) -> Unit)? = null,
-    onRequireBackToStart: (() -> Unit)? = null
+    onRequireBackToStart: (() -> Unit)? = null,
+    viewModel: kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.Tab01ViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val context = LocalContext.current
 
@@ -93,11 +94,14 @@ fun RunScreenComposable(
     val isPreview = LocalInspectionMode.current
     val isDemoMode = DebugSettings.isDemoModeEnabled(context)
 
-    // SharedPreferences access is only executed at runtime (not during Preview)
+    // [FIX] Get timer data from ViewModel instead of SharedPreferences
+    val startTime by viewModel.startTime.collectAsState()
+    val targetDays by viewModel.targetDays.collectAsState()
+    val timerCompleted by viewModel.timerCompleted.collectAsState()
+    val elapsedMillisFromVM by viewModel.elapsedMillis.collectAsState()
+
+    // SharedPreferences only for indicator state (not timer critical)
     val sp = if (isPreview) null else context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
-    val startTime = if (isPreview) (System.currentTimeMillis() - (2 * Constants.DAY_IN_MILLIS)) else sp!!.getLong(Constants.PREF_START_TIME, 0L)
-    val targetDays = if (isDemoMode) DemoData.DEMO_TARGET_DAYS else if (isPreview) 30f else sp!!.getFloat(Constants.PREF_TARGET_DAYS, 30f)
-    val timerCompleted = if (isPreview) false else sp!!.getBoolean(Constants.PREF_TIMER_COMPLETED, false)
 
     if (!isPreview && !isDemoMode) {
         LaunchedEffect(startTime, timerCompleted) {
@@ -107,42 +111,16 @@ fun RunScreenComposable(
         }
     }
 
-    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
-    if (!isPreview) {
-        LaunchedEffect(Unit) {
-            var lastRealTime = System.currentTimeMillis()
-            while (true) {
-                delay(100L) // 0.1초마다 갱신 (부드럽게)
-
-                val currentRealTime = System.currentTimeMillis()
-                val realDelta = currentRealTime - lastRealTime
-                lastRealTime = currentRealTime
-
-                // 배속 가져오기 (디버그 모드일 때만)
-                val factor = if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
-                    Constants.getTimeAcceleration(context)
-                } else { 1 }
-
-                // [핵심] 대입(=)이 아니라 누적(+=) 사용
-                now += (realDelta * factor)
-            }
-        }
-    }
-
-    // [FIX] dayInMillis는 고정 상수 사용 (now가 이미 가속되었으므로)
+    // [FIX] dayInMillis는 고정 상수 사용
     val dayInMillis = Constants.DAY_IN_MILLIS
 
-    // [FIX] 경과 시간 계산 (now가 이미 가속되었으므로 그대로 사용)
-    val elapsedMillis by remember(now, startTime, isDemoMode) {
-        derivedStateOf {
-            if (isDemoMode) {
-                (DemoData.DEMO_ELAPSED_DAYS * dayInMillis).toLong()
-            } else if (startTime > 0) {
-                now - startTime
-            } else {
-                0L
-            }
-        }
+    // [FIX] Use elapsed time from ViewModel (survives tab switches)
+    val elapsedMillis = if (isDemoMode) {
+        (DemoData.DEMO_ELAPSED_DAYS * dayInMillis).toLong()
+    } else if (isPreview) {
+        2 * dayInMillis // Preview: 2 days
+    } else {
+        elapsedMillisFromVM
     }
 
     // [FIX] displayElapsedMillis는 elapsedMillis와 동일 (이미 가속됨)
