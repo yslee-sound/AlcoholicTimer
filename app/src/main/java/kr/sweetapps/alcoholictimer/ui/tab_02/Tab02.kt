@@ -4,6 +4,7 @@ package kr.sweetapps.alcoholictimer.ui.tab_02
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -37,18 +38,25 @@ class RecordsActivity : BaseActivity() {
 
 /**
  * [NEW] Tab02 메인 화면 Composable
- * - RecordsScreen을 래핑하여 일관된 구조 제공
+ * - Stateful Container: ViewModel과 연결하여 상태를 관리하고 RecordsScreen에 전달
  * - DiaryViewModel을 통해 Room DB 데이터를 관찰하고 전달
  */
 @Composable
 fun Tab02Screen(
     onNavigateToDetail: (SobrietyRecord) -> Unit = {},
     onNavigateToAllRecords: () -> Unit = {},
-    onNavigateToAllDiaries: () -> Unit = {}, // [NEW] 모든 일기 보기 콜백 추가
+    onNavigateToAllDiaries: () -> Unit = {},
     onAddRecord: () -> Unit = {},
-    onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {}, // [UPDATED] DiaryEntity 사용
+    onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {},
     viewModel: Tab02ViewModel = viewModel()
 ) {
+    // [NEW] ViewModel 데이터 구독
+    val records by viewModel.records.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val selectedPeriod by viewModel.selectedPeriod.collectAsState()
+    val selectedDetailPeriod by viewModel.selectedDetailPeriod.collectAsState()
+    val selectedWeekRange by viewModel.selectedWeekRange.collectAsState()
+
     // [NEW] DiaryViewModel을 통해 Room DB의 일기 데이터를 실시간으로 관찰
     val diaryViewModel: kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.DiaryViewModel = viewModel()
     val allDiaries by diaryViewModel.uiState.collectAsState()
@@ -58,14 +66,42 @@ fun Tab02Screen(
         allDiaries.take(3)
     }
 
+    // [NEW] Context와 초기 값 설정
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val periodWeek = context.getString(R.string.records_period_week)
+    val periodMonth = context.getString(R.string.records_period_month)
+    val periodYear = context.getString(R.string.records_period_year)
+
+    val currentDate = java.util.Calendar.getInstance()
+    val currentYear = currentDate.get(java.util.Calendar.YEAR)
+    val currentMonth = currentDate.get(java.util.Calendar.MONTH) + 1
+    val initialDateText = context.getString(R.string.date_format_year_month, currentYear, currentMonth)
+
+    // [NEW] 화면 진입 시 데이터 로딩 및 초기 기간 설정
+    LaunchedEffect(Unit) {
+        viewModel.initializePeriod(periodMonth, initialDateText)
+        viewModel.loadRecords()
+    }
+
+    val filteredRecords = remember(records, selectedPeriod, selectedDetailPeriod, selectedWeekRange) {
+        viewModel.getFilteredRecords(periodWeek, periodMonth, periodYear)
+    }
+
     RecordsScreen(
-        externalRefreshTrigger = 0,
-        recentDiaries = recentDiaries, // [NEW] Room DB 데이터 전달
+        records = filteredRecords,
+        isLoading = isLoading,
+        selectedPeriod = selectedPeriod,
+        selectedDetailPeriod = selectedDetailPeriod,
+        selectedWeekRange = selectedWeekRange,
+        onPeriodSelected = { viewModel.updateSelectedPeriod(it) },
+        onDetailPeriodSelected = { viewModel.updateSelectedDetailPeriod(it) },
+        onWeekRangeSelected = { viewModel.updateSelectedWeekRange(it) },
+        recentDiaries = recentDiaries,
         onNavigateToDetail = onNavigateToDetail,
         onNavigateToAllRecords = onNavigateToAllRecords,
-        onNavigateToAllDiaries = onNavigateToAllDiaries, // [NEW] 모든 일기 보기 콜백 전달
+        onNavigateToAllDiaries = onNavigateToAllDiaries,
         onAddRecord = onAddRecord,
-        onDiaryClick = onDiaryClick // [NEW] 일기 클릭 콜백 전달
+        onDiaryClick = onDiaryClick
     )
 }
 

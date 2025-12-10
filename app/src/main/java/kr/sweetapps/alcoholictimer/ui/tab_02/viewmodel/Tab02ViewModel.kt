@@ -27,17 +27,27 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    // [NEW] 선택된 기간 (주/월/년)
+    // [NEW] 선택된 기간 (주/월/년) - 초기값은 빈 문자열 (외부에서 설정)
     private val _selectedPeriod = MutableStateFlow("")
     val selectedPeriod: StateFlow<String> = _selectedPeriod.asStateFlow()
 
-    // [NEW] 선택된 세부 기간 (예: "2025년 12월")
+    // [NEW] 선택된 세부 기간 (예: "2025년 12월") - 초기값은 빈 문자열 (외부에서 설정)
     private val _selectedDetailPeriod = MutableStateFlow("")
     val selectedDetailPeriod: StateFlow<String> = _selectedDetailPeriod.asStateFlow()
 
     // [NEW] 선택된 주 범위
     private val _selectedWeekRange = MutableStateFlow<Pair<Long, Long>?>(null)
     val selectedWeekRange: StateFlow<Pair<Long, Long>?> = _selectedWeekRange.asStateFlow()
+
+    /**
+     * [NEW] 초기 기간 설정 (화면 진입 시 한 번만 호출)
+     */
+    fun initializePeriod(periodMonth: String, initialDateText: String) {
+        if (_selectedPeriod.value.isEmpty()) {
+            _selectedPeriod.value = periodMonth
+            _selectedDetailPeriod.value = initialDateText
+        }
+    }
 
     /**
      * [NEW] 기록 데이터 로딩

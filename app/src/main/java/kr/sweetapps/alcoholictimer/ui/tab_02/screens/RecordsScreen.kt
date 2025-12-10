@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
-import kr.sweetapps.alcoholictimer.data.repository.RecordsDataLoader
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
 import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme
@@ -79,162 +78,34 @@ val RECORDS_LIST_BOTTOM_PADDING: Dp = 100.dp // [UPDATED] Increased from 15.dp t
 @Suppress("UNUSED_PARAMETER", "UNUSED_VARIABLE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 @Composable
 fun RecordsScreen(
-    externalRefreshTrigger: Int,
-    recentDiaries: List<kr.sweetapps.alcoholictimer.data.room.DiaryEntity> = emptyList(), // [NEW] Room DB에서 전달받은 최근 일기 3개
+    // [MOD] Stateless UI로 변경: 모든 데이터를 파라미터로 받음
+    records: List<SobrietyRecord> = emptyList(),
+    isLoading: Boolean = false,
+    selectedPeriod: String,
+    selectedDetailPeriod: String,
+    selectedWeekRange: Pair<Long, Long>?,
+    onPeriodSelected: (String) -> Unit = {},
+    onDetailPeriodSelected: (String) -> Unit = {},
+    onWeekRangeSelected: (Pair<Long, Long>?) -> Unit = {},
+    recentDiaries: List<kr.sweetapps.alcoholictimer.data.room.DiaryEntity> = emptyList(),
     onNavigateToDetail: (SobrietyRecord) -> Unit = {},
-    onNavigateToAllRecords: () -> Unit = {}, // [FIX] 모든 금주 기록 보기
-    onNavigateToAllDiaries: () -> Unit = {}, // [NEW] 모든 일기 보기
+    onNavigateToAllRecords: () -> Unit = {},
+    onNavigateToAllDiaries: () -> Unit = {},
     onAddRecord: () -> Unit = {},
-    onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {}, // [NEW] 일기 클릭 콜백 (DiaryEntity 사용)
+    onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {},
     fontScale: Float = 1.06f
 ) {
-    // view_records 이벤트는 하단 네비게이션 버튼 클릭에서 전송하도록 변경됨.
-
     val context = LocalContext.current
-    var records by remember { mutableStateOf<List<SobrietyRecord>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-    // [REMOVED] 일기는 이제 파라미터로 전달받으므로 로컬 상태 제거
-
-    val currentDate = Calendar.getInstance()
-    val currentYear = currentDate.get(Calendar.YEAR)
-    val currentMonth = currentDate.get(Calendar.MONTH) + 1
 
     // 기간 리소스 문자열
     val periodWeek = stringResource(R.string.records_period_week)
     val periodMonth = stringResource(R.string.records_period_month)
     val periodYear = stringResource(R.string.records_period_year)
 
-    // 초기 날짜 포맷 문자열
-    val initialDateText = stringResource(R.string.date_format_year_month, currentYear, currentMonth)
-
-    var selectedPeriod by remember { mutableStateOf(periodMonth) }
+    // [MOD] UI 전용 상태만 유지 (Bottom Sheet 표시 여부)
     var showBottomSheet by remember { mutableStateOf(false) }
-    var selectedDetailPeriod by remember { mutableStateOf(initialDateText) }
-    var selectedWeekRange by remember { mutableStateOf<Pair<Long, Long>?>(null) }
 
-    val loadRecords = {
-        isLoading = true
-        try {
-            val loadedRecords = RecordsDataLoader.loadSobrietyRecords(context)
-            records = loadedRecords
-            Log.d("RecordsScreen", "기록 로딩 완료: ${loadedRecords.size}개")
-            // [REMOVED] 일기 로드 로직 제거 - 파라미터로 전달받음
-        } catch (e: Exception) {
-            Log.e("RecordsScreen", "기록 로딩 실패", e)
-        } finally {
-            isLoading = false
-        }
-    }
-
-    val filteredRecords = remember(records, selectedPeriod, selectedDetailPeriod, selectedWeekRange) {
-        when (selectedPeriod) {
-            periodWeek -> {
-                val range = selectedWeekRange ?: run {
-                    val cal = Calendar.getInstance().apply {
-                        firstDayOfWeek = Calendar.SUNDAY
-                        set(Calendar.HOUR_OF_DAY, 0)
-                        set(Calendar.MINUTE, 0)
-                        set(Calendar.SECOND, 0)
-                        set(Calendar.MILLISECOND, 0)
-                        set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
-                    }
-                    val weekStart = cal.timeInMillis
-                    cal.add(Calendar.DAY_OF_WEEK, 6)
-                    val weekEndInclusive = cal.timeInMillis + (24 * 60 * 60 * 1000L - 1)
-                    weekStart to weekEndInclusive
-                }
-                records.filter { it.endTime >= range.first && it.startTime <= range.second }
-            }
-            periodMonth -> {
-                val range: Pair<Long, Long> = if (selectedDetailPeriod.isNotEmpty()) {
-                    val numbers = Regex("(\\d+)").findAll(selectedDetailPeriod).map { it.value.toInt() }.toList()
-                    if (numbers.size >= 2) {
-                        val year = numbers[0]
-                        val month = numbers[1] - 1
-                        val cal = Calendar.getInstance()
-                        cal.set(year, month, 1, 0, 0, 0)
-                        cal.set(Calendar.MILLISECOND, 0)
-                        val monthStart = cal.timeInMillis
-                        cal.add(Calendar.MONTH, 1)
-                        cal.add(Calendar.MILLISECOND, -1)
-                        val monthEnd = cal.timeInMillis
-                        monthStart to monthEnd
-                    } else {
-                        val cal = Calendar.getInstance()
-                        cal.set(Calendar.DAY_OF_MONTH, 1)
-                        cal.set(Calendar.HOUR_OF_DAY, 0)
-                        cal.set(Calendar.MINUTE, 0)
-                        cal.set(Calendar.SECOND, 0)
-                        cal.set(Calendar.MILLISECOND, 0)
-                        val monthStart = cal.timeInMillis
-                        cal.add(Calendar.MONTH, 1)
-                        cal.add(Calendar.MILLISECOND, -1)
-                        val monthEnd = cal.timeInMillis
-                        monthStart to monthEnd
-                    }
-                } else {
-                    val cal = Calendar.getInstance()
-                    cal.set(Calendar.DAY_OF_MONTH, 1)
-                    cal.set(Calendar.HOUR_OF_DAY, 0)
-                    cal.set(Calendar.MINUTE, 0)
-                    cal.set(Calendar.SECOND, 0)
-                    cal.set(Calendar.MILLISECOND, 0)
-                    val monthStart = cal.timeInMillis
-                    cal.add(Calendar.MONTH, 1)
-                    cal.add(Calendar.MILLISECOND, -1)
-                    val monthEnd = cal.timeInMillis
-                    monthStart to monthEnd
-                }
-                records.filter { it.endTime >= range.first && it.startTime <= range.second }
-            }
-            periodYear -> {
-                val range: Pair<Long, Long> = if (selectedDetailPeriod.isNotEmpty()) {
-                    val yearMatch = Regex("(\\d{4})").find(selectedDetailPeriod)
-                    if (yearMatch != null) {
-                        val year = yearMatch.groupValues[1].toInt()
-                        val cal = Calendar.getInstance()
-                        cal.set(year, 0, 1, 0, 0, 0)
-                        cal.set(Calendar.MILLISECOND, 0)
-                        val yearStart = cal.timeInMillis
-                        cal.add(Calendar.YEAR, 1)
-                        cal.add(Calendar.MILLISECOND, -1)
-                        val yearEnd = cal.timeInMillis
-                        yearStart to yearEnd
-                    } else {
-                        val cal = Calendar.getInstance()
-                        cal.set(Calendar.MONTH, 0)
-                        cal.set(Calendar.DAY_OF_MONTH, 1)
-                        cal.set(Calendar.HOUR_OF_DAY, 0)
-                        cal.set(Calendar.MINUTE, 0)
-                        cal.set(Calendar.SECOND, 0)
-                        cal.set(Calendar.MILLISECOND, 0)
-                        val yearStart = cal.timeInMillis
-                        cal.add(Calendar.YEAR, 1)
-                        cal.add(Calendar.MILLISECOND, -1)
-                        val yearEnd = cal.timeInMillis
-                        yearStart to yearEnd
-                    }
-                } else {
-                    val cal = Calendar.getInstance()
-                    cal.set(Calendar.MONTH, 0)
-                    cal.set(Calendar.DAY_OF_MONTH, 1)
-                    cal.set(Calendar.HOUR_OF_DAY, 0)
-                    cal.set(Calendar.MINUTE, 0)
-                    cal.set(Calendar.SECOND, 0)
-                    cal.set(Calendar.MILLISECOND, 0)
-                    val yearStart = cal.timeInMillis
-                    cal.add(Calendar.YEAR, 1)
-                    cal.add(Calendar.MILLISECOND, -1)
-                    val yearEnd = cal.timeInMillis
-                    yearStart to yearEnd
-                }
-                records.filter { it.endTime >= range.first && it.startTime <= range.second }
-            }
-            else -> records
-        }
-    }
-
-    LaunchedEffect(externalRefreshTrigger) { loadRecords() }
+    // [MOD] 필터링 로직 제거 - 이미 필터링된 데이터를 파라미터로 받음
 
     CompositionLocalProvider(
         LocalDensity provides Density(LocalDensity.current.density, fontScale = LocalDensity.current.fontScale * fontScale),
@@ -279,9 +150,7 @@ fun RecordsScreen(
                         PeriodSelectionSection(
                             selectedPeriod = selectedPeriod,
                             onPeriodSelected = { period: String ->
-                                selectedPeriod = period
-                                selectedDetailPeriod = ""
-                                if (period == periodWeek) selectedWeekRange = null
+                                onPeriodSelected(period)
                                 // Analytics: 사용자 통계 뷰 변경 이벤트 전송
                                 try {
                                     val viewType = when (period) {
@@ -376,8 +245,8 @@ fun RecordsScreen(
                     isVisible = true,
                     onDismiss = { showBottomSheet = false },
                     onWeekPicked = { weekStart, weekEnd, displayText ->
-                        selectedDetailPeriod = displayText
-                        selectedWeekRange = weekStart to weekEnd
+                        onDetailPeriodSelected(displayText)
+                        onWeekRangeSelected(weekStart to weekEnd)
                         showBottomSheet = false
                     }
                 )
@@ -387,13 +256,13 @@ fun RecordsScreen(
                     isVisible = true,
                     onDismiss = { showBottomSheet = false },
                     onMonthPicked = { year, month ->
-                        selectedDetailPeriod = context.getString(R.string.date_format_year_month, year, month)
+                        onDetailPeriodSelected(context.getString(R.string.date_format_year_month, year, month))
                         showBottomSheet = false
                     },
                     records = records,
                     onYearPicked = { year ->
-                        selectedPeriod = periodYear
-                        selectedDetailPeriod = context.getString(R.string.date_format_year, year)
+                        onPeriodSelected(periodYear)
+                        onDetailPeriodSelected(context.getString(R.string.date_format_year, year))
                         showBottomSheet = false
                     }
                 )
@@ -406,7 +275,7 @@ fun RecordsScreen(
                     isVisible = true,
                     onDismiss = { showBottomSheet = false },
                     onYearPicked = { year ->
-                        selectedDetailPeriod = context.getString(R.string.date_format_year, year)
+                        onDetailPeriodSelected(context.getString(R.string.date_format_year, year))
                         showBottomSheet = false
                     },
                     records = records,
@@ -423,7 +292,11 @@ fun RecordsScreenPreview() {
     AlcoholicTimerTheme {
         Surface {
             RecordsScreen(
-                externalRefreshTrigger = 0
+                records = emptyList(),
+                isLoading = false,
+                selectedPeriod = "월",
+                selectedDetailPeriod = "2025년 12월",
+                selectedWeekRange = null
             )
         }
     }
