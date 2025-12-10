@@ -110,31 +110,34 @@ fun RunScreenComposable(
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     if (!isPreview) {
         LaunchedEffect(Unit) {
+            var lastRealTime = System.currentTimeMillis()
             while (true) {
-                delay(1000)
-                now = System.currentTimeMillis()
+                delay(100L) // 0.1초마다 갱신 (부드럽게)
+
+                val currentRealTime = System.currentTimeMillis()
+                val realDelta = currentRealTime - lastRealTime
+                lastRealTime = currentRealTime
+
+                // 배속 가져오기 (디버그 모드일 때만)
+                val factor = if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
+                    Constants.getTimeAcceleration(context)
+                } else { 1 }
+
+                // [핵심] 대입(=)이 아니라 누적(+=) 사용
+                now += (realDelta * factor)
             }
         }
     }
 
-    // [FIX] 타이머 테스트 모드를 고려한 동적 DAY_IN_MILLIS (now를 의존성에 추가하여 매 초마다 재계산)
-    val dayInMillis = remember(now) {
-        val value = Constants.getDayInMillis(context)
-        val factor = if (isPreview || isDemoMode) 1 else {
-            if (!kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) 1
-            else Constants.getTimeAcceleration(context)
-        }
-        android.util.Log.d("RunScreen", "dayInMillis 재계산: $value, 배속: ${factor}x")
-        value
-    }
+    // [FIX] dayInMillis는 고정 상수 사용 (now가 이미 가속되었으므로)
+    val dayInMillis = Constants.DAY_IN_MILLIS
 
-    // [FIX] 경과 시간 계산 (배속은 dayInMillis에만 적용, elapsedMillis는 실제 시간)
+    // [FIX] 경과 시간 계산 (now가 이미 가속되었으므로 그대로 사용)
     val elapsedMillis by remember(now, startTime, isDemoMode) {
         derivedStateOf {
             if (isDemoMode) {
                 (DemoData.DEMO_ELAPSED_DAYS * dayInMillis).toLong()
             } else if (startTime > 0) {
-                // 실제 경과 시간 (배속 적용 안 함)
                 now - startTime
             } else {
                 0L
@@ -142,21 +145,17 @@ fun RunScreenComposable(
         }
     }
 
-    // [FIX] 통계 계산용 경과 일수 (실제 시간 기준, 배속 적용 안 함)
-    val elapsedDaysFloat = remember(elapsedMillis) {
-        elapsedMillis / Constants.DAY_IN_MILLIS.toFloat()
+    // [FIX] displayElapsedMillis는 elapsedMillis와 동일 (이미 가속됨)
+    val displayElapsedMillis = elapsedMillis
+
+    // [FIX] 통계 계산용 경과 일수 (가상 시간 기준)
+    val elapsedDaysFloat = remember(displayElapsedMillis) {
+        displayElapsedMillis / Constants.DAY_IN_MILLIS.toFloat()
     }
 
-    // [NEW] 중앙 타이머 표시용 경과 시간 (배속 적용)
-    val displayElapsedMillis = remember(elapsedMillis, dayInMillis) {
-        // UI 표시용: 배속이 적용된 경과 시간
-        (elapsedMillis / Constants.DAY_IN_MILLIS.toFloat() * dayInMillis).toLong()
-    }
-
-    // [FIX] 레벨 계산: 1일 차부터 시작 (기존: 0일부터 시작)
-    val levelDays = remember(elapsedMillis, dayInMillis) {
-        val days = (elapsedMillis / dayInMillis).toInt()
-        // 0일이면 1일 차로, 1일이면 2일 차로 변환 (사용자가 시작한 날 = 1일 차)
+    // [FIX] 레벨 계산: 가상 시간 기준, 1일 차부터 시작
+    val levelDays = remember(displayElapsedMillis) {
+        val days = (displayElapsedMillis / Constants.DAY_IN_MILLIS).toInt()
         if (days == 0) 1 else days + 1
     }
     val levelInfo = remember(levelDays) { LevelDefinitions.getLevelInfo(levelDays) }
@@ -207,9 +206,9 @@ fun RunScreenComposable(
         out
     }
 
-    val totalTargetMillis = remember(targetDays, dayInMillis) { (targetDays * dayInMillis).toLong() }
-    val progress = remember(elapsedMillis, totalTargetMillis) {
-        if (totalTargetMillis > 0) (elapsedMillis.toFloat() / totalTargetMillis).coerceIn(0f, 1f) else 0f
+    val totalTargetMillis = remember(targetDays) { (targetDays * Constants.DAY_IN_MILLIS).toLong() }
+    val progress = remember(displayElapsedMillis, totalTargetMillis) {
+        if (totalTargetMillis > 0) (displayElapsedMillis.toFloat() / totalTargetMillis).coerceIn(0f, 1f) else 0f
     }
 
     val indicatorKey = remember(startTime) { Constants.keyCurrentIndicator(startTime) }
