@@ -37,8 +37,6 @@ import androidx.compose.ui.platform.LocalContext
 import kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager
 import kr.sweetapps.alcoholictimer.ui.tab_05.viewmodel.DebugScreenViewModel
 import kr.sweetapps.alcoholictimer.util.constants.Constants
-import kotlin.math.log10
-import kotlin.math.pow
 
 // Helper: get Activity from Context
 private fun ContextToActivity(context: android.content.Context): Activity? {
@@ -93,7 +91,7 @@ fun DebugScreen(
             DebugSwitch(title = "기능 1", checked = uiState.switch1, onCheckedChange = { viewModel.setSwitch(1, it) })
             DebugSwitch(title = "데모 모드", checked = uiState.demoMode, onCheckedChange = { viewModel.setSwitch(2, it) })
 
-            // [NEW] Time acceleration settings (1x ~ 10,000x)
+            // [NEW] Time acceleration settings (1x ~ 10,000x) - Linear scale
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "시간 배속 설정",
@@ -104,12 +102,12 @@ fun DebugScreen(
 
             val acceleration = remember {
                 val currentFactor = Constants.getTimeAcceleration(context).toFloat()
-                // Convert to log scale (log base 10)
-                mutableStateOf(log10(currentFactor.coerceAtLeast(1f)))
+                // [FIX] 선형 스케일 사용 (로그 스케일 제거)
+                mutableStateOf(currentFactor.coerceIn(1f, 10000f))
             }
 
-            // Convert log value to actual factor for display
-            val actualFactor = 10.0.pow(acceleration.value.toDouble()).toInt().coerceIn(1, 10000)
+            // [FIX] 선형 값을 그대로 사용
+            val actualFactor = acceleration.value.toInt().coerceIn(1, 10000)
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -135,7 +133,7 @@ fun DebugScreen(
                     acceleration.value = newValue
                 },
                 onValueChangeFinished = {
-                    val factor = 10.0.pow(acceleration.value.toDouble()).toInt().coerceIn(1, 10000)
+                    val factor = acceleration.value.toInt().coerceIn(1, 10000)
                     Constants.setTimeAcceleration(context, factor)
 
                     val message = when {
@@ -147,8 +145,8 @@ fun DebugScreen(
 
                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                 },
-                valueRange = 0f..4f, // log10(1) = 0, log10(10000) = 4
-                steps = 399, // 400 steps for smooth control
+                valueRange = 1f..10000f, // [FIX] 선형 범위 (1 ~ 10,000)
+                steps = 9999, // [FIX] 1씩 증가하는 정밀한 제어
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -162,7 +160,7 @@ fun DebugScreen(
             }
 
             Text(
-                text = "※ 슬라이더를 드래그하여 1배속 ~ 10,000배속 범위에서 조절",
+                text = "※ 슬라이더를 드래그하여 1배속 ~ 10,000배속 범위에서 조절 (선형)",
                 fontSize = 11.sp,
                 color = androidx.compose.ui.graphics.Color.Gray,
                 modifier = Modifier.padding(top = 4.dp)
