@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -43,6 +44,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import kotlinx.coroutines.delay
@@ -77,6 +80,11 @@ fun StartScreen(
     val uiState by viewModel.uiState.collectAsState()
     val navigationEvent by viewModel.navigationEvent.collectAsState()
     val snackbarEvent by viewModel.snackbarEvent.collectAsState()
+
+    // [NEW] 카운트다운 중 뒤로 가기 방지 (실수로 끄는 것 방지)
+    BackHandler(enabled = uiState.showCountdown) {
+        // Do nothing to block back press during countdown
+    }
 
     // [NEW] ViewModel에 gateNavigation 플래그 전달
     LaunchedEffect(gateNavigation) {
@@ -278,12 +286,23 @@ fun StartScreen(
         }
 
         // [NEW] 3, 2, 1 countdown overlay
+        // [FIX] Dialog로 래핑하여 하단 탭바(BottomBar)까지 완전히 차단
         AnimatedVisibility(
             visible = uiState.showCountdown,
             enter = EnterTransition.None,
             exit = ExitTransition.None
         ) {
-            CountdownOverlay(countdownNumber = uiState.countdownNumber)
+            // Dialog를 사용하여 탭바를 포함한 모든 UI를 물리적으로 차단
+            Dialog(
+                onDismissRequest = { /* 차단: 바깥 터치/뒤로가기 무시 */ },
+                properties = DialogProperties(
+                    usePlatformDefaultWidth = false, // 전체 화면 사용 (탭바까지 덮음)
+                    dismissOnBackPress = false,      // 뒤로 가기 무시
+                    dismissOnClickOutside = false    // 바깥 터치 무시
+                )
+            ) {
+                CountdownOverlay(countdownNumber = uiState.countdownNumber)
+            }
         }
 
         // Snackbar Host overlay (bottom)
@@ -446,6 +465,10 @@ private fun CountdownOverlay(countdownNumber: Int) {
         modifier = Modifier
             .fillMaxSize()
             .background(CountdownOverlayBackground.copy(alpha = 0.85f))
+            .pointerInput(Unit) {
+                // [NEW] 모든 터치 이벤트를 여기서 소비하여 하위 UI로 전달 방지
+                detectTapGestures { /* Do nothing - block all touches */ }
+            }
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
