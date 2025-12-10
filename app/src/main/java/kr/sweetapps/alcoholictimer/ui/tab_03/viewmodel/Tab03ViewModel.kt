@@ -2,9 +2,12 @@ package kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel
 
 import android.app.Application
 import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +22,8 @@ import kr.sweetapps.alcoholictimer.util.constants.Constants
  * - 현재 시간 자동 업데이트
  * - 레벨 진행률 계산
  * - 과거 기록 + 현재 경과 시간 통합 관리
+ * - [FIX] SharedPreferences 변경 감지 기능 추가
+ * - [FIX] Race Condition 방지: 이전 계산 작업 취소
  */
 class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -28,6 +33,17 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     private val LEVEL_VISITS_KEY = "level_visits"
+
+    // [NEW] 계산 작업 Job (이전 작업 취소용)
+    private var calculationJob: Job? = null
+
+    // [NEW] SharedPreferences 변경 감지 리스너
+    private val preferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == Constants.PREF_SOBRIETY_RECORDS) {
+            Log.d("Tab03ViewModel", "Records changed, reloading total time...")
+            loadRecordsAndCalculateTotalTime()
+        }
+    }
 
     // [NEW] 현재 시간 상태
     private val _currentTime = MutableStateFlow(System.currentTimeMillis())
@@ -84,20 +100,30 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
 
         // [NEW] 레벨 방문 횟수 증가
         incrementLevelVisits()
+
+        // [NEW] SharedPreferences 변경 감지 시작
+        sharedPref.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
+        Log.d("Tab03ViewModel", "Preference change listener registered")
     }
 
     /**
      * [NEW] 과거 기록을 로드하고 총 경과 시간 계산
+     * [FIX] Race Condition 방지: 이전 작업을 취소하고 새 작업 시작
      */
     private fun loadRecordsAndCalculateTotalTime() {
-        viewModelScope.launch {
+        // 1. 이전 계산 작업 취소 (좀비 코루틴 제거)
+        calculationJob?.cancel()
+        Log.d("Tab03ViewModel", "Previous calculation job cancelled")
+
+        // 2. 새 계산 작업 할당
+        calculationJob = viewModelScope.launch {
             try {
                 val pastRecords = RecordsDataLoader.loadSobrietyRecords(getApplication())
                 val totalPastDuration = pastRecords.sumOf { record ->
                     (record.endTime - record.startTime)
                 }
 
-                // [NEW] 현재 경과 시간과 합산
+                // [NEW] 현재 경과 시간과 합산 (무한 collect)
                 currentElapsedTime.collect { currentElapsed ->
                     val total = totalPastDuration + currentElapsed
                     _totalElapsedTime.value = total
@@ -115,6 +141,10 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
                             "total=${total}ms, dayInMillis=${dayInMillis}, days=$days, " +
                             "level=${_currentLevel.value.nameResId}, daysFloat=${_totalElapsedDaysFloat.value}")
                 }
+            } catch (e: CancellationException) {
+                // 취소 예외는 정상 동작이므로 전파
+                Log.d("Tab03ViewModel", "Calculation job cancelled")
+                throw e
             } catch (e: Exception) {
                 Log.e("Tab03ViewModel", "Failed to load records", e)
             }
@@ -183,5 +213,14 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
         } else {
             0f
         }
+    }
+
+    /**
+     * [NEW] ViewModel 파괴 시 리스너 해제 (메모리 누수 방지)
+     */
+    override fun onCleared() {
+        super.onCleared()
+        sharedPref.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
+        Log.d("Tab03ViewModel", "Preference change listener unregistered")
     }
 }

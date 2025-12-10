@@ -18,10 +18,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -35,7 +32,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.ui.tab_01.components.StandardScreenWithBottomButton
 import kr.sweetapps.alcoholictimer.ui.main.MainActivity
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.QuoteDisplay
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.TargetDaysInput
@@ -47,6 +43,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -64,7 +62,6 @@ private val START_TITLE_TOP_MARGIN: Dp = 12.dp             // 화면 상단 여�
 private val START_TITLE_CARD_GAP: Dp = 10.dp               // 타이틀바와 카드 간격
 private val START_CARD_HORIZONTAL_PADDING: Dp = 20.dp
 private val START_QUOTE_TOP_GAP: Dp = 12.dp                // 카드와 명언 사이 간격
-private val START_BOTTOM_CLEARANCE: Dp = 100.dp            // 하단 버튼 가림 방지 여백
 private val START_CARD_TITLE_BOTTOM: Dp = 12.dp            // 카드 타이틀 하단 여백 (20dp → 12dp, 40% 축소)
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -132,31 +129,6 @@ fun StartScreen(
         }
     }
 
-    val config = LocalConfiguration.current
-    val density = LocalDensity.current
-    val windowInfo = LocalWindowInfo.current
-    val screenWidthDp: Dp = remember(config) {
-        val widthPx = try {
-            val wm = context.getSystemService(android.content.Context.WINDOW_SERVICE) as? android.view.WindowManager
-            if (wm != null) {
-                try {
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-                        wm.currentWindowMetrics.bounds.width()
-                    } else {
-                        try { context.resources.displayMetrics.widthPixels } catch (_: Throwable) { 0 }
-                    }
-                } catch (_: Throwable) {
-                    0
-                }
-            } else 0
-        } catch (_: Throwable) {
-            0
-        }
-        val d = density.density
-        val fallbackPx = windowInfo.containerSize.width
-        if (widthPx > 0) (widthPx / d).dp else if (fallbackPx > 0) (fallbackPx / d).dp else config.screenWidthDp.dp
-    }
-
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -177,100 +149,113 @@ fun StartScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize().pointerInput(Unit) {
-        detectTapGestures(onTap = {
-            focusManager.clearFocus()
-            try { keyboardController?.hide() } catch (_: Exception) {}
-        })
-    }) {
-        StandardScreenWithBottomButton(
-              topPadding = START_TITLE_TOP_MARGIN,
-              horizontalPadding = 0.dp,
-             ignoreImeInsets = true,
-              contentMaxWidth = screenWidthDp,
-              forceFillMaxWidth = true,
-              disableScroll = true, // [NEW] 스크롤 비활성화
-              contentVerticalArrangement = Arrangement.Top, // [FIX] Center → Top (상단 정렬로 변경)
-              topContent = {
-                Column { 
-                    AppBrandTitleBar(
-                        selectedDays = uiState.targetDays,
-                        isCustomInputMode = uiState.isCustomInputMode, // [MANUAL OVERRIDE] 커스텀 입력 모드 전달
-                        onDaysSelected = { days ->
-                            viewModel.onBadgeSelected(days) // [MANUAL OVERRIDE] 뱃지 클릭 시 전용 함수 호출
-                            // [NEW] Update input field when badge is selected
+    // [REFACTOR] StandardScreenWithBottomButton 제거 -> 전체 스크롤 Column으로 재구성
+    // 키보드 올라올 때 UI 찌그러짐 방지를 위해 버튼을 하단 고정이 아닌 콘텐츠의 일부로 배치
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BackgroundCream)
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                    try { keyboardController?.hide() } catch (_: Exception) {}
+                })
+            }
+    ) {
+        // [NEW] 배경 데코레이션 (그라데이션)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        0.0f to Color.Transparent,
+                        0.88f to Color.Transparent,
+                        1.0f to GradientBottomShadow.copy(alpha = 0.12f)
+                    )
+                )
+        )
+
+        // [NEW] 스크롤 가능한 메인 콘텐츠 (버튼 포함)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .imePadding() // [CRITICAL] 키보드 올라올 때 스크롤로 접근 가능하게
+                .padding(horizontal = 0.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // 1. 상단 여백
+            Spacer(modifier = Modifier.height(START_TITLE_TOP_MARGIN))
+
+            // 2. 로고 + 뱃지
+            AppBrandTitleBar(
+                selectedDays = uiState.targetDays,
+                isCustomInputMode = uiState.isCustomInputMode,
+                onDaysSelected = { days ->
+                    viewModel.onBadgeSelected(days)
+                    focusManager.clearFocus()
+                    try { keyboardController?.hide() } catch (_: Exception) {}
+                }
+            )
+
+            // 3. 타이틀바와 카드 사이 간격
+            Spacer(modifier = Modifier.height(START_TITLE_CARD_GAP))
+
+            // 4. 입력 카드
+            Card(
+                modifier = Modifier
+                    .padding(horizontal = START_CARD_HORIZONTAL_PADDING)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH),
+                border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = START_CARD_TOP_INNER_PADDING),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = stringResource(R.string.target_days_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = colorResource(id = R.color.color_title_primary),
+                        modifier = Modifier.padding(bottom = START_CARD_TITLE_BOTTOM)
+                    )
+
+                    TargetDaysInput(
+                        value = uiState.targetDays,
+                        onValueChange = { days ->
+                            viewModel.onCustomInputChanged(days)
+                        },
+                        onDone = {
                             focusManager.clearFocus()
                             try { keyboardController?.hide() } catch (_: Exception) {}
                         }
                     )
-                    Spacer(modifier = Modifier.height(START_TITLE_CARD_GAP))
-
-                    // [NEW] Clean Box-less Design - Ghost Input Style
-                    Card(
-                        modifier = Modifier
-                            .padding(horizontal = START_CARD_HORIZONTAL_PADDING)
-                            .fillMaxWidth(),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH),
-                        border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = START_CARD_TOP_INNER_PADDING),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            // Title
-                            Text(
-                                text = stringResource(R.string.target_days_title),
-                                style = MaterialTheme.typography.titleLarge,
-                                color = colorResource(id = R.color.color_title_primary),
-                                modifier = Modifier.padding(bottom = START_CARD_TITLE_BOTTOM) // [OPTIMIZED] 24dp → 20dp
-                            )
-
-                            // [NEW] Target Days Input Component (Extracted)
-                            TargetDaysInput(
-                                value = uiState.targetDays,
-                                onValueChange = { days ->
-                                    viewModel.onCustomInputChanged(days) // [MANUAL OVERRIDE] 직접 입력 시 전용 함수 호출
-                                },
-                                onDone = {
-                                    focusManager.clearFocus()
-                                    try { keyboardController?.hide() } catch (_: Exception) {}
-                                }
-                            )
-                        }
-                    }
-
-                    // [OPTIMIZED] 동기부여 명언 표시 - 간격 축소
-                    Spacer(modifier = Modifier.height(START_QUOTE_TOP_GAP))
-                    QuoteDisplay()
-
-                    // [REMOVED] 하단 여백 제거 - 스크롤 비활성화로 불필요
-                    // Spacer(modifier = Modifier.height(START_BOTTOM_CLEARANCE))
                 }
-            },
-            bottomButton = {
-                MainActionButton(
-                    onClick = {
-                        viewModel.onStartButtonClicked(context)
-                    }
-                )
-            },
-            screenBackground = BackgroundCream,
-            backgroundDecoration = {
-                Box(
-                    modifier = Modifier.matchParentSize().background(
-                        Brush.verticalGradient(
-                            0.0f to Color.Transparent,
-                            0.88f to Color.Transparent,
-                            1.0f to GradientBottomShadow.copy(alpha = 0.12f)
-                        )
-                    )
-                )
-            },
-        )
+            }
+
+            // 5. 카드와 명언 사이 간격
+            Spacer(modifier = Modifier.height(START_QUOTE_TOP_GAP))
+
+            // 6. 명언
+            QuoteDisplay()
+
+            // 7. 버튼 위 여백 (키보드 올라올 때 스크롤 공간 확보)
+            Spacer(modifier = Modifier.height(50.dp))
+
+            // 8. [MOVED] 시작 버튼 (이제 스크롤 콘텐츠의 일부 - 키보드에 가려짐)
+            MainActionButton(
+                onClick = {
+                    viewModel.onStartButtonClicked(context)
+                }
+            )
+
+            // 9. 하단 안전 여백
+            Spacer(modifier = Modifier.height(24.dp))
+        }
 
         AnimatedVisibility(
             visible = showSplashOverlay,
