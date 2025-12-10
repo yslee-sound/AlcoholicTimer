@@ -153,21 +153,12 @@ fun DetailScreen(
     }
 
     val totalDurationMillis = if (startTime > 0) endTime - startTime else {
-        // [FIX] 타이머 테스트 모드를 고려한 동적 DAY_IN_MILLIS
-        val dayInMillis = if (!previewMode) {
-            Constants.getDayInMillis(context)
-        } else {
-            Constants.DAY_IN_MILLIS
-        }
-        actualDays * dayInMillis
+        // [FIX] 통계 계산은 실제 시간 기준 (배속 적용 안 함)
+        actualDays * Constants.DAY_IN_MILLIS
     }
 
-    // [FIX] 타이머 테스트 모드를 고려한 동적 시간 계산
-    val dayInMillis = if (!previewMode) {
-        Constants.getDayInMillis(context)
-    } else {
-        Constants.DAY_IN_MILLIS
-    }
+    // [FIX] 통계 계산은 실제 시간 기준 (배속 적용 안 함)
+    val dayInMillis = Constants.DAY_IN_MILLIS
     val totalHours = totalDurationMillis / (dayInMillis / 24.0)
     val totalDays = totalDurationMillis / dayInMillis.toDouble()
 
@@ -407,8 +398,8 @@ fun DetailScreen(
                     // prefer caller-provided deletion; otherwise use internal deleteImpl which will call onDeleted
                     val action: (Long, Long) -> Unit = onDelete ?: { a, b -> deleteImpl(a, b) }
                     action(startTime, endTime)
-                    // [FIX] Navigate to home instead of back to avoid returning to "Goal Achieved" screen
-                    onNavigateToHome()
+                    // [FIX] Navigate back to previous screen (list) instead of home
+                    onBack()
                 }) {
                     Text(text = stringResource(id = R.string.dialog_delete_confirm), color = Color(0xFFE53E3E), fontWeight = FontWeight.Bold)
                 }

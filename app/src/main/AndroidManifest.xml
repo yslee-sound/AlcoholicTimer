@@ -39,13 +39,11 @@
         <!-- Compose NavHost 전환에 따라 기존 개별 Activity 제거 -->
         <!-- RecordsActivity / AllRecordsActivity / SettingsActivity / DetailActivity 제거 -->
 
-        <!-- Ensure AdActivity uses the splash theme to avoid black background gap when showing ads -->
+        <!-- [FIX] AdActivity: 투명 테마 제거하여 광고 뒤 화면 투영 방지 -->
         <activity
             android:name="com.google.android.gms.ads.AdActivity"
             android:exported="false"
-            android:screenOrientation="portrait"
-            android:theme="@android:style/Theme.Translucent"
-            tools:replace="android:theme" />
+            android:screenOrientation="portrait" />
 
         <!-- 사용자 기록 추가 화면 -->
         <activity

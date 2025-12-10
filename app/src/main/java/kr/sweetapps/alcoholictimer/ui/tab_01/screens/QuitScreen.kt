@@ -168,8 +168,8 @@ fun QuitScreenComposable(
             val start = previewStartTime ?: sharedPref.getLong(Constants.PREF_START_TIME, 0L)
             val now = System.currentTimeMillis()
             val elapsedMillis = if (start > 0L) now - start else 0L
-            // [FIX] 시간 배속 적용: getDayInMillis() 함수 사용
-            val elapsedDaysFloat = elapsedMillis / Constants.getDayInMillis(context).toFloat()
+            // [FIX] 통계 계산은 실제 시간 기준 (배속 적용 안 함)
+            val elapsedDaysFloat = elapsedMillis / Constants.DAY_IN_MILLIS.toFloat()
             val weeks = elapsedDaysFloat / 7.0
             val (selectedCost, selectedFrequency, selectedDuration) = Constants.getUserSettings(context)
             val costVal = Constants.DrinkingSettings.getCostValue(selectedCost)
@@ -256,8 +256,8 @@ fun QuitScreenComposable(
                                             try {
                                                 val start = sharedPref.getLong(Constants.PREF_START_TIME, 0L)
                                                 val endTime = System.currentTimeMillis()
-                                                // [FIX] 시간 배속 적용: getDayInMillis() 함수 사용
-                                                val actualDays = (((endTime - start) / Constants.getDayInMillis(context))).toInt()
+                                                // [FIX] 기록 저장은 실제 날짜 기준 (배속 적용 안 함)
+                                                val actualDays = (((endTime - start) / Constants.DAY_IN_MILLIS)).toInt()
 
                                                 saveCompletedRecord(
                                                     context = context,

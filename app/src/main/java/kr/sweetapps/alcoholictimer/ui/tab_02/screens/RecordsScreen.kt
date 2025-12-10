@@ -479,10 +479,9 @@ private fun PeriodStatisticsSection(
     // [NEW] Context는 여기서 미리 가져오기
     val context = LocalContext.current
 
-    // [NEW] 배속된 하루 길이 가져오기 (실시간 업데이트)
-    val dayInMillis = remember(now) {
-        Constants.getDayInMillis(context)
-    }
+    // [FIX] 통계 계산 시에는 배속을 적용하지 않음 (항상 실제 시간 기준)
+    // 배속은 오직 메인 타이머 UI의 시각적 흐름을 위한 것이며, 통계/레벨은 실제 데이터 기준
+    val dayInMillis = Constants.DAY_IN_MILLIS // 항상 86,400,000ms (실제 하루)
 
     val totalRecords = records.size
     val periodRange: Pair<Long, Long>? = remember(selectedPeriod, selectedDetailPeriod, weekRange) {

@@ -142,13 +142,15 @@ fun RunScreenComposable(
         }
     }
 
-    val elapsedDaysFloat = remember(elapsedMillis, dayInMillis) { elapsedMillis / dayInMillis.toFloat() }
+    // [FIX] 통계 계산용 경과 일수 (실제 시간 기준, 배속 적용 안 함)
+    val elapsedDaysFloat = remember(elapsedMillis) {
+        elapsedMillis / Constants.DAY_IN_MILLIS.toFloat()
+    }
 
     // [NEW] 중앙 타이머 표시용 경과 시간 (배속 적용)
     val displayElapsedMillis = remember(elapsedMillis, dayInMillis) {
-        // elapsedMillis는 실제 시간, dayInMillis는 배속이 적용된 "1일의 길이"
-        // 따라서 elapsedDaysFloat에 실제 1일(86,400,000ms)을 곱하면 표시용 시간
-        (elapsedDaysFloat * Constants.DAY_IN_MILLIS).toLong()
+        // UI 표시용: 배속이 적용된 경과 시간
+        (elapsedMillis / Constants.DAY_IN_MILLIS.toFloat() * dayInMillis).toLong()
     }
 
     // [FIX] 레벨 계산: 1일 차부터 시작 (기존: 0일부터 시작)
