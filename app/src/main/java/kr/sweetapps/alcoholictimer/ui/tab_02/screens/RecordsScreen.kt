@@ -52,26 +52,17 @@ import androidx.compose.ui.layout.ContentScale
 import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.util.utils.DateOverlapUtils
 
-// Records screen constants (migrated from UiConstants)
 val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 20.dp // 전체 화면 좌우 여백
-// header specific left/start padding (controls only the start of the "월 통계" title)
-// separate header horizontal padding so title start can be adjusted independently
+val RECORDS_SECTION_SPACING: Dp = 20.dp // [NEW] 섹션 간 통일 간격 (기간 선택 ↔ 월 통계 ↔ 최근 일기)
 val RECORDS_STATS_INTERNAL_TOP_GAP: Dp = 10.dp // 12
 val RECORDS_STATS_ROW_SPACING: Dp = 10.dp // 12, 3칩 하단
 val RECORDS_CARD_IN_ROW_SPACING: Dp = 10.dp // 12, 3칩 사이 공간
-val RECORDS_SELECTION_ROW_HEIGHT: Dp = 56.dp // 56
-
-// Local small overrides used only inside this file
 val RECORDS_HEADER_START_PADDING: Dp = 20.dp
 val RECORDS_TOP_SECTION_EXTERNAL_GAP: Dp = 15.dp // 화면 최상단 패딩
-private val RECORDS_HEADER_TO_CARD_GAP = 0.dp  // removed gap between selection card and header
+private val RECORDS_HEADER_TO_CARD_GAP = 0.dp  // 헤더와 통계 카드 사이 간격
 private val RECORDS_CARD_INTERNAL_TOP_PADDING = 8.dp // 8, 3칩 그룹 내부 상단
-private val RECORDS_SELECTION_TO_HEADER_GAP = 20.dp // [NEW] 기간 선택 섹션 → "월 통계" 헤더 간격
 val RECORDS_STATS_CARD_ELEVATION: Dp = 2.dp // <- change this number in this file to control this card's elevation
-// Local bottom padding used for the Records screen list content (controls the space under the last item).
-// Change this value here to adjust the visible gap under the "View all records" button.
 val RECORDS_LIST_BOTTOM_PADDING: Dp = 100.dp // [UPDATED] Increased from 15.dp to 100.dp for breathing room at bottom
-// use RECORDS_TOP_SECTION_EXTERNAL_GAP to control top spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Suppress("UNUSED_PARAMETER", "UNUSED_VARIABLE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
@@ -141,11 +132,12 @@ fun RecordsScreen(
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = recordsContentPadding,
-                verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING)
+                verticalArrangement = Arrangement.spacedBy(0.dp) // [FIX] 명시적 Spacer로 제어
             ) {
-                // Combined top section + monthly stats as a single item to avoid extra spacing
+                // ==================== Item 1: 기간 선택 섹션 ====================
                 item {
                     Spacer(modifier = Modifier.height(RECORDS_TOP_SECTION_EXTERNAL_GAP))
+
                     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
                         PeriodSelectionSection(
                             selectedPeriod = selectedPeriod,
@@ -168,17 +160,22 @@ fun RecordsScreen(
                             horizontalPadding = RECORDS_SCREEN_HORIZONTAL_PADDING
                         )
                     }
+                }
 
-                    // [NEW] 기간 선택 섹션과 "월 통계" 헤더 사이 간격
-                    Spacer(modifier = Modifier.height(RECORDS_SELECTION_TO_HEADER_GAP))
+                // ==================== Item 2: 월 통계 섹션 ====================
+                item {
+                    // [FIX] 섹션 간격 통일 (20dp)
+                    Spacer(modifier = Modifier.height(RECORDS_SECTION_SPACING))
 
-                    // header: allow different left padding (same visual grouping, no inter-item spacing)
+                    // 헤더
                     Box(modifier = Modifier.fillMaxWidth().padding(start = RECORDS_HEADER_START_PADDING, end = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
                         PeriodHeaderRow(onNavigateToAllRecords = onNavigateToAllRecords)
                     }
+
+                    // 헤더와 카드 사이 간격
                     Spacer(modifier = Modifier.height(RECORDS_HEADER_TO_CARD_GAP))
 
-                    // card: use the standard horizontal padding
+                    // 통계 카드
                     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
                         PeriodStatisticsSection(
                             records = records,
@@ -192,9 +189,10 @@ fun RecordsScreen(
                     }
                 }
 
-                // [NEW] 최근 금주 일기 섹션 (Room DB 기반)
+                // ==================== Item 3: 최근 금주 일기 섹션 ====================
                 item {
-                    Spacer(modifier = Modifier.height(24.dp))
+                    // [FIX] 섹션 간격 통일 (20dp)
+                    Spacer(modifier = Modifier.height(RECORDS_SECTION_SPACING))
 
                     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
                         RecentDiarySection(
@@ -204,8 +202,6 @@ fun RecordsScreen(
                         )
                     }
                 }
-
-                // ... no terminal spacer here; bottom spacing is controlled by recordsContentPadding (RECORDS_LIST_BOTTOM_PADDING)
             }
 
             // 로딩 중일 때 스켈레톤 표시
