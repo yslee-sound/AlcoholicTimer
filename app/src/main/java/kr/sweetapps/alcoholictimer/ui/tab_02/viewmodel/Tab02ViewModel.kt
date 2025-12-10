@@ -1,23 +1,44 @@
 package kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.data.repository.RecordsDataLoader
+import kr.sweetapps.alcoholictimer.util.constants.Constants
+import kr.sweetapps.alcoholictimer.util.utils.DateOverlapUtils
 import java.util.Calendar
+
+/**
+ * [NEW] 통계 데이터 클래스
+ * - 실시간으로 업데이트되는 통계 정보를 담음
+ */
+data class StatsData(
+    val totalDays: Float = 0f,
+    val totalKcal: Double = 0.0,
+    val totalBottles: Double = 0.0,
+    val savedMoney: Double = 0.0
+)
 
 /**
  * [NEW] Tab02(기록 화면) 상태 관리 ViewModel
  * - 기록 데이터 로딩 및 필터링 관리
  * - 기간 선택 상태 관리 (주/월/년)
+ * - [FIX] 실시간 통계 계산 (진행 중인 타이머 포함)
  */
 class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val sharedPref = application.getSharedPreferences(
+        Constants.USER_SETTINGS_PREFS,
+        Context.MODE_PRIVATE
+    )
 
     // [NEW] 기록 목록 상태
     private val _records = MutableStateFlow<List<SobrietyRecord>>(emptyList())
@@ -38,6 +59,203 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
     // [NEW] 선택된 주 범위
     private val _selectedWeekRange = MutableStateFlow<Pair<Long, Long>?>(null)
     val selectedWeekRange: StateFlow<Pair<Long, Long>?> = _selectedWeekRange.asStateFlow()
+
+    // [NEW] 실시간 통계 데이터
+    private val _statsState = MutableStateFlow(StatsData())
+    val statsState: StateFlow<StatsData> = _statsState.asStateFlow()
+
+    // [NEW] 가상 시간 (배속 적용됨)
+    private var virtualNow: Long = System.currentTimeMillis()
+
+    init {
+        // [NEW] 실시간 통계 ticker 시작
+        startStatsTicker()
+    }
+
+    /**
+     * [NEW] 실시간 통계 ticker (배속 적용)
+     * - 0.1초마다 진행 중인 타이머 + 저장된 기록을 합산하여 통계 업데이트
+     * - 디버그 모드에서는 시간 배속 설정이 적용됨
+     */
+    private fun startStatsTicker() {
+        viewModelScope.launch {
+            var lastRealTime = System.currentTimeMillis()
+
+            while (true) {
+                delay(100L) // 0.1초마다 갱신 (부드러운 UI)
+
+                val currentRealTime = System.currentTimeMillis()
+                val realDelta = currentRealTime - lastRealTime
+                lastRealTime = currentRealTime
+
+                // 배속 적용 (Debug 모드일 때만)
+                val factor = if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
+                    try {
+                        Constants.getTimeAcceleration(getApplication())
+                    } catch (e: Exception) {
+                        1 // 에러 시 1배속
+                    }
+                } else {
+                    1
+                }
+
+                // 가상 시간 누적 (배속 반영)
+                virtualNow += (realDelta * factor)
+
+                // 통계 계산 호출
+                calculateStats(virtualNow)
+            }
+        }
+    }
+
+    /**
+     * [NEW] 통계 계산 (진행 중인 타이머 + 저장된 기록)
+     * @param now 가상 현재 시간 (배속 적용됨)
+     */
+    private fun calculateStats(now: Long) {
+        try {
+            val allRecords = _records.value
+            val period = _selectedPeriod.value
+            val detailPeriod = _selectedDetailPeriod.value
+            val weekRange = _selectedWeekRange.value
+
+            // 1. 현재 기간 범위 계산
+            val rangeFilter: Pair<Long, Long>? = when {
+                period.contains("주") || period.contains("Week") -> {
+                    weekRange ?: getCurrentWeekRange()
+                }
+                period.contains("월") || period.contains("Month") -> {
+                    if (detailPeriod.isNotEmpty()) {
+                        parseMonthRange(detailPeriod)
+                    } else {
+                        getCurrentMonthRange()
+                    }
+                }
+                period.contains("년") || period.contains("Year") -> {
+                    if (detailPeriod.isNotEmpty()) {
+                        parseYearRange(detailPeriod)
+                    } else {
+                        getCurrentYearRange()
+                    }
+                }
+                else -> null
+            }
+
+            // 2. 사용자 설정값 가져오기
+            val (costIndex, freqIndex, durationIndex) = Constants.getUserSettings(getApplication())
+            val costPerTime = Constants.DrinkingSettings.getCostValue(costIndex)
+            val timesPerWeek = Constants.DrinkingSettings.getFrequencyValue(freqIndex)
+            val hoursPerTime = Constants.DrinkingSettings.getDurationValue(durationIndex)
+
+            // 3. 저장된 기록 합산
+            var totalDaysFromRecords = 0.0
+            allRecords.forEach { record ->
+                val overlap = if (rangeFilter != null) {
+                    DateOverlapUtils.overlapDays(
+                        record.startTime,
+                        record.endTime,
+                        rangeFilter.first,
+                        rangeFilter.second
+                    )
+                } else {
+                    DateOverlapUtils.overlapDays(record.startTime, record.endTime, null, null)
+                }
+                totalDaysFromRecords += overlap
+            }
+
+            // 4. 진행 중인 타이머 확인 및 합산
+            val startTime = sharedPref.getLong(Constants.PREF_START_TIME, 0L)
+            val timerCompleted = sharedPref.getBoolean(Constants.PREF_TIMER_COMPLETED, false)
+
+            var totalDaysFromCurrentTimer = 0.0
+            if (startTime > 0 && !timerCompleted) {
+                val timerElapsed = now - startTime
+                val timerDays = timerElapsed / Constants.DAY_IN_MILLIS.toDouble()
+
+                totalDaysFromCurrentTimer = if (rangeFilter != null) {
+                    // 현재 타이머가 선택된 기간과 겹치는 부분만 계산
+                    DateOverlapUtils.overlapDays(
+                        startTime,
+                        now,
+                        rangeFilter.first,
+                        rangeFilter.second
+                    )
+                } else {
+                    timerDays
+                }
+            }
+
+            // 5. 총합 계산
+            val totalDays = totalDaysFromRecords + totalDaysFromCurrentTimer
+            val weeks = totalDays / 7.0
+            val savedMoney = weeks * timesPerWeek * costPerTime
+            val totalBottles = weeks * timesPerWeek
+            val totalKcal = totalBottles * 200.0 // 1병당 약 200kcal
+
+            // 6. StateFlow 업데이트
+            _statsState.value = StatsData(
+                totalDays = totalDays.toFloat(),
+                totalKcal = totalKcal,
+                totalBottles = totalBottles,
+                savedMoney = savedMoney
+            )
+
+        } catch (e: Exception) {
+            Log.e("Tab02ViewModel", "통계 계산 실패", e)
+        }
+    }
+
+    /**
+     * [NEW] 현재 주 범위 가져오기
+     */
+    private fun getCurrentWeekRange(): Pair<Long, Long> {
+        val cal = Calendar.getInstance().apply {
+            firstDayOfWeek = Calendar.SUNDAY
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+            set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
+        }
+        val weekStart = cal.timeInMillis
+        cal.add(Calendar.DAY_OF_WEEK, 6)
+        val weekEndInclusive = cal.timeInMillis + (24 * 60 * 60 * 1000L - 1)
+        return weekStart to weekEndInclusive
+    }
+
+    /**
+     * [NEW] 월 범위 파싱
+     */
+    private fun parseMonthRange(detailPeriod: String): Pair<Long, Long> {
+        val numbers = Regex("(\\d+)").findAll(detailPeriod).map { it.value.toInt() }.toList()
+        return if (numbers.size >= 2) {
+            val year = numbers[0]
+            val month = numbers[1] - 1
+            val cal = Calendar.getInstance()
+            cal.set(year, month, 1, 0, 0, 0)
+            cal.set(Calendar.MILLISECOND, 0)
+            val monthStart = cal.timeInMillis
+            cal.add(Calendar.MONTH, 1)
+            cal.add(Calendar.MILLISECOND, -1)
+            val monthEnd = cal.timeInMillis
+            monthStart to monthEnd
+        } else {
+            getCurrentMonthRange()
+        }
+    }
+
+    /**
+     * [NEW] 년 범위 파싱
+     */
+    private fun parseYearRange(detailPeriod: String): Pair<Long, Long> {
+        val yearMatch = Regex("(\\d{4})").find(detailPeriod)
+        return if (yearMatch != null) {
+            val year = yearMatch.groupValues[1].toInt()
+            getYearRange(year)
+        } else {
+            getCurrentYearRange()
+        }
+    }
 
     /**
      * [NEW] 초기 기간 설정 (화면 진입 시 한 번만 호출)

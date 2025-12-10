@@ -56,6 +56,7 @@ fun Tab02Screen(
     val selectedPeriod by viewModel.selectedPeriod.collectAsState()
     val selectedDetailPeriod by viewModel.selectedDetailPeriod.collectAsState()
     val selectedWeekRange by viewModel.selectedWeekRange.collectAsState()
+    val statsData by viewModel.statsState.collectAsState() // [NEW] 실시간 통계 데이터
 
     // [NEW] DiaryViewModel을 통해 Room DB의 일기 데이터를 실시간으로 관찰
     val diaryViewModel: kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.DiaryViewModel = viewModel()
@@ -97,6 +98,7 @@ fun Tab02Screen(
         onDetailPeriodSelected = { viewModel.updateSelectedDetailPeriod(it) },
         onWeekRangeSelected = { viewModel.updateSelectedWeekRange(it) },
         recentDiaries = recentDiaries,
+        statsData = statsData, // [NEW] 실시간 통계 데이터 전달
         onNavigateToDetail = onNavigateToDetail,
         onNavigateToAllRecords = onNavigateToAllRecords,
         onNavigateToAllDiaries = onNavigateToAllDiaries,
