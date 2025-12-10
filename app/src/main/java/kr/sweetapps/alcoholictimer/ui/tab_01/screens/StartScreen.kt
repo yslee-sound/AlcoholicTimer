@@ -464,7 +464,7 @@ private fun CountdownOverlay(countdownNumber: Int) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(CountdownOverlayBackground.copy(alpha = 0.85f))
+            .background(CountdownOverlayBackground.copy(alpha = 0.10f)) // [FIX] 밝은 반투명 배경 (0.55 → 0.20)
             .pointerInput(Unit) {
                 // [NEW] 모든 터치 이벤트를 여기서 소비하여 하위 UI로 전달 방지
                 detectTapGestures { /* Do nothing - block all touches */ }
