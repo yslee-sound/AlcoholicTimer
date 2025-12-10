@@ -74,19 +74,28 @@ fun AllDiaryScreen(
             contentPadding = PaddingValues(bottom = 100.dp) // [NEW] Breathing room at bottom
         ) {
             grouped.forEach { (month, list) ->
-                // Sticky header effect: using item with full width header above group
+                // [UPDATED] Modern & minimal month header
                 item(key = "header_$month") {
-                    Surface(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color(0xFFF8FAFC))
-                            .padding(horizontal = 20.dp, vertical = 12.dp)
+                            .padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
+                        // Month text (bold, prominent)
                         Text(
                             text = month,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            color = Color(0xFF2D3748)
+                            fontSize = 18.sp,
+                            color = Color(0xFF1A1A1A), // Dark grey/black for emphasis
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        // Subtle divider line on the right (optional, modern touch)
+                        HorizontalDivider(
+                            modifier = Modifier.weight(1.5f),
+                            thickness = 1.dp,
+                            color = Color(0xFFE2E8F0) // Light grey divider
                         )
                     }
                 }
