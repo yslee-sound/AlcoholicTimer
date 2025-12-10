@@ -265,6 +265,7 @@ fun SettingsScreen(
                 onClick = {
                     Log.d("SettingsScreen", "Apply clicked: tempCost=$tempCost tempFrequency=$tempFrequency tempDuration=$tempDuration tempCurrency=$tempCurrency")
 
+                    // [MOD] 설정 저장 로직
                     viewModel.updateCost(tempCost)
                     viewModel.updateFrequency(tempFrequency)
                     viewModel.updateDuration(tempDuration)
@@ -290,42 +291,14 @@ fun SettingsScreen(
                         Log.e("SettingsScreen", "Failed to save currency: ${e.message}")
                     }
 
-                    Log.d("SettingsScreen", "Saved to ViewModel (async)")
+                    Log.d("SettingsScreen", "설정이 저장되었습니다 (화면 유지)")
 
+                    // [MOD] 화면 이동 제거 -> Toast로 피드백 제공
                     android.widget.Toast.makeText(
                         context,
-                        "설정이 저장되었습니다.",
+                        "설정이 적용되었습니다",
                         android.widget.Toast.LENGTH_SHORT
                     ).show()
-
-                    try {
-                        val sp = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
-                        sp.edit().putBoolean("settings_applied_snackbar_pending", true).apply()
-                        Log.d("SettingsScreen", "Set settings_applied_snackbar_pending=true in sharedPref")
-                    } catch (_: Throwable) {}
-
-                    val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
-
-                    val finishAndGoHome: () -> Unit = {
-                        Log.d("SettingsScreen", "설정 완료 -> Tab1으로 이동")
-                        onApplyAndGoHome()
-                    }
-
-                    if (shouldShowAd && activity != null) {
-                        Log.d("SettingsScreen", "광고 정책 통과 -> 전면 광고 노출")
-                        if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
-                            kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(activity) { success ->
-                                Log.d("SettingsScreen", "광고 결과: success=$success -> Tab1 이동")
-                                finishAndGoHome()
-                            }
-                        } else {
-                            Log.d("SettingsScreen", "광고 로드 안됨 -> 즉시 Tab1 이동")
-                            finishAndGoHome()
-                        }
-                    } else {
-                        Log.d("SettingsScreen", "광고 쿨타임 중 또는 activity null -> 즉시 Tab1 이동")
-                        finishAndGoHome()
-                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -333,7 +306,7 @@ fun SettingsScreen(
                 enabled = hasChanges,
                 colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.color_accent_blue))
             ) {
-                Text(text = "적용하고 절약 금액 확인하기 >", color = Color.White)
+                Text(text = "설정 적용", color = Color.White)
             }
         }
     }
