@@ -39,9 +39,19 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
 
     // [NEW] SharedPreferences 변경 감지 리스너
     private val preferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-        if (key == Constants.PREF_SOBRIETY_RECORDS) {
-            Log.d("Tab03ViewModel", "Records changed, reloading total time...")
-            loadRecordsAndCalculateTotalTime()
+        when (key) {
+            // [FIX] 기록, 타이머 시작/완료 모두 감지하여 즉시 반영
+            Constants.PREF_SOBRIETY_RECORDS,
+            Constants.PREF_START_TIME,
+            Constants.PREF_TIMER_COMPLETED -> {
+                Log.d("Tab03ViewModel", "Data changed ($key), reloading...")
+
+                // 1. 시작 시간 상태 최신화 (중요: 이걸 해야 UI가 즉시 '진행 중'으로 바뀜)
+                _startTime.value = sharedPref.getLong(Constants.PREF_START_TIME, 0L)
+
+                // 2. 전체 통계 재계산
+                loadRecordsAndCalculateTotalTime()
+            }
         }
     }
 
@@ -87,11 +97,26 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
     val currentLevel: StateFlow<LevelDefinitions.LevelInfo> = _currentLevel.asStateFlow()
 
     init {
-        // [FIX] 현재 시간 업데이트 (1초마다)
+        // [FIX] 현재 시간 업데이트 - 가상 시간 누적 방식 (배속 적용)
         viewModelScope.launch {
+            var lastRealTime = System.currentTimeMillis()
             while (true) {
-                delay(1000L) // 1초마다 업데이트
-                _currentTime.value = System.currentTimeMillis()
+                delay(100L) // 0.1초마다 갱신 (부드러운 애니메이션)
+
+                val currentRealTime = System.currentTimeMillis()
+                val realDelta = currentRealTime - lastRealTime
+                lastRealTime = currentRealTime
+
+                // [NEW] 배속 계수 적용 (디버그 모드에서만)
+                val factor = if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
+                    Constants.getTimeAcceleration(getApplication())
+                } else {
+                    1
+                }
+
+                // [FIX] 가상 시간 누적 (핵심: += 사용)
+                val virtualDelta = (realDelta * factor).toLong()
+                _currentTime.value += virtualDelta
             }
         }
 
@@ -128,17 +153,16 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
                     val total = totalPastDuration + currentElapsed
                     _totalElapsedTime.value = total
 
-                    // [FIX] 타이머 테스트 모드를 고려한 동적 DAY_IN_MILLIS
-                    val dayInMillis = Constants.getDayInMillis(getApplication())
-                    _totalElapsedDaysFloat.value = total / dayInMillis.toFloat()
+                    // [FIX] 레벨 계산은 항상 고정 상수로 (배속 적용 안 함)
+                    _totalElapsedDaysFloat.value = total / Constants.DAY_IN_MILLIS.toFloat()
 
-                    val days = Constants.calculateLevelDays(total, dayInMillis)
+                    val days = Constants.calculateLevelDays(total, Constants.DAY_IN_MILLIS)
                     _levelDays.value = days
                     _currentLevel.value = LevelDefinitions.getLevelInfo(days)
 
                     // [DEBUG] 레벨 업데이트 로그 출력
                     Log.d("Tab03ViewModel", "레벨 업데이트: " +
-                            "total=${total}ms, dayInMillis=${dayInMillis}, days=$days, " +
+                            "total=${total}ms, days=$days, " +
                             "level=${_currentLevel.value.nameResId}, daysFloat=${_totalElapsedDaysFloat.value}")
                 }
             } catch (e: CancellationException) {
@@ -203,7 +227,9 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
         val current = _currentLevel.value
 
         return if (nextLevel.start > current.start) {
-            val progressInLevel = _totalElapsedDaysFloat.value - current.start
+            // [FIX] current.start가 1일이면 0.0일 시점부터 시작이므로 1을 빼줌
+            // 예: 0.5일 경과, Lv.1(start=1) → 0.5 - (1-1) = 0.5 (50% 진행)
+            val progressInLevel = _totalElapsedDaysFloat.value - (current.start - 1)
             val totalNeeded = (nextLevel.start - current.start).toFloat()
             if (totalNeeded > 0f) {
                 (progressInLevel / totalNeeded).coerceIn(0f, 1f)

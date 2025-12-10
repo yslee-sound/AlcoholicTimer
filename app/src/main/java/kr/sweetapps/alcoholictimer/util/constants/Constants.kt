@@ -169,16 +169,20 @@ object Constants {
 
     fun keyCurrentIndicator(startTime: Long): String = "current_indicator_${startTime}"
 
-    // [FIX] 레벨 계산: 1일 차부터 시작 (시작일 = 1일)
+    // [FIX] 레벨 계산: 경과 시간이 0이면 0일 차, 1ms 이상이면 1일 차부터 시작
     fun calculateLevelDays(elapsedTimeMillis: Long): Int {
+        if (elapsedTimeMillis <= 0L) return 0 // [FIX] 기록 없으면 0일
+
         val days = (elapsedTimeMillis / DAY_IN_MILLIS).toInt()
-        return if (days == 0) 1 else days + 1
+        return days + 1 // 0.1일 -> 1일 차, 1.1일 -> 2일 차
     }
 
     // [NEW] 레벨 계산: 동적 dayInMillis를 받는 오버로드 (테스트 모드 대응)
     fun calculateLevelDays(elapsedTimeMillis: Long, dayInMillis: Long): Int {
+        if (elapsedTimeMillis <= 0L) return 0 // [FIX] 기록 없으면 0일
+
         val days = (elapsedTimeMillis / dayInMillis).toInt()
-        return if (days == 0) 1 else days + 1
+        return days + 1 // 0.1일 -> 1일 차, 1.1일 -> 2일 차
     }
 
     fun calculateLevelDaysFloat(elapsedTimeMillis: Long): Float = (elapsedTimeMillis / DAY_IN_MILLIS.toFloat())

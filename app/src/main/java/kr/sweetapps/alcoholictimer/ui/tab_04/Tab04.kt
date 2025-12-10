@@ -165,38 +165,6 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(8.dp))
             HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
 
-            // 통화 설정 섹션
-            SettingsSection(
-                title = stringResource(R.string.settings_currency),
-                titleColor = Color.Black
-            ) {
-                // 통화 선택 행
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
-                        ) { showCurrencySheet = true }
-                        .padding(horizontal = 20.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = if (tempCurrency == "AUTO") "자동(지역 기반)" else tempCurrency,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colorResource(id = R.color.color_text_primary_dark)
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_caret_right),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-
-            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
 
             SettingsSection(
                 title = stringResource(R.string.settings_drinking_frequency),
@@ -241,6 +209,38 @@ fun SettingsScreen(
                         tempDuration = newValue
                     }
                 )
+            }
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
+
+            // [MOD] 통화 설정 섹션 (음주 시간 아래로 이동)
+            SettingsSection(
+                title = stringResource(R.string.settings_currency),
+                titleColor = Color.Black
+            ) {
+                // 통화 선택 행
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { showCurrencySheet = true }
+                        .padding(horizontal = 20.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = if (tempCurrency == "AUTO") "자동(지역 기반)" else tempCurrency,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colorResource(id = R.color.color_text_primary_dark)
+                    )
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_caret_right),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
 
             // [NEW] Bottom spacer for breathing room (consistent with other tabs)
