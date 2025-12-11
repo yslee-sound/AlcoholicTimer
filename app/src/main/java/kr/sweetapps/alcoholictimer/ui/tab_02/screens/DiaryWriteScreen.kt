@@ -203,6 +203,7 @@ fun DiaryWriteScreen(
                 .fillMaxSize()
                 .background(Color(0xFFF8F9FA))
                 .padding(innerPadding) // [NEW] Scaffold의 innerPadding 적용
+                .imePadding() // [FIX] 키보드 높이만큼 패딩을 주어 가려짐 방지
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
