@@ -124,7 +124,7 @@ fun DetailScreen(
     val showDeleteDialog = remember { mutableStateOf(false) }
     // [NEW] 메뉴 확장 상태 (showTopBar가 false일 때는 메뉴 비활성화)
     var showMenu by remember { mutableStateOf(false) }
-    val accentColor = if (isCompleted) BluePrimaryLight else AmberSecondaryLight
+    val accentColor = if (isCompleted) MainPrimaryBlue else AmberSecondaryLight  // [FIX] 메인 UI 색상 적용 (#1E40AF)
 
     // banner visibility: ensure any hiding used for debug is guarded by BuildConfig.DEBUG (release validation)
     var shouldHideBanner by remember { mutableStateOf(if (BuildConfig.DEBUG) false else false) }

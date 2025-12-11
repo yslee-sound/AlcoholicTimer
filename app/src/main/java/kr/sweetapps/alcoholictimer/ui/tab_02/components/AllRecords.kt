@@ -154,7 +154,7 @@ fun AllRecordsScreen(
                 }
                 else -> {
                     val safePadding = LocalSafeContentPadding.current
-                    val bottomPadding = safePadding.calculateBottomPadding() + 12.dp
+                    val bottomPadding = safePadding.calculateBottomPadding() + 100.dp  // [FIX] 하단 여유 공간 100dp로 증가
 
                     LazyColumn(
                         modifier = Modifier.fillMaxSize().padding(horizontal = kr.sweetapps.alcoholictimer.ui.tab_02.screens.RECORDS_SCREEN_HORIZONTAL_PADDING),

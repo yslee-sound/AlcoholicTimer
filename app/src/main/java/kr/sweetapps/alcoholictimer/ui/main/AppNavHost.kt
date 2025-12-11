@@ -151,12 +151,7 @@ fun AppNavHost(
 
         // [NEW] 타이머 완료 화면
         composable(Screen.Finished.route) {
-            // [FIX] Activity Scope ViewModel 가져오기
-            val tab02ViewModel: kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.Tab02ViewModel = if (activity != null) {
-                androidx.lifecycle.viewmodel.compose.viewModel(viewModelStoreOwner = activity as androidx.lifecycle.ViewModelStoreOwner)
-            } else {
-                androidx.lifecycle.viewmodel.compose.viewModel()
-            }
+            // [REMOVED] ViewModel 제거 - pending route 로직 불필요
 
             kr.sweetapps.alcoholictimer.ui.tab_01.screens.FinishedScreen(
                 onResultCheck = {
@@ -184,7 +179,7 @@ fun AppNavHost(
                     val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
 
                     val proceedToDetail: () -> Unit = {
-                        // [FIX] 상태 기반 네비게이션: ViewModel에 예약 후 Tab 2로 이동
+                        // [FIX] 직통 연결: 복잡한 중간 과정 없이 즉시 결과 화면으로 이동
                         try {
                             val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
                             val completedStartTime = sharedPref.getLong("completed_start_time", 0L)
@@ -201,15 +196,11 @@ fun AppNavHost(
                                     isCompleted = true
                                 )
 
-                                android.util.Log.d("NavGraph", "[상태 기반] ViewModel에 Result route 예약: $resultRoute")
+                                android.util.Log.d("NavGraph", "[직통] Finished -> Result 즉시 이동: $resultRoute")
 
-                                // 1단계: ViewModel에 "이 주소로 가라"고 예약
-                                tab02ViewModel.setPendingDetailRoute(resultRoute)
-
-                                android.util.Log.d("NavGraph", "[상태 기반] Tab 2(Records)로 이동 -> 목록이 자동으로 Result 표시")
-
-                                // 2단계: Tab 2로 이동 (목록 화면이 pendingRoute를 감지하여 자동으로 Result로 이동)
-                                navController.navigate(Screen.Records.route) {
+                                // [FIX] 중간 단계(Tab 2) 없이 즉시 결과 화면으로 이동
+                                navController.navigate(resultRoute) {
+                                    // 완료 화면(Finished)은 스택에서 제거하여 뒤로 가기 시 다시 안 나오게 함
                                     popUpTo(Screen.Finished.route) { inclusive = true }
                                     launchSingleTop = true
                                 }
@@ -439,17 +430,17 @@ fun AppNavHost(
                     showTopBar = true,        // 타이틀바 표시 (결과 모드)
                     isResultMode = true,      // 결과 모드 활성화
                     onBack = {
-                        // [FIX] 뒤로 가기 -> pendingRoute clear 후 목록으로
-                        android.util.Log.d("NavGraph", "[Result] 뒤로 가기 -> pendingRoute clear 후 목록으로")
-                        tab02ViewModel.consumePendingDetailRoute()
+                        // [FIX] 뒤로 가기 -> 먼저 화면 이동 후 상태 정리
+                        android.util.Log.d("NavGraph", "[Result] 뒤로 가기 -> popBackStack 먼저 실행")
                         navController.popBackStack()
+                        tab02ViewModel.consumePendingDetailRoute()
                     },
                     onDeleted = {
                         recordsRefreshCounter = recordsRefreshCounter + 1
-                        // 삭제 후에도 pendingRoute clear 후 목록으로
-                        android.util.Log.d("NavGraph", "[Result] 삭제 완료 -> pendingRoute clear 후 목록으로")
-                        tab02ViewModel.consumePendingDetailRoute()
+                        // 삭제 후에도 먼저 popBackStack 실행 후 pendingRoute clear
+                        android.util.Log.d("NavGraph", "[Result] 삭제 완료 -> popBackStack 후 pendingRoute clear")
                         navController.popBackStack()
+                        tab02ViewModel.consumePendingDetailRoute()
                     },
                     onNavigateToHome = {
                         // [NEW] 다시 시작하기 버튼 -> Tab 1 (Start) 홈으로
