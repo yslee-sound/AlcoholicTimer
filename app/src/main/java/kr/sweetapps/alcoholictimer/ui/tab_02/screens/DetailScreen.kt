@@ -426,12 +426,8 @@ fun DetailScreen(
                 Spacer(modifier = Modifier.height(8.dp))
             }
             if (!shouldHideBanner) {
-                if (UiConstants.BANNER_TOP_GAP > 0.dp) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().height(UiConstants.BANNER_TOP_GAP).background(MaterialTheme.colorScheme.surfaceVariant)
-                    )
-                }
-                HorizontalDivider(thickness = AppBorder.Hairline, color = Color(0xFFE0E0E0))
+                // [REMOVED] BANNER_TOP_GAP Box - 회색 박스 제거
+                // [REMOVED] HorizontalDivider - 회색 구분선 제거
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -482,6 +478,7 @@ fun DetailStatCard(
         modifier = modifier,
         elevation = AppElevation.CARD_HIGH,
         containerColor = Color(0xFFF5F5F5),  // [FIX] 연한 회색
+        border = null,  // [FIX] 테두리 제거 (회색 줄 제거)
         contentPadding = androidx.compose.foundation.layout.PaddingValues(
             horizontal = 16.dp,
             vertical = 12.dp  // [FIX] 상하 패딩 줄임 (기존 16dp -> 12dp)
