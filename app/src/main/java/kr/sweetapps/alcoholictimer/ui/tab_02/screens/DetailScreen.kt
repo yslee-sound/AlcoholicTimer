@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager
+import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue  // [NEW] 메인 UI 색상
 
 // Local layout constants for DetailScreen (tweak here to change paddings)
 private val DETAIL_CARD_TOP_PADDING = 15.dp
@@ -271,7 +272,7 @@ fun DetailScreen(
                             .padding(horizontal = 24.dp, vertical = 16.dp)
                             .height(56.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = BluePrimaryLight,
+                            containerColor = MainPrimaryBlue,  // [FIX] 메인 UI 색상 적용 (#1E40AF)
                             contentColor = Color.White
                         ),
                         shape = RoundedCornerShape(12.dp)
@@ -360,14 +361,14 @@ fun DetailScreen(
                                 Text(
                                     text = String.format(Locale.getDefault(), "%.1f%%", achievementRate),
                                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = accentColor
+                                    color = MainPrimaryBlue  // [FIX] 메인 UI 색상 적용 (#1E40AF)
                                 )
                             }
                             Spacer(modifier = Modifier.height(8.dp))
                             LinearProgressIndicator(
                                 progress = { (achievementRate / 100.0).toFloat().coerceIn(0f, 1f) },
                                 modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
-                                color = accentColor,
+                                color = MainPrimaryBlue,  // [FIX] 메인 UI 색상 적용 (#1E40AF)
                                 trackColor = Color(0xFFE2E8F0)
                             )
                             Spacer(modifier = Modifier.height(8.dp))
@@ -395,7 +396,7 @@ fun DetailScreen(
                         value = stringResource(R.string.unit_days_format, totalDays),
                         label = stringResource(id = R.string.stat_total_days),
                         modifier = Modifier.weight(1f),
-                        valueColor = colorResource(id = R.color.color_indicator_days)
+                        valueColor = MainPrimaryBlue  // [FIX] 메인 UI 색상 적용 (#1E40AF)
                     )
                     DetailStatCard(
                         value = savedMoneyStr,
