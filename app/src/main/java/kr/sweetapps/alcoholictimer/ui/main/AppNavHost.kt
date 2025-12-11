@@ -239,17 +239,29 @@ fun AppNavHost(
                     }
                 },
                 onNewTimerStart = {
-                    // [중요] 새 타이머 시작 버튼 - 만료 상태 해제 (유일한 해제 경로)
-                    android.util.Log.d("NavGraph", "새 타이머 시작 -> 만료 상태 해제 및 Start 화면으로 이동")
+                    // [FIX] 새 타이머 시작 버튼 - 스택 완전 초기화 (Hard Reset)
+                    android.util.Log.d("NavGraph", "새 타이머 시작 -> 데이터 리셋 및 Start 화면으로 이동")
 
-                    // 만료 상태 해제 (이 버튼이 유일한 해제 경로)
-                    kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(false)
-                    kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(false)
+                    try {
+                        // 1. 데이터 리셋 (기존 로직 유지)
+                        kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(false)
+                        kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(false)
 
-                    android.util.Log.d("NavGraph", "만료 상태 해제 완료: isFinished=false")
+                        val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+                        sharedPref.edit()
+                            .putBoolean(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_TIMER_COMPLETED, false)
+                            .remove(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_START_TIME)
+                            .apply()
 
+                        android.util.Log.d("NavGraph", "타이머 상태 리셋 완료: isFinished=false")
+                    } catch (e: Exception) {
+                        android.util.Log.e("NavGraph", "타이머 리셋 중 오류 발생", e)
+                    }
+
+                    // 2. [FIX] 안전한 네비게이션: 스택의 모든 화면을 제거(popUpTo 0)하고 StartScreen으로 이동
                     navController.navigate(Screen.Start.route) {
-                        popUpTo(Screen.Finished.route) { inclusive = true }
+                        // 0은 네비게이션 그래프의 루트 ID를 의미함 -> 백스택을 완전히 비움
+                        popUpTo(0) { inclusive = true }
                         launchSingleTop = true
                     }
                 }
