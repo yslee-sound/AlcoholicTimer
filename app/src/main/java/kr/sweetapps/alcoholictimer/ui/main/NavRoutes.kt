@@ -92,6 +92,21 @@ sealed class Screen(val route: String) {
         ) = "detail/$startTime/$endTime/$targetDays/$actualDays/$isCompleted"
     }
 
+    /**
+     * [NEW] Timer completion result screen (독립적인 결과 발표 화면)
+     * 타이머 완료 직후에만 사용. UI는 DetailScreen과 동일하지만 네비게이션 경로가 독립적임.
+     * 이렇게 분리하면 Tab 2의 Detail과 간섭하지 않아 네비게이션 스택 관리가 깔끔해짐.
+     */
+    data object Result : Screen("result/{startTime}/{endTime}/{targetDays}/{actualDays}/{isCompleted}") {
+        fun createRoute(
+            startTime: Long,
+            endTime: Long,
+            targetDays: Float,
+            actualDays: Int,
+            isCompleted: Boolean
+        ) = "result/$startTime/$endTime/$targetDays/$actualDays/$isCompleted"
+    }
+
     /** Add record screen (shown as subpage) */
     data object AddRecord : Screen("add_record")
 
@@ -124,6 +139,7 @@ fun Screen.getTitleResId(): Int? = when (this) {
     is Screen.NicknameEdit -> null // Uses custom title
     is Screen.CurrencySettings -> kr.sweetapps.alcoholictimer.R.string.settings_currency
     is Screen.Detail -> null // Uses custom title
+    is Screen.Result -> null // [NEW] 결과 화면 (커스텀 타이틀 사용)
     is Screen.AddRecord -> kr.sweetapps.alcoholictimer.R.string.add_record_title
     else -> null
 }

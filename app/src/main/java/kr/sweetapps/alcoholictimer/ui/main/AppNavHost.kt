@@ -36,6 +36,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import kr.sweetapps.alcoholictimer.ui.tab_02.screens.AddRecordScreenComposable
@@ -123,7 +124,7 @@ fun AppNavHost(
 
         // [NEW] 타이머 완료 화면
         composable(Screen.Finished.route) {
-            // [NEW] Activity Scope ViewModel 가져오기
+            // [FIX] Activity Scope ViewModel 가져오기
             val tab02ViewModel: kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.Tab02ViewModel = if (activity != null) {
                 androidx.lifecycle.viewmodel.compose.viewModel(viewModelStoreOwner = activity as androidx.lifecycle.ViewModelStoreOwner)
             } else {
@@ -156,7 +157,7 @@ fun AppNavHost(
                     val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
 
                     val proceedToDetail: () -> Unit = {
-                        // [FIX] 상태 기반 네비게이션: ViewModel에 예약 후 Tab 2(목록)로 이동
+                        // [FIX] 상태 기반 네비게이션: ViewModel에 예약 후 Tab 2로 이동
                         try {
                             val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
                             val completedStartTime = sharedPref.getLong("completed_start_time", 0L)
@@ -165,8 +166,7 @@ fun AppNavHost(
                             val completedActualDays = sharedPref.getInt("completed_actual_days", 0)
 
                             if (completedStartTime > 0 && completedEndTime > 0) {
-                                // 1. Detail route 생성
-                                val route = Screen.Detail.createRoute(
+                                val resultRoute = Screen.Result.createRoute(
                                     startTime = completedStartTime,
                                     endTime = completedEndTime,
                                     targetDays = completedTargetDays,
@@ -174,19 +174,18 @@ fun AppNavHost(
                                     isCompleted = true
                                 )
 
-                                android.util.Log.d("NavGraph", "[상태 기반] ViewModel에 Detail route 예약: $route")
+                                android.util.Log.d("NavGraph", "[상태 기반] ViewModel에 Result route 예약: $resultRoute")
 
-                                // 2. ViewModel에 "이 주소로 가라"고 예약
-                                tab02ViewModel.setPendingDetailRoute(route)
+                                // 1단계: ViewModel에 "이 주소로 가라"고 예약
+                                tab02ViewModel.setPendingDetailRoute(resultRoute)
 
-                                // 3. Tab 2(Records)의 '목록 화면'으로 이동 (일반적인 탭 전환)
-                                // 이렇게 하면 [목록 -> 상세] 스택이 자연스럽게 형성됨
+                                android.util.Log.d("NavGraph", "[상태 기반] Tab 2(Records)로 이동 -> 목록이 자동으로 Result 표시")
+
+                                // 2단계: Tab 2로 이동 (목록 화면이 pendingRoute를 감지하여 자동으로 Result로 이동)
                                 navController.navigate(Screen.Records.route) {
                                     popUpTo(Screen.Finished.route) { inclusive = true }
                                     launchSingleTop = true
                                 }
-
-                                android.util.Log.d("NavGraph", "Tab 2(목록)로 이동 완료 -> 목록 화면이 자동으로 상세 화면 표시")
                             } else {
                                 // 기록 정보가 없으면 Records 화면으로 폴백
                                 android.util.Log.w("NavGraph", "완료 기록 없음 -> Records 화면으로 이동")
@@ -251,12 +250,16 @@ fun AppNavHost(
             )
         }
 
-        // [FIX] Tab 2 그래프: Records와 Detail을 하나의 네비게이션 그룹으로 묶음
-        // 이렇게 하면 탭 전환 시 "목록 -> 상세" 스택이 그대로 유지됨
+
+        // [FIX] Tab 2를 위한 중첩 그래프 (Nested Graph) 생성
+        // route: 탭의 경로 (Screen.Records.route)
+        // startDestination: 이 탭의 첫 화면 (내부 경로 "records_list")
+        // [목록, Detail, Result] 3개가 모두 하나의 그룹으로 묶여 탭 전환 시 상태 유지됨
         navigation(startDestination = "records_list", route = Screen.Records.route) {
-            // 1. 기록 목록 화면
+
+            // 1. 기록 목록 화면 (내부 경로 "records_list" 사용)
             composable("records_list") {
-                // [NEW] Activity Scope ViewModel 가져오기 (모든 화면에서 공유)
+                // [FIX] Activity Scope ViewModel을 사용하여 pending route 감지
                 val tab02ViewModel: kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.Tab02ViewModel = if (activity != null) {
                     androidx.lifecycle.viewmodel.compose.viewModel(viewModelStoreOwner = activity as androidx.lifecycle.ViewModelStoreOwner)
                 } else {
@@ -264,12 +267,20 @@ fun AppNavHost(
                 }
                 val pendingRoute by tab02ViewModel.pendingDetailRoute.collectAsState()
 
-                // [FIX] 대기 중인 네비게이션이 있으면 즉시 실행 (목록 -> 상세 스택 형성)
-                LaunchedEffect(pendingRoute) {
+                // [FIX] 현재 route 가져오기 (무한 루프 방지용)
+                val backStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = backStackEntry?.destination?.route
+
+                // [핵심] pendingRoute가 있고, 현재 route와 다를 때만 navigate
+                LaunchedEffect(pendingRoute, currentRoute) {
                     pendingRoute?.let { route ->
-                        android.util.Log.d("NavGraph", "Pending route detected: $route -> navigating")
-                        navController.navigate(route)
-                        tab02ViewModel.consumePendingDetailRoute() // 이벤트 소비
+                        if (currentRoute != route) {
+                            android.util.Log.d("NavGraph", "[목록] pendingRoute 감지: $route (현재: $currentRoute) -> 자동 이동")
+                            navController.navigate(route)
+                            // [중요] 소비하지 않음! 탭 복귀 시에도 유지되도록
+                        } else {
+                            android.util.Log.d("NavGraph", "[목록] 이미 해당 route에 있음 -> navigate 건너뜀")
+                        }
                     }
                 }
 
@@ -297,7 +308,7 @@ fun AppNavHost(
                 )
             }
 
-            // 2. [이동됨] 상세 화면 - Tab 2 그래프의 일부가 됨
+            // 2. 기록 상세 화면 (Tab 2의 일부 - 과거 기록 열람용)
             composable(
                 route = Screen.Detail.route,
                 arguments = listOf(
@@ -322,11 +333,14 @@ fun AppNavHost(
                     actualDays = actualDays,
                     isCompleted = isCompleted,
                     onBack = {
-                        // [FIX] 이제 Tab 2 스택 위에 정상적으로 쌓였으므로,
-                        // 뒤로 가기를 누르면 자연스럽게 '목록 화면(records_list)'으로 돌아감
+                        // [FIX] 같은 그래프 내에서의 이동이므로 기본 backStack 처리
                         navController.popBackStack()
                     },
-                    onDeleted = { recordsRefreshCounter = recordsRefreshCounter + 1 },
+                    onDeleted = {
+                        recordsRefreshCounter = recordsRefreshCounter + 1
+                        // 삭제 후 목록으로 복귀
+                        navController.popBackStack()
+                    },
                     onNavigateToHome = {
                         navController.navigate(Screen.Start.route) {
                             popUpTo(navController.graph.startDestinationId) { inclusive = true }
@@ -335,7 +349,65 @@ fun AppNavHost(
                     }
                 )
             }
+
+            // 3. [NEW] 타이머 완료 결과 화면 (Tab 2의 일부 - 완료 직후 결과 발표용)
+            // 이제 Tab 2 안에 있으므로 탭 전환 시 상태가 유지됨!
+            composable(
+                route = Screen.Result.route,
+                arguments = listOf(
+                    navArgument("startTime") { type = NavType.LongType },
+                    navArgument("endTime") { type = NavType.LongType },
+                    navArgument("targetDays") { type = NavType.FloatType },
+                    navArgument("actualDays") { type = NavType.IntType },
+                    navArgument("isCompleted") { type = NavType.BoolType }
+                )
+            ) { entry ->
+                // [FIX] ViewModel 가져오기 (pending route clear용)
+                val tab02ViewModel: kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.Tab02ViewModel = if (activity != null) {
+                    androidx.lifecycle.viewmodel.compose.viewModel(viewModelStoreOwner = activity as androidx.lifecycle.ViewModelStoreOwner)
+                } else {
+                    androidx.lifecycle.viewmodel.compose.viewModel()
+                }
+
+                val args = entry.arguments
+                val startTime = args?.getLong("startTime") ?: 0L
+                val endTime = args?.getLong("endTime") ?: System.currentTimeMillis()
+                val targetDays = args?.getFloat("targetDays") ?: 30f
+                val actualDays = args?.getInt("actualDays") ?: 0
+                val isCompleted = args?.getBoolean("isCompleted") ?: false
+
+                DetailScreen(
+                    startTime = startTime,
+                    endTime = endTime,
+                    targetDays = targetDays,
+                    actualDays = actualDays,
+                    isCompleted = isCompleted,
+                    onBack = {
+                        // [FIX] 뒤로 가기 시 pendingRoute clear 후 목록으로
+                        android.util.Log.d("NavGraph", "[Result] 뒤로 가기 -> pendingRoute clear 후 목록으로")
+                        tab02ViewModel.consumePendingDetailRoute()
+                        navController.popBackStack()
+                    },
+                    onDeleted = {
+                        recordsRefreshCounter = recordsRefreshCounter + 1
+                        // 삭제 후에도 pendingRoute clear 후 목록으로
+                        android.util.Log.d("NavGraph", "[Result] 삭제 완료 -> pendingRoute clear 후 목록으로")
+                        tab02ViewModel.consumePendingDetailRoute()
+                        navController.popBackStack()
+                    },
+                    onNavigateToHome = {
+                        // 홈으로 가기 시에도 pendingRoute clear
+                        android.util.Log.d("NavGraph", "[Result] 홈으로 가기 -> pendingRoute clear")
+                        tab02ViewModel.consumePendingDetailRoute()
+                        navController.navigate(Screen.Start.route) {
+                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
         }
+
 
         composable(Screen.AddRecord.route) {
             AddRecordScreenComposable(
@@ -496,5 +568,9 @@ fun AppNavHost(
 }
 
 private fun isHomeRoute(route: String?): Boolean {
-    return route == Screen.Start.route || route == Screen.Run.route || route == Screen.Quit.route
+    return route == Screen.Start.route ||
+           route == Screen.Run.route ||
+           route == Screen.Quit.route ||
+           route == Screen.Records.route ||
+           route == "records_list" // [추가] Tab 2 내부 경로
 }
