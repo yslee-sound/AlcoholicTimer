@@ -2,6 +2,7 @@ package kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel
 
 import android.app.Application
 import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -33,6 +34,7 @@ data class StatsData(
  * - 기록 데이터 로딩 및 필터링 관리
  * - 기간 선택 상태 관리 (주/월/년)
  * - [FIX] 실시간 통계 계산 (진행 중인 타이머 포함)
+ * - [FIX] SharedPreferences 변경 감지 (기록 추가/삭제 시 자동 갱신)
  */
 class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -40,6 +42,20 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
         Constants.USER_SETTINGS_PREFS,
         Context.MODE_PRIVATE
     )
+
+    // [NEW] SharedPreferences 변경 감지 리스너
+    private val preferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        when (key) {
+            // [FIX] 기록 추가/삭제, 타이머 시작/완료 시 즉시 반영
+            Constants.PREF_SOBRIETY_RECORDS,
+            Constants.PREF_TIMER_COMPLETED,
+            Constants.PREF_START_TIME -> {
+                Log.d("Tab02ViewModel", "Data changed ($key), reloading records...")
+                // 기록 목록 즉시 갱신 (QuitScreen에서 저장한 기록 반영)
+                loadRecords()
+            }
+        }
+    }
 
     // [NEW] 기록 목록 상태
     private val _records = MutableStateFlow<List<SobrietyRecord>>(emptyList())
@@ -66,6 +82,10 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
     val statsState: StateFlow<StatsData> = _statsState.asStateFlow()
 
     init {
+        // [FIX] SharedPreferences 변경 감지 시작
+        sharedPref.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
+        Log.d("Tab02ViewModel", "Preference change listener registered")
+
         // [REFACTORED] TimerTimeManager의 elapsedMillis를 구독하여 통계 갱신
         viewModelScope.launch {
             TimerTimeManager.elapsedMillis.collect { elapsedMillis ->
@@ -135,30 +155,26 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
 
             var totalDaysFromCurrentTimer = 0.0
             if (startTime > 0 && !timerCompleted && currentTimerElapsed > 0) {
-                // [FIX] Tab 1, Tab 3와 동일하게 '순수 경과 일수(Duration)'로 통일
-                // 기존의 +1.0 보정 제거 (0-based 순수 경과 시간)
-                val timerDaysPrecise = (currentTimerElapsed / Constants.DAY_IN_MILLIS.toDouble())
+                // [FIX] 필터링 적용 로직 개선
+                if (rangeFilter != null) {
+                    // [FIX] 가상 종료 시간 계산 (배속 적용된 시간)
+                    val virtualEndTime = startTime + currentTimerElapsed
 
-                totalDaysFromCurrentTimer = if (rangeFilter != null) {
-                    // 범위 필터가 있을 때는 간단한 포함 여부 체크
-                    val now = System.currentTimeMillis()
-                    val timerStartInRange = startTime >= rangeFilter.first
-                    val timerNowInRange = now <= rangeFilter.second
+                    // [FIX] DateOverlapUtils를 사용하여 선택된 기간과 겹치는 부분만 계산
+                    val overlapDays = DateOverlapUtils.overlapDays(
+                        startTime,
+                        virtualEndTime,
+                        rangeFilter.first,
+                        rangeFilter.second
+                    )
+                    totalDaysFromCurrentTimer = overlapDays
 
-                    if (timerStartInRange && timerNowInRange) {
-                        timerDaysPrecise
-                    } else {
-                        // [FIX] 일부만 겹치면 DateOverlapUtils 사용 (보정 제거)
-                        DateOverlapUtils.overlapDays(
-                            startTime,
-                            now,
-                            rangeFilter.first,
-                            rangeFilter.second
-                        )
-                    }
+                    Log.d("Tab02ViewModel", "Timer filtering: start=$startTime, virtualEnd=$virtualEndTime, " +
+                            "filterRange=${rangeFilter.first}-${rangeFilter.second}, overlap=$overlapDays days")
                 } else {
                     // 전체 기간: TimerTimeManager 값 그대로 사용
-                    timerDaysPrecise
+                    val timerDaysPrecise = (currentTimerElapsed / Constants.DAY_IN_MILLIS.toDouble())
+                    totalDaysFromCurrentTimer = timerDaysPrecise
                 }
             }
 
@@ -405,5 +421,14 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
         cal.add(Calendar.MILLISECOND, -1)
         val yearEnd = cal.timeInMillis
         return yearStart to yearEnd
+    }
+
+    /**
+     * [NEW] ViewModel 종료 시 리스너 해제 (메모리 누수 방지)
+     */
+    override fun onCleared() {
+        super.onCleared()
+        sharedPref.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
+        Log.d("Tab02ViewModel", "Preference change listener unregistered")
     }
 }

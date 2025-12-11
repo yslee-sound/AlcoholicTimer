@@ -130,7 +130,10 @@
     <string name="records_period_year">Year</string>
     <string name="records_period_all">All</string>
     <string name="records_this_week">This Week</string>
+    <string name="records_weekly_stats">Weekly Stats</string>
     <string name="records_monthly_stats">Monthly Stats</string>
+    <string name="records_yearly_stats">Yearly Stats</string>
+    <string name="records_all_stats">All Stats</string>
     <string name="records_success_rate">Success Rate</string>
     <string name="records_avg_duration">Avg. Duration</string>
     <string name="records_max_duration">Max. Duration</string>

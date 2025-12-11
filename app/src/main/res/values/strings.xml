@@ -136,7 +136,10 @@
     <string name="records_period_year">년</string>
     <string name="records_period_all">전체</string>
     <string name="records_this_week">이번 주</string>
+    <string name="records_weekly_stats">주간 통계</string>
     <string name="records_monthly_stats">월 통계</string>
+    <string name="records_yearly_stats">연간 통계</string>
+    <string name="records_all_stats">전체 통계</string>
     <string name="records_success_rate">성공률</string>
     <string name="records_avg_duration">평균 지속일</string>
     <string name="records_max_duration">최대 지속일</string>

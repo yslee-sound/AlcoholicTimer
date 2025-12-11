@@ -169,7 +169,10 @@ fun RecordsScreen(
 
                     // 헤더
                     Box(modifier = Modifier.fillMaxWidth().padding(start = RECORDS_HEADER_START_PADDING, end = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
-                        PeriodHeaderRow(onNavigateToAllRecords = onNavigateToAllRecords)
+                        PeriodHeaderRow(
+                            selectedPeriod = selectedPeriod,
+                            onNavigateToAllRecords = onNavigateToAllRecords
+                        )
                     }
 
                     // 헤더와 카드 사이 간격
@@ -303,7 +306,29 @@ fun RecordsScreenPreview() {
 }
 
 @Composable
-private fun PeriodHeaderRow(onNavigateToAllRecords: () -> Unit) {
+private fun PeriodHeaderRow(
+    selectedPeriod: String,
+    onNavigateToAllRecords: () -> Unit
+) {
+    val context = LocalContext.current
+
+    // [FIX] 선택된 기간에 따라 동적 제목 표시
+    val title = when {
+        selectedPeriod.contains("주", ignoreCase = true) ||
+        selectedPeriod.contains("Week", ignoreCase = true) ->
+            context.getString(R.string.records_weekly_stats)
+
+        selectedPeriod.contains("월", ignoreCase = true) ||
+        selectedPeriod.contains("Month", ignoreCase = true) ->
+            context.getString(R.string.records_monthly_stats)
+
+        selectedPeriod.contains("년", ignoreCase = true) ||
+        selectedPeriod.contains("Year", ignoreCase = true) ->
+            context.getString(R.string.records_yearly_stats)
+
+        else -> context.getString(R.string.records_all_stats) // 전체 통계
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth(),
@@ -311,7 +336,7 @@ private fun PeriodHeaderRow(onNavigateToAllRecords: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = stringResource(R.string.records_monthly_stats),
+            text = title,
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface
         )

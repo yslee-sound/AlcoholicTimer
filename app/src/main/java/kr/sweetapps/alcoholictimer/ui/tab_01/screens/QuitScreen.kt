@@ -266,14 +266,20 @@ fun QuitScreenComposable(
                                         if (progress >= 1f && isPressed) {
                                             try {
                                                 val start = sharedPref.getLong(Constants.PREF_START_TIME, 0L)
-                                                val endTime = System.currentTimeMillis()
-                                                // [FIX] 기록 저장은 실제 날짜 기준 (배속 적용 안 함)
-                                                val actualDays = (((endTime - start) / Constants.DAY_IN_MILLIS)).toInt()
+
+                                                // [FIX] TimerTimeManager가 관리하는 '가속된 시간' 사용 (배속 적용됨)
+                                                val virtualElapsed = TimerTimeManager.elapsedMillis.value
+
+                                                // [FIX] 종료 시각을 '시작시간 + 가상경과시간'으로 계산 (기록 저장 시 7일로 나오게 함)
+                                                val calculatedEndTime = start + virtualElapsed
+
+                                                // [FIX] 실제 경과 일수도 가상 시간 기준으로 계산
+                                                val actualDays = (virtualElapsed / Constants.DAY_IN_MILLIS).toInt()
 
                                                 saveCompletedRecord(
                                                     context = context,
                                                     startTime = start,
-                                                    endTime = endTime,
+                                                    endTime = calculatedEndTime,
                                                     targetDays = targetDays,
                                                     actualDays = actualDays
                                                 )

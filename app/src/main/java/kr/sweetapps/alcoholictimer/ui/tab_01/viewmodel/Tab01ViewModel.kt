@@ -2,6 +2,7 @@ package kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel
 
 import android.app.Application
 import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +14,7 @@ import kr.sweetapps.alcoholictimer.util.manager.TimerTimeManager
 /**
  * Tab01 (Start/Run screen) state management ViewModel
  * [REFACTORED] 이제 TimerTimeManager를 사용하여 중앙 집중식 시간 관리
+ * [FIX] SharedPreferences 리스너 추가하여 타이머 재시작 시 실시간 동기화
  */
 class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -36,6 +38,34 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
     // [REFACTORED] Elapsed time - 이제 TimerTimeManager에서 직접 가져옴
     val elapsedMillis: StateFlow<Long> = TimerTimeManager.elapsedMillis
 
+    // [FIX] SharedPreferences 변경 감지 리스너
+    private val preferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        when (key) {
+            Constants.PREF_START_TIME,
+            Constants.PREF_TARGET_DAYS,
+            Constants.PREF_TIMER_COMPLETED -> {
+                Log.d("Tab01ViewModel", "[FIX] Timer data changed ($key) -> reloading state")
+
+                // 1. 최신 데이터 로드
+                loadTimerState()
+
+                // 2. TimerTimeManager에도 최신 상태 반영
+                val newStartTime = _startTime.value
+                val newCompleted = _timerCompleted.value
+
+                if (newStartTime > 0 && !newCompleted) {
+                    // 타이머가 시작되었으면 TimerTimeManager에 반영
+                    TimerTimeManager.restoreState(getApplication(), newStartTime, false)
+                    Log.d("Tab01ViewModel", "[FIX] TimerTimeManager synced: startTime=$newStartTime")
+                } else if (newStartTime == 0L || newCompleted) {
+                    // 타이머가 중지되거나 완료되었으면 TimerTimeManager도 중지
+                    TimerTimeManager.stopTimer()
+                    Log.d("Tab01ViewModel", "[FIX] TimerTimeManager stopped (reset or completed)")
+                }
+            }
+        }
+    }
+
     init {
         // Load initial timer state
         loadTimerState()
@@ -49,6 +79,10 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
             TimerTimeManager.restoreState(getApplication(), currentStartTime, false)
             Log.d("Tab01ViewModel", "Timer restored to TimerTimeManager: startTime=$currentStartTime")
         }
+
+        // [FIX] SharedPreferences 리스너 등록
+        sharedPref.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
+        Log.d("Tab01ViewModel", "[FIX] SharedPreferences listener registered")
     }
 
     /**
@@ -154,5 +188,14 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun refreshTimerState() {
         loadTimerState()
+    }
+
+    /**
+     * [FIX] ViewModel 정리 시 리스너 해제 (메모리 누수 방지)
+     */
+    override fun onCleared() {
+        super.onCleared()
+        sharedPref.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
+        Log.d("Tab01ViewModel", "[FIX] SharedPreferences listener unregistered")
     }
 }

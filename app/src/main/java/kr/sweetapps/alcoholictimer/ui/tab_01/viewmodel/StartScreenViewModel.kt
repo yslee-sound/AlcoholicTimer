@@ -331,6 +331,7 @@ class StartScreenViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch {
             try {
                 val targetDays = _uiState.value.targetDays
+                val now = System.currentTimeMillis()
 
                 // Analytics 이벤트 전송
                 try {
@@ -338,7 +339,7 @@ class StartScreenViewModel(application: Application) : AndroidViewModel(applicat
                     AnalyticsManager.logTimerStart(
                         targetDays = targetDays,
                         hadActiveGoal = hadActiveGoal,
-                        startTs = System.currentTimeMillis()
+                        startTs = now
                     )
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to log analytics", e)
@@ -348,14 +349,23 @@ class StartScreenViewModel(application: Application) : AndroidViewModel(applicat
                 val formatted = String.format(Locale.US, "%.6f", targetDays.toFloat()).toFloat()
                 sharedPref.edit {
                     putFloat("target_days", formatted)
-                    putLong("start_time", System.currentTimeMillis())
+                    putLong("start_time", now)
                     putBoolean("timer_completed", false)
+                }
+
+                // [FIX] TimerTimeManager 초기화 (중요: 이전 타이머 데이터 완전히 초기화)
+                try {
+                    kr.sweetapps.alcoholictimer.util.manager.TimerTimeManager.stopTimer() // 기존 타이머 정리
+                    kr.sweetapps.alcoholictimer.util.manager.TimerTimeManager.setStartTime(now, getApplication()) // 새 타이머 시작
+                    Log.d(TAG, "[FIX] TimerTimeManager reset and started with new time: $now")
+                } catch (t: Throwable) {
+                    Log.e(TAG, "TimerTimeManager initialization failed", t)
                 }
 
                 // TimerStateRepository 초기화
                 try {
                     TimerStateRepository.resetTimer()
-                    TimerStateRepository.setStartTime(System.currentTimeMillis())
+                    TimerStateRepository.setStartTime(now)
                     TimerStateRepository.setTimerActive(true)
                     Log.d(TAG, "Timer started: $targetDays days, active: true")
                 } catch (t: Throwable) {
