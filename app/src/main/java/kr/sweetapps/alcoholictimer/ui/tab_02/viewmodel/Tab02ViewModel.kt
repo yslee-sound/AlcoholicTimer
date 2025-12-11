@@ -6,10 +6,10 @@ import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.data.repository.RecordsDataLoader
@@ -86,25 +86,42 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
         sharedPref.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
         Log.d("Tab02ViewModel", "Preference change listener registered")
 
-        // [REFACTORED] TimerTimeManager의 elapsedMillis를 구독하여 통계 갱신
+        // [FIX] combine을 사용하여 5가지 상태 중 하나라도 변하면 즉시 통계 재계산
         viewModelScope.launch {
-            TimerTimeManager.elapsedMillis.collect { elapsedMillis ->
-                calculateStatsFromElapsed(elapsedMillis)
+            combine(
+                _records,
+                _selectedPeriod,
+                _selectedDetailPeriod,
+                _selectedWeekRange,
+                TimerTimeManager.elapsedMillis
+            ) { records, period, detailPeriod, weekRange, elapsedMillis ->
+                // [FIX] 모든 상태를 파라미터로 받아 통계 계산
+                calculateStatsFromAllStates(records, period, detailPeriod, weekRange, elapsedMillis)
+            }.collect { statsData ->
+                // 계산된 결과를 StateFlow에 반영
+                _statsState.value = statsData
+                Log.d("Tab02ViewModel", "Stats updated: totalDays=${statsData.totalDays}, savedMoney=${statsData.savedMoney}")
             }
         }
     }
 
     /**
-     * [REFACTORED] 통계 계산 (TimerTimeManager에서 받은 시간 사용)
+     * [REFACTORED] 통계 계산 (모든 상태를 파라미터로 받아 계산)
+     * @param allRecords 모든 기록 목록
+     * @param period 선택된 기간 (주/월/년/전체)
+     * @param detailPeriod 세부 기간 (예: "2025년 12월")
+     * @param weekRange 선택된 주 범위
      * @param currentTimerElapsed 현재 타이머의 경과 시간 (배속 이미 적용됨)
+     * @return 계산된 통계 데이터
      */
-    private fun calculateStatsFromElapsed(currentTimerElapsed: Long) {
-        try {
-            val allRecords = _records.value
-            val period = _selectedPeriod.value
-            val detailPeriod = _selectedDetailPeriod.value
-            val weekRange = _selectedWeekRange.value
-
+    private fun calculateStatsFromAllStates(
+        allRecords: List<SobrietyRecord>,
+        period: String,
+        detailPeriod: String,
+        weekRange: Pair<Long, Long>?,
+        currentTimerElapsed: Long
+    ): StatsData {
+        return try {
             // 1. 현재 기간 범위 계산
             val rangeFilter: Pair<Long, Long>? = when {
                 period.contains("주") || period.contains("Week") -> {
@@ -131,7 +148,6 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
             val (costIndex, freqIndex, durationIndex) = Constants.getUserSettings(getApplication())
             val costPerTime = Constants.DrinkingSettings.getCostValue(costIndex)
             val timesPerWeek = Constants.DrinkingSettings.getFrequencyValue(freqIndex)
-            val hoursPerTime = Constants.DrinkingSettings.getDurationValue(durationIndex)
 
             // 3. 저장된 기록 합산
             var totalDaysFromRecords = 0.0
@@ -155,12 +171,12 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
 
             var totalDaysFromCurrentTimer = 0.0
             if (startTime > 0 && !timerCompleted && currentTimerElapsed > 0) {
-                // [FIX] 필터링 적용 로직 개선
-                if (rangeFilter != null) {
-                    // [FIX] 가상 종료 시간 계산 (배속 적용된 시간)
-                    val virtualEndTime = startTime + currentTimerElapsed
+                // [FIX] 가상 종료 시간 계산 (배속 적용된 시간)
+                val virtualEndTime = startTime + currentTimerElapsed
 
-                    // [FIX] DateOverlapUtils를 사용하여 선택된 기간과 겹치는 부분만 계산
+                if (rangeFilter != null) {
+                    // [FIX] 필터 기간과 타이머 기간의 '교집합'만 계산
+                    // 과거 주를 선택한 경우, 타이머 시작일이 필터 종료일보다 미래면 overlap = 0
                     val overlapDays = DateOverlapUtils.overlapDays(
                         startTime,
                         virtualEndTime,
@@ -169,13 +185,28 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
                     )
                     totalDaysFromCurrentTimer = overlapDays
 
-                    Log.d("Tab02ViewModel", "Timer filtering: start=$startTime, virtualEnd=$virtualEndTime, " +
-                            "filterRange=${rangeFilter.first}-${rangeFilter.second}, overlap=$overlapDays days")
+                    // [DEBUG] 필터링 결과 상세 로그
+                    Log.d("Tab02ViewModel", "=== Timer Filtering Debug ===")
+                    Log.d("Tab02ViewModel", "Timer: start=$startTime, virtualEnd=$virtualEndTime")
+                    Log.d("Tab02ViewModel", "Filter: ${rangeFilter.first} to ${rangeFilter.second}")
+                    Log.d("Tab02ViewModel", "Overlap: $overlapDays days")
+
+                    // [FIX] 명확한 검증: 타이머가 필터 범위를 벗어났는지 확인
+                    if (startTime > rangeFilter.second) {
+                        Log.d("Tab02ViewModel", "⚠️ Timer started AFTER filter period - forcing 0")
+                        totalDaysFromCurrentTimer = 0.0
+                    } else if (virtualEndTime < rangeFilter.first) {
+                        Log.d("Tab02ViewModel", "⚠️ Timer ended BEFORE filter period - forcing 0")
+                        totalDaysFromCurrentTimer = 0.0
+                    }
                 } else {
                     // 전체 기간: TimerTimeManager 값 그대로 사용
                     val timerDaysPrecise = (currentTimerElapsed / Constants.DAY_IN_MILLIS.toDouble())
                     totalDaysFromCurrentTimer = timerDaysPrecise
+                    Log.d("Tab02ViewModel", "Timer (no filter): $timerDaysPrecise days")
                 }
+            } else {
+                Log.d("Tab02ViewModel", "No active timer: startTime=$startTime, completed=$timerCompleted, elapsed=$currentTimerElapsed")
             }
 
             // 5. 총합 계산
@@ -185,8 +216,8 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
             val totalBottles = weeks * timesPerWeek
             val totalKcal = totalBottles * 200.0 // 1병당 약 200kcal
 
-            // 6. StateFlow 업데이트
-            _statsState.value = StatsData(
+            // 6. StatsData 반환
+            StatsData(
                 totalDays = totalDays.toFloat(),
                 totalKcal = totalKcal,
                 totalBottles = totalBottles,
@@ -195,6 +226,7 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
 
         } catch (e: Exception) {
             Log.e("Tab02ViewModel", "통계 계산 실패", e)
+            StatsData() // 오류 발생 시 빈 데이터 반환
         }
     }
 
