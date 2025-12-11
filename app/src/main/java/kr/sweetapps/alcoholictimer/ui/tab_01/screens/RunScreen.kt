@@ -54,6 +54,7 @@ import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.rememberTextMeasurer
+import kotlinx.coroutines.NonCancellable.isCompleted
 import kr.sweetapps.alcoholictimer.util.debug.DebugSettings
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DemoData
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
@@ -203,67 +204,9 @@ fun RunScreenComposable(
         }
     }
 
-    var hasCompleted by remember { mutableStateOf(false) }
-    if (!isPreview && !isDemoMode) {
-        LaunchedEffect(progress) {
-            if (!hasCompleted && progress >= 1f && startTime > 0) {
-                try {
-                    val endTs = System.currentTimeMillis()
-                    val actualDaysInt = (elapsedMillis / dayInMillis).toInt()
-                    saveCompletedRecord(
-                        context = context,
-                        startTime = startTime,
-                        endTime = endTs,
-                        targetDays = targetDays,
-                        actualDays = actualDaysInt
-                    )
-                    sp!!.edit().remove(Constants.PREF_START_TIME).putBoolean(Constants.PREF_TIMER_COMPLETED, true).apply()
-
-                    // [NEW] Save completed record info to SharedPreferences (used by FinishedScreen)
-                    try {
-                        sp!!.edit().apply {
-                            putLong("completed_start_time", startTime)
-                            putLong("completed_end_time", endTs)
-                            putFloat("completed_target_days", targetDays)
-                            putInt("completed_actual_days", actualDaysInt)
-                            apply()
-                        }
-                        android.util.Log.d("RunScreen", "Saved completed record: startTime=$startTime, endTime=$endTs, targetDays=$targetDays, actualDays=$actualDaysInt")
-                    } catch (t: Throwable) {
-                        android.util.Log.e("RunScreen", "Failed to save completed record", t)
-                    }
-
-                    // [NEW] Save timer expiration state to TimerStateRepository
-                    try {
-                        kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(true)
-                        kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(false) // [NEW] Stop timer operation
-                        android.util.Log.d("RunScreen", "Timer expiration state saved (active: false)")
-                    } catch (t: Throwable) {
-                        android.util.Log.e("RunScreen", "Failed to save timer expiration state", t)
-                    }
-
-                    hasCompleted = true
-
-                    // Analytics: Log goal achievement event
-                    try { AnalyticsManager.logTimerFinish(targetDays.toInt(), actualDaysInt, startTime, endTs) } catch (_: Throwable) {}
-
-                    val goDetail: () -> Unit = {
-                        val route = Screen.Detail.createRoute(
-                            startTime = startTime,
-                            endTime = System.currentTimeMillis(),
-                            targetDays = targetDays,
-                            actualDays = (elapsedMillis / dayInMillis).toInt(),
-                            isCompleted = true
-                        )
-                        onCompletedNavigateToDetail?.invoke(route)
-                    }
-
-                    goDetail()
-                    kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.preload(context.applicationContext)
-                } catch (_: Exception) { }
-            }
-        }
-    }
+    // [REMOVED] 타이머 완료 감지 로직을 UI에서 제거
+    // 이제 TimerTimeManager와 Tab01ViewModel에서 자동으로 처리됨
+    // 사용자가 어느 화면에 있든 타이머 완료 시 자동으로 DetailScreen으로 이동
 
     Box(modifier = Modifier.fillMaxSize()) {
         StandardScreenWithBottomButton(

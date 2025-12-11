@@ -31,11 +31,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.Tab01ViewModel
 import kr.sweetapps.alcoholictimer.ui.tab_02.screens.AddRecordScreenComposable
 import kr.sweetapps.alcoholictimer.ui.tab_04.screens.CurrencyScreen
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DebugScreen
@@ -56,6 +58,33 @@ fun AppNavHost(
     val activity = (LocalView.current.context as? Activity)
     val context = LocalContext.current
     val firebaseAnalytics = runCatching { Firebase.analytics }.getOrNull()
+
+    // [NEW] Tab01ViewModel의 네비게이션 이벤트 구독 (Activity Scope)
+    val tab01ViewModel: Tab01ViewModel = viewModel(
+        viewModelStoreOwner = activity as androidx.activity.ComponentActivity
+    )
+
+    // [NEW] 타이머 완료 시 자동으로 DetailScreen으로 이동
+    LaunchedEffect(Unit) {
+        tab01ViewModel.navigationEvent.collect { event ->
+            when (event) {
+                is Tab01ViewModel.NavigationEvent.NavigateToDetail -> {
+                    android.util.Log.d("AppNavHost", "🎉 Timer finished! Navigating to Detail screen")
+                    val route = Screen.Detail.createRoute(
+                        startTime = event.startTime,
+                        endTime = event.endTime,
+                        targetDays = event.targetDays,
+                        actualDays = event.actualDays,
+                        isCompleted = true
+                    )
+                    navController.navigate(route) {
+                        popUpTo(0) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                }
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         var wasHome = false

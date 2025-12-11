@@ -356,8 +356,8 @@ class StartScreenViewModel(application: Application) : AndroidViewModel(applicat
                 // [FIX] TimerTimeManager 초기화 (중요: 이전 타이머 데이터 완전히 초기화)
                 try {
                     kr.sweetapps.alcoholictimer.util.manager.TimerTimeManager.stopTimer() // 기존 타이머 정리
-                    kr.sweetapps.alcoholictimer.util.manager.TimerTimeManager.setStartTime(now, getApplication()) // 새 타이머 시작
-                    Log.d(TAG, "[FIX] TimerTimeManager reset and started with new time: $now")
+                    kr.sweetapps.alcoholictimer.util.manager.TimerTimeManager.setStartTime(now, formatted, getApplication()) // 새 타이머 시작 (목표 일수 포함)
+                    Log.d(TAG, "[FIX] TimerTimeManager reset and started with new time: $now, targetDays: $formatted")
                 } catch (t: Throwable) {
                     Log.e(TAG, "TimerTimeManager initialization failed", t)
                 }

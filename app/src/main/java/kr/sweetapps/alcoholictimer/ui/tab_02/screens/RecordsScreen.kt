@@ -441,31 +441,34 @@ private fun PeriodStatisticsSection(
                 ) {
                     val statsScale = 1.3f
 
-                    // [NEW] 좌측: 줄인 칼로리
+                    // [NEW] 좌측: 줄인 칼로리 - 밝은 살구색/오렌지 (칼로리 연소 상징)
                     StatisticItem(
                         title = "줄인 칼로리",
                         value = "$kcalFormatted kcal",
                         color = MaterialTheme.colorScheme.tertiary,
+                        valueColor = Color(0xFFFFAB91), // 밝은 살구색
                         modifier = Modifier.weight(1f),
                         titleScale = statsScale,
                         valueScale = statsScale
                     )
 
-                    // [NEW] 중앙: 참아낸 술
+                    // [NEW] 중앙: 참아낸 술 - 밝은 시안/하늘색 (청량감/액체 상징)
                     StatisticItem(
                         title = "참아낸 술",
                         value = "$bottlesText 병",
                         color = MaterialTheme.colorScheme.primary,
+                        valueColor = Color(0xFF80DEEA), // 밝은 시안
                         modifier = Modifier.weight(1f),
                         titleScale = statsScale,
                         valueScale = statsScale
                     )
 
-                    // [NEW] 우측: 지켜낸 돈
+                    // [NEW] 우측: 지켜낸 돈 - 밝은 네온 민트색 (돈/수익 상징)
                     StatisticItem(
                         title = "지켜낸 돈",
                         value = "$savedMoneyFormatted 원",
                         color = MaterialTheme.colorScheme.error,
+                        valueColor = Color(0xFF69F0AE), // 밝은 네온 민트
                         modifier = Modifier.weight(1f),
                         titleScale = statsScale,
                         valueScale = statsScale
@@ -488,7 +491,6 @@ private fun PeriodStatisticsSection(
                     )
 
                     // 변경: 숫자 오른쪽에 어두운 '펀치아웃' 박스 추가하여 가독성 향상
-                    val badgeYellow = Color(0xFFFBC528)
                     // 상단 3개 카드의 마스크와 동일한 투명도 사용
                     val badgeBg = Color.Black.copy(alpha = 0.3f)
                      val totalTextStyle = MaterialTheme.typography.titleMedium.copy(
@@ -505,7 +507,7 @@ private fun PeriodStatisticsSection(
                         Text(
                             text = "$daysText$dayUnit",
                             style = totalTextStyle,
-                            color = badgeYellow
+                            color = Color.White // [FIX] 노란색에서 흰색으로 변경
                         )
                     }
                 }
@@ -575,7 +577,8 @@ private fun StatisticItem(
     color: Color,
     modifier: Modifier = Modifier,
     titleScale: Float = 1.0f,
-    valueScale: Float = 1.0f
+    valueScale: Float = 1.0f,
+    valueColor: Color = Color.White // [NEW] 숫자 색상 커스터마이징 파라미터
 ) {
     Surface(
         modifier = modifier
@@ -621,11 +624,11 @@ private fun StatisticItem(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    // 숫자: 크고 굵게 (핵심 정보)
+                    // [FIX] 숫자: valueColor 파라미터 사용 (의미 있는 색상 적용)
                     Text(
                         text = num,
                         style = numStyle,
-                        color = Color.White,
+                        color = valueColor,
                         textAlign = TextAlign.Center,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -634,7 +637,7 @@ private fun StatisticItem(
                     if (unit.isNotBlank()) {
                         Spacer(modifier = Modifier.height(2.dp))
 
-                        // 단위: 작고 옅게 (보조 정보)
+                        // 단위: 작고 옅게 (보조 정보) - 흰색 유지
                         Text(
                             text = unit,
                             style = unitStyle,
@@ -650,7 +653,7 @@ private fun StatisticItem(
                 Text(
                     text = value,
                     style = numStyle,
-                    color = Color.White,
+                    color = valueColor, // [FIX] valueColor 적용
                     textAlign = TextAlign.Center,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
