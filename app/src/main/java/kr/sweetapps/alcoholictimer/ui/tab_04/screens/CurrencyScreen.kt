@@ -123,7 +123,7 @@ fun CurrencyOptionRow(
         Text(
             text = label,
             style = if (isSelected) MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold) else MaterialTheme.typography.bodyMedium,
-            color = if (isSelected) colorResource(id = R.color.color_indicator_days) else MaterialTheme.colorScheme.onSurface
+            color = if (isSelected) MainPrimaryBlue else MaterialTheme.colorScheme.onSurface  // [FIX] 메인 UI 색상 적용
         )
     }
 }

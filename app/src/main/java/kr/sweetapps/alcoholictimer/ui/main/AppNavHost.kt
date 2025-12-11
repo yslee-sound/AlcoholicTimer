@@ -427,11 +427,7 @@ fun AppNavHost(
                 val actualDays = args?.getInt("actualDays") ?: 0
                 val isCompleted = args?.getBoolean("isCompleted") ?: false
 
-                // [NEW] 뒤로 가기 비활성화
-                androidx.activity.compose.BackHandler(enabled = true) {
-                    // 뒤로 가기 무시
-                    android.util.Log.d("NavGraph", "[Result] 뒤로 가기 차단 - 상단 백 버튼으로만 닫기 가능")
-                }
+                // [REMOVED] 뒤로 가기 차단 제거 - 한 번에 닫히도록 수정
 
                 // [NEW] 전체 화면 (Dialog 오버레이 제거)
                 DetailScreen(

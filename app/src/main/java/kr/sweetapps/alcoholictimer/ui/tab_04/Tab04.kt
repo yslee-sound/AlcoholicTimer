@@ -307,7 +307,9 @@ fun SettingsScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 enabled = hasChanges,
-                colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.color_accent_blue))
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MainPrimaryBlue  // [FIX] 메인 UI 색상 적용 (#1E40AF)
+                )
             ) {
                 Text(text = "설정 적용", color = Color.White)
             }
@@ -386,7 +388,7 @@ fun CurrencyOptionRow(
         Text(
             text = label,
             style = if (isSelected) MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold) else MaterialTheme.typography.bodyMedium,
-            color = if (isSelected) colorResource(id = R.color.color_indicator_days) else MaterialTheme.colorScheme.onSurface
+            color = if (isSelected) MainPrimaryBlue else MaterialTheme.colorScheme.onSurface  // [FIX] 메인 UI 색상 적용
         )
     }
 }
@@ -454,7 +456,7 @@ fun SettingsOptionItem(
         Text(
             text = label,
             style = if (isSelected) MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold) else MaterialTheme.typography.bodyMedium,
-            color = if (isSelected) colorResource(id = R.color.color_indicator_days) else colorResource(
+            color = if (isSelected) MainPrimaryBlue else colorResource(  // [FIX] 메인 UI 색상 적용
                 id = R.color.color_text_primary_dark
             )
         )

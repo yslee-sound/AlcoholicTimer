@@ -14,6 +14,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.util.Log
+import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue  // [NEW] 메인 UI 색상
 
 /**
  * Screen displayed when timer expires
@@ -40,7 +41,7 @@ fun FinishedScreen(
             imageVector = Icons.Filled.CheckCircle,
             contentDescription = "Completed",
             modifier = Modifier.size(80.dp),
-            tint = MaterialTheme.colorScheme.primary
+            tint = MainPrimaryBlue  // [FIX] 메인 UI 색상 적용 (#1E40AF)
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -50,7 +51,7 @@ fun FinishedScreen(
             text = "🎉 목표 달성!",
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            color = MainPrimaryBlue  // [FIX] 메인 UI 색상 적용 (#1E40AF)
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -76,7 +77,7 @@ fun FinishedScreen(
                 .fillMaxWidth(0.85f)
                 .height(56.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
+                containerColor = MainPrimaryBlue  // [FIX] 메인 UI 색상 적용 (#1E40AF)
             )
         ) {
             Text(
@@ -98,7 +99,7 @@ fun FinishedScreen(
                 .fillMaxWidth(0.85f)
                 .height(56.dp),
             colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.primary
+                contentColor = MainPrimaryBlue  // [FIX] 메인 UI 색상 적용 (#1E40AF)
             )
         ) {
             Text(

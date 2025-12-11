@@ -32,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -222,8 +223,8 @@ fun AllRecordsScreen(
                 end = 16.dp,
                 bottom = safePadding.calculateBottomPadding() + 16.dp
             ),
-        containerColor = MaterialTheme.colorScheme.primary,
-        contentColor = MaterialTheme.colorScheme.onPrimary
+        containerColor = MainPrimaryBlue,  // [FIX] 메인 UI 색상 적용 (#1E40AF)
+        contentColor = Color.White
     ) {
         Icon(
             imageVector = Icons.Filled.Add,
