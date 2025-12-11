@@ -81,6 +81,28 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
     private val _statsState = MutableStateFlow(StatsData())
     val statsState: StateFlow<StatsData> = _statsState.asStateFlow()
 
+    // [NEW] 상세 화면 이동을 위한 일회성 이벤트 (Route 저장)
+    // 이 값이 null이 아니면 목록 화면이 해당 route로 즉시 이동함
+    private val _pendingDetailRoute = MutableStateFlow<String?>(null)
+    val pendingDetailRoute: StateFlow<String?> = _pendingDetailRoute.asStateFlow()
+
+    /**
+     * [NEW] 상세 화면 이동 예약
+     * @param route 이동할 DetailScreen의 전체 경로
+     */
+    fun setPendingDetailRoute(route: String) {
+        Log.d("Tab02ViewModel", "Detail route pending: $route")
+        _pendingDetailRoute.value = route
+    }
+
+    /**
+     * [NEW] 상세 화면 이동 이벤트 소비 (한 번만 처리)
+     */
+    fun consumePendingDetailRoute() {
+        Log.d("Tab02ViewModel", "Detail route consumed")
+        _pendingDetailRoute.value = null
+    }
+
     init {
         // [FIX] SharedPreferences 변경 감지 시작
         sharedPref.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
