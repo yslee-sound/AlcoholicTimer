@@ -14,6 +14,7 @@ import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.data.repository.RecordsDataLoader
 import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.util.utils.DateOverlapUtils
+import kr.sweetapps.alcoholictimer.util.manager.TimerTimeManager
 import java.util.Calendar
 
 /**
@@ -64,55 +65,20 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
     private val _statsState = MutableStateFlow(StatsData())
     val statsState: StateFlow<StatsData> = _statsState.asStateFlow()
 
-    // [NEW] 가상 시간 (배속 적용됨)
-    private var virtualNow: Long = System.currentTimeMillis()
-
     init {
-        // [NEW] 실시간 통계 ticker 시작
-        startStatsTicker()
-    }
-
-    /**
-     * [NEW] 실시간 통계 ticker (배속 적용)
-     * - 0.1초마다 진행 중인 타이머 + 저장된 기록을 합산하여 통계 업데이트
-     * - 디버그 모드에서는 시간 배속 설정이 적용됨
-     */
-    private fun startStatsTicker() {
+        // [REFACTORED] TimerTimeManager의 elapsedMillis를 구독하여 통계 갱신
         viewModelScope.launch {
-            var lastRealTime = System.currentTimeMillis()
-
-            while (true) {
-                delay(100L) // 0.1초마다 갱신 (부드러운 UI)
-
-                val currentRealTime = System.currentTimeMillis()
-                val realDelta = currentRealTime - lastRealTime
-                lastRealTime = currentRealTime
-
-                // 배속 적용 (Debug 모드일 때만)
-                val factor = if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
-                    try {
-                        Constants.getTimeAcceleration(getApplication())
-                    } catch (e: Exception) {
-                        1 // 에러 시 1배속
-                    }
-                } else {
-                    1
-                }
-
-                // 가상 시간 누적 (배속 반영)
-                virtualNow += (realDelta * factor)
-
-                // 통계 계산 호출
-                calculateStats(virtualNow)
+            TimerTimeManager.elapsedMillis.collect { elapsedMillis ->
+                calculateStatsFromElapsed(elapsedMillis)
             }
         }
     }
 
     /**
-     * [NEW] 통계 계산 (진행 중인 타이머 + 저장된 기록)
-     * @param now 가상 현재 시간 (배속 적용됨)
+     * [REFACTORED] 통계 계산 (TimerTimeManager에서 받은 시간 사용)
+     * @param currentTimerElapsed 현재 타이머의 경과 시간 (배속 이미 적용됨)
      */
-    private fun calculateStats(now: Long) {
+    private fun calculateStatsFromElapsed(currentTimerElapsed: Long) {
         try {
             val allRecords = _records.value
             val period = _selectedPeriod.value
@@ -138,7 +104,7 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
                         getCurrentYearRange()
                     }
                 }
-                else -> null
+                else -> null // 전체 기간
             }
 
             // 2. 사용자 설정값 가져오기
@@ -163,25 +129,36 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
                 totalDaysFromRecords += overlap
             }
 
-            // 4. 진행 중인 타이머 확인 및 합산
+            // 4. [REFACTORED] 진행 중인 타이머 - TimerTimeManager에서 받은 값 사용
             val startTime = sharedPref.getLong(Constants.PREF_START_TIME, 0L)
             val timerCompleted = sharedPref.getBoolean(Constants.PREF_TIMER_COMPLETED, false)
 
             var totalDaysFromCurrentTimer = 0.0
-            if (startTime > 0 && !timerCompleted) {
-                val timerElapsed = now - startTime
-                val timerDays = timerElapsed / Constants.DAY_IN_MILLIS.toDouble()
+            if (startTime > 0 && !timerCompleted && currentTimerElapsed > 0) {
+                // [FIX] Tab 1, Tab 3와 동일하게 '순수 경과 일수(Duration)'로 통일
+                // 기존의 +1.0 보정 제거 (0-based 순수 경과 시간)
+                val timerDaysPrecise = (currentTimerElapsed / Constants.DAY_IN_MILLIS.toDouble())
 
                 totalDaysFromCurrentTimer = if (rangeFilter != null) {
-                    // 현재 타이머가 선택된 기간과 겹치는 부분만 계산
-                    DateOverlapUtils.overlapDays(
-                        startTime,
-                        now,
-                        rangeFilter.first,
-                        rangeFilter.second
-                    )
+                    // 범위 필터가 있을 때는 간단한 포함 여부 체크
+                    val now = System.currentTimeMillis()
+                    val timerStartInRange = startTime >= rangeFilter.first
+                    val timerNowInRange = now <= rangeFilter.second
+
+                    if (timerStartInRange && timerNowInRange) {
+                        timerDaysPrecise
+                    } else {
+                        // [FIX] 일부만 겹치면 DateOverlapUtils 사용 (보정 제거)
+                        DateOverlapUtils.overlapDays(
+                            startTime,
+                            now,
+                            rangeFilter.first,
+                            rangeFilter.second
+                        )
+                    }
                 } else {
-                    timerDays
+                    // 전체 기간: TimerTimeManager 값 그대로 사용
+                    timerDaysPrecise
                 }
             }
 

@@ -11,6 +11,7 @@ package kr.sweetapps.alcoholictimer.ui.tab_03
 // - components/LevelDefinitions.kt: 레벨 데이터 정의 (기존 유지)
 // - viewmodel/Tab03ViewModel.kt: ViewModel (기존 유지)
 
+import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab03ViewModel
@@ -19,11 +20,14 @@ import kr.sweetapps.alcoholictimer.ui.tab_03.screens.LevelScreen as LevelScreenI
 /**
  * Tab03 - 레벨 화면 진입점
  * 하위 호환성을 위해 기존 함수명 유지
+ * ViewModel을 Activity Scope로 변경하여 탭 전환 시에도 동일한 인스턴스 유지
  */
 @Composable
 fun LevelScreen(
     onNavigateBack: () -> Unit = {},
-    viewModel: Tab03ViewModel = viewModel()
+    viewModel: Tab03ViewModel = viewModel(
+        viewModelStoreOwner = androidx.activity.compose.LocalActivity.current as ComponentActivity
+    )
 ) {
     LevelScreenImpl(
         onNavigateBack = onNavigateBack,

@@ -1,6 +1,7 @@
 package kr.sweetapps.alcoholictimer.ui.tab_03.screens
 
 import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -23,12 +24,15 @@ import kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelListCard
 /**
  * Tab03 - 레벨 화면
  * 사용자의 금주 레벨 진행 상황을 보여주는 메인 화면
+ * ViewModel을 Activity Scope로 변경하여 탭 전환 시에도 동일한 인스턴스 유지
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LevelScreen(
     onNavigateBack: () -> Unit = {},
-    viewModel: Tab03ViewModel = viewModel()
+    viewModel: Tab03ViewModel = viewModel(
+        viewModelStoreOwner = androidx.activity.compose.LocalActivity.current as ComponentActivity
+    )
 ) {
     val context = LocalContext.current
     val activity = context as? android.app.Activity

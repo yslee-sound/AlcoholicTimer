@@ -2,12 +2,14 @@
 package kr.sweetapps.alcoholictimer.ui.tab_02
 
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.R
@@ -40,6 +42,7 @@ class RecordsActivity : BaseActivity() {
  * [NEW] Tab02 메인 화면 Composable
  * - Stateful Container: ViewModel과 연결하여 상태를 관리하고 RecordsScreen에 전달
  * - DiaryViewModel을 통해 Room DB 데이터를 관찰하고 전달
+ * ViewModel을 Activity Scope로 변경하여 탭 전환 시에도 동일한 인스턴스 유지
  */
 @Composable
 fun Tab02Screen(
@@ -48,7 +51,9 @@ fun Tab02Screen(
     onNavigateToAllDiaries: () -> Unit = {},
     onAddRecord: () -> Unit = {},
     onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {},
-    viewModel: Tab02ViewModel = viewModel()
+    viewModel: Tab02ViewModel = viewModel(
+        viewModelStoreOwner = androidx.activity.compose.LocalActivity.current as ComponentActivity
+    )
 ) {
     // [NEW] ViewModel 데이터 구독
     val records by viewModel.records.collectAsState()
@@ -59,7 +64,10 @@ fun Tab02Screen(
     val statsData by viewModel.statsState.collectAsState() // [NEW] 실시간 통계 데이터
 
     // [NEW] DiaryViewModel을 통해 Room DB의 일기 데이터를 실시간으로 관찰
-    val diaryViewModel: kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.DiaryViewModel = viewModel()
+    // Activity Scope로 변경하여 탭 전환 시에도 동일한 인스턴스 유지
+    val diaryViewModel: kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.DiaryViewModel = viewModel(
+        viewModelStoreOwner = androidx.activity.compose.LocalActivity.current as ComponentActivity
+    )
     val allDiaries by diaryViewModel.uiState.collectAsState()
 
     // [NEW] 최신 3개의 일기만 추출 (이미 timestamp 내림차순 정렬됨)
@@ -68,7 +76,7 @@ fun Tab02Screen(
     }
 
     // [NEW] Context와 초기 값 설정
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
     val periodWeek = context.getString(R.string.records_period_week)
     val periodMonth = context.getString(R.string.records_period_month)
     val periodYear = context.getString(R.string.records_period_year)

@@ -82,7 +82,9 @@ class SettingsActivity : BaseActivity() {
 fun SettingsScreen(
     onNavigateCurrencySettings: () -> Unit = {},
     onApplyAndGoHome: () -> Unit = {},
-    viewModel: Tab04ViewModel = viewModel()
+    viewModel: Tab04ViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+        viewModelStoreOwner = androidx.activity.compose.LocalActivity.current as androidx.activity.ComponentActivity
+    )
 ) {
     val context = LocalContext.current
 

@@ -46,6 +46,7 @@ import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
 import kr.sweetapps.alcoholictimer.ui.theme.AppElevation
 import kr.sweetapps.alcoholictimer.util.utils.FormatUtils
 import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager
+import kr.sweetapps.alcoholictimer.util.manager.TimerTimeManager
 import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.math.round
@@ -164,12 +165,22 @@ fun QuitScreenComposable(
 
             Spacer(modifier = Modifier.height(QuitUiConstants.TOP_CARD_BOTTOM_SPACING))
 
-            // Indicators grid: total days, saved money, saved hours, life gain
-            val start = previewStartTime ?: sharedPref.getLong(Constants.PREF_START_TIME, 0L)
-            val now = System.currentTimeMillis()
-            val elapsedMillis = if (start > 0L) now - start else 0L
-            // [FIX] 통계 계산은 실제 시간 기준 (배속 적용 안 함)
-            val elapsedDaysFloat = elapsedMillis / Constants.DAY_IN_MILLIS.toFloat()
+            // [REFACTORED] TimerTimeManager에서 경과 시간 가져오기 (배속 적용됨)
+            val elapsedMillisFromManager by TimerTimeManager.elapsedMillis.collectAsState()
+
+            // [REFACTORED] TimerTimeManager가 계산한 시간 사용 (배속 이미 적용됨)
+            val elapsedMillis = if (previewStartTime != null) {
+                // Preview 모드: 기존 계산 방식 사용
+                val now = System.currentTimeMillis()
+                if (previewStartTime > 0L) now - previewStartTime else 0L
+            } else {
+                // 실제 모드: TimerTimeManager 값 사용 (배속 적용됨)
+                elapsedMillisFromManager
+            }
+
+            // [FIX] Tab 1, Tab 2, Tab 3와 동일하게 '순수 경과 일수(Duration)'로 통일
+            // 기존의 +1.0 보정 제거 (0-based 순수 경과 시간)
+            val elapsedDaysFloat = (elapsedMillis / Constants.DAY_IN_MILLIS.toFloat())
             val weeks = elapsedDaysFloat / 7.0
             val (selectedCost, selectedFrequency, selectedDuration) = Constants.getUserSettings(context)
             val costVal = Constants.DrinkingSettings.getCostValue(selectedCost)
