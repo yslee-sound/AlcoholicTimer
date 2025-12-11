@@ -57,6 +57,7 @@ import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.ui.common.BaseActivity
 import kr.sweetapps.alcoholictimer.ui.common.LocalSafeContentPadding
 import kr.sweetapps.alcoholictimer.ui.theme.LocalDimens
+import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue  // [NEW] 메인 UI 색상
 
 class SettingsActivity : BaseActivity() {
     // [NEW] Tab04은 '더보기'로 표시되어야 하므로 제목 리소스를 more_title로 변경
@@ -377,7 +378,7 @@ fun CurrencyOptionRow(
             selected = isSelected,
             onClick = null,
             colors = RadioButtonDefaults.colors(
-                selectedColor = colorResource(id = R.color.color_accent_blue),
+                selectedColor = MainPrimaryBlue,  // [FIX] 메인 UI 색상 적용 (#1E40AF)
                 unselectedColor = colorResource(id = R.color.color_radio_unselected)
             )
         )
@@ -445,7 +446,7 @@ fun SettingsOptionItem(
             selected = isSelected,
             onClick = null,
             colors = RadioButtonDefaults.colors(
-                selectedColor = colorResource(id = R.color.color_accent_blue),
+                selectedColor = MainPrimaryBlue,  // [FIX] 메인 UI 색상 적용 (#1E40AF)
                 unselectedColor = colorResource(id = R.color.color_radio_unselected)
             )
         )

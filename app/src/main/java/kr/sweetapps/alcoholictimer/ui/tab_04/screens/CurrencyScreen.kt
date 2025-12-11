@@ -30,6 +30,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
+import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue  // [NEW] 메인 UI 색상
+import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager
 
 /**
@@ -113,7 +115,7 @@ fun CurrencyOptionRow(
             selected = isSelected,
             onClick = null,
             colors = RadioButtonDefaults.colors(
-                selectedColor = colorResource(id = R.color.color_accent_blue),
+                selectedColor = MainPrimaryBlue,  // [FIX] 메인 UI 색상 적용 (#1E40AF)
                 unselectedColor = colorResource(id = R.color.color_radio_unselected)
             )
         )

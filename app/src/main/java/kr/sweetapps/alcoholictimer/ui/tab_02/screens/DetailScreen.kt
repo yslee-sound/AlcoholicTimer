@@ -258,9 +258,11 @@ fun DetailScreen(
             // [NEW] 결과 모드일 때 하단에 '다시 시작하기' 버튼
             {
                 Surface(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding(),  // [FIX] 시스템 네비게이션 바 영역 회피
                     color = Color.White,
-                    shadowElevation = 8.dp
+                    shadowElevation = 0.dp  // [FIX] 그림자 제거
                 ) {
                     Button(
                         onClick = onNavigateToHome,
@@ -285,7 +287,7 @@ fun DetailScreen(
         } else {
             {}  // 일반 모드에는 bottomBar 없음
         },
-        containerColor = Color(0xFFEEEDE9)
+        containerColor = Color.White  // [FIX] 전체 배경 하얀색
     ) { paddingValues ->
         // Use system fontScale for body (no 0.9x override)
         val navBottom = if (previewMode) 0.dp else navBottomRaw
@@ -312,7 +314,7 @@ fun DetailScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),  // [FIX] 연한 회색
                     elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH),
                     border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
                 ) {
@@ -478,7 +480,11 @@ fun DetailStatCard(
     AppCard(
         modifier = modifier,
         elevation = AppElevation.CARD_HIGH,
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp)
+        containerColor = Color(0xFFF5F5F5),  // [FIX] 연한 회색
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+            horizontal = 16.dp,
+            vertical = 12.dp  // [FIX] 상하 패딩 줄임 (기존 16dp -> 12dp)
+        )
     ) {
         // 정렬 변경: 카드 내부를 가로 전체로 채우는 Column으로 감싸고 우측 정렬 설정
         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {

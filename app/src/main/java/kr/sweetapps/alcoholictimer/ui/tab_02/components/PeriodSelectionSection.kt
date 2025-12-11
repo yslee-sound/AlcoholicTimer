@@ -24,6 +24,7 @@ import android.os.SystemClock
 import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
 import kr.sweetapps.alcoholictimer.ui.theme.AppElevation
+import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue  // [NEW] 메인 UI 색상
 
 // Local layout constants for Records screen (screen #2). Adjust here to control spacing
 private val RECORDS_SELECTION_ROW_HEIGHT_LOCAL = 48.dp
@@ -80,7 +81,7 @@ fun PeriodSelectionSection(
                                     }
                                 },
                             shape = RoundedCornerShape(8.dp),
-                            color = if (isSelected) Color(0xFF74B9FF) else Color.Transparent
+                            color = if (isSelected) MainPrimaryBlue else Color.Transparent  // [FIX] 메인 UI 색상 적용
                         ) {
                             Text(
                                 text = period,
@@ -131,7 +132,7 @@ fun PeriodSelectionSection(
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowDown,
                             contentDescription = "세부 기간 선택",
-                            tint = Color(0xFF74B9FF),
+                            tint = MainPrimaryBlue,  // [FIX] 메인 UI 색상 적용
                             modifier = Modifier.size(20.dp)
                         )
                     }

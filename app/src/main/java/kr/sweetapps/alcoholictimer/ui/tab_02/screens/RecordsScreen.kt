@@ -51,6 +51,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.util.utils.DateOverlapUtils
+import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue  // [NEW] 메인 UI 색상
 
 val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 20.dp // 전체 화면 좌우 여백
 val RECORDS_SECTION_SPACING: Dp = 20.dp // [NEW] 섹션 간 통일 간격 (기간 선택 ↔ 월 통계 ↔ 최근 일기)
@@ -228,8 +229,8 @@ fun RecordsScreen(
                         end = 16.dp,
                         bottom = safePadding.calculateBottomPadding() + 16.dp
                     ),
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
+                containerColor = MainPrimaryBlue,  // [FIX] 메인 UI 색상 적용
+                contentColor = Color.White
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_plus),

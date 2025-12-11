@@ -50,3 +50,12 @@ val CountdownText = Color.White // Countdown number text
 
 // Gradient colors
 val GradientBottomShadow = Color.Black // Bottom shadow gradient with 12% opacity
+
+// [NEW] Main UI Colors - Level Card Style (from attached image)
+// 레벨 카드의 파란색 그라데이션을 앱의 메인 색상으로 사용
+val MainPrimaryBlue = Color(0xFF1E40AF)      // [FIX] 메인 파란색 (#1E40AF - 첨부 이미지 기준)
+val MainPrimaryBlueDark = Color(0xFF1E3A8A)  // 진한 파란색 (카드 배경 하단, 그라데이션)
+val MainPrimaryBlueLight = Color(0xFF3B82F6) // 밝은 파란색 (강조 요소)
+val MainCardBackground = Color(0xFF1E40AF)    // 카드 기본 배경색
+val MainProgressBar = Color(0xFF3B82F6)       // 진행바 색상
+

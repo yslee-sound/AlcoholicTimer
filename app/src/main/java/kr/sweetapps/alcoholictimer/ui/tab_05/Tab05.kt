@@ -56,6 +56,7 @@ import kr.sweetapps.alcoholictimer.ui.tab_04.SimpleAboutRow
 import kr.sweetapps.alcoholictimer.ui.tab_05.components.CustomerFeedbackBottomSheet
 import kr.sweetapps.alcoholictimer.ui.tab_05.viewmodel.Tab05ViewModel
 import kr.sweetapps.alcoholictimer.ui.main.Screen
+import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue  // [NEW] 메인 UI 색상
 
 private fun ContextToActivity(context: android.content.Context): Activity? {
     var ctx: android.content.Context? = context
@@ -197,7 +198,7 @@ fun AboutScreen(
                     .height(dims.component.buttonHeight)
                     .shadow(4.dp, RoundedCornerShape(12.dp))
                     .background(
-                        brush = Brush.linearGradient(listOf(Color(0xFF8A6CFF), Color(0xFF6F4EF6))),
+                        color = MainPrimaryBlue,  // [FIX] 메인 UI 색상 적용 (#1E40AF)
                         shape = RoundedCornerShape(12.dp)
                     )
                     .clickable {
