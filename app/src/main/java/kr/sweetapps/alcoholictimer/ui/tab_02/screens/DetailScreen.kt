@@ -61,7 +61,9 @@ fun DetailScreen(
     onDelete: ((Long, Long) -> Unit)? = null,
     onDeleted: (() -> Unit)? = null,
     onNavigateToHome: () -> Unit = {},
-    previewMode: Boolean = false
+    previewMode: Boolean = false,
+    showTopBar: Boolean = true,  // [기존] 타이틀바 표시 여부
+    isResultMode: Boolean = false  // [NEW] 결과 모드 (타이머 완료 직후)
 ) {
     val context = LocalContext.current
     // Internal delete implementation (merged from old feature/detail) as a local function
@@ -119,7 +121,7 @@ fun DetailScreen(
     }
 
     val showDeleteDialog = remember { mutableStateOf(false) }
-    // [NEW] 메뉴 확장 상태
+    // [NEW] 메뉴 확장 상태 (showTopBar가 false일 때는 메뉴 비활성화)
     var showMenu by remember { mutableStateOf(false) }
     val accentColor = if (isCompleted) BluePrimaryLight else AmberSecondaryLight
 
@@ -199,41 +201,89 @@ fun DetailScreen(
     val imeBottomRaw = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
 
     Scaffold(
-        topBar = {
-            BackTopBar(
-                title = if (previewMode) "Detail" else stringResource(id = R.string.detail_title),
-                onBack = if (previewMode) ({}) else onBack,
-                trailingContent = {
-                    // [NEW] 세로 3점 메뉴로 변경
-                    Box {
-                        IconButton(onClick = { if (!previewMode) showMenu = true }) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = if (previewMode) null else "메뉴",
-                                tint = Color.Black
-                            )
-                        }
-
-                        // [NEW] 드롭다운 메뉴
-                        DropdownMenu(
-                            expanded = showMenu,
-                            onDismissRequest = { showMenu = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = {
-                                    Text(text = "기록 삭제")
-                                },
-                                onClick = {
-                                    showMenu = false
-                                    if (!previewMode) {
-                                        showDeleteDialog.value = true
-                                    }
+        topBar = if (showTopBar) {
+            {
+                BackTopBar(
+                    title = if (isResultMode) {
+                        "목표 달성 결과"  // [NEW] 결과 모드일 때 타이틀
+                    } else if (previewMode) {
+                        "Detail"
+                    } else {
+                        stringResource(id = R.string.detail_title)
+                    },
+                    onBack = if (previewMode) ({}) else onBack,
+                    trailingContent = if (isResultMode) {
+                        // [NEW] 결과 모드일 때는 메뉴 숨김
+                        null
+                    } else {
+                        {
+                            // [기존] 일반 모드일 때만 3점 메뉴 표시
+                            Box {
+                                IconButton(onClick = {
+                                    if (!previewMode && showTopBar) showMenu = true
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Default.MoreVert,
+                                        contentDescription = if (previewMode) null else "메뉴",
+                                        tint = Color.Black
+                                    )
                                 }
-                            )
+
+                                // [NEW] 드롭다운 메뉴
+                                DropdownMenu(
+                                    expanded = showMenu,
+                                    onDismissRequest = { showMenu = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(text = "기록 삭제")
+                                        },
+                                        onClick = {
+                                            showMenu = false
+                                            if (!previewMode) {
+                                                showDeleteDialog.value = true
+                                            }
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
+                )
+            }
+        } else {
+            {}  // 타이틀바 없음
+        },
+        bottomBar = if (isResultMode && !previewMode) {
+            // [NEW] 결과 모드일 때 하단에 '다시 시작하기' 버튼
+            {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color.White,
+                    shadowElevation = 8.dp
+                ) {
+                    Button(
+                        onClick = onNavigateToHome,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 16.dp)
+                            .height(56.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = BluePrimaryLight,
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = "다시 시작하기",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
-            )
+            }
+        } else {
+            {}  // 일반 모드에는 bottomBar 없음
         },
         containerColor = Color(0xFFEEEDE9)
     ) { paddingValues ->
@@ -242,9 +292,13 @@ fun DetailScreen(
         val imeBottom = if (previewMode) 0.dp else imeBottomRaw
         val effectiveBottom = if (previewMode) 0.dp else maxOf(navBottom, imeBottom)
 
+        // [NEW] showTopBar가 false일 때 타이틀 공간만큼 상단 패딩 추가
+        val topPadding = if (!showTopBar) 56.dp else 0.dp
+
         Column(modifier = Modifier
             .fillMaxSize()
-            .padding(paddingValues)) {
+            .padding(paddingValues)
+            .padding(top = topPadding)) {  // [NEW] 추가 상단 패딩
             // Scrollable content: use a scrollable Column without forcing it to fill remaining
             // space (remove weight). This prevents the content area from stretching and
             // producing a large empty background gap above the bottom banner/navigation.

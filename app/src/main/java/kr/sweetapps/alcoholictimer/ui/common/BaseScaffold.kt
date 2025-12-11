@@ -112,13 +112,16 @@ fun BaseScaffold(
                 HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
 
                 // Bottom Navigation (with padding to avoid overlap with system navigation buttons)
-                Surface(
-                    modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
-                    color = Color.White,
-                    shadowElevation = 0.dp,
-                    tonalElevation = 0.dp
-                ) {
-                    BottomNavBar(navController = navController)
+                // [NEW] Result 화면일 때는 네비게이션바 숨김
+                if (currentRoute?.startsWith("result/") != true) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
+                        color = Color.White,
+                        shadowElevation = 0.dp,
+                        tonalElevation = 0.dp
+                    ) {
+                        BottomNavBar(navController = navController)
+                    }
                 }
             }
 

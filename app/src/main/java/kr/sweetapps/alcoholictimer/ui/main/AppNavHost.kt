@@ -21,8 +21,27 @@ import kr.sweetapps.alcoholictimer.ui.tab_05.screens.NicknameEditScreen
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.ui.ad.HomeAdTrigger
 import android.app.Activity
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,8 +49,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -350,8 +377,8 @@ fun AppNavHost(
                 )
             }
 
-            // 3. [NEW] 타이머 완료 결과 화면 (Tab 2의 일부 - 완료 직후 결과 발표용)
-            // 이제 Tab 2 안에 있으므로 탭 전환 시 상태가 유지됨!
+            // 3. [NEW] 타이머 완료 결과 화면 (전체 화면 모드)
+            // 하단 네비게이션바 가려짐, 오른쪽에서 왼쪽으로 슬라이드 인 애니메이션
             composable(
                 route = Screen.Result.route,
                 arguments = listOf(
@@ -360,7 +387,31 @@ fun AppNavHost(
                     navArgument("targetDays") { type = NavType.FloatType },
                     navArgument("actualDays") { type = NavType.IntType },
                     navArgument("isCompleted") { type = NavType.BoolType }
-                )
+                ),
+                enterTransition = {
+                    // [NEW] 오른쪽에서 왼쪽으로 슬라이드 인
+                    androidx.compose.animation.slideInHorizontally(
+                        initialOffsetX = { fullWidth -> fullWidth },
+                        animationSpec = androidx.compose.animation.core.tween(
+                            durationMillis = 300,
+                            easing = androidx.compose.animation.core.FastOutSlowInEasing
+                        )
+                    ) + androidx.compose.animation.fadeIn(
+                        animationSpec = androidx.compose.animation.core.tween(300)
+                    )
+                },
+                exitTransition = {
+                    // [NEW] 왼쪽으로 슬라이드 아웃 (뒤로 가기 시)
+                    androidx.compose.animation.slideOutHorizontally(
+                        targetOffsetX = { fullWidth -> fullWidth },
+                        animationSpec = androidx.compose.animation.core.tween(
+                            durationMillis = 300,
+                            easing = androidx.compose.animation.core.FastOutSlowInEasing
+                        )
+                    ) + androidx.compose.animation.fadeOut(
+                        animationSpec = androidx.compose.animation.core.tween(300)
+                    )
+                }
             ) { entry ->
                 // [FIX] ViewModel 가져오기 (pending route clear용)
                 val tab02ViewModel: kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.Tab02ViewModel = if (activity != null) {
@@ -376,14 +427,23 @@ fun AppNavHost(
                 val actualDays = args?.getInt("actualDays") ?: 0
                 val isCompleted = args?.getBoolean("isCompleted") ?: false
 
+                // [NEW] 뒤로 가기 비활성화
+                androidx.activity.compose.BackHandler(enabled = true) {
+                    // 뒤로 가기 무시
+                    android.util.Log.d("NavGraph", "[Result] 뒤로 가기 차단 - 상단 백 버튼으로만 닫기 가능")
+                }
+
+                // [NEW] 전체 화면 (Dialog 오버레이 제거)
                 DetailScreen(
                     startTime = startTime,
                     endTime = endTime,
                     targetDays = targetDays,
                     actualDays = actualDays,
                     isCompleted = isCompleted,
+                    showTopBar = true,        // 타이틀바 표시 (결과 모드)
+                    isResultMode = true,      // 결과 모드 활성화
                     onBack = {
-                        // [FIX] 뒤로 가기 시 pendingRoute clear 후 목록으로
+                        // [FIX] 뒤로 가기 -> pendingRoute clear 후 목록으로
                         android.util.Log.d("NavGraph", "[Result] 뒤로 가기 -> pendingRoute clear 후 목록으로")
                         tab02ViewModel.consumePendingDetailRoute()
                         navController.popBackStack()
@@ -396,8 +456,8 @@ fun AppNavHost(
                         navController.popBackStack()
                     },
                     onNavigateToHome = {
-                        // 홈으로 가기 시에도 pendingRoute clear
-                        android.util.Log.d("NavGraph", "[Result] 홈으로 가기 -> pendingRoute clear")
+                        // [NEW] 다시 시작하기 버튼 -> Tab 1 (Start) 홈으로
+                        android.util.Log.d("NavGraph", "[Result] 다시 시작하기 -> Tab 1 (Start)")
                         tab02ViewModel.consumePendingDetailRoute()
                         navController.navigate(Screen.Start.route) {
                             popUpTo(navController.graph.startDestinationId) { inclusive = true }
