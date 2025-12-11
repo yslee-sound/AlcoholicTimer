@@ -30,6 +30,9 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
         Context.MODE_PRIVATE
     )
 
+    // [NEW] Zombie 이벤트 방지 - 타이머 시작 시각 기록 (Debounce용)
+    private var lastTimerStartRequestTime: Long = 0L
+
     // Timer start time state
     private val _startTime = MutableStateFlow(0L)
     val startTime: StateFlow<Long> = _startTime.asStateFlow()
@@ -47,6 +50,7 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
 
     // [NEW] 네비게이션 이벤트 (화면 전환 요청)
     sealed class NavigationEvent {
+        object NavigateToFinished : NavigationEvent() // [NEW] 타이머 완료 시 축하 화면으로
         data class NavigateToDetail(val startTime: Long, val endTime: Long, val targetDays: Float, val actualDays: Int) : NavigationEvent()
     }
 
@@ -123,9 +127,23 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
      * - 기록 저장
      * - SharedPreferences 업데이트
      * - 네비게이션 이벤트 발행
+     * [FIX] Zombie 이벤트 방지 로직 추가
      */
     private suspend fun handleTimerCompletion() {
         try {
+            // 1. [Zombie Event 방지] 타이머 시작 후 2초(2000ms) 내에 들어오는 완료 이벤트는 무시
+            val timeSinceStart = System.currentTimeMillis() - lastTimerStartRequestTime
+            if (timeSinceStart < 2000L) {
+                Log.w("Tab01ViewModel", "⚠️ Premature timer finish event ignored (Debounce active: ${timeSinceStart}ms since start)")
+                return
+            }
+
+            // 2. [Double Check] 이미 완료 처리가 된 상태라면 중복 처리 방지
+            if (_timerCompleted.value) {
+                Log.d("Tab01ViewModel", "Timer already completed, skipping duplicate event")
+                return
+            }
+
             val startTime = _startTime.value
             val targetDays = _targetDays.value
             val elapsedMillis = TimerTimeManager.elapsedMillis.value
@@ -169,9 +187,9 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
                 Log.e("Tab01ViewModel", "Failed to log analytics", e)
             }
 
-            // 6. 네비게이션 이벤트 발행
-            _navigationEvent.tryEmit(NavigationEvent.NavigateToDetail(startTime, endTime, targetDays, actualDays))
-            Log.d("Tab01ViewModel", "Navigation event emitted to DetailScreen")
+            // 6. 네비게이션 이벤트 발행 (먼저 축하 화면으로)
+            _navigationEvent.tryEmit(NavigationEvent.NavigateToFinished)
+            Log.d("Tab01ViewModel", "Navigation event emitted to FinishedScreen (celebration)")
 
         } catch (e: Exception) {
             Log.e("Tab01ViewModel", "Error handling timer completion", e)
@@ -259,8 +277,13 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Start timer
      * [REFACTORED] TimerTimeManager에 시작 시간과 목표 일수 전달
+     * [FIX] Zombie 이벤트 방지를 위한 시작 시각 기록
      */
     fun startTimer(targetDays: Float) {
+        // [FIX] Zombie 이벤트 방지 - 시작 요청 시각 기록
+        lastTimerStartRequestTime = System.currentTimeMillis()
+        Log.d("Tab01ViewModel", "Timer start requested at: $lastTimerStartRequestTime")
+
         val now = System.currentTimeMillis()
         _startTime.value = now
         _targetDays.value = targetDays
@@ -275,7 +298,7 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
         // [FIX] TimerTimeManager에 목표 일수와 함께 시작 알림
         TimerTimeManager.setStartTime(now, targetDays, getApplication())
 
-        Log.d("Tab01ViewModel", "Timer started: targetDays=$targetDays")
+        Log.d("Tab01ViewModel", "Timer started: targetDays=$targetDays, debounce active for 2 seconds")
     }
 
     /**

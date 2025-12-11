@@ -6,8 +6,10 @@ import android.net.Uri
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
@@ -17,6 +19,7 @@ import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.MainApplication
 import kr.sweetapps.alcoholictimer.ui.common.BaseActivity
 import kr.sweetapps.alcoholictimer.ui.common.BaseScaffold
+import kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.Tab01ViewModel
 // Navigation imports (now in ui.main package)
 // Note: Screen and AppNavHost are now in the same package
 import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
@@ -428,6 +431,51 @@ private fun AppContentWithStart(
 ) {
     val navController = rememberNavController()
     val context = LocalContext.current
+
+    // [NEW] 전역 타이머 완료 네비게이션 리스너 (Activity Scope ViewModel)
+    val activity = context as? MainActivity
+    val tab01ViewModel: Tab01ViewModel? = activity?.let {
+        viewModel(viewModelStoreOwner = it)
+    }
+
+    // [NEW] 타이머 완료 시 전역 네비게이션 처리 (어느 화면에 있든 FinishedScreen으로 이동)
+    LaunchedEffect(tab01ViewModel) {
+        tab01ViewModel?.navigationEvent?.collect { event ->
+            when (event) {
+                is Tab01ViewModel.NavigationEvent.NavigateToFinished -> {
+                    android.util.Log.d("MainActivity", "🎉 [Global] Timer finished! Navigating to Finished (celebration) from ANY screen")
+
+                    // 어느 화면에 있든 FinishedScreen(축하 화면)으로 먼저 이동
+                    navController.navigate(Screen.Finished.route) {
+                        // 백스택에서 Run/Start 제거하여 뒤로 가기 시 타이머로 돌아가지 않도록
+                        popUpTo(Screen.Start.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+
+                    android.util.Log.d("MainActivity", "Navigation to FinishedScreen completed")
+                }
+                is Tab01ViewModel.NavigationEvent.NavigateToDetail -> {
+                    android.util.Log.d("MainActivity", "📊 Navigating to Detail screen")
+
+                    // DetailScreen으로 직접 이동 (FinishedScreen에서 결과 확인 버튼 클릭 시)
+                    val route = Screen.Detail.createRoute(
+                        startTime = event.startTime,
+                        endTime = event.endTime,
+                        targetDays = event.targetDays,
+                        actualDays = event.actualDays,
+                        isCompleted = true
+                    )
+
+                    navController.navigate(route) {
+                        popUpTo(0) { inclusive = false }
+                        launchSingleTop = true
+                    }
+
+                    android.util.Log.d("MainActivity", "Navigation to Detail completed")
+                }
+            }
+        }
+    }
 
     // repositories & manager
     val emergencyRepo = remember { EmergencyPolicyRepository(context) }
