@@ -109,7 +109,10 @@ fun RunScreenComposable(
 
     if (!isPreview && !isDemoMode) {
         LaunchedEffect(startTime, timerCompleted) {
-            if (timerCompleted || startTime == 0L) {
+            // [FIX] startTime이 0이어도, 만약 '완료된 상태(timerCompleted)'라면
+            // MainActivity가 FinishedScreen으로 보낼 것이므로, 여기서 StartScreen으로 쫓아내면 안 됨!
+            // 오직 '완료되지 않았는데(timerCompleted == false) startTime이 0'인 경우만 데이터 오류로 판단
+            if (startTime == 0L && !timerCompleted) {
                 onRequireBackToStart?.invoke()
             }
         }

@@ -109,14 +109,7 @@ fun AppNavHost(
                 onRequestQuit = {
                     navController.navigate(Screen.Quit.route) { launchSingleTop = true }
                 },
-                onCompletedNavigateToDetail = { route ->
-                    // [수정] 타이머 완료 시 Finished 화면으로 이동
-                    android.util.Log.d("NavGraph", "타이머 완료 -> Finished 화면으로 이동")
-                    navController.navigate(Screen.Finished.route) {
-                        popUpTo(Screen.Run.route) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                },
+                onCompletedNavigateToDetail = { /* [REMOVED] 중복 네비게이션 방지 - MainActivity에서 전역 처리 */ },
                 onRequireBackToStart = {
                     navController.navigate(Screen.Start.route) {
                         popUpTo(Screen.Run.route) { inclusive = true }
@@ -174,9 +167,11 @@ fun AppNavHost(
 
                                 android.util.Log.d("NavGraph", "완료 기록 Detail 화면으로 이동: $route")
 
-                                // [FIX] Remove FinishedScreen from backstack to prevent loop when back button is pressed
+                                // [FIX] StartScreen은 남겨두고(inclusive=false), 그 위에 쌓인 FinishedScreen만 제거
+                                // 결과: Back Stack = [StartScreen, DetailScreen]
+                                // 뒤로 가기 시 StartScreen으로 깔끔하게 이동
                                 navController.navigate(route) {
-                                    popUpTo(Screen.Finished.route) { inclusive = true }
+                                    popUpTo(Screen.Start.route) { inclusive = false }
                                     launchSingleTop = true
                                 }
                             } else {
@@ -439,14 +434,12 @@ fun AppNavHost(
                 actualDays = actualDays,
                 isCompleted = isCompleted,
                 onBack = {
-                    // [FIX] Navigate to Records screen instead of popBackStack
-                    // because FinishedScreen was removed from backstack
-                    if (!navController.popBackStack()) {
-                        // If backstack is empty, navigate to Records screen
-                        navController.navigate(Screen.Records.route) {
-                            popUpTo(navController.graph.startDestinationId) { inclusive = false }
-                            launchSingleTop = true
-                        }
+                    // [FIX] 뒤로 가기 시 무조건 Tab 1(Start) 화면으로 이동하여 사이클 종료
+                    // 이렇게 하면 FinishedScreen으로 돌아가지 않음
+                    navController.navigate(Screen.Start.route) {
+                        // 기존 스택을 모두 비우고 Start 화면만 남김
+                        popUpTo(Screen.Start.route) { inclusive = true }
+                        launchSingleTop = true
                     }
                 },
                 onDeleted = { recordsRefreshCounter = recordsRefreshCounter + 1 },
