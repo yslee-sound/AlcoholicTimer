@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.R
+import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
 
 /**
  * [NEW] 목표 일수 입력 컴포넌트 (Extracted from StartScreen)
@@ -111,7 +112,7 @@ fun TargetDaysInput(
     // [FIXED] 텍스트 정렬 제거 - Row가 정렬을 담당하므로 불필요
     // textAlign을 제거하여 BasicTextField가 불필요하게 여백을 차지하지 않도록 함
     val numberTextStyle = MaterialTheme.typography.displayLarge.copy(
-        color = colorResource(id = R.color.color_indicator_days),
+        color = MainPrimaryBlue,  // [FIX] 메인 UI 색상 적용 (#1E40AF)
         fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
         fontSize = 72.sp
         // textAlign 제거 - 부모 Row의 Arrangement.Center가 정렬 담당
@@ -219,7 +220,7 @@ fun TargetDaysInput(
                     }
                 ),
                 cursorBrush = androidx.compose.ui.graphics.SolidColor(
-                    colorResource(id = R.color.color_indicator_days)
+                    MainPrimaryBlue  // [FIX] 메인 UI 색상 적용 (#1E40AF)
                 ),
                 decorationBox = { innerTextField ->
                     Box(contentAlignment = Alignment.Center) {
@@ -227,8 +228,7 @@ fun TargetDaysInput(
                             Text(
                                 text = "0",
                                 style = numberTextStyle.copy(
-                                    color = colorResource(id = R.color.color_indicator_days)
-                                        .copy(alpha = 0.3f)
+                                    color = MainPrimaryBlue.copy(alpha = 0.3f)  // [FIX] 메인 UI 색상 적용 (#1E40AF)
                                 )
                             )
                         }
