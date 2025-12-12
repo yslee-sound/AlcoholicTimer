@@ -16,6 +16,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.util.Log
+import androidx.compose.ui.res.stringResource
+import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
 
 /**
@@ -43,7 +45,7 @@ fun FinishedSuccessScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "뒤로 가기",
+                            contentDescription = stringResource(R.string.finished_back),
                             tint = MainPrimaryBlue
                         )
                     }
@@ -74,7 +76,7 @@ fun FinishedSuccessScreen(
 
             // Success title
             Text(
-                text = "🎉 목표 달성!",
+                text = stringResource(R.string.finished_success_title),
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = MainPrimaryBlue
@@ -84,7 +86,7 @@ fun FinishedSuccessScreen(
 
             // Success description
             Text(
-                text = "축하합니다!\n금주 목표를 성공적으로 완료했습니다.",
+                text = stringResource(R.string.finished_success_description),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Normal,
                 color = Color.Gray,
@@ -108,7 +110,7 @@ fun FinishedSuccessScreen(
                 )
             ) {
                 Text(
-                    text = "결과 확인",
+                    text = stringResource(R.string.finished_result_check),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -130,7 +132,7 @@ fun FinishedSuccessScreen(
                 )
             ) {
                 Text(
-                    text = "새 타이머 시작",
+                    text = stringResource(R.string.finished_new_timer),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -167,7 +169,7 @@ fun FinishedGiveUpScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "뒤로 가기",
+                            contentDescription = stringResource(R.string.finished_back),
                             tint = iconColor
                         )
                     }
@@ -198,7 +200,7 @@ fun FinishedGiveUpScreen(
 
             // Comfort title
             Text(
-                text = "🍃 잠시 쉬어가도 괜찮아요",
+                text = stringResource(R.string.finished_giveup_title),
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = iconColor
@@ -208,7 +210,7 @@ fun FinishedGiveUpScreen(
 
             // Comfort description
             Text(
-                text = "이번 도전은 여기서 멈추지만, 그동안의 노력은 사라지지 않아요.\n마음을 추스르고 언제든 다시 돌아오세요.",
+                text = stringResource(R.string.finished_giveup_description),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Normal,
                 color = Color.Gray,
@@ -232,7 +234,7 @@ fun FinishedGiveUpScreen(
                 )
             ) {
                 Text(
-                    text = "결과 확인",
+                    text = stringResource(R.string.finished_result_check),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -254,7 +256,7 @@ fun FinishedGiveUpScreen(
                 )
             ) {
                 Text(
-                    text = "새 타이머 시작",
+                    text = stringResource(R.string.finished_new_timer),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold
                 )

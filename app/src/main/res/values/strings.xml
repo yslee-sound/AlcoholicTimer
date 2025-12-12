@@ -167,6 +167,7 @@
     <string name="diary_no_entries">아직 작성된 일기가 없어요</string>
     <string name="diary_write_prompt">우측 하단 + 버튼을 눌러\n첫 일기를 작성해보세요</string>
     <string name="diary_write_button">일기 작성</string>
+    <string name="diary_write_button_action">일기 작성하기</string>
 
     <!-- Diary Screens (일기 화면) -->
     <string name="diary_all_title">금주 일기</string>
@@ -365,6 +366,7 @@
 
     <!-- Add Record screen (금주 기록 추가) -->
     <string name="add_record_title">금주 기록 추가</string>
+    <string name="add_record_button">기록 추가하기</string>
     <string name="add_record_start_date_time">시작일 및 시간</string>
     <string name="add_record_end_date_time">종료일 및 시간</string>
     <string name="add_record_target_days">목표 일수</string>
@@ -466,4 +468,13 @@
         <item>흔들리는 술잔 속에 내 미래를 담지 마세요.</item>
         <item>금주는 끝이 없는 참음이 아니라, 새로운 삶의 시작입니다.</item>
     </string-array>
+
+    <!-- FinishedScreen strings (타이머 완료 화면) -->
+    <string name="finished_back">뒤로 가기</string>
+    <string name="finished_success_title">🎉 목표 달성!</string>
+    <string name="finished_success_description">축하합니다!\n금주 목표를 성공적으로 완료했습니다.</string>
+    <string name="finished_result_check">결과 확인</string>
+    <string name="finished_new_timer">새 타이머 시작</string>
+    <string name="finished_giveup_title">🍃 잠시 쉬어가도 괜찮아요</string>
+    <string name="finished_giveup_description">이번 도전은 여기서 멈추지만, 그동안의 노력은 사라지지 않아요.\n마음을 추스르고 언제든 다시 돌아오세요.</string>
 </resources>

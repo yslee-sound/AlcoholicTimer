@@ -234,4 +234,17 @@
     <string name="dialog_view_details">查看详情</string>
     <string name="dialog_close">关闭</string>
     <string name="emergency_title_default">紧急通知</string>
+
+    <!-- FinishedScreen strings (计时器完成屏幕) -->
+    <string name="finished_back">返回</string>
+    <string name="finished_success_title">🎉 目标达成！</string>
+    <string name="finished_success_description">恭喜您！\n成功完成了戒酒目标。</string>
+    <string name="finished_result_check">查看结果</string>
+    <string name="finished_new_timer">开始新计时器</string>
+    <string name="finished_giveup_title">🍃 休息一下也没关系</string>
+    <string name="finished_giveup_description">这次挑战到此为止，但您的努力不会消失。\n调整心态，随时可以回来。</string>
+
+    <!-- Add Record/Diary buttons -->
+    <string name="add_record_button">添加记录</string>
+    <string name="diary_write_button_action">写日记</string>
 </resources>

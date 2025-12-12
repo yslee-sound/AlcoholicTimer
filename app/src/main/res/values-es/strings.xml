@@ -233,4 +233,17 @@
     <string name="dialog_view_details">Ver detalles</string>
     <string name="dialog_close">Cerrar</string>
     <string name="emergency_title_default">Aviso de emergencia</string>
+
+    <!-- FinishedScreen strings (Pantallas de finalización del temporizador) -->
+    <string name="finished_back">Volver</string>
+    <string name="finished_success_title">🎉 ¡Meta Alcanzada!</string>
+    <string name="finished_success_description">¡Felicitaciones!\nHas completado con éxito tu objetivo de sobriedad.</string>
+    <string name="finished_result_check">Ver Resultado</string>
+    <string name="finished_new_timer">Iniciar Nuevo Temporizador</string>
+    <string name="finished_giveup_title">🍃 Está Bien Tomar un Descanso</string>
+    <string name="finished_giveup_description">Este desafío termina aquí, pero tus esfuerzos no desaparecerán.\nTómate un momento para reagruparte y vuelve cuando quieras.</string>
+
+    <!-- Add Record/Diary buttons -->
+    <string name="add_record_button">Agregar Registro</string>
+    <string name="diary_write_button_action">Escribir Diario</string>
 </resources>

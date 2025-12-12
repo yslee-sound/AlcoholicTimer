@@ -163,6 +163,7 @@
     <string name="diary_no_entries">No diary entries yet</string>
     <string name="diary_write_prompt">Tap the + button below\nto write your first entry</string>
     <string name="diary_write_button">Write Diary</string>
+    <string name="diary_write_button_action">Write Diary Entry</string>
 
     <!-- Diary Screens -->
     <string name="diary_all_title">Sobriety Diary</string>
@@ -328,6 +329,7 @@
 
     <!-- Add Record screen -->
     <string name="add_record_title">Add Sobriety Record</string>
+    <string name="add_record_button">Add Record</string>
     <string name="add_record_start_date_time">Start Date &amp; Time</string>
     <string name="add_record_end_date_time">End Date &amp; Time</string>
     <string name="add_record_target_days">Target Days</string>
@@ -436,4 +438,17 @@
         <item>Don\'t put your future in a wobbling glass.</item>
         <item>Sobriety isn\'t endless endurance; it\'s the start of a new life.</item>
     </string-array>
+
+    <!-- FinishedScreen strings (Timer completion screens) -->
+    <string name="finished_back">Back</string>
+    <string name="finished_success_title">🎉 Goal Achieved!</string>
+    <string name="finished_success_description">Congratulations!\nYou have successfully completed your sobriety goal.</string>
+    <string name="finished_result_check">Check Result</string>
+    <string name="finished_new_timer">Start New Timer</string>
+    <string name="finished_giveup_title">🍃 It\'s Okay to Take a Break</string>
+    <string name="finished_giveup_description">This challenge ends here, but your efforts won\'t disappear.\nTake a moment to regroup and come back anytime.</string>
 </resources>
+
+
+
+

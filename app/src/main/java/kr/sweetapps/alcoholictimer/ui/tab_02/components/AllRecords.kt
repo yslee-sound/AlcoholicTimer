@@ -111,7 +111,7 @@ fun AllRecordsScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = MainPrimaryBlue, contentColor = Color.White),
                         shape = MaterialTheme.shapes.medium
                     ) {
-                        Text(text = "기록 추가하기", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                        Text(text = stringResource(R.string.add_record_button), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }

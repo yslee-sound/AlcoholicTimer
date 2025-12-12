@@ -75,7 +75,7 @@ fun AllDiaryScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue, contentColor = Color.White),
                         shape = MaterialTheme.shapes.medium
                     ) {
-                        Text(text = "일기 작성하기", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                        Text(text = stringResource(R.string.diary_write_button_action), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }

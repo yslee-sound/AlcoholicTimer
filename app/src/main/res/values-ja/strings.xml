@@ -292,4 +292,17 @@
     <string name="dialog_view_details">詳細を見る</string>
     <string name="dialog_close">閉じる</string>
     <string name="emergency_title_default">緊急のお知らせ</string>
+
+    <!-- FinishedScreen strings (タイマー完了画面) -->
+    <string name="finished_back">戻る</string>
+    <string name="finished_success_title">🎉 目標達成！</string>
+    <string name="finished_success_description">おめでとうございます！\n断酒目標を成功的に達成しました。</string>
+    <string name="finished_result_check">結果確認</string>
+    <string name="finished_new_timer">新しいタイマーを開始</string>
+    <string name="finished_giveup_title">🍃 少し休んでも大丈夫です</string>
+    <string name="finished_giveup_description">今回の挑戦はここで止まりますが、これまでの努力は消えません。\n心を落ち着かせて、いつでも戻ってきてください。</string>
+
+    <!-- Add Record/Diary buttons -->
+    <string name="add_record_button">記録を追加</string>
+    <string name="diary_write_button_action">日記を書く</string>
 </resources>
