@@ -11,7 +11,7 @@ data class SobrietyRecord(
     val startTime: Long,
     val endTime: Long,
     val targetDays: Int,
-    val actualDays: Int,
+    val actualDays: Double,  // [REFACTOR] Int → Double로 변경하여 소수점 정확도 유지
     val isCompleted: Boolean,
     val status: String,
     val createdAt: Long,
@@ -20,28 +20,35 @@ data class SobrietyRecord(
 ) {
     val achievedPercentage: Int
         get() = percentage ?: if (targetDays > 0) {
-            PercentUtils.roundPercent((actualDays.toDouble() / targetDays.toDouble()) * 100.0)
+            PercentUtils.roundPercent((actualDays / targetDays.toDouble()) * 100.0)
         } else 0
 
     val startDateString: String get() = formatDate(startTime)
     val endDateString: String get() = formatDate(endTime)
 
+    // [REFACTOR] 레벨 판정 시 반올림 적용 (0.6일 → 1일로 처리)
     val achievedLevel: Int
-        get() = when {
-            actualDays < 7 -> 1
-            actualDays < 30 -> 2
-            actualDays < 90 -> 3
-            actualDays < 365 -> 4
-            else -> 5
+        get() {
+            val roundedDays = kotlin.math.round(actualDays).toInt()
+            return when {
+                roundedDays < 7 -> 1
+                roundedDays < 30 -> 2
+                roundedDays < 90 -> 3
+                roundedDays < 365 -> 4
+                else -> 5
+            }
         }
 
     val levelTitle: String
-        get() = when {
-            actualDays < 7 -> "시작"
-            actualDays < 30 -> "작심 7일"
-            actualDays < 90 -> "한 달 클리어"
-            actualDays < 365 -> "3개월 클리어"
-            else -> "절제의 레전드"
+        get() {
+            val roundedDays = kotlin.math.round(actualDays).toInt()
+            return when {
+                roundedDays < 7 -> "시작"
+                roundedDays < 30 -> "작심 7일"
+                roundedDays < 90 -> "한 달 클리어"
+                roundedDays < 365 -> "3개월 클리어"
+                else -> "절제의 레전드"
+            }
         }
 
     private fun formatDate(timestamp: Long): String {
@@ -69,7 +76,7 @@ data class SobrietyRecord(
             startTime = json.getLong("startTime"),
             endTime = json.getLong("endTime"),
             targetDays = json.getInt("targetDays"),
-            actualDays = json.getInt("actualDays"),
+            actualDays = json.getDouble("actualDays"),  // [REFACTOR] getInt → getDouble
             isCompleted = json.getBoolean("isCompleted"),
             status = json.getString("status"),
             createdAt = json.getLong("createdAt"),

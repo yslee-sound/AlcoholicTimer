@@ -303,50 +303,6 @@ fun QuitScreenComposable(
      )
  }
 
-private fun saveCompletedRecord(context: Context, startTime: Long, endTime: Long, targetDays: Float, actualDays: Int) {
-    try {
-        val sharedPref = context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
-        val recordId = System.currentTimeMillis().toString()
-        val isCompleted = actualDays >= targetDays
-        val status = if (isCompleted) "완료" else "중지"
-
-        // Log analytics event based on completion status
-        try {
-            if (isCompleted) {
-                AnalyticsManager.logTimerFinish(
-                    targetDays = targetDays.toInt(),
-                    actualDays = actualDays,
-                    startTs = startTime,
-                    endTs = endTime
-                )
-            } else {
-                AnalyticsManager.logTimerEnd(
-                    targetDays = targetDays.toInt(),
-                    actualDays = actualDays,
-                    reason = "user_quit",
-                    startTs = startTime,
-                    endTs = endTime
-                )
-            }
-        } catch (_: Throwable) {
-            // Best-effort logging, do not crash the app
-        }
-
-        val record = JSONObject().apply {
-            put("id", recordId); put("startTime", startTime); put("endTime", endTime); put("targetDays", targetDays.toInt()); put("actualDays", actualDays); put("isCompleted", isCompleted); put("status", status); put("createdAt", System.currentTimeMillis())
-        }
-        val recordsJson = sharedPref.getString(Constants.PREF_SOBRIETY_RECORDS, "[]") ?: "[]"
-        val list = try {
-            JSONArray(recordsJson)
-        } catch (_: Exception) {
-            JSONArray()
-        }
-        list.put(record)
-        sharedPref.edit {
-            putString(Constants.PREF_SOBRIETY_RECORDS, list.toString())
-        }
-    } catch (_: Exception) { }
-}
 
 @Preview(showBackground = true, widthDp = 360, heightDp = 900)
 @Composable

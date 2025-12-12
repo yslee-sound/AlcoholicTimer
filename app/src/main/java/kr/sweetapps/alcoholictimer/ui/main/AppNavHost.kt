@@ -186,7 +186,7 @@ fun AppNavHost(
                             val completedStartTime = sharedPref.getLong("completed_start_time", 0L)
                             val completedEndTime = sharedPref.getLong("completed_end_time", 0L)
                             val completedTargetDays = sharedPref.getFloat("completed_target_days", 21f)
-                            val completedActualDays = sharedPref.getInt("completed_actual_days", 0)
+                            val completedActualDays = sharedPref.getFloat("completed_actual_days", 0f).toInt()  // [REFACTOR] Float으로 읽기
 
                             if (completedStartTime > 0 && completedEndTime > 0) {
                                 val resultRoute = Screen.Result.createRoute(
@@ -284,7 +284,7 @@ fun AppNavHost(
                             val completedStartTime = sharedPref.getLong("completed_start_time", 0L)
                             val completedEndTime = sharedPref.getLong("completed_end_time", 0L)
                             val completedTargetDays = sharedPref.getFloat("completed_target_days", 21f)
-                            val completedActualDays = sharedPref.getInt("completed_actual_days", 0)
+                            val completedActualDays = sharedPref.getFloat("completed_actual_days", 0f).toInt()  // [REFACTOR] Float으로 읽기
                             val isGiveUp = sharedPref.getBoolean("completed_is_give_up", false)
 
                             android.util.Log.d("NavGraph", "[GiveUp STEP 2] 데이터 읽기 완료:")
@@ -446,7 +446,7 @@ fun AppNavHost(
                             startTime = record.startTime,
                             endTime = record.endTime,
                             targetDays = record.targetDays.toFloat().coerceAtLeast(1f),
-                            actualDays = record.actualDays.coerceAtLeast(0),
+                            actualDays = kotlin.math.round(record.actualDays).toInt().coerceAtLeast(0),  // [FIX] Double → Int 변환
                             isCompleted = record.isCompleted
                         )
                         navController.navigate(route)
@@ -611,7 +611,7 @@ fun AppNavHost(
                         startTime = record.startTime,
                         endTime = record.endTime,
                         targetDays = record.targetDays.toFloat().coerceAtLeast(1f),
-                        actualDays = record.actualDays.coerceAtLeast(0),
+                        actualDays = kotlin.math.round(record.actualDays).toInt().coerceAtLeast(0),  // [FIX] Double → Int 변환
                         isCompleted = record.isCompleted
                     )
                     navController.navigate(route)

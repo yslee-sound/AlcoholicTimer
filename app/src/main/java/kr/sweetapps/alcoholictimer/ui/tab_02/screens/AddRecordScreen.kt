@@ -415,7 +415,7 @@ fun AddRecordScreenComposable(
                                         startTime = startMillis,
                                         endTime = endMillis,
                                         targetDays = commitTarget,
-                                        actualDays = actualDays,
+                                        actualDays = actualDays.toDouble(),  // [FIX] Int → Double 변환
                                         isCompleted = completed,
                                         status = status,
                                         createdAt = System.currentTimeMillis()

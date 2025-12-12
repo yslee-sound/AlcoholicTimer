@@ -152,7 +152,7 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
             val targetDays = _targetDays.value
             val elapsedMillis = TimerTimeManager.elapsedMillis.value
             val endTime = startTime + elapsedMillis
-            val actualDays = (elapsedMillis / Constants.DAY_IN_MILLIS).toInt()
+            val actualDays = elapsedMillis / Constants.DAY_IN_MILLIS.toDouble()  // [REFACTOR] Double로 계산하여 소수점 유지
 
             Log.d("Tab01ViewModel", "Handling timer completion: startTime=$startTime, endTime=$endTime, targetDays=$targetDays, actualDays=$actualDays")
 
@@ -174,7 +174,7 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
                 putLong("completed_start_time", startTime)
                 putLong("completed_end_time", endTime)
                 putFloat("completed_target_days", targetDays)
-                putInt("completed_actual_days", actualDays)
+                putFloat("completed_actual_days", actualDays.toFloat())  // [REFACTOR] Double을 Float으로 저장
                 apply()
             }
 
@@ -187,9 +187,9 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
             }
 
 
-            // 5. Analytics 로그
+            // 5. Analytics 로그 (반올림된 값 전달)
             try {
-                AnalyticsManager.logTimerFinish(targetDays.toInt(), actualDays, startTime, endTime)
+                AnalyticsManager.logTimerFinish(targetDays.toInt(), kotlin.math.round(actualDays).toInt(), startTime, endTime)
             } catch (e: Exception) {
                 Log.e("Tab01ViewModel", "Failed to log analytics", e)
             }
@@ -206,7 +206,7 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * [NEW] 완료된 기록 저장 (SharedPreferences 기반)
      */
-    private suspend fun saveCompletedRecord(startTime: Long, endTime: Long, targetDays: Float, actualDays: Int) {
+    private suspend fun saveCompletedRecord(startTime: Long, endTime: Long, targetDays: Float, actualDays: Double) {  // [REFACTOR] Int → Double
         try {
             val recordId = System.currentTimeMillis().toString()
             val isCompleted = actualDays >= targetDays
@@ -309,7 +309,7 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
                 val targetDays = _targetDays.value
                 val elapsedMillis = TimerTimeManager.elapsedMillis.value
                 val endTime = startTime + elapsedMillis
-                val actualDays = (elapsedMillis / Constants.DAY_IN_MILLIS).toInt()
+                val actualDays = elapsedMillis / Constants.DAY_IN_MILLIS.toDouble()  // [REFACTOR] Double로 계산하여 소수점 유지
 
                 Log.d("Tab01ViewModel", "[GiveUp STEP 1] 데이터 스냅샷: startTime=$startTime, endTime=$endTime, targetDays=$targetDays, actualDays=$actualDays")
 
@@ -318,7 +318,7 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
                 editor.putLong("completed_start_time", startTime)
                 editor.putLong("completed_end_time", endTime)
                 editor.putFloat("completed_target_days", targetDays)
-                editor.putInt("completed_actual_days", actualDays)
+                editor.putFloat("completed_actual_days", actualDays.toFloat())  // [REFACTOR] Double을 Float으로 저장
                 editor.putBoolean("completed_is_give_up", true) // [NEW] 포기 플래그
                 editor.apply() // 즉시 저장
 
