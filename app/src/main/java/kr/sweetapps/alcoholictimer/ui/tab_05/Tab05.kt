@@ -148,6 +148,8 @@ fun AboutScreen(
             }
         }
         onDebugClick = { onNavigateDebug() }
+        // [FIX] Privacy Options와 Debug 메뉴를 DEBUG 빌드에서만 표시
+        // 릴리즈 빌드에서는 두 메뉴 모두 숨겨짐
         showDebugMenu = BuildConfig.DEBUG
     }
 
@@ -352,21 +354,22 @@ fun AboutScreen(
             })
             Box(modifier = Modifier.fillMaxWidth().height(dims.divider.thin).background(dims.divider.lightColor))
 
-            // [FIX] Personalized Ads - Switch에서 Button 형태로 변경 (Google UMP 정책 준수)
-            // 사용자가 클릭하면 UMP Privacy Options Form이 표시됨
-            SimpleAboutRow(
-                title = "Privacy Options",  // 더 명확한 표현으로 변경
-                onClick = onAdsClick,
-                trailing = {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_caret_right),
-                        contentDescription = null,
-                        tint = Color(0xFF9CA3AF),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            )
-            Box(modifier = Modifier.fillMaxWidth().height(dims.divider.thin).background(dims.divider.lightColor))
+            // [FIX] Privacy Options - DEBUG 빌드에서만 표시 (EU 지역 개발 테스트용)
+            if (showDebugMenu) {
+                SimpleAboutRow(
+                    title = "Privacy Options",
+                    onClick = onAdsClick,
+                    trailing = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_caret_right),
+                            contentDescription = null,
+                            tint = Color(0xFF9CA3AF),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                )
+                Box(modifier = Modifier.fillMaxWidth().height(dims.divider.thin).background(dims.divider.lightColor))
+            }
 
             // Debug menu
             if (showDebugMenu) {
