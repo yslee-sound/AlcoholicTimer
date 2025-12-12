@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,12 +22,9 @@ import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.DiaryViewModel
 import kr.sweetapps.alcoholictimer.data.room.DiaryEntity
-import kr.sweetapps.alcoholictimer.ui.common.LocalSafeContentPadding
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.LinkedHashMap
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,18 +54,29 @@ fun AllDiaryScreen(
             BackTopBar(title = stringResource(R.string.diary_all_title), onBack = onNavigateBack)
         },
         bottomBar = {
-            Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                Button(
-                    onClick = { onAddDiary() },
+            // [NEW] 하단 고정 버튼 - 일기 작성하기 (Scaffold bottomBar)
+            // [UPDATED] Surface로 감싸서 흰색 배경 + 상단 그림자 적용
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = Color.White,
+                shadowElevation = 12.dp
+            ) {
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 16.dp)
                         .navigationBarsPadding()
-                        .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue, contentColor = Color.White),
-                    shape = MaterialTheme.shapes.medium
+                        .padding(16.dp)
                 ) {
-                    Text(text = "일기 작성하기", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Button(
+                        onClick = { onAddDiary() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue, contentColor = Color.White),
+                        shape = MaterialTheme.shapes.medium
+                    ) {
+                        Text(text = "일기 작성하기", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    }
                 }
             }
         },
@@ -77,11 +84,11 @@ fun AllDiaryScreen(
     ) { innerPadding ->
         val state = rememberLazyListState()
 
-        // Use Scaffold innerPadding bottom + 100.dp so list scrolls 100.dp above bottomBar area
+        // Use Scaffold innerPadding bottom + 24.dp for natural spacing
         val topPad = innerPadding.calculateTopPadding()
         val startPad = innerPadding.calculateLeftPadding(layoutDirection = androidx.compose.ui.unit.LayoutDirection.Ltr)
         val endPad = innerPadding.calculateRightPadding(layoutDirection = androidx.compose.ui.unit.LayoutDirection.Ltr)
-        val bottomExtra = innerPadding.calculateBottomPadding() + 100.dp
+        val bottomExtra = innerPadding.calculateBottomPadding() + 24.dp
 
         // apply innerPadding start/top/end to modifier (exclude bottom)
         LazyColumn(

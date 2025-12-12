@@ -1,7 +1,6 @@
 // [NEW] Tab02 리팩토링: components를 tab_02로 이동
 package kr.sweetapps.alcoholictimer.ui.tab_02.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,10 +19,8 @@ import kr.sweetapps.alcoholictimer.ui.theme.UiConstants
 import kr.sweetapps.alcoholictimer.data.repository.RecordsDataLoader
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
-import kr.sweetapps.alcoholictimer.ui.common.LocalSafeContentPadding
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.text.font.FontWeight
@@ -33,8 +30,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,18 +91,28 @@ fun AllRecordsScreen(
         },
         bottomBar = {
             // [NEW] 하단 고정 버튼 - 기록 추가하기 (Scaffold bottomBar)
-            Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                Button(
-                    onClick = { onAddRecord() },
+            // [UPDATED] Surface로 감싸서 흰색 배경 + 상단 그림자 적용
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = Color.White,
+                shadowElevation = 12.dp
+            ) {
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 16.dp)
                         .navigationBarsPadding()
-                        .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MainPrimaryBlue, contentColor = Color.White),
-                    shape = MaterialTheme.shapes.medium
+                        .padding(16.dp)
                 ) {
-                    Text(text = "기록 추가하기", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Button(
+                        onClick = { onAddRecord() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MainPrimaryBlue, contentColor = Color.White),
+                        shape = MaterialTheme.shapes.medium
+                    ) {
+                        Text(text = "기록 추가하기", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    }
                 }
             }
         },
@@ -148,7 +153,7 @@ fun AllRecordsScreen(
                     val topPad = innerPadding.calculateTopPadding()
                     val startPad = innerPadding.calculateLeftPadding(layoutDirection = androidx.compose.ui.unit.LayoutDirection.Ltr)
                     val endPad = innerPadding.calculateRightPadding(layoutDirection = androidx.compose.ui.unit.LayoutDirection.Ltr)
-                    val bottomExtra = innerPadding.calculateBottomPadding() + 100.dp
+                    val bottomExtra = innerPadding.calculateBottomPadding() + 24.dp
 
                     LazyColumn(
                         modifier = Modifier
