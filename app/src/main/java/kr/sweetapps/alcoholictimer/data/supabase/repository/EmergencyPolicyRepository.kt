@@ -15,6 +15,12 @@ class EmergencyPolicyRepository(private val context: Context) {
     private val SUPABASE_ANON_KEY: String = BuildConfig.SUPABASE_KEY
 
     suspend fun getActivePolicy(): EmergencyPolicy? = withContext(Dispatchers.IO) {
+        // [DISABLED] Supabase 팝업 기능 비활성화 - Firebase로 이전 예정
+        // 앱 크래시 방지를 위해 항상 null 반환 (표시할 팝업 없음)
+        android.util.Log.d("EmergencyRepo", "Emergency popup disabled - returning null")
+        return@withContext null
+
+        /* [원본 코드 주석 처리 - 재사용 대비]
         try {
             val pkgName = context.packageName
             val urlStr = "${SUPABASE_URL}/rest/v1/emergency_policy?is_active=eq.true&select=*"
@@ -82,5 +88,6 @@ class EmergencyPolicyRepository(private val context: Context) {
         }
 
         return@withContext null
+        */
     }
 }

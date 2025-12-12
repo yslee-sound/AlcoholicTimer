@@ -22,6 +22,12 @@ class UpdatePolicyRepository(private val context: Context) {
      * on the IO dispatcher.
      */
     suspend fun getActivePolicy(): UpdatePolicy? = withContext(Dispatchers.IO) {
+        // [DISABLED] Supabase 팝업 기능 비활성화 - Firebase로 이전 예정
+        // 앱 크래시 방지를 위해 항상 null 반환 (표시할 팝업 없음)
+        android.util.Log.d("UpdatePolicyRepo", "Update popup disabled - returning null")
+        return@withContext null
+
+        /* [원본 코드 주석 처리 - 재사용 대비]
         try {
             val pkgName = context.packageName
             // Build REST query: fetch all active policies and match locally because app_id values
@@ -99,5 +105,6 @@ class UpdatePolicyRepository(private val context: Context) {
         }
 
         return@withContext null
+        */
     }
 }

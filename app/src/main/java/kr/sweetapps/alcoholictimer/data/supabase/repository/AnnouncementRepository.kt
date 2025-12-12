@@ -41,6 +41,11 @@ class AnnouncementRepository(private val context: Context) {
 
     /** 모든 활성 공지사항 조회 (최신순) */
     suspend fun getAnnouncements(): Result<List<Announcement>> = kotlin.runCatching {
+        // [DISABLED] Supabase 팝업 기능 비활성화 - Firebase로 이전 예정
+        android.util.Log.d("AnnouncementRepo", "Announcement popup disabled - returning empty list")
+        return@runCatching emptyList()
+
+        /* [원본 코드 주석 처리 - 재사용 대비]
         withContext(Dispatchers.IO) {
             val urlStr = "${SUPABASE_URL}/rest/v1/notice_policy?is_active=eq.true&select=*&order=created_at.desc"
             val url = java.net.URL(urlStr)
@@ -66,10 +71,16 @@ class AnnouncementRepository(private val context: Context) {
 
             return@withContext emptyList()
         }
+        */
     }
 
     /** 최신 공지사항 1개 조회 (emergency 제외) */
     suspend fun getLatestAnnouncement(): Result<Announcement?> = kotlin.runCatching {
+        // [DISABLED] Supabase 팝업 기능 비활성화 - Firebase로 이전 예정
+        android.util.Log.d("AnnouncementRepo", "Latest announcement disabled - returning null")
+        return@runCatching null
+
+        /* [원본 코드 주석 처리 - 재사용 대비]
         withContext(Dispatchers.IO) {
             val pkgName = context.packageName
             val urlStr = "${SUPABASE_URL}/rest/v1/notice_policy?is_active=eq.true&select=*&order=created_at.desc&limit=50"
@@ -105,6 +116,7 @@ class AnnouncementRepository(private val context: Context) {
 
             return@withContext null
         }
+        */
     }
 
     /** 특정 ID의 공지사항 조회 */
