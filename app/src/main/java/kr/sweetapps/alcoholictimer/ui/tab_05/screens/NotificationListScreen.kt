@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -40,7 +41,7 @@ fun NotificationListScreen(
             .fillMaxSize()
             .background(Color(0xFFFFFDF7)) // BackgroundCream
     ) {
-        BackTopBar(title = "알림 센터", onBack = onBack)
+        BackTopBar(title = stringResource(R.string.notification_center_title), onBack = onBack)
 
         when (val state = uiState) {
             is NotificationViewModel.UiState.Loading -> {
@@ -89,7 +90,7 @@ private fun EmptyView() {
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "새로운 알림이 없습니다.",
+                text = stringResource(R.string.notification_empty_message),
                 fontSize = 16.sp,
                 color = Color(0xFF999999)
             )

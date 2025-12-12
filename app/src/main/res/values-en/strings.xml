@@ -169,6 +169,23 @@
     <string name="tab05_customer_support">Support</string>
     <string name="tab05_recommended_apps">Apps</string>
 
+    <!-- Notification Center -->
+    <string name="notification_center_title">Notification Center</string>
+    <string name="notification_empty_message">No new notifications.</string>
+
+    <!-- Customer Feedback Bottom Sheet -->
+    <string name="feedback_title">Contact Us</string>
+    <string name="feedback_category_label">Inquiry Type</string>
+    <string name="feedback_category_feature">Feature Request</string>
+    <string name="feedback_category_bug">Bug Report</string>
+    <string name="feedback_category_other">Other</string>
+    <string name="feedback_content_label">Message</string>
+    <string name="feedback_content_placeholder">e.g.) The app crashes on startup.</string>
+    <string name="feedback_email_label">Email Address (Optional)</string>
+    <string name="feedback_email_placeholder">example@email.com</string>
+    <string name="feedback_email_note">Please provide your email if you\'d like a response.\nYour email will only be used for replies.</string>
+    <string name="feedback_submit_button">Submit</string>
+
     <!-- Level names - [Redesigned] 11-level system (2025-12-03) -->
     <string name="level_0">Alcohol Stop</string>              <!-- Lv.1: 1~3 days -->
     <string name="level_1">3-Day Cut Passed</string>          <!-- Lv.2: 4~7 days -->

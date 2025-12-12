@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -22,6 +23,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.data.repository.FeedbackRepository
 
 /**
@@ -37,7 +39,7 @@ fun CustomerFeedbackBottomSheet(
     val context = LocalContext.current
     val repository = remember { FeedbackRepository() }
 
-    var selectedCategory by remember { mutableStateOf("기능 제안") }
+    var selectedCategory by remember { mutableStateOf(context.getString(R.string.feedback_category_feature)) }
     var contentText by remember { mutableStateOf("") }
     var emailText by remember { mutableStateOf("") }
     var isSubmitting by remember { mutableStateOf(false) }
@@ -77,7 +79,7 @@ fun CustomerFeedbackBottomSheet(
         ) {
             // A. 상단 타이틀
             Text(
-                text = "문의하기",
+                text = stringResource(R.string.feedback_title),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF333333),
@@ -86,7 +88,7 @@ fun CustomerFeedbackBottomSheet(
 
             // B. 문의 유형 선택 (Chip 스타일)
             Text(
-                text = "문의 유형",
+                text = stringResource(R.string.feedback_category_label),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 color = Color(0xFF666666),
@@ -99,7 +101,11 @@ fun CustomerFeedbackBottomSheet(
                     .padding(bottom = 24.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                listOf("기능 제안", "버그 신고", "기타 문의").forEach { category ->
+                listOf(
+                    stringResource(R.string.feedback_category_feature),
+                    stringResource(R.string.feedback_category_bug),
+                    stringResource(R.string.feedback_category_other)
+                ).forEach { category ->
                     CategoryChip(
                         text = category,
                         isSelected = selectedCategory == category,
@@ -110,7 +116,7 @@ fun CustomerFeedbackBottomSheet(
 
             // C. 내용 입력
             Text(
-                text = "문의 내용",
+                text = stringResource(R.string.feedback_content_label),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 color = Color(0xFF666666),
@@ -127,7 +133,7 @@ fun CustomerFeedbackBottomSheet(
                     .height(150.dp),
                 placeholder = {
                     Text(
-                        text = "예시) 앱 시작시 중지되는 현상이 있습니다.",
+                        text = stringResource(R.string.feedback_content_placeholder),
                         color = Color(0xFFAAAAAA)
                     )
                 },
@@ -163,7 +169,7 @@ fun CustomerFeedbackBottomSheet(
 
             // D. 이메일 입력 (선택 사항)
             Text(
-                text = "이메일 주소 (선택)",
+                text = stringResource(R.string.feedback_email_label),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 color = Color(0xFF666666),
@@ -176,7 +182,7 @@ fun CustomerFeedbackBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = {
                     Text(
-                        text = "example@email.com",
+                        text = stringResource(R.string.feedback_email_placeholder),
                         color = Color(0xFFAAAAAA)
                     )
                 },
@@ -200,7 +206,7 @@ fun CustomerFeedbackBottomSheet(
                     } else {
                         // 기본 안내 문구
                         Text(
-                            text = "답변을 받으시려면 이메일 주소를 입력해주세요.\n이메일 주소는 답변 용도 외에 사용되지 않습니다.",
+                            text = stringResource(R.string.feedback_email_note),
                             fontSize = 12.sp,
                             color = Color(0xFF999999),
                             lineHeight = 16.sp
@@ -280,7 +286,7 @@ fun CustomerFeedbackBottomSheet(
                     )
                 } else {
                     Text(
-                        text = "보내기",
+                        text = stringResource(R.string.feedback_submit_button),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
