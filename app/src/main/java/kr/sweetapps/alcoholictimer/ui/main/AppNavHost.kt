@@ -461,7 +461,7 @@ fun AppNavHost(
                 )
             }
 
-            // 2. 기록 상세 화면 (Tab 2의 일부 - 과거 기록 열람용)
+            // 2. 기록 상세 화면 (전체 화면 + 슬라이드 애니메이션)
             composable(
                 route = Screen.Detail.route,
                 arguments = listOf(
@@ -470,7 +470,47 @@ fun AppNavHost(
                     navArgument("targetDays") { type = NavType.FloatType },
                     navArgument("actualDays") { type = NavType.IntType },
                     navArgument("isCompleted") { type = NavType.BoolType }
-                )
+                ),
+                enterTransition = {
+                    // [NEW] 진입: 오른쪽에서 왼쪽으로 슬라이드 인
+                    slideInHorizontally(
+                        initialOffsetX = { fullWidth -> fullWidth },
+                        animationSpec = tween(
+                            durationMillis = 300,
+                            easing = FastOutSlowInEasing
+                        )
+                    ) + fadeIn(animationSpec = tween(300))
+                },
+                exitTransition = {
+                    // [FIX] 다른 화면으로 이동 시: 왼쪽으로 슬라이드 아웃
+                    slideOutHorizontally(
+                        targetOffsetX = { fullWidth -> -fullWidth },
+                        animationSpec = tween(
+                            durationMillis = 300,
+                            easing = FastOutSlowInEasing
+                        )
+                    ) + fadeOut(animationSpec = tween(300))
+                },
+                popEnterTransition = {
+                    // [NEW] 뒤로 가기로 다시 나타날 때: 왼쪽에서 오른쪽으로 슬라이드 인
+                    slideInHorizontally(
+                        initialOffsetX = { fullWidth -> -fullWidth },
+                        animationSpec = tween(
+                            durationMillis = 300,
+                            easing = FastOutSlowInEasing
+                        )
+                    ) + fadeIn(animationSpec = tween(300))
+                },
+                popExitTransition = {
+                    // [NEW] 뒤로 가기 시: 오른쪽으로 슬라이드 아웃
+                    slideOutHorizontally(
+                        targetOffsetX = { fullWidth -> fullWidth },
+                        animationSpec = tween(
+                            durationMillis = 300,
+                            easing = FastOutSlowInEasing
+                        )
+                    ) + fadeOut(animationSpec = tween(300))
+                }
             ) { entry ->
                 val args = entry.arguments
                 val startTime = args?.getLong("startTime") ?: 0L
@@ -607,7 +647,50 @@ fun AppNavHost(
             )
         }
 
-        composable(Screen.AllRecords.route) {
+        // [NEW] 모든 기록 보기 화면 (전체 화면 + 슬라이드 애니메이션)
+        composable(
+            route = Screen.AllRecords.route,
+            enterTransition = {
+                // [NEW] 진입: 오른쪽에서 왼쪽으로 슬라이드 인
+                slideInHorizontally(
+                    initialOffsetX = { fullWidth -> fullWidth },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                // [FIX] 다른 화면으로 이동 시: 왼쪽으로 슬라이드 아웃
+                slideOutHorizontally(
+                    targetOffsetX = { fullWidth -> -fullWidth },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeOut(animationSpec = tween(300))
+            },
+            popEnterTransition = {
+                // [NEW] 뒤로 가기로 다시 나타날 때: 왼쪽에서 오른쪽으로 슬라이드 인
+                slideInHorizontally(
+                    initialOffsetX = { fullWidth -> -fullWidth },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            popExitTransition = {
+                // [NEW] 뒤로 가기 시: 오른쪽으로 슬라이드 아웃
+                slideOutHorizontally(
+                    targetOffsetX = { fullWidth -> fullWidth },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
             AllRecordsScreen(
                 onNavigateBack = { if (!navController.popBackStack()) navController.navigate(Screen.Records.route) },
                 onNavigateToDetail = { record: SobrietyRecord ->
@@ -675,7 +758,8 @@ fun AppNavHost(
                 onOpenDiaryDetail = { diaryId -> // [UPDATED] diaryId (Long) 받음
                     val route = Screen.DiaryDetail.createRoute(diaryId.toString())
                     navController.navigate(route)
-                }
+                },
+                onAddDiary = { navController.navigate(Screen.DiaryWrite.route) } // [NEW] 일기 작성하기
             )
         }
 

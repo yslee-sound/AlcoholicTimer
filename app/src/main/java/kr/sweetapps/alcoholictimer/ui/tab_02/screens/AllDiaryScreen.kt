@@ -31,7 +31,8 @@ import kotlin.collections.LinkedHashMap
 @Composable
 fun AllDiaryScreen(
     onNavigateBack: () -> Unit = {},
-    onOpenDiaryDetail: (Long) -> Unit = {} // 상세화면으로 이동할 때 사용할 ID
+    onOpenDiaryDetail: (Long) -> Unit = {}, // 상세화면으로 이동할 때 사용할 ID
+    onAddDiary: () -> Unit = {} // [NEW] 일기 작성하기 콜백
 ) {
     // [NEW] ViewModel을 통해 Room DB 데이터 가져오기
     val viewModel: DiaryViewModel = viewModel()
@@ -49,12 +50,14 @@ fun AllDiaryScreen(
         map
     }
 
-    Scaffold(
-        topBar = {
-            // [NEW] 공통 뒤로가기 제목줄로 통일
-            BackTopBar(title = stringResource(R.string.diary_all_title), onBack = onNavigateBack)
-        }
-    ) { innerPadding ->
+    // [NEW] Box로 감싸서 하단 버튼 오버레이
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                // [NEW] 공통 뒤로가기 제목줄로 통일
+                BackTopBar(title = stringResource(R.string.diary_all_title), onBack = onNavigateBack)
+            }
+        ) { innerPadding ->
         val state = rememberLazyListState()
         if (grouped.isEmpty()) {
             Box(
@@ -143,7 +146,31 @@ fun AllDiaryScreen(
 
             item { Spacer(modifier = Modifier.height(16.dp)) }
         }
+    } // Scaffold 닫기
+
+    // [NEW] 하단 고정 버튼 - 일기 작성하기
+    Button(
+        onClick = { onAddDiary() },
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp)
+            .navigationBarsPadding()
+            .height(56.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue,
+            contentColor = Color.White
+        ),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Text(
+            text = "일기 작성하기",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold
+        )
     }
+} // Box 닫기
 }
 
 /**

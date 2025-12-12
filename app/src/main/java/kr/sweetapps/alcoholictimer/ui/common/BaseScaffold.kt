@@ -60,8 +60,8 @@ fun BaseScaffold(
 
         // [NEW] 탭 2(Records), 탭 3(Level), 탭 4(More)에서만 표시되는 상단 타이틀 바 결정
         val topTitle: String? = when {
-            // 탭 2 그룹: Records 및 관련 라우트
-            currentRoute == Screen.Records.route || currentRoute == Screen.AllRecords.route || currentRoute == Screen.AddRecord.route || (currentRoute?.startsWith("detail/") == true) -> stringResource(R.string.records_title)
+            // 탭 2 그룹: Records 및 관련 라우트 (AllRecords, Detail은 제외 - 전체 화면 모드)
+            currentRoute == Screen.Records.route || currentRoute == Screen.AddRecord.route -> stringResource(R.string.records_title)
             // 탭 3: Level
             currentRoute == Screen.Level.route -> stringResource(R.string.level_title)
             // 탭 4 그룹: More 및 관련 라우트
@@ -115,13 +115,15 @@ fun BaseScaffold(
                 HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
 
                 // Bottom Navigation (with padding to avoid overlap with system navigation buttons)
-                // [REFACTORED] Result, Success, GiveUp, DiaryWrite, DiaryDetail, AllDiary 화면에서는 네비게이션바 숨김
+                // [REFACTORED] Result, Success, GiveUp, DiaryWrite, DiaryDetail, AllDiary, AllRecords, Detail 화면에서는 네비게이션바 숨김
                 val hideBottomBar = currentRoute?.startsWith("result/") == true ||
                                     currentRoute == Screen.Success.route ||
                                     currentRoute == Screen.GiveUp.route ||
                                     currentRoute == Screen.DiaryWrite.route ||
                                     currentRoute?.startsWith("diary_detail/") == true ||
-                                    currentRoute == Screen.AllDiary.route
+                                    currentRoute == Screen.AllDiary.route ||
+                                    currentRoute == Screen.AllRecords.route ||
+                                    currentRoute?.startsWith("detail/") == true
 
                 if (!hideBottomBar) {
                     Surface(

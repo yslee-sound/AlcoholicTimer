@@ -79,9 +79,9 @@ fun AllRecordsScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
-        // [수정] 상단 공통 BackTopBar: 점 3개 메뉴로 변경
+        // [수정] 상단 공통 BackTopBar: 타이틀 제거 (빈 문자열)
         BackTopBar(
-            title = stringResource(id = R.string.all_records_title),
+            title = "", // [FIX] 제목 숨김
             onBack = onNavigateBack,
             trailingContent = if (externalDeleteDialog == null) {
                 {
@@ -213,22 +213,26 @@ fun AllRecordsScreen(
         }
     } // Column 닫기
 
-    // [NEW] Floating Action Button - 기록 추가
-    val safePadding = LocalSafeContentPadding.current
-    FloatingActionButton(
+    // [NEW] 하단 고정 버튼 - 기록 추가하기
+    Button(
         onClick = { onAddRecord() },
         modifier = Modifier
-            .align(Alignment.BottomEnd)
-            .padding(
-                end = 16.dp,
-                bottom = safePadding.calculateBottomPadding() + 16.dp
-            ),
-        containerColor = MainPrimaryBlue,  // [FIX] 메인 UI 색상 적용 (#1E40AF)
-        contentColor = Color.White
+            .align(Alignment.BottomCenter)
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp)
+            .navigationBarsPadding()
+            .height(56.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MainPrimaryBlue,
+            contentColor = Color.White
+        ),
+        shape = MaterialTheme.shapes.medium
     ) {
-        Icon(
-            imageVector = Icons.Filled.Add,
-            contentDescription = stringResource(id = R.string.cd_add_record)
+        Text(
+            text = "기록 추가하기",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold
         )
     }
 } // Box 닫기
