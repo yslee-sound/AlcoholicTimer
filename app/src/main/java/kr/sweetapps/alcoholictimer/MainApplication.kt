@@ -100,8 +100,11 @@ class MainApplication : Application() {
         // App Open Ad 초기화 (메인 스레드에서 lifecycle 스케줄링을 담당하므로 등록은 비활성화)
         AppOpenAdManager.initialize(this, registerLifecycle = true)
         AppOpenAdManager.noteAppStart()
-        // Preload app-open early to increase chance it's ready at splash time
-        runCatching { AppOpenAdManager.preload(this) }
+
+        // [FIX] 조기 광고 로딩 제거
+        // 이유: SplashScreen에서 UMP 동의를 받은 후에만 광고를 로드해야 하므로,
+        // Application 레벨에서의 preload는 동의 절차를 무시하는 문제를 야기함.
+        // 광고 로딩의 전권은 SplashScreen의 loadAndShowAd()에게 위임.
 
         var suppressForegroundAfterShow = false
 
@@ -110,22 +113,9 @@ class MainApplication : Application() {
             override fun onActivityStarted(activity: Activity) {
                 // track current activity for debug flows
                 try { currentActivity = activity } catch (_: Throwable) {}
-                try {
-                    // Only invoke primary consent here if activity is not SplashScreen/overlay
-                    try {
-                        val clsName = activity.javaClass.simpleName
-                        if (clsName == "SplashScreen" || clsName == "AppOpenOverlayActivity" || clsName == "MainActivity") {
-                            android.util.Log.d("MainApplication", "App moved to foreground -> activity $clsName handles consent; skipping primary gather here")
-                        } else {
-                            android.util.Log.d("MainApplication", "App moved to foreground -> invoking primary consent gather (consent.UmpConsentManager)")
-                            umpConsentManager.gatherConsent(activity) { canRequest ->
-                                android.util.Log.d("MainApplication", "primary consent gather finished -> canRequestAds=$canRequest")
-                            }
-                        }
-                    } catch (_: Throwable) {}
 
-                    // If this is the very first activity start (cold start), skip scheduling here.
-                } catch (t: Throwable) { android.util.Log.w("MainApplication", "onActivityStarted error: $t") }
+                // [FIX] UMP 동의는 SplashScreen/Main 등 화면 쪽에서만 호출하도록 위임
+                // 여기서는 중복 gatherConsent를 절대 호출하지 않음
             }
             override fun onActivityResumed(activity: Activity) {}
             override fun onActivityPaused(activity: Activity) {}

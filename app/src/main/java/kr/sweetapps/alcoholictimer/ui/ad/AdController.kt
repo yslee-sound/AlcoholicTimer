@@ -1,24 +1,5 @@
 package kr.sweetapps.alcoholictimer.ui.ad
 
-/*
- * ì£¼ì˜(IMPORTANT):
- * ???Œì¼?€ ???¤í”„??App Open / ?„ì²´?”ë©´) ê´‘ê³ ?€ ë°°ë„ˆ ê´‘ê³  ê°„ì˜ ?íƒœ ?™ê¸°?”ë? ?´ë‹¹?©ë‹ˆ??
- * ë³€ê²½ì‚¬??ë°˜ì˜??: setFullScreenAdShowing(false)ê°€ ?¸ì¶œ?˜ì–´ ?„ì²´?”ë©´ ê´‘ê³ ê°€ ?«í ??
- * ?ë™?¼ë¡œ triggerBannerReload()ë¥??¸ì¶œ??ë°°ë„ˆ ?¬ë¡œ?©ì„ ?¸ë¦¬ê±°í•˜?„ë¡ êµ¬í˜„?˜ì–´ ?ˆìŠµ?ˆë‹¤.
- *
- * ë¬¸ì œ ?¬ë°œ ë°©ì????ˆë‚´:
- *  - ?ì¸: ê³¼ê±°?ëŠ” ?±ì˜¤?„ë‹(?„ì²´?”ë©´) ê´‘ê³ ê°€ ?«í???ë°°ë„ˆ ì»´í¬?ŒíŠ¸??"?¤ì‹œ ë¡œë“œ?˜ë¼"??? í˜¸ê°€ ?„ë‹¬?˜ì? ?Šì•„
- *    ë°°ë„ˆê°€ ê°±ì‹ ?˜ì? ?ŠëŠ” ë¬¸ì œê°€ ?ˆì—ˆ?µë‹ˆ??
- *  - ì§€ê¸ˆì˜ ?™ì‘: ?„ì²´?”ë©´??ë³´ì´?¤ê? ?«íˆ???œê°„??ê°ì????´ë??ìœ¼ë¡?bannerReloadTick??ê°±ì‹ ?˜ë?ë¡?
- *    ?¸ì¶œ ?„ë½?¼ë¡œ ?¸í•œ ë¹?ë°°ë„ˆ ë¬¸ì œ ê°€?¥ì„±???¬ê²Œ ì¤„ì–´?¤ì—ˆ?µë‹ˆ??
- *  - ê¶Œê³ : ?ë™ ?¸ì¶œ???ìš©?˜ì—ˆ?”ë¼?? ?????¤ë¥¸ ê²½ë¡œ?ì„œ ë°°ë„ˆ/ì»¨ì…‰??ë³€?”ê? ë°œìƒ?˜ë©´
- *    ëª…ì‹œ?ìœ¼ë¡?AdController.triggerBannerReload()ë¥??¸ì¶œ?˜ëŠ” ê²ƒì´ ?ˆì „?©ë‹ˆ??
- *  - ë°°ë„ˆ ì¸?êµ¬í˜„: ë°°ë„ˆ ë·?ì»´í¬?ŒíŠ¸??AdController.bannerReloadTick ë¥??µì?ë¹™í•˜??ê°?ë³€ê²???reloadë¥??œë„?´ì•¼ ?©ë‹ˆ??
- *
- * ?”ì•½: setFullScreenAdShowing(false)?ì„œ ?ë™ ?¸ë¦¬ê±°ê? ì¶”ê??˜ì—ˆ?¼ë‹ˆ ?°ì„  ???™ì‘??? ë¢°?˜ë˜,
- * ?¸ë? ?íƒœ ë³€ê²??œì—??triggerBannerReload() ?¸ì¶œ??ê¶Œì¥?©ë‹ˆ??
- */
-
 import android.content.Context
 import android.util.Log
 import androidx.core.content.edit
@@ -85,11 +66,9 @@ object AdController {
     private val fullScreenAdShowing = AtomicBoolean(false)
     private val fullScreenListeners = mutableSetOf<(Boolean) -> Unit>()
 
-    // ê¸°ë¡: ?„ì²´?”ë©´(Interstitial/AppOpen ?? ê´‘ê³ ê°€ ?«íŒ ë§ˆì?ë§??œê°
     @Volatile
     private var lastFullScreenDismissedAt: Long = 0L
 
-    // ?¸ë??ì„œ ë§ˆì?ë§??„ì²´?”ë©´ ì¢…ë£Œ ?œê°??ì§ˆì˜?????ˆë„ë¡?getter ?œê³µ
     fun getLastFullScreenDismissedAt(): Long = lastFullScreenDismissedAt
 
     // Ticker to request banner components to retry loading (increment when reload needed)
@@ -115,12 +94,6 @@ object AdController {
         }
     }
 
-    /**
-     * ë°°ë„ˆ ê´‘ê³ ë¥?ê°•ì œë¡?ë³´ì´?„ë¡ ë³µêµ¬
-     * - bannerForceHidden??falseë¡??¤ì •
-     * - bannerReloadTick??ê°±ì‹ ?˜ì—¬ ë°°ë„ˆ ?¬ë¡œ???¸ë¦¬ê±?
-     * ?”§ ?¬ë°œ ë°©ì?: AppOpen/Interstitial ì¢…ë£Œ ??ë°˜ë“œ???¸ì¶œ
-     */
     fun ensureBannerVisible(reason: String? = null) {
         try {
             Log.d(TAG, "ensureBannerVisible reason=$reason (current: forceHidden=${_bannerForceHidden.value}, fullScreen=${_fullScreenAdShowingFlow.value})")
@@ -129,24 +102,14 @@ object AdController {
         try { triggerBannerReload() } catch (_: Throwable) {}
     }
 
-    /**
-     * ?š¨ AdMob ?•ì±… ì¤€?? ?„ë©´ê´‘ê³ ?€ ë°°ë„ˆ ê´‘ê³  ê²¹ì¹¨ ë°©ì?
-     *
-     * ë°°ë„ˆë¥?ì¦‰ì‹œ ?¨ê? (StateFlow + ëª¨ë“  ë¦¬ìŠ¤??ì¦‰ì‹œ ?¸ì¶œ)
-     * - show() ?¸ì¶œ ì§ì „???¬ìš©?˜ì—¬ ë°°ë„ˆê°€ ?„ë©´ê´‘ê³  ?„ì— ?˜í??˜ì? ?Šë„ë¡?ë³´ì¥
-     *
-     * @param reason ?¨ê¸°???´ìœ  (ë¡œê·¸??
-     */
     fun hideBannerImmediately(reason: String? = null) {
         try {
             Log.d(TAG, "hideBannerImmediately reason=$reason - forcing GONE immediately")
         } catch (_: Throwable) {}
 
-        // StateFlow ì¦‰ì‹œ ?…ë°?´íŠ¸
         try { _bannerForceHidden.value = true } catch (_: Throwable) {}
         try { _fullScreenAdShowingFlow.value = true } catch (_: Throwable) {}
 
-        // ëª¨ë“  ë¦¬ìŠ¤??ì¦‰ì‹œ ?™ê¸° ?¸ì¶œ (Compose recomposition ?¸ë¦¬ê±?
         val forceHiddenCopy: List<(Boolean) -> Unit>
         synchronized(bannerForceHiddenListeners) { forceHiddenCopy = bannerForceHiddenListeners.toList() }
         for (l in forceHiddenCopy) {
@@ -189,7 +152,6 @@ object AdController {
         } catch (_: Throwable) {
         }
 
-        // 1ï¸âƒ£ ì¦‰ì‹œ ë¡œì»¬ ìºì‹œ?ì„œ ?•ì±… ?½ê¸° (?™ê¸°, ?¤íŠ¸?Œí¬ ?†ìŒ)
         val repo = AdPolicyRepository(context.packageName, ctx = context.applicationContext)
         val cachedPolicy = try {
             repo.getCachedPolicySync()
@@ -198,32 +160,16 @@ object AdController {
         }
 
         if (cachedPolicy != null) {
-            // ìºì‹œ???•ì±…???ˆìœ¼ë©?ì¦‰ì‹œ ?ìš©
             currentPolicy = cachedPolicy
             Log.d(TAG, "initialize: loaded cached policy immediately -> appOpen=${cachedPolicy.adAppOpenEnabled} banner=${cachedPolicy.adBannerEnabled}")
-            // ì¦‰ì‹œ ë¦¬ìŠ¤?ˆì—ê²??Œë¦¼
             notifyPolicyListeners()
         } else {
-            // ìºì‹œê°€ ?†ìœ¼ë©?ê¸°ë³¸ê°??¬ìš© (Debug/Release ëª¨ë‘ DEFAULT_FALLBACK)
             currentPolicy = AdPolicy.DEFAULT_FALLBACK
             Log.d(TAG, "initialize: no cache found, using DEFAULT_FALLBACK -> appOpen=${AdPolicy.DEFAULT_FALLBACK.adAppOpenEnabled} banner=${AdPolicy.DEFAULT_FALLBACK.adBannerEnabled}")
-            // ì¦‰ì‹œ ë¦¬ìŠ¤?ˆì—ê²??Œë¦¼
             notifyPolicyListeners()
         }
 
-        val mainApp = context.applicationContext as MainApplication
-        val umpManager = mainApp.umpConsentManager
-
-        CoroutineScope(Dispatchers.IO).launch {
-            umpManager.isPersonalizedAdsAllowed.collect { isAllowed ->
-                if (_isPersonalizedAdsAllowed.value != isAllowed) {
-                    _isPersonalizedAdsAllowed.value = isAllowed
-                    triggerBannerReload() // NPA status change requires ad reload
-                }
-            }
-        }
-
-        // 2ï¸âƒ£ ë°±ê·¸?¼ìš´?œì—??ìµœì‹  ?•ì±… ê°€?¸ì˜¤ê¸?(ë¹„ë™ê¸? ?¤íŠ¸?Œí¬)
+        // 2ï¸âƒ£ ë°±ê·¸ë¼ìš´ë“œì—ì„œ ìµœì‹  ì •ì±… ê°€ì ¸ì˜¤ê¸° (ë¹„ë™ê¸° ë„¤íŠ¸ì›Œí¬)
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 Log.d(TAG, "initialize: fetching latest policy from Supabase in background")
@@ -242,10 +188,8 @@ object AdController {
                         "initialize: background fetch complete -> appOpen=${policy.adAppOpenEnabled} banner=${policy.adBannerEnabled} (changed=$policyChanged)"
                     )
 
-                    // ?•ì±…??ë³€ê²½ë˜?ˆìœ¼ë©?ë¦¬ìŠ¤?ˆì—ê²??Œë¦¼
                     if (policyChanged) {
                         notifyPolicyListeners()
-                        // ë°°ë„ˆ ?•ì±…??ë³€ê²½ë˜?ˆìœ¼ë©?ë¦¬ë¡œ???¸ë¦¬ê±?
                         if (policy.adBannerEnabled) {
                             triggerBannerReload()
                         }
@@ -347,7 +291,6 @@ object AdController {
         } catch (_: Throwable) {
         }
 
-        // ?”§ ?¬ë°œ ë°©ì?: FullScreen???«íˆë©?ë°°ë„ˆë¥??•ì‹¤?˜ê²Œ ë³µêµ¬
         if (previous && !showing) {
             try {
                 // record dismissal time for cross-ad suppression logic
@@ -356,7 +299,6 @@ object AdController {
             }
             try {
                 Log.d(TAG, "setFullScreenAdShowing: false -> triggering banner restore")
-                // ë°°ë„ˆ ê°•ì œ ë³µêµ¬ (forceHidden ?´ì œ + ?¬ë¡œ???¸ë¦¬ê±?
                 ensureBannerVisible("fullScreenDismissed")
             } catch (_: Throwable) {
             }
@@ -501,8 +443,6 @@ object AdController {
             val policy = currentPolicy
             // Fail-safe: if policy not yet fetched, do NOT show app-open
             if (policy == null) {
-                // ê°œë°œ ?¸ì˜: Debug ë¹Œë“œ?ì„œ???ê²© ?•ì±…???†ì„ ?Œë„ ?±ì˜¤?ˆì„ ?ˆìš©?˜ì—¬
-                // ë¡œì»¬ ?ŒìŠ¤???”ë²„ê¹???ê´‘ê³  ?ë¦„???•ì¸?????ˆë„ë¡??©ë‹ˆ??
                 try {
                     val cls = Class.forName(context.packageName + ".BuildConfig")
                     val f = cls.getDeclaredField("DEBUG")

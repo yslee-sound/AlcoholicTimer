@@ -49,8 +49,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import kr.sweetapps.alcoholictimer.MainApplication
 import android.util.Log
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.util.constants.Constants
@@ -123,14 +121,6 @@ fun SettingsScreen(
 
     val safePadding = LocalSafeContentPadding.current
     val scrollState = rememberScrollState()
-
-    val application = context.applicationContext as MainApplication
-    val umpConsentManager = application.umpConsentManager
-
-    // UMP consent manager available as `umpConsentManager`. If you need reactive
-    // consent state in this screen later, re-enable collection from
-    // `umpConsentManager.isPrivacyOptionsRequired` / `isPersonalizedAdsAllowed`.
-
 
     // 전체 바탕 흰색 + 스크롤 가능한 목록형 레이아웃
     Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
@@ -243,54 +233,6 @@ fun SettingsScreen(
                         contentDescription = null,
                         modifier = Modifier.size(20.dp)
                     )
-                }
-            }
-            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
-
-            // [NEW] 개인정보 설정 변경 (Privacy Options) - Google UMP 표준 구현
-            val activity = context as? android.app.Activity
-            if (activity != null) {
-                SettingsSection(
-                    title = "개인정보 및 광고",
-                    titleColor = Color.Black
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .clickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() }
-                            ) {
-                                // [FIX] UMP Privacy Options Form 표시 (Google 권장 방식)
-                                Log.d("SettingsScreen", "개인정보 설정 변경 클릭 -> UMP Privacy Form 표시")
-                                try {
-                                    umpConsentManager.showPrivacyOptionsForm(activity) { error ->
-                                        if (error != null) {
-                                            Log.e("SettingsScreen", "Privacy Form 표시 실패: $error")
-                                        } else {
-                                            Log.d("SettingsScreen", "Privacy Form 정상 표시 완료")
-                                        }
-                                    }
-                                } catch (e: Exception) {
-                                    Log.e("SettingsScreen", "Privacy Form 호출 중 예외 발생: ${e.message}")
-                                }
-                            }
-                            .padding(horizontal = 20.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "개인정보 설정 변경",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = colorResource(id = R.color.color_text_primary_dark)
-                        )
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_caret_right),
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
                 }
             }
 

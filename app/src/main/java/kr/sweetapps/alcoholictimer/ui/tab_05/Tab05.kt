@@ -28,14 +28,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -51,11 +47,9 @@ import kr.sweetapps.alcoholictimer.MainApplication
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import kr.sweetapps.alcoholictimer.ui.theme.LocalDimens
-import kr.sweetapps.alcoholictimer.ui.tab_04.SettingsMenuWithSwitch
 import kr.sweetapps.alcoholictimer.ui.tab_04.SimpleAboutRow
 import kr.sweetapps.alcoholictimer.ui.tab_05.components.CustomerFeedbackBottomSheet
 import kr.sweetapps.alcoholictimer.ui.tab_05.viewmodel.Tab05ViewModel
-import kr.sweetapps.alcoholictimer.ui.main.Screen
 import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue  // [NEW] 메인 UI 색상
 
 private fun ContextToActivity(context: android.content.Context): Activity? {
@@ -97,8 +91,7 @@ fun AboutScreen(
     val nickname = uiState.nickname
     val showCustomerFeedbackSheet = uiState.showCustomerFeedbackSheet
 
-    // preview values or real state from UMP
-    val isPersonalizedAdsAllowed: Boolean
+    // [FIX] isPersonalizedAdsAllowed 제거 - Switch를 버튼으로 변경했으므로 checked 상태 불필요
     val versionInfo: String
     val onPrivacyClick: () -> Unit
     val onLicenseClick: () -> Unit
@@ -107,7 +100,6 @@ fun AboutScreen(
     val showDebugMenu: Boolean
 
     if (isInPreview) {
-        isPersonalizedAdsAllowed = true
         versionInfo = "1.0.0-preview"
         onPrivacyClick = {}
         onLicenseClick = {}
@@ -118,10 +110,7 @@ fun AboutScreen(
         val app = context.applicationContext as? MainApplication
         val umpConsentManager = app?.umpConsentManager
 
-        val isPrivacyOptionsRequiredState by umpConsentManager?.isPrivacyOptionsRequired?.collectAsState(initial = false) ?: remember { mutableStateOf(false) }
-        val isPersonalizedAdsAllowedState by umpConsentManager?.isPersonalizedAdsAllowed?.collectAsState(initial = false) ?: remember { mutableStateOf(false) }
-
-        isPersonalizedAdsAllowed = isPersonalizedAdsAllowedState
+        // [FIX] isPersonalizedAdsAllowed 관련 코드 제거 - 더 이상 사용하지 않음
         // Avoid double "-debug-debug" if VERSION_NAME already contains debug suffix
         versionInfo = if (BuildConfig.DEBUG) {
             val v = BuildConfig.VERSION_NAME
@@ -133,12 +122,26 @@ fun AboutScreen(
             val activity = ContextToActivity(context)
             if (activity != null && umpConsentManager != null) {
                 try {
-                    umpConsentManager.showPrivacyOptionsForm(activity) { exception ->
-                        // showPrivacyOptionsForm provides a non-null Exception on error, show it to user
-                        Toast.makeText(context, exception.toString(), Toast.LENGTH_LONG).show()
+                    umpConsentManager.showPrivacyOptionsForm(activity) { error ->
+                        // [FIX] 에러가 있을 때만 Toast 표시 (정상 완료 시 null이므로 표시하지 않음)
+                        if (error != null) {
+                            Log.e("AboutScreen", "Privacy Options Form 표시 실패: $error")
+                            Toast.makeText(
+                                context,
+                                "개인정보 설정을 불러올 수 없습니다.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            Log.d("AboutScreen", "Privacy Options Form 정상 표시 완료")
+                        }
                     }
                 } catch (t: Throwable) {
-                    Log.e("AboutScreen", "showPrivacyOptionsForm failed", t)
+                    Log.e("AboutScreen", "showPrivacyOptionsForm 호출 실패", t)
+                    Toast.makeText(
+                        context,
+                        "개인정보 설정을 불러올 수 없습니다.",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             } else {
                 Log.w("AboutScreen", "Activity or umpConsentManager null; cannot show privacy options")
@@ -349,11 +352,19 @@ fun AboutScreen(
             })
             Box(modifier = Modifier.fillMaxWidth().height(dims.divider.thin).background(dims.divider.lightColor))
 
-            // Personalized Ads (switch) - always visible so user can open privacy options at any time
-            SettingsMenuWithSwitch(
-                title = "Personalized Ads",
-                checked = isPersonalizedAdsAllowed,
-                onClick = onAdsClick
+            // [FIX] Personalized Ads - Switch에서 Button 형태로 변경 (Google UMP 정책 준수)
+            // 사용자가 클릭하면 UMP Privacy Options Form이 표시됨
+            SimpleAboutRow(
+                title = "Privacy Options",  // 더 명확한 표현으로 변경
+                onClick = onAdsClick,
+                trailing = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_caret_right),
+                        contentDescription = null,
+                        tint = Color(0xFF9CA3AF),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             )
             Box(modifier = Modifier.fillMaxWidth().height(dims.divider.thin).background(dims.divider.lightColor))
 
