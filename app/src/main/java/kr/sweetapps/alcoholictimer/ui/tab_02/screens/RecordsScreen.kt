@@ -682,8 +682,8 @@ private fun StatisticItem(
                     style = scaledLabelStyle,
                     color = Color.White,
                     textAlign = TextAlign.Center,
-                    maxLines = 1, // [개선] 한 줄로 제한
-                    overflow = TextOverflow.Ellipsis // [개선] 넘침 방지
+                    maxLines = 2, // [FIX] 다국어 지원: 최대 2줄까지 허용하여 텍스트 잘림 방지
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }

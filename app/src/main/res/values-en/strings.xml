@@ -152,7 +152,7 @@
 
     <!-- Statistics Card Labels -->
     <string name="stats_calories_reduced">Calories Cut</string>
-    <string name="stats_drinks_resisted">Drinks Resisted</string>
+    <string name="stats_drinks_resisted">Drinks Passed</string>
     <string name="stats_money_saved">Money Saved</string>
     <string name="stats_total_days">Total Days</string>
     <string name="stats_unit_kcal">kcal</string>
