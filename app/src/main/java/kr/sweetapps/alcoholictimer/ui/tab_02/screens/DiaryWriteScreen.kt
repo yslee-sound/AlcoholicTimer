@@ -107,9 +107,17 @@ fun DiaryWriteScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) } // [NEW] 날짜 선택 다이얼로그 상태
 
-    // 날짜 포맷
-    val dateFormat = remember { SimpleDateFormat("yyyy년 M월 d일 (E)", Locale.KOREAN) }
-    val timeFormat = remember { SimpleDateFormat("a h:mm", Locale.KOREAN) }
+    // 날짜 포맷 (시스템 로케일에 따라 자동 선택)
+    val currentLocale = Locale.getDefault()
+    val dateFormat = remember(currentLocale) {
+        when (currentLocale.language) {
+            "ko" -> SimpleDateFormat("yyyy년 M월 d일 (E)", currentLocale)
+            else -> SimpleDateFormat("MMM d, yyyy (E)", currentLocale)
+        }
+    }
+    val timeFormat = remember(currentLocale) {
+        SimpleDateFormat("a h:mm", currentLocale)
+    }
 
     // [FIX] Scaffold 패턴 적용: TopBar 고정, Content 스크롤 분리
     Scaffold(
@@ -295,12 +303,12 @@ fun DiaryWriteScreen(
                         showDatePicker = false
                     }
                 ) {
-                    Text("확인")
+                    Text(stringResource(R.string.dialog_ok))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDatePicker = false }) {
-                    Text("취소")
+                    Text(stringResource(R.string.dialog_cancel))
                 }
             }
         ) {

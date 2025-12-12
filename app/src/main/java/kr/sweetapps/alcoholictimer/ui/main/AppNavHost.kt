@@ -151,9 +151,13 @@ fun AppNavHost(
 
         // [NEW] 타이머 완료 화면
         composable(Screen.Finished.route) {
-            // [REMOVED] ViewModel 제거 - pending route 로직 불필요
+            // [FIX] SharedPreferences에서 타이머 완료 상태 확인
+            val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+            val isTimerCompleted = sharedPref.getBoolean(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_TIMER_COMPLETED, true)
 
+            // [REFACTORED] isSuccess 파라미터 전달: true=목표달성, false=중도포기
             kr.sweetapps.alcoholictimer.ui.tab_01.screens.FinishedScreen(
+                isSuccess = isTimerCompleted,
                 onResultCheck = {
                     // [FIX] Reset timer completion state when user checks result
                     // This prevents FinishedScreen from showing again when returning to Tab 1
@@ -271,8 +275,9 @@ fun AppNavHost(
         composable(Screen.Quit.route) {
             QuitScreenComposable(
                 onQuitConfirmed = {
-                    navController.navigate(Screen.Start.route) {
-                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                    // [FIX] 포기 확인 시 FinishedScreen(isSuccess=false)으로 이동
+                    navController.navigate(Screen.Finished.route) {
+                        popUpTo(Screen.Run.route) { inclusive = true }
                         launchSingleTop = true
                     }
                 },
