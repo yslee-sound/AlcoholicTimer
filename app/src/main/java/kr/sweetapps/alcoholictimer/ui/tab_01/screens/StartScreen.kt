@@ -224,7 +224,7 @@ fun StartScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = stringResource(R.string.target_days_title),
+                        text = stringResource(R.string.target_days_title_set),
                         style = MaterialTheme.typography.titleLarge,
                         color = colorResource(id = R.color.color_title_primary),
                         modifier = Modifier.padding(bottom = START_CARD_TITLE_BOTTOM)
@@ -362,12 +362,12 @@ private fun DurationBadgeRow(
     onDaysSelected: (Int) -> Unit
 ) {
     val presets = listOf(
-        "딱 하루만" to 1,
-        "작심삼일" to 3,
-        "1주 챌린지" to 7,
-        "21일 습관 만들기" to 21,
-        "한 달의 기적" to 30,
-        "100일의 약속" to 100
+        stringResource(R.string.badge_one_day) to 1,
+        stringResource(R.string.badge_three_days) to 3,
+        stringResource(R.string.badge_one_week) to 7,
+        stringResource(R.string.badge_21_days) to 21,
+        stringResource(R.string.badge_one_month) to 30,
+        stringResource(R.string.badge_100_days) to 100
     )
 
     LazyRow(

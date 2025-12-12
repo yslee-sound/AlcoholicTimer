@@ -145,6 +145,22 @@
     <string name="records_day_unit">d</string>
     <string name="records_percent_unit">%</string>
 
+    <!-- Statistics Card Labels -->
+    <string name="stats_calories_reduced">Calories Cut</string>
+    <string name="stats_drinks_resisted">Drinks Resisted</string>
+    <string name="stats_money_saved">Money Saved</string>
+    <string name="stats_total_days">Total Days</string>
+    <string name="stats_unit_kcal">kcal</string>
+    <string name="stats_unit_bottles">bottle(s)</string>
+    <string name="stats_unit_won">KRW</string>
+    <string name="stats_unit_days">d</string>
+
+    <!-- Diary Section -->
+    <string name="diary_recent_title">Recent Sobriety Diary</string>
+    <string name="diary_view_all">View All Entries</string>
+    <string name="diary_no_entries">No diary entries yet</string>
+    <string name="diary_write_prompt">Tap the + button below\nto write your first entry</string>
+
     <!-- Level names - [Redesigned] 11-level system (2025-12-03) -->
     <string name="level_0">Alcohol Stop</string>              <!-- Lv.1: 1~3 days -->
     <string name="level_1">3-Day Cut Passed</string>          <!-- Lv.2: 4~7 days -->
@@ -172,8 +188,18 @@
 
     <!-- Target Days Setting -->
     <string name="target_days_title">Set Target Period</string>
+    <string name="target_days_title_set">Set Target Period</string>
     <string name="target_days_unit">d</string>
+    <string name="target_days_unit_d">d</string>
     <string name="target_days_hint">Please select your sobriety goal period</string>
+
+    <!-- Duration Badge Labels -->
+    <string name="badge_one_day">Just 1 Day</string>
+    <string name="badge_three_days">3 Days Trial</string>
+    <string name="badge_one_week">1 Week Challenge</string>
+    <string name="badge_21_days">21-Day Habit</string>
+    <string name="badge_one_month">One-Month Miracle</string>
+    <string name="badge_100_days">100-Day Promise</string>
 
     <!-- Target Days Picker -->
     <string name="target_days_picker_title">Select Target Days</string>
@@ -299,4 +325,64 @@
     <string name="dialog_view_details">View details</string>
     <string name="dialog_close">Close</string>
     <string name="emergency_title_default">Emergency Notice</string>
+
+    <!-- Motivational Quotes -->
+    <string-array name="motivational_quotes">
+        <item>Patience weighs a few grams, but regret weighs tons.</item>
+        <item>Habits start as spider webs but become iron chains.</item>
+        <item>The surest way to love yourself is through self-control.</item>
+        <item>Today\'s restraint creates tomorrow\'s healthy, clear mind.</item>
+        <item>When you want to give up, remember why you started.</item>
+        <item>Give today as a gift to your future self without regret.</item>
+        <item>Remember the feeling of a clear morning.</item>
+        <item>Tomorrow morning\'s you will thank tonight\'s you.</item>
+        <item>Empty the glass, fill your wallet and health.</item>
+        <item>If you need alcohol to live, change your life first.</item>
+        <item>True freedom isn\'t found inside a bottle.</item>
+        <item>Today\'s drink is tomorrow\'s energy traded away.</item>
+        <item>Drunk courage is fake, sober patience is real.</item>
+        <item>One mistake can topple a tower built with care. Stay vigilant.</item>
+        <item>Sobriety isn\'t endurance; it\'s letting go of bad habits.</item>
+        <item>One drink resisted today creates a miracle in a year.</item>
+        <item>Morning sunlight with a clear mind is sweeter than anything.</item>
+        <item>Only those who control themselves become masters of their lives.</item>
+        <item>Current pain is the cocoon stage before becoming a butterfly.</item>
+        <item>Resist one glass of temptation, prevent a thousand regrets.</item>
+        <item>Don\'t cover problems with alcohol. They\'ll be bigger when you sober up.</item>
+        <item>Every time you refuse a drink, your self-esteem goes up one point.</item>
+        <item>If you can\'t drink moderately, not drinking at all is the answer.</item>
+        <item>Choose a vivid today over a blacked-out yesterday.</item>
+        <item>Not drinking today makes you stronger tomorrow.</item>
+        <item>Sobriety isn\'t giving up. It\'s a wise choice for a better life.</item>
+        <item>Drinking to blame the past only ruins your future.</item>
+        <item>Change starts not "later" but "right now" when you put the glass down.</item>
+        <item>The best gift for your family is a healthy you.</item>
+        <item>True rest isn\'t passing out drunk, but sleeping with a clear mind.</item>
+        <item>Your potential is too valuable to be soaked in alcohol.</item>
+        <item>Successful people\'s mornings don\'t start with hangovers.</item>
+        <item>You\'re charming and fun enough without alcohol.</item>
+        <item>Tonight\'s restraint returns as tomorrow morning\'s self-respect.</item>
+        <item>Instead of filling glasses, fill your dreams and goals.</item>
+        <item>Welcome vivid, bright mornings over unmemorable nights.</item>
+        <item>Alcohol temporarily forgets worries but offers no solutions.</item>
+        <item>Not drinking isn\'t losing; it\'s gaining clear time.</item>
+        <item>Stopping now is the fastest recovery.</item>
+        <item>Enjoy the leisure an alcohol-free evening brings.</item>
+        <item>You become stronger with each temptation you overcome.</item>
+        <item>You\'re already strong without leaning on alcohol.</item>
+        <item>Invest in yourself instead of drinking time away.</item>
+        <item>Facing reality clearly grows you more than blurry escapism.</item>
+        <item>Your children will remember your warm presence, not alcohol smell.</item>
+        <item>Without alcohol, days feel longer than 24 hours.</item>
+        <item>Don\'t sacrifice tomorrow\'s condition for momentary pleasure.</item>
+        <item>Keeping promises to yourself is the greatest success.</item>
+        <item>With clear eyes, opportunities become more visible.</item>
+        <item>Refusing alcohol isn\'t rudeness; it\'s confident self-protection.</item>
+        <item>True rest starts only without alcohol.</item>
+        <item>You who endured today are already better than yesterday.</item>
+        <item>Create gem-like memories instead of shattered glass fragments.</item>
+        <item>Money wasted on drinks becomes your future assets.</item>
+        <item>Don\'t put your future in a wobbling glass.</item>
+        <item>Sobriety isn\'t endless endurance; it\'s the start of a new life.</item>
+    </string-array>
 </resources>

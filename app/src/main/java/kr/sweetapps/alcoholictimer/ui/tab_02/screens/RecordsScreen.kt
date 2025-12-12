@@ -444,8 +444,8 @@ private fun PeriodStatisticsSection(
 
                     // [NEW] 좌측: 줄인 칼로리 - 밝은 살구색/오렌지 (칼로리 연소 상징)
                     StatisticItem(
-                        title = "줄인 칼로리",
-                        value = "$kcalFormatted kcal",
+                        title = stringResource(R.string.stats_calories_reduced),
+                        value = "$kcalFormatted ${stringResource(R.string.stats_unit_kcal)}",
                         color = MaterialTheme.colorScheme.tertiary,
                         valueColor = Color(0xFFFFAB91), // 밝은 살구색
                         modifier = Modifier.weight(1f),
@@ -455,8 +455,8 @@ private fun PeriodStatisticsSection(
 
                     // [NEW] 중앙: 참아낸 술 - 밝은 시안/하늘색 (청량감/액체 상징)
                     StatisticItem(
-                        title = "참아낸 술",
-                        value = "$bottlesText 병",
+                        title = stringResource(R.string.stats_drinks_resisted),
+                        value = "$bottlesText ${stringResource(R.string.stats_unit_bottles)}",
                         color = MaterialTheme.colorScheme.primary,
                         valueColor = Color(0xFF80DEEA), // 밝은 시안
                         modifier = Modifier.weight(1f),
@@ -466,8 +466,8 @@ private fun PeriodStatisticsSection(
 
                     // [NEW] 우측: 지켜낸 돈 - 밝은 네온 민트색 (돈/수익 상징)
                     StatisticItem(
-                        title = "지켜낸 돈",
-                        value = "$savedMoneyFormatted 원",
+                        title = stringResource(R.string.stats_money_saved),
+                        value = "$savedMoneyFormatted ${stringResource(R.string.stats_unit_won)}",
                         color = MaterialTheme.colorScheme.error,
                         valueColor = Color(0xFF69F0AE), // 밝은 네온 민트
                         modifier = Modifier.weight(1f),
@@ -486,7 +486,7 @@ private fun PeriodStatisticsSection(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "총 금주일",
+                        text = stringResource(R.string.stats_total_days),
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -708,7 +708,7 @@ private fun RecentDiarySection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "최근 금주 일기",
+                text = stringResource(R.string.diary_recent_title),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -717,7 +717,7 @@ private fun RecentDiarySection(
             IconButton(onClick = onNavigateToAllDiaries) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_caret_right),
-                    contentDescription = "전체 일기 보기",
+                    contentDescription = stringResource(R.string.diary_view_all),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
@@ -780,7 +780,7 @@ private fun DiaryEmptyState() {
 
         // 제목
         Text(
-            text = "아직 작성된 일기가 없어요",
+            text = stringResource(R.string.diary_no_entries),
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = Color(0xFF2D3748),
             textAlign = TextAlign.Center
@@ -790,7 +790,7 @@ private fun DiaryEmptyState() {
 
         // 설명
         Text(
-            text = "우측 하단 + 버튼을 눌러\n첫 일기를 작성해보세요",
+            text = stringResource(R.string.diary_write_prompt),
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF64748B),
             textAlign = TextAlign.Center,

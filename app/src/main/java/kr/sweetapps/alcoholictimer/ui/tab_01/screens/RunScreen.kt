@@ -480,9 +480,9 @@ fun RunScreenComposable(
                             }
                         }
 
-                        // [NEW] 응원 문구 (프로그레스 카드 바깥쪽 하단) - 간격 완전 제거
+                        // [NEW] 응원 문구 (프로그레스 카드 바깥쪽 하단) - 간격 완전 제거 - 다국어 지원
                         val motivationalQuote = rememberSaveable {
-                            kr.sweetapps.alcoholictimer.data.model.MotivationalQuotes.getRandomQuote()
+                            kr.sweetapps.alcoholictimer.data.model.MotivationalQuotes.getRandomQuote(context)
                         }
 
                         Text(
