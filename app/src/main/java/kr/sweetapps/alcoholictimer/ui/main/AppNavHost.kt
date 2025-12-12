@@ -565,17 +565,23 @@ fun AppNavHost(
                     showTopBar = true,        // 타이틀바 표시 (결과 모드)
                     isResultMode = true,      // 결과 모드 활성화
                     onBack = {
-                        // [FIX] 뒤로 가기 -> 먼저 화면 이동 후 상태 정리
-                        android.util.Log.d("NavGraph", "[Result] 뒤로 가기 -> popBackStack 먼저 실행")
-                        navController.popBackStack()
+                        // [FIX] 뒤로 가기 -> Success/GiveUp 화면을 건너뛰고 Start 화면으로 직접 이동
+                        android.util.Log.d("NavGraph", "[Result] 뒤로 가기 -> Start 화면으로 이동 (Success/GiveUp 스킵)")
                         tab02ViewModel.consumePendingDetailRoute()
+                        navController.navigate(Screen.Start.route) {
+                            popUpTo(Screen.Start.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
                     },
                     onDeleted = {
                         recordsRefreshCounter = recordsRefreshCounter + 1
-                        // 삭제 후에도 먼저 popBackStack 실행 후 pendingRoute clear
-                        android.util.Log.d("NavGraph", "[Result] 삭제 완료 -> popBackStack 후 pendingRoute clear")
-                        navController.popBackStack()
+                        // [FIX] 삭제 후 Success/GiveUp 화면을 건너뛰고 Start 화면으로 직접 이동
+                        android.util.Log.d("NavGraph", "[Result] 삭제 완료 -> Start 화면으로 이동 (Success/GiveUp 스킵)")
                         tab02ViewModel.consumePendingDetailRoute()
+                        navController.navigate(Screen.Start.route) {
+                            popUpTo(Screen.Start.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
                     },
                     onNavigateToHome = {
                         // [NEW] 다시 시작하기 버튼 -> Tab 1 (Start) 홈으로
