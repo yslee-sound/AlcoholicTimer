@@ -20,11 +20,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.DiaryViewModel
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -117,8 +119,8 @@ fun DiaryWriteScreen(
             BackTopBar(
                 title = when {
                     isViewMode -> dateFormat.format(selectedDate.time)
-                    diaryId != null -> "일기 수정"
-                    else -> "일기 쓰기"
+                    diaryId != null -> stringResource(R.string.diary_edit_title)
+                    else -> stringResource(R.string.diary_write_title)
                 },
                 onBack = onDismiss,
                 trailingContent = {
@@ -139,14 +141,14 @@ fun DiaryWriteScreen(
                                     onDismissRequest = { showMenu = false }
                                 ) {
                                     DropdownMenuItem(
-                                        text = { Text("수정하기") },
+                                        text = { Text(stringResource(R.string.diary_menu_edit)) },
                                         onClick = {
                                             showMenu = false
                                             isEditMode = true
                                         }
                                     )
                                     DropdownMenuItem(
-                                        text = { Text("삭제하기") },
+                                        text = { Text(stringResource(R.string.diary_menu_delete)) },
                                         onClick = {
                                             showMenu = false
                                             showDeleteDialog = true
@@ -185,7 +187,7 @@ fun DiaryWriteScreen(
                                 enabled = true // [FIX] 갈망도는 기본값이 있으므로 항상 활성화
                             ) {
                                 Text(
-                                    "저장",
+                                    stringResource(R.string.diary_save_button),
                                     color = Color(0xFF2D3748),
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Medium
@@ -240,8 +242,8 @@ fun DiaryWriteScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("일기 삭제") },
-            text = { Text("정말 이 일기를 삭제하시겠습니까?") },
+            title = { Text(stringResource(R.string.diary_delete_confirm_title)) },
+            text = { Text(stringResource(R.string.diary_delete_confirm_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -254,12 +256,12 @@ fun DiaryWriteScreen(
                         }
                     }
                 ) {
-                    Text("삭제", color = Color(0xFFEF4444))
+                    Text(stringResource(R.string.diary_delete_confirm_button), color = Color(0xFFEF4444))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("취소")
+                    Text(stringResource(R.string.dialog_cancel))
                 }
             }
         )
@@ -360,13 +362,13 @@ private fun CravingSliderSection(
             .padding(20.dp)
     ) {
         Text(
-            "오늘 하루, 술 생각이 나셨나요?",
+            stringResource(R.string.diary_question_title),
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = Color(0xFF2D3748)
         )
 
         Text(
-            "필수 항목입니다",
+            stringResource(R.string.diary_question_required),
             style = MaterialTheme.typography.bodySmall,
             color = Color(0xFF94A3B8),
             modifier = Modifier.padding(top = 4.dp)
@@ -379,8 +381,8 @@ private fun CravingSliderSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("안남", style = MaterialTheme.typography.bodySmall, color = Color(0xFF64748B))
-            Text("아주 많이", style = MaterialTheme.typography.bodySmall, color = Color(0xFF64748B))
+            Text(stringResource(R.string.diary_craving_weak), style = MaterialTheme.typography.bodySmall, color = Color(0xFF64748B))
+            Text(stringResource(R.string.diary_craving_strong), style = MaterialTheme.typography.bodySmall, color = Color(0xFF64748B))
         }
 
         Slider(
@@ -399,7 +401,7 @@ private fun CravingSliderSection(
         )
 
         Text(
-            "욕구 수치: ${cravingLevel.toInt()}/10",
+            stringResource(R.string.diary_craving_label, cravingLevel.toInt()),
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF475569),
             modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -424,13 +426,13 @@ private fun DiaryTextInputSection(
             .padding(20.dp)
     ) {
         Text(
-            "오늘의 기록",
+            stringResource(R.string.diary_mood_title),
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = Color(0xFF2D3748)
         )
 
         Text(
-            "선택사항",
+            stringResource(R.string.diary_mood_optional),
             style = MaterialTheme.typography.bodySmall,
             color = Color(0xFF94A3B8),
             modifier = Modifier.padding(top = 4.dp)
@@ -443,7 +445,7 @@ private fun DiaryTextInputSection(
             onValueChange = onTextChanged,
             placeholder = {
                 Text(
-                    "오늘 가장 힘들었던 순간이나,\n나에게 해주고 싶은 칭찬을 적어보세요.",
+                    stringResource(R.string.diary_content_placeholder),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color(0xFFCBD5E1)
                 )

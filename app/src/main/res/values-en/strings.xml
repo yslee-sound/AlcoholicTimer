@@ -163,6 +163,26 @@
     <string name="diary_write_prompt">Tap the + button below\nto write your first entry</string>
     <string name="diary_write_button">Write Diary</string>
 
+    <!-- Diary Screens -->
+    <string name="diary_all_title">Sobriety Diary</string>
+    <string name="diary_all_empty">No diary entries.</string>
+    <string name="diary_write_title">Write Diary</string>
+    <string name="diary_edit_title">Edit Diary</string>
+    <string name="diary_menu_edit">Edit</string>
+    <string name="diary_menu_delete">Delete</string>
+    <string name="diary_save_button">Save</string>
+    <string name="diary_question_title">Did you think about drinking today?</string>
+    <string name="diary_question_required">Required</string>
+    <string name="diary_craving_weak">Not at all</string>
+    <string name="diary_craving_strong">Very much</string>
+    <string name="diary_craving_label">Craving Level: %d/10</string>
+    <string name="diary_mood_title">Today\'s Note</string>
+    <string name="diary_mood_optional">Optional</string>
+    <string name="diary_content_placeholder">Write about the hardest moment today,\nor give yourself a compliment.</string>
+    <string name="diary_delete_confirm_title">Delete Diary</string>
+    <string name="diary_delete_confirm_message">Are you sure you want to delete this diary entry?</string>
+    <string name="diary_delete_confirm_button">Delete</string>
+
     <!-- Tab05 (More) Menu Items -->
     <string name="tab05_rate_app">Rate App</string>
     <string name="tab05_notifications">Notifications</string>

@@ -12,8 +12,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -52,7 +52,7 @@ fun AllDiaryScreen(
     Scaffold(
         topBar = {
             // [NEW] 공통 뒤로가기 제목줄로 통일
-            BackTopBar(title = "금주 일기", onBack = onNavigateBack)
+            BackTopBar(title = stringResource(R.string.diary_all_title), onBack = onNavigateBack)
         }
     ) { innerPadding ->
         val state = rememberLazyListState()
@@ -70,8 +70,6 @@ fun AllDiaryScreen(
                 ) {
                     // 1. 아이콘 (알림 센터 스타일: 크기 64dp, 연한 회색)
                     Icon(
-                        // 팁: R.drawable.ic_edit 같은 일기장 아이콘이 있다면 그걸로 바꿔주세요.
-                        // 현재는 예시로 'bell'을 넣었지만, 일기 관련 아이콘을 추천합니다.
                         painter = painterResource(id = R.drawable.notebook),
                         contentDescription = null,
                         tint = Color(0xFFBDBDBD), // 알림 센터 아이콘 색상
@@ -82,7 +80,7 @@ fun AllDiaryScreen(
 
                     // 2. 텍스트 (알림 센터 스타일: 크기 16sp, 진한 회색)
                     Text(
-                        text = "작성된 일기가 없습니다.",
+                        text = stringResource(R.string.diary_all_empty),
                         fontSize = 16.sp,
                         color = Color(0xFF999999) // 알림 센터 텍스트 색상
                     )
