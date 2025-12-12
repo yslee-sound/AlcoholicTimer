@@ -112,33 +112,30 @@ class UmpConsentManager(private val context: Context) {
     }
 
     fun showPrivacyOptionsForm(activity: Activity, onClosed: (Any?) -> Unit = {}) {
-        // Prefer primary manager if available
-        try {
-            val app = activity.application as? MainApplication
-            if (app != null) {
-                try {
-                    app.umpConsentManager.showPrivacyOptionsForm(activity) { err -> onClosed(err) }
-                    return
-                } catch (_: Throwable) {}
-            }
-        } catch (_: Throwable) {}
-
-        // Fallback: use UMP privacy options form if available
+        // [FIX] 재귀 호출 제거 - 직접 UMP SDK 호출
         try {
             val consentInformation = UserMessagingPlatform.getConsentInformation(activity)
-            if (consentInformation.privacyOptionsRequirementStatus == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED) {
-                // showPrivacyOptionsForm (UMP) will load+show the privacy options form; callback receives an optional FormError
-                UserMessagingPlatform.showPrivacyOptionsForm(activity) { formError: FormError? ->
-                    try {
-                        if (formError != null) onClosed(formError) else onClosed(null)
-                    } catch (t: Throwable) { onClosed(t) }
+
+            // [FIX] REQUIRED 조건 제거 - 사용자가 언제든 개인정보 설정을 변경할 수 있도록 허용
+            Log.d(TAG, "showPrivacyOptionsForm 호출 -> privacyOptionsStatus=${consentInformation.privacyOptionsRequirementStatus}")
+
+            UserMessagingPlatform.showPrivacyOptionsForm(activity) { formError: FormError? ->
+                try {
+                    if (formError != null) {
+                        Log.e(TAG, "Privacy Options Form 표시 실패: ${formError.message}")
+                        onClosed(formError)
+                    } else {
+                        Log.d(TAG, "Privacy Options Form 정상 표시 완료")
+                        onClosed(null)
+                    }
+                } catch (t: Throwable) {
+                    Log.e(TAG, "Privacy Options Form 콜백 처리 중 오류: ${t.message}")
+                    onClosed(t)
                 }
-            } else {
-                onClosed(null)
             }
         } catch (t: Throwable) {
-            Log.w(TAG, "showPrivacyOptionsForm fallback failed: ${t.message}")
-            onClosed(null)
+            Log.e(TAG, "showPrivacyOptionsForm 실행 실패: ${t.message}")
+            onClosed(t)
         }
     }
 

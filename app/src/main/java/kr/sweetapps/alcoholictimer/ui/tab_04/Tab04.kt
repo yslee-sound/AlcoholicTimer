@@ -245,13 +245,60 @@ fun SettingsScreen(
                     )
                 }
             }
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
+
+            // [NEW] 개인정보 설정 변경 (Privacy Options) - Google UMP 표준 구현
+            val activity = context as? android.app.Activity
+            if (activity != null) {
+                SettingsSection(
+                    title = "개인정보 및 광고",
+                    titleColor = Color.Black
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
+                                // [FIX] UMP Privacy Options Form 표시 (Google 권장 방식)
+                                Log.d("SettingsScreen", "개인정보 설정 변경 클릭 -> UMP Privacy Form 표시")
+                                try {
+                                    umpConsentManager.showPrivacyOptionsForm(activity) { error ->
+                                        if (error != null) {
+                                            Log.e("SettingsScreen", "Privacy Form 표시 실패: $error")
+                                        } else {
+                                            Log.d("SettingsScreen", "Privacy Form 정상 표시 완료")
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e("SettingsScreen", "Privacy Form 호출 중 예외 발생: ${e.message}")
+                                }
+                            }
+                            .padding(horizontal = 20.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "개인정보 설정 변경",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = colorResource(id = R.color.color_text_primary_dark)
+                        )
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_caret_right),
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            }
 
             // [NEW] Bottom spacer for breathing room (consistent with other tabs)
             Spacer(modifier = Modifier.height(200.dp))
         }
 
-        // 하단 플로팅 버튼 (Overlay)
-        val activity = (context as? android.app.Activity)
+        // [FIX] 하단 플로팅 버튼 (Overlay) - activity 변수는 위에서 선언됨
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
