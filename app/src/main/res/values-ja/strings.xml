@@ -185,6 +185,25 @@
     <string name="diary_write_prompt">右下の+ボタンを押して\n最初の日記を作成してみてください</string>
     <string name="diary_write_button">日記作成</string>
     <string name="diary_write_button_action">日記を書く</string>
+    <string name="diary_all_title">禁酒日記</string>
+    <string name="diary_all_empty">作成された日記がありません。</string>
+    <string name="diary_write_title">日記を書く</string>
+    <string name="diary_edit_title">日記を編集</string>
+    <string name="diary_menu_edit">編集する</string>
+    <string name="diary_menu_delete">削除する</string>
+    <string name="diary_save_button">保存</string>
+    <string name="diary_question_title">今日一日、お酒が飲みたくなりましたか？</string>
+    <string name="diary_question_required">必須項目です</string>
+    <string name="diary_craving_weak">なし</string>
+    <string name="diary_craving_strong">とても強く</string>
+    <string name="diary_craving_label">欲求レベル: %d/10</string>
+    <string name="diary_mood_title">今日の記録</string>
+    <string name="diary_mood_optional">任意</string>
+    <string name="diary_content_placeholder">今日一番つらかった瞬間や、\n自分に言いたい褒め言葉を書いてみてください。</string>
+    <string name="diary_content_empty">内容なし</string>
+    <string name="diary_delete_confirm_title">日記削除</string>
+    <string name="diary_delete_confirm_message">この日記を本当に削除しますか？</string>
+    <string name="diary_delete_confirm_button">削除</string>
 
     <!-- Target Days Setting -->
     <string name="target_days_title">目標期間を設定</string>

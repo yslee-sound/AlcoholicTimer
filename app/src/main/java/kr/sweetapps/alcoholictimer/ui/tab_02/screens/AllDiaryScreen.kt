@@ -224,7 +224,7 @@ private fun CleanDiaryListItem(diary: DiaryEntity, onClick: () -> Unit) {
 
         // 3. Content Preview (Fills remaining space with weight)
         Text(
-            text = diary.content.ifEmpty { "내용 없음" },
+            text = diary.content.ifEmpty { stringResource(R.string.diary_content_empty) }, // [FIX] 다국어 적용
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF1E293B), // Dark grey/black
             fontSize = 15.sp,

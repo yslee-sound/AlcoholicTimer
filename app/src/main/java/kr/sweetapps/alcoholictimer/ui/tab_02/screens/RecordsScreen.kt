@@ -41,6 +41,7 @@ import kr.sweetapps.alcoholictimer.ui.tab_02.components.PeriodSelectionSection
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.WeekPickerBottomSheet
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.YearPickerBottomSheet
 import java.util.*
+import java.text.SimpleDateFormat
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.text.font.FontWeight
@@ -807,6 +808,19 @@ private fun DiaryListItem(
     diary: kr.sweetapps.alcoholictimer.data.room.DiaryEntity, // [UPDATED] DiaryEntity 사용
     onClick: () -> Unit = {}
 ) {
+    // [NEW] 현재 시스템 언어에 맞게 날짜 포맷팅
+    val locale = Locale.getDefault()
+    val dateText = remember(diary.timestamp, locale) {
+        val sdf = when (locale.language) {
+            "ko" -> SimpleDateFormat("yyyy년 M월 d일", locale)
+            "ja" -> SimpleDateFormat("yyyy年M月d日", locale)
+            "zh" -> SimpleDateFormat("yyyy年M月d日", locale)
+            "es" -> SimpleDateFormat("d 'de' MMMM 'de' yyyy", locale)
+            else -> SimpleDateFormat("MMM d, yyyy", locale) // 영어 및 기타 언어
+        }
+        sdf.format(Date(diary.timestamp))
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -817,7 +831,7 @@ private fun DiaryListItem(
     ) {
         // 날짜
         Text(
-            text = diary.date,
+            text = dateText, // [FIX] diary.date 대신 동적으로 포맷팅된 날짜 사용
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF64748B),
             modifier = Modifier.width(90.dp)
