@@ -293,6 +293,52 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
+     * [NEW] Give up timer - User voluntarily quits
+     * Records the attempt and navigates to GiveUp screen
+     */
+    fun giveUpTimer() {
+        viewModelScope.launch {
+            try {
+                val startTime = _startTime.value
+                val targetDays = _targetDays.value
+                val elapsedMillis = TimerTimeManager.elapsedMillis.value
+                val endTime = startTime + elapsedMillis
+                val actualDays = (elapsedMillis / Constants.DAY_IN_MILLIS).toInt()
+
+                Log.d("Tab01ViewModel", "Give up timer: startTime=$startTime, endTime=$endTime, actualDays=$actualDays")
+
+                // 1. 기록 저장 (중단으로 표시)
+                saveCompletedRecord(startTime, endTime, targetDays, actualDays)
+
+                // 2. SharedPreferences 업데이트
+                sharedPref.edit().apply {
+                    remove(Constants.PREF_START_TIME)
+                    putBoolean(Constants.PREF_TIMER_COMPLETED, false) // 중단은 미완료
+
+                    // 완료된 기록 정보 저장
+                    putLong("completed_start_time", startTime)
+                    putLong("completed_end_time", endTime)
+                    putFloat("completed_target_days", targetDays)
+                    putInt("completed_actual_days", actualDays)
+                    apply()
+                }
+
+                // 3. 상태 업데이트
+                _startTime.value = 0L
+                _timerCompleted.value = false
+                TimerTimeManager.stopTimer()
+
+                // 4. [CRITICAL] NavigateToGiveUp 이벤트 발행
+                _navigationEvent.tryEmit(NavigationEvent.NavigateToGiveUp)
+                Log.d("Tab01ViewModel", "Navigation event emitted to GiveUpScreen 🍃")
+
+            } catch (e: Exception) {
+                Log.e("Tab01ViewModel", "Error handling give up", e)
+            }
+        }
+    }
+
+    /**
      * Mark timer as completed
      * [REFACTORED] TimerTimeManager에도 완료 알림
      */

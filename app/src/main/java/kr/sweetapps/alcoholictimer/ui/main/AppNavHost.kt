@@ -259,7 +259,7 @@ fun AppNavHost(
             )
         }
 
-        // [REFACTORED] 타이머 중단 화면 (포기)
+        // [FIX] 타이머 중단(포기) 화면 - 결과 확인 버튼 로직 수정
         composable(Screen.GiveUp.route) {
             kr.sweetapps.alcoholictimer.ui.tab_01.screens.FinishedGiveUpScreen(
                 onBack = {
@@ -270,60 +270,77 @@ fun AppNavHost(
                     }
                 },
                 onResultCheck = {
-                    android.util.Log.d("NavGraph", "[GiveUp] 결과 확인 클릭")
+                    android.util.Log.d("NavGraph", "[GiveUp] 결과 확인 버튼 클릭됨")
 
                     try {
-                        val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
-                        val completedStartTime = sharedPref.getLong("completed_start_time", 0L)
-                        val completedEndTime = sharedPref.getLong("completed_end_time", 0L)
-                        val completedTargetDays = sharedPref.getFloat("completed_target_days", 21f)
-                        val completedActualDays = sharedPref.getInt("completed_actual_days", 0)
+                        // [CRITICAL FIX] 하드코딩("user_settings") 대신 ViewModel과 동일한 상수 사용
+                        // 이름이 다르면 저장된 데이터를 읽어오지 못해 버튼이 무반응이 됩니다.
+                        val sharedPref = context.getSharedPreferences(
+                            kr.sweetapps.alcoholictimer.util.constants.Constants.USER_SETTINGS_PREFS,
+                            android.content.Context.MODE_PRIVATE
+                        )
 
-                        if (completedStartTime > 0 && completedEndTime > 0) {
+                        // 1. 방금 중단한 타이머의 기록 데이터 가져오기
+                        val savedStartTime = sharedPref.getLong("completed_start_time", 0L)
+                        val savedEndTime = sharedPref.getLong("completed_end_time", System.currentTimeMillis())
+                        val savedTargetDays = sharedPref.getFloat("completed_target_days", 1f)
+                        val savedActualDays = sharedPref.getInt("completed_actual_days", 0)
+
+                        android.util.Log.d("NavGraph", "[GiveUp] 데이터 로드 확인: StartTime=$savedStartTime")
+
+                        if (savedStartTime > 0) {
+                            // 2. 데이터가 확인되면 'Result' 화면으로 이동
+                            // isCompleted = false로 설정하여 '실패/포기' UI(진행률 등)가 뜨도록 함
                             val resultRoute = Screen.Result.createRoute(
-                                startTime = completedStartTime,
-                                endTime = completedEndTime,
-                                targetDays = completedTargetDays,
-                                actualDays = completedActualDays,
-                                isCompleted = false // 중단이므로 미완료
+                                startTime = savedStartTime,
+                                endTime = savedEndTime,
+                                targetDays = savedTargetDays,
+                                actualDays = savedActualDays,
+                                isCompleted = false
                             )
 
-                            android.util.Log.d("NavGraph", "[GiveUp] -> Result 이동: $resultRoute")
-
+                            android.util.Log.d("NavGraph", "[GiveUp] -> 상세 결과 화면으로 이동")
                             navController.navigate(resultRoute) {
                                 popUpTo(Screen.GiveUp.route) { inclusive = true }
                                 launchSingleTop = true
                             }
                         } else {
-                            android.util.Log.w("NavGraph", "완료 기록 없음 -> Records 화면으로 이동")
+                            // 3. 만약 데이터가 없더라도, 버튼이 씹히지 않게 '기록 목록' 화면으로 이동
+                            android.util.Log.w("NavGraph", "[GiveUp] 데이터 없음 -> 목록 화면으로 이동")
                             navController.navigate(Screen.Records.route) {
                                 popUpTo(Screen.GiveUp.route) { inclusive = true }
-                                launchSingleTop = true
                             }
                         }
-                    } catch (t: Throwable) {
-                        android.util.Log.e("NavGraph", "결과 확인 실패", t)
-                        navController.navigate(Screen.Records.route) {
-                            popUpTo(Screen.GiveUp.route) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    }
-                },
-                onNewTimerStart = {
-                    android.util.Log.d("NavGraph", "[GiveUp] 새 타이머 시작 -> Start 화면으로 이동")
 
-                    try {
+                        // 4. 상태 초기화 (결과 확인 후 내부 상태 정리)
                         kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(false)
                         kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(false)
 
-                        val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
                         sharedPref.edit()
                             .putBoolean(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_TIMER_COMPLETED, false)
                             .remove(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_START_TIME)
                             .apply()
+
                     } catch (e: Exception) {
-                        android.util.Log.e("NavGraph", "타이머 리셋 중 오류 발생", e)
+                        android.util.Log.e("NavGraph", "[GiveUp] 에러 발생 -> 목록 화면으로 이동", e)
+                        navController.navigate(Screen.Records.route)
                     }
+                },
+                onNewTimerStart = {
+                    // 새 타이머 시작 로직
+                    try {
+                        kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(false)
+                        kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(false)
+
+                        val sharedPref = context.getSharedPreferences(
+                            kr.sweetapps.alcoholictimer.util.constants.Constants.USER_SETTINGS_PREFS,
+                            android.content.Context.MODE_PRIVATE
+                        )
+                        sharedPref.edit()
+                            .putBoolean(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_TIMER_COMPLETED, false)
+                            .remove(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_START_TIME)
+                            .apply()
+                    } catch (e: Exception) {}
 
                     navController.navigate(Screen.Start.route) {
                         popUpTo(0) { inclusive = true }
@@ -334,13 +351,19 @@ fun AppNavHost(
         }
 
         composable(Screen.Quit.route) {
+            // [FIX] Activity Scope ViewModel 가져오기
+            val tab01ViewModel: kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.Tab01ViewModel? = if (activity != null) {
+                androidx.lifecycle.viewmodel.compose.viewModel(viewModelStoreOwner = activity as androidx.lifecycle.ViewModelStoreOwner)
+            } else {
+                null
+            }
+
             QuitScreenComposable(
                 onQuitConfirmed = {
-                    // [REFACTORED] 포기 확인 시 GiveUp 화면으로 이동
-                    navController.navigate(Screen.GiveUp.route) {
-                        popUpTo(Screen.Run.route) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                    // [REFACTORED] 포기 확인 시 ViewModel의 giveUpTimer() 호출
+                    // ViewModel이 NavigateToGiveUp 이벤트를 발행하면 MainActivity에서 처리
+                    android.util.Log.d("NavGraph", "[Quit] Give up confirmed -> calling ViewModel.giveUpTimer()")
+                    tab01ViewModel?.giveUpTimer()
                 },
                 onCancel = { navController.popBackStack() }
             )
