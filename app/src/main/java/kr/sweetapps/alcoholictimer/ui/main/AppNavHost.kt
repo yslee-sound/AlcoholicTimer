@@ -158,6 +158,13 @@ fun AppNavHost(
             // [REFACTORED] isSuccess 파라미터 전달: true=목표달성, false=중도포기
             kr.sweetapps.alcoholictimer.ui.tab_01.screens.FinishedScreen(
                 isSuccess = isTimerCompleted,
+                onBack = {
+                    // [NEW] 뒤로 가기: Start 화면으로 이동
+                    navController.navigate(Screen.Start.route) {
+                        popUpTo(Screen.Finished.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
                 onResultCheck = {
                     // [FIX] Reset timer completion state when user checks result
                     // This prevents FinishedScreen from showing again when returning to Tab 1
