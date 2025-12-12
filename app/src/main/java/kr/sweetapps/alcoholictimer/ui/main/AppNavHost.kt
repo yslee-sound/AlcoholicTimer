@@ -121,14 +121,35 @@ fun AppNavHost(
         composable(Screen.Start.route) {
             StartScreen(
                 gateNavigation = false,
-                onStart = {
-                    targetDays ->
+                onStart = { targetDays ->
                     val bundle = Bundle()
                     bundle.putInt("target_days", targetDays)
                     firebaseAnalytics?.logEvent("start_timer", bundle)
-                    navController.navigate(Screen.Run.route) {
-                        popUpTo(Screen.Start.route) { inclusive = true }
-                        launchSingleTop = true
+
+                    // [NEW] 광고 정책 체크
+                    val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
+
+                    val proceedToRun: () -> Unit = {
+                        navController.navigate(Screen.Run.route) {
+                            popUpTo(Screen.Start.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+
+                    if (shouldShowAd && activity != null) {
+                        android.util.Log.d("NavGraph", "[Start] 광고 정책 통과 -> 전면 광고 노출")
+                        if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
+                            kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(activity) { success ->
+                                android.util.Log.d("NavGraph", "[Start] 광고 결과: success=$success")
+                                proceedToRun()
+                            }
+                        } else {
+                            android.util.Log.d("NavGraph", "[Start] 광고 로드 안됨 -> 즉시 Run으로 이동")
+                            proceedToRun()
+                        }
+                    } else {
+                        android.util.Log.d("NavGraph", "[Start] 광고 정책 불통과 (쿨타임/조건) -> 즉시 Run으로 이동")
+                        proceedToRun()
                     }
                 }
             )
@@ -869,9 +890,30 @@ fun AppNavHost(
             kr.sweetapps.alcoholictimer.ui.tab_02.screens.DiaryWriteScreen(
                 diaryId = diaryId?.toLongOrNull(), // String -> Long 변환
                 onDismiss = {
-                    // Records 화면 새로고침 트리거
-                    recordsRefreshCounter++
-                    navController.popBackStack()
+                    // [NEW] 광고 정책 체크
+                    val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
+
+                    val proceedToBack: () -> Unit = {
+                        // Records 화면 새로고침 트리거
+                        recordsRefreshCounter++
+                        navController.popBackStack()
+                    }
+
+                    if (shouldShowAd && activity != null) {
+                        android.util.Log.d("NavGraph", "[DiaryDetail] 광고 정책 통과 -> 전면 광고 노출")
+                        if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
+                            kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(activity) { success ->
+                                android.util.Log.d("NavGraph", "[DiaryDetail] 광고 결과: success=$success")
+                                proceedToBack()
+                            }
+                        } else {
+                            android.util.Log.d("NavGraph", "[DiaryDetail] 광고 로드 안됨 -> 즉시 뒤로 이동")
+                            proceedToBack()
+                        }
+                    } else {
+                        android.util.Log.d("NavGraph", "[DiaryDetail] 광고 정책 불통과 (쿨타임/조건) -> 즉시 뒤로 이동")
+                        proceedToBack()
+                    }
                 }
             )
         }
