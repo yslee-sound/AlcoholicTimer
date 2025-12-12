@@ -224,7 +224,7 @@ fun SettingsScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = if (tempCurrency == "AUTO") "자동(지역 기반)" else tempCurrency,
+                        text = if (tempCurrency == "AUTO") stringResource(R.string.settings_currency_auto) else tempCurrency,
                         style = MaterialTheme.typography.bodyMedium,
                         color = colorResource(id = R.color.color_text_primary_dark)
                     )
@@ -288,7 +288,7 @@ fun SettingsScreen(
                     // [MOD] 화면 이동 제거 -> Toast로 피드백 제공
                     android.widget.Toast.makeText(
                         context,
-                        "설정이 적용되었습니다",
+                        context.getString(R.string.settings_apply_button),
                         android.widget.Toast.LENGTH_SHORT
                     ).show()
                 },
@@ -300,7 +300,7 @@ fun SettingsScreen(
                     containerColor = MainPrimaryBlue  // [FIX] 메인 UI 색상 적용 (#1E40AF)
                 )
             ) {
-                Text(text = "설정 적용", color = Color.White)
+                Text(text = stringResource(R.string.settings_apply_button), color = Color.White)
             }
         }
     }
@@ -317,7 +317,7 @@ fun SettingsScreen(
                     .padding(bottom = 32.dp)
             ) {
                 Text(
-                    text = "통화 설정",
+                    text = stringResource(R.string.settings_currency),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
                 )
@@ -325,7 +325,7 @@ fun SettingsScreen(
                 // AUTO 옵션
                 CurrencyOptionRow(
                     isSelected = tempCurrency == "AUTO",
-                    label = "자동(지역 기반)",
+                    label = stringResource(R.string.settings_currency_auto),
                     onSelected = {
                         tempCurrency = "AUTO"
                         showCurrencySheet = false

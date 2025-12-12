@@ -241,14 +241,14 @@ fun AboutScreen(
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "앱 평가하기", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text(text = stringResource(R.string.tab05_rate_app), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(14.dp)) // 앱 평가하기 버튼 아래
+        Spacer(modifier = Modifier.height(14.dp))
 
-        // --- Row of 3 action buttons (알림 / 고객 문의/제안 / 추천앱)
+        // --- Row of 3 action buttons
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -271,7 +271,7 @@ fun AboutScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "알림",
+                    text = stringResource(R.string.tab05_notifications),
                     fontSize = 14.sp,
                     color = Color.Black,
                     fontWeight = FontWeight.Normal
@@ -294,7 +294,7 @@ fun AboutScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "고객 문의/제안",
+                    text = stringResource(R.string.tab05_customer_support),
                     fontSize = 14.sp,
                     color = Color.Black,
                     fontWeight = FontWeight.Normal
@@ -316,7 +316,7 @@ fun AboutScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "추천앱",
+                    text = stringResource(R.string.tab05_recommended_apps),
                     fontSize = 14.sp,
                     color = Color(0xFFBDBDBD), // 비활성화 회색
                     fontWeight = FontWeight.Normal

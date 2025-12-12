@@ -1,12 +1,13 @@
 package kr.sweetapps.alcoholictimer.ui.tab_04.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -19,19 +20,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.core.content.edit
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.foundation.background
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.edit
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
-import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue  // [NEW] 메인 UI 색상
-import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
+import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
 import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager
 
 /**
@@ -42,7 +42,7 @@ fun CurrencyScreen(onBack: () -> Unit = {}) {
     val context = LocalContext.current
 
     Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
-        BackTopBar(title = "통화 설정", onBack = onBack)
+        BackTopBar(title = stringResource(R.string.settings_currency), onBack = onBack)
 
         // 상태: 실제 선택된 통화 코드(해당 통화 코드)와 사용자가 선택한 키(AUTO 또는 명시적 코드)를 분리
         val prefs = context.getSharedPreferences("settings", 0)
@@ -53,7 +53,7 @@ fun CurrencyScreen(onBack: () -> Unit = {}) {
         LazyColumn(modifier = Modifier.padding(vertical = 8.dp)) {
             // Auto / Locale-based 기본 통화 항목
             item {
-                val label = "자동(지역 기반)"
+                val label = stringResource(R.string.settings_currency_auto)
                 val isSelected = selectedKeyState.value == "AUTO"
                 val onSelect = {
                     // 저장: AUTO 모드로 변경
@@ -84,7 +84,10 @@ fun CurrencyScreen(onBack: () -> Unit = {}) {
 
         // 추가: 현재 선택 통화 표시 (간단)
         Text(
-            text = if (selectedKeyState.value == "AUTO") "현재 선택: ${selectedCodeState.value} (자동)" else "현재 선택: ${selectedCodeState.value}",
+            text = if (selectedKeyState.value == "AUTO")
+                stringResource(R.string.settings_currency_current_auto, selectedCodeState.value)
+            else
+                stringResource(R.string.settings_currency_current, selectedCodeState.value),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(16.dp)
         )

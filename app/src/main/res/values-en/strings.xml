@@ -80,6 +80,7 @@
     <string name="about_title">About</string>
     <string name="about_version_info">Version Info</string>
     <string name="about_open_license_notice">Open Source Licenses</string>
+    <string name="document_title_privacy">Privacy Policy</string>
     <string name="about_section_app_icon">App Icon</string>
     <string name="about_label_original_work">Original Work</string>
     <string name="about_label_author">Author</string>
@@ -160,6 +161,13 @@
     <string name="diary_view_all">View All Entries</string>
     <string name="diary_no_entries">No diary entries yet</string>
     <string name="diary_write_prompt">Tap the + button below\nto write your first entry</string>
+    <string name="diary_write_button">Write Diary</string>
+
+    <!-- Tab05 (More) Menu Items -->
+    <string name="tab05_rate_app">Rate App</string>
+    <string name="tab05_notifications">Notifications</string>
+    <string name="tab05_customer_support">Support</string>
+    <string name="tab05_recommended_apps">Apps</string>
 
     <!-- Level names - [Redesigned] 11-level system (2025-12-03) -->
     <string name="level_0">Alcohol Stop</string>              <!-- Lv.1: 1~3 days -->
@@ -212,9 +220,15 @@
 
     <!-- Settings screen -->
     <string name="settings_title">Settings</string>
+    <string name="settings_screen_title">Sobriety Habits</string>
     <string name="settings_drinking_cost">Drinking Cost</string>
     <string name="settings_drinking_frequency">Drinking Frequency</string>
     <string name="settings_drinking_duration">Drinking Duration</string>
+    <string name="settings_apply_button">Apply Settings</string>
+    <string name="settings_currency">Currency Settings</string>
+    <string name="settings_currency_auto">Auto (Region-based)</string>
+    <string name="settings_currency_current">Current: %1$s</string>
+    <string name="settings_currency_current_auto">Current: %1$s (Auto)</string>
 
     <!-- Additional All Records screen strings -->
     <string name="all_records_delete_failed">Delete failed</string>
@@ -288,7 +302,6 @@
     <string name="add_record_days_unit">d</string>
 
     <!-- Currency options -->
-    <string name="settings_currency">Currency</string>
     <string name="currency_krw">Korean Won (₩)</string>
     <string name="currency_jpy">Japanese Yen (¥)</string>
     <string name="currency_usd">US Dollar ($)</string>

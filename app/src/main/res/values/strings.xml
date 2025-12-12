@@ -165,6 +165,7 @@
     <string name="diary_view_all">전체 일기 보기</string>
     <string name="diary_no_entries">아직 작성된 일기가 없어요</string>
     <string name="diary_write_prompt">우측 하단 + 버튼을 눌러\n첫 일기를 작성해보세요</string>
+    <string name="diary_write_button">일기 작성</string>
     <string name="records_percent_unit">%</string>
 
     <!-- Level names (레벨 이름) - [개편] 11단계 시스템 (2025-12-03) -->
@@ -218,13 +219,25 @@
 
     <!-- Settings screen (설정 화면) -->
     <string name="settings_title">설정</string>
+    <string name="settings_screen_title">금주 습관</string>
     <string name="settings_drinking_cost">음주 비용</string>
     <string name="settings_drinking_frequency">음주 빈도</string>
     <string name="settings_drinking_duration">음주 시간</string>
+    <string name="settings_apply_button">설정 적용</string>
+    <string name="settings_currency">통화 설정</string>
+    <string name="settings_currency_auto">자동(지역 기반)</string>
+    <string name="settings_currency_current">현재 선택: %1$s</string>
+    <string name="settings_currency_current_auto">현재 선택: %1$s (자동)</string>
 
     <!-- More (Tab04) tab labels - used instead of 'Settings' for tab04 -->
     <string name="more_title">더보기</string>
     <string name="drawer_menu_more">더보기</string>
+
+    <!-- Tab05 (More) Menu Items -->
+    <string name="tab05_rate_app">앱 평가하기</string>
+    <string name="tab05_notifications">알림</string>
+    <string name="tab05_customer_support">문의/제안</string>
+    <string name="tab05_recommended_apps">추천앱</string>
 
     <!-- Privacy options (UMP) -->
     <string name="settings_privacy_section_title">개인정보 및 광고 설정</string>
@@ -329,7 +342,6 @@
     <string name="add_record_saving">저장 중&#8230;</string>
 
     <!-- Currency options (통화 선택) -->
-    <string name="settings_currency">통화 설정</string>
     <string name="currency_krw">대한민국 원 (₩)</string>
     <string name="currency_jpy">일본 엔 (¥)</string>
     <string name="currency_usd">미국 달러 ($)</string>

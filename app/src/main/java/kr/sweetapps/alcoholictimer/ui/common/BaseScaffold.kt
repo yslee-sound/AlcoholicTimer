@@ -14,6 +14,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme
 import kr.sweetapps.alcoholictimer.ui.main.Screen
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -22,6 +24,7 @@ import kr.sweetapps.alcoholictimer.ui.components.BottomNavBar
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
+import androidx.compose.ui.res.stringResource
 
 /**
  * Common Scaffold: Top banner ad + center content + bottom navigation
@@ -58,11 +61,11 @@ fun BaseScaffold(
         // [NEW] 탭 2(Records), 탭 3(Level), 탭 4(More)에서만 표시되는 상단 타이틀 바 결정
         val topTitle: String? = when {
             // 탭 2 그룹: Records 및 관련 라우트
-            currentRoute == Screen.Records.route || currentRoute == Screen.AllRecords.route || currentRoute == Screen.AddRecord.route || (currentRoute?.startsWith("detail/") == true) -> "금주 기록"
+            currentRoute == Screen.Records.route || currentRoute == Screen.AllRecords.route || currentRoute == Screen.AddRecord.route || (currentRoute?.startsWith("detail/") == true) -> stringResource(R.string.records_title)
             // 탭 3: Level
-            currentRoute == Screen.Level.route -> "금주 레벨"
+            currentRoute == Screen.Level.route -> stringResource(R.string.level_title)
             // 탭 4 그룹: More 및 관련 라우트
-            currentRoute == Screen.More.route || currentRoute == Screen.CurrencySettings.route -> "금주 습관"
+            currentRoute == Screen.More.route || currentRoute == Screen.CurrencySettings.route -> stringResource(R.string.settings_screen_title)
             else -> null
         }
 

@@ -234,7 +234,7 @@ fun RecordsScreen(
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_plus),
-                    contentDescription = "일기 작성",
+                    contentDescription = stringResource(R.string.diary_write_button),
                     modifier = Modifier.size(24.dp)
                 )
             }
