@@ -206,7 +206,7 @@
     <string name="start_screen_title">开始戒酒</string>
 
     <!-- Settings screen (设置画面) -->
-    <string name="settings_title">设置</string>
+    <string name="settings_title">戒酒习惯</string>
     <string name="settings_drinking_cost">饮酒花费</string>
     <string name="settings_drinking_frequency">饮酒频率</string>
     <string name="settings_drinking_duration">饮酒时长</string>
@@ -337,4 +337,67 @@
         <item>不要把未来放在摇晃的酒杯里。</item>
         <item>戒酒不是无止境的忍耐，而是新生活的开始。</item>
     </string-array>
+
+    <!-- Document screen titles -->
+    <string name="document_title_open_source">Open Source License</string>
+    <string name="document_title_privacy">隐私政策</string>
+
+    <!-- More (Tab04) tab labels -->
+    <string name="more_title">更多</string>
+    <string name="drawer_menu_more">更多</string>
+
+    <!-- Tab05 (More) Menu Items -->
+    <string name="tab05_rate_app">评价应用</string>
+    <string name="tab05_notifications">通知</string>
+    <string name="tab05_customer_support">客户支持</string>
+    <string name="tab05_recommended_apps">推荐应用</string>
+
+    <!-- Notification Center -->
+    <string name="notification_center_title">通知中心</string>
+    <string name="notification_empty_message">没有新通知。</string>
+
+    <!-- Customer Feedback Bottom Sheet -->
+    <string name="feedback_title">联系我们</string>
+    <string name="feedback_category_label">咨询类型</string>
+    <string name="feedback_category_feature">功能请求</string>
+    <string name="feedback_category_bug">错误报告</string>
+    <string name="feedback_category_other">其他</string>
+    <string name="feedback_content_label">消息</string>
+    <string name="feedback_content_placeholder">例如）应用启动时崩溃。</string>
+    <string name="feedback_email_label">电子邮件（可选）</string>
+    <string name="feedback_email_placeholder">example@email.com</string>
+    <string name="feedback_email_note">如果您希望收到回复，请提供您的电子邮件。\n您的电子邮件仅用于回复。</string>
+    <string name="feedback_submit_button">提交</string>
+    <string name="feedback_email_error">电子邮件格式无效。</string>
+    <string name="feedback_submitting">提交中&#8230;</string>
+    <string name="feedback_success_message">感谢您的反馈 🙏</string>
+    <string name="feedback_error_message">提交失败\n%1$s</string>
+
+    <!-- Settings screen -->
+    <string name="settings_apply_button">应用设置</string>
+    <string name="settings_currency">货币</string>
+    <string name="settings_currency_auto">自动（基于地区）</string>
+    <string name="settings_currency_current">当前：%1$s</string>
+    <string name="settings_currency_current_auto">当前：%1$s（自动）</string>
+
+    <!-- Diary Screens (detailed) -->
+    <string name="diary_all_title">戒酒日记</string>
+    <string name="diary_all_empty">没有日记条目。</string>
+    <string name="diary_write_title">写日记</string>
+    <string name="diary_edit_title">编辑日记</string>
+    <string name="diary_menu_edit">编辑</string>
+    <string name="diary_menu_delete">删除</string>
+    <string name="diary_save_button">保存</string>
+    <string name="diary_question_title">今天想喝酒了吗？</string>
+    <string name="diary_question_required">必填</string>
+    <string name="diary_craving_weak">完全没有</string>
+    <string name="diary_craving_strong">非常想</string>
+    <string name="diary_craving_label">渴望程度：%d/10</string>
+    <string name="diary_mood_title">今日笔记</string>
+    <string name="diary_mood_optional">可选</string>
+    <string name="diary_content_placeholder">写下今天最艰难的时刻，\n或者给自己一个赞美。</string>
+    <string name="diary_content_empty">无内容</string>
+    <string name="diary_delete_confirm_title">删除日记</string>
+    <string name="diary_delete_confirm_message">确定要删除这条日记吗？</string>
+    <string name="diary_delete_confirm_button">删除</string>
 </resources>

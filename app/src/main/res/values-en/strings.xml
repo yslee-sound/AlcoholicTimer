@@ -181,6 +181,7 @@
     <string name="diary_mood_title">Today\'s Note</string>
     <string name="diary_mood_optional">Optional</string>
     <string name="diary_content_placeholder">Write about the hardest moment today,\nor give yourself a compliment.</string>
+    <string name="diary_content_empty">No content</string>
     <string name="diary_delete_confirm_title">Delete Diary</string>
     <string name="diary_delete_confirm_message">Are you sure you want to delete this diary entry?</string>
     <string name="diary_delete_confirm_button">Delete</string>
@@ -207,6 +208,10 @@
     <string name="feedback_email_placeholder">example@email.com</string>
     <string name="feedback_email_note">Please provide your email if you\'d like a response.\nYour email will only be used for replies.</string>
     <string name="feedback_submit_button">Submit</string>
+    <string name="feedback_email_error">Invalid email format.</string>
+    <string name="feedback_submitting">Submitting&#8230;</string>
+    <string name="feedback_success_message">Thank you for your feedback 🙏</string>
+    <string name="feedback_error_message">Submission failed\n%1$s</string>
 
     <!-- Level names - [Redesigned] 11-level system (2025-12-03) -->
     <string name="level_0">Alcohol Stop</string>              <!-- Lv.1: 1~3 days -->
@@ -258,8 +263,7 @@
     <string name="start_screen_title">Sobriety Start</string>
 
     <!-- Settings screen -->
-    <string name="settings_title">Settings</string>
-    <string name="settings_screen_title">Sobriety Habits</string>
+    <string name="settings_title">Sobriety Habits</string>
     <string name="settings_drinking_cost">Drinking Cost</string>
     <string name="settings_drinking_frequency">Drinking Frequency</string>
     <string name="settings_drinking_duration">Drinking Duration</string>

@@ -336,4 +336,67 @@
         <item>No pongas tu futuro en una copa tambaleante.</item>
         <item>La sobriedad no es resistencia interminable, es el comienzo de una nueva vida.</item>
     </string-array>
+
+    <!-- Document screen titles -->
+    <string name="document_title_open_source">Open Source License</string>
+    <string name="document_title_privacy">Política de Privacidad</string>
+
+    <!-- More (Tab04) tab labels -->
+    <string name="more_title">Más</string>
+    <string name="drawer_menu_more">Más</string>
+
+    <!-- Tab05 (More) Menu Items -->
+    <string name="tab05_rate_app">Calificar App</string>
+    <string name="tab05_notifications">Notificaciones</string>
+    <string name="tab05_customer_support">Soporte</string>
+    <string name="tab05_recommended_apps">Apps Recomendadas</string>
+
+    <!-- Notification Center -->
+    <string name="notification_center_title">Centro de Notificaciones</string>
+    <string name="notification_empty_message">No hay notificaciones nuevas.</string>
+
+    <!-- Customer Feedback Bottom Sheet -->
+    <string name="feedback_title">Contacto</string>
+    <string name="feedback_category_label">Tipo de Consulta</string>
+    <string name="feedback_category_feature">Solicitud de Función</string>
+    <string name="feedback_category_bug">Reporte de Error</string>
+    <string name="feedback_category_other">Otro</string>
+    <string name="feedback_content_label">Mensaje</string>
+    <string name="feedback_content_placeholder">Ej.) La aplicación se cierra al iniciar.</string>
+    <string name="feedback_email_label">Correo Electrónico (Opcional)</string>
+    <string name="feedback_email_placeholder">ejemplo@email.com</string>
+    <string name="feedback_email_note">Proporcione su correo electrónico si desea una respuesta.\nSu correo solo se usará para respuestas.</string>
+    <string name="feedback_submit_button">Enviar</string>
+    <string name="feedback_email_error">Formato de correo inválido.</string>
+    <string name="feedback_submitting">Enviando&#8230;</string>
+    <string name="feedback_success_message">Gracias por sus comentarios 🙏</string>
+    <string name="feedback_error_message">Envío fallido\n%1$s</string>
+
+    <!-- Settings screen -->
+    <string name="settings_apply_button">Aplicar Configuración</string>
+    <string name="settings_currency">Moneda</string>
+    <string name="settings_currency_auto">Auto (Basado en Región)</string>
+    <string name="settings_currency_current">Actual: %1$s</string>
+    <string name="settings_currency_current_auto">Actual: %1$s (Auto)</string>
+
+    <!-- Diary Screens (detailed) -->
+    <string name="diary_all_title">Diario de Sobriedad</string>
+    <string name="diary_all_empty">No hay entradas de diario.</string>
+    <string name="diary_write_title">Escribir Diario</string>
+    <string name="diary_edit_title">Editar Diario</string>
+    <string name="diary_menu_edit">Editar</string>
+    <string name="diary_menu_delete">Eliminar</string>
+    <string name="diary_save_button">Guardar</string>
+    <string name="diary_question_title">¿Pensaste en beber hoy?</string>
+    <string name="diary_question_required">Requerido</string>
+    <string name="diary_craving_weak">Para nada</string>
+    <string name="diary_craving_strong">Mucho</string>
+    <string name="diary_craving_label">Nivel de Ansiedad: %d/10</string>
+    <string name="diary_mood_title">Nota de Hoy</string>
+    <string name="diary_mood_optional">Opcional</string>
+    <string name="diary_content_placeholder">Escribe sobre el momento más difícil de hoy,\no date un cumplido.</string>
+    <string name="diary_content_empty">Sin contenido</string>
+    <string name="diary_delete_confirm_title">Eliminar Diario</string>
+    <string name="diary_delete_confirm_message">¿Está seguro de que desea eliminar esta entrada de diario?</string>
+    <string name="diary_delete_confirm_button">Eliminar</string>
 </resources>
