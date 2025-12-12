@@ -153,7 +153,7 @@ fun AllRecordsScreen(
                     val topPad = innerPadding.calculateTopPadding()
                     val startPad = innerPadding.calculateLeftPadding(layoutDirection = androidx.compose.ui.unit.LayoutDirection.Ltr)
                     val endPad = innerPadding.calculateRightPadding(layoutDirection = androidx.compose.ui.unit.LayoutDirection.Ltr)
-                    val bottomExtra = innerPadding.calculateBottomPadding() + 24.dp
+                    val bottomExtra = innerPadding.calculateBottomPadding() + 70.dp    // 24.dp
 
                     LazyColumn(
                         modifier = Modifier
