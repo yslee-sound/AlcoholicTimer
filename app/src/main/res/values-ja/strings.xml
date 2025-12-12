@@ -164,8 +164,18 @@
 
     <!-- Target Days Setting -->
     <string name="target_days_title">目標期間を設定</string>
+    <string name="target_days_title_set">目標期間を設定</string>
     <string name="target_days_unit">日</string>
+    <string name="target_days_unit_d">d</string>
     <string name="target_days_hint">禁酒の目標期間を選択してください</string>
+
+    <!-- Duration Badge Labels (目標期間選択バッジ) -->
+    <string name="badge_one_day">たった1日</string>
+    <string name="badge_three_days">3日坊主</string>
+    <string name="badge_one_week">1週間チャレンジ</string>
+    <string name="badge_21_days">21日習慣づくり</string>
+    <string name="badge_one_month">1ヶ月の奇跡</string>
+    <string name="badge_100_days">100日の約束</string>
 
     <!-- Target Days Picker -->
     <string name="target_days_picker_title">目標日数を選択</string>
@@ -305,4 +315,64 @@
     <!-- Add Record/Diary buttons -->
     <string name="add_record_button">記録を追加</string>
     <string name="diary_write_button_action">日記を書く</string>
+
+    <!-- Motivational Quotes (動機づけの名言) -->
+    <string-array name="motivational_quotes">
+        <item>忍耐の重さは数グラムだが、後悔の重さは数トンになる。</item>
+        <item>習慣は最初は蜘蛛の糸のようだが、後には鉄の鎖のようになる。</item>
+        <item>自分を愛する最も確実な方法は節制です。</item>
+        <item>今日の我慢が明日の健康で明晰な精神を作る。</item>
+        <item>諦めたい瞬間、なぜ始めたのかをもう一度考えてみてください。</item>
+        <item>未来の自分に恥ずかしくない今日をプレゼントしよう。</item>
+        <item>目覚めた朝の気分を覚えていてください。</item>
+        <item>明日の朝の私は今夜の私に感謝するでしょう。</item>
+        <item>酒を空にすれば通帳が満たされ、健康が満たされます。</item>
+        <item>酒の力を借りなければ生きられない人生なら、人生から変えるべきです。</item>
+        <item>真の自由は酒瓶の中にはありません。</item>
+        <item>今日飲んだ酒は明日の体力と引き換えたものです。</item>
+        <item>酔って得る勇気は偽物だが、素面で耐える忍耐は本物です。</item>
+        <item>一度の失敗で積み重ねた塔が崩れることがあります。警戒を緩めないでください。</item>
+        <item>断酒は「我慢すること」ではなく、悪い習慣を「捨てること」です。</item>
+        <item>今日我慢した一杯が、1年後の奇跡を作ります。</item>
+        <item>明晰な精神で迎える朝の日差しは何よりも甘い。</item>
+        <item>自分をコントロールできる人だけが人生の主人になります。</item>
+        <item>今の苦しみは蝶になるための蛹の過程です。</item>
+        <item>一杯の誘惑に勝てば、千杯の後悔を防げます。</item>
+        <item>問題を酒で覆わないでください。酒が覚めれば問題はもっと大きくなっています。</item>
+        <item>あなたが酒を断るたびに、自尊心は1点ずつ上がります。</item>
+        <item>適度に飲めないなら、全く飲まないのが正解です。</item>
+        <item>記憶が飛んだ昨日より、生々しく覚えている今日を選んでください。</item>
+        <item>今日飲まなければ明日はもっと強くなります。</item>
+        <item>断酒は諦めではありません。より良い人生のための賢明な選択です。</item>
+        <item>過去を責めて飲む酒は未来まで台無しにするだけです。</item>
+        <item>変化は「後で」ではなく「今すぐ」酒杯を置くときに始まります。</item>
+        <item>家族に与えられる最高のプレゼントは健康な家長の姿です。</item>
+        <item>真の休息は酒に酔って気絶することではなく、明晰な精神で眠ることです。</item>
+        <item>あなたの潜在能力はアルコールに漬かっているには余りにももったいない。</item>
+        <item>成功した人たちの朝は二日酔いから始まりません。</item>
+        <item>酒がなくてもあなたは十分に魅力的で面白い人です。</item>
+        <item>今夜の節制は明日の朝の自尊心として戻ってきます。</item>
+        <item>酒杯を満たす代わりに、あなたの夢と目標を満たしてください。</item>
+        <item>覚えていない夜より、鮮やかに輝く朝を迎えましょう。</item>
+        <item>酒はしばらく悩みを忘れさせますが、解決策は与えません。</item>
+        <item>酒を飲まないことは失うことではなく、明晰な時間を得ることです。</item>
+        <item>今止めることが最も早い回復です。</item>
+        <item>酒のない夕方が与える余裕を楽しんでください。</item>
+        <item>あなたが克服した誘惑の回数だけあなたは頑丈になります。</item>
+        <item>酒の力に頼らなくてもあなたはすでに強い人です。</item>
+        <item>酒を飲む時間に自分のための投資を始めてください。</item>
+        <item>ぼんやりした現実逃避よりはっきりした現実直視があなたを成長させます。</item>
+        <item>あなたの子供たちは酒の匂いではなくお父さんの暖かい香りを覚えるでしょう。</item>
+        <item>酒を断てば1日が24時間より長く感じられます。</item>
+        <item>一時の快楽のために明日のコンディションを犠牲にしないでください。</item>
+        <item>自分との約束を守ることが最も大きな成功です。</item>
+        <item>明晰な目で世界を見るとき、機会はもっとよく見えます。</item>
+        <item>酒を断ることは無礼ではなく、自分を守る堂々さです。</item>
+        <item>酒がなければ本当の休息が始まります。</item>
+        <item>今日耐えたあなた、すでに昨日よりも良い人です。</item>
+        <item>割れたガラスの破片のような記憶より、宝石のように輝く思い出を作ってください。</item>
+        <item>酒代で無駄にされていたお金があなたの未来の資産になります。</item>
+        <item>揺れる酒杯の中に私の未来を入れないでください。</item>
+        <item>断酒は終わりのない我慢ではなく、新しい人生の始まりです。</item>
+    </string-array>
 </resources>

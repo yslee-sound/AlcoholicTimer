@@ -161,8 +161,18 @@
 
     <!-- Target Days Setting (configuración de días objetivo) -->
     <string name="target_days_title">Establecer Días Objetivo</string>
+    <string name="target_days_title_set">Establecer Días Objetivo</string>
     <string name="target_days_unit">día(s)</string>
+    <string name="target_days_unit_d">d</string>
     <string name="target_days_hint">Por favor seleccione el período objetivo de sobriedad</string>
+
+    <!-- Duration Badge Labels (etiquetas de insignias de duración) -->
+    <string name="badge_one_day">Solo Un Día</string>
+    <string name="badge_three_days">3 Días</string>
+    <string name="badge_one_week">Desafío de 1 Semana</string>
+    <string name="badge_21_days">21 Días de Hábito</string>
+    <string name="badge_one_month">Milagro de 1 Mes</string>
+    <string name="badge_100_days">Promesa de 100 Días</string>
 
     <!-- Target Days Picker (selector de días objetivo) -->
     <string name="target_days_picker_title">Seleccionar Días Objetivo</string>
@@ -246,4 +256,64 @@
     <!-- Add Record/Diary buttons -->
     <string name="add_record_button">Agregar Registro</string>
     <string name="diary_write_button_action">Escribir Diario</string>
+
+    <!-- Motivational Quotes (Citas motivacionales) -->
+    <string-array name="motivational_quotes">
+        <item>El peso de la paciencia es de unos gramos, pero el peso del arrepentimiento es de toneladas.</item>
+        <item>Un hábito es al principio como una telaraña, pero luego se vuelve como una cadena de hierro.</item>
+        <item>La forma más segura de amarte a ti mismo es la moderación.</item>
+        <item>La paciencia de hoy crea una mente sana y clara para mañana.</item>
+        <item>En el momento en que quieras rendirte, piensa de nuevo por qué empezaste.</item>
+        <item>Regálate un hoy del que tu yo futuro no se avergüence.</item>
+        <item>Recuerda la sensación de una mañana despierta.</item>
+        <item>El yo de mañana por la mañana te agradecerá por esta noche.</item>
+        <item>Vacía la copa de alcohol y llena tu cuenta bancaria y tu salud.</item>
+        <item>Si necesitas alcohol para vivir, es tu vida la que debe cambiar.</item>
+        <item>La verdadera libertad no está dentro de una botella.</item>
+        <item>El alcohol que bebes hoy es intercambiado por la energía de mañana.</item>
+        <item>El coraje obtenido por la embriaguez es falso, pero la paciencia sobria es real.</item>
+        <item>Un solo error puede derribar una torre construida con esfuerzo. No bajes la guardia.</item>
+        <item>La sobriedad no es \"aguantar\", es \"dejar ir\" un mal hábito.</item>
+        <item>Una copa resistida hoy crea un milagro dentro de un año.</item>
+        <item>El sol de la mañana recibido con una mente clara es más dulce que cualquier cosa.</item>
+        <item>Solo quienes pueden controlarse a sí mismos se convierten en dueños de su vida.</item>
+        <item>El dolor actual es el proceso de una crisálida convirtiéndose en mariposa.</item>
+        <item>Si vences la tentación de una copa, evitas el arrepentimiento de mil.</item>
+        <item>No cubras los problemas con alcohol. Cuando despiertes, los problemas serán más grandes.</item>
+        <item>Cada vez que rechazas el alcohol, tu autoestima sube un punto.</item>
+        <item>Si no puedes beber con moderación, no beber en absoluto es la respuesta correcta.</item>
+        <item>Elige el hoy que recuerdas vívidamente en lugar del ayer que olvidaste.</item>
+        <item>Si no bebes hoy, mañana serás más fuerte.</item>
+        <item>La sobriedad no es rendirse. Es una elección sabia para una vida mejor.</item>
+        <item>El alcohol bebido culpando al pasado solo arruinará el futuro.</item>
+        <item>El cambio comienza cuando dejas la copa \"ahora mismo\", no \"más tarde\".</item>
+        <item>El mejor regalo que puedes dar a tu familia es la imagen de un líder saludable.</item>
+        <item>El verdadero descanso no es desmayarse borracho, es dormir con la mente clara.</item>
+        <item>Tu potencial es demasiado valioso para estar empapado en alcohol.</item>
+        <item>Las mañanas de las personas exitosas no comienzan con resaca.</item>
+        <item>Eres lo suficientemente atractivo e interesante sin alcohol.</item>
+        <item>La moderación de esta noche regresa como autoestima mañana por la mañana.</item>
+        <item>En lugar de llenar la copa, llena tus sueños y metas.</item>
+        <item>Recibe una mañana brillante en lugar de una noche que no recuerdas.</item>
+        <item>El alcohol te hace olvidar las preocupaciones temporalmente, pero no te da soluciones.</item>
+        <item>No beber no es perder, es ganar tiempo claro.</item>
+        <item>Detenerse ahora es la recuperación más rápida.</item>
+        <item>Disfruta del tiempo libre que te da una noche sin alcohol.</item>
+        <item>Te vuelves más fuerte con cada tentación que superas.</item>
+        <item>Ya eres una persona fuerte sin depender del alcohol.</item>
+        <item>Comienza a invertir en ti mismo en el tiempo que pasas bebiendo.</item>
+        <item>Enfrentar la realidad claramente te hace crecer más que escapar vagamente.</item>
+        <item>Tus hijos recordarán el cálido aroma de papá, no el olor a alcohol.</item>
+        <item>Cuando dejas el alcohol, un día se siente más largo que 24 horas.</item>
+        <item>No sacrifiques la condición de mañana por el placer momentáneo.</item>
+        <item>Mantener las promesas contigo mismo es el mayor éxito.</item>
+        <item>Cuando miras el mundo con ojos claros, las oportunidades se ven mejor.</item>
+        <item>Rechazar el alcohol no es grosería, es confianza en protegerte.</item>
+        <item>El verdadero descanso comienza solo sin alcohol.</item>
+        <item>Tú que resististe hoy, ya eres mejor que ayer.</item>
+        <item>Crea recuerdos que brillen como gemas en lugar de fragmentos de vidrio roto.</item>
+        <item>El dinero desperdiciado en alcohol se convierte en tu activo futuro.</item>
+        <item>No pongas tu futuro en una copa tambaleante.</item>
+        <item>La sobriedad no es resistencia interminable, es el comienzo de una nueva vida.</item>
+    </string-array>
 </resources>

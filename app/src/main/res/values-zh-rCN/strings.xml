@@ -162,8 +162,18 @@
 
     <!-- Target Days Setting (目标期间设定) -->
     <string name="target_days_title">设置目标天数</string>
+    <string name="target_days_title_set">设置目标天数</string>
     <string name="target_days_unit">天</string>
+    <string name="target_days_unit_d">d</string>
     <string name="target_days_hint">请选择戒酒目标天数</string>
+
+    <!-- Duration Badge Labels (目标期间选择徽章) -->
+    <string name="badge_one_day">只要一天</string>
+    <string name="badge_three_days">三天打鱼</string>
+    <string name="badge_one_week">一周挑战</string>
+    <string name="badge_21_days">21天养成习惯</string>
+    <string name="badge_one_month">一个月的奇迹</string>
+    <string name="badge_100_days">100天的约定</string>
 
     <!-- Target Days Picker (目标天数选择) -->
     <string name="target_days_picker_title">选择目标天数</string>
@@ -247,4 +257,64 @@
     <!-- Add Record/Diary buttons -->
     <string name="add_record_button">添加记录</string>
     <string name="diary_write_button_action">写日记</string>
+
+    <!-- Motivational Quotes (励志名言) -->
+    <string-array name="motivational_quotes">
+        <item>忍耐的重量只有几克，但后悔的重量却有几吨。</item>
+        <item>习惯最初像蜘蛛网，后来变成铁链。</item>
+        <item>爱自己最确实的方法是节制。</item>
+        <item>今天的忍耐创造明天健康清醒的精神。</item>
+        <item>想放弃的时候，重新想想为什么开始。</item>
+        <item>给未来的自己一份不丢脸的今天。</item>
+        <item>记住清醒早晨的感觉。</item>
+        <item>明天早上的我会感谢今晚的我。</item>
+        <item>倒空酒杯，充实账户和健康。</item>
+        <item>如果必须借助酒劲才能生活，应该改变的是人生本身。</item>
+        <item>真正的自由不在酒瓶里。</item>
+        <item>今天喝的酒是用明天的体力换来的。</item>
+        <item>醉后的勇气是假的，清醒时的忍耐才是真的。</item>
+        <item>一次失误可能摧毁辛苦建立的塔。不要放松警惕。</item>
+        <item>戒酒不是"忍耐"，而是"放弃"坏习惯。</item>
+        <item>今天忍住的一杯，会在一年后创造奇迹。</item>
+        <item>用清醒精神迎接的早晨阳光比什么都甜美。</item>
+        <item>只有能控制自己的人才能成为人生的主人。</item>
+        <item>现在的痛苦是蝴蝶破茧的过程。</item>
+        <item>战胜一杯的诱惑，就能防止千杯的后悔。</item>
+        <item>不要用酒精掩盖问题。酒醒后问题会更大。</item>
+        <item>每次拒绝酒精，自尊心就提高一分。</item>
+        <item>如果不能适度饮酒，完全不喝才是正确答案。</item>
+        <item>选择记忆清晰的今天，而不是断片的昨天。</item>
+        <item>今天不喝，明天会更强大。</item>
+        <item>戒酒不是放弃，而是为了更好生活的明智选择。</item>
+        <item>责怪过去而喝的酒只会毁掉未来。</item>
+        <item>变化从"现在"放下酒杯开始，而不是"以后"。</item>
+        <item>给家人最好的礼物是健康的一家之主。</item>
+        <item>真正的休息不是喝醉昏迷，而是清醒入睡。</item>
+        <item>你的潜力太珍贵，不该浸泡在酒精里。</item>
+        <item>成功人士的早晨不会从宿醉开始。</item>
+        <item>没有酒你也足够有魅力和有趣。</item>
+        <item>今晚的节制会变成明早的自尊心。</item>
+        <item>不要填满酒杯，去充实你的梦想和目标。</item>
+        <item>迎接鲜明闪亮的早晨，而不是记不住的夜晚。</item>
+        <item>酒只会让你暂时忘记烦恼，不会给你解决方案。</item>
+        <item>不喝酒不是失去，而是获得清醒的时间。</item>
+        <item>现在停止是最快的恢复。</item>
+        <item>享受没有酒的夜晚带来的从容。</item>
+        <item>你克服诱惑的次数越多，你就越坚强。</item>
+        <item>即使不依赖酒精，你已经是个强者。</item>
+        <item>把喝酒的时间用来投资自己。</item>
+        <item>清晰地直面现实会让你成长，而不是模糊地逃避。</item>
+        <item>你的孩子会记住父亲温暖的气息，而不是酒味。</item>
+        <item>戒酒后，一天会感觉比24小时更长。</item>
+        <item>不要为了短暂的快乐牺牲明天的状态。</item>
+        <item>遵守对自己的承诺就是最大的成功。</item>
+        <item>用清醒的眼睛看世界时，机会会更容易被看见。</item>
+        <item>拒绝酒精不是无礼，而是守护自己的从容。</item>
+        <item>没有酒才能开始真正的休息。</item>
+        <item>今天忍住的你，已经比昨天更好。</item>
+        <item>创造宝石般闪亮的回忆，而不是碎玻璃般的记忆。</item>
+        <item>浪费在酒上的钱会成为你未来的资产。</item>
+        <item>不要把未来放在摇晃的酒杯里。</item>
+        <item>戒酒不是无止境的忍耐，而是新生活的开始。</item>
+    </string-array>
 </resources>
