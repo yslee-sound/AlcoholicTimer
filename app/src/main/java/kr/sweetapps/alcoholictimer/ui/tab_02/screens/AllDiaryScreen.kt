@@ -170,25 +170,25 @@ fun AllDiaryScreen(
  * - Simple Row with Date + Emoji + Content
  * - Dividers added between items in parent
  * - [FIX] Date split into 2 lines, Emoji in fixed box, Content uses weight(1f)
+ * - [FIX] Use diary.timestamp instead of diary.date for proper i18n formatting
  */
 @Composable
 private fun CleanDiaryListItem(diary: DiaryEntity, onClick: () -> Unit) {
-    // Parse date string (e.g., "2025년 12월 7일") into parts
-    val dateText = diary.date
-    val (yearMonth, day) = remember(dateText) {
-        try {
-            // Extract year, month, day from "yyyy년 MM월 dd일"
-            val parts = dateText.split("년", "월", "일").map { it.trim() }
-            if (parts.size >= 3) {
-                val year = parts[0].takeLast(2) // Last 2 digits of year (e.g., "25")
-                val month = parts[1].padStart(2, '0')
-                val day = parts[2].padStart(2, '0')
-                "$year.$month" to "${day}일"
-            } else {
-                dateText to "" // Fallback
-            }
-        } catch (e: Exception) {
-            dateText to ""
+    // [FIX] Format date using timestamp and current Locale
+    val locale = Locale.getDefault()
+    val (yearMonth, day) = remember(diary.timestamp, locale) {
+        val date = Date(diary.timestamp)
+
+        if (locale.language == "ko") {
+            // 한국어: "yy.MM" / "dd일"
+            val yearMonthFormat = SimpleDateFormat("yy.MM", locale)
+            val dayFormat = SimpleDateFormat("dd'일'", locale)
+            yearMonthFormat.format(date) to dayFormat.format(date)
+        } else {
+            // 영어 및 기타: "MMM yyyy" / "d"
+            val yearMonthFormat = SimpleDateFormat("MMM yyyy", locale)
+            val dayFormat = SimpleDateFormat("d", locale)
+            yearMonthFormat.format(date) to dayFormat.format(date)
         }
     }
 
