@@ -126,7 +126,7 @@ fun DiaryWriteScreen(
             // [MOVED] BackTopBar를 Scaffold의 topBar 슬롯으로 이동 → 화면 상단에 고정
             BackTopBar(
                 title = when {
-                    isViewMode -> dateFormat.format(selectedDate.time)
+                    isViewMode -> "" // [FIX] 상세보기 모드에서는 중앙 타이틀 제거
                     diaryId != null -> stringResource(R.string.diary_edit_title)
                     else -> stringResource(R.string.diary_write_title)
                 },

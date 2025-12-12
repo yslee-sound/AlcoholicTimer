@@ -115,10 +115,12 @@ fun BaseScaffold(
                 HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
 
                 // Bottom Navigation (with padding to avoid overlap with system navigation buttons)
-                // [REFACTORED] Result, Success, GiveUp 화면에서는 네비게이션바 숨김
+                // [REFACTORED] Result, Success, GiveUp, DiaryWrite, DiaryDetail 화면에서는 네비게이션바 숨김
                 val hideBottomBar = currentRoute?.startsWith("result/") == true ||
                                     currentRoute == Screen.Success.route ||
-                                    currentRoute == Screen.GiveUp.route
+                                    currentRoute == Screen.GiveUp.route ||
+                                    currentRoute == Screen.DiaryWrite.route ||
+                                    currentRoute?.startsWith("diary_detail/") == true
 
                 if (!hideBottomBar) {
                     Surface(

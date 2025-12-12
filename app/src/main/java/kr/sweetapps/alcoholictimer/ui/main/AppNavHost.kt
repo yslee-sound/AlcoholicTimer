@@ -638,7 +638,30 @@ fun AppNavHost(
         }
 
         // [NEW] 일기 작성 화면 (Room DB 기반)
-        composable(Screen.DiaryWrite.route) {
+        // [NEW] 일기 작성 화면 (전체 화면 + 슬라이드 애니메이션)
+        composable(
+            route = Screen.DiaryWrite.route,
+            enterTransition = {
+                // [NEW] 오른쪽에서 왼쪽으로 슬라이드 인
+                slideInHorizontally(
+                    initialOffsetX = { fullWidth -> fullWidth },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                // [NEW] 왼쪽으로 슬라이드 아웃 (뒤로 가기 시)
+                slideOutHorizontally(
+                    targetOffsetX = { fullWidth -> fullWidth },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
             kr.sweetapps.alcoholictimer.ui.tab_02.screens.DiaryWriteScreen(
                 onDismiss = {
                     // Records 화면 새로고침 트리거
@@ -648,10 +671,30 @@ fun AppNavHost(
             )
         }
 
-        // [NEW] 일기 상세보기/수정 화면 (Room DB 기반)
+        // [NEW] 일기 상세보기/수정 화면 (전체 화면 + 슬라이드 애니메이션)
         composable(
             route = Screen.DiaryDetail.route,
-            arguments = listOf(navArgument("diaryId") { type = NavType.StringType })
+            arguments = listOf(navArgument("diaryId") { type = NavType.StringType }),
+            enterTransition = {
+                // [NEW] 오른쪽에서 왼쪽으로 슬라이드 인
+                slideInHorizontally(
+                    initialOffsetX = { fullWidth -> fullWidth },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                // [NEW] 왼쪽으로 슬라이드 아웃 (뒤로 가기 시)
+                slideOutHorizontally(
+                    targetOffsetX = { fullWidth -> fullWidth },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeOut(animationSpec = tween(300))
+            }
         ) { backStackEntry ->
             val diaryId = backStackEntry.arguments?.getString("diaryId") ?: return@composable
 
