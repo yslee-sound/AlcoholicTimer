@@ -309,12 +309,9 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
                 val targetDays = _targetDays.value
                 val elapsedMillis = TimerTimeManager.elapsedMillis.value
                 val endTime = startTime + elapsedMillis
+                val actualDays = (elapsedMillis / Constants.DAY_IN_MILLIS).toInt()
 
-                // [FIX] actualDays 계산 시 반올림 적용 (1일 미만도 표시되도록)
-                // 예: 0.5일 -> 1일, 0.4일 -> 0일, 1.8일 -> 2일
-                val actualDays = kotlin.math.round(elapsedMillis.toDouble() / Constants.DAY_IN_MILLIS).toInt()
-
-                Log.d("Tab01ViewModel", "[GiveUp STEP 1] 데이터 스냅샷: startTime=$startTime, endTime=$endTime, targetDays=$targetDays, elapsedMillis=$elapsedMillis, actualDays=$actualDays")
+                Log.d("Tab01ViewModel", "[GiveUp STEP 1] 데이터 스냅샷: startTime=$startTime, endTime=$endTime, targetDays=$targetDays, actualDays=$actualDays")
 
                 // [STEP 2] "user_settings" 파일에 포기 기록 저장 (AppNavHost와 동일한 파일)
                 val editor = sharedPref.edit()
