@@ -120,4 +120,20 @@ class UmpConsentManager(private val context: Context) {
             onClosed(error)
         }
     }
+
+    /**
+     * [EU 감지] 사용자의 지역 및 설정에 따라 'Privacy Options' 메뉴 표시 여부를 반환합니다.
+     * - REQUIRED: EU/EEA 지역 사용자 (반드시 표시)
+     * - NOT_REQUIRED: 한국/미국 등 (표시 안 함)
+     */
+    fun isPrivacyOptionsRequired(): Boolean {
+        return try {
+            val consentInfo = UserMessagingPlatform.getConsentInformation(context)
+            val status = consentInfo.privacyOptionsRequirementStatus
+            status == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
+        } catch (t: Throwable) {
+            Log.e(TAG, "isPrivacyOptionsRequired check failed: ${t.message}")
+            false
+        }
+    }
 }

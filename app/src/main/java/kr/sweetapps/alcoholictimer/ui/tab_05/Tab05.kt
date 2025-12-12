@@ -98,6 +98,7 @@ fun AboutScreen(
     val onAdsClick: () -> Unit
     val onDebugClick: () -> Unit
     val showDebugMenu: Boolean
+    val showPrivacyOptions: Boolean
 
     if (isInPreview) {
         versionInfo = "1.0.0-preview"
@@ -106,6 +107,7 @@ fun AboutScreen(
         onAdsClick = {}
         onDebugClick = {}
         showDebugMenu = true
+        showPrivacyOptions = true
     } else {
         val app = context.applicationContext as? MainApplication
         val umpConsentManager = app?.umpConsentManager
@@ -148,8 +150,16 @@ fun AboutScreen(
             }
         }
         onDebugClick = { onNavigateDebug() }
-        // [FIX] Privacy Options와 Debug 메뉴를 DEBUG 빌드에서만 표시
-        // 릴리즈 빌드에서는 두 메뉴 모두 숨겨짐
+
+        // [FIX] Privacy Options: EU 사용자 OR 개발자(DEBUG 빌드)
+        val isPrivacyRequired = try {
+            umpConsentManager?.isPrivacyOptionsRequired() ?: false
+        } catch (t: Throwable) {
+            false
+        }
+        showPrivacyOptions = isPrivacyRequired || BuildConfig.DEBUG
+
+        // [FIX] Debug 메뉴: 개발자(DEBUG 빌드)만
         showDebugMenu = BuildConfig.DEBUG
     }
 
@@ -354,8 +364,8 @@ fun AboutScreen(
             })
             Box(modifier = Modifier.fillMaxWidth().height(dims.divider.thin).background(dims.divider.lightColor))
 
-            // [FIX] Privacy Options - DEBUG 빌드에서만 표시 (EU 지역 개발 테스트용)
-            if (showDebugMenu) {
+            // [FIX] Privacy Options - EU 사용자 OR 개발자(DEBUG 빌드)에서만 표시
+            if (showPrivacyOptions) {
                 SimpleAboutRow(
                     title = "Privacy Options",
                     onClick = onAdsClick,
