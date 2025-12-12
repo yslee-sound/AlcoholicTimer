@@ -630,7 +630,7 @@ fun AppNavHost(
         composable(
             route = Screen.AllDiary.route,
             enterTransition = {
-                // [NEW] 오른쪽에서 왼쪽으로 슬라이드 인
+                // [NEW] 진입: 오른쪽에서 왼쪽으로 슬라이드 인
                 slideInHorizontally(
                     initialOffsetX = { fullWidth -> fullWidth },
                     animationSpec = tween(
@@ -640,7 +640,27 @@ fun AppNavHost(
                 ) + fadeIn(animationSpec = tween(300))
             },
             exitTransition = {
-                // [NEW] 왼쪽으로 슬라이드 아웃 (뒤로 가기 시)
+                // [FIX] 다른 화면으로 이동 시: 왼쪽으로 슬라이드 아웃
+                slideOutHorizontally(
+                    targetOffsetX = { fullWidth -> -fullWidth },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeOut(animationSpec = tween(300))
+            },
+            popEnterTransition = {
+                // [NEW] 뒤로 가기로 다시 나타날 때: 왼쪽에서 오른쪽으로 슬라이드 인
+                slideInHorizontally(
+                    initialOffsetX = { fullWidth -> -fullWidth },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            popExitTransition = {
+                // [NEW] 뒤로 가기 시: 오른쪽으로 슬라이드 아웃
                 slideOutHorizontally(
                     targetOffsetX = { fullWidth -> fullWidth },
                     animationSpec = tween(
@@ -664,7 +684,7 @@ fun AppNavHost(
         composable(
             route = Screen.DiaryWrite.route,
             enterTransition = {
-                // [NEW] 오른쪽에서 왼쪽으로 슬라이드 인
+                // [NEW] 진입: 오른쪽에서 왼쪽으로 슬라이드 인
                 slideInHorizontally(
                     initialOffsetX = { fullWidth -> fullWidth },
                     animationSpec = tween(
@@ -674,7 +694,27 @@ fun AppNavHost(
                 ) + fadeIn(animationSpec = tween(300))
             },
             exitTransition = {
-                // [NEW] 왼쪽으로 슬라이드 아웃 (뒤로 가기 시)
+                // [FIX] 다른 화면으로 이동 시: 왼쪽으로 슬라이드 아웃
+                slideOutHorizontally(
+                    targetOffsetX = { fullWidth -> -fullWidth },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeOut(animationSpec = tween(300))
+            },
+            popEnterTransition = {
+                // [NEW] 뒤로 가기로 다시 나타날 때: 왼쪽에서 오른쪽으로 슬라이드 인
+                slideInHorizontally(
+                    initialOffsetX = { fullWidth -> -fullWidth },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            popExitTransition = {
+                // [NEW] 뒤로 가기 시: 오른쪽으로 슬라이드 아웃
                 slideOutHorizontally(
                     targetOffsetX = { fullWidth -> fullWidth },
                     animationSpec = tween(
@@ -698,7 +738,7 @@ fun AppNavHost(
             route = Screen.DiaryDetail.route,
             arguments = listOf(navArgument("diaryId") { type = NavType.StringType }),
             enterTransition = {
-                // [NEW] 오른쪽에서 왼쪽으로 슬라이드 인
+                // [NEW] 진입: 오른쪽에서 왼쪽으로 슬라이드 인
                 slideInHorizontally(
                     initialOffsetX = { fullWidth -> fullWidth },
                     animationSpec = tween(
@@ -708,7 +748,27 @@ fun AppNavHost(
                 ) + fadeIn(animationSpec = tween(300))
             },
             exitTransition = {
-                // [NEW] 왼쪽으로 슬라이드 아웃 (뒤로 가기 시)
+                // [FIX] 다른 화면으로 이동 시: 왼쪽으로 슬라이드 아웃
+                slideOutHorizontally(
+                    targetOffsetX = { fullWidth -> -fullWidth },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeOut(animationSpec = tween(300))
+            },
+            popEnterTransition = {
+                // [NEW] 뒤로 가기로 다시 나타날 때: 왼쪽에서 오른쪽으로 슬라이드 인
+                slideInHorizontally(
+                    initialOffsetX = { fullWidth -> -fullWidth },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            popExitTransition = {
+                // [NEW] 뒤로 가기 시: 오른쪽으로 슬라이드 아웃
                 slideOutHorizontally(
                     targetOffsetX = { fullWidth -> fullWidth },
                     animationSpec = tween(
