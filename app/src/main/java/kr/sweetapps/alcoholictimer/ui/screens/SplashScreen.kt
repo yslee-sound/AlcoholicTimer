@@ -177,30 +177,67 @@ class SplashScreen : BaseActivity() {
      * 광고 로드 및 표시 (단순 방식)
      */
     private fun loadAndShowAd(launchContent: () -> Unit) {
-        // 광고 로드 성공 리스너
-        kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdLoadedListener {
-            runOnUiThread {
-                android.util.Log.d("SplashScreen", "✅ Ad loaded -> showing immediately")
+        // [FIX] 타임아웃을 취소하기 위해 핸들러와 러너블을 변수로 선언
+        val handler = android.os.Handler(android.os.Looper.getMainLooper())
+        var timeoutRunnable: Runnable? = null
 
-                val shown = kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.showIfAvailable(this@SplashScreen)
-                if (!shown) {
-                    android.util.Log.w("SplashScreen", "⚠️ showIfAvailable returned false")
+        // 1. 타임아웃 로직 정의 (5초 뒤 실행될 내용)
+        timeoutRunnable = Runnable {
+            if (holdSplashAtomic.get()) {
+                android.util.Log.w("SplashScreen", "⏱️ Timeout (5s) -> Force proceed")
+
+                // 혹시 로드는 됐는데 show가 안 된 상태일 수 있으니 마지막 체크
+                if (kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.isLoaded()) {
+                    val shown = kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.showIfAvailable(this@SplashScreen)
+                    if (!shown) {
+                        launchContent()
+                        releaseSplash()
+                    }
+                } else {
+                    // 로드 안 됐으면 그냥 이동
                     launchContent()
                     releaseSplash()
                 }
             }
         }
 
-        // 광고 로드 실패 리스너
+        // 2. 광고 로드 성공 리스너
+        kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdLoadedListener {
+            runOnUiThread {
+                android.util.Log.d("SplashScreen", "✅ Ad loaded -> showing immediately")
+
+                val shown = kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.showIfAvailable(this@SplashScreen)
+                if (!shown) {
+                    // 보여주기 실패하면 이동
+                    launchContent()
+                    releaseSplash()
+                    // [FIX] 알람 해제
+                    timeoutRunnable?.let { handler.removeCallbacks(it) }
+                }
+            }
+        }
+
+        // 3. 광고 보여주기 시작 리스너 (가장 중요!)
+        // [FIX] 광고가 눈에 보이는 순간, 5초 타임아웃을 취소해야 함!
+        kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdShownListener {
+            runOnUiThread {
+                android.util.Log.d("SplashScreen", "👁️ Ad is showing -> Cancel timeout")
+                timeoutRunnable?.let { handler.removeCallbacks(it) }
+            }
+        }
+
+        // 4. 광고 로드 실패 리스너
         kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdLoadFailedListener {
             runOnUiThread {
                 android.util.Log.w("SplashScreen", "❌ Ad load failed -> proceed to main")
                 launchContent()
                 releaseSplash()
+                // [FIX] 알람 해제
+                timeoutRunnable?.let { handler.removeCallbacks(it) }
             }
         }
 
-        // 광고 종료 리스너
+        // 5. 광고 종료(닫기) 리스너
         kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdFinishedListener {
             runOnUiThread {
                 android.util.Log.d("SplashScreen", "📺 Ad finished -> proceed to main")
@@ -209,26 +246,11 @@ class SplashScreen : BaseActivity() {
             }
         }
 
-        // 광고 로드 시작
+        // 6. 로드 시작 및 타임아웃 가동
         kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.preload(this@SplashScreen)
 
-        // 타임아웃 (5초)
-        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-            if (holdSplashAtomic.get()) {
-                android.util.Log.w("SplashScreen", "⏱️ Timeout (5s) -> checking ad status")
-
-                if (kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.isLoaded()) {
-                    val shown = kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.showIfAvailable(this@SplashScreen)
-                    if (!shown) {
-                        launchContent()
-                        releaseSplash()
-                    }
-                } else {
-                    launchContent()
-                    releaseSplash()
-                }
-            }
-        }, 5000)
+        // [FIX] 5초 뒤에 타임아웃 실행 예약
+        handler.postDelayed(timeoutRunnable!!, 5000)
     }
 
     override fun onResume() {

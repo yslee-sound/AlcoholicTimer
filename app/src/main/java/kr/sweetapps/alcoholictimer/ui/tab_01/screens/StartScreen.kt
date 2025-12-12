@@ -276,7 +276,7 @@ fun StartScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.splash_app_icon),
+                    painter = painterResource(id = R.drawable.splash_app_icon_inset),
                     contentDescription = null,
                     modifier = Modifier.size(240.dp)
                 )
