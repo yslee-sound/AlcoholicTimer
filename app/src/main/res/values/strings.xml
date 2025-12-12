@@ -217,7 +217,7 @@
 
     <!-- Target Days Setting (목표 기간 설정) -->
     <string name="target_days_title">목표 기간 설정</string>
-    <string name="target_days_title_set">Set Target Period</string>
+    <string name="target_days_title_set">목표 기간 설정</string>
     <string name="target_days_unit">일</string>
     <string name="target_days_unit_d">d</string>
     <string name="target_days_hint">금주할 목표 기간을 선택해주세요</string>
