@@ -6,6 +6,8 @@ import androidx.room.PrimaryKey
 /**
  * 일기 데이터 엔티티
  * Room Database의 diary_table에 저장됩니다.
+ *
+ * [ROBUST] 모든 필드에 기본값 설정으로 마이그레이션 안전성 확보
  */
 @Entity(tableName = "diary_table")
 data class DiaryEntity(
@@ -13,18 +15,18 @@ data class DiaryEntity(
     val id: Long = 0,
 
     /** 타임스탬프 (밀리초) - 정렬 및 날짜 계산용 */
-    val timestamp: Long,
+    val timestamp: Long = System.currentTimeMillis(),
 
     /** 화면 표시용 날짜 문자열 (예: "2023년 12월 25일") */
-    val date: String,
+    val date: String = "",
 
     /** 기분 이모티콘 */
-    val emoji: String,
+    val emoji: String = "😐",
 
     /** 일기 내용 */
-    val content: String,
+    val content: String = "",
 
     /** 갈망 수치 (0~10) */
-    val cravingLevel: Int
+    val cravingLevel: Int = 0
 )
 

@@ -71,18 +71,51 @@ data class SobrietyRecord(
     }
 
     companion object {
-        fun fromJson(json: JSONObject): SobrietyRecord = SobrietyRecord(
-            id = json.getString("id"),
-            startTime = json.getLong("startTime"),
-            endTime = json.getLong("endTime"),
-            targetDays = json.getInt("targetDays"),
-            actualDays = json.getDouble("actualDays"),  // [REFACTOR] getInt → getDouble
-            isCompleted = json.getBoolean("isCompleted"),
-            status = json.getString("status"),
-            createdAt = json.getLong("createdAt"),
-            percentage = if (json.has("percentage")) json.getInt("percentage") else null,
-            memo = if (json.has("memo")) json.getString("memo") else null
-        )
+        /**
+         * [ROBUST] JSON에서 SobrietyRecord 생성 - 안전한 파싱 로직
+         * - 알 수 없는 필드: 자동으로 무시됨 (JSONObject는 기본적으로 unknown keys를 무시)
+         * - 없는 필드: optXXX() 메서드와 기본값으로 안전하게 처리
+         * - 파싱 실패: null 반환하여 호출자가 처리하도록 함
+         */
+        fun fromJson(json: JSONObject): SobrietyRecord? {
+            return try {
+                SobrietyRecord(
+                    // 필수 필드: 없으면 예외 발생 → try-catch로 포착
+                    id = json.optString("id", UUID.randomUUID().toString()),
+                    startTime = json.optLong("startTime", 0L),
+                    endTime = json.optLong("endTime", 0L),
+                    targetDays = json.optInt("targetDays", 21),
+
+                    // [ROBUST] actualDays: Int/Double 호환 처리
+                    actualDays = when {
+                        json.has("actualDays") && !json.isNull("actualDays") -> {
+                            try {
+                                json.getDouble("actualDays")
+                            } catch (e: Exception) {
+                                // 구버전이 Int로 저장했을 경우 대비
+                                json.optInt("actualDays", 0).toDouble()
+                            }
+                        }
+                        else -> 0.0
+                    },
+
+                    isCompleted = json.optBoolean("isCompleted", false),
+                    status = json.optString("status", "unknown"),
+                    createdAt = json.optLong("createdAt", System.currentTimeMillis()),
+
+                    // 선택 필드: 없으면 null
+                    percentage = if (json.has("percentage") && !json.isNull("percentage")) {
+                        json.optInt("percentage", 0)
+                    } else null,
+                    memo = if (json.has("memo") && !json.isNull("memo")) {
+                        json.optString("memo", "")
+                    } else null
+                )
+            } catch (e: Exception) {
+                android.util.Log.e("SobrietyRecord", "Failed to parse JSON: ${e.message}")
+                null
+            }
+        }
 
         fun toJsonArray(records: List<SobrietyRecord>): String {
             val jsonArray = JSONArray()
@@ -90,15 +123,30 @@ data class SobrietyRecord(
             return jsonArray.toString()
         }
 
+        /**
+         * [ROBUST] JSON 배열에서 리스트 생성 - 안전한 파싱
+         * - 파싱 실패한 개별 아이템은 건너뛰고 성공한 것만 반환
+         * - 전체 파싱 실패 시 빈 리스트 반환
+         */
         fun fromJsonArray(jsonString: String): List<SobrietyRecord> {
             val records = mutableListOf<SobrietyRecord>()
             try {
+                if (jsonString.isBlank()) return emptyList()
+
                 val jsonArray = JSONArray(jsonString)
                 for (i in 0 until jsonArray.length()) {
-                    val jsonObject = jsonArray.getJSONObject(i)
-                    records.add(fromJson(jsonObject))
+                    try {
+                        val jsonObject = jsonArray.getJSONObject(i)
+                        fromJson(jsonObject)?.let { records.add(it) }
+                    } catch (e: Exception) {
+                        // 개별 아이템 파싱 실패는 건너뛰기
+                        android.util.Log.w("SobrietyRecord", "Failed to parse item $i: ${e.message}")
+                    }
                 }
-            } catch (_: Exception) { }
+            } catch (e: Exception) {
+                // 전체 파싱 실패
+                android.util.Log.e("SobrietyRecord", "Failed to parse JSON array: ${e.message}")
+            }
             return records
         }
     }

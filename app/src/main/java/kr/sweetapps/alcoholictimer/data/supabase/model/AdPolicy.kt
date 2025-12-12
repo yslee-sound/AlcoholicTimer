@@ -21,7 +21,13 @@
 
 package kr.sweetapps.alcoholictimer.data.supabase.model
 
-/** Minimal AdPolicy model mapping Supabase ad_policy fields used by AdController. */
+import kotlinx.serialization.Serializable
+
+/**
+ * Minimal AdPolicy model mapping Supabase ad_policy fields used by AdController.
+ * [ROBUST] @Serializable로 안전한 직렬화 지원, 모든 필드에 기본값 설정
+ */
+@Serializable
 data class AdPolicy(
     val id: Long = 0L,
     val appId: String = "",
