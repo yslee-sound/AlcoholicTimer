@@ -65,7 +65,7 @@ fun BaseScaffold(
             // 탭 3: Level
             currentRoute == Screen.Level.route -> stringResource(R.string.level_title)
             // 탭 4 그룹: More 및 관련 라우트
-            currentRoute == Screen.More.route || currentRoute == Screen.CurrencySettings.route -> stringResource(R.string.settings_screen_title)
+            currentRoute == Screen.More.route || currentRoute == Screen.CurrencySettings.route -> stringResource(R.string.settings_title)
             else -> null
         }
 

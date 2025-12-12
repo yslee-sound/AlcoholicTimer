@@ -58,10 +58,10 @@ import kr.sweetapps.alcoholictimer.ui.theme.LocalDimens
 import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue  // [NEW] 메인 UI 색상
 
 class SettingsActivity : BaseActivity() {
-    // [NEW] Tab04은 '더보기'로 표시되어야 하므로 제목 리소스를 more_title로 변경
-    override fun getScreenTitleResId(): Int = R.string.more_title
+    // [NEW] Tab04은 '금주 습관'으로 표시
+    override fun getScreenTitleResId(): Int = R.string.settings_title
     @Deprecated("Use getScreenTitleResId() instead for proper localization support")
-    override fun getScreenTitle(): String = getString(R.string.more_title)
+    override fun getScreenTitle(): String = getString(R.string.settings_title)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

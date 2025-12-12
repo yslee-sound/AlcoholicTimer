@@ -354,7 +354,7 @@ fun AboutScreen(
             Box(modifier = Modifier.fillMaxWidth().height(dims.divider.thin).background(dims.divider.lightColor))
 
             // Open Source License
-            SimpleAboutRow(title = stringResource(id = R.string.about_open_license_notice), onClick = onLicenseClick, trailing = {
+            SimpleAboutRow(title = stringResource(id = R.string.document_title_open_source), onClick = onLicenseClick, trailing = {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_caret_right),
                     contentDescription = null,

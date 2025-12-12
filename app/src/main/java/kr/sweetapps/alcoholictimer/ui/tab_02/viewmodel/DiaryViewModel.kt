@@ -125,10 +125,21 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
 
     /**
      * timestamp를 날짜 문자열로 변환합니다.
-     * 예: "2025년 12월 6일"
+     * 현재 시스템 Locale에 맞춰 날짜를 표시합니다.
+     * 예: 한국어 - "2025년 12월 6일"
+     *     일본어 - "2025年12月6日"
+     *     영어 - "Dec 6, 2025"
      */
     private fun formatDate(timestamp: Long): String {
-        val sdf = SimpleDateFormat("yyyy년 M월 d일", Locale.KOREAN)
+        // [다국어화] Locale.getDefault()를 사용하여 시스템 언어에 맞는 날짜 형식 사용
+        val locale = Locale.getDefault()
+        val sdf = when (locale.language) {
+            "ko" -> SimpleDateFormat("yyyy년 M월 d일", locale)
+            "ja" -> SimpleDateFormat("yyyy年M月d日", locale)
+            "zh" -> SimpleDateFormat("yyyy年M月d日", locale)
+            "es" -> SimpleDateFormat("d 'de' MMMM 'de' yyyy", locale)
+            else -> SimpleDateFormat("MMM d, yyyy", locale) // 영어 및 기타 언어
+        }
         return sdf.format(Date(timestamp))
     }
 }

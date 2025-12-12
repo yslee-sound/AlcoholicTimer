@@ -198,7 +198,7 @@ fun CustomerFeedbackBottomSheet(
                     if (showEmailError) {
                         // [NEW] 에러 메시지 표시
                         Text(
-                            text = "올바른 이메일 형식이 아닙니다.",
+                            text = stringResource(R.string.feedback_email_error),
                             fontSize = 12.sp,
                             color = Color(0xFFD32F2F), // 빨간색
                             lineHeight = 16.sp
@@ -243,7 +243,7 @@ fun CustomerFeedbackBottomSheet(
                             isSubmitting = false
                             Toast.makeText(
                                 context,
-                                "소중한 의견 감사합니다 🙏",
+                                context.getString(R.string.feedback_success_message),
                                 Toast.LENGTH_SHORT
                             ).show()
                             onSubmit(selectedCategory, contentText.trim(), emailText.trim())
@@ -253,7 +253,7 @@ fun CustomerFeedbackBottomSheet(
                             isSubmitting = false
                             Toast.makeText(
                                 context,
-                                "전송에 실패했습니다\n$errorMessage",
+                                context.getString(R.string.feedback_error_message, errorMessage),
                                 Toast.LENGTH_LONG
                             ).show()
                         }
@@ -280,7 +280,7 @@ fun CustomerFeedbackBottomSheet(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "전송 중...",
+                        text = stringResource(R.string.feedback_submitting),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )

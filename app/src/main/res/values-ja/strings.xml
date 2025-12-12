@@ -76,6 +76,9 @@
     <string name="about_title">アプリについて</string>
     <string name="about_version_info">バージョン情報</string>
     <string name="about_open_license_notice">オープンソースライセンス</string>
+    <!-- Document screen titles -->
+    <string name="document_title_open_source">Open Source License</string>
+    <string name="document_title_privacy">プライバシーポリシー</string>
     <string name="about_section_app_icon">アプリアイコン</string>
     <string name="about_label_original_work">原作</string>
     <string name="about_label_author">作者</string>
@@ -126,7 +129,10 @@
     <string name="records_period_year">年</string>
     <string name="records_period_all">全て</string>
     <string name="records_this_week">今週</string>
+    <string name="records_weekly_stats">週間統計</string>
     <string name="records_monthly_stats">月間統計</string>
+    <string name="records_yearly_stats">年間統計</string>
+    <string name="records_all_stats">全体統計</string>
     <string name="records_success_rate">成功率</string>
     <string name="records_avg_duration">平均期間</string>
     <string name="records_max_duration">最長期間</string>
@@ -162,6 +168,24 @@
     <string name="level_day_unit">日</string>
     <string name="level_hour_unit">時間</string>
 
+    <!-- Statistics Card Labels (統計カードラベル) -->
+    <string name="stats_calories_reduced">減らしたカロリー</string>
+    <string name="stats_drinks_resisted">我慢したお酒</string>
+    <string name="stats_money_saved">守ったお金</string>
+    <string name="stats_total_days">総禁酒日数</string>
+    <string name="stats_unit_kcal">kcal</string>
+    <string name="stats_unit_bottles">本</string>
+    <string name="stats_unit_won">円</string>
+    <string name="stats_unit_days">d</string>
+
+    <!-- Diary Section (日記セクション) -->
+    <string name="diary_recent_title">最近の禁酒日記</string>
+    <string name="diary_view_all">全ての日記を見る</string>
+    <string name="diary_no_entries">まだ作成された日記がありません</string>
+    <string name="diary_write_prompt">右下の+ボタンを押して\n最初の日記を作成してみてください</string>
+    <string name="diary_write_button">日記作成</string>
+    <string name="diary_write_button_action">日記を書く</string>
+
     <!-- Target Days Setting -->
     <string name="target_days_title">目標期間を設定</string>
     <string name="target_days_title_set">目標期間を設定</string>
@@ -187,7 +211,7 @@
     <string name="start_screen_title">禁酒開始</string>
 
     <!-- Settings screen -->
-    <string name="settings_title">設定</string>
+    <string name="settings_title">禁酒習慣</string>
     <string name="settings_drinking_cost">飲酒費用</string>
     <string name="settings_drinking_frequency">飲酒頻度</string>
     <string name="settings_drinking_duration">飲酒時間</string>
@@ -265,6 +289,10 @@
 
     <!-- Currency options (通貨選択) -->
     <string name="settings_currency">通貨</string>
+    <string name="settings_currency_auto">自動（地域ベース）</string>
+    <string name="settings_currency_current">現在の選択: %1$s</string>
+    <string name="settings_currency_current_auto">現在の選択: %1$s （自動）</string>
+    <string name="settings_apply_button">設定を適用</string>
     <string name="currency_krw">韓国ウォン (₩)</string>
     <string name="currency_jpy">日本円 (¥)</string>
     <string name="currency_usd">米ドル ($)</string>
@@ -280,6 +308,37 @@
     <string name="update_dialog_later">後で</string>
     <string name="update_dialog_update">アップデート</string>
     <string name="update_dialog_icon_description">アップデートアイコン</string>
+
+    <!-- More (Tab04) tab labels - used instead of 'Settings' for tab04 -->
+    <string name="more_title">もっと見る</string>
+    <string name="drawer_menu_more">もっと見る</string>
+
+    <!-- Tab05 (More) Menu Items -->
+    <string name="tab05_rate_app">アプリを評価する</string>
+    <string name="tab05_notifications">お知らせ</string>
+    <string name="tab05_customer_support">お問い合わせ</string>
+    <string name="tab05_recommended_apps">おすすめアプリ</string>
+
+    <!-- Notification Center -->
+    <string name="notification_center_title">お知らせセンター</string>
+    <string name="notification_empty_message">新しいお知らせはありません。</string>
+
+    <!-- Customer Feedback Bottom Sheet -->
+    <string name="feedback_title">お問い合わせ</string>
+    <string name="feedback_category_label">お問い合わせの種類</string>
+    <string name="feedback_category_feature">機能のご提案</string>
+    <string name="feedback_category_bug">バグ報告</string>
+    <string name="feedback_category_other">その他のお問い合わせ</string>
+    <string name="feedback_content_label">お問い合わせ内容</string>
+    <string name="feedback_content_placeholder">例）アプリ起動時に停止する現象があります。</string>
+    <string name="feedback_email_label">メールアドレス（任意）</string>
+    <string name="feedback_email_placeholder">example@email.com</string>
+    <string name="feedback_email_note">返信をご希望の場合はメールアドレスをご入力ください。\nメールアドレスは返信目的以外には使用いたしません。</string>
+    <string name="feedback_submit_button">送信</string>
+    <string name="feedback_email_error">正しいメールアドレスの形式ではありません。</string>
+    <string name="feedback_submitting">送信中&#8230;</string>
+    <string name="feedback_success_message">貴重なご意見ありがとうございます 🙏</string>
+    <string name="feedback_error_message">送信に失敗しました\n%1$s</string>
 
     <!-- 추가: 진행 화면 문자열 -->
     <string name="run_progress_title">進捗</string>
@@ -314,7 +373,6 @@
 
     <!-- Add Record/Diary buttons -->
     <string name="add_record_button">記録を追加</string>
-    <string name="diary_write_button_action">日記を書く</string>
 
     <!-- Motivational Quotes (動機づけの名言) -->
     <string-array name="motivational_quotes">

@@ -124,7 +124,10 @@
     <string name="records_period_year">年</string>
     <string name="records_period_all">全部</string>
     <string name="records_this_week">本周</string>
+    <string name="records_weekly_stats">周统计</string>
     <string name="records_monthly_stats">月度统计</string>
+    <string name="records_yearly_stats">年度统计</string>
+    <string name="records_all_stats">全部统计</string>
     <string name="records_success_rate">成功率</string>
     <string name="records_avg_duration">平均持续天数</string>
     <string name="records_max_duration">最长持续天数</string>
@@ -159,6 +162,24 @@
     <string name="level_all_levels">所有等级</string>
     <string name="level_day_unit">天</string>
     <string name="level_hour_unit">小时</string>
+
+    <!-- Statistics Card Labels (统计卡片标签) -->
+    <string name="stats_calories_reduced">减少的卡路里</string>
+    <string name="stats_drinks_resisted">忍住的酒</string>
+    <string name="stats_money_saved">节省的钱</string>
+    <string name="stats_total_days">总戒酒天数</string>
+    <string name="stats_unit_kcal">kcal</string>
+    <string name="stats_unit_bottles">瓶</string>
+    <string name="stats_unit_won">元</string>
+    <string name="stats_unit_days">d</string>
+
+    <!-- Diary Section (日记部分) -->
+    <string name="diary_recent_title">最近的戒酒日记</string>
+    <string name="diary_view_all">查看所有日记</string>
+    <string name="diary_no_entries">还没有写过日记</string>
+    <string name="diary_write_prompt">请点击右下角的+按钮\n写第一篇日记</string>
+    <string name="diary_write_button">写日记</string>
+    <string name="diary_write_button_action">写日记</string>
 
     <!-- Target Days Setting (目标期间设定) -->
     <string name="target_days_title">设置目标天数</string>
@@ -256,7 +277,6 @@
 
     <!-- Add Record/Diary buttons -->
     <string name="add_record_button">添加记录</string>
-    <string name="diary_write_button_action">写日记</string>
 
     <!-- Motivational Quotes (励志名言) -->
     <string-array name="motivational_quotes">
