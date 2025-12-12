@@ -52,15 +52,41 @@ fun AllDiaryScreen(
     Scaffold(
         topBar = {
             // [NEW] 공통 뒤로가기 제목줄로 통일
-            BackTopBar(title = "나의 금주 일지", onBack = onNavigateBack)
+            BackTopBar(title = "금주 일기", onBack = onNavigateBack)
         }
     ) { innerPadding ->
         val state = rememberLazyListState()
         if (grouped.isEmpty()) {
-            Box(modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding), contentAlignment = Alignment.Center) {
-                Text(text = "작성된 일기가 없습니다.", color = Color(0xFF64748B))
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White) // 배경색 하얗게
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    // 1. 아이콘 (알림 센터 스타일: 크기 64dp, 연한 회색)
+                    Icon(
+                        // 팁: R.drawable.ic_edit 같은 일기장 아이콘이 있다면 그걸로 바꿔주세요.
+                        // 현재는 예시로 'bell'을 넣었지만, 일기 관련 아이콘을 추천합니다.
+                        painter = painterResource(id = R.drawable.notebook),
+                        contentDescription = null,
+                        tint = Color(0xFFBDBDBD), // 알림 센터 아이콘 색상
+                        modifier = Modifier.size(64.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // 2. 텍스트 (알림 센터 스타일: 크기 16sp, 진한 회색)
+                    Text(
+                        text = "작성된 일기가 없습니다.",
+                        fontSize = 16.sp,
+                        color = Color(0xFF999999) // 알림 센터 텍스트 색상
+                    )
+                }
             }
             return@Scaffold
         }
