@@ -626,8 +626,30 @@ fun AppNavHost(
             )
         }
 
-        // [NEW] 모든 일기 보기 화면 (AllDiary)
-        composable(Screen.AllDiary.route) {
+        // [NEW] 모든 일기 보기 화면 (전체 화면 + 슬라이드 애니메이션)
+        composable(
+            route = Screen.AllDiary.route,
+            enterTransition = {
+                // [NEW] 오른쪽에서 왼쪽으로 슬라이드 인
+                slideInHorizontally(
+                    initialOffsetX = { fullWidth -> fullWidth },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                // [NEW] 왼쪽으로 슬라이드 아웃 (뒤로 가기 시)
+                slideOutHorizontally(
+                    targetOffsetX = { fullWidth -> fullWidth },
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
             kr.sweetapps.alcoholictimer.ui.tab_02.screens.AllDiaryScreen(
                 onNavigateBack = { if (!navController.popBackStack()) navController.navigate(Screen.Records.route) },
                 onOpenDiaryDetail = { diaryId -> // [UPDATED] diaryId (Long) 받음
