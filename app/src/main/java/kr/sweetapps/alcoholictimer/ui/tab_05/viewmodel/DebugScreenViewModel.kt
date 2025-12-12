@@ -58,29 +58,8 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
                 4 -> currentState.copy(switch4 = value)
                 5 -> currentState.copy(switch5 = value)
                 6 -> {
-                    DebugSettings.setUmpForceEeaEnabled(getApplication(), value)
-                    // When debug toggle changes, immediately reset primary and ads-side consent and re-request so test effect is immediate
-                    if (BuildConfig.DEBUG) {
-                        try {
-                            // Reset primary UMP manager (if available) and ads-side stored prefs
-                            try {
-                                val mainApp = getApplication<Application>() as? MainApplication
-                                mainApp?.umpConsentManager?.resetConsent(getApplication())
-                            } catch (_: Throwable) {}
-                        } catch (_: Throwable) {}
-                        try {
-                            val act = MainApplication.currentActivity
-                            if (act != null) {
-                                val mainApp = getApplication<Application>() as? MainApplication
-                                mainApp?.umpConsentManager?.requestAndLoadIfRequired(act) { can ->
-                                    Log.d("DebugScreenVM", "UMP EEA toggle changed -> UMP request finished -> canRequestAds=$can")
-                                }
-                            } else {
-                                Log.d("DebugScreenVM", "UMP EEA toggle changed -> no currentActivity to trigger UMP request")
-                            }
-                        } catch (_: Throwable) {}
-                    }
-                    currentState.copy(umpForceEea = value)
+                    // [REMOVED] UMP EEA 강제 설정 - 상용 배포에 불필요
+                    currentState
                 }
                 else -> currentState
             }
@@ -108,36 +87,7 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    fun resetConsent() {
-        if (!BuildConfig.DEBUG) return
-        Log.d("DebugScreenVM", "resetConsent called")
-        val consentInformation = UserMessagingPlatform.getConsentInformation(getApplication())
-        consentInformation.reset()
-        // Ensure ads.UmpConsentManager persisted flags are cleared so ads flow will re-check consent
-        try {
-            val sp = getApplication<Application>().applicationContext.getSharedPreferences("ump_prefs", Context.MODE_PRIVATE)
-            sp.edit { clear() }
-            Log.d("DebugScreenVM", "resetConsent: cleared umb_prefs (ump_prefs)")
-            // Also clear ads-side manager internal state immediately
-            try {
-                val mainApp = getApplication<Application>() as? MainApplication
-                mainApp?.umpConsentManager?.resetConsent(getApplication())
-                Log.d("DebugScreenVM", "Called umpConsentManager.resetConsent")
-            } catch (_: Throwable) { Log.d("DebugScreenVM", "umpConsentManager.resetConsent failed") }
-            // If there's a foreground activity, trigger ads-side consent re-check immediately
-            try {
-                val act = MainApplication.currentActivity
-                if (act != null) {
-                    val mainApp = getApplication<Application>() as? MainApplication
-                    mainApp?.umpConsentManager?.requestAndLoadIfRequired(act) { canReq ->
-                        Log.d("DebugScreenVM", "UMP request finished after debug reset -> canRequestAds=$canReq")
-                    }
-                } else {
-                    Log.d("DebugScreenVM", "No currentActivity available to trigger UMP request")
-                }
-            } catch (_: Throwable) {}
-        } catch (_: Throwable) {}
-    }
+    // [REMOVED] resetConsent - 상용 배포에 불필요 (유럽 지역 배포 제외)
 
     /**
      * Perform debug action for switches 3..5.

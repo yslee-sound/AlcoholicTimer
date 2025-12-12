@@ -91,11 +91,9 @@ fun StartScreen(
         viewModel.setGateNavigation(gateNavigation)
     }
 
-    // [NEW] AppOpen Ad 초기화 (ViewModel에 위임)
+    // [REMOVED] AppOpen Ad 초기화 - MainActivity에서 이미 처리하므로 중복 제거
+    // MainActivity가 광고 로딩/표시를 완료하고 StartScreen에 진입함
     if (holdSplashState != null) {
-        LaunchedEffect(Unit) {
-            viewModel.initializeAppOpenAd(context)
-        }
 
         // [NEW] ViewModel의 splash 상태를 holdSplashState에 동기화
         LaunchedEffect(uiState.isSplashHeld) {
@@ -251,8 +249,8 @@ fun StartScreen(
             // 6. 명언
             QuoteDisplay()
 
-            // 7. 버튼 위 여백 (키보드 올라올 때 스크롤 공간 확보)
-            Spacer(modifier = Modifier.height(50.dp))
+            // 7. 버튼 위 여백 - RunScreen과 동일한 높이 맞춤
+            Spacer(modifier = Modifier.height(50.dp))  // [FIX] RunScreen의 CLEARANCE_ABOVE_BUTTON(32dp) + buttonSize/2(48dp) = 80dp 중 일부
 
             // 8. [MOVED] 시작 버튼 (이제 스크롤 콘텐츠의 일부 - 키보드에 가려짐)
             MainActionButton(
@@ -261,8 +259,8 @@ fun StartScreen(
                 }
             )
 
-            // 9. 하단 안전 여백
-            Spacer(modifier = Modifier.height(24.dp))
+            // 9. 하단 안전 여백 - RunScreen의 CLEARANCE_ABOVE_BUTTON과 동일
+            Spacer(modifier = Modifier.height(32.dp))  // [FIX] RunScreen의 CLEARANCE_ABOVE_BUTTON = 32dp
         }
 
         AnimatedVisibility(

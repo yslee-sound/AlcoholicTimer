@@ -121,6 +121,8 @@ android {
             }
             // [NEW] Crashlytics 자동 활성화 (Release 빌드)
             manifestPlaceholders["crashlyticsCollectionEnabled"] = "true"
+            // [NEW] UMP 테스트 기기 해시 (릴리즈에서는 빈 문자열)
+            buildConfigField("String", "UMP_TEST_DEVICE_HASH", "\"\"")
             // 빌드타입별 배너 광고 유닛ID (릴리즈 실제 ID)
             buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"ca-app-pub-8420908105703273/3187272865\"")
             // 빌드타입별 전면 광고 유닛ID (릴리즈 실제 ID)

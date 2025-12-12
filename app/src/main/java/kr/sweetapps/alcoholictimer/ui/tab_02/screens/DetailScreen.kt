@@ -316,7 +316,7 @@ fun DetailScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),  // [FIX] 연한 회색
-                    elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),  // [FIX] 엘리베이션 0으로 변경
                     border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
                 ) {
                     Column(modifier = Modifier.padding(DETAIL_CARD_CONTENT_PADDING)) {
@@ -476,8 +476,8 @@ fun DetailStatCard(
 ) {
     AppCard(
         modifier = modifier,
-        elevation = AppElevation.CARD_HIGH,
-        containerColor = Color(0xFFF5F5F5),  // [FIX] 연한 회색
+        elevation = 0.dp,  // [FIX] 엘리베이션 0으로 변경
+        containerColor = Color(0xFFF3F4F6),  // [FIX] 회색 배경 (F3F4F6)
         border = null,  // [FIX] 테두리 제거 (회색 줄 제거)
         contentPadding = androidx.compose.foundation.layout.PaddingValues(
             horizontal = 16.dp,

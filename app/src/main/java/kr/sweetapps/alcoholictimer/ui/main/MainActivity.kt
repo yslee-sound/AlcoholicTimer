@@ -53,11 +53,38 @@ class MainActivity : BaseActivity() {
     @Volatile
     private var hasHandledInitialAdLoad: Boolean = false
 
+    // [NEW] 최소 브랜딩 시간 보장 (AdMob 정책 준수)
+    private val minimumBrandingDurationMs = 1500L // 1.5초
+    private var appStartTimeMs: Long = 0L
+    @Volatile
+    private var isMinimumBrandingTimeMet: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        // [NEW] 앱 시작 시각 기록 (최소 브랜딩 시간 계산용)
+        appStartTimeMs = System.currentTimeMillis()
+
         // 타이밍 진단: MainActivity 진입 시각 기록
         kr.sweetapps.alcoholictimer.ui.ad.AdTimingLogger.logMainActivityCreate()
 
         super.onCreate(savedInstanceState)
+
+        // [NEW] SplashScreen에서 광고를 이미 처리했는지 확인
+        val isSplashAdShown = intent.getBooleanExtra("is_splash_ad_shown", false)
+        if (isSplashAdShown) {
+            android.util.Log.d("MainActivity", "⏭️ Splash already handled ad - skipping ad flow")
+            // 스플래시 화면 설정만 하고 광고 없이 바로 메인으로 진입
+            val holdSplashState = androidx.compose.runtime.mutableStateOf(false) // 즉시 해제
+            setTheme(R.style.Theme_AlcoholicTimer)
+            setContent {
+                val startDestination = when {
+                    getSharedPreferences("user_settings", MODE_PRIVATE).getBoolean("timer_completed", false) -> Screen.Finished.route
+                    getSharedPreferences("user_settings", MODE_PRIVATE).getLong("start_time", 0L) > 0L -> Screen.Run.route
+                    else -> Screen.Start.route
+                }
+                AppContentWithStart(startDestination, holdSplashState)
+            }
+            return
+        }
 
         // [NEW] Firebase Remote Config 즉시 fetch (Debug에서는 캐시 없이 즉시 업데이트)
         try {
@@ -111,9 +138,17 @@ class MainActivity : BaseActivity() {
             }
             hasProceededToMain = true
 
+            // [FIX] 앱 진입 시 모든 광고 리스너 해제 (뒤늦은 광고 표시 방지)
+            try {
+                kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdLoadedListener(null)
+                kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdLoadFailedListener(null)
+                kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdFinishedListener(null)
+                kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdShownListener(null)
+            } catch (_: Throwable) {}
+
             runOnUiThread {
                 android.util.Log.d("MainActivity", "========================================")
-                android.util.Log.d("MainActivity", "단계 4: 메인 액티비티 진입")
+                android.util.Log.d("MainActivity", "단계 4: 메인 액티비티 진입 (Ad listeners cleared)")
                 android.util.Log.d("MainActivity", "호출 스택 추적: ${Thread.currentThread().stackTrace.take(5).joinToString()}")
                 android.util.Log.d("MainActivity", "========================================")
 
@@ -128,11 +163,13 @@ class MainActivity : BaseActivity() {
                 holdSplashState.value = false
                 android.util.Log.d("MainActivity", "Splash released - entering Compose UI")
 
-                // AppOpen auto-show 재활성화 (백그라운드 복귀 시 자동 표시)
-                try {
-                    kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setAutoShowEnabled(true)
-                    android.util.Log.d("MainActivity", "AppOpen auto-show re-enabled")
-                } catch (_: Throwable) {}
+                // [FIX] AppOpen auto-show 재활성화 지연 (2초) - 첫 광고 종료 직후 재진입 방지
+                window.decorView.postDelayed({
+                    try {
+                        kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setAutoShowEnabled(true)
+                        android.util.Log.d("MainActivity", "AppOpen auto-show re-enabled (Delayed 2s)")
+                    } catch (_: Throwable) {}
+                }, 2000)
 
                 setContent { AppContentWithStart(startDestinationRoute, holdSplashState) }
             }
@@ -174,38 +211,20 @@ class MainActivity : BaseActivity() {
         // 광고 로드 완료 리스너 설정
         kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdLoadedListener {
             runOnUiThread {
-                // [중요] 첫 광고 로드 시에만 실행 - 무한 중첩 방지
-                if (hasHandledInitialAdLoad) {
-                    android.util.Log.d("MainActivity", "광고 로드 완료 (이미 처리됨) - 스킵 (무한 중첩 방지)")
-                    return@runOnUiThread
-                }
-                hasHandledInitialAdLoad = true
+                android.util.Log.d("MainActivity", "✅ 광고 로드 완료 -> 광고 표시 시도")
 
-                android.util.Log.d("MainActivity", "========================================")
-                android.util.Log.d("MainActivity", "단계 3: 광고 로드 완료 -> 광고 표시 시도")
-                android.util.Log.d("MainActivity", "========================================")
-
-                if (!kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.isLoaded()) {
-                    android.util.Log.w("MainActivity", "Ad not loaded -> proceed to main")
-                    proceedToMainActivity()
-                    return@runOnUiThread
-                }
-
-                // ============================================================
-                // 3단계: 광고 표시 (Sequential Step 3)
-                // ============================================================
+                // 광고 표시 시도
                 val shown = kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.showIfAvailable(
                     this,
                     bypassRecentFullscreenSuppression = true
                 )
-                android.util.Log.d("MainActivity", "광고 표시 시도 결과: shown=$shown")
 
-                if (!shown) {
-                    // 광고 표시 실패 - 메인으로 이동
-                    android.util.Log.w("MainActivity", "Ad failed to show -> proceed to main")
+                if (shown) {
+                    android.util.Log.d("MainActivity", "📺 광고 표시 성공")
+                } else {
+                    android.util.Log.w("MainActivity", "⚠️ 광고 표시 실패 -> 메인 진입")
                     proceedToMainActivity()
                 }
-                // 광고 표시 성공 시 - onAdDismissedFullScreenContent에서 메인으로 이동
             }
         }
 
@@ -407,16 +426,9 @@ class MainActivity : BaseActivity() {
     override fun onStop() {
         super.onStop()
 
-        // ?? ?�기 최적?? AppOpen 광고 ?�리캐싱
-        // ?�이 백그?�운?�로 �????�음 AppOpen 광고�?미리 로드
-        // ?�과: ?�음 ?�행 ??광고가 ?��? 준비되??즉시 ?�시 가??
-        // ?�상 개선: ?�출�?70% ??80% (추�? 10% 개선)
-        try {
-            android.util.Log.d("MainActivity", "onStop: preloading next AppOpen ad for future use")
-            kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.preload(applicationContext)
-        } catch (e: Throwable) {
-            android.util.Log.w("MainActivity", "onStop: AppOpen preload failed: ${e.message}")
-        }
+        // [REMOVED] 광고 preload 제거 - 광고 표시 중 onStop 호출 시 무한 반복 방지
+        // 이유: 앱 오프닝 광고가 뜰 때도 onStop이 호출되어 새 광고를 로드하면,
+        // 광고 닫고 돌아올 때 또 광고가 뜨는 무한 루프 발생
     }
 
     // BaseActivity??추상 ?�수 구현
