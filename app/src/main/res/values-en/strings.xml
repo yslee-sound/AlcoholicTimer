@@ -56,6 +56,8 @@
 
     <!-- Detail screen -->
     <string name="detail_title">Record Details</string>
+    <string name="detail_result_title">Goal Achievement Result</string>
+    <string name="detail_restart_button">Start Again</string>
     <string name="detail_menu_delete">Delete Record</string>
     <string name="dialog_delete_title">Delete Record</string>
     <string name="dialog_delete_message">Are you sure you want to delete this sobriety record?&#10;This action cannot be undone.</string>

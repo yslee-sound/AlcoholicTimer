@@ -206,7 +206,7 @@ fun DetailScreen(
             {
                 BackTopBar(
                     title = if (isResultMode) {
-                        "목표 달성 결과"  // [NEW] 결과 모드일 때 타이틀
+                        stringResource(R.string.detail_result_title)  // [FIX] 결과 모드일 때 타이틀 다국어화
                     } else if (previewMode) {
                         "Detail"
                     } else {
@@ -278,7 +278,7 @@ fun DetailScreen(
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
-                            text = "다시 시작하기",
+                            text = stringResource(R.string.detail_restart_button),  // [FIX] 다국어화
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )

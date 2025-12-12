@@ -53,6 +53,8 @@
 
     <!-- Detail screen -->
     <string name="detail_title">記録の詳細</string>
+    <string name="detail_result_title">目標達成結果</string>
+    <string name="detail_restart_button">再スタート</string>
     <string name="detail_menu_delete">記録を削除</string>
     <string name="dialog_delete_title">記録を削除</string>
     <string name="dialog_delete_message">この記録を削除しますか？&#10;この操作は元に戻せません。</string>

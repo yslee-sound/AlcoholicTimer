@@ -40,9 +40,24 @@ fun AllDiaryScreen(
     // [NEW] Group diaries by year/month (preserve order newest -> oldest)
     val grouped = remember(diaries) {
         val map = LinkedHashMap<String, MutableList<DiaryEntity>>()
+        val locale = Locale.getDefault()
         diaries.forEach { d ->
             val cal = Calendar.getInstance().apply { timeInMillis = d.timestamp }
-            val key = "${cal.get(Calendar.YEAR)}년 ${cal.get(Calendar.MONTH) + 1}월"
+            // [FIX] 다국어화: 시스템 언어에 맞게 년/월 포맷 생성
+            val key = when (locale.language) {
+                "ko" -> "${cal.get(Calendar.YEAR)}년 ${cal.get(Calendar.MONTH) + 1}월"
+                "ja" -> "${cal.get(Calendar.YEAR)}年${cal.get(Calendar.MONTH) + 1}月"
+                "zh" -> "${cal.get(Calendar.YEAR)}年${cal.get(Calendar.MONTH) + 1}月"
+                "es" -> {
+                    val monthNames = arrayOf("enero", "febrero", "marzo", "abril", "mayo", "junio",
+                                            "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre")
+                    "${monthNames[cal.get(Calendar.MONTH)]} ${cal.get(Calendar.YEAR)}"
+                }
+                else -> { // 영어 및 기타
+                    val sdf = SimpleDateFormat("MMMM yyyy", locale)
+                    sdf.format(Date(d.timestamp))
+                }
+            }
             val list = map.getOrPut(key) { mutableListOf() }
             list.add(d)
         }
