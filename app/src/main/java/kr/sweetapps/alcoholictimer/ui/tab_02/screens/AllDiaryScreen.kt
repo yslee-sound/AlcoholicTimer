@@ -23,9 +23,12 @@ import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.DiaryViewModel
 import kr.sweetapps.alcoholictimer.data.room.DiaryEntity
+import kr.sweetapps.alcoholictimer.ui.common.LocalSafeContentPadding
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.LinkedHashMap
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,58 +53,48 @@ fun AllDiaryScreen(
         map
     }
 
-    // [NEW] Box로 감싸서 하단 버튼 오버레이
-    Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            topBar = {
-                // [NEW] 공통 뒤로가기 제목줄로 통일
-                BackTopBar(title = stringResource(R.string.diary_all_title), onBack = onNavigateBack)
-            }
-        ) { innerPadding ->
-        val state = rememberLazyListState()
-        if (grouped.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White) // 배경색 하얗게
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+    Scaffold(
+        topBar = {
+            BackTopBar(title = stringResource(R.string.diary_all_title), onBack = onNavigateBack)
+        },
+        bottomBar = {
+            Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                Button(
+                    onClick = { onAddDiary() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                        .navigationBarsPadding()
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue, contentColor = Color.White),
+                    shape = MaterialTheme.shapes.medium
                 ) {
-                    // 1. 아이콘 (알림 센터 스타일: 크기 64dp, 연한 회색)
-                    Icon(
-                        painter = painterResource(id = R.drawable.notebook),
-                        contentDescription = null,
-                        tint = Color(0xFFBDBDBD), // 알림 센터 아이콘 색상
-                        modifier = Modifier.size(64.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // 2. 텍스트 (알림 센터 스타일: 크기 16sp, 진한 회색)
-                    Text(
-                        text = stringResource(R.string.diary_all_empty),
-                        fontSize = 16.sp,
-                        color = Color(0xFF999999) // 알림 센터 텍스트 색상
-                    )
+                    Text(text = "일기 작성하기", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
-            return@Scaffold
-        }
+        },
+        containerColor = Color.White
+    ) { innerPadding ->
+        val state = rememberLazyListState()
 
+        // Use Scaffold innerPadding bottom + 100.dp so list scrolls 100.dp above bottomBar area
+        val topPad = innerPadding.calculateTopPadding()
+        val startPad = innerPadding.calculateLeftPadding(layoutDirection = androidx.compose.ui.unit.LayoutDirection.Ltr)
+        val endPad = innerPadding.calculateRightPadding(layoutDirection = androidx.compose.ui.unit.LayoutDirection.Ltr)
+        val bottomExtra = innerPadding.calculateBottomPadding() + 100.dp
+
+        // apply innerPadding start/top/end to modifier (exclude bottom)
         LazyColumn(
             state = state,
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White) // [UPDATED] Clean white background
-                .padding(innerPadding),
-            contentPadding = PaddingValues(bottom = 100.dp) // [NEW] Breathing room at bottom
+                .background(Color.White)
+                .padding(start = startPad, top = topPad, end = endPad)
+                .padding(horizontal = 0.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(top = 16.dp, bottom = bottomExtra)
         ) {
             grouped.forEach { (month, list) ->
-                // [UPDATED] Modern & minimal month header
                 item(key = "header_$month") {
                     Row(
                         modifier = Modifier
@@ -146,31 +139,7 @@ fun AllDiaryScreen(
 
             item { Spacer(modifier = Modifier.height(16.dp)) }
         }
-    } // Scaffold 닫기
-
-    // [NEW] 하단 고정 버튼 - 일기 작성하기
-    Button(
-        onClick = { onAddDiary() },
-        modifier = Modifier
-            .align(Alignment.BottomCenter)
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp)
-            .navigationBarsPadding()
-            .height(56.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue,
-            contentColor = Color.White
-        ),
-        shape = MaterialTheme.shapes.medium
-    ) {
-        Text(
-            text = "일기 작성하기",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold
-        )
-    }
-} // Box 닫기
+    } // Scaffold end
 }
 
 /**
@@ -314,4 +283,3 @@ private fun DiaryCardItem(diary: DiaryEntity, onClick: () -> Unit) {
         }
     }
 }
-

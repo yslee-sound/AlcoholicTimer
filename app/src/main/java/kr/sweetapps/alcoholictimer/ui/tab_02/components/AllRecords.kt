@@ -33,6 +33,8 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,60 +73,49 @@ fun AllRecordsScreen(
     LaunchedEffect(retryTrigger) { loadRecords() }
     LaunchedEffect(externalRefreshTrigger) { loadRecords() }
 
-    // [수정] Box로 감싸서 FAB을 오버레이로 배치
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Keep BackTopBar outside fontScale override so its title uses system font scale
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-        ) {
-        // [수정] 상단 공통 BackTopBar: 타이틀 제거 (빈 문자열)
-        BackTopBar(
-            title = "", // [FIX] 제목 숨김
-            onBack = onNavigateBack,
-            trailingContent = if (externalDeleteDialog == null) {
-                {
-                    // [NEW] 메뉴 확장 상태 관리
-                    var showMenu by remember { mutableStateOf(false) }
-
-                    Box {
-                        // [NEW] 점 3개 아이콘 버튼
-                        IconButton(
-                            onClick = { showMenu = true },
-                            enabled = !isLoading && records.isNotEmpty()
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.MoreVert,
-                                contentDescription = stringResource(id = R.string.cd_more_options),
-                                tint = if (!isLoading && records.isNotEmpty()) Color.Black else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                            )
-                        }
-
-                        // [NEW] 드롭다운 메뉴
-                        DropdownMenu(
-                            expanded = showMenu,
-                            onDismissRequest = { showMenu = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(id = R.string.menu_delete_all_records)) },
-                                onClick = {
-                                    showMenu = false
-                                    dialogState.value = true
-                                }
-                            )
+    // Use Scaffold with bottomBar so content is inset automatically
+    Scaffold(
+        topBar = {
+            BackTopBar(
+                title = "", // [FIX] 제목 숨김
+                onBack = onNavigateBack,
+                trailingContent = if (externalDeleteDialog == null) {
+                    {
+                        var showMenu by remember { mutableStateOf(false) }
+                        Box {
+                            IconButton(onClick = { showMenu = true }, enabled = !isLoading && records.isNotEmpty()) {
+                                Icon(imageVector = Icons.Filled.MoreVert, contentDescription = stringResource(id = R.string.cd_more_options), tint = if (!isLoading && records.isNotEmpty()) Color.Black else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f))
+                            }
+                            DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                                DropdownMenuItem(text = { Text(stringResource(id = R.string.menu_delete_all_records)) }, onClick = { showMenu = false; dialogState.value = true })
+                            }
                         }
                     }
+                } else null
+            )
+        },
+        bottomBar = {
+            // [NEW] 하단 고정 버튼 - 기록 추가하기 (Scaffold bottomBar)
+            Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                Button(
+                    onClick = { onAddRecord() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                        .navigationBarsPadding()
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MainPrimaryBlue, contentColor = Color.White),
+                    shape = MaterialTheme.shapes.medium
+                ) {
+                    Text(text = "기록 추가하기", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
-            } else null
-        )
-
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.surfaceVariant
+    ) { innerPadding ->
         // Apply fontScale only to the body content below the TopBar
         CompositionLocalProvider(
-            LocalDensity provides Density(
-                density = LocalDensity.current.density,
-                fontScale = LocalDensity.current.fontScale * fontScale
-            )
+            LocalDensity provides Density(density = LocalDensity.current.density, fontScale = LocalDensity.current.fontScale * fontScale)
         ) {
             when {
                 isLoading -> {
@@ -153,13 +144,19 @@ fun AllRecordsScreen(
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { AllRecordsEmptyState() }
                 }
                 else -> {
-                    val safePadding = LocalSafeContentPadding.current
-                    val bottomPadding = safePadding.calculateBottomPadding() + 100.dp  // [FIX] 하단 여유 공간 100dp로 증가
+                    // Apply innerPadding to modifier and set bottom extra to fixed 100.dp
+                    val topPad = innerPadding.calculateTopPadding()
+                    val startPad = innerPadding.calculateLeftPadding(layoutDirection = androidx.compose.ui.unit.LayoutDirection.Ltr)
+                    val endPad = innerPadding.calculateRightPadding(layoutDirection = androidx.compose.ui.unit.LayoutDirection.Ltr)
+                    val bottomExtra = innerPadding.calculateBottomPadding() + 100.dp
 
                     LazyColumn(
-                        modifier = Modifier.fillMaxSize().padding(horizontal = kr.sweetapps.alcoholictimer.ui.tab_02.screens.RECORDS_SCREEN_HORIZONTAL_PADDING),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(start = startPad, top = topPad, end = endPad)
+                            .padding(horizontal = kr.sweetapps.alcoholictimer.ui.tab_02.screens.RECORDS_SCREEN_HORIZONTAL_PADDING),
                         verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING),
-                        contentPadding = PaddingValues(top = 16.dp, bottom = bottomPadding)
+                        contentPadding = PaddingValues(top = 16.dp, bottom = bottomExtra)
                     ) {
                         items(items = records, key = { it.id }) { record ->
                             Box(
@@ -211,31 +208,7 @@ fun AllRecordsScreen(
                 dismissButton = { TextButton(onClick = { dialogState.value = false }) { Text(stringResource(id = R.string.dialog_cancel)) } }
             )
         }
-    } // Column 닫기
-
-    // [NEW] 하단 고정 버튼 - 기록 추가하기
-    Button(
-        onClick = { onAddRecord() },
-        modifier = Modifier
-            .align(Alignment.BottomCenter)
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp)
-            .navigationBarsPadding()
-            .height(56.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MainPrimaryBlue,
-            contentColor = Color.White
-        ),
-        shape = MaterialTheme.shapes.medium
-    ) {
-        Text(
-            text = "기록 추가하기",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold
-        )
-    }
-} // Box 닫기
+    } // Scaffold content closed
 }
 
 @Composable
