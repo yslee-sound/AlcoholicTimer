@@ -48,9 +48,10 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
     // [REFACTORED] Elapsed time - 이제 TimerTimeManager에서 직접 가져옴
     val elapsedMillis: StateFlow<Long> = TimerTimeManager.elapsedMillis
 
-    // [NEW] 네비게이션 이벤트 (화면 전환 요청)
+    // [REFACTORED] 네비게이션 이벤트 (화면 전환 요청) - Success/GiveUp 명확히 분리
     sealed class NavigationEvent {
-        object NavigateToFinished : NavigationEvent() // [NEW] 타이머 완료 시 축하 화면으로
+        object NavigateToSuccess : NavigationEvent() // [REFACTORED] 타이머 목표 달성 시 성공 화면으로
+        object NavigateToGiveUp : NavigationEvent()  // [REFACTORED] 타이머 중단 시 위로 화면으로
         data class NavigateToDetail(val startTime: Long, val endTime: Long, val targetDays: Float, val actualDays: Int) : NavigationEvent()
     }
 
@@ -58,11 +59,11 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
     val navigationEvent: SharedFlow<NavigationEvent> = _navigationEvent.asSharedFlow()
 
     // [FIX] SharedPreferences 변경 감지 리스너
+    // [CRITICAL] PREF_TIMER_COMPLETED는 제외 - ViewModel이 직접 변경하므로 리스너에서 재반응하면 플리커 발생
     private val preferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         when (key) {
             Constants.PREF_START_TIME,
-            Constants.PREF_TARGET_DAYS,
-            Constants.PREF_TIMER_COMPLETED -> {
+            Constants.PREF_TARGET_DAYS -> {
                 Log.d("Tab01ViewModel", "[FIX] Timer data changed ($key) -> reloading state")
 
                 // 1. 최신 데이터 로드
@@ -90,8 +91,6 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
         // Load initial timer state
         loadTimerState()
 
-        // Self-Healing: Detect and fix zombie state
-        performSelfHealing()
 
         // [REFACTORED] TimerTimeManager에 상태 복원
         val currentStartTime = _startTime.value
@@ -128,6 +127,7 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
      * - SharedPreferences 업데이트
      * - 네비게이션 이벤트 발행
      * [FIX] Zombie 이벤트 방지 로직 추가
+     * [CRITICAL] StateFlow를 가장 먼저 업데이트하여 UI 플리커 방지
      */
     private suspend fun handleTimerCompletion() {
         try {
@@ -152,10 +152,16 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
 
             Log.d("Tab01ViewModel", "Handling timer completion: startTime=$startTime, endTime=$endTime, targetDays=$targetDays, actualDays=$actualDays")
 
-            // 1. 기록 저장
+            // [CRITICAL FIX] 1. UI 상태를 가장 먼저 업데이트 (메모리 상태 Lock)
+            // 이렇게 해야 디스크 I/O가 진행되는 동안 UI가 올바른 상태를 유지함
+            _timerCompleted.value = true
+            TimerTimeManager.markCompleted()
+            Log.d("Tab01ViewModel", "✅ StateFlow updated FIRST: _timerCompleted = true")
+
+            // 2. 기록 저장 (느린 디스크 작업)
             saveCompletedRecord(startTime, endTime, targetDays, actualDays)
 
-            // 2. SharedPreferences 업데이트
+            // 3. SharedPreferences 업데이트 (느린 디스크 작업)
             sharedPref.edit().apply {
                 remove(Constants.PREF_START_TIME)
                 putBoolean(Constants.PREF_TIMER_COMPLETED, true)
@@ -168,7 +174,7 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
                 apply()
             }
 
-            // 3. TimerStateRepository 업데이트
+            // 4. TimerStateRepository 업데이트
             try {
                 kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(true)
                 kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(false)
@@ -176,9 +182,6 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
                 Log.e("Tab01ViewModel", "Failed to update TimerStateRepository", e)
             }
 
-            // 4. 상태 업데이트
-            _timerCompleted.value = true
-            TimerTimeManager.markCompleted()
 
             // 5. Analytics 로그
             try {
@@ -187,9 +190,9 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
                 Log.e("Tab01ViewModel", "Failed to log analytics", e)
             }
 
-            // 6. 네비게이션 이벤트 발행 (먼저 축하 화면으로)
-            _navigationEvent.tryEmit(NavigationEvent.NavigateToFinished)
-            Log.d("Tab01ViewModel", "Navigation event emitted to FinishedScreen (celebration)")
+            // 6. [REFACTORED] 네비게이션 이벤트 발행 - Success 화면으로
+            _navigationEvent.tryEmit(NavigationEvent.NavigateToSuccess)
+            Log.d("Tab01ViewModel", "Navigation event emitted to SuccessScreen (celebration)")
 
         } catch (e: Exception) {
             Log.e("Tab01ViewModel", "Error handling timer completion", e)
@@ -234,37 +237,6 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /**
-     * Self-Healing Logic: Automatic state recovery
-     */
-    private fun performSelfHealing() {
-        val isCompleted = _timerCompleted.value
-        val hasStartTime = _startTime.value > 0
-
-        if (isCompleted) {
-            val completedRecordExists = checkCompletedRecordExists()
-            if (completedRecordExists) {
-                Log.w("Tab01ViewModel", "[Self-Healing] Zombie state detected - resetting completed flag")
-                resetCompletedFlag()
-            } else {
-                Log.d("Tab01ViewModel", "[Self-Healing] Timer completion is fresh - keeping state")
-            }
-        } else if (!hasStartTime) {
-            Log.d("Tab01ViewModel", "[Self-Healing] Idle state - no action needed")
-        }
-    }
-
-    private fun checkCompletedRecordExists(): Boolean {
-        val completedStartTime = sharedPref.getLong("completed_start_time", 0L)
-        return completedStartTime > 0L
-    }
-
-    private fun resetCompletedFlag() {
-        _timerCompleted.value = false
-        sharedPref.edit()
-            .putBoolean(Constants.PREF_TIMER_COMPLETED, false)
-            .apply()
-    }
 
     private fun loadTimerState() {
         _startTime.value = sharedPref.getLong(Constants.PREF_START_TIME, 0L)

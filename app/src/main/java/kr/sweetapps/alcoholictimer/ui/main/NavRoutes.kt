@@ -16,9 +16,14 @@ sealed class Screen(val route: String) {
     data object Run : Screen("run")
 
     /**
-     * Finished screen (timer expired)
+     * [REFACTORED] Success screen (timer completed - goal achieved)
      */
-    data object Finished : Screen("finished")
+    data object Success : Screen("success")
+
+    /**
+     * [REFACTORED] GiveUp screen (timer stopped - user gave up)
+     */
+    data object GiveUp : Screen("giveup")
 
     /**
      * Quit confirmation screen

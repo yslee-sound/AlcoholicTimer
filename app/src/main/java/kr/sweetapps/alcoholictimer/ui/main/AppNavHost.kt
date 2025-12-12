@@ -149,33 +149,24 @@ fun AppNavHost(
             )
         }
 
-        // [NEW] 타이머 완료 화면
-        composable(Screen.Finished.route) {
-            // [FIX] SharedPreferences에서 타이머 완료 상태 확인
-            val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
-            val isTimerCompleted = sharedPref.getBoolean(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_TIMER_COMPLETED, true)
-
-            // [REFACTORED] isSuccess 파라미터 전달: true=목표달성, false=중도포기
-            kr.sweetapps.alcoholictimer.ui.tab_01.screens.FinishedScreen(
-                isSuccess = isTimerCompleted,
+        // [REFACTORED] 타이머 성공 화면 (목표 달성)
+        composable(Screen.Success.route) {
+            kr.sweetapps.alcoholictimer.ui.tab_01.screens.FinishedSuccessScreen(
                 onBack = {
-                    // [NEW] 뒤로 가기: Start 화면으로 이동
+                    // 뒤로 가기: Start 화면으로 이동
                     navController.navigate(Screen.Start.route) {
-                        popUpTo(Screen.Finished.route) { inclusive = true }
+                        popUpTo(Screen.Success.route) { inclusive = true }
                         launchSingleTop = true
                     }
                 },
                 onResultCheck = {
-                    // [FIX] Reset timer completion state when user checks result
-                    // This prevents FinishedScreen from showing again when returning to Tab 1
-                    android.util.Log.d("NavGraph", "결과 확인 클릭 -> 타이머 완료 상태 초기화")
+                    // [FIX] Reset timer completion state
+                    android.util.Log.d("NavGraph", "[Success] 결과 확인 클릭 -> 타이머 완료 상태 초기화")
 
                     try {
-                        // Reset timer completion flag
                         kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(false)
                         kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(false)
 
-                        // Also clear SharedPreferences
                         val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
                         sharedPref.edit()
                             .putBoolean(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_TIMER_COMPLETED, false)
@@ -190,7 +181,6 @@ fun AppNavHost(
                     val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
 
                     val proceedToDetail: () -> Unit = {
-                        // [FIX] 직통 연결: 복잡한 중간 과정 없이 즉시 결과 화면으로 이동
                         try {
                             val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
                             val completedStartTime = sharedPref.getLong("completed_start_time", 0L)
@@ -207,27 +197,23 @@ fun AppNavHost(
                                     isCompleted = true
                                 )
 
-                                android.util.Log.d("NavGraph", "[직통] Finished -> Result 즉시 이동: $resultRoute")
+                                android.util.Log.d("NavGraph", "[Success] -> Result 이동: $resultRoute")
 
-                                // [FIX] 중간 단계(Tab 2) 없이 즉시 결과 화면으로 이동
                                 navController.navigate(resultRoute) {
-                                    // 완료 화면(Finished)은 스택에서 제거하여 뒤로 가기 시 다시 안 나오게 함
-                                    popUpTo(Screen.Finished.route) { inclusive = true }
+                                    popUpTo(Screen.Success.route) { inclusive = true }
                                     launchSingleTop = true
                                 }
                             } else {
-                                // 기록 정보가 없으면 Records 화면으로 폴백
                                 android.util.Log.w("NavGraph", "완료 기록 없음 -> Records 화면으로 이동")
                                 navController.navigate(Screen.Records.route) {
-                                    popUpTo(Screen.Finished.route) { inclusive = true }
+                                    popUpTo(Screen.Success.route) { inclusive = true }
                                     launchSingleTop = true
                                 }
-                                recordsRefreshCounter++
                             }
                         } catch (t: Throwable) {
                             android.util.Log.e("NavGraph", "결과 확인 실패", t)
                             navController.navigate(Screen.Records.route) {
-                                popUpTo(Screen.Finished.route) { inclusive = true }
+                                popUpTo(Screen.Success.route) { inclusive = true }
                                 launchSingleTop = true
                             }
                         }
@@ -237,24 +223,22 @@ fun AppNavHost(
                         android.util.Log.d("NavGraph", "광고 정책 통과 -> 전면 광고 노출")
                         if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
                             kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(activity) { success ->
-                                android.util.Log.d("NavGraph", "광고 결과: success=$success -> Detail 화면으로 이동")
+                                android.util.Log.d("NavGraph", "광고 결과: success=$success")
                                 proceedToDetail()
                             }
                         } else {
-                            android.util.Log.d("NavGraph", "광고 로드 안됨 -> 즉시 Detail 화면으로 이동")
+                            android.util.Log.d("NavGraph", "광고 로드 안됨 -> 즉시 Detail로 이동")
                             proceedToDetail()
                         }
                     } else {
-                        android.util.Log.d("NavGraph", "광고 쿨타임 중 or activity null -> 즉시 Detail 화면으로 이동")
+                        android.util.Log.d("NavGraph", "광고 쿨타임 중 -> 즉시 Detail로 이동")
                         proceedToDetail()
                     }
                 },
                 onNewTimerStart = {
-                    // [FIX] 새 타이머 시작 버튼 - 스택 완전 초기화 (Hard Reset)
-                    android.util.Log.d("NavGraph", "새 타이머 시작 -> 데이터 리셋 및 Start 화면으로 이동")
+                    android.util.Log.d("NavGraph", "[Success] 새 타이머 시작 -> Start 화면으로 이동")
 
                     try {
-                        // 1. 데이터 리셋 (기존 로직 유지)
                         kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(false)
                         kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(false)
 
@@ -263,15 +247,85 @@ fun AppNavHost(
                             .putBoolean(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_TIMER_COMPLETED, false)
                             .remove(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_START_TIME)
                             .apply()
-
-                        android.util.Log.d("NavGraph", "타이머 상태 리셋 완료: isFinished=false")
                     } catch (e: Exception) {
                         android.util.Log.e("NavGraph", "타이머 리셋 중 오류 발생", e)
                     }
 
-                    // 2. [FIX] 안전한 네비게이션: 스택의 모든 화면을 제거(popUpTo 0)하고 StartScreen으로 이동
                     navController.navigate(Screen.Start.route) {
-                        // 0은 네비게이션 그래프의 루트 ID를 의미함 -> 백스택을 완전히 비움
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        // [REFACTORED] 타이머 중단 화면 (포기)
+        composable(Screen.GiveUp.route) {
+            kr.sweetapps.alcoholictimer.ui.tab_01.screens.FinishedGiveUpScreen(
+                onBack = {
+                    // 뒤로 가기: Start 화면으로 이동
+                    navController.navigate(Screen.Start.route) {
+                        popUpTo(Screen.GiveUp.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+                onResultCheck = {
+                    android.util.Log.d("NavGraph", "[GiveUp] 결과 확인 클릭")
+
+                    try {
+                        val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+                        val completedStartTime = sharedPref.getLong("completed_start_time", 0L)
+                        val completedEndTime = sharedPref.getLong("completed_end_time", 0L)
+                        val completedTargetDays = sharedPref.getFloat("completed_target_days", 21f)
+                        val completedActualDays = sharedPref.getInt("completed_actual_days", 0)
+
+                        if (completedStartTime > 0 && completedEndTime > 0) {
+                            val resultRoute = Screen.Result.createRoute(
+                                startTime = completedStartTime,
+                                endTime = completedEndTime,
+                                targetDays = completedTargetDays,
+                                actualDays = completedActualDays,
+                                isCompleted = false // 중단이므로 미완료
+                            )
+
+                            android.util.Log.d("NavGraph", "[GiveUp] -> Result 이동: $resultRoute")
+
+                            navController.navigate(resultRoute) {
+                                popUpTo(Screen.GiveUp.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        } else {
+                            android.util.Log.w("NavGraph", "완료 기록 없음 -> Records 화면으로 이동")
+                            navController.navigate(Screen.Records.route) {
+                                popUpTo(Screen.GiveUp.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    } catch (t: Throwable) {
+                        android.util.Log.e("NavGraph", "결과 확인 실패", t)
+                        navController.navigate(Screen.Records.route) {
+                            popUpTo(Screen.GiveUp.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                },
+                onNewTimerStart = {
+                    android.util.Log.d("NavGraph", "[GiveUp] 새 타이머 시작 -> Start 화면으로 이동")
+
+                    try {
+                        kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(false)
+                        kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(false)
+
+                        val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+                        sharedPref.edit()
+                            .putBoolean(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_TIMER_COMPLETED, false)
+                            .remove(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_START_TIME)
+                            .apply()
+                    } catch (e: Exception) {
+                        android.util.Log.e("NavGraph", "타이머 리셋 중 오류 발생", e)
+                    }
+
+                    navController.navigate(Screen.Start.route) {
                         popUpTo(0) { inclusive = true }
                         launchSingleTop = true
                     }
@@ -282,8 +336,8 @@ fun AppNavHost(
         composable(Screen.Quit.route) {
             QuitScreenComposable(
                 onQuitConfirmed = {
-                    // [FIX] 포기 확인 시 FinishedScreen(isSuccess=false)으로 이동
-                    navController.navigate(Screen.Finished.route) {
+                    // [REFACTORED] 포기 확인 시 GiveUp 화면으로 이동
+                    navController.navigate(Screen.GiveUp.route) {
                         popUpTo(Screen.Run.route) { inclusive = true }
                         launchSingleTop = true
                     }

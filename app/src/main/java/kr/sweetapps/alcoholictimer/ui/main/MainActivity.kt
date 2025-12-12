@@ -77,7 +77,7 @@ class MainActivity : BaseActivity() {
             setTheme(R.style.Theme_AlcoholicTimer)
             setContent {
                 val startDestination = when {
-                    getSharedPreferences("user_settings", MODE_PRIVATE).getBoolean("timer_completed", false) -> Screen.Finished.route
+                    getSharedPreferences("user_settings", MODE_PRIVATE).getBoolean("timer_completed", false) -> Screen.Success.route
                     getSharedPreferences("user_settings", MODE_PRIVATE).getLong("start_time", 0L) > 0L -> Screen.Run.route
                     else -> Screen.Start.route
                 }
@@ -116,7 +116,7 @@ class MainActivity : BaseActivity() {
         val startTime = sharedPref.getLong("start_time", 0L)
         val timerCompleted = sharedPref.getBoolean("timer_completed", false)
         val startDestinationRoute = when {
-            timerCompleted -> Screen.Finished.route
+            timerCompleted -> Screen.Success.route
             startTime > 0L -> Screen.Run.route
             else -> Screen.Start.route
         }
@@ -450,26 +450,36 @@ private fun AppContentWithStart(
         viewModel(viewModelStoreOwner = it)
     }
 
-    // [NEW] 타이머 완료 시 전역 네비게이션 처리 (어느 화면에 있든 FinishedScreen으로 이동)
+    // [REFACTORED] 타이머 완료/중단 시 전역 네비게이션 처리
     LaunchedEffect(tab01ViewModel) {
         tab01ViewModel?.navigationEvent?.collect { event ->
             when (event) {
-                is Tab01ViewModel.NavigationEvent.NavigateToFinished -> {
-                    android.util.Log.d("MainActivity", "🎉 [Global] Timer finished! Navigating to Finished (celebration) from ANY screen")
+                is Tab01ViewModel.NavigationEvent.NavigateToSuccess -> {
+                    android.util.Log.d("MainActivity", "🎉 [Global] Timer finished! Navigating to Success screen")
 
-                    // 어느 화면에 있든 FinishedScreen(축하 화면)으로 먼저 이동
-                    navController.navigate(Screen.Finished.route) {
-                        // 백스택에서 Run/Start 제거하여 뒤로 가기 시 타이머로 돌아가지 않도록
+                    // Success 화면으로 이동
+                    navController.navigate(Screen.Success.route) {
                         popUpTo(Screen.Start.route) { inclusive = false }
                         launchSingleTop = true
                     }
 
-                    android.util.Log.d("MainActivity", "Navigation to FinishedScreen completed")
+                    android.util.Log.d("MainActivity", "Navigation to SuccessScreen completed")
+                }
+                is Tab01ViewModel.NavigationEvent.NavigateToGiveUp -> {
+                    android.util.Log.d("MainActivity", "🍃 [Global] Timer gave up! Navigating to GiveUp screen")
+
+                    // GiveUp 화면으로 이동
+                    navController.navigate(Screen.GiveUp.route) {
+                        popUpTo(Screen.Start.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+
+                    android.util.Log.d("MainActivity", "Navigation to GiveUpScreen completed")
                 }
                 is Tab01ViewModel.NavigationEvent.NavigateToDetail -> {
                     android.util.Log.d("MainActivity", "📊 Navigating to Detail screen")
 
-                    // DetailScreen으로 직접 이동 (FinishedScreen에서 결과 확인 버튼 클릭 시)
+                    // DetailScreen으로 직접 이동
                     val route = Screen.Detail.createRoute(
                         startTime = event.startTime,
                         endTime = event.endTime,

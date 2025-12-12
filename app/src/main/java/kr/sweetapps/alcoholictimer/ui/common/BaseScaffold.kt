@@ -115,8 +115,12 @@ fun BaseScaffold(
                 HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
 
                 // Bottom Navigation (with padding to avoid overlap with system navigation buttons)
-                // [FIX] Result 화면과 Finished 화면(목표 달성/중단)에서는 네비게이션바 숨김
-                if (currentRoute?.startsWith("result/") != true && currentRoute != Screen.Finished.route) {
+                // [REFACTORED] Result, Success, GiveUp 화면에서는 네비게이션바 숨김
+                val hideBottomBar = currentRoute?.startsWith("result/") == true ||
+                                    currentRoute == Screen.Success.route ||
+                                    currentRoute == Screen.GiveUp.route
+
+                if (!hideBottomBar) {
                     Surface(
                         modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
                         color = Color.White,
