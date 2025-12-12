@@ -22,11 +22,15 @@ import kr.sweetapps.alcoholictimer.util.manager.TimerTimeManager
  * [REFACTORED] 이제 TimerTimeManager를 사용하여 중앙 집중식 시간 관리
  * [FIX] SharedPreferences 리스너 추가하여 타이머 재시작 시 실시간 동기화
  * [FIX] 타이머 완료 이벤트 구독하여 자동 저장 및 화면 전환
+ * [CRITICAL FIX] SharedPreferences 파일명을 "user_settings" 문자열 리터럴로 직접 사용
+ *                (AppNavHost.kt와 동일한 파일을 참조하여 데이터 공유 보장)
  */
 class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
 
+    // [CRITICAL FIX] 상수 대신 "user_settings" 문자열 리터럴 직접 사용
+    // AppNavHost.kt에서도 동일하게 "user_settings"를 사용하므로 데이터 불일치 문제 해결
     private val sharedPref = application.getSharedPreferences(
-        Constants.USER_SETTINGS_PREFS,
+        "user_settings",
         Context.MODE_PRIVATE
     )
 
@@ -295,45 +299,57 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * [NEW] Give up timer - User voluntarily quits
      * Records the attempt and navigates to GiveUp screen
+     * [FIX] 데이터 저장 우선 -> 타이머 정지 -> 화면 이동 순서로 논리 수정
      */
     fun giveUpTimer() {
         viewModelScope.launch {
             try {
+                // [STEP 1] 현재 타이머 데이터 스냅샷 저장 (초기화 전에 먼저!)
                 val startTime = _startTime.value
                 val targetDays = _targetDays.value
                 val elapsedMillis = TimerTimeManager.elapsedMillis.value
                 val endTime = startTime + elapsedMillis
-                val actualDays = (elapsedMillis / Constants.DAY_IN_MILLIS).toInt()
 
-                Log.d("Tab01ViewModel", "Give up timer: startTime=$startTime, endTime=$endTime, actualDays=$actualDays")
+                // [FIX] actualDays 계산 시 반올림 적용 (1일 미만도 표시되도록)
+                // 예: 0.5일 -> 1일, 0.4일 -> 0일, 1.8일 -> 2일
+                val actualDays = kotlin.math.round(elapsedMillis.toDouble() / Constants.DAY_IN_MILLIS).toInt()
 
-                // 1. 기록 저장 (중단으로 표시)
+                Log.d("Tab01ViewModel", "[GiveUp STEP 1] 데이터 스냅샷: startTime=$startTime, endTime=$endTime, targetDays=$targetDays, elapsedMillis=$elapsedMillis, actualDays=$actualDays")
+
+                // [STEP 2] "user_settings" 파일에 포기 기록 저장 (AppNavHost와 동일한 파일)
+                val editor = sharedPref.edit()
+                editor.putLong("completed_start_time", startTime)
+                editor.putLong("completed_end_time", endTime)
+                editor.putFloat("completed_target_days", targetDays)
+                editor.putInt("completed_actual_days", actualDays)
+                editor.putBoolean("completed_is_give_up", true) // [NEW] 포기 플래그
+                editor.apply() // 즉시 저장
+
+                Log.d("Tab01ViewModel", "[GiveUp STEP 2] 데이터 저장 완료 -> user_settings 파일")
+
+                // [STEP 3] DB에 기록 저장 (중단으로 표시)
                 saveCompletedRecord(startTime, endTime, targetDays, actualDays)
+                Log.d("Tab01ViewModel", "[GiveUp STEP 3] DB 저장 완료")
 
-                // 2. SharedPreferences 업데이트
+                // [STEP 4] 타이머 상태 초기화 (이제 데이터는 이미 저장됨)
                 sharedPref.edit().apply {
                     remove(Constants.PREF_START_TIME)
-                    putBoolean(Constants.PREF_TIMER_COMPLETED, false) // 중단은 미완료
-
-                    // 완료된 기록 정보 저장
-                    putLong("completed_start_time", startTime)
-                    putLong("completed_end_time", endTime)
-                    putFloat("completed_target_days", targetDays)
-                    putInt("completed_actual_days", actualDays)
+                    putBoolean(Constants.PREF_TIMER_COMPLETED, false)
                     apply()
                 }
 
-                // 3. 상태 업데이트
                 _startTime.value = 0L
                 _timerCompleted.value = false
                 TimerTimeManager.stopTimer()
 
-                // 4. [CRITICAL] NavigateToGiveUp 이벤트 발행
+                Log.d("Tab01ViewModel", "[GiveUp STEP 4] 타이머 정지 완료")
+
+                // [STEP 5] GiveUp 화면으로 이동
                 _navigationEvent.tryEmit(NavigationEvent.NavigateToGiveUp)
-                Log.d("Tab01ViewModel", "Navigation event emitted to GiveUpScreen 🍃")
+                Log.d("Tab01ViewModel", "[GiveUp STEP 5] 화면 이동 이벤트 발행 완료 🍃")
 
             } catch (e: Exception) {
-                Log.e("Tab01ViewModel", "Error handling give up", e)
+                Log.e("Tab01ViewModel", "[GiveUp ERROR] 포기 처리 중 오류 발생", e)
             }
         }
     }

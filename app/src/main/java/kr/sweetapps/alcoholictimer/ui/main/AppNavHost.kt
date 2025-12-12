@@ -259,7 +259,7 @@ fun AppNavHost(
             )
         }
 
-        // [FIX] 타이머 중단(포기) 화면 - 결과 확인 버튼 로직 수정
+        // [REFACTORED] 타이머 중단 화면 (포기)
         composable(Screen.GiveUp.route) {
             kr.sweetapps.alcoholictimer.ui.tab_01.screens.FinishedGiveUpScreen(
                 onBack = {
@@ -270,60 +270,97 @@ fun AppNavHost(
                     }
                 },
                 onResultCheck = {
-                    android.util.Log.d("NavGraph", "[GiveUp] 결과 확인 버튼 클릭됨")
+                    android.util.Log.d("NavGraph", "[GiveUp] 결과 확인 버튼 클릭 - 데이터 읽기 시작")
 
-                    try {
-                        // [CRITICAL FIX] 하드코딩("user_settings") 대신 ViewModel과 동일한 상수 사용
-                        // 이름이 다르면 저장된 데이터를 읽어오지 못해 버튼이 무반응이 됩니다.
-                        val sharedPref = context.getSharedPreferences(
-                            kr.sweetapps.alcoholictimer.util.constants.Constants.USER_SETTINGS_PREFS,
-                            android.content.Context.MODE_PRIVATE
-                        )
+                    val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
 
-                        // 1. 방금 중단한 타이머의 기록 데이터 가져오기
-                        val savedStartTime = sharedPref.getLong("completed_start_time", 0L)
-                        val savedEndTime = sharedPref.getLong("completed_end_time", System.currentTimeMillis())
-                        val savedTargetDays = sharedPref.getFloat("completed_target_days", 1f)
-                        val savedActualDays = sharedPref.getInt("completed_actual_days", 0)
+                    val proceedToDetail: () -> Unit = {
+                        try {
+                            // [STEP 1] user_settings 파일 열기 (ViewModel과 동일한 파일)
+                            val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+                            android.util.Log.d("NavGraph", "[GiveUp STEP 1] user_settings 파일 열기 완료")
 
-                        android.util.Log.d("NavGraph", "[GiveUp] 데이터 로드 확인: StartTime=$savedStartTime")
+                            // [STEP 2] 포기 기록 데이터 읽기
+                            val completedStartTime = sharedPref.getLong("completed_start_time", 0L)
+                            val completedEndTime = sharedPref.getLong("completed_end_time", 0L)
+                            val completedTargetDays = sharedPref.getFloat("completed_target_days", 21f)
+                            val completedActualDays = sharedPref.getInt("completed_actual_days", 0)
+                            val isGiveUp = sharedPref.getBoolean("completed_is_give_up", false)
 
-                        if (savedStartTime > 0) {
-                            // 2. 데이터가 확인되면 'Result' 화면으로 이동
-                            // isCompleted = false로 설정하여 '실패/포기' UI(진행률 등)가 뜨도록 함
-                            val resultRoute = Screen.Result.createRoute(
-                                startTime = savedStartTime,
-                                endTime = savedEndTime,
-                                targetDays = savedTargetDays,
-                                actualDays = savedActualDays,
-                                isCompleted = false
-                            )
+                            android.util.Log.d("NavGraph", "[GiveUp STEP 2] 데이터 읽기 완료:")
+                            android.util.Log.d("NavGraph", "  - startTime: $completedStartTime")
+                            android.util.Log.d("NavGraph", "  - endTime: $completedEndTime")
+                            android.util.Log.d("NavGraph", "  - targetDays: $completedTargetDays")
+                            android.util.Log.d("NavGraph", "  - actualDays: $completedActualDays")
+                            android.util.Log.d("NavGraph", "  - isGiveUp: $isGiveUp")
 
-                            android.util.Log.d("NavGraph", "[GiveUp] -> 상세 결과 화면으로 이동")
-                            navController.navigate(resultRoute) {
+                            // [STEP 3] 데이터 유효성 검증
+                            if (completedStartTime > 0 && completedEndTime > 0) {
+                                android.util.Log.d("NavGraph", "[GiveUp STEP 3] 데이터 유효 ✓ -> Result 화면으로 이동")
+
+                                val resultRoute = Screen.Result.createRoute(
+                                    startTime = completedStartTime,
+                                    endTime = completedEndTime,
+                                    targetDays = completedTargetDays,
+                                    actualDays = completedActualDays,
+                                    isCompleted = false // 포기이므로 미완료
+                                )
+
+                                android.util.Log.d("NavGraph", "[GiveUp STEP 4] Result 라우트 생성: $resultRoute")
+
+                                navController.navigate(resultRoute) {
+                                    popUpTo(Screen.GiveUp.route) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+
+                                android.util.Log.d("NavGraph", "[GiveUp STEP 5] Result 화면 이동 완료 ✓")
+
+                                // [STEP 6] 임시 데이터 정리 (화면 이동 후)
+                                try {
+                                    sharedPref.edit()
+                                        .remove("completed_start_time")
+                                        .remove("completed_end_time")
+                                        .remove("completed_target_days")
+                                        .remove("completed_actual_days")
+                                        .remove("completed_is_give_up")
+                                        .apply()
+                                    android.util.Log.d("NavGraph", "[GiveUp STEP 6] 임시 데이터 정리 완료")
+                                } catch (e: Exception) {
+                                    android.util.Log.e("NavGraph", "[GiveUp] 임시 데이터 정리 실패", e)
+                                }
+                            } else {
+                                android.util.Log.e("NavGraph", "[GiveUp ERROR] 데이터 유효하지 않음 ✗")
+                                android.util.Log.e("NavGraph", "  startTime=$completedStartTime, endTime=$completedEndTime")
+                                android.util.Log.w("NavGraph", "[GiveUp] Records 화면으로 대체 이동")
+
+                                navController.navigate(Screen.Records.route) {
+                                    popUpTo(Screen.GiveUp.route) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            }
+                        } catch (t: Throwable) {
+                            android.util.Log.e("NavGraph", "[GiveUp CRITICAL ERROR] 예외 발생", t)
+                            navController.navigate(Screen.Records.route) {
                                 popUpTo(Screen.GiveUp.route) { inclusive = true }
                                 launchSingleTop = true
                             }
-                        } else {
-                            // 3. 만약 데이터가 없더라도, 버튼이 씹히지 않게 '기록 목록' 화면으로 이동
-                            android.util.Log.w("NavGraph", "[GiveUp] 데이터 없음 -> 목록 화면으로 이동")
-                            navController.navigate(Screen.Records.route) {
-                                popUpTo(Screen.GiveUp.route) { inclusive = true }
-                            }
                         }
+                    }
 
-                        // 4. 상태 초기화 (결과 확인 후 내부 상태 정리)
-                        kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(false)
-                        kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(false)
-
-                        sharedPref.edit()
-                            .putBoolean(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_TIMER_COMPLETED, false)
-                            .remove(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_START_TIME)
-                            .apply()
-
-                    } catch (e: Exception) {
-                        android.util.Log.e("NavGraph", "[GiveUp] 에러 발생 -> 목록 화면으로 이동", e)
-                        navController.navigate(Screen.Records.route)
+                    if (shouldShowAd && activity != null) {
+                        android.util.Log.d("NavGraph", "[GiveUp] 광고 정책 통과 -> 전면 광고 노출")
+                        if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
+                            kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(activity) { success ->
+                                android.util.Log.d("NavGraph", "[GiveUp] 광고 결과: success=$success")
+                                proceedToDetail()
+                            }
+                        } else {
+                            android.util.Log.d("NavGraph", "[GiveUp] 광고 로드 안됨 -> 즉시 Detail로 이동")
+                            proceedToDetail()
+                        }
+                    } else {
+                        android.util.Log.d("NavGraph", "[GiveUp] 광고 쿨타임 중 -> 즉시 Detail로 이동")
+                        proceedToDetail()
                     }
                 },
                 onNewTimerStart = {
@@ -332,10 +369,7 @@ fun AppNavHost(
                         kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(false)
                         kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(false)
 
-                        val sharedPref = context.getSharedPreferences(
-                            kr.sweetapps.alcoholictimer.util.constants.Constants.USER_SETTINGS_PREFS,
-                            android.content.Context.MODE_PRIVATE
-                        )
+                        val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
                         sharedPref.edit()
                             .putBoolean(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_TIMER_COMPLETED, false)
                             .remove(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_START_TIME)

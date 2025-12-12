@@ -264,41 +264,11 @@ fun QuitScreenComposable(
                                             delay(16)
                                         }
                                         if (progress >= 1f && isPressed) {
-                                            try {
-                                                val start = sharedPref.getLong(Constants.PREF_START_TIME, 0L)
-
-                                                // [FIX] TimerTimeManager가 관리하는 '가속된 시간' 사용 (배속 적용됨)
-                                                val virtualElapsed = TimerTimeManager.elapsedMillis.value
-
-                                                // [FIX] 종료 시각을 '시작시간 + 가상경과시간'으로 계산 (기록 저장 시 7일로 나오게 함)
-                                                val calculatedEndTime = start + virtualElapsed
-
-                                                // [FIX] 실제 경과 일수도 가상 시간 기준으로 계산
-                                                val actualDays = (virtualElapsed / Constants.DAY_IN_MILLIS).toInt()
-
-                                                saveCompletedRecord(
-                                                    context = context,
-                                                    startTime = start,
-                                                    endTime = calculatedEndTime,
-                                                    targetDays = targetDays,
-                                                    actualDays = actualDays
-                                                )
-                                                // [FIX] 포기 시 완료 상태를 false로 설정 (취소는 완료가 아님)
-                                                sharedPref.edit {
-                                                    putBoolean(Constants.PREF_TIMER_COMPLETED, false)
-                                                    remove(Constants.PREF_START_TIME)
-                                                }
-
-                                                // [FIX] TimerStateRepository에도 명확히 취소 상태 저장
-                                                try {
-                                                    kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(false)
-                                                    kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(false)
-                                                    android.util.Log.d("QuitScreen", "타이머 취소: 완료 상태 false로 설정")
-                                                } catch (t: Throwable) {
-                                                    android.util.Log.e("QuitScreen", "타이머 상태 저장 실패", t)
-                                                }
-                                            } catch (_: Throwable) { }
+                                            // [FIX] 포기 확인 버튼 길게 누름 완료 -> ViewModel로 위임
+                                            // ViewModel의 giveUpTimer()에서 데이터 저장, 상태 초기화, 화면 이동을 모두 처리
+                                            android.util.Log.d("QuitScreen", "🔴 [QUIT] 포기 버튼 길게 누름 완료! onQuitConfirmed() 호출")
                                             onQuitConfirmed()
+                                            android.util.Log.d("QuitScreen", "🔴 [QUIT] onQuitConfirmed() 호출 완료")
                                         }
                                     }
                                     waitForUpOrCancellation(); isPressed = false; job.cancel()
