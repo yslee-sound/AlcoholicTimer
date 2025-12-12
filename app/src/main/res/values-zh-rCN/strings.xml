@@ -15,6 +15,7 @@
     <string name="all_records_delete_title">删除所有记录</string>
     <string name="all_records_delete_message">确定要删除所有戒酒记录吗？&#10;此操作无法撤销。</string>
     <string name="all_records_delete_confirm">全部删除</string>
+    <string name="menu_delete_all_records">删除所有记录</string>
 
     <!-- Run screen (进行画面) -->
     <string name="run_title">戒酒进度</string>
@@ -52,6 +53,7 @@
 
     <!-- Detail screen -->
     <string name="detail_title">记录详情</string>
+    <string name="detail_menu_delete">删除记录</string>
     <string name="dialog_delete_title">删除记录</string>
     <string name="dialog_delete_message">确定要删除此戒酒记录吗？&#10;此操作无法撤销。</string>
     <string name="dialog_delete_confirm">删除</string>

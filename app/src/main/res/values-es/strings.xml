@@ -15,6 +15,7 @@
     <string name="all_records_delete_title">Eliminar Todos los Registros</string>
     <string name="all_records_delete_message">¿Está seguro de que desea eliminar todos los registros de sobriedad?&#10;Esta acción no se puede deshacer.</string>
     <string name="all_records_delete_confirm">Eliminar Todo</string>
+    <string name="menu_delete_all_records">Eliminar todos los registros</string>
 
     <!-- Run screen (pantalla de progreso) -->
     <string name="run_title">Progreso de Sobriedad</string>
@@ -52,6 +53,7 @@
 
     <!-- Detail screen -->
     <string name="detail_title">Detalles del Registro</string>
+    <string name="detail_menu_delete">Eliminar Registro</string>
     <string name="dialog_delete_title">Eliminar Registro</string>
     <string name="dialog_delete_message">¿Está seguro de que desea eliminar este registro de sobriedad?&#10;Esta acción no se puede deshacer.</string>
     <string name="dialog_delete_confirm">Eliminar</string>

@@ -225,7 +225,7 @@ fun DetailScreen(
                                 }) {
                                     Icon(
                                         imageVector = Icons.Default.MoreVert,
-                                        contentDescription = if (previewMode) null else "메뉴",
+                                        contentDescription = if (previewMode) null else stringResource(R.string.cd_menu),
                                         tint = Color.Black
                                     )
                                 }
@@ -237,7 +237,7 @@ fun DetailScreen(
                                 ) {
                                     DropdownMenuItem(
                                         text = {
-                                            Text(text = "기록 삭제")
+                                            Text(text = stringResource(R.string.detail_menu_delete))
                                         },
                                         onClick = {
                                             showMenu = false

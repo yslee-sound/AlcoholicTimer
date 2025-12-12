@@ -139,7 +139,7 @@ fun DiaryWriteScreen(
                                 IconButton(onClick = { showMenu = true }) {
                                     Icon(
                                         imageVector = Icons.Default.MoreVert,
-                                        contentDescription = "메뉴",
+                                        contentDescription = stringResource(R.string.cd_menu),
                                         tint = Color(0xFF2D3748)
                                     )
                                 }
