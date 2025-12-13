@@ -45,7 +45,7 @@ fun LevelListCard(
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF333333)
                 ),
-                modifier = Modifier.padding(start = 2.dp, bottom = 24.dp)
+                modifier = Modifier.padding(start = 2.dp, bottom = 12.dp) // [FIX] 24.dp → 12.dp (제목-콘텐츠 간격 표준)
             )
 
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
