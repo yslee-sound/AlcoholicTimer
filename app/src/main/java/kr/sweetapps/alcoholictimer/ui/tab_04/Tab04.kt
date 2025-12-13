@@ -276,13 +276,14 @@ fun HabitScreenContent(
 ) {
     val scrollState = rememberScrollState()
 
-    // [FIX] innerPadding 제거하여 불필요한 여백 방지, 스크롤 콘텐츠에만 하단 100.dp 적용
+    // [FIX] innerPadding 적용하여 TopAppBar와 겹침 방지, 하단 100.dp 스크롤 여유 확보
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
+            .padding(innerPadding) // TopAppBar와 BottomBar 높이만큼 여백 확보
             .verticalScroll(scrollState)
-            .padding(top = 8.dp, bottom = 100.dp),
+            .padding(bottom = 50.dp), // 스크롤 여유 공간
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
             HabitSection(

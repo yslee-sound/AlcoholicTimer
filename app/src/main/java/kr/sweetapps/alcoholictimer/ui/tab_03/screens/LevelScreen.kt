@@ -135,12 +135,14 @@ fun LevelScreenContent(
     startTime: Long?,
     viewModel: Tab03ViewModel
 ) {
+    // [FIX] innerPadding 적용하여 TopAppBar와 겹침 방지, 하단 100.dp 스크롤 여유 확보
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface)
+            .padding(innerPadding) // TopAppBar와 BottomBar 높이만큼 여백 확보
             .verticalScroll(rememberScrollState())
-            .padding(top = 15.dp, start = 20.dp, end = 20.dp, bottom = 100.dp),
+            .padding(start = 20.dp, end = 20.dp, bottom = 50.dp), // 스크롤 여유 공간
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         // 현재 레벨 카드
