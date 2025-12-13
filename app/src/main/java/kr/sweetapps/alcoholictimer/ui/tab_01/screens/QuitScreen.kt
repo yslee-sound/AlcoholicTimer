@@ -119,6 +119,13 @@ fun QuitScreenComposable(
         horizontalPadding = QuitUiConstants.CARD_HORIZONTAL_PADDING,
         forceFillMaxWidth = true,
         topContent = {
+            // [FIXED_SIZE] 폰트 스케일의 영향을 받지 않는 고정 크기 적용
+            val density = androidx.compose.ui.platform.LocalDensity.current
+            val warningIconSizePx = with(density) { 72.dp.toPx() }
+            val warningIconSize = with(density) { (warningIconSizePx / density.density).dp }
+            val innerIconSizePx = with(density) { 36.dp.toPx() }
+            val innerIconSize = with(density) { (innerIconSizePx / density.density).dp }
+
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(UiConstants.CARD_CORNER_RADIUS),
@@ -134,7 +141,7 @@ fun QuitScreenComposable(
                     Box(modifier = Modifier.padding(bottom = 12.dp), contentAlignment = Alignment.Center) {
                         Box(
                             modifier = Modifier
-                                .size(72.dp)
+                                .requiredSize(warningIconSize)
                                 .clip(CircleShape)
                                 .background(Color(0xFFFFF3E0)),
                             contentAlignment = Alignment.Center
@@ -143,7 +150,7 @@ fun QuitScreenComposable(
                                 imageVector = Icons.Filled.Warning,
                                 contentDescription = null,
                                 tint = Color(0xFFFFA726),
-                                modifier = Modifier.size(36.dp)
+                                modifier = Modifier.requiredSize(innerIconSize)
                             )
                         }
                     }

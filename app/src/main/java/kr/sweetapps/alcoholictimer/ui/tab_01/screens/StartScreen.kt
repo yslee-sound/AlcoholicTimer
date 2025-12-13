@@ -339,6 +339,11 @@ private fun AppBrandTitleBar(
     isCustomInputMode: Boolean = false, // [MANUAL OVERRIDE] 커스텀 입력 모드
     onDaysSelected: (Int) -> Unit = {}
 ) {
+    // [FIXED_SIZE] 폰트 스케일의 영향을 받지 않는 고정 크기 적용
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val logoHeightPx = with(density) { 54.dp.toPx() }
+    val logoHeight = with(density) { (logoHeightPx / density.density).dp }
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -347,7 +352,7 @@ private fun AppBrandTitleBar(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(54.dp)
+                .requiredHeight(logoHeight)
                 .padding(horizontal = 30.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -358,7 +363,7 @@ private fun AppBrandTitleBar(
                 alignment = Alignment.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(54.dp)
+                    .requiredHeight(logoHeight)
             )
         }
 
@@ -417,6 +422,11 @@ private fun DurationBadge(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
+    // [FIXED_SIZE] 폰트 스케일의 영향을 받지 않는 고정 크기 적용
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val badgeHeightPx = with(density) { 40.dp.toPx() }
+    val badgeHeight = with(density) { (badgeHeightPx / density.density).dp }
+
     val backgroundColor = if (isSelected) BadgeSelectedBackground else BadgeUnselectedBackground
     val textColor = if (isSelected) BadgeSelectedText else BadgeUnselectedText
     val borderColor = if (isSelected) BadgeSelectedBorder else BadgeUnselectedBorder
@@ -424,7 +434,7 @@ private fun DurationBadge(
     Surface(
         onClick = onClick,
         modifier = Modifier
-            .height(40.dp)
+            .requiredHeight(badgeHeight)
             .widthIn(min = 72.dp),
         shape = RoundedCornerShape(20.dp),
         color = backgroundColor,
