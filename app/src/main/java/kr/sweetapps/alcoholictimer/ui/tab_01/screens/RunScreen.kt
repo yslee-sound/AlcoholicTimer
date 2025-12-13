@@ -485,21 +485,27 @@ fun RunScreenComposable(
                             }
                         }
 
-                        // [NEW] 응원 문구 (프로그레스 카드 바깥쪽 하단) - 간격 완전 제거 - 다국어 지원
+                        // [NEW] 응원 문구 (프로그레스 카드 바깥쪽 하단) - AutoResize 적용
                         val motivationalQuote = rememberSaveable {
                             kr.sweetapps.alcoholictimer.data.model.MotivationalQuotes.getRandomQuote(context)
                         }
 
-                        Text(
-                            text = "\" $motivationalQuote \"",
-                            style = kr.sweetapps.alcoholictimer.ui.tab_01.components.QuoteTextStyle.default, // [SHARED] 공통 스타일 사용
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 15.dp, bottom = 24.dp) // [FAB_UNIFIED] bottom 24.dp로 통일
-                                .padding(horizontal = 20.dp),
-                            textAlign = TextAlign.Center,
-                            minLines = 2
-                        )
+                                .padding(top = 15.dp, bottom = 24.dp)
+                                .padding(horizontal = 20.dp)
+                        ) {
+                            AutoResizeMultiLineText(
+                                text = "\" $motivationalQuote \"",
+                                baseStyle = kr.sweetapps.alcoholictimer.ui.tab_01.components.QuoteTextStyle.default,
+                                maxLines = 2,
+                                minFontSizeSp = 10f,
+                                step = 0.95f,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
                 }
             },
@@ -618,6 +624,40 @@ private fun AutoResizeSingleLineText(
 }
 
 @Composable
+@Suppress("UNUSED_VALUE")
+private fun AutoResizeMultiLineText(
+    text: String,
+    baseStyle: TextStyle,
+    maxLines: Int = 2,
+    modifier: Modifier = Modifier,
+    minFontSizeSp: Float = 10f,
+    step: Float = 0.95f,
+    textAlign: TextAlign? = null,
+) {
+    var style by remember(text) { mutableStateOf(baseStyle) }
+    var tried by remember(text) { mutableStateOf(0) }
+    Text(
+        text = text,
+        style = style,
+        textAlign = textAlign,
+        maxLines = maxLines,
+        softWrap = true,
+        overflow = TextOverflow.Clip,
+        modifier = modifier,
+        onTextLayout = { result ->
+            if (result.hasVisualOverflow && tried < 20) {
+                val current = style.fontSize.value
+                val next = (current * step).coerceAtLeast(minFontSizeSp)
+                if (next < current - 0.1f) {
+                    style = style.copy(fontSize = next.sp, lineHeight = (next.sp * 1.2f))
+                    tried++
+                }
+            }
+        }
+    )
+}
+
+@Composable
 fun RunStatChip(
     title: String,
     value: String,
@@ -644,7 +684,7 @@ fun RunStatChip(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 12.dp),
+            modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp, vertical = 12.dp), // [FIX] 8dp → 4dp
             horizontalAlignment = contentAlignment,
             verticalArrangement = Arrangement.Center
         ) {
@@ -715,7 +755,7 @@ fun RunStatChip(
                 }
             }
 
-            // [FIX] 2단계: 숫자 영역 - AutoResizing (바닥 앵커)
+            // [FIX] 2단계: 숫자 영역 - AutoResizing (바닥 앵커) - 9sp까지 축소
             Box(
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 contentAlignment = Alignment.BottomCenter
@@ -727,8 +767,8 @@ fun RunStatChip(
                         color = Color(0xFF111111)
                     ),
                     modifier = Modifier.fillMaxWidth(),
-                    minFontSizeSp = 12f,
-                    step = 0.95f,
+                    minFontSizeSp = 9f, // [FIX] 12f → 9f (공격적 축소)
+                    step = 0.92f, // [FIX] 0.95f → 0.92f
                     color = Color(0xFF111111),
                     textAlign = TextAlign.Center
                 )
