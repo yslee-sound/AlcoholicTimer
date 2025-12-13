@@ -67,7 +67,7 @@ fun BackTopBar(
         }
 
         if (trailingContent != null) {
-            Box(modifier = Modifier.align(Alignment.CenterEnd).padding(end = 8.dp)) {
+            Box(modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp)) { // [FIX] 8.dp → 16.dp (Material Design 3 표준)
                 trailingContent()
             }
         }
