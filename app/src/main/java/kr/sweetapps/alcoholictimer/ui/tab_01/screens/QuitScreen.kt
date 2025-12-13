@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -259,28 +260,7 @@ fun QuitScreenComposable(
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(ringSize)
-                            .pointerInput(Unit) {
-                                awaitEachGesture {
-                                    awaitFirstDown(); isPressed = true; progress = 0f
-                                    val job = coroutineScope.launch {
-                                        val duration = 1500L
-                                        val startMs = System.currentTimeMillis()
-                                        while (progress < 1f && isPressed) {
-                                            val elapsed = System.currentTimeMillis() - startMs
-                                            progress = (elapsed.toFloat() / duration).coerceAtMost(1f)
-                                            delay(16)
-                                        }
-                                        if (progress >= 1f && isPressed) {
-                                            android.util.Log.d("QuitScreen", "🔴 [QUIT] 포기 버튼 길게 누름 완료! onQuitConfirmed() 호출")
-                                            onQuitConfirmed()
-                                            android.util.Log.d("QuitScreen", "🔴 [QUIT] onQuitConfirmed() 호출 완료")
-                                        }
-                                    }
-                                    waitForUpOrCancellation(); isPressed = false; job.cancel()
-                                }
-                            }
+                        modifier = Modifier.size(ringSize)
                     ) {
                         // 배경 원 (회색)
                         CircularProgressIndicator(progress = { 1f }, modifier = Modifier.size(ringSize), color = Color(0xFFE0E0E0), strokeWidth = 4.dp, trackColor = Color.Transparent)
@@ -288,21 +268,62 @@ fun QuitScreenComposable(
                         if (showPressed) {
                             CircularProgressIndicator(progress = { showProgress }, modifier = Modifier.size(ringSize), color = Color(0xFFD32F2F), strokeWidth = 4.dp, trackColor = Color.Transparent)
                         }
-                        // 중지 버튼
-                        Card(
-                            modifier = Modifier.requiredSize(buttonSize),
+                        // [FIX] 중지 버튼 - 길게 누르기 효과를 위해 Surface + pointerInput 사용
+                        Surface(
+                            modifier = Modifier
+                                .requiredSize(buttonSize)
+                                .pointerInput(Unit) {
+                                    awaitEachGesture {
+                                        awaitFirstDown(); isPressed = true; progress = 0f
+                                        val job = coroutineScope.launch {
+                                            val duration = 1500L
+                                            val startMs = System.currentTimeMillis()
+                                            while (progress < 1f && isPressed) {
+                                                val elapsed = System.currentTimeMillis() - startMs
+                                                progress = (elapsed.toFloat() / duration).coerceAtMost(1f)
+                                                delay(16)
+                                            }
+                                            if (progress >= 1f && isPressed) {
+                                                android.util.Log.d("QuitScreen", "🔴 [QUIT] 포기 버튼 길게 누름 완료! onQuitConfirmed() 호출")
+                                                onQuitConfirmed()
+                                                android.util.Log.d("QuitScreen", "🔴 [QUIT] onQuitConfirmed() 호출 완료")
+                                            }
+                                        }
+                                        waitForUpOrCancellation(); isPressed = false; job.cancel()
+                                    }
+                                },
                             shape = CircleShape,
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFD32F2F)),
-                            elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
+                            color = Color(0xFFD32F2F),
+                            shadowElevation = 6.dp
                         ) {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(id = R.string.cd_stop), tint = Color.White, modifier = Modifier.requiredSize(iconSize))
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = stringResource(id = R.string.cd_stop),
+                                    tint = Color.White,
+                                    modifier = Modifier.requiredSize(iconSize)
+                                )
                             }
                         }
                     }
                     Spacer(modifier = Modifier.width(48.dp))
-                    // 취소 버튼: MainActionButton (이미 고정 크기 적용됨)
-                    MainActionButton(onClick = { onCancel() }, size = QuitUiConstants.MAIN_BUTTON_SIZE, iconSize = QuitUiConstants.MAIN_ICON_SIZE, elevationDp = QuitUiConstants.MAIN_BUTTON_ELEVATION)
+                    // [FAB_UNIFIED] 취소 버튼을 FloatingActionButton으로 변경
+                    FloatingActionButton(
+                        onClick = { onCancel() },
+                        modifier = Modifier.requiredSize(buttonSize),
+                        containerColor = colorResource(id = R.color.color_progress_primary),
+                        shape = CircleShape
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.requiredSize(iconSize)
+                        )
+                    }
                  }
              }
          }

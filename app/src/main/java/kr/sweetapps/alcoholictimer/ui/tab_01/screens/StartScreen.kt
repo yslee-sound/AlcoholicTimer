@@ -14,7 +14,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -249,19 +252,33 @@ fun StartScreen(
             // 6. 명언
             QuoteDisplay()
 
-            // 7. 버튼 위 여백 - RunScreen과 동일한 높이 맞춤
-            Spacer(modifier = Modifier.height(50.dp))
+            // 7. [FAB_UNIFIED] 버튼 위 여백 - 3개 화면 동일 위치
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // 8. [SIZE_REDUCTION] 시작 버튼 - 크기 80%로 축소 (96dp → 77dp, 48dp → 39dp)
-            MainActionButton(
+            // 8. [FAB_UNIFIED] 시작 버튼을 FloatingActionButton으로 변경 (3개 화면 통일)
+            val density = androidx.compose.ui.platform.LocalDensity.current
+            val buttonSizePx = with(density) { 77.dp.toPx() }
+            val buttonSize = with(density) { (buttonSizePx / density.density).dp }
+            val iconSizePx = with(density) { 39.dp.toPx() }
+            val iconSize = with(density) { (iconSizePx / density.density).dp }
+
+            FloatingActionButton(
                 onClick = {
                     viewModel.onStartButtonClicked(context)
                 },
-                size = 77.dp,
-                iconSize = 39.dp
-            )
+                modifier = Modifier.requiredSize(buttonSize),
+                containerColor = colorResource(id = R.color.color_progress_primary),
+                shape = CircleShape
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = null,
+                    modifier = Modifier.requiredSize(iconSize),
+                    tint = Color.White
+                )
+            }
 
-            // 9. 하단 안전 여백 - RunScreen의 CLEARANCE_ABOVE_BUTTON과 동일
+            // 9. [FAB_UNIFIED] 하단 안전 여백 - 3개 화면 통일 (32.dp)
             Spacer(modifier = Modifier.height(32.dp))
         }
 

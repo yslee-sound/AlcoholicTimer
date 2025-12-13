@@ -490,7 +490,7 @@ fun RunScreenComposable(
                             style = kr.sweetapps.alcoholictimer.ui.tab_01.components.QuoteTextStyle.default, // [SHARED] 공통 스타일 사용
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 15.dp, bottom = 20.dp)
+                                .padding(top = 15.dp, bottom = 24.dp) // [FAB_UNIFIED] bottom 24.dp로 통일
                                 .padding(horizontal = 20.dp),
                             textAlign = TextAlign.Center,
                             minLines = 2
@@ -553,31 +553,27 @@ fun ModernProgressIndicatorSimple(progress: Float, targetDays: Float = 30f) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ModernStopButtonSimple(onStop: () -> Unit, modifier: Modifier = Modifier) {
-    // [SIZE_REDUCTION] 시스템 폰트 스케일의 영향을 받지 않는 고정 크기 (80% 축소: 96dp → 77dp)
+    // [FAB_UNIFIED] 시스템 폰트 스케일의 영향을 받지 않는 고정 크기 FloatingActionButton
     val density = LocalDensity.current
     val buttonSizePx = with(density) { 77.dp.toPx() }
     val buttonSize = with(density) { (buttonSizePx / density.density).dp }
     val iconSizePx = with(density) { 39.dp.toPx() }
     val iconSize = with(density) { (iconSizePx / density.density).dp }
 
-    Card(
+    FloatingActionButton(
         onClick = onStop,
         modifier = modifier.requiredSize(buttonSize),
-        shape = CircleShape,
-        colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.color_stop_button)),
-        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
+        containerColor = colorResource(id = R.color.color_stop_button),
+        shape = CircleShape
     ) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = stringResource(id = R.string.cd_stop),
-                tint = Color.White,
-                modifier = Modifier.requiredSize(iconSize)
-            )
-        }
+        Icon(
+            imageVector = Icons.Default.Close,
+            contentDescription = stringResource(id = R.string.cd_stop),
+            tint = Color.White,
+            modifier = Modifier.requiredSize(iconSize)
+        )
     }
 }
 
