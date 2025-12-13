@@ -48,6 +48,7 @@ import kr.sweetapps.alcoholictimer.ui.theme.AppElevation
 import kr.sweetapps.alcoholictimer.util.utils.FormatUtils
 import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager
 import kr.sweetapps.alcoholictimer.util.manager.TimerTimeManager
+import kr.sweetapps.alcoholictimer.ui.common.rememberUserSettingsState
 import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.math.round
@@ -190,10 +191,13 @@ fun QuitScreenComposable(
             // 기존의 +1.0 보정 제거 (0-based 순수 경과 시간)
             val elapsedDaysFloat = (elapsedMillis / Constants.DAY_IN_MILLIS.toFloat())
             val weeks = elapsedDaysFloat / 7.0
-            val (selectedCost, selectedFrequency, selectedDuration) = Constants.getUserSettings(context)
-            val costVal = Constants.DrinkingSettings.getCostValue(selectedCost)
-            val freqVal = Constants.DrinkingSettings.getFrequencyValue(selectedFrequency)
-            val drinkHoursVal = Constants.DrinkingSettings.getDurationValue(selectedDuration)
+
+            // [NEW] 실시간 설정 변경 감지 - 탭4에서 설정을 바꾸면 즉시 반영됨
+            val userSettings by rememberUserSettingsState(context)
+            val costVal = Constants.DrinkingSettings.getCostValue(userSettings.cost)
+            val freqVal = Constants.DrinkingSettings.getFrequencyValue(userSettings.frequency)
+            val drinkHoursVal = Constants.DrinkingSettings.getDurationValue(userSettings.duration)
+
             val savedMoney = weeks * freqVal * costVal
             val savedHours = weeks * freqVal * drinkHoursVal
             val lifeGainDays = elapsedDaysFloat / 30.0

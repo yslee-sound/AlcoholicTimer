@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager
+import kr.sweetapps.alcoholictimer.ui.common.rememberUserSettingsState
 import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue  // [NEW] 메인 UI 색상
 
 // Local layout constants for DetailScreen (tweak here to change paddings)
@@ -165,21 +166,13 @@ fun DetailScreen(
     val totalHours = totalDurationMillis / (dayInMillis / 24.0)
     val totalDays = totalDurationMillis / dayInMillis.toDouble()
 
+    // [NEW] 실시간 설정 변경 감지 - 탭4에서 설정을 바꾸면 즉시 반영됨
+    val userSettings by rememberUserSettingsState(context)
+
     // guard platform/runtime-dependent settings for preview safety
-    val selectedCost: String
-    val selectedFrequency: String
-    val selectedDuration: String
-    if (!previewMode) {
-        val settings = Constants.getUserSettings(context)
-        selectedCost = settings.first
-        selectedFrequency = settings.second
-        selectedDuration = settings.third
-    } else {
-        // preview defaults
-        selectedCost = "0"
-        selectedFrequency = "0"
-        selectedDuration = "0"
-    }
+    val selectedCost = if (!previewMode) userSettings.cost else "0"
+    val selectedFrequency = if (!previewMode) userSettings.frequency else "0"
+    val selectedDuration = if (!previewMode) userSettings.duration else "0"
 
     // Numeric values for calculations (ensure correct numeric types)
     val costVal: Int = if (!previewMode) Constants.DrinkingSettings.getCostValue(selectedCost) else 1000

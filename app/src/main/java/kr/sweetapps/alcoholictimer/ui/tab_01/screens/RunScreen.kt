@@ -59,6 +59,7 @@ import kr.sweetapps.alcoholictimer.util.debug.DebugSettings
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DemoData
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager
+import kr.sweetapps.alcoholictimer.ui.common.rememberUserSettingsState
 
 @Composable
 fun RunScreenComposable(
@@ -160,18 +161,23 @@ fun RunScreenComposable(
     val progressTimeText = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds)
     val progressTimeTextHM = String.format(Locale.getDefault(), "%02d:%02d", elapsedHours, elapsedMinutes)
 
-    val (selectedCost, selectedFrequency, selectedDuration) = Constants.getUserSettings(context)
-    val costVal = Constants.DrinkingSettings.getCostValue(selectedCost)
-    val freqVal = Constants.DrinkingSettings.getFrequencyValue(selectedFrequency)
-    val drinkHoursVal = Constants.DrinkingSettings.getDurationValue(selectedDuration)
+    // [NEW] 실시간 설정 변경 감지 - 탭4에서 설정을 바꾸면 즉시 반영됨
+    val userSettings by rememberUserSettingsState(context)
+    val costVal = Constants.DrinkingSettings.getCostValue(userSettings.cost)
+    val freqVal = Constants.DrinkingSettings.getFrequencyValue(userSettings.frequency)
+    val drinkHoursVal = Constants.DrinkingSettings.getDurationValue(userSettings.duration)
+    val currencySymbol = userSettings.currencySymbol // 통화 기호도 실시간 반영
+
     val weeks = elapsedDaysFloat / 7.0
     val savedMoney = remember(weeks, freqVal, costVal) { weeks * freqVal * costVal }
     val savedHours = remember(weeks, freqVal, drinkHoursVal) { weeks * freqVal * drinkHoursVal }
     val lifeGainDays = remember(elapsedDaysFloat) { elapsedDaysFloat / 30.0 }
-    // Display saved money as integer without currency symbol, formatted with locale grouping
-    // [FIX] Use floor (truncate) instead of round for saved money display
-    val savedMoneyRounded = remember(savedMoney) { savedMoney.toLong() }
-    val savedMoneyDisplay = remember(savedMoneyRounded) { java.text.NumberFormat.getNumberInstance(Locale.getDefault()).format(savedMoneyRounded) }
+
+    // [FIX] 환율 변환 포함 포맷팅 (CurrencyManager 사용)
+    val savedMoneyDisplay = remember(savedMoney, userSettings.currencySymbol) {
+        if (isPreview) "2,097"
+        else CurrencyManager.formatMoneyNoDecimals(savedMoney, context)
+    }
 
     // Debug: compute life gain explicitly (days + hours) with 1 decimal and log values
     val formattedLifeGain = remember(lifeGainDays) {
