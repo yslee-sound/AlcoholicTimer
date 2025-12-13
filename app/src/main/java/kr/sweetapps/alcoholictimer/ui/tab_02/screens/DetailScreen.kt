@@ -205,13 +205,7 @@ fun DetailScreen(
         topBar = if (showTopBar) {
             {
                 BackTopBar(
-                    title = if (isResultMode) {
-                        stringResource(R.string.detail_result_title)  // [FIX] 결과 모드일 때 타이틀 다국어화
-                    } else if (previewMode) {
-                        "Detail"
-                    } else {
-                        stringResource(id = R.string.detail_title)
-                    },
+                    title = "", // [FIX] 모든 모드에서 제목 숨김
                     onBack = if (previewMode) ({}) else onBack,
                     trailingContent = if (isResultMode) {
                         // [NEW] 결과 모드일 때는 메뉴 숨김

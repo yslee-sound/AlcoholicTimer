@@ -88,7 +88,7 @@ data class DividerTokens(
 @Suppress("unused")
 object UiConstants {
     // Back button configuration
-    val BackIconStartPadding: Dp = 42.dp // Shifts title to the right
+    val BackIconStartPadding: Dp = 56.dp // [FIX] 아이콘-제목 간격 최적화
     val BackIconTouchArea: Dp = 56.dp
     // Internal padding to adjust back icon visual position within touch area
     val BackIconInnerPadding: Dp = 14.dp
