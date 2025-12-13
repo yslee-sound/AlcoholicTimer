@@ -110,7 +110,7 @@ fun RecordsScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFEEEDE9))
+                .background(Color(0xFFEEEDE9)) // 원래대로 복원
         ) {
             // Overlay: match StartScreen / RunScreen subtle top highlight and bottom darkening
             Box(

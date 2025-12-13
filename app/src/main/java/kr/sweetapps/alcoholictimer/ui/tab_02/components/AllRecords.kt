@@ -116,7 +116,7 @@ fun AllRecordsScreen(
                 }
             }
         },
-        containerColor = MaterialTheme.colorScheme.surfaceVariant
+        containerColor = Color.White // [FIX] surfaceVariant(회색) → Color.White(흰색)
     ) { innerPadding ->
         // Apply fontScale only to the body content below the TopBar
         CompositionLocalProvider(

@@ -46,18 +46,15 @@ import kr.sweetapps.alcoholictimer.ui.tab_01.components.MainActionButton
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.horizontalScroll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
-// Additional imports (LazyRow usage)
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.layout.PaddingValues
 import kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.NavigationEvent
 import kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.StartScreenViewModel
 
@@ -394,12 +391,15 @@ private fun DurationBadgeRow(
         stringResource(R.string.badge_100_days) to 100
     )
 
-    LazyRow(
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = START_CARD_HORIZONTAL_PADDING, vertical = 4.dp),
+    // [FIX] LazyRow 대신 Row + horizontalScroll로 변경하여 좁은 화면에서 스크롤 가능
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = START_CARD_HORIZONTAL_PADDING, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(presets) { item ->
+        presets.forEach { item ->
             val label = item.first
             val days = item.second
             DurationBadge(
@@ -424,7 +424,7 @@ private fun DurationBadge(
 ) {
     // [FIXED_SIZE] 폰트 스케일의 영향을 받지 않는 고정 크기 적용
     val density = androidx.compose.ui.platform.LocalDensity.current
-    val badgeHeightPx = with(density) { 40.dp.toPx() }
+    val badgeHeightPx = with(density) { 48.dp.toPx() } // [FIX] 40dp → 48dp (텍스트 잘림 방지)
     val badgeHeight = with(density) { (badgeHeightPx / density.density).dp }
 
     val backgroundColor = if (isSelected) BadgeSelectedBackground else BadgeUnselectedBackground
@@ -441,16 +441,47 @@ private fun DurationBadge(
         border = BorderStroke(1.dp, borderColor),
         shadowElevation = if (isSelected) 2.dp else 0.dp
     ) {
-        Box(
+        // [FIX] TextMeasurer 기반 사전 계산으로 텍스트 잘림 완전 해결
+        BoxWithConstraints(
             modifier = Modifier
-                .padding(horizontal = 14.dp, vertical = 8.dp),
+                .fillMaxSize()
+                .padding(horizontal = 8.dp, vertical = 4.dp), // [FIX] 14dp → 8dp (공간 확보)
             contentAlignment = Alignment.Center
         ) {
+            val textMeasurer = androidx.compose.ui.text.rememberTextMeasurer()
+            val maxPixels = with(density) { maxWidth.toPx() }
+
+            val baseStyle = MaterialTheme.typography.bodyMedium.copy(
+                platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false)
+            )
+
+            // 사전 계산: 텍스트 너비가 maxWidth에 들어올 때까지 폰트 축소
+            val calculatedSize = remember(label, maxPixels) {
+                var currentSize = 14f // 시작 크기
+                val minSize = 10f // 최소 10sp
+
+                while (currentSize > minSize) {
+                    val result = textMeasurer.measure(
+                        text = androidx.compose.ui.text.AnnotatedString(label),
+                        style = baseStyle.copy(fontSize = currentSize.sp)
+                    )
+                    if (result.size.width <= maxPixels * 0.95f) { // 5% 여유
+                        break
+                    }
+                    currentSize -= 1f // 1sp씩 정밀 축소
+                }
+                currentSize.coerceAtLeast(minSize).sp
+            }
+
             Text(
                 text = label,
-                style = MaterialTheme.typography.bodyMedium,
+                style = baseStyle.copy(fontSize = calculatedSize),
                 color = textColor,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                softWrap = false,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Visible,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
