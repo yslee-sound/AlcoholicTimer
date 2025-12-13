@@ -643,88 +643,118 @@ fun RunStatChip(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(modifier = Modifier.fillMaxSize().padding(12.dp), horizontalAlignment = contentAlignment, verticalArrangement = Arrangement.Center) {
-            // Top circular icon
+        Column(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 12.dp),
+            horizontalAlignment = contentAlignment,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // [FIX] 1단계: 아이콘 영역 - 고정 높이
             if (icon != null || iconRes != null) {
-                // Apply common accent gradient with lighter bottom for chips with iconBg specified
-                val applyAccent = iconBg != null
-                if (applyAccent) {
-                    val topColor = iconBg!!
-                    val bottomColor = lerp(topColor, Color.White, 0.18f)
-                    Card(
-                        modifier = Modifier.requiredSize(iconSize),
-                        shape = CircleShape,
-                        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
-                    ) {
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val applyAccent = iconBg != null
+                    if (applyAccent) {
+                        val topColor = iconBg!!
+                        val bottomColor = lerp(topColor, Color.White, 0.18f)
+                        Card(
+                            modifier = Modifier.requiredSize(iconSize),
+                            shape = CircleShape,
+                            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape)
+                                    .background(
+                                        Brush.verticalGradient(
+                                            colors = listOf(topColor, bottomColor)
+                                        )
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                icon?.let {
+                                    Icon(imageVector = it, contentDescription = null, tint = Color.White, modifier = Modifier.requiredSize(innerIconSize))
+                                } ?: run {
+                                    iconRes?.let { res ->
+                                        Image(
+                                            painter = painterResource(id = res),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Inside,
+                                            colorFilter = ColorFilter.tint(Color.White),
+                                            modifier = Modifier.requiredSize(innerIconSize)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    } else {
                         Box(
                             modifier = Modifier
-                                .fillMaxSize()
+                                .requiredSize(iconSize)
                                 .clip(CircleShape)
-                                .background(
-                                    Brush.verticalGradient(
-                                        colors = listOf(topColor, bottomColor)
-                                    )
-                                ),
+                                .background(color.copy(alpha = 0.12f)),
                             contentAlignment = Alignment.Center
                         ) {
-                            icon?.let {
-                                Icon(imageVector = it, contentDescription = null, tint = Color.White, modifier = Modifier.requiredSize(innerIconSize))
-                            } ?: run {
+                            if (icon != null) {
+                                Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.requiredSize(innerIconSize))
+                            } else {
                                 iconRes?.let { res ->
                                     Image(
                                         painter = painterResource(id = res),
                                         contentDescription = null,
                                         contentScale = ContentScale.Inside,
-                                        colorFilter = ColorFilter.tint(Color.White),
                                         modifier = Modifier.requiredSize(innerIconSize)
                                     )
                                 }
                             }
                         }
                     }
-                } else {
-                    Box(modifier = Modifier
-                        .requiredSize(iconSize)
-                        .clip(CircleShape)
-                        .background(color.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
-                        if (icon != null) {
-                            Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.requiredSize(innerIconSize))
-                        } else {
-                            iconRes?.let { res ->
-                                Image(
-                                    painter = painterResource(id = res),
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Inside,
-                                    modifier = Modifier.requiredSize(innerIconSize)
-                                )
-                            }
-                        }
-                    }
-                 }
-                 Spacer(modifier = Modifier.height(8.dp))
+                }
             }
 
-            // Large value
-            // Auto-resize value so large numbers fit the chip without unit symbol or decimals
-            AutoResizeSingleLineText(
-                text = value,
-                baseStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold, color = Color(0xFF111111)),
-                modifier = Modifier.fillMaxWidth(),
-                minFontSizeSp = 12f,
-                step = 0.95f,
-                color = Color(0xFF111111),
-                textAlign = TextAlign.Center
-            )
+            // [FIX] 2단계: 숫자 영역 - AutoResizing (바닥 앵커)
+            Box(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                AutoResizeSingleLineText(
+                    text = value,
+                    baseStyle = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color(0xFF111111)
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                    minFontSizeSp = 12f,
+                    step = 0.95f,
+                    color = Color(0xFF111111),
+                    textAlign = TextAlign.Center
+                )
+            }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-            // Label
-            Text(
-                text = title,
-                style = MaterialTheme.typography.labelMedium.copy(color = colorResource(id = R.color.color_stat_title_gray)),
-                textAlign = TextAlign.Center
-            )
+            // [FIX] 3단계: 라벨 영역 - 고정 30dp (잘림 방지)
+            Box(
+                modifier = Modifier.fillMaxWidth().height(30.dp),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Text(
+                    text = title,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = colorResource(id = R.color.color_stat_title_gray),
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Visible,
+                    style = TextStyle(
+                        platformStyle = PlatformTextStyle(includeFontPadding = false)
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
 }
