@@ -461,7 +461,9 @@ private fun PeriodStatisticsSection(
                 Spacer(modifier = Modifier.height(RECORDS_STATS_INTERNAL_TOP_GAP))
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(140.dp), // [FIX] 고정 높이 추가로 3개 카드 높이 통일
                     horizontalArrangement = Arrangement.spacedBy(RECORDS_CARD_IN_ROW_SPACING)
                 ) {
                     val statsScale = 1.3f
@@ -472,7 +474,9 @@ private fun PeriodStatisticsSection(
                         value = "$kcalFormatted ${stringResource(R.string.stats_unit_kcal)}",
                         color = MaterialTheme.colorScheme.tertiary,
                         valueColor = Color(0xFFFFAB91), // 밝은 살구색
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(), // [FIX] 부모 높이 가득 채우기
                         titleScale = statsScale,
                         valueScale = statsScale
                     )
@@ -483,7 +487,9 @@ private fun PeriodStatisticsSection(
                         value = "$bottlesText ${stringResource(R.string.stats_unit_bottles)}",
                         color = MaterialTheme.colorScheme.primary,
                         valueColor = Color(0xFF80DEEA), // 밝은 시안
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(), // [FIX] 부모 높이 가득 채우기
                         titleScale = statsScale,
                         valueScale = statsScale
                     )
@@ -494,7 +500,9 @@ private fun PeriodStatisticsSection(
                         value = "$savedMoneyFormatted ${currencyCode.value}",  // [FIX] 동적 통화 코드 사용
                         color = MaterialTheme.colorScheme.error,
                         valueColor = Color(0xFF69F0AE), // 밝은 네온 민트
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(), // [FIX] 부모 높이 가득 채우기
                         titleScale = statsScale,
                         valueScale = statsScale
                     )
@@ -617,15 +625,8 @@ private fun StatisticItem(
     valueScale: Float = 1.0f,
     valueColor: Color = Color.White // [NEW] 숫자 색상 커스터마이징 파라미터
 ) {
-    // [FIXED_SIZE] 폰트 스케일의 영향을 받지 않는 고정 크기 적용
-    val density = LocalDensity.current
-    val minHeightPx = with(density) { 120.dp.toPx() }
-    val minHeight = with(density) { (minHeightPx / density.density).dp }
-
     Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .requiredHeightIn(min = minHeight),
+        modifier = modifier, // [FIX] 부모가 정한 크기(weight + fillMaxHeight) 사용
         shape = MaterialTheme.shapes.small,
         // Make the translucent black mask stronger for better contrast over the background
         color = Color.Black.copy(alpha = 0.3f) // 0.22f
@@ -633,25 +634,19 @@ private fun StatisticItem(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 8.dp, vertical = 16.dp), // [FIX] 가로 패딩 축소 (16dp → 8dp)
+                .padding(horizontal = 8.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+            verticalArrangement = Arrangement.Center
         ) {
-            val minTitleHeight = 48.dp
-
-            // [개선] 숫자와 단위를 수직으로 분리하여 표시
+            // [개선] 숫자와 단위를 분리하여 표시
             val base = MaterialTheme.typography.titleMedium
-            val numSize = (base.fontSize * valueScale * 0.75f) // [FIX] 폰트 크기 25% 축소
+            val numSize = (base.fontSize * valueScale * 0.75f)
             val numStyle = base.copy(
                 fontWeight = FontWeight.Bold,
                 fontSize = numSize,
                 lineHeight = numSize * 1.1f,
-                letterSpacing = (-0.5).sp, // [FIX] 자간 좁히기
+                letterSpacing = (-0.5).sp,
                 platformStyle = PlatformTextStyle(includeFontPadding = false)
-            )
-            val unitStyle = MaterialTheme.typography.bodySmall.copy(
-                fontSize = base.fontSize * 0.7f,
-                fontWeight = FontWeight.Normal
             )
 
             val regex = Regex("^\\s*([0-9,]+(?:\\.[0-9]+)?)\\s*(.*)")
@@ -661,70 +656,88 @@ private fun StatisticItem(
                 val num = m.groupValues[1]
                 val unit = m.groupValues[2]
 
-                // 숫자와 단위를 수직으로 배치
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                // [FIX] 1단계: 숫자 영역 - AutoResizing (유연한 크기)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(40.dp), // 고정 높이
+                    contentAlignment = Alignment.BottomCenter // 바닥 앵커
                 ) {
-                    // [FIX] 숫자: AutoResizeSingleLineText 사용하여 자동 크기 조절
                     AutoResizeSingleLineText(
                         text = num,
                         baseStyle = numStyle,
                         color = valueColor,
                         textAlign = TextAlign.Center,
-                        step = 0.9f, // 폰트 크기 축소 비율
+                        step = 0.9f,
                         modifier = Modifier.fillMaxWidth()
                     )
+                }
 
+                // [FIX] 2단계: 단위 영역 - 고정 11sp (제목과 통일)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(28.dp),
+                    contentAlignment = Alignment.TopCenter
+                ) {
                     if (unit.isNotBlank()) {
-                        Spacer(modifier = Modifier.height(2.dp))
-
-                        // 단위: 작고 옅게 (보조 정보) - 흰색 유지
                         Text(
                             text = unit,
-                            style = unitStyle,
+                            fontSize = 11.sp, // [FIX] 10sp → 11sp (제목과 통일)
+                            fontWeight = FontWeight.Normal,
                             color = Color.White.copy(alpha = 0.75f),
                             textAlign = TextAlign.Center,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Visible,
+                            style = TextStyle(
+                                platformStyle = PlatformTextStyle(includeFontPadding = false)
+                            )
                         )
                     }
                 }
             } else {
-                // 파싱 실패 시 전체 문자열 표시 - AutoResizeSingleLineText 사용
-                AutoResizeSingleLineText(
-                    text = value,
-                    baseStyle = numStyle,
-                    color = valueColor,
-                    textAlign = TextAlign.Center,
-                    step = 0.9f,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                // 파싱 실패 시 전체 문자열 표시
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(40.dp),
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    AutoResizeSingleLineText(
+                        text = value,
+                        baseStyle = numStyle,
+                        color = valueColor,
+                        textAlign = TextAlign.Center,
+                        step = 0.9f,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                Spacer(modifier = Modifier.height(28.dp)) // [FIX] 24dp → 28dp
             }
-            Spacer(modifier = Modifier.height(6.dp))
+
+            // [FIX] 고정 간격
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // [FIX] 3단계: 제목 영역 - 11sp + letterSpacing -0.5sp (6글자 잘림 방지)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = minTitleHeight),
+                    .height(40.dp),
                 contentAlignment = Alignment.Center
             ) {
-                val baseLabel = MaterialTheme.typography.labelMedium
-                val scaledLabelFontSize = baseLabel.fontSize * titleScale * 0.9f // [개선] 폰트 크기 10% 축소
-                val scaledLabelStyle = baseLabel.copy(
-                    fontSize = scaledLabelFontSize,
-                    lineHeight = scaledLabelFontSize * 1.2f,
-                    platformStyle = PlatformTextStyle(includeFontPadding = false),
-                    fontWeight = FontWeight.Bold
-                )
-                // [FIX] 제목도 AutoResizeSingleLineText 적용하여 줄바꿈 방지
-                AutoResizeSingleLineText(
+                Text(
                     text = title,
-                    baseStyle = scaledLabelStyle,
+                    fontSize = 11.sp, // [FIX] 12sp → 11sp (6글자 수용)
+                    fontWeight = FontWeight.Bold,
                     color = Color.White,
                     textAlign = TextAlign.Center,
-                    step = 0.9f, // 10%씩 축소
-                    minFontSize = 9f, // 최소 9sp (제목은 작아져도 한 줄 유지 우선)
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Visible,
+                    letterSpacing = (-0.5).sp, // [FIX] 자간 좁힘 (공간 확보)
+                    style = TextStyle(
+                        platformStyle = PlatformTextStyle(includeFontPadding = false)
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 )
             }
