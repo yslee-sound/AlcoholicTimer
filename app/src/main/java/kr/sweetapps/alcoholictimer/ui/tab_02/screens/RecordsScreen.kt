@@ -928,12 +928,17 @@ private fun DiaryListItem(
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // 이모지
-        Text(
-            text = diary.emoji,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.size(24.dp)
-        )
+        // [FIX] 이모지 - Box로 감싸서 중앙 정렬 및 크기 확장하여 잘림 방지
+        Box(
+            modifier = Modifier.size(48.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = diary.emoji,
+                fontSize = 28.sp,
+                textAlign = TextAlign.Center
+            )
+        }
 
         Spacer(modifier = Modifier.width(12.dp))
 
