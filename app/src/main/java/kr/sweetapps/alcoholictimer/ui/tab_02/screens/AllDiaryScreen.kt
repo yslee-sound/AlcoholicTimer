@@ -66,7 +66,7 @@ fun AllDiaryScreen(
 
     Scaffold(
         topBar = {
-            BackTopBar(title = stringResource(R.string.diary_all_title), onBack = onNavigateBack)
+            BackTopBar(title = "", onBack = onNavigateBack) // [FIX] 제목 숨김
         },
         bottomBar = {
             // [NEW] 하단 고정 버튼 - 일기 작성하기 (Scaffold bottomBar)
@@ -114,7 +114,7 @@ fun AllDiaryScreen(
                 .padding(start = startPad, top = topPad, end = endPad)
                 .padding(horizontal = 0.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(top = 16.dp, bottom = bottomExtra)
+            contentPadding = PaddingValues(top = 0.dp, bottom = bottomExtra) // [FIX] 상단 여백 제거
         ) {
             grouped.forEach { (month, list) ->
                 item(key = "header_$month") {

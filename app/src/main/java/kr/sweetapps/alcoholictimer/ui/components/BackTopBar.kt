@@ -1,20 +1,20 @@
 package kr.sweetapps.alcoholictimer.ui.components
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.theme.UiConstants
@@ -38,19 +38,17 @@ fun BackTopBar(
         .height(56.dp)
         .background(MaterialTheme.colorScheme.surface)
     ) {
-        val noRipple = remember { MutableInteractionSource() }
-        // Make the whole touch area clickable (not just the icon) to improve hit target
-        Box(modifier = Modifier
-            .align(Alignment.CenterStart)
-            .width(UiConstants.BackIconTouchArea)
-            .padding(start = UiConstants.BackIconInnerPadding)
-            .clickable(indication = null, interactionSource = noRipple) { onBack() },
-            contentAlignment = Alignment.CenterStart
+        // [FIX] 구글 기본 ArrowBack 아이콘으로 변경
+        IconButton(
+            onClick = onBack,
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = 4.dp)
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_caret_left),
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = stringResource(id = R.string.cd_navigate_back),
-                modifier = Modifier.size(24.dp)
+                tint = titleColor
             )
         }
 
@@ -60,8 +58,7 @@ fun BackTopBar(
         CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1f)) {
             androidx.compose.material3.Text(
                 text = title,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleLarge,
                 color = titleColor,
                 modifier = Modifier.align(Alignment.CenterStart).padding(start = UiConstants.BackIconStartPadding)
             )
