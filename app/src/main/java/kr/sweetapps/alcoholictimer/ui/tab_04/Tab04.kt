@@ -276,15 +276,13 @@ fun HabitScreenContent(
 ) {
     val scrollState = rememberScrollState()
 
-    // [FIX] innerPadding 적용하여 TopAppBar와 겹치지 않도록 함
-    // [FIX] 하단 버튼 제거됨
+    // [FIX] innerPadding 제거하여 불필요한 여백 방지, 스크롤 콘텐츠에만 하단 100.dp 적용
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .padding(innerPadding)
             .verticalScroll(scrollState)
-            .padding(top = 8.dp),
+            .padding(top = 8.dp, bottom = 100.dp),
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
             HabitSection(
@@ -389,9 +387,6 @@ fun HabitScreenContent(
                     )
                 }
             }
-
-            // [NEW] Bottom spacer for breathing room (consistent with other tabs)
-            Spacer(modifier = Modifier.height(80.dp))
     }
 }
 

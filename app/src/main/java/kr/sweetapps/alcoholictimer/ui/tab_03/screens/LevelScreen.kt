@@ -138,45 +138,29 @@ fun LevelScreenContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(innerPadding)
-            .background(MaterialTheme.colorScheme.surface),
-        verticalArrangement = Arrangement.spacedBy(15.dp)
+            .background(MaterialTheme.colorScheme.surface)
+            .verticalScroll(rememberScrollState())
+            .padding(top = 15.dp, start = 20.dp, end = 20.dp, bottom = 100.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface)
-                .verticalScroll(rememberScrollState())
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 15.dp, start = 20.dp, end = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(0.dp)
-            ) {
-                // 현재 레벨 카드
-                CurrentLevelCard(
-                    currentLevel = currentLevel,
-                    currentDays = levelDays,
-                    elapsedDaysFloat = totalElapsedDaysFloat,
-                    startTime = startTime ?: 0L, // [FIX] nullable 처리
-                    nextLevel = viewModel.getNextLevel(),
-                    progress = viewModel.calculateProgress(),
-                    modifier = Modifier.fillMaxWidth()
-                )
+        // 현재 레벨 카드
+        CurrentLevelCard(
+            currentLevel = currentLevel,
+            currentDays = levelDays,
+            elapsedDaysFloat = totalElapsedDaysFloat,
+            startTime = startTime ?: 0L,
+            nextLevel = viewModel.getNextLevel(),
+            progress = viewModel.calculateProgress(),
+            modifier = Modifier.fillMaxWidth()
+        )
 
-                Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-                // 전체 레벨 리스트
-                LevelListCard(
-                    currentLevel = currentLevel,
-                    currentDays = levelDays
-                )
-
-                // [UPDATED] Bottom spacer for breathing room
-                Spacer(modifier = Modifier.height(100.dp))
-            }
-        }
+        // 전체 레벨 리스트
+        LevelListCard(
+            currentLevel = currentLevel,
+            currentDays = levelDays
+        )
     }
 }
 
