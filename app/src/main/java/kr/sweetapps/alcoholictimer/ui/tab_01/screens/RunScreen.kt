@@ -266,8 +266,13 @@ fun RunScreenComposable(
                         )
                     }
 
+                    // [FIXED_SIZE] 중간 큰 카드 높이를 폰트 스케일 영향 받지 않도록 고정
+                    val density = LocalDensity.current
+                    val bigCardHeightPx = with(density) { 180.dp.toPx() }
+                    val bigCardHeight = with(density) { (bigCardHeightPx / density.density).dp }
+
                     Card(
-                        modifier = Modifier.fillMaxWidth().height(180.dp).clickable { toggleIndicator() },
+                        modifier = Modifier.fillMaxWidth().requiredHeight(bigCardHeight).clickable { toggleIndicator() },
                         shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -623,10 +628,17 @@ fun RunStatChip(
     iconBg: Color? = null,
     contentAlignment: Alignment.Horizontal = Alignment.CenterHorizontally
 ) {
-    // Card with white background and elevation matching the progress card
-    // Increase card height to make top level card more visible
+    // [FIXED_SIZE] 폰트 스케일의 영향을 받지 않는 고정 크기 적용
+    val density = LocalDensity.current
+    val cardHeightPx = with(density) { 148.dp.toPx() }
+    val cardHeight = with(density) { (cardHeightPx / density.density).dp }
+    val iconSizePx = with(density) { 48.dp.toPx() }
+    val iconSize = with(density) { (iconSizePx / density.density).dp }
+    val innerIconSizePx = with(density) { 24.dp.toPx() }
+    val innerIconSize = with(density) { (innerIconSizePx / density.density).dp }
+
     Card(
-        modifier = modifier.height(148.dp),
+        modifier = modifier.requiredHeight(cardHeight),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -640,7 +652,7 @@ fun RunStatChip(
                     val topColor = iconBg!!
                     val bottomColor = lerp(topColor, Color.White, 0.18f)
                     Card(
-                        modifier = Modifier.size(48.dp), // increased from 44.dp to 48.dp
+                        modifier = Modifier.requiredSize(iconSize),
                         shape = CircleShape,
                         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
@@ -657,7 +669,7 @@ fun RunStatChip(
                             contentAlignment = Alignment.Center
                         ) {
                             icon?.let {
-                                Icon(imageVector = it, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp)) // increased from 20.dp to 24.dp
+                                Icon(imageVector = it, contentDescription = null, tint = Color.White, modifier = Modifier.requiredSize(innerIconSize))
                             } ?: run {
                                 iconRes?.let { res ->
                                     Image(
@@ -665,7 +677,7 @@ fun RunStatChip(
                                         contentDescription = null,
                                         contentScale = ContentScale.Inside,
                                         colorFilter = ColorFilter.tint(Color.White),
-                                        modifier = Modifier.size(24.dp) // increased from 20.dp to 24.dp
+                                        modifier = Modifier.requiredSize(innerIconSize)
                                     )
                                 }
                             }
@@ -673,18 +685,18 @@ fun RunStatChip(
                     }
                 } else {
                     Box(modifier = Modifier
-                        .size(48.dp) // increased from 44.dp to 48.dp
+                        .requiredSize(iconSize)
                         .clip(CircleShape)
                         .background(color.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
                         if (icon != null) {
-                            Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(24.dp)) // increased from 20.dp to 24.dp
+                            Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.requiredSize(innerIconSize))
                         } else {
                             iconRes?.let { res ->
                                 Image(
                                     painter = painterResource(id = res),
                                     contentDescription = null,
                                     contentScale = ContentScale.Inside,
-                                    modifier = Modifier.size(24.dp) // increased from 20.dp to 24.dp
+                                    modifier = Modifier.requiredSize(innerIconSize)
                                 )
                             }
                         }

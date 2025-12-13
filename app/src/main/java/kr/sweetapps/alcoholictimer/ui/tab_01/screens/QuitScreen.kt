@@ -342,8 +342,17 @@ fun QuitScreenPreview() {
 
 @Composable
 private fun SmallStatCard(title: String, value: String, accentColor: Color, modifier: Modifier = Modifier, icon: androidx.compose.ui.graphics.vector.ImageVector? = null, iconRes: Int? = null, iconBg: Color? = null) {
+    // [FIXED_SIZE] 폰트 스케일의 영향을 받지 않는 고정 크기 적용
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val cardHeightPx = with(density) { QuitUiConstants.STAT_CARD_HEIGHT.toPx() }
+    val cardHeight = with(density) { (cardHeightPx / density.density).dp }
+    val iconSizePx = with(density) { 40.dp.toPx() }
+    val iconSize = with(density) { (iconSizePx / density.density).dp }
+    val innerIconSizePx = with(density) { 18.dp.toPx() }
+    val innerIconSize = with(density) { (innerIconSizePx / density.density).dp }
+
     Card(
-        modifier = modifier.height(QuitUiConstants.STAT_CARD_HEIGHT),
+        modifier = modifier.requiredHeight(cardHeight),
         shape = RoundedCornerShape(QuitUiConstants.STAT_CARD_CORNER),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
@@ -358,16 +367,16 @@ private fun SmallStatCard(title: String, value: String, accentColor: Color, modi
             if (icon != null || iconRes != null) {
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .requiredSize(iconSize)
                         .clip(CircleShape)
                         .background(iconBg ?: accentColor.copy(alpha = 0.12f)),
                     contentAlignment = Alignment.Center
                 ) {
                     if (icon != null) {
-                        Icon(imageVector = icon, contentDescription = null, tint = accentColor, modifier = Modifier.size(18.dp))
+                        Icon(imageVector = icon, contentDescription = null, tint = accentColor, modifier = Modifier.requiredSize(innerIconSize))
                     } else {
                         iconRes?.let { res ->
-                            Image(painter = painterResource(id = res), contentDescription = null, modifier = Modifier.size(18.dp))
+                            Image(painter = painterResource(id = res), contentDescription = null, modifier = Modifier.requiredSize(innerIconSize))
                         }
                     }
                 }
