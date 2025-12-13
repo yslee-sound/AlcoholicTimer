@@ -191,8 +191,8 @@ fun HabitScreen(
                     ) {
                         Text(
                             text = stringResource(R.string.settings_apply_button),
-                            color = if (hasChanges) MainPrimaryBlue else Color.Gray,
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                            color = if (hasChanges) MainPrimaryBlue else Color.Gray, // [FIX] 상태에 따른 색상
+                            style = MaterialTheme.typography.titleMedium // [FIX] 표준 타이포그래피
                         )
                     }
                 },

@@ -195,10 +195,9 @@ fun DiaryWriteScreen(
                                 enabled = true // [FIX] 갈망도는 기본값이 있으므로 항상 활성화
                             ) {
                                 Text(
-                                    stringResource(R.string.diary_save_button),
-                                    color = Color(0xFF2D3748),
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Medium
+                                    text = stringResource(R.string.diary_save_button),
+                                    color = kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue, // [FIX] 표준 색상 적용
+                                    style = androidx.compose.material3.MaterialTheme.typography.titleMedium // [FIX] 표준 타이포그래피 적용
                                 )
                             }
                         }
