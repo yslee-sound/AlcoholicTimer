@@ -48,19 +48,13 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun AlcoholicTimerTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = false, // [FIX] 강제로 false 설정하여 항상 라이트 테마 사용
     dynamicColor: Boolean = false,
     applySystemBars: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S -> {
-            val context = androidx.compose.ui.platform.LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    // [FIX] 항상 라이트 컬러 스킴 사용 (다크모드 비활성화)
+    val colorScheme = LightColorScheme
 
     val dimens = Dimens()
 
@@ -68,8 +62,8 @@ fun AlcoholicTimerTheme(
     val sysUiController = rememberSystemUiController()
     SideEffect {
         if (applySystemBars) {
-            // status bar: use primary; navigation bar: use surface
-            sysUiController.setStatusBarColor(color = colorScheme.primary, darkIcons = !darkTheme)
+            // [FIX] 상태바를 흰색으로 설정 (실제 기기에서도 동일하게 표시)
+            sysUiController.setStatusBarColor(color = Color.White, darkIcons = true)
             sysUiController.setNavigationBarColor(color = colorScheme.surface, darkIcons = !darkTheme)
         }
     }

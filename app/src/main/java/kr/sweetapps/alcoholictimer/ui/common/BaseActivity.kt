@@ -140,8 +140,17 @@ abstract class BaseActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     containerColor = Color.White,
                     topBar = {
-                        // Custom top bar: keep Box layout so title position remains unchanged (parent-relative start)
-                        Box(modifier = Modifier.fillMaxWidth().height(56.dp)) {
+                        // [FIX] Surface로 감싸서 흰색 배경 강제 적용
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = Color.White,
+                            shadowElevation = 0.dp
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp)
+                            ) {
                             if (showBackButton) {
                                 // fixed touch area width, visual padding inside keeps icon centered
                                 Box(modifier = Modifier.align(Alignment.CenterStart).width(UiConstants.BackIconTouchArea).padding(start = 8.dp), contentAlignment = Alignment.CenterStart) {
@@ -184,6 +193,7 @@ abstract class BaseActivity : ComponentActivity() {
 
                             // Actions aligned to end
                             Row(modifier = Modifier.align(Alignment.CenterEnd), verticalAlignment = Alignment.CenterVertically) { topBarActions() }
+                        }
                         }
                         // Global subtle divider under app bar
                         HorizontalDivider(thickness = 1.5.dp, color = Color(0xFFE0E0E0))

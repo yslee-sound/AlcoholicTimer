@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 앱 전역 테마: 플랫폼에 존재하는 NoActionBar 테마를 부모로 사용 -->
-    <style name="Theme.AlcoholicTimer" parent="@android:style/Theme.DeviceDefault.NoActionBar">
+    <!-- [FIX] 앱 전역 테마: AppCompat DayNight 테마 사용 -->
+    <style name="Theme.AlcoholicTimer" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <!-- [FIX] 다크모드 강제 비활성화 -->
+        <item name="android:forceDarkAllowed">false</item>
+
         <!-- 상태바를 시스템이 항상 표시하도록 보장 -->
         <item name="android:windowFullscreen">false</item>
         <!-- 윈도우가 시스템 바 배경을 그리도록 명시 (API 21+) -->
@@ -9,6 +12,8 @@
         <!-- 상태바/내비게이션바 배경은 흰색 -->
         <item name="android:statusBarColor">@android:color/white</item>
         <item name="android:navigationBarColor">@android:color/white</item>
+        <!-- [FIX] 상태바 아이콘을 어두운 색으로 (라이트 테마) -->
+        <item name="android:windowLightStatusBar">true</item>
 
         <!-- 기본 윈도우 배경은 흰색으로 설정(스플래시는 Splash 테마에서만 사용) -->
         <item name="android:windowBackground">@android:color/white</item>

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Android 10+ (API 29+)에서 상태바/내비바 대비 강제(구분선 느낌의 스크림)를 끄기 -->
-    <style name="Theme.AlcoholicTimer" parent="@android:style/Theme.DeviceDefault.NoActionBar">
+    <!-- [FIX] Android 10+ (API 29+): AppCompat DayNight 테마로 변경 -->
+    <style name="Theme.AlcoholicTimer" parent="Theme.AppCompat.DayNight.NoActionBar">
         <!-- 기존 설정 유지 -->
+        <item name="android:forceDarkAllowed">false</item>
         <item name="android:windowFullscreen">false</item>
         <item name="android:statusBarColor">@android:color/white</item>
         <item name="android:navigationBarColor">@android:color/white</item>
@@ -17,7 +18,7 @@
         <item name="android:windowContentOverlay">@null</item>
     </style>
 
-    <style name="Theme.AlcoholicTimer.Splash" parent="@android:style/Theme.DeviceDefault.NoActionBar">
+    <style name="Theme.AlcoholicTimer.Splash" parent="Theme.AppCompat.DayNight.NoActionBar">
         <!-- 윈도우 배경 자체에 아이콘을 그려 표시 보장 -->
         <item name="android:windowBackground">@drawable/splash_screen</item>
         <item name="windowSplashScreenBackground">#f28090</item>
