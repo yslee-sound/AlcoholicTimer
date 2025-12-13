@@ -634,28 +634,50 @@ private fun AutoResizeMultiLineText(
     step: Float = 0.95f,
     textAlign: TextAlign? = null,
 ) {
-    var style by remember(text) { mutableStateOf(baseStyle) }
-    var tried by remember(text) { mutableStateOf(0) }
-    Text(
-        text = text,
-        style = style,
-        textAlign = textAlign,
-        maxLines = maxLines,
-        softWrap = true,
-        overflow = TextOverflow.Clip, // [FIX] Clip으로 변경하여 정확한 계산
-        modifier = modifier,
-        onTextLayout = { result ->
-            // [FIX] 가로 넘침 OR 줄 수 초과 시 폰트 축소
-            if ((result.hasVisualOverflow || result.lineCount > maxLines) && tried < 20) {
-                val current = style.fontSize.value
-                val next = (current * step).coerceAtLeast(minFontSizeSp)
-                if (next < current - 0.1f) {
-                    style = style.copy(fontSize = next.sp, lineHeight = (next.sp * 1.2f))
-                    tried++
+    // [REFACTORED] TextMeasurer 기반 사전 계산 방식으로 완전히 재작성
+    BoxWithConstraints(modifier = modifier) {
+        val textMeasurer = rememberTextMeasurer()
+        val density = LocalDensity.current
+        val containerWidth = with(density) { maxWidth.toPx() }
+
+        // [핵심] 렌더링 전 사전 계산 (Pre-calculation)
+        val resultStyle = remember(text, containerWidth, baseStyle, maxLines) {
+            var currentSize = baseStyle.fontSize.value
+            var bestStyle = baseStyle
+
+            // 폰트 크기를 줄여가며 maxLines 안에 들어가는지 확인
+            while (currentSize >= minFontSizeSp) {
+                val proposedStyle = baseStyle.copy(
+                    fontSize = currentSize.sp,
+                    lineHeight = (currentSize * 1.35f).sp // 줄간격 확보
+                )
+
+                val result = textMeasurer.measure(
+                    text = androidx.compose.ui.text.AnnotatedString(text),
+                    style = proposedStyle,
+                    constraints = androidx.compose.ui.unit.Constraints(maxWidth = containerWidth.toInt())
+                )
+
+                // maxLines 이하이고 가로로 넘치지 않으면 채택
+                if (result.lineCount <= maxLines && !result.hasVisualOverflow) {
+                    bestStyle = proposedStyle
+                    break
                 }
+
+                currentSize -= 1f // 1sp씩 감소시키며 탐색
             }
+            bestStyle.copy(fontSize = currentSize.coerceAtLeast(minFontSizeSp).sp)
         }
-    )
+
+        Text(
+            text = text,
+            style = resultStyle,
+            textAlign = textAlign,
+            maxLines = maxLines,
+            overflow = TextOverflow.Ellipsis, // 넘치면 ... 처리 (안전장치)
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
 }
 
 @Composable
