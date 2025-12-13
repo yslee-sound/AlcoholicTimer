@@ -38,6 +38,11 @@ fun PeriodSelectionSection(
     modifier: Modifier = Modifier,
     horizontalPadding: Dp = 15.dp // Padding parameter for horizontal spacing
 ) {
+    // [FIXED_SIZE] 폰트 스케일의 영향을 받지 않는 고정 크기 적용
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val rowHeightPx = with(density) { RECORDS_SELECTION_ROW_HEIGHT_LOCAL.toPx() }
+    val rowHeight = with(density) { (rowHeightPx / density.density).dp }
+
     val periodWeek = stringResource(R.string.records_period_week)
     val periodMonth = stringResource(R.string.records_period_month)
     val periodYear = stringResource(R.string.records_period_year)
@@ -63,7 +68,7 @@ fun PeriodSelectionSection(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .defaultMinSize(minHeight = RECORDS_SELECTION_ROW_HEIGHT_LOCAL)
+                        .requiredHeightIn(min = rowHeight)
                         .padding(8.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
@@ -101,7 +106,7 @@ fun PeriodSelectionSection(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .defaultMinSize(minHeight = RECORDS_SELECTION_ROW_HEIGHT_LOCAL)
+                        .requiredHeightIn(min = rowHeight)
                         .then(if (selectedPeriod == periodAll) Modifier else Modifier.clickable {
                             val now = SystemClock.elapsedRealtime()
                             if (now - lastClickAt >= debounceMs) {

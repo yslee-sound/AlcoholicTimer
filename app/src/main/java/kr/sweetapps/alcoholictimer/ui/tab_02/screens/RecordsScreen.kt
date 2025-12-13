@@ -605,10 +605,15 @@ private fun StatisticItem(
     valueScale: Float = 1.0f,
     valueColor: Color = Color.White // [NEW] 숫자 색상 커스터마이징 파라미터
 ) {
+    // [FIXED_SIZE] 폰트 스케일의 영향을 받지 않는 고정 크기 적용
+    val density = LocalDensity.current
+    val minHeightPx = with(density) { 120.dp.toPx() }
+    val minHeight = with(density) { (minHeightPx / density.density).dp }
+
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .defaultMinSize(minHeight = 120.dp),
+            .requiredHeightIn(min = minHeight),
         shape = MaterialTheme.shapes.small,
         // Make the translucent black mask stronger for better contrast over the background
         color = Color.Black.copy(alpha = 0.3f) // 0.22f
