@@ -717,13 +717,15 @@ private fun StatisticItem(
                     platformStyle = PlatformTextStyle(includeFontPadding = false),
                     fontWeight = FontWeight.Bold
                 )
-                Text(
+                // [FIX] 제목도 AutoResizeSingleLineText 적용하여 줄바꿈 방지
+                AutoResizeSingleLineText(
                     text = title,
-                    style = scaledLabelStyle,
+                    baseStyle = scaledLabelStyle,
                     color = Color.White,
                     textAlign = TextAlign.Center,
-                    maxLines = 2, // [FIX] 다국어 지원: 최대 2줄까지 허용하여 텍스트 잘림 방지
-                    overflow = TextOverflow.Ellipsis
+                    step = 0.9f, // 10%씩 축소
+                    minFontSize = 9f, // 최소 9sp (제목은 작아져도 한 줄 유지 우선)
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }

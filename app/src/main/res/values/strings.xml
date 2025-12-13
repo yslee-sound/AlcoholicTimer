@@ -279,7 +279,7 @@
     <string name="feedback_content_placeholder">예시) 앱 시작시 중지되는 현상이 있습니다.</string>
     <string name="feedback_email_label">이메일 주소 (선택)</string>
     <string name="feedback_email_placeholder">example@email.com</string>
-    <string name="feedback_email_note">답변을 받으시려면 이메일 주소를 입력해주세요.\n이메일 주소는 답변 용도 외에 사용되지 않습니다.</string>
+    <string name="feedback_email_note">답변을 받으시려면 이메일 주소를 입력해주세요.이메일 주소는 답변 용도 외에 사용되지 않습니다.</string>
     <string name="feedback_submit_button">보내기</string>
     <string name="feedback_email_error">올바른 이메일 형식이 아닙니다.</string>
     <string name="feedback_submitting">전송 중&#8230;</string>
