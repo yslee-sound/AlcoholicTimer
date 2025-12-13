@@ -57,7 +57,7 @@ import kr.sweetapps.alcoholictimer.ui.common.LocalSafeContentPadding
 import kr.sweetapps.alcoholictimer.ui.theme.LocalDimens
 import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue  // [NEW] 메인 UI 색상
 
-class SettingsActivity : BaseActivity() {
+class HabitActivity : BaseActivity() {
     // [NEW] Tab04은 '금주 습관'으로 표시
     override fun getScreenTitleResId(): Int = R.string.settings_title
     @Deprecated("Use getScreenTitleResId() instead for proper localization support")
@@ -71,14 +71,14 @@ class SettingsActivity : BaseActivity() {
             }
 
             // AdmobBanner is moved to MainActivity's BaseScaffold during Phase-1 migration
-            BaseScreen(content = { SettingsScreen() })
+            BaseScreen(content = { HabitScreen() })
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(
+fun HabitScreen(
     onNavigateCurrencySettings: () -> Unit = {},
     onApplyAndGoHome: () -> Unit = {},
     viewModel: Tab04ViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
@@ -111,11 +111,11 @@ fun SettingsScreen(
 
     // [NEW] 화면 진입 시 전면 광고 미리 로드 (성능 최적화)
     androidx.compose.runtime.LaunchedEffect(Unit) {
-        Log.d("SettingsScreen", "Entering Settings -> Preloading Interstitial Ad")
+        Log.d("HabitScreen", "Entering Settings -> Preloading Interstitial Ad")
         try {
             kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.preload(context)
         } catch (e: Exception) {
-            Log.e("SettingsScreen", "Failed to preload ad: ${e.message}")
+            Log.e("HabitScreen", "Failed to preload ad: ${e.message}")
         }
     }
 
@@ -133,11 +133,11 @@ fun SettingsScreen(
                 .padding(safePadding),
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
-            SettingsSection(
+            HabitSection(
                 title = stringResource(R.string.settings_drinking_cost),
                 titleColor = Color.Black
             ) {
-                SettingsOptionGroup(
+                HabitOptionGroup(
                     selectedOption = tempCost,
                     options = listOf(
                         Constants.KEY_COST_LOW,
@@ -159,11 +159,11 @@ fun SettingsScreen(
             HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
 
 
-            SettingsSection(
+            HabitSection(
                 title = stringResource(R.string.settings_drinking_frequency),
                 titleColor = Color.Black
             ) {
-                SettingsOptionGroup(
+                HabitOptionGroup(
                     selectedOption = tempFrequency,
                     options = listOf(
                         Constants.KEY_FREQUENCY_LOW,
@@ -182,11 +182,11 @@ fun SettingsScreen(
             }
             HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
 
-            SettingsSection(
+            HabitSection(
                 title = stringResource(R.string.settings_drinking_duration),
                 titleColor = Color.Black
             ) {
-                SettingsOptionGroup(
+                HabitOptionGroup(
                     selectedOption = tempDuration,
                     options = listOf(
                         Constants.KEY_DURATION_SHORT,
@@ -206,7 +206,7 @@ fun SettingsScreen(
             HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
 
             // [MOD] 통화 설정 섹션 (음주 시간 아래로 이동)
-            SettingsSection(
+            HabitSection(
                 title = stringResource(R.string.settings_currency),
                 titleColor = Color.Black
             ) {
@@ -255,7 +255,7 @@ fun SettingsScreen(
 
             Button(
                 onClick = {
-                    Log.d("SettingsScreen", "Apply clicked: tempCost=$tempCost tempFrequency=$tempFrequency tempDuration=$tempDuration tempCurrency=$tempCurrency")
+                    Log.d("HabitScreen", "Apply clicked: tempCost=$tempCost tempFrequency=$tempFrequency tempDuration=$tempDuration tempCurrency=$tempCurrency")
 
                     // [MOD] 설정 저장 로직
                     viewModel.updateCost(tempCost)
@@ -280,10 +280,10 @@ fun SettingsScreen(
                         }
                         kr.sweetapps.alcoholictimer.util.manager.CurrencyManager.saveCurrency(context, tempCurrency)
                     } catch (e: Exception) {
-                        Log.e("SettingsScreen", "Failed to save currency: ${e.message}")
+                        Log.e("HabitScreen", "Failed to save currency: ${e.message}")
                     }
 
-                    Log.d("SettingsScreen", "설정이 저장되었습니다 (화면 유지)")
+                    Log.d("HabitScreen", "설정이 저장되었습니다 (화면 유지)")
 
                     // [MOD] 화면 이동 제거 -> Toast로 피드백 제공
                     android.widget.Toast.makeText(
@@ -384,7 +384,7 @@ fun CurrencyOptionRow(
 
 
 @Composable
-fun SettingsSection(title: String, titleColor: Color, content: @Composable () -> Unit) {
+fun HabitSection(title: String, titleColor: Color, content: @Composable () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = title,
@@ -398,7 +398,7 @@ fun SettingsSection(title: String, titleColor: Color, content: @Composable () ->
 }
 
 @Composable
-fun SettingsOptionGroup(
+fun HabitOptionGroup(
     selectedOption: String,
     options: List<String>,
     labels: List<String>,
@@ -407,7 +407,7 @@ fun SettingsOptionGroup(
     // 그룹 단위로 수평 패딩을 적용하고, 옵션 사이의 간격을 8.dp로 통일
     Column(verticalArrangement = Arrangement.spacedBy(0.dp), modifier = Modifier.padding(horizontal = 20.dp)) {
         options.forEachIndexed { index, option ->
-            SettingsOptionItem(
+            HabitOptionItem(
                 isSelected = selectedOption == option,
                 label = labels[index],
                 onSelected = { onOptionSelected(option) }
@@ -417,7 +417,7 @@ fun SettingsOptionGroup(
 }
 
 @Composable
-fun SettingsOptionItem(
+fun HabitOptionItem(
     isSelected: Boolean,
     label: String,
     onSelected: () -> Unit
@@ -453,7 +453,7 @@ fun SettingsOptionItem(
 }
 
 @Composable
-fun SettingsMenuWithSwitch(
+fun HabitMenuWithSwitch(
     title: String,
     checked: Boolean,
     onClick: () -> Unit
@@ -480,7 +480,7 @@ fun SettingsMenuWithSwitch(
 
 @Preview(showBackground = true)
 @Composable
-fun SettingsScreenPreview() { SettingsScreen() }
+fun HabitScreenPreview() { HabitScreen() }
 
 @Composable
 fun SimpleAboutRow(

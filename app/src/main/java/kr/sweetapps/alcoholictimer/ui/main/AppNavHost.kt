@@ -15,7 +15,7 @@ import kr.sweetapps.alcoholictimer.ui.tab_02.components.AllRecordsScreen
 import kr.sweetapps.alcoholictimer.ui.tab_02.screens.RecordsScreen
 import kr.sweetapps.alcoholictimer.ui.tab_01.screens.QuitScreenComposable
 import kr.sweetapps.alcoholictimer.ui.tab_01.screens.RunScreenComposable
-import kr.sweetapps.alcoholictimer.ui.tab_04.SettingsScreen
+import kr.sweetapps.alcoholictimer.ui.tab_04.HabitScreen
 import kr.sweetapps.alcoholictimer.ui.tab_01.screens.StartScreen
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.NicknameEditScreen
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
@@ -930,7 +930,7 @@ fun AppNavHost(
         }
 
         composable(Screen.More.route) {
-            SettingsScreen(
+            HabitScreen(
                 onNavigateCurrencySettings = { navController.navigate(Screen.CurrencySettings.route) },
                 onApplyAndGoHome = {
                     // Navigate to Start (Tab1) and recreate Start so its LaunchedEffect runs
