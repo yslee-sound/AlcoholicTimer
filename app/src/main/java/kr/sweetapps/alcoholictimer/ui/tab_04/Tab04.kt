@@ -275,16 +275,18 @@ fun HabitScreenContent(
 ) {
     val scrollState = rememberScrollState()
 
-    // [FIX] innerPadding 적용하여 TopAppBar와 겹침 방지, 하단 100.dp 스크롤 여유 확보
+    // [FIX] innerPadding을 전체에 적용하지 않고, 상단/하단을 Spacer로 분리하여 적용
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .padding(innerPadding) // TopAppBar와 BottomBar 높이만큼 여백 확보
-            .verticalScroll(scrollState)
-            .padding(bottom = 50.dp), // 스크롤 여유 공간
+            .verticalScroll(scrollState),
+        // [REMOVED] .padding(innerPadding) 제거 - 전체 적용 방식의 문제
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
+            // [1] 상단 여백 확보 (TopBar 높이만큼)
+            Spacer(modifier = Modifier.height(innerPadding.calculateTopPadding()))
+
             HabitSection(
                 title = stringResource(R.string.settings_drinking_cost),
                 titleColor = Color.Black
@@ -387,6 +389,10 @@ fun HabitScreenContent(
                     )
                 }
             }
+
+            // [2] 하단 여백 확보 (BottomBar 높이 + 추가 여유 20dp)
+            // 스크롤 끝까지 내렸을 때 탭바에 가려지지 않도록
+            Spacer(modifier = Modifier.height(innerPadding.calculateBottomPadding() + 20.dp))
     }
 }
 
