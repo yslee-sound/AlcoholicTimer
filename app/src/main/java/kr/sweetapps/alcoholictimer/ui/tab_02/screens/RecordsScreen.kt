@@ -541,12 +541,25 @@ private fun PeriodStatisticsSection(
     }
 }
 
+/**
+ * [NEW] 자동 크기 조절 텍스트 컴포넌트
+ * 텍스트가 가로 공간을 넘을 경우 폰트 크기를 자동으로 축소하여 전체 텍스트가 보이도록 함
+ *
+ * @param text 표시할 텍스트
+ * @param baseStyle 기본 텍스트 스타일 (목표 폰트 크기 포함)
+ * @param modifier Modifier
+ * @param step 폰트 크기 축소 비율 (기본: 0.9 = 10%씩 축소)
+ * @param minFontSize 최소 폰트 크기 (기본: 10.sp)
+ * @param color 텍스트 색상
+ * @param textAlign 텍스트 정렬
+ */
 @Composable
 private fun AutoResizeSingleLineText(
     text: String,
     baseStyle: TextStyle,
     modifier: Modifier = Modifier,
-    step: Float = 0.95f,
+    step: Float = 0.9f,
+    minFontSize: Float = 10f,
     color: Color? = null,
     textAlign: TextAlign? = null,
 ) {
@@ -556,11 +569,10 @@ private fun AutoResizeSingleLineText(
         val textMeasurer = rememberTextMeasurer()
 
         // 텍스트가 넘치지 않는 최적 크기 계산
-        val optimalFontSize = remember(text, baseStyle, maxWidthPx) {
+        val optimalFontSize = remember(text, baseStyle, maxWidthPx, step, minFontSize) {
             var currentSize = baseStyle.fontSize.value
-            val minSize = 10f
 
-            while (currentSize > minSize) {
+            while (currentSize > minFontSize) {
                 val testStyle = baseStyle.copy(fontSize = currentSize.sp)
                 val measured = textMeasurer.measure(
                     text = text,
@@ -574,7 +586,7 @@ private fun AutoResizeSingleLineText(
                 currentSize *= step
             }
 
-            currentSize.coerceAtLeast(minSize)
+            currentSize.coerceAtLeast(minFontSize)
         }
 
         val finalStyle = baseStyle.copy(
@@ -621,7 +633,7 @@ private fun StatisticItem(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(horizontal = 8.dp, vertical = 16.dp), // [FIX] 가로 패딩 축소 (16dp → 8dp)
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
@@ -629,11 +641,12 @@ private fun StatisticItem(
 
             // [개선] 숫자와 단위를 수직으로 분리하여 표시
             val base = MaterialTheme.typography.titleMedium
-            val numSize = (base.fontSize * valueScale)
+            val numSize = (base.fontSize * valueScale * 0.75f) // [FIX] 폰트 크기 25% 축소
             val numStyle = base.copy(
                 fontWeight = FontWeight.Bold,
                 fontSize = numSize,
                 lineHeight = numSize * 1.1f,
+                letterSpacing = (-0.5).sp, // [FIX] 자간 좁히기
                 platformStyle = PlatformTextStyle(includeFontPadding = false)
             )
             val unitStyle = MaterialTheme.typography.bodySmall.copy(
@@ -654,14 +667,14 @@ private fun StatisticItem(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    // [FIX] 숫자: valueColor 파라미터 사용 (의미 있는 색상 적용)
-                    Text(
+                    // [FIX] 숫자: AutoResizeSingleLineText 사용하여 자동 크기 조절
+                    AutoResizeSingleLineText(
                         text = num,
-                        style = numStyle,
+                        baseStyle = numStyle,
                         color = valueColor,
                         textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        step = 0.9f, // 폰트 크기 축소 비율
+                        modifier = Modifier.fillMaxWidth()
                     )
 
                     if (unit.isNotBlank()) {
@@ -679,14 +692,13 @@ private fun StatisticItem(
                     }
                 }
             } else {
-                // 파싱 실패 시 전체 문자열 표시
-                Text(
+                // 파싱 실패 시 전체 문자열 표시 - AutoResizeSingleLineText 사용
+                AutoResizeSingleLineText(
                     text = value,
-                    style = numStyle,
-                    color = valueColor, // [FIX] valueColor 적용
+                    baseStyle = numStyle,
+                    color = valueColor,
                     textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    step = 0.9f,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
