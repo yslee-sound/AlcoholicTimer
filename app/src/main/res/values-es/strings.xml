@@ -377,7 +377,7 @@
     <string name="feedback_error_message">Envío fallido\n%1$s</string>
 
     <!-- Settings screen -->
-    <string name="settings_apply_button">Aplicar Configuración</string>
+    <string name="settings_apply_button">Aplicar</string>
     <string name="settings_currency">Moneda</string>
     <string name="settings_currency_auto">Auto (Basado en Región)</string>
     <string name="settings_currency_current">Actual: %1$s</string>

@@ -10,16 +10,21 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
+import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.ad.AdController
 import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
-import kr.sweetapps.alcoholictimer.ui.common.LocalSafeContentPadding
 import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab03ViewModel
 import kr.sweetapps.alcoholictimer.ui.tab_03.components.CurrentLevelCard
 import kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelListCard
+import kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelDefinitions
 
 /**
  * Tab03 - 레벨 화면
@@ -85,47 +90,91 @@ fun LevelScreen(
         }
     }
 
-    CompositionLocalProvider(LocalSafeContentPadding provides PaddingValues(bottom = 0.dp)) {
-        Column(
+    // [NEW] Scaffold with TopAppBar - HabitScreen과 동일한 구조
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.surface,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.level_title), // "레벨 확인"
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF111111)
+                    )
+                },
+                // [FIX] navigationIcon 슬롯 제거 - 뒤로 가기 아이콘 없음
+                // [FIX] actions 슬롯 없음 - 액션 버튼 불필요
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.White,
+                    titleContentColor = Color(0xFF111111)
+                )
+            )
+        }
+    ) { innerPadding ->
+        // [FIX] 기존 LevelScreen Content를 innerPadding 적용하여 배치
+        LevelScreenContent(
+            innerPadding = innerPadding,
+            currentLevel = currentLevel,
+            levelDays = levelDays,
+            totalElapsedDaysFloat = totalElapsedDaysFloat,
+            startTime = startTime,
+            viewModel = viewModel
+        )
+    }
+}
+
+// [NEW] LevelScreen Content 분리
+@Composable
+fun LevelScreenContent(
+    innerPadding: PaddingValues,
+    currentLevel: LevelDefinitions.LevelInfo,
+    levelDays: Int,
+    totalElapsedDaysFloat: Float,
+    startTime: Long?,
+    viewModel: Tab03ViewModel
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+            .background(MaterialTheme.colorScheme.surface),
+        verticalArrangement = Arrangement.spacedBy(15.dp)
+    ) {
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface),
-            verticalArrangement = Arrangement.spacedBy(15.dp)
+                .background(MaterialTheme.colorScheme.surface)
+                .verticalScroll(rememberScrollState())
         ) {
-            Box(
+            Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .verticalScroll(rememberScrollState())
+                    .fillMaxWidth()
+                    .padding(top = 15.dp, start = 20.dp, end = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 15.dp, start = 20.dp, end = 20.dp),
-                    verticalArrangement = Arrangement.spacedBy(0.dp)
-                ) {
-                    // 현재 레벨 카드
-                    CurrentLevelCard(
-                        currentLevel = currentLevel,
-                        currentDays = levelDays,
-                        elapsedDaysFloat = totalElapsedDaysFloat,
-                        startTime = startTime,
-                        nextLevel = viewModel.getNextLevel(),
-                        progress = viewModel.calculateProgress(),
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                // 현재 레벨 카드
+                CurrentLevelCard(
+                    currentLevel = currentLevel,
+                    currentDays = levelDays,
+                    elapsedDaysFloat = totalElapsedDaysFloat,
+                    startTime = startTime ?: 0L, // [FIX] nullable 처리
+                    nextLevel = viewModel.getNextLevel(),
+                    progress = viewModel.calculateProgress(),
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                    // 전체 레벨 리스트
-                    LevelListCard(
-                        currentLevel = currentLevel,
-                        currentDays = levelDays
-                    )
+                // 전체 레벨 리스트
+                LevelListCard(
+                    currentLevel = currentLevel,
+                    currentDays = levelDays
+                )
 
-                    // [UPDATED] Bottom spacer for breathing room (changed from padding to Spacer)
-                    Spacer(modifier = Modifier.height(100.dp))
-                }
+                // [UPDATED] Bottom spacer for breathing room
+                Spacer(modifier = Modifier.height(100.dp))
             }
         }
     }

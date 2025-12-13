@@ -12,7 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.theme.UiConstants
@@ -28,7 +30,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 fun BackTopBar(
     title: String,
     onBack: () -> Unit,
-    titleColor: Color = MaterialTheme.colorScheme.onSurface,
+    titleColor: Color = Color(0xFF111111),
     trailingContent: (@Composable () -> Unit)? = null
 ) {
     Box(modifier = Modifier
@@ -58,8 +60,9 @@ fun BackTopBar(
         CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1f)) {
             androidx.compose.material3.Text(
                 text = title,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
                 color = titleColor,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold),
                 modifier = Modifier.align(Alignment.CenterStart).padding(start = UiConstants.BackIconStartPadding)
             )
         }

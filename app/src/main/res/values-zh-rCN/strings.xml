@@ -378,7 +378,7 @@
     <string name="feedback_error_message">提交失败\n%1$s</string>
 
     <!-- Settings screen -->
-    <string name="settings_apply_button">应用设置</string>
+    <string name="settings_apply_button">应用</string>
     <string name="settings_currency">货币</string>
     <string name="settings_currency_auto">自动（基于地区）</string>
     <string name="settings_currency_current">当前：%1$s</string>

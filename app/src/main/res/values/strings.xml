@@ -249,7 +249,7 @@
     <string name="settings_drinking_cost">음주 비용</string>
     <string name="settings_drinking_frequency">음주 빈도</string>
     <string name="settings_drinking_duration">음주 시간</string>
-    <string name="settings_apply_button">설정 적용</string>
+    <string name="settings_apply_button">적용</string>
     <string name="settings_currency">통화 설정</string>
     <string name="settings_currency_auto">자동(지역 기반)</string>
     <string name="settings_currency_current">현재 선택: %1$s</string>

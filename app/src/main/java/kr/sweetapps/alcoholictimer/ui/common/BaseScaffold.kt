@@ -58,14 +58,12 @@ fun BaseScaffold(
         val backStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = backStackEntry?.destination?.route
 
-        // [NEW] 탭 2(Records), 탭 3(Level)에서만 표시되는 상단 타이틀 바 결정
-        // [FIX] 탭 4(More)는 제외 - HabitScreen이 자체 TopAppBar를 가지므로 중복 방지
+        // [NEW] 탭 2(Records)에서만 표시되는 상단 타이틀 바 결정
+        // [FIX] 탭 3(Level), 탭 4(More)는 제외 - 각 Screen이 자체 TopAppBar를 가지므로 중복 방지
         val topTitle: String? = when {
             // 탭 2 그룹: Records 및 관련 라우트 (AllRecords, Detail은 제외 - 전체 화면 모드)
             currentRoute == Screen.Records.route || currentRoute == Screen.AddRecord.route -> stringResource(R.string.records_title)
-            // 탭 3: Level
-            currentRoute == Screen.Level.route -> stringResource(R.string.level_title)
-            // [REMOVED] 탭 4는 제거 - HabitScreen이 자체 TopAppBar 사용
+            // [REMOVED] 탭 3, 탭 4는 제거 - 각 Screen이 자체 TopAppBar 사용
             else -> null
         }
 

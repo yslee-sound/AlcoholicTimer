@@ -52,6 +52,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import android.util.Log
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.util.constants.Constants
@@ -178,14 +179,13 @@ fun HabitScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = stringResource(R.string.settings_title), // "금주 습관"
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        color = Color(0xFF2C3E50)
+                        text = stringResource(R.string.settings_title),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF111111)
                     )
                 },
-                // [FIX] navigationIcon 슬롯 제거 - 뒤로 가기 아이콘 없음
                 actions = {
-                    // [NEW] '설정 적용' 버튼 (TopAppBar 우측)
                     TextButton(
                         onClick = onApplySettings,
                         enabled = hasChanges
@@ -199,7 +199,7 @@ fun HabitScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.White,
-                    titleContentColor = Color(0xFF2C3E50)
+                    titleContentColor = Color(0xFF111111)
                 )
             )
         }

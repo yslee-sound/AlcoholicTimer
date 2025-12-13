@@ -315,7 +315,7 @@
     <string name="settings_currency_auto">自動（地域ベース）</string>
     <string name="settings_currency_current">現在の選択: %1$s</string>
     <string name="settings_currency_current_auto">現在の選択: %1$s （自動）</string>
-    <string name="settings_apply_button">設定を適用</string>
+    <string name="settings_apply_button">適用</string>
     <string name="currency_krw">韓国ウォン (₩)</string>
     <string name="currency_jpy">日本円 (¥)</string>
     <string name="currency_usd">米ドル ($)</string>
