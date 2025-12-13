@@ -368,7 +368,7 @@ private fun SmallStatCard(title: String, value: String, accentColor: Color, modi
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 4.dp, vertical = 12.dp), // [FIX] 12dp → 4dp (여백 최소화)
+                .padding(horizontal = 12.dp, vertical = 12.dp), // [FIX] 4dp → 12dp (여백 확대)
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (icon != null || iconRes != null) {
@@ -387,10 +387,14 @@ private fun SmallStatCard(title: String, value: String, accentColor: Color, modi
                         }
                     }
                 }
-                Spacer(modifier = Modifier.width(6.dp)) // [FIX] 8dp → 6dp
+                Spacer(modifier = Modifier.width(8.dp)) // [FIX] 6dp → 8dp (아이콘-텍스트 간격 확대)
             }
 
-            Column(modifier = Modifier.fillMaxHeight().weight(1f), verticalArrangement = Arrangement.Center) {
+            Column(
+                modifier = Modifier.fillMaxHeight().weight(1f),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.End // [FIX] 텍스트 우측 정렬
+            ) {
                 // [FIX] TextMeasurer 기반 사전 계산으로 숫자 잘림 방지
                 BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
                     val textMeasurer = androidx.compose.ui.text.rememberTextMeasurer()
@@ -403,7 +407,7 @@ private fun SmallStatCard(title: String, value: String, accentColor: Color, modi
 
                     // 사전 계산: 텍스트 너비가 maxWidth에 들어올 때까지 폰트 축소
                     val calculatedSize = remember(value, maxPixels) {
-                        var currentSize = 20f // 시작 크기
+                        var currentSize = 17f // [FIX] 20f → 17f (시작 크기 감소)
                         val minSize = 9f // 최소 9sp
 
                         while (currentSize > minSize) {
@@ -426,6 +430,7 @@ private fun SmallStatCard(title: String, value: String, accentColor: Color, modi
                         maxLines = 1,
                         softWrap = false,
                         overflow = TextOverflow.Visible,
+                        textAlign = TextAlign.End, // [FIX] 우측 정렬
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -433,10 +438,11 @@ private fun SmallStatCard(title: String, value: String, accentColor: Color, modi
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp), // [FIX] 폰트 크기 명시
                     color = colorResource(id = R.color.color_stat_title_gray),
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.End // [FIX] 우측 정렬
                 )
             }
          }
