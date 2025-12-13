@@ -848,17 +848,27 @@ private fun DiaryListItem(
     diary: kr.sweetapps.alcoholictimer.data.room.DiaryEntity, // [UPDATED] DiaryEntity 사용
     onClick: () -> Unit = {}
 ) {
-    // [NEW] 현재 시스템 언어에 맞게 날짜 포맷팅
+    // [NEW] 현재 시스템 언어에 맞게 날짜 포맷팅 - 연도와 날짜 분리
     val locale = Locale.getDefault()
-    val dateText = remember(diary.timestamp, locale) {
-        val sdf = when (locale.language) {
-            "ko" -> SimpleDateFormat("yyyy년 M월 d일", locale)
-            "ja" -> SimpleDateFormat("yyyy年M月d日", locale)
-            "zh" -> SimpleDateFormat("yyyy年M月d日", locale)
-            "es" -> SimpleDateFormat("d 'de' MMMM 'de' yyyy", locale)
-            else -> SimpleDateFormat("MMM d, yyyy", locale) // 영어 및 기타 언어
+    val (yearText, dateText) = remember(diary.timestamp, locale) {
+        val calendar = Calendar.getInstance().apply { timeInMillis = diary.timestamp }
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH) + 1
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+        when (locale.language) {
+            "ko" -> Pair("${year}년", "${month}월 ${day}일")
+            "ja" -> Pair("${year}年", "${month}月${day}日")
+            "zh" -> Pair("${year}年", "${month}月${day}日")
+            "es" -> {
+                val monthName = SimpleDateFormat("MMMM", locale).format(Date(diary.timestamp))
+                Pair("$year", "$day de $monthName")
+            }
+            else -> {
+                val monthName = SimpleDateFormat("MMM", locale).format(Date(diary.timestamp))
+                Pair("$year", "$monthName $day")
+            }
         }
-        sdf.format(Date(diary.timestamp))
     }
 
     Row(
@@ -869,13 +879,29 @@ private fun DiaryListItem(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 날짜
-        Text(
-            text = dateText, // [FIX] diary.date 대신 동적으로 포맷팅된 날짜 사용
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color(0xFF64748B),
-            modifier = Modifier.width(90.dp)
-        )
+        // [FIX] 날짜 - Column으로 변경하여 연도와 날짜 수직 분리
+        Column(
+            modifier = Modifier.width(80.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
+            // 연도 (위쪽)
+            Text(
+                text = yearText,
+                style = MaterialTheme.typography.bodySmall,
+                fontSize = 12.sp,
+                color = Color(0xFF94A3B8), // 회색
+                lineHeight = 14.sp
+            )
+            // 날짜 (아래쪽)
+            Text(
+                text = dateText,
+                style = MaterialTheme.typography.bodyMedium,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1E293B), // 검정
+                lineHeight = 18.sp
+            )
+        }
 
         Spacer(modifier = Modifier.width(12.dp))
 
