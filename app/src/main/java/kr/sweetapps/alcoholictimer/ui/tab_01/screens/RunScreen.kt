@@ -500,8 +500,8 @@ fun RunScreenComposable(
                                 text = "\" $motivationalQuote \"",
                                 baseStyle = kr.sweetapps.alcoholictimer.ui.tab_01.components.QuoteTextStyle.default,
                                 maxLines = 2,
-                                minFontSizeSp = 10f,
-                                step = 0.95f,
+                                minFontSizeSp = 9f, // [FIX] 10f → 9f (더 공격적 축소)
+                                step = 0.92f, // [FIX] 0.95f → 0.92f (빠른 축소)
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.fillMaxWidth()
                             )
@@ -608,7 +608,7 @@ private fun AutoResizeSingleLineText(
         textAlign = textAlign,
         maxLines = 1,
         softWrap = false,
-        overflow = TextOverflow.Clip,
+        overflow = TextOverflow.Visible, // [FIX] Clip → Visible (말줄임표 완전 차단)
         modifier = modifier,
         onTextLayout = { result ->
             if (result.hasVisualOverflow && tried < 20) {
@@ -642,10 +642,11 @@ private fun AutoResizeMultiLineText(
         textAlign = textAlign,
         maxLines = maxLines,
         softWrap = true,
-        overflow = TextOverflow.Clip,
+        overflow = TextOverflow.Clip, // [FIX] Clip으로 변경하여 정확한 계산
         modifier = modifier,
         onTextLayout = { result ->
-            if (result.hasVisualOverflow && tried < 20) {
+            // [FIX] 가로 넘침 OR 줄 수 초과 시 폰트 축소
+            if ((result.hasVisualOverflow || result.lineCount > maxLines) && tried < 20) {
                 val current = style.fontSize.value
                 val next = (current * step).coerceAtLeast(minFontSizeSp)
                 if (next < current - 0.1f) {
@@ -755,22 +756,47 @@ fun RunStatChip(
                 }
             }
 
-            // [FIX] 2단계: 숫자 영역 - AutoResizing (바닥 앵커) - 9sp까지 축소
-            Box(
+            // [FIX] 2단계: 숫자 영역 - TextMeasurer 사전 계산 방식 (잘림 완전 해결)
+            BoxWithConstraints(
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 contentAlignment = Alignment.BottomCenter
             ) {
-                AutoResizeSingleLineText(
+                val textMeasurer = rememberTextMeasurer()
+                val density = LocalDensity.current
+                val maxPixels = with(density) { maxWidth.toPx() }
+
+                val baseStyle = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xFF111111)
+                )
+
+                // [FIX] 사전 계산: 텍스트 너비가 maxWidth에 들어올 때까지 폰트 축소
+                val calculatedSize = remember(value, maxPixels) {
+                    var currentSize = 22f // 시작 크기
+                    val minSize = 8f // 최소 8sp
+
+                    while (currentSize > minSize) {
+                        val result = textMeasurer.measure(
+                            text = AnnotatedString(value),
+                            style = baseStyle.copy(fontSize = currentSize.sp)
+                        )
+                        if (result.size.width <= maxPixels * 0.95f) { // 5% 여유
+                            break
+                        }
+                        currentSize -= 1f // 1sp씩 정밀 축소
+                    }
+                    currentSize.coerceAtLeast(minSize).sp
+                }
+
+                Text(
                     text = value,
-                    baseStyle = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color(0xFF111111)
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
-                    minFontSizeSp = 9f, // [FIX] 12f → 9f (공격적 축소)
-                    step = 0.92f, // [FIX] 0.95f → 0.92f
+                    style = baseStyle.copy(fontSize = calculatedSize),
                     color = Color(0xFF111111),
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Visible,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
