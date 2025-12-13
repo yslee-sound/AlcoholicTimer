@@ -155,7 +155,7 @@ fun LevelScreenContent(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(20.dp)) // [FIX] 12.dp → 20.dp (섹션 간 간격 표준)
 
         // 전체 레벨 리스트
         LevelListCard(
