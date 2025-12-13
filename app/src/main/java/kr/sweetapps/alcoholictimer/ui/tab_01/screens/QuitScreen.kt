@@ -368,7 +368,7 @@ private fun SmallStatCard(title: String, value: String, accentColor: Color, modi
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 12.dp, vertical = 12.dp),
+                .padding(horizontal = 4.dp, vertical = 12.dp), // [FIX] 12dp → 4dp (여백 최소화)
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (icon != null || iconRes != null) {
@@ -387,18 +387,49 @@ private fun SmallStatCard(title: String, value: String, accentColor: Color, modi
                         }
                     }
                 }
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(6.dp)) // [FIX] 8dp → 6dp
             }
 
             Column(modifier = Modifier.fillMaxHeight().weight(1f), verticalArrangement = Arrangement.Center) {
-                Text(
-                    text = value,
-                    // slightly smaller, more compact typography to avoid clipping at large system font sizes
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.ExtraBold, lineHeight = 22.sp),
-                    color = accentColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                // [FIX] TextMeasurer 기반 사전 계산으로 숫자 잘림 방지
+                BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                    val textMeasurer = androidx.compose.ui.text.rememberTextMeasurer()
+                    val maxPixels = with(density) { maxWidth.toPx() }
+
+                    val baseStyle = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        lineHeight = 22.sp
+                    )
+
+                    // 사전 계산: 텍스트 너비가 maxWidth에 들어올 때까지 폰트 축소
+                    val calculatedSize = remember(value, maxPixels) {
+                        var currentSize = 20f // 시작 크기
+                        val minSize = 9f // 최소 9sp
+
+                        while (currentSize > minSize) {
+                            val result = textMeasurer.measure(
+                                text = androidx.compose.ui.text.AnnotatedString(value),
+                                style = baseStyle.copy(fontSize = currentSize.sp)
+                            )
+                            if (result.size.width <= maxPixels * 0.95f) { // 5% 여유
+                                break
+                            }
+                            currentSize -= 1f // 1sp씩 정밀 축소
+                        }
+                        currentSize.coerceAtLeast(minSize).sp
+                    }
+
+                    Text(
+                        text = value,
+                        style = baseStyle.copy(fontSize = calculatedSize),
+                        color = accentColor,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Visible,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = title,
