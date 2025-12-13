@@ -58,7 +58,7 @@ fun BackTopBar(
         CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale = 1f)) {
             androidx.compose.material3.Text(
                 text = title,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium, // [FIX] titleLarge → titleMedium (16.sp)
                 color = titleColor,
                 modifier = Modifier.align(Alignment.CenterStart).padding(start = UiConstants.BackIconStartPadding)
             )
