@@ -99,8 +99,7 @@ fun LevelScreen(
                 title = {
                     Text(
                         text = stringResource(R.string.level_title), // "레벨 확인"
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleLarge,
                         color = Color(0xFF111111)
                     )
                 },

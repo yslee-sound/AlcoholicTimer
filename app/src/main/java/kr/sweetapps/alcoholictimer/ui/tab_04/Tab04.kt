@@ -180,8 +180,7 @@ fun HabitScreen(
                 title = {
                     Text(
                         text = stringResource(R.string.settings_title),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleLarge,
                         color = Color(0xFF111111)
                     )
                 },
