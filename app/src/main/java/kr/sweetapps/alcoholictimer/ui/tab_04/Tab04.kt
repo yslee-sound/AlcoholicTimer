@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -30,7 +29,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -53,25 +56,27 @@ import android.util.Log
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.ui.common.BaseActivity
-import kr.sweetapps.alcoholictimer.ui.common.LocalSafeContentPadding
 import kr.sweetapps.alcoholictimer.ui.theme.LocalDimens
 import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue  // [NEW] 메인 UI 색상
 
 class HabitActivity : BaseActivity() {
-    // [NEW] Tab04은 '금주 습관'으로 표시
-    override fun getScreenTitleResId(): Int = R.string.settings_title
+    // [FIX] BaseActivity의 TopBar를 숨김
+    override fun getScreenTitleResId(): Int? = null
     @Deprecated("Use getScreenTitleResId() instead for proper localization support")
-    override fun getScreenTitle(): String = getString(R.string.settings_title)
+    override fun getScreenTitle(): String = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // [REMOVED] supportActionBar는 ComponentActivity에 없으므로 제거
+
         setContent {
             // 뒤로가기 버튼: 메인 홈(Start/Run)으로 이동
             BackHandler(enabled = true) {
                 navigateToMainHome()
             }
 
-            // AdmobBanner is moved to MainActivity's BaseScaffold during Phase-1 migration
-            BaseScreen(content = { HabitScreen() })
+            // [FIX] BaseScreen을 사용하지 않고 HabitScreen이 자체 Scaffold를 가짐
+            HabitScreen()
         }
     }
 }
@@ -109,6 +114,52 @@ fun HabitScreen(
     var showCurrencySheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
+    // [NEW] 변경사항 감지
+    val hasChanges = tempCost != selectedCost ||
+                     tempFrequency != selectedFrequency ||
+                     tempDuration != selectedDuration ||
+                     tempCurrency != initialCurrency
+
+    // [NEW] 적용 버튼 클릭 핸들러
+    val onApplySettings: () -> Unit = {
+        Log.d("HabitScreen", "Apply clicked: tempCost=$tempCost tempFrequency=$tempFrequency tempDuration=$tempDuration tempCurrency=$tempCurrency")
+
+        // [MOD] 설정 저장 로직
+        viewModel.updateCost(tempCost)
+        viewModel.updateFrequency(tempFrequency)
+        viewModel.updateDuration(tempDuration)
+
+        // [NEW] 통화 설정 저장
+        try {
+            val sp = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+            if (tempCurrency == "AUTO") {
+                sp.edit().apply {
+                    putString("selected_currency", "AUTO")
+                    putBoolean("currency_explicit", false)
+                    apply()
+                }
+            } else {
+                sp.edit().apply {
+                    putString("selected_currency", tempCurrency)
+                    putBoolean("currency_explicit", true)
+                    apply()
+                }
+            }
+            kr.sweetapps.alcoholictimer.util.manager.CurrencyManager.saveCurrency(context, tempCurrency)
+        } catch (e: Exception) {
+            Log.e("HabitScreen", "Failed to save currency: ${e.message}")
+        }
+
+        Log.d("HabitScreen", "설정이 저장되었습니다 (화면 유지)")
+
+        // [MOD] 화면 이동 제거 -> Toast로 피드백 제공
+        android.widget.Toast.makeText(
+            context,
+            context.getString(R.string.settings_apply_button),
+            android.widget.Toast.LENGTH_SHORT
+        ).show()
+    }
+
     // [NEW] 화면 진입 시 전면 광고 미리 로드 (성능 최적화)
     androidx.compose.runtime.LaunchedEffect(Unit) {
         Log.d("HabitScreen", "Entering Settings -> Preloading Interstitial Ad")
@@ -119,190 +170,52 @@ fun HabitScreen(
         }
     }
 
-    val safePadding = LocalSafeContentPadding.current
-    val scrollState = rememberScrollState()
-
-    // 전체 바탕 흰색 + 스크롤 가능한 목록형 레이아웃
-    Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
-        // Content area (scrollable)
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(top = 8.dp)
-                .padding(safePadding),
-            verticalArrangement = Arrangement.spacedBy(0.dp)
-        ) {
-            HabitSection(
-                title = stringResource(R.string.settings_drinking_cost),
-                titleColor = Color.Black
-            ) {
-                HabitOptionGroup(
-                    selectedOption = tempCost,
-                    options = listOf(
-                        Constants.KEY_COST_LOW,
-                        Constants.KEY_COST_MEDIUM,
-                        Constants.KEY_COST_HIGH
-                    ),
-                    labels = listOf(
-                        stringResource(R.string.settings_cost_low_label),
-                        stringResource(R.string.settings_cost_medium_label),
-                        stringResource(R.string.settings_cost_high_label)
-                    ),
-                    onOptionSelected = { newValue ->
-                        tempCost = newValue
-                    }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
-
-
-            HabitSection(
-                title = stringResource(R.string.settings_drinking_frequency),
-                titleColor = Color.Black
-            ) {
-                HabitOptionGroup(
-                    selectedOption = tempFrequency,
-                    options = listOf(
-                        Constants.KEY_FREQUENCY_LOW,
-                        Constants.KEY_FREQUENCY_MEDIUM,
-                        Constants.KEY_FREQUENCY_HIGH
-                    ),
-                    labels = listOf(
-                        stringResource(R.string.settings_frequency_low),
-                        stringResource(R.string.settings_frequency_medium),
-                        stringResource(R.string.settings_frequency_high)
-                    ),
-                    onOptionSelected = { newValue ->
-                        tempFrequency = newValue
-                    }
-                )
-            }
-            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
-
-            HabitSection(
-                title = stringResource(R.string.settings_drinking_duration),
-                titleColor = Color.Black
-            ) {
-                HabitOptionGroup(
-                    selectedOption = tempDuration,
-                    options = listOf(
-                        Constants.KEY_DURATION_SHORT,
-                        Constants.KEY_DURATION_MEDIUM,
-                        Constants.KEY_DURATION_LONG
-                    ),
-                    labels = listOf(
-                        stringResource(R.string.settings_duration_short_label),
-                        stringResource(R.string.settings_duration_medium_label),
-                        stringResource(R.string.settings_duration_long_label)
-                    ),
-                    onOptionSelected = { newValue ->
-                        tempDuration = newValue
-                    }
-                )
-            }
-            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
-
-            // [MOD] 통화 설정 섹션 (음주 시간 아래로 이동)
-            HabitSection(
-                title = stringResource(R.string.settings_currency),
-                titleColor = Color.Black
-            ) {
-                // 통화 선택 행
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
-                        ) { showCurrencySheet = true }
-                        .padding(horizontal = 20.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+    // [NEW] Scaffold with TopAppBar - 단일 제목줄 + 적용 버튼
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = Color.White,
+        topBar = {
+            TopAppBar(
+                title = {
                     Text(
-                        text = if (tempCurrency == "AUTO") stringResource(R.string.settings_currency_auto) else tempCurrency,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colorResource(id = R.color.color_text_primary_dark)
+                        text = stringResource(R.string.settings_title), // "금주 습관"
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        color = Color(0xFF2C3E50)
                     )
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_caret_right),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-
-            // [NEW] Bottom spacer for breathing room (consistent with other tabs)
-            Spacer(modifier = Modifier.height(200.dp))
-        }
-
-        // [FIX] 하단 플로팅 버튼 (Overlay) - activity 변수는 위에서 선언됨
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 20.dp)
-        ) {
-            val hasChanges = tempCost != selectedCost ||
-                             tempFrequency != selectedFrequency ||
-                             tempDuration != selectedDuration ||
-                             tempCurrency != initialCurrency
-
-            Button(
-                onClick = {
-                    Log.d("HabitScreen", "Apply clicked: tempCost=$tempCost tempFrequency=$tempFrequency tempDuration=$tempDuration tempCurrency=$tempCurrency")
-
-                    // [MOD] 설정 저장 로직
-                    viewModel.updateCost(tempCost)
-                    viewModel.updateFrequency(tempFrequency)
-                    viewModel.updateDuration(tempDuration)
-
-                    // [NEW] 통화 설정 저장
-                    try {
-                        val sp = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
-                        if (tempCurrency == "AUTO") {
-                            sp.edit().apply {
-                                putString("selected_currency", "AUTO")
-                                putBoolean("currency_explicit", false)
-                                apply()
-                            }
-                        } else {
-                            sp.edit().apply {
-                                putString("selected_currency", tempCurrency)
-                                putBoolean("currency_explicit", true)
-                                apply()
-                            }
-                        }
-                        kr.sweetapps.alcoholictimer.util.manager.CurrencyManager.saveCurrency(context, tempCurrency)
-                    } catch (e: Exception) {
-                        Log.e("HabitScreen", "Failed to save currency: ${e.message}")
-                    }
-
-                    Log.d("HabitScreen", "설정이 저장되었습니다 (화면 유지)")
-
-                    // [MOD] 화면 이동 제거 -> Toast로 피드백 제공
-                    android.widget.Toast.makeText(
-                        context,
-                        context.getString(R.string.settings_apply_button),
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                enabled = hasChanges,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MainPrimaryBlue  // [FIX] 메인 UI 색상 적용 (#1E40AF)
+                // [FIX] navigationIcon 슬롯 제거 - 뒤로 가기 아이콘 없음
+                actions = {
+                    // [NEW] '설정 적용' 버튼 (TopAppBar 우측)
+                    TextButton(
+                        onClick = onApplySettings,
+                        enabled = hasChanges
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_apply_button),
+                            color = if (hasChanges) MainPrimaryBlue else Color.Gray,
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.White,
+                    titleContentColor = Color(0xFF2C3E50)
                 )
-            ) {
-                Text(text = stringResource(R.string.settings_apply_button), color = Color.White)
-            }
+            )
         }
+    ) { innerPadding ->
+        // [FIX] 기존 Content를 innerPadding으로 감싸서 TopAppBar와 겹치지 않도록 함
+        HabitScreenContent(
+            innerPadding = innerPadding,
+            tempCost = tempCost,
+            tempFrequency = tempFrequency,
+            tempDuration = tempDuration,
+            tempCurrency = tempCurrency,
+            onCostChange = { tempCost = it },
+            onFrequencyChange = { tempFrequency = it },
+            onDurationChange = { tempDuration = it },
+            onShowCurrencySheet = { showCurrencySheet = it }
+        )
     }
 
     // [NEW] 통화 선택 BottomSheet
@@ -345,6 +258,140 @@ fun HabitScreen(
                 }
             }
         }
+    }
+}
+
+// [NEW] HabitScreen 콘텐츠 분리
+@Composable
+fun HabitScreenContent(
+    innerPadding: androidx.compose.foundation.layout.PaddingValues,
+    tempCost: String,
+    tempFrequency: String,
+    tempDuration: String,
+    tempCurrency: String,
+    onCostChange: (String) -> Unit,
+    onFrequencyChange: (String) -> Unit,
+    onDurationChange: (String) -> Unit,
+    onShowCurrencySheet: (Boolean) -> Unit
+) {
+    val scrollState = rememberScrollState()
+
+    // [FIX] innerPadding 적용하여 TopAppBar와 겹치지 않도록 함
+    // [FIX] 하단 버튼 제거됨
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .padding(innerPadding)
+            .verticalScroll(scrollState)
+            .padding(top = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp)
+    ) {
+            HabitSection(
+                title = stringResource(R.string.settings_drinking_cost),
+                titleColor = Color.Black
+            ) {
+                HabitOptionGroup(
+                    selectedOption = tempCost,
+                    options = listOf(
+                        Constants.KEY_COST_LOW,
+                        Constants.KEY_COST_MEDIUM,
+                        Constants.KEY_COST_HIGH
+                    ),
+                    labels = listOf(
+                        stringResource(R.string.settings_cost_low_label),
+                        stringResource(R.string.settings_cost_medium_label),
+                        stringResource(R.string.settings_cost_high_label)
+                    ),
+                    onOptionSelected = { newValue ->
+                        onCostChange(newValue)
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
+
+
+            HabitSection(
+                title = stringResource(R.string.settings_drinking_frequency),
+                titleColor = Color.Black
+            ) {
+                HabitOptionGroup(
+                    selectedOption = tempFrequency,
+                    options = listOf(
+                        Constants.KEY_FREQUENCY_LOW,
+                        Constants.KEY_FREQUENCY_MEDIUM,
+                        Constants.KEY_FREQUENCY_HIGH
+                    ),
+                    labels = listOf(
+                        stringResource(R.string.settings_frequency_low),
+                        stringResource(R.string.settings_frequency_medium),
+                        stringResource(R.string.settings_frequency_high)
+                    ),
+                    onOptionSelected = { newValue ->
+                        onFrequencyChange(newValue)
+                    }
+                )
+            }
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
+
+            HabitSection(
+                title = stringResource(R.string.settings_drinking_duration),
+                titleColor = Color.Black
+            ) {
+                HabitOptionGroup(
+                    selectedOption = tempDuration,
+                    options = listOf(
+                        Constants.KEY_DURATION_SHORT,
+                        Constants.KEY_DURATION_MEDIUM,
+                        Constants.KEY_DURATION_LONG
+                    ),
+                    labels = listOf(
+                        stringResource(R.string.settings_duration_short_label),
+                        stringResource(R.string.settings_duration_medium_label),
+                        stringResource(R.string.settings_duration_long_label)
+                    ),
+                    onOptionSelected = { newValue ->
+                        onDurationChange(newValue)
+                    }
+                )
+            }
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
+
+            // [MOD] 통화 설정 섹션 (음주 시간 아래로 이동)
+            HabitSection(
+                title = stringResource(R.string.settings_currency),
+                titleColor = Color.Black
+            ) {
+                // 통화 선택 행
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { onShowCurrencySheet(true) }
+                        .padding(horizontal = 20.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = if (tempCurrency == "AUTO") stringResource(R.string.settings_currency_auto) else tempCurrency,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colorResource(id = R.color.color_text_primary_dark)
+                    )
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_caret_right),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+
+            // [NEW] Bottom spacer for breathing room (consistent with other tabs)
+            Spacer(modifier = Modifier.height(80.dp))
     }
 }
 
