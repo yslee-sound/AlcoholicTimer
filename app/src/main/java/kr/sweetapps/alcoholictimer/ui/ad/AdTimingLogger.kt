@@ -2,103 +2,92 @@ package kr.sweetapps.alcoholictimer.ui.ad
 
 import android.util.Log
 
-/**
- * 광고 ?�?�밍 진단???�한 로거
- *
- * 목적: AdMob ?�?�보?�에??'?�청 ?????�히지�?'?�출 ??가 0??문제 진단
- * 가?? 광고 로드가 ?�료?�기 ?�에 ?��? ?�면 ?�환???�료?�어 ?�출 기회�??�친??
- */
 object AdTimingLogger {
     private const val TAG = "AdTimingDiagnosis"
 
-    // ???�작 ?�각 (Application.onCreate)
+    // ???�작 ?�각 (Application.onCreate)
     @Volatile
     private var appStartTimeMs: Long = 0L
 
-    // 배너 광고 로드 ?�청 ?�각
+    // 배너 광고 로드 ?�청 ?�각
     @Volatile
     private var bannerLoadRequestTimeMs: Long = 0L
 
-    // 배너 광고 로드 ?�료 ?�각
+    // 배너 광고 로드 ?�료 ?�각
     @Volatile
     private var bannerLoadCompleteTimeMs: Long = 0L
 
-    // AppOpen 광고 로드 ?�청 ?�각
+    // AppOpen 광고 로드 ?�청 ?�각
     @Volatile
     private var appOpenLoadRequestTimeMs: Long = 0L
 
-    // AppOpen 광고 로드 ?�료 ?�각
+    // AppOpen 광고 로드 ?�료 ?�각
     @Volatile
     private var appOpenLoadCompleteTimeMs: Long = 0L
 
-    // MainActivity 진입 ?�각
+    // MainActivity 진입 ?�각
     @Volatile
     private var mainActivityCreateTimeMs: Long = 0L
 
-    // SplashScreen ?�성 ?�각
+    // SplashScreen ?�성 ?�각
     @Volatile
     private var splashScreenCreateTimeMs: Long = 0L
 
-    // SplashScreen 종료 ?�각
+    // SplashScreen 종료 ?�각
     @Volatile
     private var splashScreenFinishTimeMs: Long = 0L
 
     /**
-     * ???�작 ?�각 기록 (Application.onCreate)
+     * ???�작 ?�각 기록 (Application.onCreate)
      */
     fun logAppStart() {
         appStartTimeMs = System.currentTimeMillis()
-        Log.d(TAG, "?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═")
-        Log.d(TAG, "?�� APP START: t=0ms (${appStartTimeMs})")
-        Log.d(TAG, "?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═")
+        Log.d(TAG, "?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═")
+        Log.d(TAG, "?�� APP START: t=0ms (${appStartTimeMs})")
+        Log.d(TAG, "?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═")
     }
 
     /**
-     * SplashScreen ?�성 ?�각
+     * SplashScreen ?�성 ?�각
      */
     fun logSplashScreenCreate() {
         splashScreenCreateTimeMs = System.currentTimeMillis()
         val elapsed = splashScreenCreateTimeMs - appStartTimeMs
-        Log.d(TAG, "?�� SPLASH SCREEN CREATED: t+${elapsed}ms")
+        Log.d(TAG, "?�� SPLASH SCREEN CREATED: t+${elapsed}ms")
     }
 
     /**
-     * SplashScreen 종료 ?�각
+     * SplashScreen 종료 ?�각
      */
     fun logSplashScreenFinish() {
         splashScreenFinishTimeMs = System.currentTimeMillis()
         val elapsed = splashScreenFinishTimeMs - appStartTimeMs
-        Log.d(TAG, "?�� SPLASH SCREEN FINISHED: t+${elapsed}ms")
+        Log.d(TAG, "?�� SPLASH SCREEN FINISHED: t+${elapsed}ms")
     }
 
     /**
-     * MainActivity 진입 ?�각 기록
+     * MainActivity 진입 ?�각 기록
      */
     fun logMainActivityCreate() {
         mainActivityCreateTimeMs = System.currentTimeMillis()
         val elapsed = mainActivityCreateTimeMs - appStartTimeMs
-        Log.d(TAG, "?�� MAIN ACTIVITY CREATED: t+${elapsed}ms")
+        Log.d(TAG, "?�� MAIN ACTIVITY CREATED: t+${elapsed}ms")
 
-        // 가??검�? MainActivity가 배너 로드보다 먼�? ?�성?�었?��? ?�인
         if (bannerLoadCompleteTimeMs > 0 && mainActivityCreateTimeMs < bannerLoadCompleteTimeMs) {
             val gap = bannerLoadCompleteTimeMs - mainActivityCreateTimeMs
-            Log.w(TAG, "?�️ TIMING ISSUE: MainActivity created ${gap}ms BEFORE banner loaded!")
-            Log.w(TAG, "?�️ This means banner had NO CHANCE to be shown!")
+            Log.w(TAG, "?�️ TIMING ISSUE: MainActivity created ${gap}ms BEFORE banner loaded!")
+            Log.w(TAG, "?�️ This means banner had NO CHANCE to be shown!")
         }
     }
 
-    /**
-     * 배너 광고 로드 ?�청 ?�각 기록
-     */
+
     fun logBannerLoadRequest() {
         bannerLoadRequestTimeMs = System.currentTimeMillis()
         val elapsed = bannerLoadRequestTimeMs - appStartTimeMs
-        Log.d(TAG, "?�� BANNER LOAD REQUESTED: t+${elapsed}ms")
+        Log.d(TAG, "?�� BANNER LOAD REQUESTED: t+${elapsed}ms")
     }
 
-    /**
-     * 배너 광고 로드 ?�료 ?�각 기록
-     */
+
     fun logBannerLoadComplete(isActivityFinishing: Boolean = false) {
         bannerLoadCompleteTimeMs = System.currentTimeMillis()
         val elapsed = bannerLoadCompleteTimeMs - appStartTimeMs
@@ -108,17 +97,17 @@ object AdTimingLogger {
 
         Log.d(TAG, "??BANNER LOADED: t+${elapsed}ms (load took ${loadDuration}ms)")
 
-        // ?�재 Activity ?�태 ?�인
+        // ?�재 Activity ?�태 ?�인
         if (isActivityFinishing) {
-            Log.w(TAG, "?�️ Activity is FINISHING - banner loaded too late!")
+            Log.w(TAG, "?�️ Activity is FINISHING - banner loaded too late!")
         }
 
-        // MainActivity?� 비교
+        // MainActivity?� 비교
         if (mainActivityCreateTimeMs > 0) {
             val gap = bannerLoadCompleteTimeMs - mainActivityCreateTimeMs
             if (gap > 0) {
-                Log.w(TAG, "?�️ Banner loaded ${gap}ms AFTER MainActivity created")
-                Log.w(TAG, "?�️ DIAGNOSIS: Banner missed display opportunity due to late loading")
+                Log.w(TAG, "?�️ Banner loaded ${gap}ms AFTER MainActivity created")
+                Log.w(TAG, "?�️ DIAGNOSIS: Banner missed display opportunity due to late loading")
             } else {
                 Log.d(TAG, "??Banner loaded ${-gap}ms BEFORE MainActivity created (good timing)")
             }
@@ -126,7 +115,7 @@ object AdTimingLogger {
     }
 
     /**
-     * AppOpen 광고 로드 ?�청 ?�각 기록
+     * AppOpen 광고 로드 ?�청 ?�각 기록
      */
     fun logAppOpenLoadRequest() {
         appOpenLoadRequestTimeMs = System.currentTimeMillis()
@@ -134,9 +123,7 @@ object AdTimingLogger {
         Log.d(TAG, "?? APP OPEN AD LOAD REQUESTED: t+${elapsed}ms")
     }
 
-    /**
-     * AppOpen 광고 로드 ?�료 ?�각 기록
-     */
+
     fun logAppOpenLoadComplete() {
         appOpenLoadCompleteTimeMs = System.currentTimeMillis()
         val elapsed = appOpenLoadCompleteTimeMs - appStartTimeMs
@@ -146,21 +133,19 @@ object AdTimingLogger {
 
         Log.d(TAG, "??APP OPEN AD LOADED: t+${elapsed}ms (load took ${loadDuration}ms)")
 
-        // SplashScreen???��? 종료?�었?��? ?�인
+        // SplashScreen???��? 종료?�었?��? ?�인
         if (splashScreenFinishTimeMs > 0 && appOpenLoadCompleteTimeMs > splashScreenFinishTimeMs) {
             val gap = appOpenLoadCompleteTimeMs - splashScreenFinishTimeMs
-            Log.w(TAG, "?�️ AppOpen loaded ${gap}ms AFTER SplashScreen finished")
-            Log.w(TAG, "?�️ DIAGNOSIS: AppOpen ad missed display opportunity")
+            Log.w(TAG, "?�️ AppOpen loaded ${gap}ms AFTER SplashScreen finished")
+            Log.w(TAG, "?�️ DIAGNOSIS: AppOpen ad missed display opportunity")
         }
     }
 
-    /**
-     * 최종 ?�?�밍 리포??출력
-     */
+
     fun printTimingReport() {
-        Log.d(TAG, "?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═")
-        Log.d(TAG, "?�� AD TIMING DIAGNOSIS REPORT")
-        Log.d(TAG, "?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═")
+        Log.d(TAG, "?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═")
+        Log.d(TAG, "?�� AD TIMING DIAGNOSIS REPORT")
+        Log.d(TAG, "?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═")
 
         if (appStartTimeMs == 0L) {
             Log.d(TAG, "No timing data recorded yet")
@@ -201,7 +186,7 @@ object AdTimingLogger {
         Log.d(TAG, "")
         Log.d(TAG, "Analysis:")
 
-        // Banner ?�?�밍 분석
+        // Banner ?�?�밍 분석
         if (bannerLoadCompleteTimeMs > 0 && mainActivityCreateTimeMs > 0) {
             val gap = mainActivityCreateTimeMs - bannerLoadCompleteTimeMs
             if (gap < 0) {
@@ -213,7 +198,7 @@ object AdTimingLogger {
             }
         }
 
-        // AppOpen ?�?�밍 분석
+        // AppOpen ?�?�밍 분석
         if (appOpenLoadCompleteTimeMs > 0 && splashScreenFinishTimeMs > 0) {
             val gap = splashScreenFinishTimeMs - appOpenLoadCompleteTimeMs
             if (gap < 0) {
@@ -224,11 +209,11 @@ object AdTimingLogger {
             }
         }
 
-        Log.d(TAG, "?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═")
+        Log.d(TAG, "?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═?�═")
     }
 
     /**
-     * ?�계 리셋 (?�스?�용)
+     * ?�계 리셋 (?�스?�용)
      */
     fun reset() {
         appStartTimeMs = 0L

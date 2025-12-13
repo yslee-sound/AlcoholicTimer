@@ -282,6 +282,25 @@ class MainActivity : BaseActivity() {
             android.util.Log.d("MainActivity", "========================================")
 
             try {
+                // [NEW] 테스트 기기 설정 (MobileAds.initialize 전에 실행)
+                val testDeviceId = try {
+                    kr.sweetapps.alcoholictimer.BuildConfig.ADMOB_TEST_DEVICE_ID
+                } catch (_: Throwable) { "" }
+
+                if (testDeviceId.isNotBlank()) {
+                    try {
+                        val requestConfiguration = com.google.android.gms.ads.RequestConfiguration.Builder()
+                            .setTestDeviceIds(listOf(testDeviceId))
+                            .build()
+                        MobileAds.setRequestConfiguration(requestConfiguration)
+                        android.util.Log.d("MainActivity", "✅ 테스트 기기 설정 완료: $testDeviceId")
+                    } catch (e: Exception) {
+                        android.util.Log.e("MainActivity", "테스트 기기 설정 실패", e)
+                    }
+                } else {
+                    android.util.Log.d("MainActivity", "테스트 기기 ID 없음 - 일반 모드로 실행")
+                }
+
                 // 광고 SDK 초기화
                 MobileAds.initialize(this) {
                     android.util.Log.d("MainActivity", "MobileAds initialized successfully")

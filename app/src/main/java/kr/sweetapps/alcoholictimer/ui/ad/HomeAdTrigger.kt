@@ -15,7 +15,6 @@ object HomeAdTrigger {
     private fun dayKey(): String = java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.US).format(java.util.Date())
     private fun prefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    /** ??ê·¸ë£¹?¼ë¡œ ?¤ì œ ì§„ì…?ˆì„ ???¸ì¶œ. source???¼ìš°?¸ëª…("start"|"run"|"quit") ???ë³„??*/
     fun registerHomeVisit(activity: Activity, source: String) {
         Log.d("HomeAdTrigger", "registerHomeVisit stub: source=$source")
 

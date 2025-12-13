@@ -108,17 +108,36 @@ android {
     }
 
     signingConfigs {
-        // 환경변수 기반 release 서명 (키 미설정 시 경고만 출력 -> 로컬 debug 빌드 영향 X)
+        // [UPDATED] local.properties 기반 Release 서명 설정
         create("release") {
-            val ksPath = System.getenv("KEYSTORE_PATH")
-            if (!ksPath.isNullOrBlank()) {
-                storeFile = file(ksPath)
+            // local.properties에서 키스토어 정보 읽기
+            val keystorePath = localProperties.getProperty("STORE_FILE")?.sanitizeProp()
+            val storePass = localProperties.getProperty("STORE_PASSWORD")?.sanitizeProp()
+            val alias = localProperties.getProperty("KEY_ALIAS")?.sanitizeProp()
+            val keyPass = localProperties.getProperty("KEY_PASSWORD")?.sanitizeProp()
+
+            // 키스토어 파일 설정
+            if (!keystorePath.isNullOrBlank()) {
+                try {
+                    storeFile = file(keystorePath)
+                    storePassword = storePass ?: ""
+                    keyAlias = alias ?: ""
+                    keyPassword = keyPass ?: ""
+
+                    println("[INFO] ✅ Release 서명 설정 완료: $keystorePath")
+                } catch (e: Exception) {
+                    println("[WARN] ⚠️ 키스토어 파일을 찾을 수 없습니다: $keystorePath")
+                    println("[WARN] Release 빌드는 서명되지 않은 상태로 생성됩니다.")
+                }
             } else {
-                println("[WARN] Release keystore not configured - will build unsigned bundle. Set KEYSTORE_PATH before production release.")
+                println("[WARN] ⚠️ local.properties에 STORE_FILE이 설정되지 않았습니다.")
+                println("[WARN] Release 빌드는 서명되지 않은 상태로 생성됩니다.")
+                println("[INFO] local.properties에 다음 항목을 추가하세요:")
+                println("       STORE_FILE=path/to/your/keystore.jks")
+                println("       STORE_PASSWORD=your_store_password")
+                println("       KEY_ALIAS=your_key_alias")
+                println("       KEY_PASSWORD=your_key_password")
             }
-            storePassword = System.getenv("KEYSTORE_STORE_PW") ?: ""
-            keyAlias = System.getenv("KEY_ALIAS") ?: ""
-            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
         }
     }
 
@@ -132,12 +151,28 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // 서명 강제: 실제 release 관련 태스크(assembleRelease/bundleRelease 등) 요청 시에만 검사
-            val hasKeystore = !System.getenv("KEYSTORE_PATH").isNullOrBlank()
-            if (isReleaseTaskRequested && !hasKeystore) {
-                throw GradleException("Unsigned release build blocked. Set KEYSTORE_PATH, KEYSTORE_STORE_PW, KEY_ALIAS, KEY_PASSWORD env vars before running a release build.")
-            }
-            if (hasKeystore) {
+            // [UPDATED] 서명 설정: local.properties 기반
+            val keystorePath = localProperties.getProperty("STORE_FILE")?.sanitizeProp()
+            val hasKeystore = !keystorePath.isNullOrBlank() && file(keystorePath).exists()
+
+            if (isReleaseTaskRequested) {
+                if (!hasKeystore) {
+                    throw GradleException("""
+                        ❌ Release 빌드를 위한 서명 설정이 필요합니다!
+                        
+                        local.properties 파일에 다음 항목을 추가하세요:
+                        ─────────────────────────────────────────
+                        STORE_FILE=path/to/your/keystore.jks
+                        STORE_PASSWORD=your_store_password
+                        KEY_ALIAS=your_key_alias
+                        KEY_PASSWORD=your_key_password
+                        ─────────────────────────────────────────
+                    """.trimIndent())
+                }
+                signingConfig = signingConfigs.getByName("release")
+                println("[INFO] ✅ Release 빌드에 서명 적용: $keystorePath")
+            } else if (hasKeystore) {
+                // Release 빌드 아니더라도 키스토어가 있으면 적용
                 signingConfig = signingConfigs.getByName("release")
             }
             // [NEW] Crashlytics 자동 활성화 (Release 빌드)
@@ -242,8 +277,8 @@ dependencies {
     implementation("io.noties.markwon:image:4.6.2")
     implementation("io.noties.markwon:linkify:4.6.2")
 
-    // Firebase
-    implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
+    // Firebase (BOM으로 버전 통합 관리)
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0")) // [UPDATED] 최신 안정 버전
     implementation("com.google.firebase:firebase-analytics-ktx")
     // [NEW] Crashlytics: Gradle로 자동 제어 (Debug=비활성화, Release=활성화)
     implementation("com.google.firebase:firebase-crashlytics-ktx")
