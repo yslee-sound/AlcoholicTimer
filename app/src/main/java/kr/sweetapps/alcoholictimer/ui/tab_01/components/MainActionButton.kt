@@ -18,7 +18,21 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalDensity
 import kr.sweetapps.alcoholictimer.R
+
+/**
+ * [FIXED_SIZE] 시스템 폰트 스케일의 영향을 받지 않는 고정 크기 Modifier 생성
+ *
+ * 사용자가 핸드폰 설정에서 "화면 확대" 또는 "글꼴 크기"를 변경해도
+ * 버튼의 물리적 크기는 항상 동일하게 유지됩니다.
+ */
+@Composable
+private fun Modifier.fixedSize(dp: Dp): Modifier {
+    val density = LocalDensity.current
+    val pixels = with(density) { dp.toPx() }
+    return this.requiredSize(with(density) { (pixels / density.density).dp })
+}
 
 @Composable
 fun MainActionButton(
@@ -32,9 +46,8 @@ fun MainActionButton(
     icon: ImageVector = Icons.Default.PlayArrow,
     contentDescription: String? = null
 ) {
-    // enforce base size first so external modifiers won't shrink or stretch the button unexpectedly
-    // requiredSize forces both width and height to the given value regardless of parent constraints
-    val base = Modifier.requiredSize(size)
+    // [FIXED_SIZE] 시스템 폰트 스케일의 영향을 받지 않는 고정 크기 적용
+    val base = Modifier.fixedSize(size)
 
     Card(
         onClick = { if (enabled) onClick() },
@@ -48,7 +61,7 @@ fun MainActionButton(
                 imageVector = icon,
                 contentDescription = contentDescription,
                 tint = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(iconSize)
+                modifier = Modifier.fixedSize(iconSize)
             )
         }
     }

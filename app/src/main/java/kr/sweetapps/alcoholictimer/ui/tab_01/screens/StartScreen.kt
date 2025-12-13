@@ -250,17 +250,19 @@ fun StartScreen(
             QuoteDisplay()
 
             // 7. 버튼 위 여백 - RunScreen과 동일한 높이 맞춤
-            Spacer(modifier = Modifier.height(50.dp))  // [FIX] RunScreen의 CLEARANCE_ABOVE_BUTTON(32dp) + buttonSize/2(48dp) = 80dp 중 일부
+            Spacer(modifier = Modifier.height(50.dp))
 
-            // 8. [MOVED] 시작 버튼 (이제 스크롤 콘텐츠의 일부 - 키보드에 가려짐)
+            // 8. [SIZE_REDUCTION] 시작 버튼 - 크기 80%로 축소 (96dp → 77dp, 48dp → 39dp)
             MainActionButton(
                 onClick = {
                     viewModel.onStartButtonClicked(context)
-                }
+                },
+                size = 77.dp,
+                iconSize = 39.dp
             )
 
             // 9. 하단 안전 여백 - RunScreen의 CLEARANCE_ABOVE_BUTTON과 동일
-            Spacer(modifier = Modifier.height(32.dp))  // [FIX] RunScreen의 CLEARANCE_ABOVE_BUTTON = 32dp
+            Spacer(modifier = Modifier.height(32.dp))
         }
 
         AnimatedVisibility(

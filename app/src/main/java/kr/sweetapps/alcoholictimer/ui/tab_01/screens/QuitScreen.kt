@@ -70,12 +70,12 @@ private object QuitUiConstants {
     val STAT_CARD_CORNER = 12.dp
     val STAT_CARD_BORDER_ALPHA = 0.08f
     // local-only constants; keep minimal and used
-    // Main green start-style button (match StartScreen.ModernStartButton)
-    val MAIN_BUTTON_SIZE = 96.dp
-    val MAIN_ICON_SIZE = 48.dp
+    // [SIZE_REDUCTION] Main button 80% size (96dp → 77dp)
+    val MAIN_BUTTON_SIZE = 77.dp
+    val MAIN_ICON_SIZE = 39.dp
     val MAIN_BUTTON_ELEVATION = AppElevation.CARD_HIGH
-    // Ring / progress indicator size around the main stop button
-    val MAIN_RING_SIZE = 106.dp
+    // Ring / progress indicator size around the main stop button (80% of 106dp = 85dp)
+    val MAIN_RING_SIZE = 85.dp
 }
 
 @Composable
@@ -239,8 +239,17 @@ fun QuitScreenComposable(
             }
         },
         bottomButton = {
+            // [FIXED_SIZE] 시스템 폰트 스케일의 영향을 받지 않는 고정 크기 적용
+            val density = androidx.compose.ui.platform.LocalDensity.current
+            val ringSizePx = with(density) { QuitUiConstants.MAIN_RING_SIZE.toPx() }
+            val ringSize = with(density) { (ringSizePx / density.density).dp }
+            val buttonSizePx = with(density) { QuitUiConstants.MAIN_BUTTON_SIZE.toPx() }
+            val buttonSize = with(density) { (buttonSizePx / density.density).dp }
+            val iconSizePx = with(density) { 39.dp.toPx() } // [SIZE_REDUCTION] 48dp → 39dp
+            val iconSize = with(density) { (iconSizePx / density.density).dp }
+
             Box(
-                modifier = Modifier.fillMaxWidth().height(QuitUiConstants.MAIN_RING_SIZE),
+                modifier = Modifier.fillMaxWidth().height(ringSize),
                 contentAlignment = Alignment.Center
             ) {
                 Row(
@@ -251,7 +260,7 @@ fun QuitScreenComposable(
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
-                            .size(QuitUiConstants.MAIN_RING_SIZE)
+                            .size(ringSize)
                             .pointerInput(Unit) {
                                 awaitEachGesture {
                                     awaitFirstDown(); isPressed = true; progress = 0f
@@ -264,8 +273,6 @@ fun QuitScreenComposable(
                                             delay(16)
                                         }
                                         if (progress >= 1f && isPressed) {
-                                            // [FIX] 포기 확인 버튼 길게 누름 완료 -> ViewModel로 위임
-                                            // ViewModel의 giveUpTimer()에서 데이터 저장, 상태 초기화, 화면 이동을 모두 처리
                                             android.util.Log.d("QuitScreen", "🔴 [QUIT] 포기 버튼 길게 누름 완료! onQuitConfirmed() 호출")
                                             onQuitConfirmed()
                                             android.util.Log.d("QuitScreen", "🔴 [QUIT] onQuitConfirmed() 호출 완료")
@@ -276,26 +283,25 @@ fun QuitScreenComposable(
                             }
                     ) {
                         // 배경 원 (회색)
-                        CircularProgressIndicator(progress = { 1f }, modifier = Modifier.size(QuitUiConstants.MAIN_RING_SIZE), color = Color(0xFFE0E0E0), strokeWidth = 4.dp, trackColor = Color.Transparent)
+                        CircularProgressIndicator(progress = { 1f }, modifier = Modifier.size(ringSize), color = Color(0xFFE0E0E0), strokeWidth = 4.dp, trackColor = Color.Transparent)
                         // 진행 상태 원 (빨간색)
                         if (showPressed) {
-                            CircularProgressIndicator(progress = { showProgress }, modifier = Modifier.size(QuitUiConstants.MAIN_RING_SIZE), color = Color(0xFFD32F2F), strokeWidth = 4.dp, trackColor = Color.Transparent)
+                            CircularProgressIndicator(progress = { showProgress }, modifier = Modifier.size(ringSize), color = Color(0xFFD32F2F), strokeWidth = 4.dp, trackColor = Color.Transparent)
                         }
-                        // 중지 버튼 (터치 핸들러는 외부 Box로 옮겨짐)
+                        // 중지 버튼
                         Card(
-                            modifier = Modifier.size(QuitUiConstants.MAIN_BUTTON_SIZE),
+                            modifier = Modifier.requiredSize(buttonSize),
                             shape = CircleShape,
                             colors = CardDefaults.cardColors(containerColor = Color(0xFFD32F2F)),
                             elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
                         ) {
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(id = R.string.cd_stop), tint = Color.White, modifier = Modifier.size(48.dp))
+                                Icon(imageVector = Icons.Default.Close, contentDescription = stringResource(id = R.string.cd_stop), tint = Color.White, modifier = Modifier.requiredSize(iconSize))
                             }
                         }
                     }
                     Spacer(modifier = Modifier.width(48.dp))
-                    // 취소 버튼 자리에 시작화면의 ModernStartButton과 동일한 크기/디자인의 버튼을 배치
-                    // use shared MainActionButton (same as Start screen)
+                    // 취소 버튼: MainActionButton (이미 고정 크기 적용됨)
                     MainActionButton(onClick = { onCancel() }, size = QuitUiConstants.MAIN_BUTTON_SIZE, iconSize = QuitUiConstants.MAIN_ICON_SIZE, elevationDp = QuitUiConstants.MAIN_BUTTON_ELEVATION)
                  }
              }

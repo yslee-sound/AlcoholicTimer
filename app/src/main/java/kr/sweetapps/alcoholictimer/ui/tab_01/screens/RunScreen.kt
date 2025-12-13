@@ -556,9 +556,16 @@ fun ModernProgressIndicatorSimple(progress: Float, targetDays: Float = 30f) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ModernStopButtonSimple(onStop: () -> Unit, modifier: Modifier = Modifier) {
+    // [SIZE_REDUCTION] 시스템 폰트 스케일의 영향을 받지 않는 고정 크기 (80% 축소: 96dp → 77dp)
+    val density = LocalDensity.current
+    val buttonSizePx = with(density) { 77.dp.toPx() }
+    val buttonSize = with(density) { (buttonSizePx / density.density).dp }
+    val iconSizePx = with(density) { 39.dp.toPx() }
+    val iconSize = with(density) { (iconSizePx / density.density).dp }
+
     Card(
         onClick = onStop,
-        modifier = modifier.size(96.dp),
+        modifier = modifier.requiredSize(buttonSize),
         shape = CircleShape,
         colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.color_stop_button)),
         elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD_HIGH)
@@ -568,7 +575,7 @@ private fun ModernStopButtonSimple(onStop: () -> Unit, modifier: Modifier = Modi
                 imageVector = Icons.Default.Close,
                 contentDescription = stringResource(id = R.string.cd_stop),
                 tint = Color.White,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.requiredSize(iconSize)
             )
         }
     }
