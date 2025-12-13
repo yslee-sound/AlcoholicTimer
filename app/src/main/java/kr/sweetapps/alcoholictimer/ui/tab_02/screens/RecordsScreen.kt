@@ -884,22 +884,30 @@ private fun DiaryListItem(
             modifier = Modifier.width(80.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            // 연도 (위쪽)
+            // 연도 (위쪽) - 고정 크기 유지
             Text(
                 text = yearText,
                 style = MaterialTheme.typography.bodySmall,
                 fontSize = 12.sp,
                 color = Color(0xFF94A3B8), // 회색
-                lineHeight = 14.sp
+                lineHeight = 14.sp,
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Clip
             )
-            // 날짜 (아래쪽)
-            Text(
+            // 날짜 (아래쪽) - AutoResizeSingleLineText 적용하여 줄바꿈 방지
+            AutoResizeSingleLineText(
                 text = dateText,
-                style = MaterialTheme.typography.bodyMedium,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
+                baseStyle = MaterialTheme.typography.bodyMedium.copy(
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 18.sp
+                ),
                 color = Color(0xFF1E293B), // 검정
-                lineHeight = 18.sp
+                textAlign = TextAlign.Start,
+                step = 0.9f, // 10%씩 축소
+                minFontSize = 12f, // 최소 12sp
+                modifier = Modifier.fillMaxWidth()
             )
         }
 
