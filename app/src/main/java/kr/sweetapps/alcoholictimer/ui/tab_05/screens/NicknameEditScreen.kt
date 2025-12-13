@@ -1,6 +1,9 @@
 package kr.sweetapps.alcoholictimer.ui.tab_05.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -10,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -25,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.theme.UiConstants
+import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -99,6 +104,11 @@ fun NicknameEditScreen(
                         }
                     }
                 },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MainPrimaryBlue,
+                    focusedLabelColor = MainPrimaryBlue,
+                    cursorColor = MainPrimaryBlue
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(focusRequester),
@@ -112,16 +122,28 @@ fun NicknameEditScreen(
                 })
             )
             Spacer(modifier = Modifier.height(32.dp))
-            // Only Save button (full-width)
-            Button(
-                onClick = {
-                    saveNickname(sp, trimmed)
-                    onDone()
-                },
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-                enabled = isValid && !isUnchanged
+            // [FIX] 앱 평가하기 버튼과 동일한 디자인 적용
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp) // [FIX] 48.dp → 56.dp (Material Design 3 Large Button 표준)
+                    .shadow(4.dp, RoundedCornerShape(12.dp))
+                    .background(
+                        color = if (isValid && !isUnchanged) MainPrimaryBlue else Color(0xFFBDBDBD),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .clickable(enabled = isValid && !isUnchanged) {
+                        saveNickname(sp, trimmed)
+                        onDone()
+                    },
+                contentAlignment = Alignment.Center
             ) {
-                Text(text = stringResource(R.string.profile_save), fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                Text(
+                    text = stringResource(R.string.profile_save),
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
             }
         }
     }
