@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -98,6 +99,7 @@ fun CustomerFeedbackBottomSheet(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()) // [FIX] 가로 스크롤 추가
                     .padding(bottom = 24.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -130,13 +132,15 @@ fun CustomerFeedbackBottomSheet(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(150.dp),
+                    .heightIn(min = 120.dp, max = 200.dp), // [FIX] 고정 높이 → 유연한 높이
                 placeholder = {
                     Text(
                         text = stringResource(R.string.feedback_content_placeholder),
                         color = Color(0xFFAAAAAA)
                     )
                 },
+                singleLine = false, // [FIX] 다중 행 입력 명시
+                maxLines = 8, // [FIX] 최대 줄 수 설정
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Default // 다중 행 입력이므로 줄바꿈 가능
@@ -301,6 +305,7 @@ fun CustomerFeedbackBottomSheet(
 
 /**
  * 문의 유형 선택 칩 컴포넌트
+ * [FIX] 텍스트 잘림 현상 방지를 위한 개선
  */
 @Composable
 private fun CategoryChip(
@@ -310,7 +315,7 @@ private fun CategoryChip(
 ) {
     Box(
         modifier = Modifier
-            .height(40.dp)
+            .heightIn(min = 40.dp) // [FIX] 고정 높이 → 최소 높이로 변경
             .background(
                 color = if (isSelected) Color(0xFF8A6CFF) else Color.White,
                 shape = RoundedCornerShape(20.dp)
@@ -321,14 +326,17 @@ private fun CategoryChip(
                 shape = RoundedCornerShape(20.dp)
             )
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            .padding(horizontal = 12.dp, vertical = 12.dp), // [FIX] 가로 패딩 최적화 (16dp → 12dp)
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
             fontSize = 14.sp,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-            color = if (isSelected) Color.White else Color(0xFF666666)
+            color = if (isSelected) Color.White else Color(0xFF666666),
+            maxLines = 1,
+            softWrap = false,
+            lineHeight = (14 * 1.4).sp // [FIX] lineHeight 명시적 설정 (폰트 크기 * 1.4)
         )
     }
 }
