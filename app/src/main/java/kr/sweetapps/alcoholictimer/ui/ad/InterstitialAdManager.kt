@@ -19,8 +19,8 @@ import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 object InterstitialAdManager {
     private const val TAG = "InterstitialAdManager"
 
-    private const val TEST_INTERSTITIAL_ID = "ca-app-pub-3940256099942544/1033173712"
-    private const val PROD_INTERSTITIAL_ID = "ca-app-pub-8420908105703273/2270912481"
+    // [UPDATED] BuildConfig에서 AdMob ID 가져오기 (local.properties 기반)
+    private fun adUnitId(): String = BuildConfig.ADMOB_INTERSTITIAL_UNIT_ID
 
     @Volatile private var interstitial: InterstitialAd? = null
     @Volatile private var isLoading = false
@@ -28,7 +28,6 @@ object InterstitialAdManager {
 
     private lateinit var firebaseAnalytics: FirebaseAnalytics
 
-    private fun adUnitId(): String = if (BuildConfig.DEBUG) TEST_INTERSTITIAL_ID else PROD_INTERSTITIAL_ID
 
     fun preload(context: Context) {
         firebaseAnalytics = FirebaseAnalytics.getInstance(context)

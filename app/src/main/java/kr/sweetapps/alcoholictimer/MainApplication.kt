@@ -82,15 +82,40 @@ class MainApplication : Application() {
             } catch (_: Throwable) {}
         }
 
-        // UMP / AdMob test device hashes: primary list comes from BuildConfig (injected from local.properties for debug)
-        val configuredHashes = try { kr.sweetapps.alcoholictimer.BuildConfig.UMP_TEST_DEVICE_HASH } catch (_: Throwable) { "" }
-        val fromConfig = configuredHashes.split(',').map { it.trim() }.filter { it.isNotEmpty() }
-        val debugDefault = if (BuildConfig.DEBUG) listOf("33BE2250B43518CCDA7DE426D04EE231") else emptyList()
-        val testDeviceIds = (fromConfig + debugDefault).distinct()
+        // [UPDATED] AdMob 테스트 기기 설정 (local.properties 기반)
+        val testDeviceIds = mutableListOf<String>()
+
+        // 1. UMP 테스트 기기 해시 (BuildConfig에서 주입됨)
+        val umpHash = try { BuildConfig.UMP_TEST_DEVICE_HASH } catch (_: Throwable) { "" }
+        if (umpHash.isNotBlank()) {
+            testDeviceIds.addAll(umpHash.split(',').map { it.trim() }.filter { it.isNotEmpty() })
+        }
+
+        // 2. AdMob 테스트 기기 ID (BuildConfig에서 주입됨)
+        val adMobTestId = try {
+            val field = BuildConfig::class.java.getDeclaredField("ADMOB_TEST_DEVICE_ID")
+            field.get(null) as? String ?: ""
+        } catch (_: Throwable) { "" }
+        if (adMobTestId.isNotBlank()) {
+            testDeviceIds.addAll(adMobTestId.split(',').map { it.trim() }.filter { it.isNotEmpty() })
+        }
+
+        // 3. Debug 빌드 시 기본 테스트 ID 추가
+        if (BuildConfig.DEBUG) {
+            testDeviceIds.add("33BE2250B43518CCDA7DE426D04EE231")
+        }
+
+        // 중복 제거 및 RequestConfiguration 설정
+        val uniqueTestDevices = testDeviceIds.distinct()
 
         val config = RequestConfiguration.Builder()
             .setMaxAdContentRating(RequestConfiguration.MAX_AD_CONTENT_RATING_T)
-            .apply { if (testDeviceIds.isNotEmpty()) setTestDeviceIds(testDeviceIds) }
+            .apply {
+                if (uniqueTestDevices.isNotEmpty()) {
+                    setTestDeviceIds(uniqueTestDevices)
+                    android.util.Log.d("MainApplication", "AdMob 테스트 기기 설정: $uniqueTestDevices")
+                }
+            }
             .build()
         MobileAds.setRequestConfiguration(config)
 

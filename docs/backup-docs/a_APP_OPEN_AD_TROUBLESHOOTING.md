@@ -306,8 +306,3 @@ Log.d(TAG, "  - isShowingAd: $isShowingAd")
    - "훅" 하고 지나가는 현상 없음
 
 ---
-
-## 📚 관련 문서
-- [앱 오프닝 광고 구현 가이드](a_AD_PROMPT_APP_OPEN_AD.md)
-- [AdMob 광고 정책](https://support.google.com/admob/answer/6128543)
-

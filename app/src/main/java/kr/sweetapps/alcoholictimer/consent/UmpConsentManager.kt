@@ -87,14 +87,24 @@ class UmpConsentManager(private val context: Context) {
         val builder = ConsentRequestParameters.Builder().setTagForUnderAgeOfConsent(false)
 
         if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
-            val testId = kr.sweetapps.alcoholictimer.BuildConfig.UMP_TEST_DEVICE_HASH
-            if (testId.isNotBlank()) {
-                val debugSettings = ConsentDebugSettings.Builder(activity)
+            // [UPDATED] local.properties의 UMP_TEST_DEVICE_HASH 사용 (쉼표로 구분된 여러 기기 지원)
+            val testHash = kr.sweetapps.alcoholictimer.BuildConfig.UMP_TEST_DEVICE_HASH
+            if (testHash.isNotBlank()) {
+                val debugSettingsBuilder = ConsentDebugSettings.Builder(activity)
                     .setDebugGeography(ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA)
-                    .addTestDeviceHashedId(testId)
-                    .build()
+
+                // 쉼표로 구분된 여러 테스트 기기 해시 지원
+                val testDeviceHashes = testHash.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+                testDeviceHashes.forEach { hash ->
+                    debugSettingsBuilder.addTestDeviceHashedId(hash)
+                    Log.d(TAG, "UMP Debug 기기 추가: $hash")
+                }
+
+                val debugSettings = debugSettingsBuilder.build()
                 builder.setConsentDebugSettings(debugSettings)
-                Log.d(TAG, "DEBUG UMP device=$testId")
+                Log.d(TAG, "UMP 디버그 모드 활성화 (${testDeviceHashes.size}개 기기)")
+            } else {
+                Log.d(TAG, "UMP_TEST_DEVICE_HASH가 비어있음 - 일반 모드로 실행")
             }
         }
 

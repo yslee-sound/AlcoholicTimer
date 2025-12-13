@@ -36,8 +36,24 @@ if (localPropertiesFile.exists()) {
 // Helper: sanitize property values (remove surrounding quotes and whitespace)
 fun String?.sanitizeProp(): String? = this?.trim()?.trim('"')?.trim('\'')?.trim()
 
+// [NEW] Helper: AdMob 키를 빌드 타입에 맞게 가져오는 함수
+fun getAdMobKey(keyName: String, buildTypeSuffix: String): String {
+    val key = "${keyName}_${buildTypeSuffix.uppercase()}"
+    val value = localProperties.getProperty(key)?.sanitizeProp()
+
+    if (value.isNullOrBlank()) {
+        println("⚠️ Warning: $key not found in local.properties, using empty string")
+        return ""
+    }
+
+    return value
+}
+
 // UMP 테스트 기기 해시 (local.properties에서 읽어 Debug 빌드에 주입)
 val umpTestDeviceHash = localProperties.getProperty("UMP_TEST_DEVICE_HASH")?.sanitizeProp() ?: ""
+
+// [NEW] AdMob 테스트 기기 ID (local.properties에서 읽어 Debug 빌드에 주입)
+val adMobTestDeviceId = localProperties.getProperty("ADMOB_TEST_DEVICE_ID")?.sanitizeProp() ?: ""
 
 // release 관련 태스크 실행 여부 (configuration 시점에 1회 계산)
 // bundleRelease / assembleRelease / publishRelease / 끝이 Release 인 태스크 포함
@@ -49,6 +65,7 @@ val isReleaseTaskRequested: Boolean = gradle.startParameter.taskNames.any { name
 // 안전: 릴리즈 관련 태스크가 요청된 경우(릴리즈 빌드 파이프라인 등) 디버그 전용 해시를 빈값으로 강제합니다.
 // 이렇게 하면 실수로 릴리즈 빌드에 로컬 디버그 해시가 포함되는 것을 방지합니다.
 val debugUmpTestDeviceHash = if (isReleaseTaskRequested) "" else umpTestDeviceHash
+val debugAdMobTestDeviceId = if (isReleaseTaskRequested) "" else adMobTestDeviceId
 
 android {
     namespace = "kr.sweetapps.alcoholictimer"
@@ -84,6 +101,10 @@ android {
             ?: "your-anon-key")
         buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
         buildConfigField("String", "SUPABASE_KEY", "\"$supabaseKey\"")
+
+        // [NEW] 테스트 기기 설정 (Debug에서만 값 주입, Release는 빈 문자열)
+        buildConfigField("String", "UMP_TEST_DEVICE_HASH", "\"$debugUmpTestDeviceHash\"")
+        buildConfigField("String", "ADMOB_TEST_DEVICE_ID", "\"$debugAdMobTestDeviceId\"")
     }
 
     signingConfigs {
@@ -121,15 +142,25 @@ android {
             }
             // [NEW] Crashlytics 자동 활성화 (Release 빌드)
             manifestPlaceholders["crashlyticsCollectionEnabled"] = "true"
-            // [NEW] UMP 테스트 기기 해시 (릴리즈에서는 빈 문자열)
+
+            // [NEW] 테스트 기기 설정 오버라이드 (Release에서는 빈 문자열)
             buildConfigField("String", "UMP_TEST_DEVICE_HASH", "\"\"")
-            // 빌드타입별 배너 광고 유닛ID (릴리즈 실제 ID)
-            buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"ca-app-pub-8420908105703273/3187272865\"")
-            // 빌드타입별 전면 광고 유닛ID (릴리즈 실제 ID)
-            buildConfigField("String", "ADMOB_INTERSTITIAL_UNIT_ID", "\"ca-app-pub-8420908105703273/2270912481\"")
-            // 앱 오프닝 광고 유닛 ID
-            buildConfigField("String", "ADMOB_APP_OPEN_UNIT_ID", "\"ca-app-pub-8420908105703273/4469985826\"") // 운영용 앱 오프닝 광고 단위 ID
-            manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-8420908105703273~7175986319"
+            buildConfigField("String", "ADMOB_TEST_DEVICE_ID", "\"\"")
+
+            // [UPDATED] local.properties에서 AdMob 키 읽기 (Release)
+            val adMobAppId = getAdMobKey("ADMOB_APP_ID", "RELEASE")
+            val adMobInterstitialId = getAdMobKey("ADMOB_INTERSTITIAL_ID", "RELEASE")
+            val adMobOpenId = getAdMobKey("ADMOB_OPEN_ID", "RELEASE")
+
+            // Manifest용 (App ID)
+            manifestPlaceholders["ADMOB_APP_ID"] = adMobAppId
+
+            // Kotlin 코드용 (BuildConfig)
+            buildConfigField("String", "ADMOB_INTERSTITIAL_UNIT_ID", "\"$adMobInterstitialId\"")
+            buildConfigField("String", "ADMOB_APP_OPEN_UNIT_ID", "\"$adMobOpenId\"")
+
+            // [DEPRECATED] 배너 광고는 제거되었지만 호환성을 위해 빈 문자열 유지
+            buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"\"")
         }
         // debug 빌드 타입: 테스트용 광고 ID + .debug suffix
         getByName("debug") {
@@ -137,16 +168,24 @@ android {
             versionNameSuffix = "-debug"
             // [NEW] Crashlytics 자동 비활성화 (Debug 빌드 - 데이터 오염 방지)
             manifestPlaceholders["crashlyticsCollectionEnabled"] = "false"
-            buildConfigField("String", "ADMOB_INTERSTITIAL_UNIT_ID", "\"ca-app-pub-3940256099942544/1033173712\"")
-            // 변경: 디버그 빌드의 배너 광고 유닛 ID를 적응형 배너 테스트 ID로 교체함
-            buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"ca-app-pub-3940256099942544/9214589741\"")
-            // 앱 오프닝 광고 유닛 ID
-            buildConfigField("String", "ADMOB_APP_OPEN_UNIT_ID", "\"ca-app-pub-3940256099942544/9257395921\"") // 테스트용 앱 오프닝 광고 단위 ID (user-provided)
-            manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-3940256099942544~3347511713"
 
-            // UMP 테스트 기기 해시 주입 (디버그 전용)
-            // Use debugUmpTestDeviceHash which is blanked when a release task is requested
-            buildConfigField("String", "UMP_TEST_DEVICE_HASH", "\"$debugUmpTestDeviceHash\"")
+            // [UPDATED] local.properties에서 AdMob 키 읽기 (Debug)
+            val adMobAppId = getAdMobKey("ADMOB_APP_ID", "DEBUG")
+            val adMobInterstitialId = getAdMobKey("ADMOB_INTERSTITIAL_ID", "DEBUG")
+            val adMobOpenId = getAdMobKey("ADMOB_OPEN_ID", "DEBUG")
+
+            // Manifest용 (App ID)
+            manifestPlaceholders["ADMOB_APP_ID"] = adMobAppId
+
+            // Kotlin 코드용 (BuildConfig)
+            buildConfigField("String", "ADMOB_INTERSTITIAL_UNIT_ID", "\"$adMobInterstitialId\"")
+            buildConfigField("String", "ADMOB_APP_OPEN_UNIT_ID", "\"$adMobOpenId\"")
+
+            // [DEPRECATED] 배너 광고는 제거되었지만 호환성을 위해 빈 문자열 유지
+            buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"\"")
+
+            // [NOTE] 테스트 기기 설정은 defaultConfig에서 이미 주입됨
+            // UMP_TEST_DEVICE_HASH와 ADMOB_TEST_DEVICE_ID는 자동으로 Debug 값 사용
         }
     }
 

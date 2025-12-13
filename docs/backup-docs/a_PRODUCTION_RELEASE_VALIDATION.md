@@ -547,15 +547,6 @@ loadAd()  // 즉시 재로드
 2. 사용자 피드백 확인
 3. 크래시 리포트 확인
 
----
 
-## 📚 관련 문서
-
-- [앱 오프닝 광고 구현 가이드](a_AD_PROMPT_APP_OPEN_AD.md)
-- [트러블슈팅 가이드](a_APP_OPEN_AD_TROUBLESHOOTING.md)
-- [AdMob 자가 클릭 경고](a_AD_SELF_CLICK_WARNING.md)
-- [AdMob 정책](https://support.google.com/admob/answer/6128543)
-
----
 
 **문서 끝** - 프로덕션 릴리즈 준비 완료 ✅

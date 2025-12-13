@@ -936,14 +936,6 @@ override fun onCreate() {
 
 ---
 
-## 📚 관련 문서
-
-- [AdMob 정책 준수 가이드](A_AD_POLICY_COMPLIANCE_SUMMARY.md)
-- [본인 광고 클릭 경고](a_AD_SELF_CLICK_WARNING.md)
-- [AdMob 통합 가이드](https://developers.google.com/admob/android/quick-start)
-
----
-
 ## 🔄 문서 업데이트 계획
 
 | 예정 버전 | 예정 날짜 | 추가 내용 |
