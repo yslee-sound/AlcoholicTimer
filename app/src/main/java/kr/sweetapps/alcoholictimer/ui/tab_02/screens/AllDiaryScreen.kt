@@ -105,18 +105,52 @@ fun AllDiaryScreen(
         val endPad = innerPadding.calculateRightPadding(layoutDirection = androidx.compose.ui.unit.LayoutDirection.Ltr)
         val bottomExtra = innerPadding.calculateBottomPadding() + 24.dp
 
-        // apply innerPadding start/top/end to modifier (exclude bottom)
-        LazyColumn(
-            state = state,
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White)
-                .padding(start = startPad, top = topPad, end = endPad)
-                .padding(horizontal = 0.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(top = 0.dp, bottom = bottomExtra) // [FIX] 상단 여백 제거
-        ) {
-            grouped.forEach { (month, list) ->
+        // [NEW] Empty State UI (일기가 없을 때)
+        if (diaries.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White)
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    // 아이콘
+                    Icon(
+                        painter = painterResource(id = R.drawable.notebook),
+                        contentDescription = null,
+                        tint = Color(0xFFCBD5E1), // 연한 회색
+                        modifier = Modifier.size(80.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // 안내 문구
+                    Text(
+                        text = stringResource(R.string.diary_all_empty),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF64748B),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            }
+        } else {
+            // apply innerPadding start/top/end to modifier (exclude bottom)
+            LazyColumn(
+                state = state,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White)
+                    .padding(start = startPad, top = topPad, end = endPad)
+                    .padding(horizontal = 0.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(top = 0.dp, bottom = bottomExtra) // [FIX] 상단 여백 제거
+            ) {
+                grouped.forEach { (month, list) ->
                 item(key = "header_$month") {
                     Row(
                         modifier = Modifier
@@ -160,7 +194,8 @@ fun AllDiaryScreen(
             }
 
             item { Spacer(modifier = Modifier.height(16.dp)) }
-        }
+            } // LazyColumn end
+        } // else end
     } // Scaffold end
 }
 

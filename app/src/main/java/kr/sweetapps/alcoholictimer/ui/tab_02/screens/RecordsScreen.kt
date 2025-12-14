@@ -831,11 +831,14 @@ private fun DiaryEmptyState() {
             .padding(vertical = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 이모지 아이콘
-        Text(
-            text = "📝",
-            fontSize = 48.sp,
-            modifier = Modifier.padding(bottom = 16.dp)
+        // [FIX] notebook 아이콘으로 변경 (AllDiaryScreen과 동일)
+        Icon(
+            painter = painterResource(id = R.drawable.notebook),
+            contentDescription = null,
+            tint = Color(0xFFCBD5E1), // 연한 회색
+            modifier = Modifier
+                .size(80.dp)
+                .padding(bottom = 16.dp)
         )
 
         // 제목
