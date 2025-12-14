@@ -48,7 +48,7 @@ fun DiaryWriteScreen(
 
     // [NEW] 기존 일기 데이터 로드
     var initialMood by remember { mutableStateOf<String?>(null) }
-    var initialCraving by remember { mutableIntStateOf(1) } // [FIX] 기본값 1 (새 작성 시)
+    var initialCraving by remember { mutableIntStateOf(5) } // [FIX] 기본값 5 (중간값, 새 작성 시)
     var initialText by remember { mutableStateOf("") }
     var initialDate by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
