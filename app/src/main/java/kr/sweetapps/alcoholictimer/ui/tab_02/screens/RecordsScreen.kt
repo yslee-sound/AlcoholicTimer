@@ -400,9 +400,17 @@ private fun PeriodStatisticsSection(
     val totalKcal = statsData.totalKcal
     val totalBottles = statsData.totalBottles
 
-    // [NEW] 환율 변환 포함 포맷팅 (CurrencyManager 사용)
-    val savedMoneyText = remember(savedMoney, userSettings.currencySymbol) {
-        CurrencyManager.formatMoneyNoDecimals(savedMoney, context)
+    // [NEW] 저축 금액: 숫자와 통화 기호 분리 (다른 카드들과 동일한 형태)
+    val savedMoneyValue = remember(savedMoney, userSettings.currencySymbol) {
+        val currency = CurrencyManager.getSelectedCurrency(context)
+        val converted = savedMoney / currency.rate
+        // 숫자만 포맷팅 (통화 기호 제외)
+        String.format(java.util.Locale.getDefault(), "%,.0f", converted)
+    }
+
+    val savedMoneyUnit = remember(userSettings.currencySymbol) {
+        val currency = CurrencyManager.getSelectedCurrency(context)
+        currency.code  // "KRW", "USD", "JPY" 등
     }
 
     val daysText = remember(totalDays) {
@@ -505,7 +513,7 @@ private fun PeriodStatisticsSection(
                     // [NEW] 우측: 지켜낸 돈 → 저축 (piggybank 아이콘) - 밝은 네온 민트
                     StatisticItem(
                         title = stringResource(R.string.stats_label_money_short),  // [NEW] "저축" (짧은 레이블)
-                        value = savedMoneyText,  // [FIX] CurrencyManager 기반 환율 변환 적용 (통화 기호 포함)
+                        value = "$savedMoneyValue $savedMoneyUnit",  // [NEW] 숫자 + 통화 코드 (예: "1,964 KRW")
                         color = MaterialTheme.colorScheme.error,
                         valueColor = Color(0xFF69F0AE), // 밝은 네온 민트
                         icon = R.drawable.piggybank,  // [NEW] 커스텀 drawable 아이콘
