@@ -1,34 +1,11 @@
 
 package kr.sweetapps.alcoholictimer.ui.main
 
-import android.os.Bundle
-// ...existing imports...
-import androidx.navigation.navArgument
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.ktx.Firebase
-import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.ui.tab_02.screens.DetailScreen
-import kr.sweetapps.alcoholictimer.ui.tab_03.LevelScreen // [FIX] Tab03의 ViewModel 사용 LevelScreen으로 변경
-import kr.sweetapps.alcoholictimer.ui.tab_02.components.AllRecordsScreen
-import kr.sweetapps.alcoholictimer.ui.tab_01.screens.QuitScreenComposable
-import kr.sweetapps.alcoholictimer.ui.tab_01.screens.RunScreenComposable
-import kr.sweetapps.alcoholictimer.ui.tab_04.HabitScreen
-import kr.sweetapps.alcoholictimer.ui.tab_01.screens.StartScreen
-import kr.sweetapps.alcoholictimer.ui.tab_05.screens.NicknameEditScreen
-import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
-import kr.sweetapps.alcoholictimer.ui.ad.HomeAdTrigger
 import android.app.Activity
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,26 +13,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.navigation
-import androidx.navigation.navArgument
-import kr.sweetapps.alcoholictimer.ui.tab_02.screens.AddRecordScreenComposable
-import kr.sweetapps.alcoholictimer.ui.tab_04.screens.CurrencyScreen
-import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DebugScreen
-import kr.sweetapps.alcoholictimer.ui.tab_05.screens.policy.DocumentScreen
-import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.ktx.Firebase
+import kr.sweetapps.alcoholictimer.ui.ad.HomeAdTrigger
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab01Graph
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab02Graph
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab03Graph
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab04Graph
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab05Graph
-import kr.sweetapps.alcoholictimer.ui.tab_05.AboutScreen
-import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab03Graph
-import kr.sweetapps.alcoholictimer.ui.tab_05.AboutScreen
-import kr.sweetapps.alcoholictimer.ui.tab_05.AboutScreen
 
 /**
  * Navigation Host (App-level Navigation Graph)
