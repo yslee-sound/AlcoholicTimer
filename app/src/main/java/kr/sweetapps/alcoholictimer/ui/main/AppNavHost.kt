@@ -1,18 +1,15 @@
-@file:Suppress("UNUSED_IMPORT", "UNUSED_VARIABLE", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 
 package kr.sweetapps.alcoholictimer.ui.main
 
 import android.os.Bundle
 // ...existing imports...
 import androidx.navigation.navArgument
-import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.tab_02.screens.DetailScreen
 import kr.sweetapps.alcoholictimer.ui.tab_03.LevelScreen // [FIX] Tab03의 ViewModel 사용 LevelScreen으로 변경
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.AllRecordsScreen
-import kr.sweetapps.alcoholictimer.ui.tab_02.screens.RecordsScreen
 import kr.sweetapps.alcoholictimer.ui.tab_01.screens.QuitScreenComposable
 import kr.sweetapps.alcoholictimer.ui.tab_01.screens.RunScreenComposable
 import kr.sweetapps.alcoholictimer.ui.tab_04.HabitScreen
@@ -29,19 +26,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,16 +33,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -72,7 +48,6 @@ import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DebugScreen
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.policy.DocumentScreen
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 import kr.sweetapps.alcoholictimer.ui.tab_05.AboutScreen
-import java.util.Map.entry
 
 /**
  * Navigation Host (App-level Navigation Graph)
@@ -87,9 +62,7 @@ fun AppNavHost(
     val context = LocalContext.current
     val firebaseAnalytics = runCatching { Firebase.analytics }.getOrNull()
 
-    // [REMOVED] 타이머 완료 네비게이션 리스너를 MainActivity로 이동하여 전역 처리
-    // 이제 사용자가 어느 화면(Tab 1, 2, 3)에 있든 타이머 완료 시 DetailScreen으로 이동
-
+    // Home 화면 방문 감지 (광고 트리거)
     LaunchedEffect(Unit) {
         var wasHome = false
         var firstEmissionSkipped = false
@@ -126,7 +99,7 @@ fun AppNavHost(
                     bundle.putInt("target_days", targetDays)
                     firebaseAnalytics?.logEvent("start_timer", bundle)
 
-                    // [NEW] 광고 정책 체크
+                    // 광고 정책 체크
                     val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
 
                     val proceedToRun: () -> Unit = {
@@ -160,7 +133,7 @@ fun AppNavHost(
                 onRequestQuit = {
                     navController.navigate(Screen.Quit.route) { launchSingleTop = true }
                 },
-                onCompletedNavigateToDetail = { /* [REMOVED] 중복 네비게이션 방지 - MainActivity에서 전역 처리 */ },
+                onCompletedNavigateToDetail = { /* MainActivity에서 전역 처리 */ },
                 onRequireBackToStart = {
                     navController.navigate(Screen.Start.route) {
                         popUpTo(Screen.Run.route) { inclusive = true }
@@ -170,7 +143,7 @@ fun AppNavHost(
             )
         }
 
-        // [REFACTORED] 타이머 성공 화면 (목표 달성)
+        // 타이머 성공 화면 (목표 달성)
         composable(Screen.Success.route) {
             kr.sweetapps.alcoholictimer.ui.tab_01.screens.FinishedSuccessScreen(
                 onBack = {
@@ -181,7 +154,7 @@ fun AppNavHost(
                     }
                 },
                 onResultCheck = {
-                    // [FIX] Reset timer completion state
+                    // 타이머 완료 상태 초기화
                     android.util.Log.d("NavGraph", "[Success] 결과 확인 클릭 -> 타이머 완료 상태 초기화")
 
                     try {
@@ -280,7 +253,7 @@ fun AppNavHost(
             )
         }
 
-        // [REFACTORED] 타이머 중단 화면 (포기)
+        // 타이머 중단 화면 (포기)
         composable(Screen.GiveUp.route) {
             kr.sweetapps.alcoholictimer.ui.tab_01.screens.FinishedGiveUpScreen(
                 onBack = {
@@ -297,27 +270,26 @@ fun AppNavHost(
 
                     val proceedToDetail: () -> Unit = {
                         try {
-                            // [STEP 1] user_settings 파일 열기 (ViewModel과 동일한 파일)
                             val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
-                            android.util.Log.d("NavGraph", "[GiveUp STEP 1] user_settings 파일 열기 완료")
+                            android.util.Log.d("NavGraph", "[GiveUp] user_settings 파일 열기 완료")
 
-                            // [STEP 2] 포기 기록 데이터 읽기
+                            // 포기 기록 데이터 읽기
                             val completedStartTime = sharedPref.getLong("completed_start_time", 0L)
                             val completedEndTime = sharedPref.getLong("completed_end_time", 0L)
                             val completedTargetDays = sharedPref.getFloat("completed_target_days", 21f)
-                            val completedActualDays = sharedPref.getFloat("completed_actual_days", 0f).toInt()  // [REFACTOR] Float으로 읽기
+                            val completedActualDays = sharedPref.getFloat("completed_actual_days", 0f).toInt()
                             val isGiveUp = sharedPref.getBoolean("completed_is_give_up", false)
 
-                            android.util.Log.d("NavGraph", "[GiveUp STEP 2] 데이터 읽기 완료:")
+                            android.util.Log.d("NavGraph", "[GiveUp] 데이터 읽기 완료:")
                             android.util.Log.d("NavGraph", "  - startTime: $completedStartTime")
                             android.util.Log.d("NavGraph", "  - endTime: $completedEndTime")
                             android.util.Log.d("NavGraph", "  - targetDays: $completedTargetDays")
                             android.util.Log.d("NavGraph", "  - actualDays: $completedActualDays")
                             android.util.Log.d("NavGraph", "  - isGiveUp: $isGiveUp")
 
-                            // [STEP 3] 데이터 유효성 검증
+                            // 데이터 유효성 검증
                             if (completedStartTime > 0 && completedEndTime > 0) {
-                                android.util.Log.d("NavGraph", "[GiveUp STEP 3] 데이터 유효 ✓ -> Result 화면으로 이동")
+                                android.util.Log.d("NavGraph", "[GiveUp] 데이터 유효 ✓ -> Result 화면으로 이동")
 
                                 val resultRoute = Screen.Result.createRoute(
                                     startTime = completedStartTime,
@@ -336,7 +308,7 @@ fun AppNavHost(
 
                                 android.util.Log.d("NavGraph", "[GiveUp STEP 5] Result 화면 이동 완료 ✓")
 
-                                // [STEP 6] 임시 데이터 정리 (화면 이동 후)
+                                // 임시 데이터 정리
                                 try {
                                     sharedPref.edit()
                                         .remove("completed_start_time")
@@ -345,7 +317,7 @@ fun AppNavHost(
                                         .remove("completed_actual_days")
                                         .remove("completed_is_give_up")
                                         .apply()
-                                    android.util.Log.d("NavGraph", "[GiveUp STEP 6] 임시 데이터 정리 완료")
+                                    android.util.Log.d("NavGraph", "[GiveUp] 임시 데이터 정리 완료")
                                 } catch (e: Exception) {
                                     android.util.Log.e("NavGraph", "[GiveUp] 임시 데이터 정리 실패", e)
                                 }
@@ -406,7 +378,7 @@ fun AppNavHost(
         }
 
         composable(Screen.Quit.route) {
-            // [FIX] Activity Scope ViewModel 가져오기
+            // Activity Scope ViewModel 가져오기
             val tab01ViewModel: kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.Tab01ViewModel? = if (activity != null) {
                 androidx.lifecycle.viewmodel.compose.viewModel(viewModelStoreOwner = activity as androidx.lifecycle.ViewModelStoreOwner)
             } else {
@@ -415,7 +387,7 @@ fun AppNavHost(
 
             QuitScreenComposable(
                 onQuitConfirmed = {
-                    // [REFACTORED] 포기 확인 시 ViewModel의 giveUpTimer() 호출
+                    // 포기 확인 시 ViewModel의 giveUpTimer() 호출
                     // ViewModel이 NavigateToGiveUp 이벤트를 발행하면 MainActivity에서 처리
                     android.util.Log.d("NavGraph", "[Quit] Give up confirmed -> calling ViewModel.giveUpTimer()")
                     tab01ViewModel?.giveUpTimer()
@@ -425,15 +397,13 @@ fun AppNavHost(
         }
 
 
-        // [FIX] Tab 2를 위한 중첩 그래프 (Nested Graph) 생성
-        // route: 탭의 경로 (Screen.Records.route)
-        // startDestination: 이 탭의 첫 화면 (내부 경로 "records_list")
-        // [목록, Detail, Result] 3개가 모두 하나의 그룹으로 묶여 탭 전환 시 상태 유지됨
+        // Tab 2: 중첩 그래프 (Nested Graph)
+        // 목록, Detail, Result 화면이 하나의 그룹으로 묶여 탭 전환 시 상태 유지
         navigation(startDestination = "records_list", route = Screen.Records.route) {
 
-            // 1. 기록 목록 화면 (내부 경로 "records_list" 사용)
+            // 1. 기록 목록 화면
             composable("records_list") {
-                // [FIX] Activity Scope ViewModel을 사용하여 pending route 감지
+                // Activity Scope ViewModel을 사용하여 pending route 감지
                 val tab02ViewModel: kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.Tab02ViewModel = if (activity != null) {
                     androidx.lifecycle.viewmodel.compose.viewModel(viewModelStoreOwner = activity as androidx.lifecycle.ViewModelStoreOwner)
                 } else {
@@ -441,24 +411,24 @@ fun AppNavHost(
                 }
                 val pendingRoute by tab02ViewModel.pendingDetailRoute.collectAsState()
 
-                // [FIX] 현재 route 가져오기 (무한 루프 방지용)
+                // 현재 route 가져오기 (무한 루프 방지용)
                 val backStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = backStackEntry?.destination?.route
 
-                // [핵심] pendingRoute가 있고, 현재 route와 다를 때만 navigate
+                // pendingRoute가 있고, 현재 route와 다를 때만 navigate
                 LaunchedEffect(pendingRoute, currentRoute) {
                     pendingRoute?.let { route ->
                         if (currentRoute != route) {
                             android.util.Log.d("NavGraph", "[목록] pendingRoute 감지: $route (현재: $currentRoute) -> 자동 이동")
                             navController.navigate(route)
-                            // [중요] 소비하지 않음! 탭 복귀 시에도 유지되도록
+                            // 소비하지 않음! 탭 복귀 시에도 유지되도록
                         } else {
                             android.util.Log.d("NavGraph", "[목록] 이미 해당 route에 있음 -> navigate 건너뜀")
                         }
                     }
                 }
 
-                // [UPDATED] Tab02Screen을 통해 Room DB 데이터 연결
+                // Tab02Screen을 통해 Room DB 데이터 연결
                 kr.sweetapps.alcoholictimer.ui.tab_02.Tab02Screen(
                     onNavigateToDetail = { record: SobrietyRecord ->
                         // Analytics: 기록 상세 보기 이벤트 전송
@@ -995,7 +965,6 @@ fun AppNavHost(
             )
         }
 
-        // [REMOVED] DetailScreen은 이제 Tab 2 navigation 그래프 안에 있음
 
         // Customer Screen
         composable("customer") {
@@ -1011,5 +980,5 @@ private fun isHomeRoute(route: String?): Boolean {
            route == Screen.Run.route ||
            route == Screen.Quit.route ||
            route == Screen.Records.route ||
-           route == "records_list" // [추가] Tab 2 내부 경로
+           route == "records_list" // Tab 2 내부 경로
 }
