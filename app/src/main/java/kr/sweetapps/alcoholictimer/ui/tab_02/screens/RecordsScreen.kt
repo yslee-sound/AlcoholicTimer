@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons  // [NEW] Material Icons
-import androidx.compose.material.icons.filled.DirectionsRun  // [NEW] 칼로리/운동 아이콘
 import androidx.compose.material.icons.filled.LocalBar  // [NEW] 술 아이콘
 import androidx.compose.material.icons.filled.Savings  // [NEW] 저축 아이콘
 import androidx.compose.runtime.*
@@ -476,13 +475,13 @@ private fun PeriodStatisticsSection(
                 ) {
                     val statsScale = 1.3f
 
-                    // [NEW] 좌측: 줄인 칼로리 → 컷 (DirectionsRun 아이콘) - 밝은 살구색/오렌지
+                    // [NEW] 좌측: 줄인 칼로리 → 컷 (personsimplerun 아이콘) - 밝은 살구색/오렌지
                     StatisticItem(
                         title = stringResource(R.string.stats_label_calories_short),  // [NEW] "컷" (짧은 레이블)
                         value = "$kcalFormatted ${stringResource(R.string.stats_unit_kcal)}",
                         color = MaterialTheme.colorScheme.tertiary,
                         valueColor = Color(0xFFFFAB91), // 밝은 살구색
-                        icon = Icons.Default.DirectionsRun,  // [NEW] 운동/칼로리 아이콘
+                        icon = R.drawable.personsimplerun,  // [NEW] 커스텀 drawable 아이콘
                         iconTint = Color.White,  // [NEW] 하얀색 (아이콘 색상)
                         modifier = Modifier
                             .weight(1f)
@@ -638,7 +637,7 @@ private fun StatisticItem(
     titleScale: Float = 1.0f,
     valueScale: Float = 1.0f,
     valueColor: Color = Color.White, // [기존] 숫자 색상 커스터마이징 파라미터
-    icon: androidx.compose.ui.graphics.vector.ImageVector? = null,  // [NEW] 아이콘 파라미터
+    icon: Any? = null,  // [NEW] ImageVector 또는 Int(drawable resource id) 지원
     iconTint: Color = Color.White  // [NEW] 아이콘 색상
 ) {
     Surface(
@@ -748,12 +747,26 @@ private fun StatisticItem(
                 ) {
                     // [NEW] 아이콘이 있으면 표시
                     if (icon != null) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = iconTint,
-                            modifier = Modifier.size(24.dp)  // [NEW] 아이콘 크기
-                        )
+                        when (icon) {
+                            is androidx.compose.ui.graphics.vector.ImageVector -> {
+                                // Material Icons
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = null,
+                                    tint = iconTint,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            is Int -> {
+                                // Drawable Resource
+                                Icon(
+                                    painter = painterResource(id = icon),
+                                    contentDescription = null,
+                                    tint = iconTint,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
                         Spacer(modifier = Modifier.width(5.dp))  // [NEW] 아이콘과 텍스트 사이 간격
                     }
                     // 제목 텍스트
