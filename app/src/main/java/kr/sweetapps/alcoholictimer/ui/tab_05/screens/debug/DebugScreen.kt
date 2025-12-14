@@ -51,6 +51,7 @@ private fun ContextToActivity(context: android.content.Context): Activity? {
 @Composable
 fun DebugScreen(
     viewModel: DebugScreenViewModel = viewModel(),
+    tab05ViewModel: kr.sweetapps.alcoholictimer.ui.tab_05.viewmodel.Tab05ViewModel = viewModel(), // [NEW] Tab05ViewModel 추가
     onBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -295,6 +296,72 @@ fun DebugScreen(
                     Toast.makeText(context, "Performance trace started (debug)", Toast.LENGTH_SHORT).show()
                 }
             })
+
+            // [NEW] 랜덤 데이터 생성 섹션
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "🎲 테스트 데이터 생성",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+
+            // 랜덤 데이터 생성 버튼
+            androidx.compose.material3.Button(
+                onClick = {
+                    tab05ViewModel.generateRandomMockData(context)
+                    Toast.makeText(
+                        context,
+                        "4년치 랜덤 데이터 생성 완료!\n(기록 화면에서 확인)",
+                        Toast.LENGTH_LONG
+                    ).show()
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = androidx.compose.ui.graphics.Color(0xFF4CAF50)
+                )
+            ) {
+                Text("🎲 랜덤 과거 데이터 생성 (4년치)", color = androidx.compose.ui.graphics.Color.White)
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 모든 기록 삭제 버튼
+            androidx.compose.material3.Button(
+                onClick = {
+                    tab05ViewModel.clearAllRecords(context)
+                    Toast.makeText(
+                        context,
+                        "모든 기록 삭제 완료!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = androidx.compose.ui.graphics.Color(0xFFF44336)
+                )
+            ) {
+                Text("🗑️ 모든 기록 삭제", color = androidx.compose.ui.graphics.Color.White)
+            }
+
+            Text(
+                text = """
+                    ※ 생성 데이터: 4년 전 ~ 1년 전까지 무작위 기록
+                    ※ 연도당 2~3개, 지속 기간 3~50일 랜덤
+                    ※ 성공률 70%, 완료/실패 상태 포함
+                    
+                    📊 예상 통계 (280일, 저/주1회이하/짧음 기준):
+                    • 줄인 칼로리: 8,000 kcal
+                    • 참아낸 술: 40.0병
+                    • 절약한 금액: ₩400,000
+                    • 절약한 시간: 60.0시간 (2일 12시간)
+                    • 기대 수명+: 9일 8.0시간
+                    • 총 금주 일수: 280.0일
+                """.trimIndent(),
+                fontSize = 11.sp,
+                color = androidx.compose.ui.graphics.Color.Gray,
+                modifier = Modifier.padding(top = 8.dp)
+            )
 
             // [NEW] Bottom spacer for breathing room
             Spacer(modifier = Modifier.height(100.dp))

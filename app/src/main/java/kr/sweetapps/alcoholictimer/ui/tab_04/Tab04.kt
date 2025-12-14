@@ -21,8 +21,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -31,7 +29,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -243,6 +240,7 @@ fun HabitScreenContent(
     onShowCurrencySheet: (Boolean) -> Unit
 ) {
     val scrollState = rememberScrollState()
+    val context = LocalContext.current // [FIX] Context를 Composable 레벨에서 캡처
 
     // [FIX] innerPadding을 전체에 적용하지 않고, 상단/하단을 Spacer로 분리하여 적용
     Column(
@@ -276,7 +274,7 @@ fun HabitScreenContent(
         }
 
         Spacer(modifier = Modifier.height(8.dp))
-        HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
+        HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
 
         HabitSection(
             title = stringResource(R.string.settings_drinking_frequency),
@@ -297,7 +295,7 @@ fun HabitScreenContent(
                 onOptionSelected = onFrequencyChange // 즉시 저장
             )
         }
-        HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
+        HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
 
         HabitSection(
             title = stringResource(R.string.settings_drinking_duration),
@@ -318,7 +316,7 @@ fun HabitScreenContent(
                 onOptionSelected = onDurationChange // 즉시 저장
             )
         }
-        HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
+        HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
 
         // [MOD] 통화 설정 섹션
         HabitSection(
@@ -350,6 +348,7 @@ fun HabitScreenContent(
                 )
             }
         }
+
 
         // [2] 하단 여백 확보 (BottomBar 높이 + 추가 여유 50dp)
         Spacer(modifier = Modifier.height(innerPadding.calculateBottomPadding() + 50.dp))
