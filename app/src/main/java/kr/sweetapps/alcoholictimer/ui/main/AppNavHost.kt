@@ -49,6 +49,9 @@ import kr.sweetapps.alcoholictimer.ui.tab_05.screens.policy.DocumentScreen
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab01Graph
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab02Graph
+import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab03Graph
+import kr.sweetapps.alcoholictimer.ui.tab_05.AboutScreen
+import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab03Graph
 import kr.sweetapps.alcoholictimer.ui.tab_05.AboutScreen
 import kr.sweetapps.alcoholictimer.ui.tab_05.AboutScreen
 
@@ -336,17 +339,8 @@ fun AppNavHost(
             )
         }
 
-
-        composable(Screen.Level.route) {
-            LevelScreen(onNavigateBack = {
-                if (!navController.popBackStack()) {
-                    navController.navigate(Screen.Start.route) {
-                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                }
-            })
-        }
+        // [Refactored] Tab 03: 레벨 화면
+        addTab03Graph(navController)
 
         composable(Screen.More.route) {
             HabitScreen(
