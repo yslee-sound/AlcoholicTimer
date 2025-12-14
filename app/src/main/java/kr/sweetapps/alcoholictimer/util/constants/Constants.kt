@@ -56,6 +56,9 @@ object Constants {
         const val DURATION_LONG = 6.0
         const val DURATION_DEFAULT = DURATION_MEDIUM
 
+        // [NEW] 칼로리 계산 상수 맥주500 = 250kcal, 소주1병 = 400kcal
+        const val CALORIES_PER_DRINK = 300.0 // 1병당 평균 칼로리 (kcal)
+
         // [REMOVED] 숙취 시간 상수 - 계산식에서 제거됨
         // const val HANGOVER_HOURS = 5.0
 

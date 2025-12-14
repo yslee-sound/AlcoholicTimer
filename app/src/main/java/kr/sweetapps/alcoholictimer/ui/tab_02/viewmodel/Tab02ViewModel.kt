@@ -236,7 +236,7 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
             val weeks = totalDays / 7.0
             val savedMoney = weeks * timesPerWeek * costPerTime
             val totalBottles = weeks * timesPerWeek
-            val totalKcal = totalBottles * 200.0 // 1병당 약 200kcal
+            val totalKcal = totalBottles * Constants.DrinkingSettings.CALORIES_PER_DRINK // [FIX] 상수로 관리
 
             // 6. StatsData 반환
             StatsData(
