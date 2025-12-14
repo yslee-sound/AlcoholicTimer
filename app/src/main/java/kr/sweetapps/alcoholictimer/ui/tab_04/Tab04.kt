@@ -93,47 +93,27 @@ fun HabitScreen(
 ) {
     val context = LocalContext.current
 
-    // [NEW] ViewModel에서 상태 구독
+    // [REFACTORED] ViewModel 상태 직접 사용 (임시 변수 제거)
     val selectedCost by viewModel.selectedCost.collectAsState()
     val selectedFrequency by viewModel.selectedFrequency.collectAsState()
     val selectedDuration by viewModel.selectedDuration.collectAsState()
 
-    // [NEW] 로컬 임시 상태
-    var tempCost by remember { mutableStateOf(selectedCost) }
-    var tempFrequency by remember { mutableStateOf(selectedFrequency) }
-    var tempDuration by remember { mutableStateOf(selectedDuration) }
-
-    // [NEW] 통화 설정 임시 상태
+    // [REFACTORED] 통화 설정 상태 (즉시 저장 방식)
     val prefs = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
     val isExplicit = prefs.getBoolean("currency_explicit", false)
-    val initialCurrency = if (isExplicit) {
+    val currentCurrency = if (isExplicit) {
         prefs.getString("selected_currency", "AUTO") ?: "AUTO"
     } else {
         "AUTO"
     }
-    var tempCurrency by remember { mutableStateOf(initialCurrency) }
     var showCurrencySheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
-    // [NEW] 변경사항 감지
-    val hasChanges = tempCost != selectedCost ||
-                     tempFrequency != selectedFrequency ||
-                     tempDuration != selectedDuration ||
-                     tempCurrency != initialCurrency
-
-    // [NEW] 적용 버튼 클릭 핸들러
-    val onApplySettings: () -> Unit = {
-        Log.d("HabitScreen", "Apply clicked: tempCost=$tempCost tempFrequency=$tempFrequency tempDuration=$tempDuration tempCurrency=$tempCurrency")
-
-        // [MOD] 설정 저장 로직
-        viewModel.updateCost(tempCost)
-        viewModel.updateFrequency(tempFrequency)
-        viewModel.updateDuration(tempDuration)
-
-        // [NEW] 통화 설정 저장
+    // [NEW] 통화 즉시 저장 함수
+    val saveCurrency: (String) -> Unit = { newCurrency ->
         try {
             val sp = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
-            if (tempCurrency == "AUTO") {
+            if (newCurrency == "AUTO") {
                 sp.edit().apply {
                     putString("selected_currency", "AUTO")
                     putBoolean("currency_explicit", false)
@@ -141,24 +121,16 @@ fun HabitScreen(
                 }
             } else {
                 sp.edit().apply {
-                    putString("selected_currency", tempCurrency)
+                    putString("selected_currency", newCurrency)
                     putBoolean("currency_explicit", true)
                     apply()
                 }
             }
-            kr.sweetapps.alcoholictimer.util.manager.CurrencyManager.saveCurrency(context, tempCurrency)
+            kr.sweetapps.alcoholictimer.util.manager.CurrencyManager.saveCurrency(context, newCurrency)
+            Log.d("HabitScreen", "통화 설정 저장됨: $newCurrency")
         } catch (e: Exception) {
             Log.e("HabitScreen", "Failed to save currency: ${e.message}")
         }
-
-        Log.d("HabitScreen", "설정이 저장되었습니다 (화면 유지)")
-
-        // [MOD] 화면 이동 제거 -> Toast로 피드백 제공
-        android.widget.Toast.makeText(
-            context,
-            context.getString(R.string.settings_apply_button),
-            android.widget.Toast.LENGTH_SHORT
-        ).show()
     }
 
     // [NEW] 화면 진입 시 전면 광고 미리 로드 (성능 최적화)
@@ -171,7 +143,7 @@ fun HabitScreen(
         }
     }
 
-    // [NEW] Scaffold with TopAppBar - 단일 제목줄 + 적용 버튼
+    // [REFACTORED] Scaffold - '적용' 버튼 제거, 제목만 표시
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = Color.White,
@@ -184,18 +156,6 @@ fun HabitScreen(
                         color = Color(0xFF111111)
                     )
                 },
-                actions = {
-                    TextButton(
-                        onClick = onApplySettings,
-                        enabled = hasChanges
-                    ) {
-                        Text(
-                            text = stringResource(R.string.settings_apply_button),
-                            color = if (hasChanges) MainPrimaryBlue else Color.Gray, // [FIX] 상태에 따른 색상
-                            style = MaterialTheme.typography.titleMedium // [FIX] 표준 타이포그래피
-                        )
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.White,
                     titleContentColor = Color(0xFF111111)
@@ -203,21 +163,30 @@ fun HabitScreen(
             )
         }
     ) { innerPadding ->
-        // [FIX] 기존 Content를 innerPadding으로 감싸서 TopAppBar와 겹치지 않도록 함
+        // [REFACTORED] ViewModel 직접 연결 (즉시 저장)
         HabitScreenContent(
             innerPadding = innerPadding,
-            tempCost = tempCost,
-            tempFrequency = tempFrequency,
-            tempDuration = tempDuration,
-            tempCurrency = tempCurrency,
-            onCostChange = { tempCost = it },
-            onFrequencyChange = { tempFrequency = it },
-            onDurationChange = { tempDuration = it },
+            selectedCost = selectedCost,
+            selectedFrequency = selectedFrequency,
+            selectedDuration = selectedDuration,
+            currentCurrency = currentCurrency,
+            onCostChange = { newValue ->
+                viewModel.updateCost(newValue)
+                Log.d("HabitScreen", "비용 즉시 저장: $newValue")
+            },
+            onFrequencyChange = { newValue ->
+                viewModel.updateFrequency(newValue)
+                Log.d("HabitScreen", "빈도 즉시 저장: $newValue")
+            },
+            onDurationChange = { newValue ->
+                viewModel.updateDuration(newValue)
+                Log.d("HabitScreen", "시간 즉시 저장: $newValue")
+            },
             onShowCurrencySheet = { showCurrencySheet = it }
         )
     }
 
-    // [NEW] 통화 선택 BottomSheet
+    // [REFACTORED] 통화 선택 BottomSheet - 즉시 저장 방식
     if (showCurrencySheet) {
         ModalBottomSheet(
             onDismissRequest = { showCurrencySheet = false },
@@ -236,10 +205,10 @@ fun HabitScreen(
 
                 // AUTO 옵션
                 CurrencyOptionRow(
-                    isSelected = tempCurrency == "AUTO",
+                    isSelected = currentCurrency == "AUTO",
                     label = stringResource(R.string.settings_currency_auto),
                     onSelected = {
-                        tempCurrency = "AUTO"
+                        saveCurrency("AUTO") // 즉시 저장
                         showCurrencySheet = false
                     }
                 )
@@ -247,10 +216,10 @@ fun HabitScreen(
                 // 지원 통화 목록
                 kr.sweetapps.alcoholictimer.util.manager.CurrencyManager.supportedCurrencies.forEach { currency ->
                     CurrencyOptionRow(
-                        isSelected = tempCurrency == currency.code,
+                        isSelected = currentCurrency == currency.code,
                         label = context.getString(currency.nameResId),
                         onSelected = {
-                            tempCurrency = currency.code
+                            saveCurrency(currency.code) // 즉시 저장
                             showCurrencySheet = false
                         }
                     )
@@ -260,14 +229,14 @@ fun HabitScreen(
     }
 }
 
-// [NEW] HabitScreen 콘텐츠 분리
+// [REFACTORED] HabitScreen 콘텐츠 - 즉시 저장 방식
 @Composable
 fun HabitScreenContent(
     innerPadding: androidx.compose.foundation.layout.PaddingValues,
-    tempCost: String,
-    tempFrequency: String,
-    tempDuration: String,
-    tempCurrency: String,
+    selectedCost: String,
+    selectedFrequency: String,
+    selectedDuration: String,
+    currentCurrency: String,
     onCostChange: (String) -> Unit,
     onFrequencyChange: (String) -> Unit,
     onDurationChange: (String) -> Unit,
@@ -281,118 +250,109 @@ fun HabitScreenContent(
             .fillMaxSize()
             .background(Color.White)
             .verticalScroll(scrollState),
-        // [REMOVED] .padding(innerPadding) 제거 - 전체 적용 방식의 문제
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
-            // [1] 상단 여백 확보 (TopBar 높이만큼)
-            Spacer(modifier = Modifier.height(innerPadding.calculateTopPadding()))
+        // [1] 상단 여백 확보 (TopBar 높이만큼)
+        Spacer(modifier = Modifier.height(innerPadding.calculateTopPadding()))
 
-            HabitSection(
-                title = stringResource(R.string.settings_drinking_cost),
-                titleColor = Color.Black
+        HabitSection(
+            title = stringResource(R.string.settings_drinking_cost),
+            titleColor = Color.Black
+        ) {
+            HabitOptionGroup(
+                selectedOption = selectedCost,
+                options = listOf(
+                    Constants.KEY_COST_LOW,
+                    Constants.KEY_COST_MEDIUM,
+                    Constants.KEY_COST_HIGH
+                ),
+                labels = listOf(
+                    stringResource(R.string.settings_cost_low_label),
+                    stringResource(R.string.settings_cost_medium_label),
+                    stringResource(R.string.settings_cost_high_label)
+                ),
+                onOptionSelected = onCostChange // 즉시 저장
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+        HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
+
+        HabitSection(
+            title = stringResource(R.string.settings_drinking_frequency),
+            titleColor = Color.Black
+        ) {
+            HabitOptionGroup(
+                selectedOption = selectedFrequency,
+                options = listOf(
+                    Constants.KEY_FREQUENCY_LOW,
+                    Constants.KEY_FREQUENCY_MEDIUM,
+                    Constants.KEY_FREQUENCY_HIGH
+                ),
+                labels = listOf(
+                    stringResource(R.string.settings_frequency_low),
+                    stringResource(R.string.settings_frequency_medium),
+                    stringResource(R.string.settings_frequency_high)
+                ),
+                onOptionSelected = onFrequencyChange // 즉시 저장
+            )
+        }
+        HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
+
+        HabitSection(
+            title = stringResource(R.string.settings_drinking_duration),
+            titleColor = Color.Black
+        ) {
+            HabitOptionGroup(
+                selectedOption = selectedDuration,
+                options = listOf(
+                    Constants.KEY_DURATION_SHORT,
+                    Constants.KEY_DURATION_MEDIUM,
+                    Constants.KEY_DURATION_LONG
+                ),
+                labels = listOf(
+                    stringResource(R.string.settings_duration_short_label),
+                    stringResource(R.string.settings_duration_medium_label),
+                    stringResource(R.string.settings_duration_long_label)
+                ),
+                onOptionSelected = onDurationChange // 즉시 저장
+            )
+        }
+        HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
+
+        // [MOD] 통화 설정 섹션
+        HabitSection(
+            title = stringResource(R.string.settings_currency),
+            titleColor = Color.Black
+        ) {
+            // 통화 선택 행
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) { onShowCurrencySheet(true) }
+                    .padding(horizontal = 20.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                HabitOptionGroup(
-                    selectedOption = tempCost,
-                    options = listOf(
-                        Constants.KEY_COST_LOW,
-                        Constants.KEY_COST_MEDIUM,
-                        Constants.KEY_COST_HIGH
-                    ),
-                    labels = listOf(
-                        stringResource(R.string.settings_cost_low_label),
-                        stringResource(R.string.settings_cost_medium_label),
-                        stringResource(R.string.settings_cost_high_label)
-                    ),
-                    onOptionSelected = { newValue ->
-                        onCostChange(newValue)
-                    }
+                Text(
+                    text = if (currentCurrency == "AUTO") stringResource(R.string.settings_currency_auto) else currentCurrency,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colorResource(id = R.color.color_text_primary_dark)
+                )
+                Image(
+                    painter = painterResource(id = R.drawable.ic_caret_right),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
                 )
             }
+        }
 
-            Spacer(modifier = Modifier.height(8.dp))
-            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
-
-
-            HabitSection(
-                title = stringResource(R.string.settings_drinking_frequency),
-                titleColor = Color.Black
-            ) {
-                HabitOptionGroup(
-                    selectedOption = tempFrequency,
-                    options = listOf(
-                        Constants.KEY_FREQUENCY_LOW,
-                        Constants.KEY_FREQUENCY_MEDIUM,
-                        Constants.KEY_FREQUENCY_HIGH
-                    ),
-                    labels = listOf(
-                        stringResource(R.string.settings_frequency_low),
-                        stringResource(R.string.settings_frequency_medium),
-                        stringResource(R.string.settings_frequency_high)
-                    ),
-                    onOptionSelected = { newValue ->
-                        onFrequencyChange(newValue)
-                    }
-                )
-            }
-            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
-
-            HabitSection(
-                title = stringResource(R.string.settings_drinking_duration),
-                titleColor = Color.Black
-            ) {
-                HabitOptionGroup(
-                    selectedOption = tempDuration,
-                    options = listOf(
-                        Constants.KEY_DURATION_SHORT,
-                        Constants.KEY_DURATION_MEDIUM,
-                        Constants.KEY_DURATION_LONG
-                    ),
-                    labels = listOf(
-                        stringResource(R.string.settings_duration_short_label),
-                        stringResource(R.string.settings_duration_medium_label),
-                        stringResource(R.string.settings_duration_long_label)
-                    ),
-                    onOptionSelected = { newValue ->
-                        onDurationChange(newValue)
-                    }
-                )
-            }
-            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
-
-            // [MOD] 통화 설정 섹션 (음주 시간 아래로 이동)
-            HabitSection(
-                title = stringResource(R.string.settings_currency),
-                titleColor = Color.Black
-            ) {
-                // 통화 선택 행
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
-                        ) { onShowCurrencySheet(true) }
-                        .padding(horizontal = 20.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = if (tempCurrency == "AUTO") stringResource(R.string.settings_currency_auto) else tempCurrency,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colorResource(id = R.color.color_text_primary_dark)
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_caret_right),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-
-            // [2] 하단 여백 확보 (BottomBar 높이 + 추가 여유 20dp)
-            // 스크롤 끝까지 내렸을 때 탭바에 가려지지 않도록
-            Spacer(modifier = Modifier.height(innerPadding.calculateBottomPadding() + 20.dp))
+        // [2] 하단 여백 확보 (BottomBar 높이 + 추가 여유 50dp)
+        Spacer(modifier = Modifier.height(innerPadding.calculateBottomPadding() + 50.dp))
     }
 }
 
