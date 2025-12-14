@@ -47,6 +47,8 @@ import kr.sweetapps.alcoholictimer.ui.tab_04.screens.CurrencyScreen
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DebugScreen
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.policy.DocumentScreen
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
+import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab01Graph
+import kr.sweetapps.alcoholictimer.ui.tab_05.AboutScreen
 import kr.sweetapps.alcoholictimer.ui.tab_05.AboutScreen
 
 /**
@@ -91,57 +93,8 @@ fun AppNavHost(
         popEnterTransition = { EnterTransition.None },
         popExitTransition = { ExitTransition.None }
     ) {
-        composable(Screen.Start.route) {
-            StartScreen(
-                gateNavigation = false,
-                onStart = { targetDays ->
-                    val bundle = Bundle()
-                    bundle.putInt("target_days", targetDays)
-                    firebaseAnalytics?.logEvent("start_timer", bundle)
-
-                    // 광고 정책 체크
-                    val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
-
-                    val proceedToRun: () -> Unit = {
-                        navController.navigate(Screen.Run.route) {
-                            popUpTo(Screen.Start.route) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    }
-
-                    if (shouldShowAd && activity != null) {
-                        android.util.Log.d("NavGraph", "[Start] 광고 정책 통과 -> 전면 광고 노출")
-                        if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
-                            kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(activity) { success ->
-                                android.util.Log.d("NavGraph", "[Start] 광고 결과: success=$success")
-                                proceedToRun()
-                            }
-                        } else {
-                            android.util.Log.d("NavGraph", "[Start] 광고 로드 안됨 -> 즉시 Run으로 이동")
-                            proceedToRun()
-                        }
-                    } else {
-                        android.util.Log.d("NavGraph", "[Start] 광고 정책 불통과 (쿨타임/조건) -> 즉시 Run으로 이동")
-                        proceedToRun()
-                    }
-                }
-            )
-        }
-
-        composable(Screen.Run.route) {
-            RunScreenComposable(
-                onRequestQuit = {
-                    navController.navigate(Screen.Quit.route) { launchSingleTop = true }
-                },
-                onCompletedNavigateToDetail = { /* MainActivity에서 전역 처리 */ },
-                onRequireBackToStart = {
-                    navController.navigate(Screen.Start.route) {
-                        popUpTo(Screen.Run.route) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                }
-            )
-        }
+        // [Refactored] Tab 01: 금주 타이머 관련 화면 (Start, Run, Quit)
+        addTab01Graph(navController, activity, context, firebaseAnalytics)
 
         // 타이머 성공 화면 (목표 달성)
         composable(Screen.Success.route) {
@@ -377,24 +330,6 @@ fun AppNavHost(
             )
         }
 
-        composable(Screen.Quit.route) {
-            // Activity Scope ViewModel 가져오기
-            val tab01ViewModel: kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.Tab01ViewModel? = if (activity != null) {
-                androidx.lifecycle.viewmodel.compose.viewModel(viewModelStoreOwner = activity as androidx.lifecycle.ViewModelStoreOwner)
-            } else {
-                null
-            }
-
-            QuitScreenComposable(
-                onQuitConfirmed = {
-                    // 포기 확인 시 ViewModel의 giveUpTimer() 호출
-                    // ViewModel이 NavigateToGiveUp 이벤트를 발행하면 MainActivity에서 처리
-                    android.util.Log.d("NavGraph", "[Quit] Give up confirmed -> calling ViewModel.giveUpTimer()")
-                    tab01ViewModel?.giveUpTimer()
-                },
-                onCancel = { navController.popBackStack() }
-            )
-        }
 
 
         // Tab 2: 중첩 그래프 (Nested Graph)
