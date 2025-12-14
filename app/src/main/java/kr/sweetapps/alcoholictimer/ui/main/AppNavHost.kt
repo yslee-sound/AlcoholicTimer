@@ -50,6 +50,7 @@ import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab01Graph
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab02Graph
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab03Graph
+import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab04Graph
 import kr.sweetapps.alcoholictimer.ui.tab_05.AboutScreen
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab03Graph
 import kr.sweetapps.alcoholictimer.ui.tab_05.AboutScreen
@@ -342,20 +343,8 @@ fun AppNavHost(
         // [Refactored] Tab 03: 레벨 화면
         addTab03Graph(navController)
 
-        composable(Screen.More.route) {
-            HabitScreen(
-                onNavigateCurrencySettings = { navController.navigate(Screen.CurrencySettings.route) },
-                onApplyAndGoHome = {
-                    // Navigate to Start (Tab1) and recreate Start so its LaunchedEffect runs
-                    try {
-                        navController.navigate(Screen.Start.route) {
-                            popUpTo(Screen.Start.route) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    } catch (_: Throwable) {}
-                }
-            )
-        }
+        // [Refactored] Tab 04: 습관 관리 화면
+        addTab04Graph(navController)
 
         composable(Screen.About.route) {
             AboutScreen(
