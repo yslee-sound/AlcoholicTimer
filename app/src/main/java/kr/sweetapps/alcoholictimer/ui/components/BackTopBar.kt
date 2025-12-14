@@ -16,11 +16,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
-import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.ui.theme.UiConstants
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.foundation.layout.WindowInsets
+import kr.sweetapps.alcoholictimer.ui.theme.UiConstants
+import kr.sweetapps.alcoholictimer.R // [NEW] 리소스 접근을 위한 R 임포트
 
 /**
  * 공통 탑바: 왼쪽 백 아이콘 영역(고정 터치 크기)과 타이틀의 시작 패딩을 UiConstants로 통일합니다.
@@ -33,10 +34,12 @@ fun BackTopBar(
     titleColor: Color = Color(0xFF111111),
     trailingContent: (@Composable () -> Unit)? = null
 ) {
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .height(56.dp)
-        .background(MaterialTheme.colorScheme.surface)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .windowInsetsPadding(WindowInsets.statusBars)
+            .height(56.dp)
+            .background(MaterialTheme.colorScheme.surface)
     ) {
         // [FIX] 구글 기본 ArrowBack 아이콘으로 변경
         IconButton(

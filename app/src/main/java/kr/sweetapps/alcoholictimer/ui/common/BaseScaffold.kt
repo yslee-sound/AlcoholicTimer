@@ -37,21 +37,20 @@ fun BaseScaffold(
 ) {
     // Subscribe to interstitial ad showing state
     val isInterstitialShowing = kr.sweetapps.alcoholictimer.ui.ad.AdController.isInterstitialShowingState()
+    val overlayHoldActive = remember { mutableStateOf(false) }
+    val previousInterstitialState = remember { mutableStateOf(isInterstitialShowing) }
 
     LaunchedEffect(isInterstitialShowing) {
         Log.d("BaseScaffold", "Ad isInterstitialShowing changed: $isInterstitialShowing")
+        if (!isInterstitialShowing && previousInterstitialState.value) {
+            overlayHoldActive.value = true
+            delay(120)
+            overlayHoldActive.value = false
+        }
+        previousInterstitialState.value = isInterstitialShowing
     }
 
-    // Short overlay delay after interstitial closes (for animation)
-    var overlayHoldActive by remember { mutableStateOf(false) }
-    LaunchedEffect(isInterstitialShowing) {
-        if (!isInterstitialShowing) {
-            overlayHoldActive = true
-            delay(120)
-            overlayHoldActive = false
-        }
-    }
-    val overlayVisible = isInterstitialShowing || overlayHoldActive
+    val overlayVisible = isInterstitialShowing || overlayHoldActive.value
 
     AlcoholicTimerTheme(darkTheme = false, applySystemBars = true) {
         // Observe nav back stack to allow per-route content background overrides (e.g., Run screen)
@@ -112,26 +111,16 @@ fun BaseScaffold(
                 // Bottom divider
                 HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.surfaceVariant)
 
-                // Bottom Navigation (with padding to avoid overlap with system navigation buttons)
-                // [REFACTORED] Result, Success, GiveUp, DiaryWrite, DiaryDetail, AllDiary, AllRecords, Detail 화면에서는 네비게이션바 숨김
-                val hideBottomBar = currentRoute?.startsWith("result/") == true ||
-                                    currentRoute == Screen.Success.route ||
-                                    currentRoute == Screen.GiveUp.route ||
-                                    currentRoute == Screen.DiaryWrite.route ||
-                                    currentRoute?.startsWith("diary_detail/") == true ||
-                                    currentRoute == Screen.AllDiary.route ||
-                                    currentRoute == Screen.AllRecords.route ||
-                                    currentRoute?.startsWith("detail/") == true
-
-                if (!hideBottomBar) {
-                    Surface(
-                        modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
-                        color = Color.White,
-                        shadowElevation = 0.dp,
-                        tonalElevation = 0.dp
-                    ) {
-                        BottomNavBar(navController = navController)
-                    }
+                // Bottom Navigation (always visible inside tab host)
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding(),
+                    color = Color.White,
+                    shadowElevation = 0.dp,
+                    tonalElevation = 0.dp
+                ) {
+                    BottomNavBar(navController = navController)
                 }
             }
 

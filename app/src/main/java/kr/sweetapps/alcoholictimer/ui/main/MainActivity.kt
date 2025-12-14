@@ -561,10 +561,7 @@ private fun AppContentWithStart(
 
     // main content
     if (!holdSplashState.value) {
-        val contentBg = if (startDestination == Screen.Run.route) Color(0xFFEEEDE9) else null
-        BaseScaffold(navController = navController, contentBackground = contentBg) {
-            AppNavHost(navController, startDestination)
-        }
+        AppNavHost(navController, startDestination)
     }
 
     // update dialog

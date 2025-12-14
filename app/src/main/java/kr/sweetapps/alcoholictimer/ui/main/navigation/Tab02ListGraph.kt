@@ -9,7 +9,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
@@ -21,7 +20,13 @@ import kr.sweetapps.alcoholictimer.ui.main.Screen
  */
 fun NavGraphBuilder.addTab02ListGraph(
     navController: NavHostController,
-    activity: Activity?
+    activity: Activity?,
+    onNavigateToDetail: (String) -> Unit,
+    onNavigateToDiaryWrite: () -> Unit,
+    onNavigateToAllRecords: () -> Unit,
+    onNavigateToAllDiaries: () -> Unit,
+    onNavigateToDiaryDetail: (String) -> Unit,
+    refreshSignal: Int
 ) {
     // Tab 2: 중첩 그래프 (목록만)
     navigation(startDestination = "records_list", route = Screen.Records.route) {
@@ -33,22 +38,26 @@ fun NavGraphBuilder.addTab02ListGraph(
                 } ?: viewModel()
 
             val pendingRoute by tab02ViewModel.pendingDetailRoute.collectAsState()
-            val backStackEntry by navController.currentBackStackEntryAsState()
-            val currentRoute = backStackEntry?.destination?.route
 
-            LaunchedEffect(pendingRoute, currentRoute) {
+            LaunchedEffect(pendingRoute) {
                 pendingRoute?.let { route ->
-                    if (currentRoute != route) {
-                        android.util.Log.d("NavGraph", "[목록] pendingRoute 감지: $route (현재: $currentRoute) -> 자동 이동")
-                        navController.navigate(route)
-                    } else {
-                        android.util.Log.d("NavGraph", "[목록] 이미 해당 route에 있음 -> navigate 건너뜀")
-                    }
+                    // [NEW] 루트 네비게이션으로 detail 이동
+                    android.util.Log.d("NavGraph", "[목록] pendingRoute 감지 -> root 이동: $route")
+                    onNavigateToDetail(route)
+                    tab02ViewModel.consumePendingDetailRoute()
+                }
+            }
+
+            LaunchedEffect(refreshSignal) {
+                if (refreshSignal > 0) {
+                    // [NEW] 상세 화면에서 돌아온 후 목록 새로고침
+                    tab02ViewModel.loadRecords()
                 }
             }
 
             kr.sweetapps.alcoholictimer.ui.tab_02.Tab02Screen(
                 onNavigateToDetail = { record: SobrietyRecord ->
+                    // [NEW] 루트 네비게이션으로 전달하여 탭 위에 상세 화면 표시
                     try { AnalyticsManager.logViewRecordDetail(record.id) } catch (_: Throwable) {}
                     val route = Screen.Detail.createRoute(
                         startTime = record.startTime,
@@ -57,17 +66,19 @@ fun NavGraphBuilder.addTab02ListGraph(
                         actualDays = kotlin.math.round(record.actualDays).toInt().coerceAtLeast(0),
                         isCompleted = record.isCompleted
                     )
-                    navController.navigate(route)
+                    onNavigateToDetail(route)
                 },
-                onNavigateToAllRecords = { navController.navigate(Screen.AllRecords.route) },
-                onNavigateToAllDiaries = { navController.navigate(Screen.AllDiary.route) },
-                onAddRecord = { navController.navigate(Screen.DiaryWrite.route) },
+                onNavigateToAllRecords = { onNavigateToAllRecords() },
+                onNavigateToAllDiaries = { onNavigateToAllDiaries() },
+                onAddRecord = {
+                    // [NEW] 일기 작성 진입도 루트 콜백으로 분리
+                    onNavigateToDiaryWrite()
+                },
                 onDiaryClick = { diary ->
                     val route = Screen.DiaryDetail.createRoute(diary.id.toString())
-                    navController.navigate(route)
+                    onNavigateToDiaryDetail(route)
                 }
             )
         }
     }
 }
-
