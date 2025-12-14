@@ -1,6 +1,8 @@
 package kr.sweetapps.alcoholictimer.ads
 
 import kr.sweetapps.alcoholictimer.data.supabase.model.AdPolicy
+import kr.sweetapps.alcoholictimer.ui.ad.AdController
+import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
 import org.junit.Assert.*
 import org.junit.Test
 import org.robolectric.Robolectric

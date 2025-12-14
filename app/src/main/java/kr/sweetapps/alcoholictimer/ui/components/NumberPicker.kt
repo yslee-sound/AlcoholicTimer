@@ -25,7 +25,9 @@ fun NumberPicker(
     range: IntRange,
     modifier: Modifier = Modifier,
     label: String = "",
-    displayValues: List<String> = range.map { it.toString() }
+    displayValues: List<String> = range.map { it.toString() },
+    // [NEW] 각 항목의 활성화 여부 (true = 선택 가능, false = 비활성화)
+    enabledStates: List<Boolean> = List(range.count()) { true }
 ) {
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = value - range.first)
     val coroutineScope = rememberCoroutineScope()
@@ -39,8 +41,18 @@ fun NumberPicker(
         if (!listState.isScrollInProgress) {
             val currentIndex = listState.firstVisibleItemIndex
             val currentValue = range.first + currentIndex
-            if (currentValue != value && currentValue in range) {
+            // [NEW] 비활성화된 항목은 선택하지 못하게 함
+            val isEnabled = enabledStates.getOrNull(currentIndex) ?: true
+            if (currentValue != value && currentValue in range && isEnabled) {
                 onValueChange(currentValue)
+            } else if (!isEnabled) {
+                // [NEW] 비활성화된 항목에 스크롤이 멈춘 경우, 가장 가까운 활성화된 항목으로 이동
+                val nearestEnabledIndex = findNearestEnabledIndex(currentIndex, enabledStates)
+                if (nearestEnabledIndex != -1) {
+                    coroutineScope.launch {
+                        listState.animateScrollToItem(nearestEnabledIndex)
+                    }
+                }
             }
         }
     }
@@ -74,6 +86,8 @@ fun NumberPicker(
                     displayValues[index]
                 } else itemValue.toString()
                 val isSelected = itemValue == value
+                // [NEW] 비활성화 상태 확인
+                val isEnabled = enabledStates.getOrNull(index) ?: true
                 Box(
                     modifier = Modifier.fillMaxWidth().height(itemHeight),
                     contentAlignment = Alignment.Center
@@ -82,9 +96,11 @@ fun NumberPicker(
                         text = displayValue,
                         fontSize = if (isSelected) 20.sp else 16.sp,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                        color = if (isSelected) Color.Black else Color.Gray,
+                        // [NEW] 비활성화된 항목은 회색으로 표시
+                        color = if (!isEnabled) Color.LightGray else if (isSelected) Color.Black else Color.Gray,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.alpha(if (isSelected) 1.0f else 0.6f)
+                        // [NEW] 비활성화된 항목은 더 투명하게 표시
+                        modifier = Modifier.alpha(if (!isEnabled) 0.3f else if (isSelected) 1.0f else 0.6f)
                     )
                 }
             }
@@ -99,3 +115,34 @@ fun NumberPicker(
         }
     }
 }
+
+/**
+ * [NEW] 가장 가까운 활성화된 항목의 인덱스를 찾습니다
+ * @param currentIndex 현재 인덱스
+ * @param enabledStates 활성화 상태 리스트
+ * @return 가장 가까운 활성화된 항목의 인덱스, 없으면 -1
+ */
+private fun findNearestEnabledIndex(currentIndex: Int, enabledStates: List<Boolean>): Int {
+    if (enabledStates.isEmpty()) return -1
+
+    // 현재 위치부터 양쪽으로 탐색
+    var distance = 1
+    while (distance < enabledStates.size) {
+        // 아래쪽 탐색
+        val lowerIndex = currentIndex + distance
+        if (lowerIndex < enabledStates.size && enabledStates[lowerIndex]) {
+            return lowerIndex
+        }
+
+        // 위쪽 탐색
+        val upperIndex = currentIndex - distance
+        if (upperIndex >= 0 && enabledStates[upperIndex]) {
+            return upperIndex
+        }
+
+        distance++
+    }
+
+    return -1
+}
+

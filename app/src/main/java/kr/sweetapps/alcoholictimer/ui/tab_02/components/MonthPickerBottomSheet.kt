@@ -69,7 +69,15 @@ internal fun MonthPickerContent(
     initialYear: Int = Calendar.getInstance().get(Calendar.YEAR),
     initialMonth: Int = Calendar.getInstance().get(Calendar.MONTH) + 1
 ) {
-    val yearOptions = remember(records) { generateYearOptionsFromRecords(records) }
+    // [NEW] 초기화 로그
+    android.util.Log.d("MonthPicker", "초기화: records.size=${records.size}, initialYear=$initialYear, initialMonth=$initialMonth")
+
+    // [FIX] 년도 옵션 및 활성화 상태 계산
+    val (yearOptions, yearEnabledStates) = remember(records) {
+        val result = generateYearOptionsFromRecordsWithStates(records)
+        android.util.Log.d("MonthPicker", "년도 옵션: ${result.first.size}개, 활성화: ${result.second.count { it }}개")
+        result
+    }
 
     val defaultYearIndex = remember(yearOptions, initialYear) {
         yearOptions.indexOf(initialYear).let { if (it >= 0) it else (yearOptions.size - 1).coerceAtLeast(0) }
@@ -77,22 +85,66 @@ internal fun MonthPickerContent(
 
     var selectedYearIndex by remember(yearOptions) { mutableIntStateOf(defaultYearIndex) }
 
-    fun monthsFor(year: Int): List<Int> {
-        if (records.isEmpty()) return emptyList()
+    // [FIX] 선택된 년도의 월 목록 및 활성화 상태 계산
+    fun monthsForWithStates(year: Int): Pair<List<Int>, List<Boolean>> {
+        if (records.isEmpty()) return Pair(emptyList(), emptyList())
+
         val now = Calendar.getInstance()
         val nowYear = now.get(Calendar.YEAR)
         val nowMonth = now.get(Calendar.MONTH) + 1
+
         val first = records.minByOrNull { it.startTime }!!
         val firstCal = Calendar.getInstance().apply { timeInMillis = first.startTime }
         val firstYear = firstCal.get(Calendar.YEAR)
         val firstMonth = firstCal.get(Calendar.MONTH) + 1
+
+        // [FIX] 시작 월과 종료 월 결정
         val startMonth = if (year == firstYear) firstMonth else 1
         val endMonth = if (year == nowYear) nowMonth else 12
-        return if (year < firstYear || year > nowYear) emptyList() else (startMonth..endMonth).toList()
+
+        if (year < firstYear || year > nowYear) return Pair(emptyList(), emptyList())
+
+        val allMonths = (startMonth..endMonth).toList()
+
+        // [NEW] 각 월에 기록이 있는지 확인
+        val monthsWithRecords = records.flatMap { record ->
+            val recordStartCal = Calendar.getInstance().apply { timeInMillis = record.startTime }
+            val recordEndCal = Calendar.getInstance().apply { timeInMillis = record.endTime }
+
+            val recordStartYear = recordStartCal.get(Calendar.YEAR)
+            val recordStartMonth = recordStartCal.get(Calendar.MONTH) + 1
+            val recordEndYear = recordEndCal.get(Calendar.YEAR)
+            val recordEndMonth = recordEndCal.get(Calendar.MONTH) + 1
+
+            // 해당 년도와 겹치는 월 찾기
+            buildList {
+                if (recordStartYear == year && recordEndYear == year) {
+                    // 같은 년도 내
+                    addAll(recordStartMonth..recordEndMonth)
+                } else if (recordStartYear == year) {
+                    // 시작 년도
+                    addAll(recordStartMonth..12)
+                } else if (recordEndYear == year) {
+                    // 종료 년도
+                    addAll(1..recordEndMonth)
+                } else if (recordStartYear < year && recordEndYear > year) {
+                    // 중간 년도 (전체 월)
+                    addAll(1..12)
+                }
+            }
+        }.toSet()
+
+        // [NEW] 활성화 상태 리스트 생성
+        val enabled = allMonths.map { month -> month in monthsWithRecords }
+
+        return Pair(allMonths, enabled)
     }
 
     val selectedYear = yearOptions.getOrNull(selectedYearIndex) ?: Calendar.getInstance().get(Calendar.YEAR)
-    var monthOptions by remember { mutableStateOf(monthsFor(selectedYear)) }
+    var monthOptionsWithStates by remember { mutableStateOf(monthsForWithStates(selectedYear)) }
+    val monthOptions = monthOptionsWithStates.first
+    val monthEnabledStates = monthOptionsWithStates.second
+
     var selectedMonthIndex by remember {
         mutableIntStateOf(
             monthOptions.indexOf(initialMonth).let { if (it >= 0) it else (monthOptions.size - 1).coerceAtLeast(0) }
@@ -101,9 +153,9 @@ internal fun MonthPickerContent(
 
     LaunchedEffect(yearOptions, selectedYearIndex) {
         val y = yearOptions.getOrNull(selectedYearIndex) ?: return@LaunchedEffect
-        val newMonths = monthsFor(y)
-        monthOptions = newMonths
-        selectedMonthIndex = selectedMonthIndex.coerceIn(0, (newMonths.size - 1).coerceAtLeast(0))
+        val newMonthsWithStates = monthsForWithStates(y)
+        monthOptionsWithStates = newMonthsWithStates
+        selectedMonthIndex = selectedMonthIndex.coerceIn(0, (newMonthsWithStates.first.size - 1).coerceAtLeast(0))
     }
 
     Column(
@@ -138,6 +190,7 @@ internal fun MonthPickerContent(
                         },
                         range = 0 until yearOptions.size,
                         displayValues = yearOptions.map { stringResource(R.string.month_picker_year_format, it) },
+                        enabledStates = yearEnabledStates, // [NEW] 년도 활성화 상태 전달
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -147,6 +200,7 @@ internal fun MonthPickerContent(
                         onValueChange = { selectedMonthIndex = it },
                         range = 0 until monthOptions.size,
                         displayValues = monthOptions.map { stringResource(R.string.month_picker_month_format, it) },
+                        enabledStates = monthEnabledStates, // [NEW] 월 활성화 상태 전달
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -164,12 +218,17 @@ internal fun MonthPickerContent(
             onClick = {
                 val year = yearOptions.getOrNull(selectedYearIndex)
                 val month = monthOptions.getOrNull(selectedMonthIndex)
-                if (year != null && month != null) {
+                // [NEW] 년도와 월이 모두 활성화되어 있을 때만 처리
+                val isYearEnabled = yearEnabledStates.getOrNull(selectedYearIndex) ?: false
+                val isMonthEnabled = monthEnabledStates.getOrNull(selectedMonthIndex) ?: false
+                if (year != null && month != null && isYearEnabled && isMonthEnabled) {
                     onMonthPicked(year, month)
                     onDismiss()
                 }
             },
-            enabled = canSelect,
+            enabled = canSelect &&
+                      (yearEnabledStates.getOrNull(selectedYearIndex) ?: false) &&
+                      (monthEnabledStates.getOrNull(selectedMonthIndex) ?: false), // [NEW] 둘 다 활성화되어야 버튼 활성화
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
@@ -230,6 +289,38 @@ private fun generateYearOptionsFromRecords(records: List<SobrietyRecord>): List<
     var y = startYear
     while (y <= nowYear) { years.add(y); y++ }
     return years
+}
+
+/**
+ * [NEW] 년도 옵션 및 활성화 상태를 함께 반환
+ * @return Pair<년도 리스트, 활성화 상태 리스트>
+ */
+private fun generateYearOptionsFromRecordsWithStates(records: List<SobrietyRecord>): Pair<List<Int>, List<Boolean>> {
+    if (records.isEmpty()) return Pair(emptyList(), emptyList())
+
+    val nowYear = Calendar.getInstance().get(Calendar.YEAR)
+    val startYear = records.minByOrNull { it.startTime }?.let {
+        Calendar.getInstance().apply { timeInMillis = it.startTime }.get(Calendar.YEAR)
+    } ?: nowYear
+
+    val years = mutableListOf<Int>()
+    var y = startYear
+    while (y <= nowYear) { years.add(y); y++ }
+
+    // [NEW] 각 년도에 기록이 있는지 확인
+    val yearsWithRecords = records.flatMap { record ->
+        val recordStartYear = Calendar.getInstance().apply {
+            timeInMillis = record.startTime
+        }.get(Calendar.YEAR)
+        val recordEndYear = Calendar.getInstance().apply {
+            timeInMillis = record.endTime
+        }.get(Calendar.YEAR)
+        (recordStartYear..recordEndYear).toList()
+    }.toSet()
+
+    val enabledStates = years.map { year -> year in yearsWithRecords }
+
+    return Pair(years, enabledStates)
 }
 
 @Preview(showBackground = true)

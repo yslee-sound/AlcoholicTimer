@@ -52,7 +52,7 @@ fun PeriodSelectionSection(
 
     // 초간단 디바운스: 너무 빠른 연속 탭 무시
     var lastClickAt by remember { mutableStateOf(0L) }
-    val debounceMs = 250L
+    val debounceMs = 150L // [FIX] 250ms -> 150ms로 단축하여 반응성 개선
 
     Column(modifier = modifier.fillMaxWidth()) {
         // 통합된 카드: 상단 기간 버튼 행 + 중앙 디바이더 + 하단 기간 선택 행
@@ -111,7 +111,10 @@ fun PeriodSelectionSection(
                             val now = SystemClock.elapsedRealtime()
                             if (now - lastClickAt >= debounceMs) {
                                 lastClickAt = now
+                                android.util.Log.d("PeriodSelection", "세부 기간 클릭: selectedPeriod=$selectedPeriod") // [NEW] 로그 추가
                                 onPeriodClick(selectedPeriod)
+                            } else {
+                                android.util.Log.d("PeriodSelection", "디바운스로 클릭 무시: ${now - lastClickAt}ms") // [NEW] 로그 추가
                             }
                         })
                         .padding(horizontal = horizontalPadding)

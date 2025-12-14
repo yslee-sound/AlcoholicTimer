@@ -65,13 +65,41 @@ internal fun YearPickerContent(
     initialYear: Int
 ) {
     val context = LocalContext.current
-    val yearOptions = remember(records) {
-        if (records.isEmpty()) emptyList() else run {
+
+    // [NEW] 초기화 로그
+    android.util.Log.d("YearPicker", "초기화: records.size=${records.size}, initialYear=$initialYear")
+
+    // [FIX] 모든 년도를 표시하되, 기록이 있는 년도와 없는 년도를 구분
+    val (yearOptions, enabledStates) = remember(records) {
+        if (records.isEmpty()) {
+            android.util.Log.d("YearPicker", "기록 없음")
+            Pair(emptyList(), emptyList())
+        } else {
             val nowYear = Calendar.getInstance().get(Calendar.YEAR)
             val startYear = records.minByOrNull { it.startTime }?.let {
                 Calendar.getInstance().apply { timeInMillis = it.startTime }.get(Calendar.YEAR)
             } ?: nowYear
-            (startYear..nowYear).toList()
+
+            // 시작 년도부터 현재 년도까지 모든 년도 생성
+            val allYears = (startYear..nowYear).toList()
+
+            // [NEW] 각 년도에 기록이 있는지 확인
+            val yearsWithRecords = records.flatMap { record ->
+                val recordStartYear = Calendar.getInstance().apply {
+                    timeInMillis = record.startTime
+                }.get(Calendar.YEAR)
+                val recordEndYear = Calendar.getInstance().apply {
+                    timeInMillis = record.endTime
+                }.get(Calendar.YEAR)
+                (recordStartYear..recordEndYear).toList()
+            }.toSet()
+
+            // [NEW] 활성화 상태 리스트 생성 (기록이 있는 년도만 true)
+            val enabled = allYears.map { year -> year in yearsWithRecords }
+
+            android.util.Log.d("YearPicker", "년도 범위: $startYear~$nowYear, 활성화: ${enabled.count { it }}개/${enabled.size}개")
+
+            Pair(allYears, enabled)
         }
     }
 
@@ -102,6 +130,7 @@ internal fun YearPickerContent(
                 onValueChange = { selectedIndex = it },
                 range = 0 until yearOptions.size,
                 displayValues = yearOptions.map { context.getString(R.string.year_picker_year_format, it) },
+                enabledStates = enabledStates, // [NEW] 비활성화 상태 전달
                 modifier = Modifier.width(160.dp)
             )
         } else {
@@ -116,12 +145,14 @@ internal fun YearPickerContent(
         Button(
             onClick = {
                 val year = yearOptions.getOrNull(selectedIndex)
-                if (year != null) {
+                // [NEW] 선택된 년도가 활성화되어 있을 때만 처리
+                val isEnabled = enabledStates.getOrNull(selectedIndex) ?: false
+                if (year != null && isEnabled) {
                     onYearPicked(year)
                     onDismiss()
                 }
             },
-            enabled = canSelect,
+            enabled = canSelect && (enabledStates.getOrNull(selectedIndex) ?: false), // [NEW] 비활성화된 년도는 버튼도 비활성화
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)

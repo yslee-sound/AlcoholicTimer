@@ -73,7 +73,8 @@ val RECORDS_LIST_BOTTOM_PADDING: Dp = 100.dp // [UPDATED] Increased from 15.dp t
 @Composable
 fun RecordsScreen(
     // [MOD] Stateless UI로 변경: 모든 데이터를 파라미터로 받음
-    records: List<SobrietyRecord> = emptyList(),
+    records: List<SobrietyRecord> = emptyList(), // 필터링된 기록
+    allRecords: List<SobrietyRecord> = records, // [NEW] 전체 기록 (선택기용)
     isLoading: Boolean = false,
     selectedPeriod: String,
     selectedDetailPeriod: String,
@@ -99,6 +100,11 @@ fun RecordsScreen(
 
     // [MOD] UI 전용 상태만 유지 (Bottom Sheet 표시 여부)
     var showBottomSheet by remember { mutableStateOf(false) }
+
+    // [NEW] 바텀시트 상태 변경 로깅
+    LaunchedEffect(showBottomSheet) {
+        Log.d("RecordsScreen", "showBottomSheet 상태 변경: $showBottomSheet, selectedPeriod=$selectedPeriod")
+    }
 
     // [MOD] 필터링 로직 제거 - 이미 필터링된 데이터를 파라미터로 받음
 
@@ -146,6 +152,7 @@ fun RecordsScreen(
                         PeriodSelectionSection(
                             selectedPeriod = selectedPeriod,
                             onPeriodSelected = { period: String ->
+                                Log.d("RecordsScreen", "onPeriodSelected 호출: $period") // [NEW] 로그 추가
                                 onPeriodSelected(period)
                                 // Analytics: 사용자 통계 뷰 변경 이벤트 전송
                                 try {
@@ -159,7 +166,10 @@ fun RecordsScreen(
                                     AnalyticsManager.logChangeRecordView(viewType, currentLevel)
                                 } catch (_: Throwable) {}
                             },
-                            onPeriodClick = { _ -> showBottomSheet = true },
+                            onPeriodClick = { clickedPeriod ->
+                                Log.d("RecordsScreen", "onPeriodClick 호출: $clickedPeriod, 바텀시트 열기") // [NEW] 로그 추가
+                                showBottomSheet = true
+                            },
                             selectedDetailPeriod = selectedDetailPeriod,
                             horizontalPadding = RECORDS_SCREEN_HORIZONTAL_PADDING
                         )
@@ -246,12 +256,18 @@ fun RecordsScreen(
 
     // 바텀 시트: 선택된 기간에 따라 각각 다른 피커를 보여줍니다.
     if (showBottomSheet) {
+        Log.d("RecordsScreen", "바텀시트 렌더링: selectedPeriod=$selectedPeriod, allRecords.size=${allRecords.size}") // [NEW] 로그 추가
         when (selectedPeriod) {
             periodWeek -> {
+                Log.d("RecordsScreen", "주 선택기 표시") // [NEW] 로그 추가
                 WeekPickerBottomSheet(
                     isVisible = true,
-                    onDismiss = { showBottomSheet = false },
+                    onDismiss = {
+                        Log.d("RecordsScreen", "주 선택기 닫기") // [NEW] 로그 추가
+                        showBottomSheet = false
+                    },
                     onWeekPicked = { weekStart, weekEnd, displayText ->
+                        Log.d("RecordsScreen", "주 선택 완료: $displayText") // [NEW] 로그 추가
                         onDetailPeriodSelected(displayText)
                         onWeekRangeSelected(weekStart to weekEnd)
                         showBottomSheet = false
@@ -259,33 +275,39 @@ fun RecordsScreen(
                 )
             }
             periodMonth -> {
+                Log.d("RecordsScreen", "월 선택기 표시") // [NEW] 로그 추가
                 MonthPickerBottomSheet(
                     isVisible = true,
-                    onDismiss = { showBottomSheet = false },
+                    onDismiss = {
+                        Log.d("RecordsScreen", "월 선택기 닫기") // [NEW] 로그 추가
+                        showBottomSheet = false
+                    },
                     onMonthPicked = { year, month ->
+                        Log.d("RecordsScreen", "월 선택 완료: $year-$month") // [NEW] 로그 추가
                         onDetailPeriodSelected(context.getString(R.string.date_format_year_month, year, month))
                         showBottomSheet = false
                     },
-                    records = records,
-                    onYearPicked = { year ->
-                        onPeriodSelected(periodYear)
-                        onDetailPeriodSelected(context.getString(R.string.date_format_year, year))
-                        showBottomSheet = false
-                    }
+                    records = allRecords // [FIX] 전체 기록 사용
+                    // [FIX] onYearPicked 제거: 월 선택기에서 년도 스크롤은 월 필터링용이지 기간 변경용이 아님
                 )
             }
             periodYear -> {
+                Log.d("RecordsScreen", "년 선택기 표시") // [NEW] 로그 추가
                 val initialYearForPicker = Regex("(\\d{4})").find(selectedDetailPeriod)?.groupValues?.getOrNull(1)?.toIntOrNull()
                     ?: Calendar.getInstance().get(Calendar.YEAR)
 
                 YearPickerBottomSheet(
                     isVisible = true,
-                    onDismiss = { showBottomSheet = false },
+                    onDismiss = {
+                        Log.d("RecordsScreen", "년 선택기 닫기") // [NEW] 로그 추가
+                        showBottomSheet = false
+                    },
                     onYearPicked = { year ->
+                        Log.d("RecordsScreen", "년 선택 완료: $year") // [NEW] 로그 추가
                         onDetailPeriodSelected(context.getString(R.string.date_format_year, year))
                         showBottomSheet = false
                     },
-                    records = records,
+                    records = allRecords, // [FIX] 전체 기록 사용
                     initialYear = initialYearForPicker
                 )
             }

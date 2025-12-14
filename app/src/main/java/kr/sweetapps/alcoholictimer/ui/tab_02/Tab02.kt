@@ -97,7 +97,8 @@ fun Tab02Screen(
     }
 
     RecordsScreen(
-        records = filteredRecords,
+        records = filteredRecords, // 필터링된 기록 (화면 표시용)
+        allRecords = records, // [NEW] 전체 기록 (선택기용)
         isLoading = isLoading,
         selectedPeriod = selectedPeriod,
         selectedDetailPeriod = selectedDetailPeriod,
