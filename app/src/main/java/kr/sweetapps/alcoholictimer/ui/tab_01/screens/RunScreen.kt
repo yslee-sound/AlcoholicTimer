@@ -307,7 +307,7 @@ fun RunScreenComposable(
                                 val valueText: String = when (currentIndicator) {
                                     0 -> String.format(Locale.getDefault(), "%.1f", elapsedDaysFloat)
                                     1 -> progressTimeTextHM
-                                    2 -> FormatUtils.formatMoney(context, savedMoney).replace(" ", "")
+                                    2 -> CurrencyManager.formatMoneyNoDecimals(savedMoney, context) // [FIX] 소수점 제거 (환율 변환 포함)
                                     3 -> FormatUtils.formatHoursValue(savedHours)
                                     else -> formattedLifeGain
                                 }

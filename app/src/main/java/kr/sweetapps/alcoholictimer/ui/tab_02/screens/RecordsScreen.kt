@@ -54,6 +54,7 @@ import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.util.utils.DateOverlapUtils
 import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue  // [NEW] 메인 UI 색상
 import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager  // [NEW] 동적 통화 표시
+import kr.sweetapps.alcoholictimer.ui.common.rememberUserSettingsState  // [NEW] 실시간 설정 감지
 
 val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 20.dp // 전체 화면 좌우 여백
 val RECORDS_SECTION_SPACING: Dp = 20.dp // [NEW] 섹션 간 통일 간격 (기간 선택 ↔ 월 통계 ↔ 최근 일기)
@@ -368,15 +369,18 @@ private fun PeriodStatisticsSection(
     val context = LocalContext.current
     val totalRecords = records.size
 
+    // [NEW] 실시간 설정 변경 감지 - 탭4에서 설정을 바꾸면 즉시 반영됨
+    val userSettings by rememberUserSettingsState(context)
+
     // [FIX] ViewModel에서 이미 계산된 통계 데이터를 사용
     val totalDays = statsData.totalDays
     val savedMoney = statsData.savedMoney
     val totalKcal = statsData.totalKcal
     val totalBottles = statsData.totalBottles
 
-    // [NEW] 포맷팅된 값
-    val savedMoneyText = remember(savedMoney) {
-        kr.sweetapps.alcoholictimer.util.utils.FormatUtils.formatMoney(context, savedMoney).replace(" ", "")
+    // [NEW] 환율 변환 포함 포맷팅 (CurrencyManager 사용)
+    val savedMoneyText = remember(savedMoney, userSettings.currencySymbol) {
+        CurrencyManager.formatMoneyNoDecimals(savedMoney, context)
     }
 
     val daysText = remember(totalDays) {
@@ -393,30 +397,8 @@ private fun PeriodStatisticsSection(
 
     // [NEW] 천 단위 콤마 포맷터
     val decimalFormat = java.text.DecimalFormat("#,###")
-    val savedMoneyFormatted = decimalFormat.format(savedMoney.toLong())
     val kcalFormatted = decimalFormat.format(totalKcal.toLong())
 
-    // [NEW] 동적 통화 코드 가져오기 (Currency Settings에 따라 변경됨)
-    val currencyCode = remember(context) {
-        mutableStateOf(CurrencyManager.getSelectedCurrency(context).code)
-    }
-
-    // [NEW] Currency Settings 변경 감지를 위한 재구성 트리거
-    val prefs = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
-    val currencyPrefListener = remember {
-        android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            if (key == "currency" || key == "currency_explicit") {
-                currencyCode.value = CurrencyManager.getSelectedCurrency(context).code
-            }
-        }
-    }
-
-    DisposableEffect(context) {
-        prefs.registerOnSharedPreferenceChangeListener(currencyPrefListener)
-        onDispose {
-            prefs.unregisterOnSharedPreferenceChangeListener(currencyPrefListener)
-        }
-    }
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -494,10 +476,10 @@ private fun PeriodStatisticsSection(
                         valueScale = statsScale
                     )
 
-                    // [NEW] 우측: 지켜낸 돈 - 밝은 네온 민트색 (돈/수익 상징)
+                    // [NEW] 중앙: 지켜낸 돈 - 밝은 네온 민트 (재정적 성취 상징)
                     StatisticItem(
                         title = stringResource(R.string.stats_money_saved),
-                        value = "$savedMoneyFormatted ${currencyCode.value}",  // [FIX] 동적 통화 코드 사용
+                        value = savedMoneyText,  // [FIX] CurrencyManager 기반 환율 변환 적용 (통화 기호 포함)
                         color = MaterialTheme.colorScheme.error,
                         valueColor = Color(0xFF69F0AE), // 밝은 네온 민트
                         modifier = Modifier
