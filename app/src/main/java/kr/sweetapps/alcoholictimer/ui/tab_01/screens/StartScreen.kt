@@ -186,7 +186,7 @@ fun StartScreen(
             screenBackground = Color.Transparent, // 루트 Box의 BackgroundCream 사용
             topPadding = START_TITLE_TOP_MARGIN,
             horizontalPadding = 0.dp, // 콘텐츠별로 개별 패딩 적용
-            imePaddingEnabled = true, // 키보드 대응
+            imePaddingEnabled = false, // [FIX] 키보드가 올라와도 버튼이 밀려 올라가지 않도록 비활성화
             topContent = {
                 // 1. 로고 + 뱃지
                 AppBrandTitleBar(

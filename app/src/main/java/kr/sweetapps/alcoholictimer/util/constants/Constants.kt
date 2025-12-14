@@ -88,14 +88,10 @@ object Constants {
     }
 
     const val TEST_MODE_REAL = 0
-    const val TEST_MODE_MINUTE = 1
-    const val TEST_MODE_SECOND = 2
 
     var currentTestMode = TEST_MODE_REAL
 
-    val isTestMode: Boolean get() = currentTestMode != TEST_MODE_REAL
-    val isSecondTestMode: Boolean get() = currentTestMode == TEST_MODE_SECOND
-    val isMinuteTestMode: Boolean get() = currentTestMode == TEST_MODE_MINUTE
+
 
     const val DAY_IN_MILLIS = 1000L * 60 * 60 * 24
     const val MINUTE_IN_MILLIS = 1000L * 60
