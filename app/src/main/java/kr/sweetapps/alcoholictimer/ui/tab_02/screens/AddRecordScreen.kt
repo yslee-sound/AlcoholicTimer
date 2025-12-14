@@ -452,3 +452,20 @@ fun AddRecordScreenComposable(
         }
     }
 }
+
+// [NEW] 프리뷰: 기록 추가 화면
+@androidx.compose.ui.tooling.preview.Preview(
+    name = "기록 추가 화면",
+    showBackground = true,
+    showSystemUi = true
+)
+@Composable
+fun AddRecordScreenPreview() {
+    MaterialTheme {
+        AddRecordScreenComposable(
+            onFinished = {},
+            onCancel = {}
+        )
+    }
+}
+
