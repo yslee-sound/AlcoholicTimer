@@ -164,6 +164,11 @@
     <string name="stats_unit_won">원</string>
     <string name="stats_unit_days">d</string>
 
+    <!-- [NEW] 짧은 통계 레이블 (아이콘과 함께 사용, 텍스트 잘림 방지) -->
+    <string name="stats_label_calories_short">컷</string>
+    <string name="stats_label_drinks_short">절주</string>
+    <string name="stats_label_money_short">저축</string>
+
     <!-- Diary Section (일기 섹션) -->
     <string name="diary_recent_title">최근 금주 일기</string>
     <string name="diary_view_all">전체 일기 보기</string>

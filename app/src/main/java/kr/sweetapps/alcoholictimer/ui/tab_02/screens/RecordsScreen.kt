@@ -10,6 +10,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons  // [NEW] Material Icons
+import androidx.compose.material.icons.filled.DirectionsRun  // [NEW] 칼로리/운동 아이콘
+import androidx.compose.material.icons.filled.LocalBar  // [NEW] 술 아이콘
+import androidx.compose.material.icons.filled.Savings  // [NEW] 저축 아이콘
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -472,41 +476,47 @@ private fun PeriodStatisticsSection(
                 ) {
                     val statsScale = 1.3f
 
-                    // [NEW] 좌측: 줄인 칼로리 - 밝은 살구색/오렌지 (칼로리 연소 상징)
+                    // [NEW] 좌측: 줄인 칼로리 → 컷 (DirectionsRun 아이콘) - 밝은 살구색/오렌지
                     StatisticItem(
-                        title = stringResource(R.string.stats_calories_reduced),
+                        title = stringResource(R.string.stats_label_calories_short),  // [NEW] "컷" (짧은 레이블)
                         value = "$kcalFormatted ${stringResource(R.string.stats_unit_kcal)}",
                         color = MaterialTheme.colorScheme.tertiary,
                         valueColor = Color(0xFFFFAB91), // 밝은 살구색
+                        icon = Icons.Default.DirectionsRun,  // [NEW] 운동/칼로리 아이콘
+                        iconTint = Color.White,  // [NEW] 하얀색 (아이콘 색상)
                         modifier = Modifier
                             .weight(1f)
-                            .fillMaxHeight(), // [FIX] 부모 높이 가득 채우기
+                            .fillMaxHeight(),
                         titleScale = statsScale,
                         valueScale = statsScale
                     )
 
-                    // [NEW] 중앙: 참아낸 술 - 밝은 시안/하늘색 (청량감/액체 상징)
+                    // [NEW] 중앙: 참아낸 술 → 절주 (LocalBar 아이콘) - 밝은 시안/하늘색
                     StatisticItem(
-                        title = stringResource(R.string.stats_drinks_resisted),
+                        title = stringResource(R.string.stats_label_drinks_short),  // [NEW] "절주" (짧은 레이블)
                         value = "$bottlesText ${stringResource(R.string.stats_unit_bottles)}",
                         color = MaterialTheme.colorScheme.primary,
                         valueColor = Color(0xFF80DEEA), // 밝은 시안
+                        icon = Icons.Default.LocalBar,  // [NEW] 술 아이콘
+                        iconTint = Color.White,  // [NEW] 하얀색 (아이콘 색상)
                         modifier = Modifier
                             .weight(1f)
-                            .fillMaxHeight(), // [FIX] 부모 높이 가득 채우기
+                            .fillMaxHeight(),
                         titleScale = statsScale,
                         valueScale = statsScale
                     )
 
-                    // [NEW] 중앙: 지켜낸 돈 - 밝은 네온 민트 (재정적 성취 상징)
+                    // [NEW] 우측: 지켜낸 돈 → 저축 (Savings 아이콘) - 밝은 네온 민트
                     StatisticItem(
-                        title = stringResource(R.string.stats_money_saved),
+                        title = stringResource(R.string.stats_label_money_short),  // [NEW] "저축" (짧은 레이블)
                         value = savedMoneyText,  // [FIX] CurrencyManager 기반 환율 변환 적용 (통화 기호 포함)
                         color = MaterialTheme.colorScheme.error,
                         valueColor = Color(0xFF69F0AE), // 밝은 네온 민트
+                        icon = Icons.Default.Savings,  // [NEW] 저축/돼지저금통 아이콘
+                        iconTint = Color.White,  // [NEW] 하얀색 (아이콘 색상)
                         modifier = Modifier
                             .weight(1f)
-                            .fillMaxHeight(), // [FIX] 부모 높이 가득 채우기
+                            .fillMaxHeight(),
                         titleScale = statsScale,
                         valueScale = statsScale
                     )
@@ -627,7 +637,9 @@ private fun StatisticItem(
     modifier: Modifier = Modifier,
     titleScale: Float = 1.0f,
     valueScale: Float = 1.0f,
-    valueColor: Color = Color.White // [NEW] 숫자 색상 커스터마이징 파라미터
+    valueColor: Color = Color.White, // [기존] 숫자 색상 커스터마이징 파라미터
+    icon: androidx.compose.ui.graphics.vector.ImageVector? = null,  // [NEW] 아이콘 파라미터
+    iconTint: Color = Color.White  // [NEW] 아이콘 색상
 ) {
     Surface(
         modifier = modifier, // [FIX] 부모가 정한 크기(weight + fillMaxHeight) 사용
@@ -722,28 +734,44 @@ private fun StatisticItem(
             // [FIX] 고정 간격
             Spacer(modifier = Modifier.height(4.dp))
 
-            // [FIX] 3단계: 제목 영역 - 11sp + letterSpacing -0.5sp (6글자 잘림 방지)
+            // [NEW] 3단계: [아이콘 + 제목] 영역 - 왼쪽 정렬
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(40.dp),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.CenterStart  // [NEW] 왼쪽 정렬로 변경
             ) {
-                Text(
-                    text = title,
-                    fontSize = 11.sp, // [FIX] 12sp → 11sp (6글자 수용)
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    softWrap = false,
-                    overflow = TextOverflow.Visible,
-                    letterSpacing = (-0.5).sp, // [FIX] 자간 좁힘 (공간 확보)
-                    style = TextStyle(
-                        platformStyle = PlatformTextStyle(includeFontPadding = false)
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Row(
+                    horizontalArrangement = Arrangement.Start,  // [NEW] 왼쪽 정렬
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(start = 4.dp)  // [NEW] 왼쪽 여백 추가
+                ) {
+                    // [NEW] 아이콘이 있으면 표시
+                    if (icon != null) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = iconTint,
+                            modifier = Modifier.size(24.dp)  // [NEW] 아이콘 크기
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))  // [NEW] 아이콘과 텍스트 사이 간격
+                    }
+                    // 제목 텍스트
+                    Text(
+                        text = title,
+                        fontSize = 11.sp, // [FIX] 12sp → 11sp (6글자 수용)
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        textAlign = TextAlign.Start,  // [NEW] 왼쪽 정렬
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Visible,
+                        letterSpacing = (-0.5).sp, // [FIX] 자간 좁힘 (공간 확보)
+                        style = TextStyle(
+                            platformStyle = PlatformTextStyle(includeFontPadding = false)
+                        )
+                    )
+                }
             }
         }
     }

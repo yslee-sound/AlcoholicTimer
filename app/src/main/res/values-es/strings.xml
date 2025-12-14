@@ -176,6 +176,11 @@
     <string name="stats_unit_won">€</string>
     <string name="stats_unit_days">d</string>
 
+    <!-- [NEW] Etiquetas de estadísticas cortas (con iconos, previene truncamiento de texto) -->
+    <string name="stats_label_calories_short">Reducidas</string>
+    <string name="stats_label_drinks_short">Resistidas</string>
+    <string name="stats_label_money_short">Ahorrado</string>
+
     <!-- Diary Section (sección de diario) -->
     <string name="diary_recent_title">Diario Reciente de Sobriedad</string>
     <string name="diary_view_all">Ver Todos los Diarios</string>

@@ -177,6 +177,11 @@
     <string name="stats_unit_won">元</string>
     <string name="stats_unit_days">d</string>
 
+    <!-- [NEW] 短统计标签 (配合图标使用，防止文本截断) -->
+    <string name="stats_label_calories_short">减少</string>
+    <string name="stats_label_drinks_short">忍住</string>
+    <string name="stats_label_money_short">节省</string>
+
     <!-- Diary Section (日记部分) -->
     <string name="diary_recent_title">最近的戒酒日记</string>
     <string name="diary_view_all">查看所有日记</string>

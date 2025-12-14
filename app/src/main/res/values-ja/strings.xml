@@ -182,6 +182,11 @@
     <string name="stats_unit_won">円</string>
     <string name="stats_unit_days">d</string>
 
+    <!-- [NEW] 短い統計ラベル (アイコンと一緒に使用、テキスト切り捨て防止) -->
+    <string name="stats_label_calories_short">カット</string>
+    <string name="stats_label_drinks_short">減酒</string>
+    <string name="stats_label_money_short">貯金</string>
+
     <!-- Diary Section (日記セクション) -->
     <string name="diary_recent_title">最近の禁酒日記</string>
     <string name="diary_view_all">全ての日記を見る</string>

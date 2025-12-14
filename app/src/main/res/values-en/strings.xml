@@ -160,6 +160,11 @@
     <string name="stats_unit_won">KRW</string>
     <string name="stats_unit_days">d</string>
 
+    <!-- [NEW] Short Statistics Labels (with icons, prevents text truncation) -->
+    <string name="stats_label_calories_short">Cut</string>
+    <string name="stats_label_drinks_short">Passed</string>
+    <string name="stats_label_money_short">Saved</string>
+
     <!-- Diary Section -->
     <string name="diary_recent_title">Recent Sobriety Diary</string>
     <string name="diary_view_all">View All Entries</string>
