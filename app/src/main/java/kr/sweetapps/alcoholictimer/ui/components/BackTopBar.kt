@@ -39,7 +39,7 @@ fun BackTopBar(
             .fillMaxWidth()
             .windowInsetsPadding(WindowInsets.statusBars)
             .height(56.dp)
-            .background(MaterialTheme.colorScheme.surface)
+            .background(Color.White) // [NEW] 탑바 배경을 순수 흰색으로 고정해 핑크 톤 제거
     ) {
         // [FIX] 구글 기본 ArrowBack 아이콘으로 변경
         IconButton(
