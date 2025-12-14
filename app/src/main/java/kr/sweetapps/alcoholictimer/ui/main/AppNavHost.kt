@@ -51,6 +51,7 @@ import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab01Graph
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab02Graph
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab03Graph
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab04Graph
+import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab05Graph
 import kr.sweetapps.alcoholictimer.ui.tab_05.AboutScreen
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab03Graph
 import kr.sweetapps.alcoholictimer.ui.tab_05.AboutScreen
@@ -346,64 +347,8 @@ fun AppNavHost(
         // [Refactored] Tab 04: 습관 관리 화면
         addTab04Graph(navController)
 
-        composable(Screen.About.route) {
-            AboutScreen(
-                onNavigateLicenses = { navController.navigate(Screen.AboutLicenses.route) },
-                onNavigatePrivacy = { navController.navigate(Screen.Privacy.route) },
-                onNavigateEditNickname = { navController.navigate(Screen.NicknameEdit.route) },
-                onNavigateCurrencySettings = { navController.navigate(Screen.CurrencySettings.route) },
-                onNavigateDebug = { navController.navigate(Screen.Debug.route) },
-                onNavigateNotification = { navController.navigate(Screen.Notification.route) },
-                onNavigateCustomer = { navController.navigate("customer") },
-                showBack = false
-            )
-        }
-
-        composable(Screen.AboutLicenses.route) {
-            DocumentScreen(
-                resName = "open_source_license",
-                onBack = { navController.popBackStack() },
-                titleResId = R.string.document_title_open_source
-            )
-        }
-
-        composable(Screen.Privacy.route) {
-            DocumentScreen(
-                resName = "privacy_policy_bilingual",
-                onBack = { navController.popBackStack() },
-                titleResId = R.string.document_title_privacy
-            )
-        }
-
-        composable(Screen.NicknameEdit.route) {
-            NicknameEditScreen(
-                onDone = { navController.popBackStack() },
-                onCancel = { navController.popBackStack() }
-            )
-        }
-
-        composable(Screen.CurrencySettings.route) {
-            CurrencyScreen(onBack = { navController.popBackStack() })
-        }
-
-
-        composable(Screen.Debug.route) {
-            DebugScreen(onBack = { navController.popBackStack() })
-        }
-
-        composable(Screen.Notification.route) {
-            kr.sweetapps.alcoholictimer.ui.tab_05.screens.NotificationListScreen(
-                onBack = { navController.popBackStack() }
-            )
-        }
-
-
-        // Customer Screen
-        composable("customer") {
-            kr.sweetapps.alcoholictimer.ui.tab_05.screens.CustomerScreen(
-                onBack = { navController.popBackStack() }
-            )
-        }
+        // [Refactored] Tab 05: 설정 & About 화면
+        addTab05Graph(navController)
     }
 }
 
