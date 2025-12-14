@@ -10,9 +10,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
-import androidx.compose.material.icons.Icons  // [NEW] Material Icons
-import androidx.compose.material.icons.filled.LocalBar  // [NEW] 술 아이콘
-import androidx.compose.material.icons.filled.Savings  // [NEW] 저축 아이콘
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -490,13 +487,13 @@ private fun PeriodStatisticsSection(
                         valueScale = statsScale
                     )
 
-                    // [NEW] 중앙: 참아낸 술 → 절주 (LocalBar 아이콘) - 밝은 시안/하늘색
+                    // [NEW] 중앙: 참아낸 술 → 절주 (wine 아이콘) - 밝은 시안/하늘색
                     StatisticItem(
                         title = stringResource(R.string.stats_label_drinks_short),  // [NEW] "절주" (짧은 레이블)
                         value = "$bottlesText ${stringResource(R.string.stats_unit_bottles)}",
                         color = MaterialTheme.colorScheme.primary,
                         valueColor = Color(0xFF80DEEA), // 밝은 시안
-                        icon = Icons.Default.LocalBar,  // [NEW] 술 아이콘
+                        icon = R.drawable.wine,  // [NEW] 커스텀 drawable 아이콘
                         iconTint = Color.White,  // [NEW] 하얀색 (아이콘 색상)
                         modifier = Modifier
                             .weight(1f)
@@ -505,13 +502,13 @@ private fun PeriodStatisticsSection(
                         valueScale = statsScale
                     )
 
-                    // [NEW] 우측: 지켜낸 돈 → 저축 (Savings 아이콘) - 밝은 네온 민트
+                    // [NEW] 우측: 지켜낸 돈 → 저축 (piggybank 아이콘) - 밝은 네온 민트
                     StatisticItem(
                         title = stringResource(R.string.stats_label_money_short),  // [NEW] "저축" (짧은 레이블)
                         value = savedMoneyText,  // [FIX] CurrencyManager 기반 환율 변환 적용 (통화 기호 포함)
                         color = MaterialTheme.colorScheme.error,
                         valueColor = Color(0xFF69F0AE), // 밝은 네온 민트
-                        icon = Icons.Default.Savings,  // [NEW] 저축/돼지저금통 아이콘
+                        icon = R.drawable.piggybank,  // [NEW] 커스텀 drawable 아이콘
                         iconTint = Color.White,  // [NEW] 하얀색 (아이콘 색상)
                         modifier = Modifier
                             .weight(1f)
@@ -742,8 +739,8 @@ private fun StatisticItem(
             ) {
                 Row(
                     horizontalArrangement = Arrangement.Start,  // [NEW] 왼쪽 정렬
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(start = 4.dp)  // [NEW] 왼쪽 여백 추가
+                    verticalAlignment = Alignment.CenterVertically
+                    // [FIX] padding 제거하여 완전히 왼쪽으로 이동
                 ) {
                     // [NEW] 아이콘이 있으면 표시
                     if (icon != null) {
@@ -754,7 +751,7 @@ private fun StatisticItem(
                                     imageVector = icon,
                                     contentDescription = null,
                                     tint = iconTint,
-                                    modifier = Modifier.size(18.dp)
+                                    modifier = Modifier.size(30.dp)  // [FIX] 아이콘 크기 30.dp로 통일
                                 )
                             }
                             is Int -> {
@@ -763,7 +760,7 @@ private fun StatisticItem(
                                     painter = painterResource(id = icon),
                                     contentDescription = null,
                                     tint = iconTint,
-                                    modifier = Modifier.size(18.dp)
+                                    modifier = Modifier.size(30.dp)  // [FIX] 아이콘 크기 30.dp로 통일
                                 )
                             }
                         }
