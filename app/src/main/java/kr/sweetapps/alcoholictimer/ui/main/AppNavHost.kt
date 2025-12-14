@@ -19,7 +19,8 @@ import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import kr.sweetapps.alcoholictimer.ui.ad.HomeAdTrigger
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab01Graph
-import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab02Graph
+import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab02ListGraph
+import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab02DetailGraph
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab03Graph
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab04Graph
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab05Graph
@@ -69,12 +70,15 @@ fun AppNavHost(
         // [Refactored] Tab 01: 금주 타이머 관련 화면 (Start, Run, Quit)
         addTab01Graph(navController, activity, context, firebaseAnalytics)
 
-        // [Refactored] Tab 02: 기록 관련 화면 (Records, Detail, Result, Diary 등)
-        addTab02Graph(navController, activity, context, recordsRefreshCounter) {
+        // [Refactored] Tab 02 - 목록: 기록 목록 (탭 내부)
+        addTab02ListGraph(navController, activity)
+
+        // [Refactored] Tab 02 - 상세: 기록 상세/입력 화면들 (Root 레벨)
+        addTab02DetailGraph(navController, activity, context) {
             recordsRefreshCounter++
         }
 
-        // 타이머 성공 화면 (목표 달성)
+        // [Refactored] Tab 03: 레벨 화면
         composable(Screen.Success.route) {
             kr.sweetapps.alcoholictimer.ui.tab_01.screens.FinishedSuccessScreen(
                 onBack = {
