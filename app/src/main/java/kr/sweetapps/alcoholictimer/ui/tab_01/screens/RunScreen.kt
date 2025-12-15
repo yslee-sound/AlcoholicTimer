@@ -491,27 +491,10 @@ fun RunScreenComposable(
                             }
                         }
 
-                        // [NEW] 응원 문구 (프로그레스 카드 바깥쪽 하단) - AutoResize 적용
-                        val motivationalQuote = rememberSaveable {
-                            kr.sweetapps.alcoholictimer.data.model.MotivationalQuotes.getRandomQuote(context)
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 15.dp, bottom = 24.dp)
-                                .padding(horizontal = 20.dp)
-                        ) {
-                            AutoResizeMultiLineText(
-                                text = "\" $motivationalQuote \"",
-                                baseStyle = kr.sweetapps.alcoholictimer.ui.tab_01.components.QuoteTextStyle.default,
-                                maxLines = 2,
-                                minFontSizeSp = 9f, // [FIX] 10f → 9f (더 공격적 축소)
-                                step = 0.92f, // [FIX] 0.95f → 0.92f (빠른 축소)
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
+                        // [NEW] 공통 컴포넌트 사용 (StartScreen과 동일한 디자인 & 2줄 제한 로직 적용)
+                        kr.sweetapps.alcoholictimer.ui.tab_01.components.QuoteDisplay(
+                            modifier = Modifier.padding(bottom = 12.dp) // 하단 여백만 살짝 조정
+                        )
                     }
                 }
             },
@@ -590,98 +573,6 @@ private fun ModernStopButtonSimple(onStop: () -> Unit, modifier: Modifier = Modi
             contentDescription = stringResource(id = R.string.cd_stop),
             tint = Color.White,
             modifier = Modifier.requiredSize(iconSize)
-        )
-    }
-}
-
-@Composable
-@Suppress("UNUSED_VALUE")
-private fun AutoResizeSingleLineText(
-    text: String,
-    baseStyle: TextStyle,
-    modifier: Modifier = Modifier,
-    minFontSizeSp: Float = 10f,
-    step: Float = 0.95f,
-    color: Color? = null,
-    textAlign: TextAlign? = null,
-) {
-    var style by remember(text) { mutableStateOf(baseStyle) }
-    var tried by remember(text) { mutableStateOf(0) }
-    Text(
-        text = text,
-        style = style,
-        color = color ?: style.color,
-        textAlign = textAlign,
-        maxLines = 1,
-        softWrap = false,
-        overflow = TextOverflow.Visible, // [FIX] Clip → Visible (말줄임표 완전 차단)
-        modifier = modifier,
-        onTextLayout = { result ->
-            if (result.hasVisualOverflow && tried < 20) {
-                val current = style.fontSize.value
-                val next = (current * step).coerceAtLeast(minFontSizeSp)
-                if (next < current - 0.1f) {
-                    style = style.copy(fontSize = next.sp, lineHeight = (next.sp * 1.1f))
-                    tried++
-                }
-            }
-        }
-    )
-}
-
-@Composable
-@Suppress("UNUSED_VALUE")
-private fun AutoResizeMultiLineText(
-    text: String,
-    baseStyle: TextStyle,
-    maxLines: Int = 2,
-    modifier: Modifier = Modifier,
-    minFontSizeSp: Float = 10f,
-    step: Float = 0.95f,
-    textAlign: TextAlign? = null,
-) {
-    // [REFACTORED] TextMeasurer 기반 사전 계산 방식으로 완전히 재작성
-    BoxWithConstraints(modifier = modifier) {
-        val textMeasurer = rememberTextMeasurer()
-        val density = LocalDensity.current
-        val containerWidth = with(density) { maxWidth.toPx() }
-
-        // [핵심] 렌더링 전 사전 계산 (Pre-calculation)
-        val resultStyle = remember(text, containerWidth, baseStyle, maxLines) {
-            var currentSize = baseStyle.fontSize.value
-            var bestStyle = baseStyle
-
-            // 폰트 크기를 줄여가며 maxLines 안에 들어가는지 확인
-            while (currentSize >= minFontSizeSp) {
-                val proposedStyle = baseStyle.copy(
-                    fontSize = currentSize.sp,
-                    lineHeight = (currentSize * 1.35f).sp // 줄간격 확보
-                )
-
-                val result = textMeasurer.measure(
-                    text = androidx.compose.ui.text.AnnotatedString(text),
-                    style = proposedStyle,
-                    constraints = androidx.compose.ui.unit.Constraints(maxWidth = containerWidth.toInt())
-                )
-
-                // maxLines 이하이고 가로로 넘치지 않으면 채택
-                if (result.lineCount <= maxLines && !result.hasVisualOverflow) {
-                    bestStyle = proposedStyle
-                    break
-                }
-
-                currentSize -= 1f // 1sp씩 감소시키며 탐색
-            }
-            bestStyle.copy(fontSize = currentSize.coerceAtLeast(minFontSizeSp).sp)
-        }
-
-        Text(
-            text = text,
-            style = resultStyle,
-            textAlign = textAlign,
-            maxLines = maxLines,
-            overflow = TextOverflow.Ellipsis, // 넘치면 ... 처리 (안전장치)
-            modifier = Modifier.fillMaxWidth()
         )
     }
 }
