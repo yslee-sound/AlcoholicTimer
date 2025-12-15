@@ -36,6 +36,7 @@ import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -463,17 +464,18 @@ fun DetailStatCard(
 ) {
     AppCard(
         modifier = modifier,
-        elevation = 0.dp,  // [FIX] 엘리베이션 0으로 변경
-        containerColor = Color(0xFFF3F4F6),  // [FIX] 회색 배경 (F3F4F6)
-        border = null,  // [FIX] 테두리 제거 (회색 줄 제거)
+        elevation = 0.dp,
+        containerColor = Color(0xFFF3F4F6),
+        border = null,
         contentPadding = androidx.compose.foundation.layout.PaddingValues(
-            horizontal = 16.dp,
-            vertical = 12.dp  // [FIX] 상하 패딩 줄임 (기존 16dp -> 12dp)
+            horizontal = 12.dp, // [Space] 좌우 패딩을 16->12로 줄여서 텍스트 공간 더 확보
+            vertical = 12.dp
         )
     ) {
-        // 정렬 변경: 카드 내부를 가로 전체로 채우는 Column으로 감싸고 우측 정렬 설정
         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
             val resolvedValueColor = if (valueColor != Color.Unspecified) valueColor else MaterialTheme.colorScheme.onSurface
+
+            // 1. 값 (Value) 표시
             Text(
                 text = value,
                 color = resolvedValueColor,
@@ -482,12 +484,16 @@ fun DetailStatCard(
                 textAlign = TextAlign.End,
                 modifier = Modifier.fillMaxWidth()
             )
+
             Spacer(modifier = Modifier.height(4.dp))
-            Text(
+
+            // 2. 라벨 (Label) 표시 - [FIX] AutoResizingText 적용
+            AutoResizingText(
                 text = label,
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
                 color = Color(0xFF718096),
-                textAlign = TextAlign.End,
+                textAlign = TextAlign.End, // 우측 정렬 유지
+                maxLines = 1,              // 무조건 한 줄 유지
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -517,3 +523,47 @@ fun DetailScreenPreview() {
     }
 }
 
+// [NEW] 텍스트가 공간을 넘치면 자동으로 폰트 크기를 줄여주는 유틸리티
+@Composable
+fun AutoResizingText(
+    text: String,
+    style: androidx.compose.ui.text.TextStyle,
+    modifier: Modifier = Modifier,
+    color: Color = Color.Unspecified,
+    textAlign: TextAlign = TextAlign.Start,
+    maxLines: Int = 1
+) {
+    var resizedTextStyle by remember { mutableStateOf(style) }
+    var shouldDraw by remember { mutableStateOf(false) }
+
+    val defaultFontSize = style.fontSize
+
+    Text(
+        text = text,
+        color = color,
+        modifier = modifier.drawWithContent {
+            if (shouldDraw) {
+                drawContent()
+            }
+        },
+        softWrap = false,
+        style = resizedTextStyle,
+        textAlign = textAlign,
+        onTextLayout = { result ->
+            // 텍스트가 영역을 넘치거나(didOverflowWidth), 라인을 넘어가면(didOverflowHeight)
+            // 폰트 크기를 0.95배씩 줄여서 다시 시도
+            if (result.didOverflowWidth || result.didOverflowHeight) {
+                val newSize = resizedTextStyle.fontSize * 0.95f
+                // 최소 10sp까지만 축소 허용 (너무 작아지면 가독성 해치므로 제한)
+                if (newSize >= 10.sp) {
+                    resizedTextStyle = resizedTextStyle.copy(fontSize = newSize)
+                } else {
+                    shouldDraw = true // 더 줄일 수 없으면 그냥 그림
+                }
+            } else {
+                shouldDraw = true
+            }
+        },
+        maxLines = maxLines
+    )
+}

@@ -305,12 +305,16 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * [NEW] 초기 기간 설정 (화면 진입 시 한 번만 호출)
+     * [FIXED] 초기 기간 설정 (전략적 UX 적용)
+     * - 앱 최초 실행 시: defaultFilter(All)로 설정
+     * - 탭 이동 후 복귀 시: 기존 선택값 유지 (if empty 체크 덕분)
      */
-    fun initializePeriod(periodMonth: String, initialDateText: String) {
+    fun initializePeriod(defaultFilter: String) {
+        // [핵심] 값이 비어있을 때만(최초 실행 시) 초기화합니다.
+        // 이미 사용자가 'Month'나 'Week'를 선택했다면, 이 조건문이 false가 되어 무시됩니다.
         if (_selectedPeriod.value.isEmpty()) {
-            _selectedPeriod.value = periodMonth
-            _selectedDetailPeriod.value = initialDateText
+            _selectedPeriod.value = defaultFilter
+            _selectedDetailPeriod.value = "" // 'All'은 세부 기간 텍스트가 필요 없음
         }
     }
 

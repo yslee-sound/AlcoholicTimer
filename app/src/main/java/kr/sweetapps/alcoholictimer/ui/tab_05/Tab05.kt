@@ -51,6 +51,12 @@ import kr.sweetapps.alcoholictimer.ui.tab_04.SimpleAboutRow
 import kr.sweetapps.alcoholictimer.ui.tab_05.components.CustomerFeedbackBottomSheet
 import kr.sweetapps.alcoholictimer.ui.tab_05.viewmodel.Tab05ViewModel
 import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue  // [NEW] 메인 UI 색상
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 
 private fun ContextToActivity(context: android.content.Context): Activity? {
     var ctx: android.content.Context? = context
@@ -255,7 +261,7 @@ fun AboutScreen(
                 .padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            // 알림
+            // 1. 알림 (Notifications)
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -270,15 +276,17 @@ fun AboutScreen(
                     modifier = Modifier.size(32.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(
+
+                // [FIX] fontSize를 12.sp로 변경 (다른 버튼들과 통일)
+                AutoResizingTextLabel(
                     text = stringResource(R.string.tab05_notifications),
-                    fontSize = 14.sp,
+                    fontSize = 12.sp, // ★ 여기를 12.sp로 수정
                     color = Color.Black,
-                    fontWeight = FontWeight.Normal
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
-            // 고객 문의/제안
+            // 2. 고객 문의 (Support)
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -293,15 +301,17 @@ fun AboutScreen(
                     modifier = Modifier.size(32.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(
+
+                // [FIX] fontSize를 12.sp로 변경 (Notifications와 키 맞춤)
+                AutoResizingTextLabel(
                     text = stringResource(R.string.tab05_customer_support),
-                    fontSize = 14.sp,
+                    fontSize = 12.sp, // ★ 여기를 12.sp로 수정
                     color = Color.Black,
-                    fontWeight = FontWeight.Normal
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
-            // 추천앱 (비활성화)
+            // 3. 추천앱 (Apps)
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -311,15 +321,17 @@ fun AboutScreen(
                 Icon(
                     painter = painterResource(id = R.drawable.thumbsup),
                     contentDescription = null,
-                    tint = Color(0xFFBDBDBD), // 비활성화 회색
+                    tint = Color(0xFFBDBDBD),
                     modifier = Modifier.size(32.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(
+
+                // [FIX] fontSize를 12.sp로 변경 (Notifications와 키 맞춤)
+                AutoResizingTextLabel(
                     text = stringResource(R.string.tab05_recommended_apps),
-                    fontSize = 14.sp,
-                    color = Color(0xFFBDBDBD), // 비활성화 회색
-                    fontWeight = FontWeight.Normal
+                    fontSize = 12.sp, // ★ 여기를 12.sp로 수정
+                    color = Color(0xFFBDBDBD),
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
@@ -416,5 +428,58 @@ fun AboutScreenPreview() {
         onNavigateDebug = {},
         onNavigateNotification = {},
         onNavigateCustomer = {}
+    )
+}
+
+// [NEW] 텍스트가 길면 자동으로 폰트 크기를 줄여주는 유틸리티 (Tab05 전용)
+// 수정 사항: 패키지명을 제거하고 import를 사용하도록 변경 (에러 해결)
+@Composable
+private fun AutoResizingTextLabel(
+    text: String,
+    fontSize: TextUnit,
+    color: Color,
+    modifier: Modifier = Modifier,
+    fontWeight: FontWeight = FontWeight.Normal
+) {
+    // 1. 상태 저장 (remember + mutableStateOf 사용, 'by' 없이 직접 할당)
+    val resizedTextStyle = remember {
+        mutableStateOf(
+            TextStyle(
+                fontSize = fontSize,
+                fontWeight = fontWeight,
+                color = color,
+                textAlign = TextAlign.Center
+            )
+        )
+    }
+
+    // 2. 그리기 여부 상태
+    val shouldDraw = remember { mutableStateOf(false) }
+
+    Text(
+        text = text,
+        // [FIX] 여기가 에러 원인이었습니다. modifier.drawWithContent로 수정
+        modifier = modifier.drawWithContent {
+            if (shouldDraw.value) {
+                drawContent()
+            }
+        },
+        softWrap = false,
+        style = resizedTextStyle.value, // .value로 접근
+        maxLines = 1,
+        onTextLayout = { result ->
+            if (result.didOverflowWidth) {
+                val currentStyle = resizedTextStyle.value
+                val newSize = currentStyle.fontSize * 0.9f
+
+                if (newSize >= 9.sp) { // 최소 9sp까지만 축소
+                    resizedTextStyle.value = currentStyle.copy(fontSize = newSize)
+                } else {
+                    shouldDraw.value = true
+                }
+            } else {
+                shouldDraw.value = true
+            }
+        }
     )
 }

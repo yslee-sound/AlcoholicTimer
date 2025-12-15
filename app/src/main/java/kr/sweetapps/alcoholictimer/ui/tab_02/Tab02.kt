@@ -10,6 +10,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.R
@@ -81,14 +82,18 @@ fun Tab02Screen(
     val periodMonth = context.getString(R.string.records_period_month)
     val periodYear = context.getString(R.string.records_period_year)
 
-    val currentDate = java.util.Calendar.getInstance()
-    val currentYear = currentDate.get(java.util.Calendar.YEAR)
-    val currentMonth = currentDate.get(java.util.Calendar.MONTH) + 1
-    val initialDateText = context.getString(R.string.date_format_year_month, currentYear, currentMonth)
+    // 1. "All" 텍스트 리소스 가져오기
+    // (R.string.records_period_all 이 없다면 strings.xml에 추가하거나, 임시로 "All" 하드코딩)
+    val periodAll = stringResource(id = R.string.records_period_all)
+
+    // 2. 날짜 계산 로직 삭제 (All은 날짜가 필요 없음)
 
     // [NEW] 화면 진입 시 데이터 로딩 및 초기 기간 설정
     LaunchedEffect(Unit) {
-        viewModel.initializePeriod(periodMonth, initialDateText)
+        // 3. 'All'을 기본값으로 초기화 요청
+        // ViewModel 내부의 if문 덕분에, 이미 다른 탭을 보고 있었다면 이 요청은 무시됨 (세션 유지)
+        viewModel.initializePeriod(periodAll)
+
         viewModel.loadRecords()
     }
 
