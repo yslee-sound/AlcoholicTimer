@@ -31,7 +31,7 @@
     <string name="indicator_title_time">Time</string>
     <string name="indicator_title_saved_money">Money Saved</string>
     <string name="indicator_title_saved_hours">Hours Saved</string>
-    <string name="indicator_title_life_gain">Life Expectancy +</string>
+    <string name="indicator_title_life_gain">Life Gain +</string>
     <string name="tap_to_switch_indicator">Tap to view other metrics</string>
 
     <string name="cd_stop">Stop</string>
@@ -50,9 +50,9 @@
     <string name="quit_title">End Sobriety</string>
     <string name="quit_confirm_title">Are you sure you want to stop?</string>
     <string name="quit_confirm_subtitle">You\'ve been doing so well&#8230;</string>
-    <string name="stat_total_days">Total Sober Days</string>
-    <string name="stat_saved_money_short">Money Saved</string>
-    <string name="stat_saved_hours_short">Hours Saved</string>
+    <string name="stat_total_days">Sober Days</string>
+    <string name="stat_saved_money_short">Savings</string>
+    <string name="stat_saved_hours_short">Time Saved</string>
 
     <!-- Detail screen -->
     <string name="detail_title">Record Details</string>
