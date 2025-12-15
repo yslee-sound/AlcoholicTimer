@@ -738,17 +738,16 @@ private fun StatisticItem(
             // [FIX] 고정 간격
             Spacer(modifier = Modifier.height(4.dp))
 
-            // [NEW] 3단계: [아이콘 + 제목] 영역 - 왼쪽 정렬
+            // [FIX] 3단계: [아이콘 + 제목] 영역 - 중앙 정렬로 변경
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(40.dp),
-                contentAlignment = Alignment.CenterStart  // [NEW] 왼쪽 정렬로 변경
+                contentAlignment = Alignment.Center  // [FIX] 중앙 정렬
             ) {
                 Row(
-                    horizontalArrangement = Arrangement.Start,  // [NEW] 왼쪽 정렬
+                    horizontalArrangement = Arrangement.Center,  // [FIX] 중앙 정렬
                     verticalAlignment = Alignment.CenterVertically
-                    // [FIX] padding 제거하여 완전히 왼쪽으로 이동
                 ) {
                     // [NEW] 아이콘이 있으면 표시
                     if (icon != null) {
@@ -759,7 +758,7 @@ private fun StatisticItem(
                                     imageVector = icon,
                                     contentDescription = null,
                                     tint = iconTint,
-                                    modifier = Modifier.size(30.dp)  // [FIX] 아이콘 크기 30.dp로 통일
+                                    modifier = Modifier.size(30.dp)
                                 )
                             }
                             is Int -> {
@@ -768,23 +767,23 @@ private fun StatisticItem(
                                     painter = painterResource(id = icon),
                                     contentDescription = null,
                                     tint = iconTint,
-                                    modifier = Modifier.size(30.dp)  // [FIX] 아이콘 크기 30.dp로 통일
+                                    modifier = Modifier.size(24.dp)
                                 )
                             }
                         }
-                        Spacer(modifier = Modifier.width(5.dp))  // [NEW] 아이콘과 텍스트 사이 간격
+                        Spacer(modifier = Modifier.width(5.dp))
                     }
                     // 제목 텍스트
                     Text(
                         text = title,
-                        fontSize = 11.sp, // [FIX] 12sp → 11sp (6글자 수용)
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
-                        textAlign = TextAlign.Start,  // [NEW] 왼쪽 정렬
+                        textAlign = TextAlign.Center,  // [FIX] 중앙 정렬
                         maxLines = 1,
                         softWrap = false,
                         overflow = TextOverflow.Visible,
-                        letterSpacing = (-0.5).sp, // [FIX] 자간 좁힘 (공간 확보)
+                        letterSpacing = (-0.5).sp,
                         style = TextStyle(
                             platformStyle = PlatformTextStyle(includeFontPadding = false)
                         )
