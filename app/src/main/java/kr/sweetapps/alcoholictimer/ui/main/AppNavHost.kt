@@ -1,6 +1,7 @@
 package kr.sweetapps.alcoholictimer.ui.main
 
 import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.*
@@ -23,6 +24,7 @@ import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab05Graph
 
 /**
  * Navigation Host (Root-level Navigation Graph)
+ * 수정사항: Success/GiveUp 화면에서 Start로 이동 시 popUpTo(0)을 사용하여 스택 전체 초기화 (좀비 Run 방지)
  */
 @Composable
 fun AppNavHost(
@@ -96,16 +98,26 @@ fun AppNavHost(
             recordsRefreshCounter++
         }
 
+        // [FIXED] Success Screen (성공 화면)
         composable(Screen.Success.route) {
+            // [NEW] 홈으로 이동하는 공통 함수 (스택 완전 초기화)
+            val navigateToHome = {
+                navController.navigate(Screen.Start.route) {
+                    // 0번(그래프 시작점)까지 다 지워서 Run 화면 제거
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+
+            // [NEW] 시스템 뒤로가기 버튼 눌렀을 때도 홈으로 이동
+            BackHandler(onBack = { navigateToHome() })
+
             kr.sweetapps.alcoholictimer.ui.tab_01.screens.FinishedSuccessScreen(
-                onBack = {
-                    navController.navigate(Screen.Start.route) {
-                        popUpTo(Screen.Success.route) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                },
+                onBack = { navigateToHome() }, // UI 뒤로가기 버튼
                 onResultCheck = {
-                    android.util.Log.d("NavGraph", "[Success] 결과 확인 클릭 -> 타이머 완료 상태 초기화")
+                    android.util.Log.d("NavGraph", "[Success] 결과 확인 클릭")
+
+                    // 타이머 상태 초기화 로직
                     try {
                         kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(false)
                         kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(false)
@@ -114,7 +126,6 @@ fun AppNavHost(
                             .putBoolean(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_TIMER_COMPLETED, false)
                             .remove(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_START_TIME)
                             .apply()
-                        android.util.Log.d("NavGraph", "타이머 상태 초기화 완료 -> 광고 정책 체크")
                     } catch (t: Throwable) {
                         android.util.Log.e("NavGraph", "타이머 상태 초기화 실패", t)
                     }
@@ -137,42 +148,36 @@ fun AppNavHost(
                                     actualDays = completedActualDays,
                                     isCompleted = true
                                 )
-                                android.util.Log.d("NavGraph", "[Success] -> Result 이동: $resultRoute")
                                 navController.navigate(resultRoute) {
-                                    popUpTo(Screen.Success.route) { inclusive = true }
+                                    // 결과 화면으로 갈 때도 스택 초기화 (뒤로가기 시 Start로 가도록)
+                                    popUpTo(0) { inclusive = true }
                                     launchSingleTop = true
                                 }
                             } else {
-                                android.util.Log.w("NavGraph", "완료 기록 없음 -> Records 화면으로 이동")
                                 navController.navigate(Screen.Records.route) {
-                                    popUpTo(Screen.Success.route) { inclusive = true }
+                                    popUpTo(0) { inclusive = true }
                                     launchSingleTop = true
                                 }
                             }
                         } catch (t: Throwable) {
-                            android.util.Log.e("NavGraph", "결과 확인 실패", t)
                             navController.navigate(Screen.Records.route) {
-                                popUpTo(Screen.Success.route) { inclusive = true }
+                                popUpTo(0) { inclusive = true }
                                 launchSingleTop = true
                             }
                         }
                     }
 
                     if (shouldShowAd && activity != null) {
-                        android.util.Log.d("NavGraph", "광고 정책 통과 -> 전면 광고 노출")
                         if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
                             kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(activity) { proceedToDetail() }
                         } else {
-                            android.util.Log.d("NavGraph", "광고 로드 안됨 -> 즉시 Detail로 이동")
                             proceedToDetail()
                         }
                     } else {
-                        android.util.Log.d("NavGraph", "광고 쿨타임 중 -> 즉시 Detail로 이동")
                         proceedToDetail()
                     }
                 },
                 onNewTimerStart = {
-                    android.util.Log.d("NavGraph", "[Success] 새 타이머 시작 -> Start 화면으로 이동")
                     try {
                         kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerFinished(false)
                         kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.setTimerActive(false)
@@ -181,9 +186,7 @@ fun AppNavHost(
                             .putBoolean(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_TIMER_COMPLETED, false)
                             .remove(kr.sweetapps.alcoholictimer.util.constants.Constants.PREF_START_TIME)
                             .apply()
-                    } catch (e: Exception) {
-                        android.util.Log.e("NavGraph", "타이머 리셋 중 오류 발생", e)
-                    }
+                    } catch (_: Exception) {}
 
                     navController.navigate(Screen.Start.route) {
                         popUpTo(0) { inclusive = true }
@@ -193,17 +196,23 @@ fun AppNavHost(
             )
         }
 
+        // [FIXED] GiveUp Screen (포기 화면)
         composable(Screen.GiveUp.route) {
-            kr.sweetapps.alcoholictimer.ui.tab_01.screens.FinishedGiveUpScreen(
-                onBack = {
-                    navController.navigate(Screen.Start.route) {
-                        popUpTo(Screen.GiveUp.route) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                },
-                onResultCheck = {
-                    android.util.Log.d("NavGraph", "[GiveUp] 결과 확인 버튼 클릭 - 데이터 읽기 시작")
+            // [NEW] 홈으로 이동하는 공통 함수
+            val navigateToHome = {
+                navController.navigate(Screen.Start.route) {
+                    // 0번(그래프 시작점)까지 다 지워서 Run 화면 제거
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
 
+            // [NEW] 시스템 뒤로가기 버튼 처리
+            BackHandler(onBack = { navigateToHome() })
+
+            kr.sweetapps.alcoholictimer.ui.tab_01.screens.FinishedGiveUpScreen(
+                onBack = { navigateToHome() },
+                onResultCheck = {
                     val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
 
                     val proceedToDetail: () -> Unit = {
@@ -213,7 +222,6 @@ fun AppNavHost(
                             val completedEndTime = sharedPref.getLong("completed_end_time", 0L)
                             val completedTargetDays = sharedPref.getFloat("completed_target_days", 21f)
                             val completedActualDays = sharedPref.getFloat("completed_actual_days", 0f).toInt()
-                            val isGiveUp = sharedPref.getBoolean("completed_is_give_up", false)
 
                             if (completedStartTime > 0 && completedEndTime > 0) {
                                 val resultRoute = Screen.Result.createRoute(
@@ -225,7 +233,7 @@ fun AppNavHost(
                                 )
 
                                 navController.navigate(resultRoute) {
-                                    popUpTo(Screen.GiveUp.route) { inclusive = true }
+                                    popUpTo(0) { inclusive = true }
                                     launchSingleTop = true
                                 }
 
@@ -237,35 +245,29 @@ fun AppNavHost(
                                         .remove("completed_actual_days")
                                         .remove("completed_is_give_up")
                                         .apply()
-                                } catch (e: Exception) {
-                                    android.util.Log.e("NavGraph", "[GiveUp] 임시 데이터 정리 실패", e)
-                                }
+                                } catch (_: Exception) {}
+
                             } else {
-                                android.util.Log.e("NavGraph", "[GiveUp ERROR] 데이터 유효하지 않음 ✗")
                                 navController.navigate(Screen.Records.route) {
-                                    popUpTo(Screen.GiveUp.route) { inclusive = true }
+                                    popUpTo(0) { inclusive = true }
                                     launchSingleTop = true
                                 }
                             }
                         } catch (t: Throwable) {
-                            android.util.Log.e("NavGraph", "[GiveUp CRITICAL ERROR] 예외 발생", t)
                             navController.navigate(Screen.Records.route) {
-                                popUpTo(Screen.GiveUp.route) { inclusive = true }
+                                popUpTo(0) { inclusive = true }
                                 launchSingleTop = true
                             }
                         }
                     }
 
                     if (shouldShowAd && activity != null) {
-                        android.util.Log.d("NavGraph", "[GiveUp] 광고 정책 통과 -> 전면 광고 노출")
                         if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
                             kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(activity) { proceedToDetail() }
                         } else {
-                            android.util.Log.d("NavGraph", "[GiveUp] 광고 로드 안됨 -> 즉시 Detail로 이동")
                             proceedToDetail()
                         }
                     } else {
-                        android.util.Log.d("NavGraph", "[GiveUp] 광고 쿨타임 중 -> 즉시 Detail로 이동")
                         proceedToDetail()
                     }
                 },
@@ -292,8 +294,8 @@ fun AppNavHost(
 
 private fun isHomeRoute(route: String?): Boolean {
     return route == Screen.Start.route ||
-           route == Screen.Run.route ||
-           route == Screen.Quit.route ||
-           route == Screen.Records.route ||
-           route == "records_list"
+            route == Screen.Run.route ||
+            route == Screen.Quit.route ||
+            route == Screen.Records.route ||
+            route == "records_list"
 }

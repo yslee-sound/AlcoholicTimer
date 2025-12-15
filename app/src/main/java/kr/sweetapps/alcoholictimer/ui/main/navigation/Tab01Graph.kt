@@ -10,7 +10,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.google.firebase.analytics.FirebaseAnalytics
 import kr.sweetapps.alcoholictimer.ui.main.Screen
-// [FIX] 기존 Screen 직접 호출 제거 -> 래퍼(Tab01...) 호출로 변경
+// [FIX] 기존 Screen 직접 import 제거 (또는 안 쓰게 됨)
+// import kr.sweetapps.alcoholictimer.ui.tab_01.screens.StartScreen (제거 대상)
+// import kr.sweetapps.alcoholictimer.ui.tab_01.screens.RunScreenComposable (제거 대상)
+
+// [FIX] 새로 만든 래퍼(Wrapper) 컴포저블 import
 import kr.sweetapps.alcoholictimer.ui.tab_01.Tab01StartScreen
 import kr.sweetapps.alcoholictimer.ui.tab_01.Tab01RunScreen
 import kr.sweetapps.alcoholictimer.ui.tab_01.screens.QuitScreenComposable
@@ -29,8 +33,8 @@ fun NavGraphBuilder.addTab01Graph(
 ) {
     // Start Screen
     composable(Screen.Start.route) {
-        // [FIX] StartScreen -> Tab01StartScreen으로 교체
-        // 이제 Tab01.kt에 있는 key(configuration) 로직이 작동하여 언어 변경 시 새로고침됩니다.
+        // [FIX] StartScreen() -> Tab01StartScreen()으로 교체
+        // 이제 언어 변경 시 화면이 자동으로 새로고침됩니다.
         Tab01StartScreen(
             gateNavigation = false,
             onStart = { targetDays ->
@@ -38,7 +42,7 @@ fun NavGraphBuilder.addTab01Graph(
                 bundle.putInt("target_days", targetDays)
                 firebaseAnalytics?.logEvent("start_timer", bundle)
 
-                // 광고 정책 체크
+                // [Ad Logic] ViewModel은 데이터를 처리했고, 여기서는 광고와 이동을 담당합니다. (중복 아님)
                 val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
 
                 val proceedToRun: () -> Unit = {
@@ -69,7 +73,7 @@ fun NavGraphBuilder.addTab01Graph(
 
     // Run Screen
     composable(Screen.Run.route) {
-        // [FIX] RunScreenComposable -> Tab01RunScreen으로 교체
+        // [FIX] RunScreenComposable() -> Tab01RunScreen()으로 교체
         Tab01RunScreen(
             onRequestQuit = {
                 navController.navigate(Screen.Quit.route) { launchSingleTop = true }
@@ -86,7 +90,6 @@ fun NavGraphBuilder.addTab01Graph(
 
     // Quit Screen
     composable(Screen.Quit.route) {
-        // Activity Scope ViewModel 가져오기
         val tab01ViewModel: kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.Tab01ViewModel? =
             (activity as? ViewModelStoreOwner)?.let { owner ->
                 viewModel(viewModelStoreOwner = owner)
@@ -94,7 +97,6 @@ fun NavGraphBuilder.addTab01Graph(
 
         QuitScreenComposable(
             onQuitConfirmed = {
-                // 포기 확인 시 ViewModel의 giveUpTimer() 호출
                 android.util.Log.d("NavGraph", "[Quit] Give up confirmed -> calling ViewModel.giveUpTimer()")
                 tab01ViewModel?.giveUpTimer()
             },

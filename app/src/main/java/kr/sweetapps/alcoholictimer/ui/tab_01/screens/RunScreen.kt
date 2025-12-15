@@ -578,6 +578,8 @@ private fun ModernStopButtonSimple(onStop: () -> Unit, modifier: Modifier = Modi
     }
 }
 
+// RunScreen.kt 맨 아래 함수 교체
+
 @Composable
 fun RunStatChip(
     title: String,
@@ -586,15 +588,13 @@ fun RunStatChip(
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
     iconRes: Int? = null,
-    iconBg: Color? = null, // 이제 사용하지 않지만 호환성을 위해 남겨둠 (또는 삭제 가능)
+    iconBg: Color? = null,
     contentAlignment: Alignment.Horizontal = Alignment.CenterHorizontally
 ) {
-    // [DIET] 높이를 148dp -> 110dp로 대폭 축소하여 공간 확보
     val density = LocalDensity.current
+    // 카드 높이는 그대로 유지
     val cardHeightPx = with(density) { 110.dp.toPx() }
     val cardHeight = with(density) { (cardHeightPx / density.density).dp }
-
-    // [MINIMAL] 아이콘 크기를 작고 심플하게 조정
     val iconSizePx = with(density) { 32.dp.toPx() }
     val iconSize = with(density) { (iconSizePx / density.density).dp }
 
@@ -602,23 +602,24 @@ fun RunStatChip(
         modifier = modifier.requiredHeight(cardHeight),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp) // 그림자 살짝 줄임
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(vertical = 10.dp, horizontal = 4.dp),
+            // [FIX] 잘림 방지: 상하 패딩을 10dp -> 8dp로 줄여 수직 공간 확보
+            modifier = Modifier.fillMaxSize().padding(vertical = 8.dp, horizontal = 4.dp),
             horizontalAlignment = contentAlignment,
-            verticalArrangement = Arrangement.Center // 중앙 정렬
+            verticalArrangement = Arrangement.Center
         ) {
-            // 1. 아이콘 영역 (배경 제거하고 아이콘에 직접 색상 적용)
+            // 1. 아이콘 영역
             Box(
-                modifier = Modifier.height(36.dp), // 영역 높이 축소
+                modifier = Modifier.height(36.dp),
                 contentAlignment = Alignment.Center
             ) {
                 if (icon != null) {
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = color, // ★ 핵심: 아이콘을 테마 색상으로 칠함
+                        tint = color,
                         modifier = Modifier.requiredSize(iconSize)
                     )
                 } else {
@@ -627,36 +628,40 @@ fun RunStatChip(
                             painter = painterResource(id = res),
                             contentDescription = null,
                             contentScale = ContentScale.Fit,
-                            colorFilter = ColorFilter.tint(color), // ★ 핵심: 이미지도 색상 적용
+                            colorFilter = ColorFilter.tint(color),
                             modifier = Modifier.requiredSize(iconSize)
                         )
                     }
                 }
             }
 
-            // 2. 숫자 영역 (기존 로직 유지)
+            // 2. 숫자 영역 (폰트 크기 및 두께 추가 감소)
             BoxWithConstraints(
                 modifier = Modifier.fillMaxWidth().weight(1f),
-                contentAlignment = Alignment.Center // 수직 중앙 정렬로 변경
+                contentAlignment = Alignment.Center
             ) {
                 val textMeasurer = rememberTextMeasurer()
                 val density = LocalDensity.current
                 val maxPixels = with(density) { maxWidth.toPx() }
 
-                val baseStyle = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.ExtraBold,
+                // [FIX] 두께 감소: Bold -> SemiBold
+                val baseStyle = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.SemiBold,
                     color = Color(0xFF111111)
                 )
 
                 val calculatedSize = remember(value, maxPixels) {
-                    var currentSize = 22f
-                    val minSize = 8f
+                    // [FIX] 최대 크기 감소: 18f -> 16f
+                    var currentSize = 16f
+                    val minSize = 10f
+
                     while (currentSize > minSize) {
                         val result = textMeasurer.measure(
                             text = AnnotatedString(value),
                             style = baseStyle.copy(fontSize = currentSize.sp)
                         )
-                        if (result.size.width <= maxPixels * 0.95f) break
+                        // 가로폭 85% 제한 유지
+                        if (result.size.width <= maxPixels * 0.85f) break
                         currentSize -= 1f
                     }
                     currentSize.coerceAtLeast(minSize).sp
@@ -673,10 +678,10 @@ fun RunStatChip(
                 )
             }
 
-            // 3. 라벨 영역 (여백 축소)
+            // 3. 라벨 영역
             Text(
                 text = title,
-                fontSize = 11.sp, // 글자 크기 살짝 축소
+                fontSize = 11.sp,
                 fontWeight = FontWeight.Medium,
                 color = colorResource(id = R.color.color_stat_title_gray),
                 textAlign = TextAlign.Center,

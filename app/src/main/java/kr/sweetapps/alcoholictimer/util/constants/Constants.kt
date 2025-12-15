@@ -34,9 +34,9 @@ object Constants {
     const val KEY_DURATION_MEDIUM = "duration_medium"
     const val KEY_DURATION_LONG = "duration_long"
 
-    const val DEFAULT_COST = KEY_COST_LOW
-    const val DEFAULT_FREQUENCY = KEY_FREQUENCY_LOW
-    const val DEFAULT_DURATION = KEY_DURATION_SHORT
+    const val DEFAULT_COST = KEY_COST_MEDIUM
+    const val DEFAULT_FREQUENCY = KEY_FREQUENCY_MEDIUM
+    const val DEFAULT_DURATION = KEY_DURATION_MEDIUM
 
     // UI 관련 상수는 `UiConstants.kt`로 이동했습니다.
 

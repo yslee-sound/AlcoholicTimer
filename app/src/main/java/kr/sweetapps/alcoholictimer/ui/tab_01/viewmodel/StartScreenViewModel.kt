@@ -57,6 +57,15 @@ class StartScreenViewModel(application: Application) : AndroidViewModel(applicat
     init {
         loadTimerState()
         checkForPendingSnackbar()
+
+        // [전문가 솔루션] 여기에 이 코드를 추가하세요!
+        // 화면 진입 시 즉시 전면 광고를 미리 로드합니다.
+        try {
+            InterstitialAdManager.preload(application.applicationContext)
+            Log.d(TAG, "Init: Preloading Interstitial Ad instantly.")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to preload in init", e)
+        }
     }
 
     /**
