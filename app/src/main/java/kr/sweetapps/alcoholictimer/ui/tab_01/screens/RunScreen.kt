@@ -238,36 +238,37 @@ fun RunScreenComposable(
                             .padding(top = RUN_TOP_GROUP_TOP_PADDING),
                         horizontalArrangement = Arrangement.spacedBy(RUN_TOP_GROUP_CHIP_SPACING)
                     ) {
-                        // Left: pastel blue circle, blue icon
+                        // [STRATEGY 1] 세련된 모노톤 적용 (Slate Blue Gray)
+                        // 너무 검정색(Black)은 딱딱해 보이므로, 약간 푸른끼가 도는 짙은 회색을 사용합니다.
+                        val commonIconColor = Color(0xFF455A64)
+
+                        // 1. Goal
                         RunStatChip(
                             title = stringResource(id = R.string.stat_goal_days),
                             value = goalDaysText,
-                            color = Color(0xFF2B6CB0),
+                            color = commonIconColor, // ★ 공통 컬러 적용
                             modifier = Modifier.weight(1f),
                             iconRes = kr.sweetapps.alcoholictimer.R.drawable.calendar_blank,
-                            iconBg = Color(0xFF0CCEFF), // changed to #0cceff
                             contentAlignment = runStatAlignments[0]
                         )
 
-                        // Center: pastel mint circle, green icon
+                        // 2. Level
                         RunStatChip(
                             title = stringResource(id = R.string.stat_level),
                             value = levelDisplayText,
-                            color = Color(0xFF06AD6A),
+                            color = commonIconColor, // ★ 공통 컬러 적용
                             modifier = Modifier.weight(1f),
                             iconRes = kr.sweetapps.alcoholictimer.R.drawable.trophy,
-                            iconBg = Color(0xFFFFD605), // changed to #ffd605
                             contentAlignment = runStatAlignments[1]
                         )
 
-                        // Right: pastel lilac circle, indigo icon
+                        // 3. Money Saved
                         RunStatChip(
                             title = stringResource(id = R.string.stat_saved_money_short),
                             value = savedMoneyDisplay,
-                            color = Color(0xFF5873D6),
+                            color = commonIconColor, // ★ 공통 컬러 적용
                             modifier = Modifier.weight(1f),
                             iconRes = kr.sweetapps.alcoholictimer.R.drawable.chart_line_up,
-                            iconBg = Color(0xFFFF5C91), // changed to #ff5c91
                             contentAlignment = runStatAlignments[2]
                         )
                     }
