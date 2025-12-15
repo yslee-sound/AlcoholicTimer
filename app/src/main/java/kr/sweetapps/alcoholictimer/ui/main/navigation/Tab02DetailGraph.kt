@@ -136,7 +136,7 @@ fun NavGraphBuilder.addTab02DetailGraph(
                 android.util.Log.d("NavGraph", "[Result] 뒤로 가기 -> Start 화면으로 이동")
                 tab02ViewModel.consumePendingDetailRoute()
                 navController.navigate(Screen.Start.route) {
-                    popUpTo(Screen.Start.route) { inclusive = true }
+                    popUpTo(0) { inclusive = true } // [FIX] 모든 백스택 제거하고 Start로 이동 (좀비 화면 방지)
                     launchSingleTop = true
                 }
             },
@@ -145,7 +145,7 @@ fun NavGraphBuilder.addTab02DetailGraph(
                 android.util.Log.d("NavGraph", "[Result] 삭제 완료 -> Start 화면으로 이동")
                 tab02ViewModel.consumePendingDetailRoute()
                 navController.navigate(Screen.Start.route) {
-                    popUpTo(Screen.Start.route) { inclusive = true }
+                    popUpTo(0) { inclusive = true } // [FIX] 모든 백스택 제거하고 Start로 이동
                     launchSingleTop = true
                 }
             },
