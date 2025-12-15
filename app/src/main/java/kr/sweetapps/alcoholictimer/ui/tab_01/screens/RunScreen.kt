@@ -493,7 +493,7 @@ fun RunScreenComposable(
 
                         // [NEW] 공통 컴포넌트 사용 (StartScreen과 동일한 디자인 & 2줄 제한 로직 적용)
                         kr.sweetapps.alcoholictimer.ui.tab_01.components.QuoteDisplay(
-                            modifier = Modifier.padding(bottom = 12.dp) // 하단 여백만 살짝 조정
+                            modifier = Modifier.padding(bottom = 100.dp) // 하단 여백만 살짝 조정, 12.dp
                         )
                     }
                 }
