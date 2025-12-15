@@ -71,36 +71,38 @@ internal fun YearPickerContent(
 
     // [FIX] 모든 년도를 표시하되, 기록이 있는 년도와 없는 년도를 구분
     val (yearOptions, enabledStates) = remember(records) {
+        val nowYear = Calendar.getInstance().get(Calendar.YEAR)
+
+        // [FIX] UX 개선: 데이터가 없어도 현재 년도는 표시
         if (records.isEmpty()) {
-            android.util.Log.d("YearPicker", "기록 없음")
-            Pair(emptyList(), emptyList())
-        } else {
-            val nowYear = Calendar.getInstance().get(Calendar.YEAR)
-            val startYear = records.minByOrNull { it.startTime }?.let {
-                Calendar.getInstance().apply { timeInMillis = it.startTime }.get(Calendar.YEAR)
-            } ?: nowYear
-
-            // 시작 년도부터 현재 년도까지 모든 년도 생성
-            val allYears = (startYear..nowYear).toList()
-
-            // [NEW] 각 년도에 기록이 있는지 확인
-            val yearsWithRecords = records.flatMap { record ->
-                val recordStartYear = Calendar.getInstance().apply {
-                    timeInMillis = record.startTime
-                }.get(Calendar.YEAR)
-                val recordEndYear = Calendar.getInstance().apply {
-                    timeInMillis = record.endTime
-                }.get(Calendar.YEAR)
-                (recordStartYear..recordEndYear).toList()
-            }.toSet()
-
-            // [NEW] 활성화 상태 리스트 생성 (기록이 있는 년도만 true)
-            val enabled = allYears.map { year -> year in yearsWithRecords }
-
-            android.util.Log.d("YearPicker", "년도 범위: $startYear~$nowYear, 활성화: ${enabled.count { it }}개/${enabled.size}개")
-
-            Pair(allYears, enabled)
+            android.util.Log.d("YearPicker", "기록 없음 - 현재 년도만 표시: $nowYear")
+            return@remember Pair(listOf(nowYear), listOf(true))
         }
+
+        val startYear = records.minByOrNull { it.startTime }?.let {
+            Calendar.getInstance().apply { timeInMillis = it.startTime }.get(Calendar.YEAR)
+        } ?: nowYear
+
+        // 시작 년도부터 현재 년도까지 모든 년도 생성
+        val allYears = (startYear..nowYear).toList()
+
+        // [NEW] 각 년도에 기록이 있는지 확인
+        val yearsWithRecords = records.flatMap { record ->
+            val recordStartYear = Calendar.getInstance().apply {
+                timeInMillis = record.startTime
+            }.get(Calendar.YEAR)
+            val recordEndYear = Calendar.getInstance().apply {
+                timeInMillis = record.endTime
+            }.get(Calendar.YEAR)
+            (recordStartYear..recordEndYear).toList()
+        }.toSet()
+
+        // [FIX] UX 개선: 현재 년도는 기록이 없어도 무조건 활성화
+        val enabled = allYears.map { year -> year in yearsWithRecords || year == nowYear }
+
+        android.util.Log.d("YearPicker", "년도 범위: $startYear~$nowYear, 활성화: ${enabled.count { it }}개/${enabled.size}개")
+
+        Pair(allYears, enabled)
     }
 
     val defaultIndex = remember(yearOptions, initialYear) {
