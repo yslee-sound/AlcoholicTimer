@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- [NEW] Google Mobile Ads Privacy Sandbox 설정 (Android 13+ 요구사항) -->
+<ad-services-config>
+    <!-- 광고 ID 사용 명시: 개인화된 광고 및 광고 측정 -->
+    <include-data-source>
+        <!-- AdMob/Google Ads를 통한 광고 게재 -->
+        <data-source>google</data-source>
+    </include-data-source>
+</ad-services-config>
+

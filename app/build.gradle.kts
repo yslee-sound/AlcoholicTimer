@@ -8,18 +8,11 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     id("com.google.devtools.ksp") version "2.0.21-1.0.28" // [NEW] Room Database용 KSP 플러그인 (KAPT 대체)
     id("com.google.gms.google-services") // Google Services
-    // Crashlytics는 조건부로 apply (아래 참조)
+    // [FIX] Crashlytics Gradle 플러그인 제거 (KSP와의 순환 참조 방지)
+    // SDK만으로 충돌 보고 기능은 정상 작동하며, 매핑 파일은 필요시 수동 업로드
     id("com.google.firebase.firebase-perf")
 }
 
-// [FIX] Crashlytics 플러그인 조건부 적용 (Release 빌드에서만)
-// KSP와의 순환 의존성을 방지하기 위해 Debug 빌드에서는 플러그인을 적용하지 않음
-if (gradle.startParameter.taskNames.any { task ->
-    task.contains("Release", ignoreCase = true) &&
-    !task.contains("Debug", ignoreCase = true)
-}) {
-    apply(plugin = "com.google.firebase.crashlytics")
-}
 
 // 중복 commonmark(com.atlassian.commonmark)으로 인한 Duplicate class 에러 방지
 configurations.all {
@@ -73,7 +66,7 @@ android {
 
     // 버전 코드 전략: yyyymmdd + 2자리 시퀀스 (NN)
     // 이전 사용: 2025100800 -> 신규: 2025100801
-    val releaseVersionCode = 2025121500
+    val releaseVersionCode = 2025121502
     val releaseVersionName = "1.1.6"
     defaultConfig {
         applicationId = "kr.sweetapps.alcoholictimer"
@@ -86,6 +79,10 @@ android {
 
         // [NEW] Crashlytics 기본값 설정 (buildType에서 오버라이드됨)
         manifestPlaceholders["crashlyticsCollectionEnabled"] = "false"
+
+        // [FIX] Crashlytics 매핑 파일 자동 업로드 비활성화 (KSP와의 순환 참조 방지)
+        // Release 빌드 시 수동으로 업로드하거나, CI/CD에서 관리합니다
+        manifestPlaceholders["firebaseCrashlyticsMapping"] = "false"
 
         ndk {
             // Play Console 경고 대응: 네이티브 심볼 업로드용 심볼 테이블 생성 (FULL 은 용량↑)
@@ -376,7 +373,7 @@ tasks.register("verifyReleaseAdConfig") {
         val checks = mutableListOf<String>()
 
         // 1. DebugAdHelper.kt 파일 검증
-        val debugAdHelperFile = File(projectDir, "src/main/java/kr/sweetapps/alcoholictimer/core/ui/DebugAdHelper.kt")
+        val debugAdHelperFile = File(projectDir, "src/main/java/kr/sweetapps/alcoholictimer/ui/common/DebugAdHelper.kt")
         if (debugAdHelperFile.exists()) {
             val content = debugAdHelperFile.readText()
             if (!content.contains("BuildConfig.DEBUG")) {
@@ -390,7 +387,7 @@ tasks.register("verifyReleaseAdConfig") {
         }
 
         // 2. BaseActivity.kt 검증
-        val baseActivityFile = File(projectDir, "src/main/java/kr/sweetapps/alcoholictimer/core/ui/BaseActivity.kt")
+        val baseActivityFile = File(projectDir, "src/main/java/kr/sweetapps/alcoholictimer/ui/common/BaseActivity.kt")
         if (baseActivityFile.exists()) {
             val content = baseActivityFile.readText()
             val hasBuildConfigCheck = content.contains("if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG)") ||
@@ -407,7 +404,7 @@ tasks.register("verifyReleaseAdConfig") {
         }
 
         // 3. StandardScreen.kt 검증
-        val standardScreenFile = File(projectDir, "src/main/java/kr/sweetapps/alcoholictimer/core/ui/StandardScreen.kt")
+        val standardScreenFile = File(projectDir, "src/main/java/kr/sweetapps/alcoholictimer/ui/tab_01/components/StandardScreen.kt")
         if (standardScreenFile.exists()) {
             val content = standardScreenFile.readText()
             val hasBuildConfigCheck = content.contains("if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG)") ||

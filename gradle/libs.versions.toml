@@ -25,7 +25,7 @@ appcompat = "1.7.0"
 
 # Firebase & Google Services
 googleServices = "4.4.2"
-firebaseCrashlytics = "3.0.0"
+# firebaseCrashlytics 플러그인 제거됨 (SDK는 Firebase BOM으로 자동 관리)
 firebasePerf = "1.5.0"
 firebaseBom = "33.1.2"
 
@@ -79,5 +79,5 @@ androidx-navigation-safeargs = { id = "androidx.navigation.safeargs.kotlin", ver
 
 # Firebase & Google Services
 google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
-firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlytics" }
+# firebase-crashlytics 플러그인 제거됨 (순환 참조 방지, SDK만 사용)
 firebase-performance = { id = "com.google.firebase.firebase-perf", version.ref = "firebasePerf" }

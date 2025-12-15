@@ -5,7 +5,14 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- SDK 30+ 패키지 가시성: Play Store 존재 확인을 위해 선언 -->
+    <!-- [REQUIRED] 광고 ID 권한 (Android 13+ 필수)
+         - 목적: 개인화된 광고 게재 및 광고 성과 측정
+         - 사용처: Google AdMob (전면 광고, 오픈 광고)
+         - Play Console 데이터 보안 섹션에서 이 권한 사용을 명시해야 함
+         - 사용자는 Android 설정에서 광고 ID를 재설정하거나 삭제할 수 있음
+    -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
+
     <queries>
         <package android:name="com.android.vending" />
     </queries>
@@ -22,7 +29,6 @@
         android:theme="@style/Theme.AlcoholicTimer"
         tools:targetApi="31">
 
-        <!-- 새 메인 진입점: Compose 기반 MainActivity -->
         <activity
             android:name="kr.sweetapps.alcoholictimer.ui.main.MainActivity"
             android:exported="true"
@@ -36,22 +42,15 @@
             </intent-filter>
         </activity>
 
-        <!-- Compose NavHost 전환에 따라 기존 개별 Activity 제거 -->
-        <!-- RecordsActivity / AllRecordsActivity / SettingsActivity / DetailActivity 제거 -->
-
-        <!-- [FIX] AdActivity: 투명 테마 제거하여 광고 뒤 화면 투영 방지 -->
         <activity
             android:name="com.google.android.gms.ads.AdActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- [REMOVED] AddRecordActivity: Navigation Compose로 대체됨 (AddRecordScreenComposable 사용) -->
-
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="${ADMOB_APP_ID}"/>
 
-        <!-- [NEW] Crashlytics 자동 제어: Gradle에서 빌드 타입별로 주입 -->
         <meta-data
             android:name="firebase_crashlytics_collection_enabled"
             android:value="${crashlyticsCollectionEnabled}" />
