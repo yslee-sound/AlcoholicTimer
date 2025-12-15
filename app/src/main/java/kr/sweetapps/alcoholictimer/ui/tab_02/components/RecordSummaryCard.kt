@@ -47,12 +47,13 @@ fun RecordSummaryCard(
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
-    val resolvedContainer = containerColor ?: colorScheme.surface
-    val resolvedNumber = numberColor ?: colorScheme.onSurface
-    val resolvedRateCompleted = rateColorCompleted ?: colorScheme.primary
-    val resolvedRateInProgress = rateColorInProgress ?: colorScheme.secondary
-    val resolvedLabel = labelColor ?: colorScheme.onSurfaceVariant
-    val statusIncomplete = colorScheme.error
+    // [FIX] 첨부 사진 기준으로 색상 변경 - 보라색 제거
+    val resolvedContainer = containerColor ?: Color(0xFFF3F4F6)  // [FIX] 연한 회색 배경
+    val resolvedNumber = numberColor ?: Color(0xFF1F2937)  // 진한 회색 (숫자)
+    val resolvedRateCompleted = rateColorCompleted ?: Color(0xFF6366F1)  // 파란색 (완료)
+    val resolvedRateInProgress = rateColorInProgress ?: Color(0xFFEF4444)  // 빨간색 (진행중)
+    val resolvedLabel = labelColor ?: Color(0xFF9CA3AF)  // 연한 회색 (레이블)
+    val statusIncomplete = Color(0xFFEF4444)  // 빨간색 (미완료)
 
     val dateFormat = SimpleDateFormat(datePattern, Locale.getDefault())
     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -87,9 +88,9 @@ fun RecordSummaryCard(
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = resolvedContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = AppElevation.CARD),
-        border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
+        colors = CardDefaults.cardColors(containerColor = resolvedContainer),  // 흰색 배경
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),  // 엘리베이션 제거
+        border = BorderStroke(1.dp, Color(0xFFE5E7EB))  // 연한 회색 테두리
     ) {
         Column(
             modifier = Modifier
@@ -121,7 +122,7 @@ fun RecordSummaryCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(text = "$startDate ~", fontSize = headerDateSize, color = resolvedNumber)
                     Spacer(modifier = Modifier.height(2.dp))
-                    Text(text = endDate, fontSize = headerDateSize, color = resolvedLabel)
+                    Text(text = endDate, fontSize = headerDateSize, color = resolvedNumber)  // [FIX] 회색에서 검은색으로 변경
                 }
             }
 
