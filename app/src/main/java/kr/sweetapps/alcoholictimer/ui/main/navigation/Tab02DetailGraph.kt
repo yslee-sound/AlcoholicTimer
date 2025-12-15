@@ -201,7 +201,13 @@ fun NavGraphBuilder.addTab02DetailGraph(
     ) {
         AllRecordsScreen(
             onNavigateBack = {
-                if (!navController.popBackStack()) navController.navigate(Screen.Records.route)
+                // [FIX] popBackStack 실패 시 Screen.Start로 이동 (탭2의 records_list로 돌아감)
+                if (!navController.popBackStack()) {
+                    navController.navigate(Screen.Start.route) {
+                        popUpTo(Screen.Start.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
             },
             onNavigateToDetail = { record: SobrietyRecord ->
                 try { AnalyticsManager.logViewRecordDetail(record.id) } catch (_: Throwable) {}
@@ -248,7 +254,13 @@ fun NavGraphBuilder.addTab02DetailGraph(
     ) {
         kr.sweetapps.alcoholictimer.ui.tab_02.screens.AllDiaryScreen(
             onNavigateBack = {
-                if (!navController.popBackStack()) navController.navigate(Screen.Records.route)
+                // [FIX] popBackStack 실패 시 Screen.Start로 이동 (탭2의 records_list로 돌아감)
+                if (!navController.popBackStack()) {
+                    navController.navigate(Screen.Start.route) {
+                        popUpTo(Screen.Start.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
             },
             onOpenDiaryDetail = { diaryId ->
                 val route = Screen.DiaryDetail.createRoute(diaryId.toString())
