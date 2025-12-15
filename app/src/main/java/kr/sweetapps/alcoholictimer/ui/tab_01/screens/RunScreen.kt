@@ -493,7 +493,7 @@ fun RunScreenComposable(
 
                         // [NEW] 공통 컴포넌트 사용 (StartScreen과 동일한 디자인 & 2줄 제한 로직 적용)
                         kr.sweetapps.alcoholictimer.ui.tab_01.components.QuoteDisplay(
-                            modifier = Modifier.padding(bottom = 100.dp) // 하단 여백만 살짝 조정, 12.dp
+                            modifier = Modifier.padding(bottom = 12.dp) // 하단 여백만 살짝 조정, 12.dp
                         )
                     }
                 }
@@ -585,100 +585,58 @@ fun RunStatChip(
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
     iconRes: Int? = null,
-    iconBg: Color? = null,
+    iconBg: Color? = null, // 이제 사용하지 않지만 호환성을 위해 남겨둠 (또는 삭제 가능)
     contentAlignment: Alignment.Horizontal = Alignment.CenterHorizontally
 ) {
-    // [FIXED_SIZE] 폰트 스케일의 영향을 받지 않는 고정 크기 적용
+    // [DIET] 높이를 148dp -> 110dp로 대폭 축소하여 공간 확보
     val density = LocalDensity.current
-    val cardHeightPx = with(density) { 148.dp.toPx() }
+    val cardHeightPx = with(density) { 110.dp.toPx() }
     val cardHeight = with(density) { (cardHeightPx / density.density).dp }
-    val iconSizePx = with(density) { 48.dp.toPx() }
+
+    // [MINIMAL] 아이콘 크기를 작고 심플하게 조정
+    val iconSizePx = with(density) { 32.dp.toPx() }
     val iconSize = with(density) { (iconSizePx / density.density).dp }
-    val innerIconSizePx = with(density) { 24.dp.toPx() }
-    val innerIconSize = with(density) { (innerIconSizePx / density.density).dp }
 
     Card(
         modifier = modifier.requiredHeight(cardHeight),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp) // 그림자 살짝 줄임
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp, vertical = 12.dp), // [FIX] 8dp → 4dp
+            modifier = Modifier.fillMaxSize().padding(vertical = 10.dp, horizontal = 4.dp),
             horizontalAlignment = contentAlignment,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center // 중앙 정렬
         ) {
-            // [FIX] 1단계: 아이콘 영역 - 고정 높이
-            if (icon != null || iconRes != null) {
-                Box(
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    val applyAccent = iconBg != null
-                    if (applyAccent) {
-                        val topColor = iconBg!!
-                        val bottomColor = lerp(topColor, Color.White, 0.18f)
-                        Card(
-                            modifier = Modifier.requiredSize(iconSize),
-                            shape = CircleShape,
-                            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.Transparent)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(CircleShape)
-                                    .background(
-                                        Brush.verticalGradient(
-                                            colors = listOf(topColor, bottomColor)
-                                        )
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                icon?.let {
-                                    Icon(imageVector = it, contentDescription = null, tint = Color.White, modifier = Modifier.requiredSize(innerIconSize))
-                                } ?: run {
-                                    iconRes?.let { res ->
-                                        Image(
-                                            painter = painterResource(id = res),
-                                            contentDescription = null,
-                                            contentScale = ContentScale.Inside,
-                                            colorFilter = ColorFilter.tint(Color.White),
-                                            modifier = Modifier.requiredSize(innerIconSize)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .requiredSize(iconSize)
-                                .clip(CircleShape)
-                                .background(color.copy(alpha = 0.12f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (icon != null) {
-                                Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.requiredSize(innerIconSize))
-                            } else {
-                                iconRes?.let { res ->
-                                    Image(
-                                        painter = painterResource(id = res),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Inside,
-                                        modifier = Modifier.requiredSize(innerIconSize)
-                                    )
-                                }
-                            }
-                        }
+            // 1. 아이콘 영역 (배경 제거하고 아이콘에 직접 색상 적용)
+            Box(
+                modifier = Modifier.height(36.dp), // 영역 높이 축소
+                contentAlignment = Alignment.Center
+            ) {
+                if (icon != null) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = color, // ★ 핵심: 아이콘을 테마 색상으로 칠함
+                        modifier = Modifier.requiredSize(iconSize)
+                    )
+                } else {
+                    iconRes?.let { res ->
+                        Image(
+                            painter = painterResource(id = res),
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                            colorFilter = ColorFilter.tint(color), // ★ 핵심: 이미지도 색상 적용
+                            modifier = Modifier.requiredSize(iconSize)
+                        )
                     }
                 }
             }
 
-            // [FIX] 2단계: 숫자 영역 - TextMeasurer 사전 계산 방식 (잘림 완전 해결)
+            // 2. 숫자 영역 (기존 로직 유지)
             BoxWithConstraints(
                 modifier = Modifier.fillMaxWidth().weight(1f),
-                contentAlignment = Alignment.BottomCenter
+                contentAlignment = Alignment.Center // 수직 중앙 정렬로 변경
             ) {
                 val textMeasurer = rememberTextMeasurer()
                 val density = LocalDensity.current
@@ -689,20 +647,16 @@ fun RunStatChip(
                     color = Color(0xFF111111)
                 )
 
-                // [FIX] 사전 계산: 텍스트 너비가 maxWidth에 들어올 때까지 폰트 축소
                 val calculatedSize = remember(value, maxPixels) {
-                    var currentSize = 22f // 시작 크기
-                    val minSize = 8f // 최소 8sp
-
+                    var currentSize = 22f
+                    val minSize = 8f
                     while (currentSize > minSize) {
                         val result = textMeasurer.measure(
                             text = AnnotatedString(value),
                             style = baseStyle.copy(fontSize = currentSize.sp)
                         )
-                        if (result.size.width <= maxPixels * 0.95f) { // 5% 여유
-                            break
-                        }
-                        currentSize -= 1f // 1sp씩 정밀 축소
+                        if (result.size.width <= maxPixels * 0.95f) break
+                        currentSize -= 1f
                     }
                     currentSize.coerceAtLeast(minSize).sp
                 }
@@ -714,32 +668,21 @@ fun RunStatChip(
                     textAlign = TextAlign.Center,
                     maxLines = 1,
                     softWrap = false,
-                    overflow = TextOverflow.Visible,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
-
-            // [FIX] 3단계: 라벨 영역 - 고정 30dp (잘림 방지)
-            Box(
-                modifier = Modifier.fillMaxWidth().height(30.dp),
-                contentAlignment = Alignment.TopCenter
-            ) {
-                Text(
-                    text = title,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = colorResource(id = R.color.color_stat_title_gray),
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    overflow = TextOverflow.Visible,
-                    style = TextStyle(
-                        platformStyle = PlatformTextStyle(includeFontPadding = false)
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+            // 3. 라벨 영역 (여백 축소)
+            Text(
+                text = title,
+                fontSize = 11.sp, // 글자 크기 살짝 축소
+                fontWeight = FontWeight.Medium,
+                color = colorResource(id = R.color.color_stat_title_gray),
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false)),
+                modifier = Modifier.fillMaxWidth().padding(top = 2.dp)
+            )
         }
     }
 }
