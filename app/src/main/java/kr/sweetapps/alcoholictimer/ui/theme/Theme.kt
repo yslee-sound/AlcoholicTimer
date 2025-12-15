@@ -40,10 +40,14 @@ private val LightColorScheme = lightColorScheme(
     onBackground = OnSurface,
     surface = SurfaceLight,
     onSurface = OnSurface,
-    surfaceVariant = SurfaceVariantLight,
+    surfaceVariant = Color.White,
     onSurfaceVariant = OnSurfaceVariant,
     error = ErrorLight,
-    onError = Color.White
+    onError = Color.White,
+
+    // ▼▼▼ [핵심 수정] 이 줄을 추가하세요! ▼▼▼
+    // 그림자가 생겨도 배경에 색상을 섞지 않도록(투명하게) 설정합니다.
+    surfaceTint = Color.Transparent
 )
 
 @Composable

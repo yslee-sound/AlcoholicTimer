@@ -18,9 +18,10 @@ import androidx.navigation.navArgument
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.ui.main.Screen
-import kr.sweetapps.alcoholictimer.ui.tab_02.components.AllRecordsScreen
+import kr.sweetapps.alcoholictimer.ui.tab_02.screens.AllRecordsScreen
 import kr.sweetapps.alcoholictimer.ui.tab_02.screens.AddRecordScreenComposable
 import kr.sweetapps.alcoholictimer.ui.tab_02.screens.DetailScreen
+import kotlin.math.round
 
 /**
  * Tab 02 - 상세/전체 화면 (Root 레벨용)
@@ -208,7 +209,7 @@ fun NavGraphBuilder.addTab02DetailGraph(
                     startTime = record.startTime,
                     endTime = record.endTime,
                     targetDays = record.targetDays.toFloat().coerceAtLeast(1f),
-                    actualDays = kotlin.math.round(record.actualDays).toInt().coerceAtLeast(0),
+                    actualDays = round(record.actualDays).toInt().coerceAtLeast(0),
                     isCompleted = record.isCompleted
                 )
                 navController.navigate(route)

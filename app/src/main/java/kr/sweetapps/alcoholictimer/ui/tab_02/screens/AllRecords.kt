@@ -1,5 +1,5 @@
 // [NEW] Tab02 리팩토링: components를 tab_02로 이동
-package kr.sweetapps.alcoholictimer.ui.tab_02.components
+package kr.sweetapps.alcoholictimer.ui.tab_02.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,8 +27,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kr.sweetapps.alcoholictimer.ui.tab_02.components.RecordSummaryCard
 import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -151,15 +153,15 @@ fun AllRecordsScreen(
                 else -> {
                     // Apply innerPadding to modifier and set bottom extra to fixed 100.dp
                     val topPad = innerPadding.calculateTopPadding()
-                    val startPad = innerPadding.calculateLeftPadding(layoutDirection = androidx.compose.ui.unit.LayoutDirection.Ltr)
-                    val endPad = innerPadding.calculateRightPadding(layoutDirection = androidx.compose.ui.unit.LayoutDirection.Ltr)
+                    val startPad = innerPadding.calculateLeftPadding(layoutDirection = LayoutDirection.Ltr)
+                    val endPad = innerPadding.calculateRightPadding(layoutDirection = LayoutDirection.Ltr)
                     val bottomExtra = innerPadding.calculateBottomPadding() + 70.dp    // 24.dp
 
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(start = startPad, top = topPad, end = endPad)
-                            .padding(horizontal = kr.sweetapps.alcoholictimer.ui.tab_02.screens.RECORDS_SCREEN_HORIZONTAL_PADDING),
+                            .padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING),
                         verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING),
                         contentPadding = PaddingValues(top = 16.dp, bottom = bottomExtra)
                     ) {

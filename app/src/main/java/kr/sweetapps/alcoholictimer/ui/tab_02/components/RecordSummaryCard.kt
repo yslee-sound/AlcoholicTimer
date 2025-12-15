@@ -190,3 +190,53 @@ fun RecordSummaryCard(
         }
     }
 }
+
+// [NEW] 프리뷰: 기록 요약 카드
+@androidx.compose.ui.tooling.preview.Preview(
+    name = "기록 요약 카드 - 완료",
+    showBackground = true
+)
+@Composable
+fun RecordSummaryCardPreview() {
+    MaterialTheme {
+        val currentTime = System.currentTimeMillis()
+        RecordSummaryCard(
+            record = SobrietyRecord(
+                id = "preview_1",
+                startTime = currentTime - (3L * 24 * 60 * 60 * 1000), // 3일 전
+                endTime = currentTime,
+                targetDays = 7,
+                actualDays = 3.0,
+                isCompleted = true,
+                status = "completed",
+                createdAt = currentTime,
+                percentage = 42
+            )
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(
+    name = "기록 요약 카드 - 진행중",
+    showBackground = true
+)
+@Composable
+fun RecordSummaryCardInProgressPreview() {
+    MaterialTheme {
+        val currentTime = System.currentTimeMillis()
+        RecordSummaryCard(
+            record = SobrietyRecord(
+                id = "preview_2",
+                startTime = currentTime - (1L * 24 * 60 * 60 * 1000), // 1일 전
+                endTime = currentTime,
+                targetDays = 30,
+                actualDays = 1.0,
+                isCompleted = false,
+                status = "active",
+                createdAt = currentTime,
+                percentage = 3
+            )
+        )
+    }
+}
+
