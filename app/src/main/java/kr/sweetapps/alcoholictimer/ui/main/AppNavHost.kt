@@ -63,12 +63,6 @@ fun AppNavHost(
         composable(Screen.Start.route) {
             val tabNavController = rememberNavController()
 
-            LaunchedEffect(recordsRefreshCounter) {
-                if (recordsRefreshCounter > 0) {
-                    tabNavController.popBackStack(Screen.Records.route, inclusive = false)
-                }
-            }
-
             BaseScaffold(navController = tabNavController) {
                 NavHost(
                     navController = tabNavController,
