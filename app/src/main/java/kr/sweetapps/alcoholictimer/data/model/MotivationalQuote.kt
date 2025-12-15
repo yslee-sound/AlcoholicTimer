@@ -12,12 +12,24 @@ object MotivationalQuotes {
     // [NEW] 중복 방지용 '카드 덱' - 컨텍스트별로 관리
     private val currentDeck = ArrayList<String>()
 
+    // [NEW] 현재 언어 추적 - 언어 변경 시 덱 초기화
+    private var currentLanguage: String? = null
+
     /**
      * 중복 없는 랜덤 명언 반환 (Deck 알고리즘)
      * - strings.xml에서 명언을 가져와 다국어 지원
      * - 모든 명언을 다 보여주기 전까진 절대 겹치지 않음
+     * - 언어 변경 시 덱 자동 초기화
      */
     fun getRandomQuote(context: Context): String {
+        // [NEW] 언어 변경 감지
+        val currentLocale = context.resources.configuration.locales[0].language
+        if (currentLanguage != currentLocale) {
+            // 언어가 변경되면 덱 초기화
+            currentDeck.clear()
+            currentLanguage = currentLocale
+        }
+
         if (currentDeck.isEmpty()) {
             // strings.xml에서 명언 배열 가져오기
             val quotes = context.resources.getStringArray(

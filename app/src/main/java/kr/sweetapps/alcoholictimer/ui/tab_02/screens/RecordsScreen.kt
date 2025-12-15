@@ -315,19 +315,76 @@ fun RecordsScreen(
     }
 }
 
-@Preview
+@Preview(
+    name = "기록 화면 - 데이터 있음",
+    showBackground = true,
+    showSystemUi = true
+)
 @Composable
 fun RecordsScreenPreview() {
     AlcoholicTimerTheme {
-        Surface {
-            RecordsScreen(
-                records = emptyList(),
-                isLoading = false,
-                selectedPeriod = "월",
-                selectedDetailPeriod = "2025년 12월",
-                selectedWeekRange = null
+        val currentTime = System.currentTimeMillis()
+        val sampleRecords = listOf(
+            SobrietyRecord(
+                id = "preview_1",
+                startTime = currentTime - (7L * 24 * 60 * 60 * 1000),
+                endTime = currentTime,
+                targetDays = 30,
+                actualDays = 7.0,
+                isCompleted = false,
+                status = "active",
+                createdAt = currentTime,
+                percentage = 23
+            ),
+            SobrietyRecord(
+                id = "preview_2",
+                startTime = currentTime - (15L * 24 * 60 * 60 * 1000),
+                endTime = currentTime - (8L * 24 * 60 * 60 * 1000),
+                targetDays = 7,
+                actualDays = 7.0,
+                isCompleted = true,
+                status = "completed",
+                createdAt = currentTime - (8L * 24 * 60 * 60 * 1000),
+                percentage = 100
             )
-        }
+        )
+
+        RecordsScreen(
+            records = sampleRecords,
+            allRecords = sampleRecords,
+            isLoading = false,
+            selectedPeriod = "월",
+            selectedDetailPeriod = "2025년 12월",
+            selectedWeekRange = null,
+            recentDiaries = emptyList(),
+            statsData = kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.StatsData(
+                totalDays = 7.0f,
+                savedMoney = 35000.0,
+                totalKcal = 1400.0,
+                totalBottles = 14.0
+            )
+        )
+    }
+}
+
+@Preview(
+    name = "기록 화면 - 빈 상태",
+    showBackground = true,
+    showSystemUi = true
+)
+@Composable
+fun RecordsScreenEmptyPreview() {
+    AlcoholicTimerTheme {
+        RecordsScreen(
+            records = emptyList(),
+            allRecords = emptyList(),
+            isLoading = false,
+            selectedPeriod = "월",
+            selectedDetailPeriod = "2025년 12월",
+            selectedWeekRange = null,
+            recentDiaries = emptyList(),
+            statsData = kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.StatsData()
+        )
     }
 }
 
@@ -767,7 +824,7 @@ private fun StatisticItem(
                                     painter = painterResource(id = icon),
                                     contentDescription = null,
                                     tint = iconTint,
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(28.dp)
                                 )
                             }
                         }
