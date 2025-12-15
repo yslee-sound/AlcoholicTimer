@@ -1,6 +1,7 @@
 // [NEW] Tab01 Refactoring: RunScreen moved to tab_01/screens
 package kr.sweetapps.alcoholictimer.ui.tab_01.screens
 
+import android.app.Activity
 import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -92,8 +93,11 @@ fun RunScreenComposable(
     val runStatAlignments = listOf(Alignment.CenterHorizontally, Alignment.CenterHorizontally, Alignment.CenterHorizontally)
 
 
+    // [FIX] 뒤로 가기 시 앱 최소화 (타이머 유지)
+    // 타이머 앱 특성상 사용자가 뒤로 가기를 누르는 의도는 앱을 끄는 것이 아니라
+    // 타이머를 켜둔 채 홈 화면으로 나가려는 것이므로 백그라운드로 이동
     BackHandler(enabled = true) {
-        // Inside NavHost, back action should not trigger background mode
+        (context as? Activity)?.moveTaskToBack(true)
     }
 
     val isPreview = LocalInspectionMode.current
