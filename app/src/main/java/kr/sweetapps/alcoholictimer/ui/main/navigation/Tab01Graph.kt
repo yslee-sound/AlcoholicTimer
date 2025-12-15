@@ -10,9 +10,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.google.firebase.analytics.FirebaseAnalytics
 import kr.sweetapps.alcoholictimer.ui.main.Screen
+// [FIX] 기존 Screen 직접 호출 제거 -> 래퍼(Tab01...) 호출로 변경
+import kr.sweetapps.alcoholictimer.ui.tab_01.Tab01StartScreen
+import kr.sweetapps.alcoholictimer.ui.tab_01.Tab01RunScreen
 import kr.sweetapps.alcoholictimer.ui.tab_01.screens.QuitScreenComposable
-import kr.sweetapps.alcoholictimer.ui.tab_01.screens.RunScreenComposable
-import kr.sweetapps.alcoholictimer.ui.tab_01.screens.StartScreen
 
 /**
  * Tab 01: 금주 타이머 관련 네비게이션 그래프
@@ -28,7 +29,9 @@ fun NavGraphBuilder.addTab01Graph(
 ) {
     // Start Screen
     composable(Screen.Start.route) {
-        StartScreen(
+        // [FIX] StartScreen -> Tab01StartScreen으로 교체
+        // 이제 Tab01.kt에 있는 key(configuration) 로직이 작동하여 언어 변경 시 새로고침됩니다.
+        Tab01StartScreen(
             gateNavigation = false,
             onStart = { targetDays ->
                 val bundle = Bundle()
@@ -66,7 +69,8 @@ fun NavGraphBuilder.addTab01Graph(
 
     // Run Screen
     composable(Screen.Run.route) {
-        RunScreenComposable(
+        // [FIX] RunScreenComposable -> Tab01RunScreen으로 교체
+        Tab01RunScreen(
             onRequestQuit = {
                 navController.navigate(Screen.Quit.route) { launchSingleTop = true }
             },
@@ -91,7 +95,6 @@ fun NavGraphBuilder.addTab01Graph(
         QuitScreenComposable(
             onQuitConfirmed = {
                 // 포기 확인 시 ViewModel의 giveUpTimer() 호출
-                // ViewModel이 NavigateToGiveUp 이벤트를 발행하면 MainActivity에서 처리
                 android.util.Log.d("NavGraph", "[Quit] Give up confirmed -> calling ViewModel.giveUpTimer()")
                 tab01ViewModel?.giveUpTimer()
             },
@@ -99,4 +102,3 @@ fun NavGraphBuilder.addTab01Graph(
         )
     }
 }
-

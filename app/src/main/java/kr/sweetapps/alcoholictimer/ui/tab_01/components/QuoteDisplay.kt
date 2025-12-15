@@ -53,18 +53,23 @@ fun QuoteDisplay(
 ) {
     val context = LocalContext.current
 
-    // 문구 랜덤 선택 및 유지
-    val displayQuote = rememberSaveable {
+    // [FIX] 1. 현재 시스템 언어 설정을 감지합니다.
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val currentLanguage = configuration.locales[0].language // 예: "ko", "en"
+
+    // [FIX] 2. rememberSaveable에 'currentLanguage'를 키(Key)로 전달합니다.
+    // 의미: "언어가 바뀌면(키가 변하면), 기억하던 명언을 버리고 새로 가져와!"
+    val displayQuote = rememberSaveable(inputs = arrayOf(currentLanguage)) {
         quote ?: MotivationalQuotes.getRandomQuote(context)
     }
 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            // 여백은 사용하는 곳(StartScreen)의 상황에 맞게 밖에서 조정 가능하지만 기본값 제공
             .padding(horizontal = 24.dp, vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // ... (나머지 코드는 그대로)
         // 1. 장식용 아이콘 (따옴표)
         Text(
             text = "❝",

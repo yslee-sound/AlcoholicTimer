@@ -3,54 +3,50 @@ package kr.sweetapps.alcoholictimer.data.model
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import kr.sweetapps.alcoholictimer.R // [중요] R 리소스 import 확인
 
 /**
  * 금주 타이머 앱 - 동기부여 명언 데이터 (다국어 지원)
  */
 object MotivationalQuotes {
 
-    // [NEW] 중복 방지용 '카드 덱' - 컨텍스트별로 관리
     private val currentDeck = ArrayList<String>()
-
-    // [NEW] 현재 언어 추적 - 언어 변경 시 덱 초기화
     private var currentLanguage: String? = null
 
     /**
-     * 중복 없는 랜덤 명언 반환 (Deck 알고리즘)
-     * - strings.xml에서 명언을 가져와 다국어 지원
-     * - 모든 명언을 다 보여주기 전까진 절대 겹치지 않음
-     * - 언어 변경 시 덱 자동 초기화
+     * 중복 없는 랜덤 명언 반환
      */
     fun getRandomQuote(context: Context): String {
-        // [NEW] 언어 변경 감지
-        val currentLocale = context.resources.configuration.locales[0].language
+        // 1. 현재 시스템 언어 감지
+        val configuration = context.resources.configuration
+        val currentLocale = configuration.locales[0].language // "ko", "en", "ja" ...
+
+        // 2. 언어가 바뀌었으면 덱 초기화 (새 언어로 다시 뽑기 위해)
         if (currentLanguage != currentLocale) {
-            // 언어가 변경되면 덱 초기화
             currentDeck.clear()
             currentLanguage = currentLocale
         }
 
+        // 3. 덱이 비었으면 리필
         if (currentDeck.isEmpty()) {
-            // strings.xml에서 명언 배열 가져오기
-            val quotes = context.resources.getStringArray(
-                context.resources.getIdentifier(
-                    "motivational_quotes",
-                    "array",
-                    context.packageName
-                )
-            )
-
-            // 덱이 비었으면 다시 채우고 섞음 (무한 리필)
-            currentDeck.addAll(quotes.toList().shuffled())
+            try {
+                // [FIX] getIdentifier 대신 R.array 직접 참조 (훨씬 빠르고 안전함)
+                // 주의: 각 언어별 strings.xml에 <string-array name="motivational_quotes">가 없으면
+                // 자동으로 기본(영어) 값을 가져옵니다.
+                val quotes = context.resources.getStringArray(R.array.motivational_quotes)
+                currentDeck.addAll(quotes.toList().shuffled())
+            } catch (e: Exception) {
+                // 예외 발생 시 기본 문구 반환 (앱 죽음 방지)
+                return "You can do it!"
+            }
         }
-        // 카드 한 장 뽑기 (꺼내서 보여주고 덱에서 삭제)
+
+        if (currentDeck.isEmpty()) return "Stay Strong!"
+
         return currentDeck.removeAt(0)
     }
 }
 
-/**
- * Composable에서 사용할 수 있는 헬퍼 함수
- */
 @Composable
 fun getRandomMotivationalQuote(): String {
     val context = LocalContext.current

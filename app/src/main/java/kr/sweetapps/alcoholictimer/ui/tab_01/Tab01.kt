@@ -1,8 +1,11 @@
-// [NEW] Tab01 리팩토링: Start/Run 화면을 tab_01 구조로 리팩토링
+// Tab01.kt
+
 package kr.sweetapps.alcoholictimer.ui.tab_01
 
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.ui.tab_01.screens.RunScreenComposable
 import kr.sweetapps.alcoholictimer.ui.tab_01.screens.StartScreen
@@ -10,7 +13,6 @@ import kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.Tab01ViewModel
 
 /**
  * Tab01 Start 화면 Composable
- * ViewModel을 Activity Scope로 변경하여 탭 전환 시에도 동일한 인스턴스 유지
  */
 @Composable
 fun Tab01StartScreen(
@@ -18,16 +20,18 @@ fun Tab01StartScreen(
     onStart: (Int) -> Unit = {},
     viewModel: Tab01ViewModel = viewModel(viewModelStoreOwner = androidx.activity.compose.LocalActivity.current as ComponentActivity)
 ) {
-    StartScreen(
-        gateNavigation = gateNavigation,
-        onStart = onStart
-    )
+    // [FIX] 화면 전체를 강제로 새로고침하기 위한 설정 감지
+    val configuration = LocalConfiguration.current
+
+    // [FIX] 설정(언어)이 바뀌면 StartScreen을 파괴하고 다시 만듭니다.
+    key(configuration) {
+        StartScreen(
+            gateNavigation = gateNavigation,
+            onStart = onStart
+        )
+    }
 }
 
-/**
- * Tab01 Run 화면 Composable
- * ViewModel을 Activity Scope로 변경하여 탭 전환 시에도 동일한 인스턴스 유지
- */
 @Composable
 fun Tab01RunScreen(
     onRequestQuit: (() -> Unit)? = null,
@@ -35,11 +39,15 @@ fun Tab01RunScreen(
     onRequireBackToStart: (() -> Unit)? = null,
     viewModel: Tab01ViewModel = viewModel(viewModelStoreOwner = androidx.activity.compose.LocalActivity.current as ComponentActivity)
 ) {
-    RunScreenComposable(
-        onRequestQuit = onRequestQuit,
-        onCompletedNavigateToDetail = onCompletedNavigateToDetail,
-        onRequireBackToStart = onRequireBackToStart,
-        viewModel = viewModel // Pass ViewModel to RunScreenComposable
-    )
-}
+    // Run 화면도 동일하게 적용
+    val configuration = LocalConfiguration.current
 
+    key(configuration) {
+        RunScreenComposable(
+            onRequestQuit = onRequestQuit,
+            onCompletedNavigateToDetail = onCompletedNavigateToDetail,
+            onRequireBackToStart = onRequireBackToStart,
+            viewModel = viewModel
+        )
+    }
+}
