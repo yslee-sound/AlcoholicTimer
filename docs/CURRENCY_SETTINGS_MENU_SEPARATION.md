@@ -111,8 +111,21 @@ fun HabitScreenContent(
 
 ### 5. **CurrencyScreen.kt** (기존)
 - 이미 BackTopBar를 사용하는 독립 화면으로 구현되어 있음
-- 추가 수정 불필요
 - AUTO 옵션 및 7개 통화 지원
+- **[NEW]** '현재 선택' 표시에 프라이머리 블루 색상 적용
+
+```kotlin
+// 현재 선택 통화 표시
+Text(
+    text = if (selectedKeyState.value == "AUTO")
+        stringResource(R.string.settings_currency_current_auto, selectedCodeState.value)
+    else
+        stringResource(R.string.settings_currency_current, selectedCodeState.value),
+    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+    color = MainPrimaryBlue, // [NEW] 프라이머리 블루 색상 적용
+    modifier = Modifier.padding(16.dp)
+)
+```
 
 ---
 
@@ -214,10 +227,11 @@ BUILD SUCCESSFUL in 9s
 ## 📊 통계
 
 ### 코드 변경량
-- 수정된 파일: 2개
+- 수정된 파일: 3개 (Tab05.kt, Tab04.kt, CurrencyScreen.kt)
 - 추가된 메뉴: 1개 (Tab05 통화 설정)
 - 제거된 코드: ~100줄 (BottomSheet 관련)
 - 제거된 파라미터: 2개 (`currentCurrency`, `onShowCurrencySheet`)
+- UI 개선: 현재 선택 표시에 프라이머리 블루 색상 적용
 
 ### 사용자 영향
 - **긍정적**: 통화 설정이 독립 화면으로 더 명확하게 분리됨
@@ -252,7 +266,8 @@ AppNavHost
 ### CurrencyScreen.kt
 - 이미 BackTopBar를 사용하는 완성된 독립 화면
 - Tab05Graph에서 이미 라우트 연결되어 있음
-- 추가 수정 불필요
+- **[NEW]** '현재 선택: KRW (자동)' 표시에 프라이머리 블루 색상 적용
+- 선택된 항목과 텍스트 모두 MainPrimaryBlue(#1E40AF) 사용
 
 ### HabitScreenContent
 - 이제 순수하게 습관 설정(음주 비용/빈도/시간)만 담당

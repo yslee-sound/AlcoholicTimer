@@ -88,7 +88,8 @@ fun CurrencyScreen(onBack: () -> Unit = {}) {
                 stringResource(R.string.settings_currency_current_auto, selectedCodeState.value)
             else
                 stringResource(R.string.settings_currency_current, selectedCodeState.value),
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+            color = MainPrimaryBlue, // [NEW] 프라이머리 블루 색상 적용
             modifier = Modifier.padding(16.dp)
         )
     }
