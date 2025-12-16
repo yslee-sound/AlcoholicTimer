@@ -10,6 +10,7 @@ plugins {
     id("com.google.gms.google-services") // Google Services
     // [FIX] Crashlytics Gradle 플러그인 제거 (KSP와의 순환 참조 방지)
     // SDK만으로 충돌 보고 기능은 정상 작동하며, 매핑 파일은 필요시 수동 업로드
+    id("com.google.firebase.crashlytics")
     id("com.google.firebase.firebase-perf")
 }
 
@@ -82,7 +83,7 @@ android {
 
         // [FIX] Crashlytics 매핑 파일 자동 업로드 비활성화 (KSP와의 순환 참조 방지)
         // Release 빌드 시 수동으로 업로드하거나, CI/CD에서 관리합니다
-        manifestPlaceholders["firebaseCrashlyticsMapping"] = "false"
+        // manifestPlaceholders["firebaseCrashlyticsMapping"] = "false"
 
         ndk {
             // Play Console 경고 대응: 네이티브 심볼 업로드용 심볼 테이블 생성 (FULL 은 용량↑)
@@ -282,6 +283,8 @@ dependencies {
     implementation("com.google.firebase:firebase-crashlytics-ktx")
     implementation("com.google.firebase:firebase-perf-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx") // [NEW] Firestore 추가
+    // 👇 [NEW] Remote Config 라이브러리 추가
+    implementation("com.google.firebase:firebase-config-ktx")
 
     // AdMob & UMP (명시 버전 사용)
     implementation("com.google.android.gms:play-services-ads:23.6.0")

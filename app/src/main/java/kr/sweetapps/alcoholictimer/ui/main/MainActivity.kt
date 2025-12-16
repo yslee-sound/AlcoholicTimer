@@ -90,6 +90,15 @@ class MainActivity : BaseActivity() {
         try {
             kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.fetchRemoteConfig(this) { success ->
                 android.util.Log.d("MainActivity", "Remote Config fetch completed: success=$success")
+
+                // [테스트용] Fetch 성공 시 값을 로그로 확인 (AdPolicyManager 활용)
+                if (success) {
+                    val interval = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.getInterstitialIntervalSeconds(this)
+                    val isEnabled = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.isAdEnabled(this)
+
+                    // 릴리즈 빌드에서 이 로그가 보이면 성공입니다!
+                    android.util.Log.d("RemoteConfig_Test", "🔥 [확인] 쿨타임: $interval / 광고ON: $isEnabled")
+                }
             }
         } catch (t: Throwable) {
             android.util.Log.e("MainActivity", "Remote Config fetch failed", t)
