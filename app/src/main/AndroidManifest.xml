@@ -8,6 +8,8 @@
     <!-- [REQUIRED] 광고 ID 권한 (Android 13+ 필수)
          - 목적: 개인화된 광고 게재 및 광고 성과 측정
          - 사용처: Google AdMob (전면 광고, 오픈 광고)
+         - 사용자 선택권: UMP (User Messaging Platform) Consent 구현으로 사용자가 데이터 수집을 거부할 수 있음
+         - 앱 시작 시 UMP Consent 다이얼로그를 통해 사용자 동의를 받음
          - Play Console 데이터 보안 섹션에서 이 권한 사용을 명시해야 함
          - 사용자는 Android 설정에서 광고 ID를 재설정하거나 삭제할 수 있음
     -->
