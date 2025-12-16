@@ -15,10 +15,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
-import kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager
 import kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository
 import kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager
-import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
 import java.util.Locale
 
 /**
@@ -57,15 +55,7 @@ class StartScreenViewModel(application: Application) : AndroidViewModel(applicat
     init {
         loadTimerState()
         checkForPendingSnackbar()
-
-        // [전문가 솔루션] 여기에 이 코드를 추가하세요!
-        // 화면 진입 시 즉시 전면 광고를 미리 로드합니다.
-        try {
-            InterstitialAdManager.preload(application.applicationContext)
-            Log.d(TAG, "Init: Preloading Interstitial Ad instantly.")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to preload in init", e)
-        }
+        // [REMOVED] InterstitialAdManager.preload() 제거 - 전면광고 기능 제거됨
     }
 
     /**
@@ -257,43 +247,17 @@ class StartScreenViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     /**
-     * [NEW] 타이머 시작 버튼 클릭
+     * [REMOVED] 타이머 시작 버튼 클릭 - 전면광고 제거됨
+     * 이전: 광고 정책 확인 → 전면광고 표시 → 카운트다운
+     * 현재: 즉시 카운트다운 시작
      */
     fun onStartButtonClicked(context: Context) {
         viewModelScope.launch {
             try {
                 Log.d(TAG, "========================================")
-                Log.d(TAG, "Timer start button clicked - ad check started")
-
-                val shouldShowAd = AdPolicyManager.shouldShowInterstitialAd(context)
-                Log.d(TAG, "shouldShowInterstitialAd = $shouldShowAd")
-
-                if (shouldShowAd) {
-                    // 전면 광고 표시 시도
-                    val activity = context as? Activity
-                    if (activity != null) {
-                        val adLoaded = InterstitialAdManager.isLoaded()
-                        Log.d(TAG, "InterstitialAdManager.isLoaded() = $adLoaded")
-
-                        if (adLoaded) {
-                            Log.d(TAG, "✅ Showing interstitial ad")
-                            InterstitialAdManager.show(activity) { success ->
-                                Log.d(TAG, "Ad callback: success=$success")
-                                startCountdown()
-                            }
-                        } else {
-                            Log.d(TAG, "Ad not loaded -> start countdown immediately")
-                            startCountdown()
-                        }
-                    } else {
-                        Log.d(TAG, "activity null -> start countdown immediately")
-                        startCountdown()
-                    }
-                } else {
-                    Log.d(TAG, "In cooldown -> skip ad and start countdown")
-                    startCountdown()
-                }
-
+                Log.d(TAG, "Timer start button clicked - starting countdown immediately")
+                // [REMOVED] 전면광고 제거 - 타이머 시작 시 광고 없이 즉시 카운트다운 시작
+                startCountdown()
                 Log.d(TAG, "========================================")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to handle start button click", e)
@@ -385,8 +349,7 @@ class StartScreenViewModel(application: Application) : AndroidViewModel(applicat
                     Log.e(TAG, "Timer state initialization failed", t)
                 }
 
-                // Interstitial Ad 미리 로드
-                InterstitialAdManager.preload(getApplication<Application>().applicationContext)
+                // [REMOVED] InterstitialAdManager.preload() 제거 - 전면광고 기능 제거됨
 
                 // 네비게이션 이벤트 발행
                 _navigationEvent.value = NavigationEvent.NavigateToRun(targetDays)

@@ -42,6 +42,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.MainApplication
 import kr.sweetapps.alcoholictimer.R
@@ -96,6 +97,10 @@ fun AboutScreen(
     val uiState by viewModel.uiState.collectAsState()
     val nickname = uiState.nickname
     val showCustomerFeedbackSheet = uiState.showCustomerFeedbackSheet
+
+    // [NEW] Crashlytics 연동 확인을 위한 5회 탭 카운터
+    val versionTapCount = remember { mutableStateOf(0) }
+    val lastTapTime = remember { mutableStateOf(0L) }
 
     // [FIX] isPersonalizedAdsAllowed 제거 - Switch를 버튼으로 변경했으므로 checked 상태 불필요
     val versionInfo: String
@@ -349,9 +354,84 @@ fun AboutScreen(
         // Settings / About list
         Column(modifier = Modifier.background(Color.White)) {
             // 리스트 항목 사이에 thin divider를 추가하여 구분합니다.
-            SimpleAboutRow(title = stringResource(id = R.string.about_version_info), onClick = {}, trailing = {
-                Text(text = versionInfo, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            })
+
+            // [NEW] 버전 정보 - 5회 탭 시 Crashlytics 테스트 보고서 전송
+            SimpleAboutRow(
+                title = stringResource(id = R.string.about_version_info),
+                onClick = {
+                    val currentTime = System.currentTimeMillis()
+
+                    // [DEBUG] 클릭 감지 로그
+                    Log.d("AboutScreen", "🔘 버전 정보 탭 감지! (현재 카운트: ${versionTapCount.value})")
+
+                    // 1초 이내 탭이면 카운트 증가, 아니면 리셋
+                    if (currentTime - lastTapTime.value < 1000) {
+                        versionTapCount.value += 1
+                        Log.d("AboutScreen", "⏱️ 1초 이내 탭 → 카운트 증가: ${versionTapCount.value}")
+                    } else {
+                        versionTapCount.value = 1
+                        Log.d("AboutScreen", "⏱️ 1초 이상 경과 → 카운트 리셋: 1")
+                    }
+                    lastTapTime.value = currentTime
+
+                    // 5회 탭 감지 시 Crashlytics Non-fatal Exception 전송
+                    if (versionTapCount.value >= 5) {
+                        Log.d("AboutScreen", "🎯 5회 탭 달성! Crashlytics 테스트 보고서 전송 시작...")
+                        try {
+                            val crashlytics = FirebaseCrashlytics.getInstance()
+
+                            // [INFO] Crashlytics 활성화 상태 확인
+                            val isEnabled = crashlytics.isCrashlyticsCollectionEnabled()
+                            Log.d("AboutScreen", "📊 Crashlytics 활성화 상태: $isEnabled")
+
+                            if (!isEnabled && BuildConfig.DEBUG) {
+                                // Debug 빌드에서 비활성화된 경우 안내 메시지
+                                Toast.makeText(
+                                    context,
+                                    "Debug 빌드: Crashlytics 비활성화 상태\n" +
+                                    "Release 빌드에서 테스트하세요.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                Log.w("AboutScreen", "⚠️ Debug 빌드에서는 Crashlytics가 비활성화되어 있습니다.")
+                                Log.w("AboutScreen", "💡 Release 빌드(bundleRelease)로 테스트하세요.")
+                            } else {
+                                // [PROD] Non-fatal Exception을 Firebase Crashlytics에 전송
+                                val testException = Exception("Test Non-Fatal Exception - Crashlytics Check (v$versionInfo, Build: ${if (BuildConfig.DEBUG) "Debug" else "Release"})")
+                                crashlytics.recordException(testException)
+
+                                // 사용자 피드백
+                                val projectType = if (BuildConfig.DEBUG) "Dev" else "Prod"
+                                Toast.makeText(
+                                    context,
+                                    "Crashlytics 테스트 보고서 전송 완료.\nFirebase $projectType 프로젝트에서 확인하세요.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+
+                                Log.d("AboutScreen", "✅ Crashlytics 테스트 보고서 전송 완료 (버전: $versionInfo)")
+                                Log.d("AboutScreen", "📝 Firebase $projectType 프로젝트 Crashlytics → Non-fatals에서 5~10분 후 확인 가능")
+                            }
+                        } catch (e: Exception) {
+                            Log.e("AboutScreen", "❌ Crashlytics 테스트 보고서 전송 실패", e)
+                            Toast.makeText(
+                                context,
+                                "테스트 보고서 전송 실패: ${e.message}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+
+                        // 카운터 리셋
+                        versionTapCount.value = 0
+                        Log.d("AboutScreen", "🔄 카운터 리셋 완료")
+                    }
+                },
+                trailing = {
+                    Text(
+                        text = versionInfo,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            )
             Box(modifier = Modifier.fillMaxWidth().height(dims.divider.thin).background(dims.divider.lightColor))
 
             // Privacy

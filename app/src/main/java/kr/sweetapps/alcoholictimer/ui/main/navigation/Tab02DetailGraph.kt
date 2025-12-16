@@ -201,12 +201,32 @@ fun NavGraphBuilder.addTab02DetailGraph(
     ) {
         AllRecordsScreen(
             onNavigateBack = {
-                // [FIX] popBackStack 실패 시 Screen.Start로 이동 (탭2의 records_list로 돌아감)
-                if (!navController.popBackStack()) {
-                    navController.navigate(Screen.Start.route) {
-                        popUpTo(Screen.Start.route) { inclusive = true }
-                        launchSingleTop = true
+                // [NEW] 전면광고 표시 후 뒤로가기
+                val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
+
+                val proceedBack: () -> Unit = {
+                    // [FIX] popBackStack 실패 시 Screen.Start로 이동 (탭2의 records_list로 돌아감)
+                    if (!navController.popBackStack()) {
+                        navController.navigate(Screen.Start.route) {
+                            popUpTo(Screen.Start.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
                     }
+                }
+
+                if (shouldShowAd && activity != null) {
+                    android.util.Log.d("NavGraph", "[AllRecords] 광고 정책 통과 -> 전면 광고 노출")
+                    if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
+                        kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(activity) { _ ->
+                            proceedBack()
+                        }
+                    } else {
+                        android.util.Log.d("NavGraph", "[AllRecords] 광고 로드 안됨 -> 즉시 뒤로 이동")
+                        proceedBack()
+                    }
+                } else {
+                    android.util.Log.d("NavGraph", "[AllRecords] 광고 정책 불통과 -> 즉시 뒤로 이동")
+                    proceedBack()
                 }
             },
             onNavigateToDetail = { record: SobrietyRecord ->
@@ -254,12 +274,32 @@ fun NavGraphBuilder.addTab02DetailGraph(
     ) {
         kr.sweetapps.alcoholictimer.ui.tab_02.screens.AllDiaryScreen(
             onNavigateBack = {
-                // [FIX] popBackStack 실패 시 Screen.Start로 이동 (탭2의 records_list로 돌아감)
-                if (!navController.popBackStack()) {
-                    navController.navigate(Screen.Start.route) {
-                        popUpTo(Screen.Start.route) { inclusive = true }
-                        launchSingleTop = true
+                // [NEW] 전면광고 표시 후 뒤로가기
+                val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
+
+                val proceedBack: () -> Unit = {
+                    // [FIX] popBackStack 실패 시 Screen.Start로 이동 (탭2의 records_list로 돌아감)
+                    if (!navController.popBackStack()) {
+                        navController.navigate(Screen.Start.route) {
+                            popUpTo(Screen.Start.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
                     }
+                }
+
+                if (shouldShowAd && activity != null) {
+                    android.util.Log.d("NavGraph", "[AllDiary] 광고 정책 통과 -> 전면 광고 노출")
+                    if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
+                        kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(activity) { _ ->
+                            proceedBack()
+                        }
+                    } else {
+                        android.util.Log.d("NavGraph", "[AllDiary] 광고 로드 안됨 -> 즉시 뒤로 이동")
+                        proceedBack()
+                    }
+                } else {
+                    android.util.Log.d("NavGraph", "[AllDiary] 광고 정책 불통과 -> 즉시 뒤로 이동")
+                    proceedBack()
                 }
             },
             onOpenDiaryDetail = { diaryId ->
@@ -340,27 +380,9 @@ fun NavGraphBuilder.addTab02DetailGraph(
         kr.sweetapps.alcoholictimer.ui.tab_02.screens.DiaryWriteScreen(
             diaryId = diaryId.toLongOrNull(),
             onDismiss = {
-                val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
-
-                val proceedToBack: () -> Unit = {
-                    onRefreshCounterIncrement()
-                    navController.popBackStack()
-                }
-
-                if (shouldShowAd && activity != null) {
-                    android.util.Log.d("NavGraph", "[DiaryDetail] 광고 정책 통과 -> 전면 광고 노출")
-                    if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
-                        kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(activity) { _ ->
-                            proceedToBack()
-                        }
-                    } else {
-                        android.util.Log.d("NavGraph", "[DiaryDetail] 광고 로드 안됨 -> 즉시 뒤로 이동")
-                        proceedToBack()
-                    }
-                } else {
-                    android.util.Log.d("NavGraph", "[DiaryDetail] 광고 정책 불통과 -> 즉시 뒤로 이동")
-                    proceedToBack()
-                }
+                // [REMOVED] 전면광고 제거 - 일기 삭제 후 즉시 뒤로 이동
+                onRefreshCounterIncrement()
+                navController.popBackStack()
             }
         )
     }

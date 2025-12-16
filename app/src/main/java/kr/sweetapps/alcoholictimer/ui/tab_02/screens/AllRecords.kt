@@ -1,6 +1,7 @@
 // [NEW] Tab02 리팩토링: components를 tab_02로 이동
 package kr.sweetapps.alcoholictimer.ui.tab_02.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -69,6 +70,10 @@ fun AllRecordsScreen(
 
     LaunchedEffect(retryTrigger) { loadRecords() }
     LaunchedEffect(externalRefreshTrigger) { loadRecords() }
+
+    // [NEW] 시스템 뒤로가기 버튼(3버튼 또는 제스처) 처리
+    // 백탑바의 뒤로가기 버튼과 동일한 동작을 하도록 onNavigateBack 호출
+    BackHandler(onBack = onNavigateBack)
 
     // Use Scaffold with bottomBar so content is inset automatically
     Scaffold(

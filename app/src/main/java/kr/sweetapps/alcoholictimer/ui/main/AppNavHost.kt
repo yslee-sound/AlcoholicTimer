@@ -213,62 +213,49 @@ fun AppNavHost(
             kr.sweetapps.alcoholictimer.ui.tab_01.screens.FinishedGiveUpScreen(
                 onBack = { navigateToHome() },
                 onResultCheck = {
-                    val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
+                    // [REMOVED] 전면광고 제거 - 타이머 취소 후 즉시 기록 화면으로 이동
+                    try {
+                        val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+                        val completedStartTime = sharedPref.getLong("completed_start_time", 0L)
+                        val completedEndTime = sharedPref.getLong("completed_end_time", 0L)
+                        val completedTargetDays = sharedPref.getFloat("completed_target_days", 21f)
+                        val completedActualDays = sharedPref.getFloat("completed_actual_days", 0f).toInt()
 
-                    val proceedToDetail: () -> Unit = {
-                        try {
-                            val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
-                            val completedStartTime = sharedPref.getLong("completed_start_time", 0L)
-                            val completedEndTime = sharedPref.getLong("completed_end_time", 0L)
-                            val completedTargetDays = sharedPref.getFloat("completed_target_days", 21f)
-                            val completedActualDays = sharedPref.getFloat("completed_actual_days", 0f).toInt()
+                        if (completedStartTime > 0 && completedEndTime > 0) {
+                            val resultRoute = Screen.Result.createRoute(
+                                startTime = completedStartTime,
+                                endTime = completedEndTime,
+                                targetDays = completedTargetDays,
+                                actualDays = completedActualDays,
+                                isCompleted = false
+                            )
 
-                            if (completedStartTime > 0 && completedEndTime > 0) {
-                                val resultRoute = Screen.Result.createRoute(
-                                    startTime = completedStartTime,
-                                    endTime = completedEndTime,
-                                    targetDays = completedTargetDays,
-                                    actualDays = completedActualDays,
-                                    isCompleted = false
-                                )
-
-                                navController.navigate(resultRoute) {
-                                    popUpTo(0) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-
-                                try {
-                                    sharedPref.edit()
-                                        .remove("completed_start_time")
-                                        .remove("completed_end_time")
-                                        .remove("completed_target_days")
-                                        .remove("completed_actual_days")
-                                        .remove("completed_is_give_up")
-                                        .apply()
-                                } catch (_: Exception) {}
-
-                            } else {
-                                navController.navigate(Screen.Records.route) {
-                                    popUpTo(0) { inclusive = true }
-                                    launchSingleTop = true
-                                }
+                            navController.navigate(resultRoute) {
+                                popUpTo(0) { inclusive = true }
+                                launchSingleTop = true
                             }
-                        } catch (t: Throwable) {
+
+                            try {
+                                sharedPref.edit()
+                                    .remove("completed_start_time")
+                                    .remove("completed_end_time")
+                                    .remove("completed_target_days")
+                                    .remove("completed_actual_days")
+                                    .remove("completed_is_give_up")
+                                    .apply()
+                            } catch (_: Exception) {}
+
+                        } else {
                             navController.navigate(Screen.Records.route) {
                                 popUpTo(0) { inclusive = true }
                                 launchSingleTop = true
                             }
                         }
-                    }
-
-                    if (shouldShowAd && activity != null) {
-                        if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
-                            kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(activity) { proceedToDetail() }
-                        } else {
-                            proceedToDetail()
+                    } catch (t: Throwable) {
+                        navController.navigate(Screen.Records.route) {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
                         }
-                    } else {
-                        proceedToDetail()
                     }
                 },
                 onNewTimerStart = {

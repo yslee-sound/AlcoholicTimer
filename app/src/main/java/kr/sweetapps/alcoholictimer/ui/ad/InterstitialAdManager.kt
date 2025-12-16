@@ -110,6 +110,15 @@ object InterstitialAdManager {
                     try { AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
                     try { AdController.ensureBannerVisible("interstitialDismissed") } catch (_: Throwable) {}
 
+                    // [NEW] 광고가 닫힌 후 자동으로 다음 광고 미리 로드
+                    try {
+                        val context = activity.applicationContext
+                        Log.d(TAG, "show: 다음 광고 미리 로드 시작")
+                        loadInterstitial(context)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "show: 다음 광고 로드 실패", e)
+                    }
+
                     onComplete(true)
                 }
 
@@ -123,6 +132,15 @@ object InterstitialAdManager {
                     try { AdController.setInterstitialShowing(false) } catch (_: Throwable) {}
                     try { AdController.setBannerForceHidden(false) } catch (_: Throwable) {}
                     try { AdController.ensureBannerVisible("interstitialFailedToShow") } catch (_: Throwable) {}
+
+                    // [NEW] 광고 표시 실패 시에도 다음 광고 미리 로드
+                    try {
+                        val context = activity.applicationContext
+                        Log.d(TAG, "show: 광고 실패 후 다음 광고 로드 시작")
+                        loadInterstitial(context)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "show: 다음 광고 로드 실패", e)
+                    }
 
                     onComplete(false)
                 }

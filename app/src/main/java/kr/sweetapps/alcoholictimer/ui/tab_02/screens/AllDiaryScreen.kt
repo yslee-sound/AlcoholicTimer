@@ -1,6 +1,7 @@
 // [NEW] AllDiaryScreen: 월별로 그룹화된 모든 일기 보기 화면
 package kr.sweetapps.alcoholictimer.ui.tab_02.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -63,6 +64,10 @@ fun AllDiaryScreen(
         }
         map
     }
+
+    // [NEW] 시스템 뒤로가기 버튼(3버튼 또는 제스처) 처리
+    // 백탑바의 뒤로가기 버튼과 동일한 동작을 하도록 onNavigateBack 호출
+    BackHandler(onBack = onNavigateBack)
 
     Scaffold(
         topBar = {

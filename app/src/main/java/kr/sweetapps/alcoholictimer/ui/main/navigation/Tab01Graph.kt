@@ -42,30 +42,12 @@ fun NavGraphBuilder.addTab01Graph(
                 bundle.putInt("target_days", targetDays)
                 firebaseAnalytics?.logEvent("start_timer", bundle)
 
-                // [Ad Logic] ViewModel은 데이터를 처리했고, 여기서는 광고와 이동을 담당합니다. (중복 아님)
-                val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
-
-                val proceedToRun: () -> Unit = {
-                    navController.navigate(Screen.Run.route) {
-                        popUpTo(Screen.Start.route) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                }
-
-                if (shouldShowAd && activity != null) {
-                    android.util.Log.d("NavGraph", "[Start] 광고 정책 통과 -> 전면 광고 노출")
-                    if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
-                        kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(activity) { success ->
-                            android.util.Log.d("NavGraph", "[Start] 광고 결과: success=$success")
-                            proceedToRun()
-                        }
-                    } else {
-                        android.util.Log.d("NavGraph", "[Start] 광고 로드 안됨 -> 즉시 Run으로 이동")
-                        proceedToRun()
-                    }
-                } else {
-                    android.util.Log.d("NavGraph", "[Start] 광고 정책 불통과 (쿨타임/조건) -> 즉시 Run으로 이동")
-                    proceedToRun()
+                // [REMOVED] 전면광고 로직 제거 - StartScreenViewModel이 이미 처리함
+                // ViewModel에서 카운트다운 → 타이머 시작 → NavigationEvent 발행
+                // 여기서는 단순히 Run 화면으로 이동만 수행
+                navController.navigate(Screen.Run.route) {
+                    popUpTo(Screen.Start.route) { inclusive = true }
+                    launchSingleTop = true
                 }
             }
         )

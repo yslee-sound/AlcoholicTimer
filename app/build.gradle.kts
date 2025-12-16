@@ -198,8 +198,9 @@ android {
         getByName("debug") {
             applicationIdSuffix = ".debug"  // kr.sweetapps.alcoholictimer.debug
             versionNameSuffix = "-debug"
-            // [NEW] Crashlytics 자동 비활성화 (Debug 빌드 - 데이터 오염 방지)
-            manifestPlaceholders["crashlyticsCollectionEnabled"] = "false"
+            // [UPDATED] Crashlytics 활성화 (5회 탭 테스트 기능을 위해)
+            // 참고: Debug 빌드도 Firebase Dev 프로젝트로 데이터를 전송하여 테스트 가능
+            manifestPlaceholders["crashlyticsCollectionEnabled"] = "true"
 
             // [UPDATED] local.properties에서 AdMob 키 읽기 (Debug)
             val adMobAppId = getAdMobKey("ADMOB_APP_ID", "DEBUG")
