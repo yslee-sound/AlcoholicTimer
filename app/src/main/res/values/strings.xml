@@ -260,6 +260,9 @@
     <string name="settings_currency_current">현재 선택: %1$s</string>
     <string name="settings_currency_current_auto">현재 선택: %1$s (자동)</string>
 
+    <!-- Community screen (커뮤니티 화면) -->
+    <string name="community_title">익명 응원 챌린지</string>
+
     <!-- More (Tab04) tab labels - used instead of 'Settings' for tab04 -->
     <string name="more_title">더보기</string>
     <string name="drawer_menu_more">더보기</string>

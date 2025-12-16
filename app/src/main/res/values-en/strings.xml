@@ -281,6 +281,9 @@
     <string name="settings_currency_current">Current: %1$s</string>
     <string name="settings_currency_current_auto">Current: %1$s (Auto)</string>
 
+    <!-- Community screen -->
+    <string name="community_title">Anonymous Support Challenge</string>
+
     <!-- Additional All Records screen strings -->
     <string name="all_records_delete_failed">Delete failed</string>
     <string name="record_completed">Completed</string>
