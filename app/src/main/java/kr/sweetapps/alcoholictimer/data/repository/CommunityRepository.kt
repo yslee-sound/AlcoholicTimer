@@ -128,5 +128,21 @@ class CommunityRepository {
             Result.failure(e)
         }
     }
-}
 
+    /**
+     * [NEW] 새 게시글 추가
+     */
+    suspend fun addPost(post: Post): Result<Unit> {
+        return try {
+            val postRef = postsCollection.document()
+            val postWithId = post.copy(id = postRef.id)
+            postRef.set(postWithId).await()
+
+            Log.d(TAG, "Successfully added post: ${postRef.id}")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error adding post", e)
+            Result.failure(e)
+        }
+    }
+}
