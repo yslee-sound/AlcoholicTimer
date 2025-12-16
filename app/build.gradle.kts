@@ -6,15 +6,12 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
-    // [CRITICAL] KSP를 Crashlytics보다 먼저 선언 (태스크 의존성 순서 제어)
-    id("com.google.devtools.ksp") version "2.0.21-1.0.28" // [NEW] Room Database용 KSP 플러그인 (KAPT 대체)
     id("com.google.gms.google-services") // Google Services
-    // [FIX] Crashlytics 플러그인 재활성화 (빌드 ID 생성 필수)
-    // 버전 2.9.9 사용 - KSP와 순환 의존성 없음
-    id("com.google.firebase.crashlytics")
+    // [FIX] KSP를 먼저 선언하여 태스크 의존성 순서 제어
+    id("com.google.devtools.ksp") version "2.0.21-1.0.28" // Room Database용 KSP 플러그인
+    alias(libs.plugins.firebase.crashlytics) // Firebase Crashlytics (카탈로그에서 버전 관리)
     id("com.google.firebase.firebase-perf")
 }
-
 
 // 중복 commonmark(com.atlassian.commonmark)으로 인한 Duplicate class 에러 방지
 configurations.all {
@@ -65,6 +62,7 @@ val debugAdMobTestDeviceId = if (isReleaseTaskRequested) "" else adMobTestDevice
 android {
     namespace = "kr.sweetapps.alcoholictimer"
     compileSdk = 36
+
 
     // 버전 코드 전략: yyyymmdd + 2자리 시퀀스 (NN)
     // 이전 사용: 2025100800 -> 신규: 2025100801
@@ -138,9 +136,8 @@ android {
     buildTypes {
         release {
             // 릴리스 번들 최적화: 코드/리소스 축소 (ProGuard/R8)
-            // [TEMP] 순환 의존성 테스트를 위해 임시로 비활성화
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
