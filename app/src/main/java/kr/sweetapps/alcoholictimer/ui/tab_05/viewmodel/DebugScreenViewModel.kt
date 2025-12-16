@@ -154,4 +154,62 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
             }
         }
     }
+
+    /**
+     * Phase 2: 커뮤니티 테스트 게시글 10개 생성
+     */
+    fun generateDummyCommunityPosts(context: Context) {
+        viewModelScope.launch {
+            try {
+                val repository = kr.sweetapps.alcoholictimer.data.repository.CommunityRepository()
+                val result = repository.generateDummyPosts()
+
+                val message = if (result.isSuccess) {
+                    "✅ 테스트 게시글 10개 생성 완료!\nTab 4에서 확인하세요."
+                } else {
+                    "❌ 게시글 생성 실패: ${result.exceptionOrNull()?.message}"
+                }
+
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_LONG).show()
+                }
+
+                Log.d("DebugScreen", message)
+            } catch (e: Exception) {
+                Log.e("DebugScreen", "게시글 생성 중 에러", e)
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    android.widget.Toast.makeText(context, "에러: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    /**
+     * Phase 2: 모든 커뮤니티 게시글 삭제
+     */
+    fun deleteAllCommunityPosts(context: Context) {
+        viewModelScope.launch {
+            try {
+                val repository = kr.sweetapps.alcoholictimer.data.repository.CommunityRepository()
+                val result = repository.deleteAllPosts()
+
+                val message = if (result.isSuccess) {
+                    "✅ 모든 게시글 삭제 완료!"
+                } else {
+                    "❌ 게시글 삭제 실패: ${result.exceptionOrNull()?.message}"
+                }
+
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_SHORT).show()
+                }
+
+                Log.d("DebugScreen", message)
+            } catch (e: Exception) {
+                Log.e("DebugScreen", "게시글 삭제 중 에러", e)
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    android.widget.Toast.makeText(context, "에러: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 }

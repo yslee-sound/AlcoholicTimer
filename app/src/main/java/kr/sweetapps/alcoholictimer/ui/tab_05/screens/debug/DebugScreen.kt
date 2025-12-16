@@ -359,6 +359,59 @@ fun DebugScreen(
                 modifier = Modifier.padding(top = 8.dp)
             )
 
+            // [NEW] Phase 2: 커뮤니티 테스트 섹션
+            Spacer(modifier = Modifier.height(32.dp))
+            Text(
+                text = "커뮤니티 테스트 (Community Test)",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            // 테스트 게시글 10개 생성 버튼
+            androidx.compose.material3.Button(
+                onClick = {
+                    viewModel.generateDummyCommunityPosts(context)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = androidx.compose.ui.graphics.Color(0xFF4CAF50)
+                )
+            ) {
+                Text("📝 테스트 게시글 10개 생성", color = androidx.compose.ui.graphics.Color.White)
+            }
+
+            // 모든 게시글 삭제 버튼
+            androidx.compose.material3.Button(
+                onClick = {
+                    viewModel.deleteAllCommunityPosts(context)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = androidx.compose.ui.graphics.Color(0xFFF44336)
+                )
+            ) {
+                Text("🗑️ 모든 게시글 삭제", color = androidx.compose.ui.graphics.Color.White)
+            }
+
+            Text(
+                text = """
+                    ※ Tab 4 (커뮤니티)에서 결과 확인
+                    ※ 닉네임: 익명 1, 참는 중인 사자 등 10개
+                    ※ 타이머: 24시간 ~ 240시간 랜덤
+                    ※ 좋아요: 0~50 랜덤
+                    ※ 이미지: 3개 중 1개만 포함 (Picsum 더미 이미지)
+                    ※ 삭제 예정 시간: 생성 후 24시간
+                """.trimIndent(),
+                fontSize = 11.sp,
+                color = androidx.compose.ui.graphics.Color.Gray,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+
             // [NEW] Bottom spacer for breathing room
             Spacer(modifier = Modifier.height(100.dp))
         }
