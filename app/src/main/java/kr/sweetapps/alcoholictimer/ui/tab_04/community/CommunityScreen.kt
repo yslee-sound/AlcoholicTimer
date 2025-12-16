@@ -137,7 +137,7 @@ fun CommunityScreen(
         }
     }
 
-    // [NEW] 전체화면 글쓰기 다이얼로그 (페이스북 스타일 애니메이션)
+    // [NEW] 전체화면 글쓰기 다이얼로그 (1초 슬라이드 애니메이션 테스트)
     FullScreenWriteDialog(
         visible = isWritingScreenVisible,
         onPost = { content ->
@@ -220,7 +220,8 @@ private fun WritePostTrigger(
 }
 
 /**
- * [NEW] 전체화면 글쓰기 다이얼로그 (페이스북 스타일 400ms 슬라이드 애니메이션)
+ * [NEW] 전체화면 글쓰기 다이얼로그 (1초 슬라이드 애니메이션 테스트)
+ * LaunchedEffect를 사용하여 열기/닫기 애니메이션 제어
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -230,29 +231,43 @@ private fun FullScreenWriteDialog(
     onDismiss: () -> Unit
 ) {
     var content by remember { mutableStateOf("") }
+    var showDialog by remember { mutableStateOf(false) }
+    var animateContent by remember { mutableStateOf(false) }
 
-    // 닫기 애니메이션 완료 후 Dialog 제거
-    if (visible) {
+    // visible 상태 변화에 따라 Dialog와 애니메이션 제어
+    LaunchedEffect(visible) {
+        if (visible) {
+            showDialog = true
+            kotlinx.coroutines.delay(50) // Dialog 렌더링 대기
+            animateContent = true
+        } else {
+            animateContent = false
+            kotlinx.coroutines.delay(350) // 페이스북 스타일: 닫기는 350ms
+            showDialog = false
+        }
+    }
+
+    if (showDialog) {
         Dialog(
             onDismissRequest = onDismiss,
             properties = DialogProperties(
                 usePlatformDefaultWidth = false // 전체 화면
             )
         ) {
-            // [NEW] 페이스북 스타일 슬라이드 애니메이션 (400ms)
+            // [FIX] animateContent 상태로 AnimatedVisibility 제어
             androidx.compose.animation.AnimatedVisibility(
-                visible = visible,
+                visible = animateContent,
                 enter = androidx.compose.animation.slideInVertically(
                     initialOffsetY = { it }, // 화면 하단에서 시작
                     animationSpec = androidx.compose.animation.core.tween(
-                        durationMillis = 400, // 페이스북 타이밍
+                        durationMillis = 1000, // 1초 (테스트용)
                         easing = androidx.compose.animation.core.FastOutSlowInEasing
                     )
                 ),
                 exit = androidx.compose.animation.slideOutVertically(
                     targetOffsetY = { it }, // 화면 하단으로 슬라이드 다운
                     animationSpec = androidx.compose.animation.core.tween(
-                        durationMillis = 350, // 닫을 때도 부드럽게
+                        durationMillis = 1000, // 1초 (테스트용)
                         easing = androidx.compose.animation.core.FastOutSlowInEasing
                     )
                 )
@@ -351,7 +366,7 @@ private fun FullScreenWriteDialog(
         }
             } // AnimatedVisibility 닫기
         } // Dialog 닫기
-    }
+    } // if (showDialog) 닫기
 }
 
 /**
