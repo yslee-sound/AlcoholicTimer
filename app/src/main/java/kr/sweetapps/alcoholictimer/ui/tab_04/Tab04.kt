@@ -95,40 +95,7 @@ fun HabitScreen(
     val selectedFrequency by viewModel.selectedFrequency.collectAsState()
     val selectedDuration by viewModel.selectedDuration.collectAsState()
 
-    // [REFACTORED] 통화 설정 상태 (즉시 저장 방식)
-    val prefs = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
-    val isExplicit = prefs.getBoolean("currency_explicit", false)
-    val currentCurrency = if (isExplicit) {
-        prefs.getString("selected_currency", "AUTO") ?: "AUTO"
-    } else {
-        "AUTO"
-    }
-    var showCurrencySheet by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState()
-
-    // [NEW] 통화 즉시 저장 함수
-    val saveCurrency: (String) -> Unit = { newCurrency ->
-        try {
-            val sp = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
-            if (newCurrency == "AUTO") {
-                sp.edit().apply {
-                    putString("selected_currency", "AUTO")
-                    putBoolean("currency_explicit", false)
-                    apply()
-                }
-            } else {
-                sp.edit().apply {
-                    putString("selected_currency", newCurrency)
-                    putBoolean("currency_explicit", true)
-                    apply()
-                }
-            }
-            kr.sweetapps.alcoholictimer.util.manager.CurrencyManager.saveCurrency(context, newCurrency)
-            Log.d("HabitScreen", "통화 설정 저장됨: $newCurrency")
-        } catch (e: Exception) {
-            Log.e("HabitScreen", "Failed to save currency: ${e.message}")
-        }
-    }
+    // [REMOVED] 통화 설정 관련 상태 제거 - Tab05로 이동됨
 
     // [NEW] 화면 진입 시 전면 광고 미리 로드 (성능 최적화)
     androidx.compose.runtime.LaunchedEffect(Unit) {
@@ -166,7 +133,6 @@ fun HabitScreen(
             selectedCost = selectedCost,
             selectedFrequency = selectedFrequency,
             selectedDuration = selectedDuration,
-            currentCurrency = currentCurrency,
             onCostChange = { newValue ->
                 viewModel.updateCost(newValue)
                 Log.d("HabitScreen", "비용 즉시 저장: $newValue")
@@ -178,52 +144,11 @@ fun HabitScreen(
             onDurationChange = { newValue ->
                 viewModel.updateDuration(newValue)
                 Log.d("HabitScreen", "시간 즉시 저장: $newValue")
-            },
-            onShowCurrencySheet = { showCurrencySheet = it }
+            }
         )
     }
 
-    // [REFACTORED] 통화 선택 BottomSheet - 즉시 저장 방식
-    if (showCurrencySheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showCurrencySheet = false },
-            sheetState = sheetState
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 32.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.settings_currency),
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
-                )
-
-                // AUTO 옵션
-                CurrencyOptionRow(
-                    isSelected = currentCurrency == "AUTO",
-                    label = stringResource(R.string.settings_currency_auto),
-                    onSelected = {
-                        saveCurrency("AUTO") // 즉시 저장
-                        showCurrencySheet = false
-                    }
-                )
-
-                // 지원 통화 목록
-                kr.sweetapps.alcoholictimer.util.manager.CurrencyManager.supportedCurrencies.forEach { currency ->
-                    CurrencyOptionRow(
-                        isSelected = currentCurrency == currency.code,
-                        label = context.getString(currency.nameResId),
-                        onSelected = {
-                            saveCurrency(currency.code) // 즉시 저장
-                            showCurrencySheet = false
-                        }
-                    )
-                }
-            }
-        }
-    }
+    // [REMOVED] 통화 선택 BottomSheet 제거 - Tab05의 독립 메뉴로 이동됨
 }
 
 // [REFACTORED] HabitScreen 콘텐츠 - 즉시 저장 방식
@@ -233,14 +158,11 @@ fun HabitScreenContent(
     selectedCost: String,
     selectedFrequency: String,
     selectedDuration: String,
-    currentCurrency: String,
     onCostChange: (String) -> Unit,
     onFrequencyChange: (String) -> Unit,
-    onDurationChange: (String) -> Unit,
-    onShowCurrencySheet: (Boolean) -> Unit
+    onDurationChange: (String) -> Unit
 ) {
     val scrollState = rememberScrollState()
-    val context = LocalContext.current // [FIX] Context를 Composable 레벨에서 캡처
 
     // [FIX] innerPadding을 전체에 적용하지 않고, 상단/하단을 Spacer로 분리하여 적용
     Column(
@@ -318,38 +240,7 @@ fun HabitScreenContent(
         }
         HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
 
-        // [MOD] 통화 설정 섹션
-        HabitSection(
-            title = stringResource(R.string.settings_currency),
-            titleColor = Color.Black
-        ) {
-            // 통화 선택 행
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) { onShowCurrencySheet(true) }
-                    .padding(horizontal = 20.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = if (currentCurrency == "AUTO") stringResource(R.string.settings_currency_auto) else currentCurrency,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = colorResource(id = R.color.color_text_primary_dark)
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.ic_caret_right),
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
-
-
+        // [REMOVED] 통화 설정 섹션 제거 - Tab05의 독립 메뉴로 이동됨
         // [2] 하단 여백 확보 (BottomBar 높이 + 추가 여유 50dp)
         Spacer(modifier = Modifier.height(innerPadding.calculateBottomPadding() + 50.dp))
     }
@@ -507,40 +398,7 @@ fun HabitSettingsScreen(
     val selectedFrequency by viewModel.selectedFrequency.collectAsState()
     val selectedDuration by viewModel.selectedDuration.collectAsState()
 
-    // [REFACTORED] 통화 설정 상태
-    val prefs = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
-    val isExplicit = prefs.getBoolean("currency_explicit", false)
-    val currentCurrency = if (isExplicit) {
-        prefs.getString("selected_currency", "AUTO") ?: "AUTO"
-    } else {
-        "AUTO"
-    }
-    var showCurrencySheet by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState()
-
-    // 통화 즉시 저장 함수
-    val saveCurrency: (String) -> Unit = { newCurrency ->
-        try {
-            val sp = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
-            if (newCurrency == "AUTO") {
-                sp.edit().apply {
-                    putString("selected_currency", "AUTO")
-                    putBoolean("currency_explicit", false)
-                    apply()
-                }
-            } else {
-                sp.edit().apply {
-                    putString("selected_currency", newCurrency)
-                    putBoolean("currency_explicit", true)
-                    apply()
-                }
-            }
-            kr.sweetapps.alcoholictimer.util.manager.CurrencyManager.saveCurrency(context, newCurrency)
-            Log.d("HabitSettingsScreen", "통화 설정 저장됨: $newCurrency")
-        } catch (e: Exception) {
-            Log.e("HabitSettingsScreen", "Failed to save currency: ${e.message}")
-        }
-    }
+    // [REMOVED] 통화 설정 관련 상태 제거 - Tab05 독립 메뉴로 이동됨
 
     // [NEW] 화면 진입 시 전면 광고 미리 로드
     androidx.compose.runtime.LaunchedEffect(Unit) {
@@ -569,7 +427,6 @@ fun HabitSettingsScreen(
             selectedCost = selectedCost,
             selectedFrequency = selectedFrequency,
             selectedDuration = selectedDuration,
-            currentCurrency = currentCurrency,
             onCostChange = { newValue ->
                 viewModel.updateCost(newValue)
                 Log.d("HabitSettingsScreen", "비용 즉시 저장: $newValue")
@@ -581,52 +438,11 @@ fun HabitSettingsScreen(
             onDurationChange = { newValue ->
                 viewModel.updateDuration(newValue)
                 Log.d("HabitSettingsScreen", "시간 즉시 저장: $newValue")
-            },
-            onShowCurrencySheet = { showCurrencySheet = it }
+            }
         )
     }
 
-    // 통화 선택 BottomSheet
-    if (showCurrencySheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showCurrencySheet = false },
-            sheetState = sheetState
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 32.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.settings_currency),
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
-                )
-
-                // AUTO 옵션
-                CurrencyOptionRow(
-                    isSelected = currentCurrency == "AUTO",
-                    label = stringResource(R.string.settings_currency_auto),
-                    onSelected = {
-                        saveCurrency("AUTO")
-                        showCurrencySheet = false
-                    }
-                )
-
-                // 지원 통화 목록
-                kr.sweetapps.alcoholictimer.util.manager.CurrencyManager.supportedCurrencies.forEach { currency ->
-                    CurrencyOptionRow(
-                        isSelected = currentCurrency == currency.code,
-                        label = context.getString(currency.nameResId),
-                        onSelected = {
-                            saveCurrency(currency.code)
-                            showCurrencySheet = false
-                        }
-                    )
-                }
-            }
-        }
-    }
+    // [REMOVED] 통화 선택 BottomSheet 제거 - Tab05의 독립 메뉴로 이동됨
 }
 
 @Composable

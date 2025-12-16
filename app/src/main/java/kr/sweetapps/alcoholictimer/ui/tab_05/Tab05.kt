@@ -450,6 +450,21 @@ fun AboutScreen(
             )
             Box(modifier = Modifier.fillMaxWidth().height(dims.divider.thin).background(dims.divider.lightColor))
 
+            // [NEW] 통화 설정 - 기존 습관 설정 화면의 통화 설정을 독립 메뉴로 분리
+            SimpleAboutRow(
+                title = stringResource(id = R.string.settings_currency),
+                onClick = onNavigateCurrencySettings,
+                trailing = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_caret_right),
+                        contentDescription = null,
+                        tint = Color(0xFF9CA3AF),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            )
+            Box(modifier = Modifier.fillMaxWidth().height(dims.divider.thin).background(dims.divider.lightColor))
+
             // Privacy
             SimpleAboutRow(title = stringResource(id = R.string.document_title_privacy), onClick = onPrivacyClick, trailing = {
                 Icon(
