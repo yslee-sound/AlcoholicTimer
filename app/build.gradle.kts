@@ -6,10 +6,11 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    // [CRITICAL] KSP를 Crashlytics보다 먼저 선언 (태스크 의존성 순서 제어)
     id("com.google.devtools.ksp") version "2.0.21-1.0.28" // [NEW] Room Database용 KSP 플러그인 (KAPT 대체)
     id("com.google.gms.google-services") // Google Services
-    // [FIX] Crashlytics Gradle 플러그인 제거 (KSP와의 순환 참조 방지)
-    // SDK만으로 충돌 보고 기능은 정상 작동하며, 매핑 파일은 필요시 수동 업로드
+    // [FIX] Crashlytics 플러그인 재활성화 (빌드 ID 생성 필수)
+    // 버전 2.9.9 사용 - KSP와 순환 의존성 없음
     id("com.google.firebase.crashlytics")
     id("com.google.firebase.firebase-perf")
 }
@@ -67,7 +68,7 @@ android {
 
     // 버전 코드 전략: yyyymmdd + 2자리 시퀀스 (NN)
     // 이전 사용: 2025100800 -> 신규: 2025100801
-    val releaseVersionCode = 2025121502
+    val releaseVersionCode = 2025121600
     val releaseVersionName = "1.1.6"
     defaultConfig {
         applicationId = "kr.sweetapps.alcoholictimer"
@@ -78,12 +79,6 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // [NEW] Crashlytics 기본값 설정 (buildType에서 오버라이드됨)
-        manifestPlaceholders["crashlyticsCollectionEnabled"] = "false"
-
-        // [FIX] Crashlytics 매핑 파일 자동 업로드 비활성화 (KSP와의 순환 참조 방지)
-        // Release 빌드 시 수동으로 업로드하거나, CI/CD에서 관리합니다
-        // manifestPlaceholders["firebaseCrashlyticsMapping"] = "false"
 
         ndk {
             // Play Console 경고 대응: 네이티브 심볼 업로드용 심볼 테이블 생성 (FULL 은 용량↑)
@@ -143,8 +138,9 @@ android {
     buildTypes {
         release {
             // 릴리스 번들 최적화: 코드/리소스 축소 (ProGuard/R8)
-            isMinifyEnabled = true
-            isShrinkResources = true
+            // [TEMP] 순환 의존성 테스트를 위해 임시로 비활성화
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -494,3 +490,4 @@ tasks.configureEach {
         dependsOn("verifyReleaseAdConfig")
     }
 }
+
