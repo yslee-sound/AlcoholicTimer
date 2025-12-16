@@ -88,7 +88,7 @@ fun AppNavHost(
                     )
 
                     addTab03Graph(tabNavController)
-                    addTab04Graph(tabNavController)
+                    addTab04Graph(tabNavController) // [RESTORED] 탭4 유지 (다른 기능 예정)
                     addTab05Graph(tabNavController)
                 }
             }

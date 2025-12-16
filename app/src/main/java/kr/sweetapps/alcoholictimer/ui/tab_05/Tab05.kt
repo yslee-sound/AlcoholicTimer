@@ -75,6 +75,7 @@ fun AboutScreen(
     onNavigatePrivacy: () -> Unit = {},
     onNavigateEditNickname: () -> Unit = {},
     onNavigateCurrencySettings: () -> Unit = {},
+    onNavigateHabitSettings: () -> Unit = {}, // [NEW] 습관 설정 네비게이션
     onNavigateDebug: () -> Unit = {},
     onNavigateNotification: () -> Unit = {},
     onNavigateCustomer: () -> Unit = {},
@@ -429,6 +430,21 @@ fun AboutScreen(
                         text = versionInfo,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            )
+            Box(modifier = Modifier.fillMaxWidth().height(dims.divider.thin).background(dims.divider.lightColor))
+
+            // [NEW] 습관 설정 - 기존 Tab04의 습관 설정 기능을 여기로 이동
+            SimpleAboutRow(
+                title = stringResource(id = R.string.settings_title),
+                onClick = onNavigateHabitSettings,
+                trailing = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_caret_right),
+                        contentDescription = null,
+                        tint = Color(0xFF9CA3AF),
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             )

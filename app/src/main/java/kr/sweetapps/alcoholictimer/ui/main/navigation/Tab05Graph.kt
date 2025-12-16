@@ -30,6 +30,7 @@ fun NavGraphBuilder.addTab05Graph(navController: NavHostController) {
             onNavigatePrivacy = { navController.navigate(Screen.Privacy.route) },
             onNavigateEditNickname = { navController.navigate(Screen.NicknameEdit.route) },
             onNavigateCurrencySettings = { navController.navigate(Screen.CurrencySettings.route) },
+            onNavigateHabitSettings = { navController.navigate(Screen.HabitSettings.route) }, // [NEW] 습관 설정
             onNavigateDebug = { navController.navigate(Screen.Debug.route) },
             onNavigateNotification = { navController.navigate(Screen.Notification.route) },
             onNavigateCustomer = { navController.navigate("customer") },
@@ -66,6 +67,14 @@ fun NavGraphBuilder.addTab05Graph(navController: NavHostController) {
     // 통화 설정
     composable(Screen.CurrencySettings.route) {
         CurrencyScreen(onBack = { navController.popBackStack() })
+    }
+
+    // [NEW] 습관 설정 (기존 Tab04의 HabitScreen을 독립 화면으로 이동)
+    composable(Screen.HabitSettings.route) {
+        kr.sweetapps.alcoholictimer.ui.tab_04.HabitSettingsScreen(
+            onBack = { navController.popBackStack() },
+            onNavigateCurrencySettings = { navController.navigate(Screen.CurrencySettings.route) }
+        )
     }
 
     // 디버그 메뉴

@@ -77,7 +77,14 @@ private val bottomItems: List<BottomItem> = listOf(
         R.drawable.ic_nav_user,
         R.string.drawer_menu_about,
         R.string.drawer_menu_about,
-        associatedRoutes = setOf(Screen.About.route, Screen.AboutLicenses.route, Screen.NicknameEdit.route)
+        // [UPDATED] HabitSettings, CurrencySettings 라우트 추가
+        associatedRoutes = setOf(
+            Screen.About.route,
+            Screen.AboutLicenses.route,
+            Screen.NicknameEdit.route,
+            Screen.HabitSettings.route, // [NEW] 습관 설정
+            Screen.CurrencySettings.route // [NEW] 통화 설정 (Tab04와 공유)
+        )
     )
 )
 

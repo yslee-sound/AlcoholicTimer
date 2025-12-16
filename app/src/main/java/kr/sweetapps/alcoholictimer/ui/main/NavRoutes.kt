@@ -78,6 +78,11 @@ sealed class Screen(val route: String) {
      */
     data object CurrencySettings : Screen("currency_settings")
 
+    /**
+     * [NEW] Habit settings screen (습관 설정)
+     * 기존 Tab04의 습관 설정 기능을 Tab05의 하위 화면으로 이동
+     */
+    data object HabitSettings : Screen("habit_settings")
 
     /**
      * Debug screen for UMP consent verification
@@ -143,6 +148,7 @@ fun Screen.getTitleResId(): Int? = when (this) {
     is Screen.Privacy -> null
     is Screen.NicknameEdit -> null // Uses custom title
     is Screen.CurrencySettings -> kr.sweetapps.alcoholictimer.R.string.settings_currency
+    is Screen.HabitSettings -> kr.sweetapps.alcoholictimer.R.string.settings_title // [NEW] 습관 설정
     is Screen.Detail -> null // Uses custom title
     is Screen.Result -> null // [NEW] 결과 화면 (커스텀 타이틀 사용)
     is Screen.AddRecord -> kr.sweetapps.alcoholictimer.R.string.add_record_title

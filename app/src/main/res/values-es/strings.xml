@@ -214,7 +214,7 @@
     <string name="start_screen_title">Iniciar Sobriedad</string>
 
     <!-- Settings screen (pantalla de configuración) -->
-    <string name="settings_title">Configuración</string>
+    <string name="settings_title">Configuración de Hábitos</string>
     <string name="settings_drinking_cost">Costo de Beber</string>
     <string name="settings_drinking_frequency">Frecuencia de Consumo</string>
     <string name="settings_drinking_duration">Duración del Consumo</string>

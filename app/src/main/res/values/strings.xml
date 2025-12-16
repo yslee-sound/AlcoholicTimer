@@ -250,7 +250,7 @@
     <string name="start_screen_title">금주 시작</string>
 
     <!-- Settings screen (설정 화면) -->
-    <string name="settings_title">금주 습관</string>
+    <string name="settings_title">습관 설정</string>
     <string name="settings_drinking_cost">음주 비용</string>
     <string name="settings_drinking_frequency">음주 빈도</string>
     <string name="settings_drinking_duration">음주 시간</string>

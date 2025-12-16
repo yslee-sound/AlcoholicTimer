@@ -239,7 +239,7 @@
     <string name="start_screen_title">禁酒開始</string>
 
     <!-- Settings screen -->
-    <string name="settings_title">禁酒習慣</string>
+    <string name="settings_title">習慣設定</string>
     <string name="settings_drinking_cost">飲酒費用</string>
     <string name="settings_drinking_frequency">飲酒頻度</string>
     <string name="settings_drinking_duration">飲酒時間</string>

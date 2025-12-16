@@ -215,7 +215,7 @@
     <string name="start_screen_title">开始戒酒</string>
 
     <!-- Settings screen (设置画面) -->
-    <string name="settings_title">戒酒习惯</string>
+    <string name="settings_title">习惯设置</string>
     <string name="settings_drinking_cost">饮酒花费</string>
     <string name="settings_drinking_frequency">饮酒频率</string>
     <string name="settings_drinking_duration">饮酒时长</string>

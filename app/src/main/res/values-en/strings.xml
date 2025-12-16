@@ -271,7 +271,7 @@
     <string name="start_screen_title">Sobriety Start</string>
 
     <!-- Settings screen -->
-    <string name="settings_title">Sobriety Habits</string>
+    <string name="settings_title">Habit Settings</string>
     <string name="settings_drinking_cost">Drinking Cost</string>
     <string name="settings_drinking_frequency">Drinking Frequency</string>
     <string name="settings_drinking_duration">Drinking Duration</string>

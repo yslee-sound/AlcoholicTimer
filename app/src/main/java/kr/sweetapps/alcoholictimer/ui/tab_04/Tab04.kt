@@ -489,6 +489,146 @@ fun HabitMenuWithSwitch(
 @Composable
 fun HabitScreenPreview() { HabitScreen() }
 
+// [NEW] Tab05에서 사용할 독립 습관 설정 화면 (뒤로가기 TopBar 포함)
+// 기존 Tab04의 HabitScreen 로직을 재사용하되, DocumentScreen 스타일의 TopBar 추가
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HabitSettingsScreen(
+    onBack: () -> Unit,
+    onNavigateCurrencySettings: () -> Unit = {},
+    viewModel: Tab04ViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+        viewModelStoreOwner = androidx.activity.compose.LocalActivity.current as androidx.activity.ComponentActivity
+    )
+) {
+    val context = LocalContext.current
+
+    // [REFACTORED] ViewModel 상태 직접 사용
+    val selectedCost by viewModel.selectedCost.collectAsState()
+    val selectedFrequency by viewModel.selectedFrequency.collectAsState()
+    val selectedDuration by viewModel.selectedDuration.collectAsState()
+
+    // [REFACTORED] 통화 설정 상태
+    val prefs = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+    val isExplicit = prefs.getBoolean("currency_explicit", false)
+    val currentCurrency = if (isExplicit) {
+        prefs.getString("selected_currency", "AUTO") ?: "AUTO"
+    } else {
+        "AUTO"
+    }
+    var showCurrencySheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
+
+    // 통화 즉시 저장 함수
+    val saveCurrency: (String) -> Unit = { newCurrency ->
+        try {
+            val sp = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+            if (newCurrency == "AUTO") {
+                sp.edit().apply {
+                    putString("selected_currency", "AUTO")
+                    putBoolean("currency_explicit", false)
+                    apply()
+                }
+            } else {
+                sp.edit().apply {
+                    putString("selected_currency", newCurrency)
+                    putBoolean("currency_explicit", true)
+                    apply()
+                }
+            }
+            kr.sweetapps.alcoholictimer.util.manager.CurrencyManager.saveCurrency(context, newCurrency)
+            Log.d("HabitSettingsScreen", "통화 설정 저장됨: $newCurrency")
+        } catch (e: Exception) {
+            Log.e("HabitSettingsScreen", "Failed to save currency: ${e.message}")
+        }
+    }
+
+    // [NEW] 화면 진입 시 전면 광고 미리 로드
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        Log.d("HabitSettingsScreen", "Entering Settings -> Preloading Interstitial Ad")
+        try {
+            kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.preload(context)
+        } catch (e: Exception) {
+            Log.e("HabitSettingsScreen", "Failed to preload ad: ${e.message}")
+        }
+    }
+
+    // [NEW] Scaffold with BackTopBar (DocumentScreen 스타일)
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = Color.White,
+        topBar = {
+            kr.sweetapps.alcoholictimer.ui.components.BackTopBar(
+                title = stringResource(R.string.settings_title),
+                onBack = onBack
+            )
+        }
+    ) { innerPadding ->
+        // 기존 HabitScreenContent 재사용
+        HabitScreenContent(
+            innerPadding = innerPadding,
+            selectedCost = selectedCost,
+            selectedFrequency = selectedFrequency,
+            selectedDuration = selectedDuration,
+            currentCurrency = currentCurrency,
+            onCostChange = { newValue ->
+                viewModel.updateCost(newValue)
+                Log.d("HabitSettingsScreen", "비용 즉시 저장: $newValue")
+            },
+            onFrequencyChange = { newValue ->
+                viewModel.updateFrequency(newValue)
+                Log.d("HabitSettingsScreen", "빈도 즉시 저장: $newValue")
+            },
+            onDurationChange = { newValue ->
+                viewModel.updateDuration(newValue)
+                Log.d("HabitSettingsScreen", "시간 즉시 저장: $newValue")
+            },
+            onShowCurrencySheet = { showCurrencySheet = it }
+        )
+    }
+
+    // 통화 선택 BottomSheet
+    if (showCurrencySheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showCurrencySheet = false },
+            sheetState = sheetState
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 32.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.settings_currency),
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
+                )
+
+                // AUTO 옵션
+                CurrencyOptionRow(
+                    isSelected = currentCurrency == "AUTO",
+                    label = stringResource(R.string.settings_currency_auto),
+                    onSelected = {
+                        saveCurrency("AUTO")
+                        showCurrencySheet = false
+                    }
+                )
+
+                // 지원 통화 목록
+                kr.sweetapps.alcoholictimer.util.manager.CurrencyManager.supportedCurrencies.forEach { currency ->
+                    CurrencyOptionRow(
+                        isSelected = currentCurrency == currency.code,
+                        label = context.getString(currency.nameResId),
+                        onSelected = {
+                            saveCurrency(currency.code)
+                            showCurrencySheet = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Composable
 fun SimpleAboutRow(
     title: String,
