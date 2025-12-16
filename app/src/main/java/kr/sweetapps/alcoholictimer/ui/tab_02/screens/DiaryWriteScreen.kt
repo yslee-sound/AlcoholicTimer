@@ -4,6 +4,7 @@ package kr.sweetapps.alcoholictimer.ui.tab_02.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -106,6 +107,7 @@ fun DiaryWriteScreen(
     var showMenu by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) } // [NEW] 날짜 선택 다이얼로그 상태
+    var shareToChallenge by remember { mutableStateOf(false) } // [NEW Phase 3] 24시간 챌린지 공유 여부
 
     // 날짜 포맷 (시스템 로케일에 따라 자동 선택)
     val currentLocale = Locale.getDefault()
@@ -186,7 +188,8 @@ fun DiaryWriteScreen(
                                                 emoji = autoEmoji,
                                                 content = diaryText,
                                                 cravingLevel = cravingLevel.toInt(),
-                                                timestamp = selectedDate.timeInMillis // [NEW] 선택된 날짜 사용
+                                                timestamp = selectedDate.timeInMillis, // [NEW] 선택된 날짜 사용
+                                                shareToChallenge = shareToChallenge // [NEW Phase 3] 챌린지 공유 플래그
                                             )
                                         }
                                         onDismiss()
@@ -240,6 +243,44 @@ fun DiaryWriteScreen(
                 onTextChanged = { diaryText = it },
                 enabled = isEditMode // [NEW] 읽기 모드에서는 비활성화
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // [NEW Phase 3] 4. 24시간 챌린지 익명 공유 체크박스 (작성/수정 모드에서만 표시)
+            if (isEditMode && diaryId == null) { // 새 일기 작성 시에만 표시
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { shareToChallenge = !shareToChallenge }
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = shareToChallenge,
+                        onCheckedChange = { shareToChallenge = it },
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
+                        )
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column {
+                        Text(
+                            text = "24시간 챌린지에 익명 공유",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color(0xFF1F2937),
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = "커뮤니티에서 24시간 동안 익명으로 공유됩니다",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF9CA3AF)
+                        )
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(32.dp)) // [UPDATED] 저장 버튼 제거 (TopBar로 이동)
         }

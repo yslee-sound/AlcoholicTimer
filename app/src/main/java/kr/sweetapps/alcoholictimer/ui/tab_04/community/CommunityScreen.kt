@@ -70,25 +70,44 @@ fun CommunityScreen(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
-                    items(posts, key = { it.id }) { post ->
-                        PostItem(
-                            nickname = post.nickname,
-                            timerDuration = post.timerDuration,
-                            content = post.content,
-                            imageUrl = post.imageUrl,
-                            likeCount = post.likeCount,
-                            isLiked = false, // Phase 3에서 사용자별 좋아요 상태 관리
-                            remainingTime = calculateRemainingTime(post.deleteAt),
-                            onLikeClick = {
-                                viewModel.toggleLike(post.id)
-                            },
-                            onCommentClick = {
-                                // Phase 3: 댓글 기능
-                            },
-                            onMoreClick = {
-                                // Phase 3: 더보기 메뉴
-                            }
-                        )
+                    // [NEW Phase 3] 6번째 아이템마다 광고 삽입
+                    val itemsWithAds = posts.flatMapIndexed { index, post ->
+                        if ((index + 1) % 6 == 0 && index > 0) {
+                            listOf(post, null) // null은 광고 슬롯
+                        } else {
+                            listOf(post)
+                        }
+                    }
+
+                    items(itemsWithAds.size, key = { index ->
+                        val item = itemsWithAds[index]
+                        item?.id ?: "ad_$index"
+                    }) { index ->
+                        val item = itemsWithAds[index]
+
+                        if (item == null) {
+                            // [NEW Phase 3] 네이티브 광고 슬롯
+                            NativeAdItem()
+                        } else {
+                            PostItem(
+                                nickname = item.nickname,
+                                timerDuration = item.timerDuration,
+                                content = item.content,
+                                imageUrl = item.imageUrl,
+                                likeCount = item.likeCount,
+                                isLiked = false, // Phase 3에서 사용자별 좋아요 상태 관리
+                                remainingTime = calculateRemainingTime(item.deleteAt),
+                                onLikeClick = {
+                                    viewModel.toggleLike(item.id)
+                                },
+                                onCommentClick = {
+                                    // Phase 3: 댓글 기능
+                                },
+                                onMoreClick = {
+                                    // Phase 3: 더보기 메뉴
+                                }
+                            )
+                        }
 
                         // 게시글 사이 구분선
                         HorizontalDivider(
@@ -149,6 +168,44 @@ private fun calculateRemainingTime(deleteAt: Timestamp): String {
         hours > 0 -> "${hours}h"
         minutes > 0 -> "${minutes}m"
         else -> "곧 만료"
+    }
+}
+
+/**
+ * [NEW Phase 3] 네이티브 광고 아이템
+ * PostItem과 동일한 디자인으로 통일
+ */
+@Composable
+private fun NativeAdItem() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFFFFFBF0)) // 연한 노란색 배경으로 광고임을 표시
+            .padding(16.dp)
+    ) {
+        // "광고" 라벨
+        Text(
+            text = "Sponsored",
+            style = MaterialTheme.typography.bodySmall,
+            color = Color(0xFF999999),
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        // Phase 3: 실제 네이티브 광고 컴포넌트는 추후 구현
+        // 현재는 플레이스홀더 표시
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(120.dp)
+                .background(Color(0xFFE0E0E0)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "📢 Native Ad Placeholder",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFF666666)
+            )
+        }
     }
 }
 
@@ -225,5 +282,3 @@ data class DummyPost(
     val isLiked: Boolean,
     val remainingTime: String
 )
-
-
