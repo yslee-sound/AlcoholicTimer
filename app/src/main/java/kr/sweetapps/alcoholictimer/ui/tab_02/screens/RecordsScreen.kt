@@ -7,8 +7,10 @@ import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -63,7 +65,7 @@ val RECORDS_STATS_ROW_SPACING: Dp = 10.dp // 12, 3칩 하단
 val RECORDS_CARD_IN_ROW_SPACING: Dp = 10.dp // 12, 3칩 사이 공간
 val RECORDS_HEADER_START_PADDING: Dp = 20.dp
 val RECORDS_TOP_SECTION_EXTERNAL_GAP: Dp = 15.dp // 화면 최상단 패딩
-private val RECORDS_HEADER_TO_CARD_GAP = 12.dp  // [FIX] 헤더와 통계 카드 사이 간격 (Material Design 3 표준)
+private val RECORDS_HEADER_TO_CARD_GAP = 12.dp  // [UPDATE] 헤더와 카드 사이 간격 (Material Design 3 표준)
 private val RECORDS_CARD_INTERNAL_TOP_PADDING = 8.dp // 8, 3칩 그룹 내부 상단
 val RECORDS_STATS_CARD_ELEVATION: Dp = 2.dp // <- change this number in this file to control this card's elevation
 val RECORDS_LIST_BOTTOM_PADDING: Dp = 100.dp // [UPDATED] Increased from 15.dp to 100.dp for breathing room at bottom
@@ -435,7 +437,8 @@ private fun PeriodHeaderRow(
 
     Row(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .height(32.dp), // [UPDATE] Row 높이: 28dp → 32dp (더 여유 있는 간격)
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -444,15 +447,19 @@ private fun PeriodHeaderRow(
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface
         )
-        // [수정] 목록 아이콘 -> > 화살표 아이콘으로 변경
-        IconButton(onClick = onNavigateToAllRecords) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_caret_right),
-                contentDescription = stringResource(R.string.records_view_all_icon_cd),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp)
-            )
-        }
+        // [FIX] IconButton 대신 Icon + clickable 사용 (48dp 터치 영역 제거)
+        Icon(
+            painter = painterResource(id = R.drawable.ic_caret_right),
+            contentDescription = stringResource(R.string.records_view_all_icon_cd),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .size(24.dp)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = ripple(bounded = false, radius = 24.dp),
+                    onClick = onNavigateToAllRecords
+                )
+        )
     }
 }
 
@@ -886,7 +893,9 @@ private fun RecentDiarySection(
     Column(modifier = Modifier.fillMaxWidth()) {
         // [NEW] 헤더: 제목 + 전체 보기 버튼
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(32.dp), // [UPDATE] Row 높이: 28dp → 32dp (더 여유 있는 간격)
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -896,18 +905,22 @@ private fun RecentDiarySection(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            // [FIXED] 전체 보기 버튼 (데이터 유무와 관계없이 항상 표시)
-            IconButton(onClick = onNavigateToAllDiaries) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_caret_right),
-                    contentDescription = stringResource(R.string.diary_view_all),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
+            // [FIX] IconButton 대신 Icon + clickable 사용 (48dp 터치 영역 제거)
+            Icon(
+                painter = painterResource(id = R.drawable.ic_caret_right),
+                contentDescription = stringResource(R.string.diary_view_all),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = ripple(bounded = false, radius = 24.dp),
+                        onClick = onNavigateToAllDiaries
+                    )
+            )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(12.dp)) // [UPDATE] 제목-콘텐츠 간격: 8dp → 12dp (Material Design 3 표준)
 
         // [수정] 일기 항목 카드 or 빈 상태 UI
         if (diaries.isEmpty()) {
