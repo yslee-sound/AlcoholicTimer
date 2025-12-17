@@ -25,7 +25,6 @@ import kr.sweetapps.alcoholictimer.ui.common.BaseScaffold
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab01Graph
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab02DetailGraph
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab02ListGraph
-import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab03Graph
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab04Graph
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab05Graph
 
@@ -91,10 +90,11 @@ fun AppNavHost(
                         onNavigateToAllRecords = { navController.navigate(Screen.AllRecords.route) },
                         onNavigateToAllDiaries = { navController.navigate(Screen.AllDiary.route) },
                         onNavigateToDiaryDetail = { route -> navController.navigate(route) },
+                        onNavigateToLevelDetail = { navController.navigate(Screen.LevelDetail.route) }, // [NEW] Phase 2
                         refreshSignal = recordsRefreshCounter
                     )
 
-                    addTab03Graph(tabNavController)
+                    // [REMOVED] addTab03Graph - Level은 이제 상세 페이지로만 접근
 
                     // [UPDATE] Tab04에서 설정 버튼 클릭 시 Root NavController로 About 화면 이동
                     addTab04Graph(
@@ -289,6 +289,39 @@ fun AppNavHost(
                         launchSingleTop = true
                     }
                 }
+            )
+        }
+
+        // [NEW] Level Detail (레벨 상세 페이지) - Tab 2에서 진입
+        composable(
+            route = Screen.LevelDetail.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeOut(animationSpec = tween(300))
+            },
+            popEnterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { -it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            kr.sweetapps.alcoholictimer.ui.tab_03.screens.LevelScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 

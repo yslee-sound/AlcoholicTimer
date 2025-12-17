@@ -26,6 +26,7 @@ fun NavGraphBuilder.addTab02ListGraph(
     onNavigateToAllRecords: () -> Unit,
     onNavigateToAllDiaries: () -> Unit,
     onNavigateToDiaryDetail: (String) -> Unit,
+    onNavigateToLevelDetail: () -> Unit, // [NEW] Phase 2: 레벨 상세 화면 이동
     refreshSignal: Int
 ) {
     // Tab 2: 중첩 그래프 (목록만)
@@ -36,6 +37,15 @@ fun NavGraphBuilder.addTab02ListGraph(
                 (activity as? ViewModelStoreOwner)?.let { owner ->
                     viewModel(viewModelStoreOwner = owner)
                 } ?: viewModel()
+
+            // [NEW] Phase 2: Tab03ViewModel에서 레벨 데이터 가져오기
+            val tab03ViewModel: kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab03ViewModel =
+                (activity as? androidx.activity.ComponentActivity)?.let { owner ->
+                    viewModel(viewModelStoreOwner = owner)
+                } ?: viewModel()
+
+            val currentLevel by tab03ViewModel.currentLevel.collectAsState()
+            val levelDays by tab03ViewModel.levelDays.collectAsState()
 
             val pendingRoute by tab02ViewModel.pendingDetailRoute.collectAsState()
 
@@ -77,7 +87,12 @@ fun NavGraphBuilder.addTab02ListGraph(
                 onDiaryClick = { diary ->
                     val route = Screen.DiaryDetail.createRoute(diary.id.toString())
                     onNavigateToDiaryDetail(route)
-                }
+                },
+                // [NEW] Phase 2: 레벨 데이터 전달
+                currentLevel = currentLevel,
+                currentDays = levelDays,
+                levelProgress = tab03ViewModel.calculateProgress(),
+                onNavigateToLevelDetail = onNavigateToLevelDetail
             )
         }
     }

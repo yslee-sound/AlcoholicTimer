@@ -52,6 +52,11 @@ fun Tab02Screen(
     onNavigateToAllDiaries: () -> Unit = {},
     onAddRecord: () -> Unit = {},
     onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {},
+    // [NEW] Phase 2: 레벨 파라미터
+    currentLevel: kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelDefinitions.LevelInfo? = null,
+    currentDays: Int = 0,
+    levelProgress: Float = 0f,
+    onNavigateToLevelDetail: () -> Unit = {},
     viewModel: Tab02ViewModel = viewModel(
         viewModelStoreOwner = androidx.activity.compose.LocalActivity.current as ComponentActivity
     )
@@ -113,6 +118,11 @@ fun Tab02Screen(
         onWeekRangeSelected = { viewModel.updateSelectedWeekRange(it) },
         recentDiaries = recentDiaries,
         statsData = statsData, // [NEW] 실시간 통계 데이터 전달
+        // [NEW] Phase 2: 레벨 데이터 전달
+        currentLevel = currentLevel,
+        currentDays = currentDays,
+        levelProgress = levelProgress,
+        onNavigateToLevelDetail = onNavigateToLevelDetail,
         onNavigateToDetail = onNavigateToDetail,
         onNavigateToAllRecords = onNavigateToAllRecords,
         onNavigateToAllDiaries = onNavigateToAllDiaries,

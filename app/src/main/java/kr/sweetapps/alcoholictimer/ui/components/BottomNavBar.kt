@@ -56,15 +56,11 @@ private val bottomItems: List<BottomItem> = listOf(
             "detail/",
             "diary_write",      // [NEW] 일기 작성 화면
             "diary_detail/",    // [NEW] 일기 상세/수정 화면
-            "all_diaries"       // [NEW] 모든 일기 목록 화면
+            "all_diaries",      // [NEW] 모든 일기 목록 화면
+            Screen.LevelDetail.route  // [NEW] 레벨 상세 화면 (요약 배너에서 진입)
         )
     ),
-    BottomItem(
-        Screen.Level,
-        R.drawable.ic_nav_medal,
-        R.string.drawer_menu_level,
-        R.string.drawer_menu_level
-    ),
+    // [REMOVED] Tab 3 (Level) - 이제 레벨은 상세 페이지로만 접근
     BottomItem(
         Screen.More,
         R.drawable.user,

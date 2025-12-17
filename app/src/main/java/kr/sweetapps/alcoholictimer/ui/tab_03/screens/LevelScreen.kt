@@ -90,25 +90,14 @@ fun LevelScreen(
         }
     }
 
-    // [NEW] Scaffold with TopAppBar - HabitScreen과 동일한 구조
+    // [NEW] Scaffold with BackTopBar
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.level_title), // "레벨 확인"
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Color(0xFF111111)
-                    )
-                },
-                // [FIX] navigationIcon 슬롯 제거 - 뒤로 가기 아이콘 없음
-                // [FIX] actions 슬롯 없음 - 액션 버튼 불필요
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color(0xFF111111)
-                )
+            kr.sweetapps.alcoholictimer.ui.components.BackTopBar(
+                title = "나의 레벨",
+                onBack = onNavigateBack
             )
         }
     ) { innerPadding ->

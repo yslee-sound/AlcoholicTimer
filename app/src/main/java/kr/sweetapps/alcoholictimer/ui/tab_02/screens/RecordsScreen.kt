@@ -83,6 +83,11 @@ fun RecordsScreen(
     onDetailPeriodSelected: (String) -> Unit = {},
     onWeekRangeSelected: (Pair<Long, Long>?) -> Unit = {},
     recentDiaries: List<kr.sweetapps.alcoholictimer.data.room.DiaryEntity> = emptyList(),
+    // [NEW] Phase 2: 레벨 관련 파라미터
+    currentLevel: kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelDefinitions.LevelInfo? = null,
+    currentDays: Int = 0,
+    levelProgress: Float = 0f,
+    onNavigateToLevelDetail: () -> Unit = {},
     statsData: kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.StatsData = kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.StatsData(), // [NEW] 실시간 통계 데이터
     onNavigateToDetail: (SobrietyRecord) -> Unit = {},
     onNavigateToAllRecords: () -> Unit = {},
@@ -144,6 +149,22 @@ fun RecordsScreen(
                 contentPadding = recordsContentPadding,
                 verticalArrangement = Arrangement.spacedBy(0.dp) // [FIX] 명시적 Spacer로 제어
             ) {
+                // ==================== Item 0: 레벨 요약 배너 (Phase 2) ====================
+                if (currentLevel != null) {
+                    item {
+                        Spacer(modifier = Modifier.height(RECORDS_TOP_SECTION_EXTERNAL_GAP))
+
+                        Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
+                            kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelSummaryBanner(
+                                currentLevel = currentLevel,
+                                currentDays = currentDays,
+                                progress = levelProgress,
+                                onClick = onNavigateToLevelDetail
+                            )
+                        }
+                    }
+                }
+
                 // ==================== Item 1: 기간 선택 섹션 ====================
                 item {
                     Spacer(modifier = Modifier.height(RECORDS_TOP_SECTION_EXTERNAL_GAP))

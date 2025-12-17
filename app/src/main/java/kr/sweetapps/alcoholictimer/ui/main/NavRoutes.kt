@@ -49,6 +49,12 @@ sealed class Screen(val route: String) {
     data object Level : Screen("level")
 
     /**
+     * [NEW] Level Detail screen (레벨 상세 페이지)
+     * Tab 2의 레벨 요약 배너에서 진입하는 전체 화면
+     */
+    data object LevelDetail : Screen("level_detail")
+
+    /**
      * Settings screen
      */
     data object More : Screen("more")
