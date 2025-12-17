@@ -1,4 +1,4 @@
-// [NEW] 광고 정책 관리자 v1.0 - 통합 쿨타임 제어 (전면광고 + 앱오프닝)
+// [REFACTOR v2.0] 광고 정책 관리자 - 앱 오프닝과 전면광고 쿨타임 분리
 package kr.sweetapps.alcoholictimer.data.repository
 
 import android.content.Context
@@ -13,8 +13,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * 광고 정책을 통합 관리하는 싱글톤 객체
- * - 전면 광고 + 앱 오프닝 통합 쿨타임 관리
+ * 광고 정책을 관리하는 싱글톤 객체
+ *
+ * [v2.0 변경사항] 앱 오프닝과 전면광고 쿨타임 분리
+ * - 전면 광고: lastInterstitialTime (전면광고 전용)
+ * - 앱 오프닝: lastAppOpenTime (별도 관리, AdController에서 처리)
+ * - interstitial_interval_sec: "전면광고 간격"으로만 사용
+ *
  * - Firebase Remote Config Kill Switch 지원
  * - 디버그 모드에서 쿨타임 오버라이드 가능
  * - 실제 시간(System.currentTimeMillis) 기반 (타이머 배속과 독립)
@@ -24,18 +29,25 @@ object AdPolicyManager {
 
     // SharedPreferences 키
     private const val PREFS_NAME = "ad_policy_prefs"
-    private const val KEY_LAST_AD_SHOWN_TIME_MS = "last_ad_shown_time_ms" // [통합] 모든 전면형 광고 공유
+
+    // [v2.0 변경] 전면광고 전용 쿨타임 변수
+    private const val KEY_LAST_INTERSTITIAL_TIME_MS = "last_interstitial_time_ms" // 전면광고 전용
+
+    // [DEPRECATED] 이전 통합 키 (하위 호환용, 마이그레이션 후 제거 예정)
+    @Deprecated("Use KEY_LAST_INTERSTITIAL_TIME_MS instead")
+    private const val KEY_LAST_AD_SHOWN_TIME_MS = "last_ad_shown_time_ms"
+
     private const val KEY_DEBUG_AD_COOL_DOWN_SECONDS = "debug_ad_cool_down_seconds"
     private const val KEY_DEBUG_COOLDOWN_ENABLED = "debug_cooldown_enabled"
-    private const val KEY_DEBUG_AD_FORCE_DISABLED = "debug_ad_force_disabled" // [NEW] 디버그 광고 끄기
+    private const val KEY_DEBUG_AD_FORCE_DISABLED = "debug_ad_force_disabled"
 
     // Firebase Remote Config 키
     private const val REMOTE_KEY_INTERSTITIAL_INTERVAL = "interstitial_interval_sec"
     private const val REMOTE_KEY_IS_AD_ENABLED = "is_ad_enabled"
 
-    // 기본 정책 값 (v1.0)
-    private const val DEFAULT_INTERSTITIAL_INTERVAL_SECONDS = 300L // 5분 (정책 v1.0)
-    private const val DEBUG_DEFAULT_INTERSTITIAL_INTERVAL_SECONDS = 60L // 디버그 기본: 1분
+    // 기본 정책 값
+    private const val DEFAULT_INTERSTITIAL_INTERVAL_SECONDS = 300L // 5분
+    private const val DEBUG_DEFAULT_INTERSTITIAL_INTERVAL_SECONDS = 60L // 디버그: 1분
 
     // [NEW] UI 반응형 상태 관리 (StateFlow)
     private val _isAdEnabledState = MutableStateFlow(true) // 기본값: 광고 활성화
@@ -64,7 +76,10 @@ object AdPolicyManager {
     }
 
     /**
-     * (v1.0) 전면형 광고(전면광고 + 앱오프닝) 쿨타임 간격(초)을 반환
+     * (v2.0) 전면광고 쿨타임 간격(초)을 반환
+     *
+     * ⚠️ 주의: 이 값은 "전면광고(Interstitial Ad) 전용"입니다.
+     * 앱 오프닝 광고는 별도의 쿨타임을 사용합니다 (AdController 참조)
      *
      * 우선순위 (상위가 우선):
      * 1. (DEBUG ONLY) 디버그 메뉴에서 설정한 커스텀 쿨타임
@@ -72,7 +87,7 @@ object AdPolicyManager {
      * 3. 기본값 300초 (5분)
      *
      * @param context Context
-     * @return 쿨타임 간격(초)
+     * @return 전면광고 쿨타임 간격(초)
      */
     fun getInterstitialIntervalSeconds(context: Context): Long {
         // [1순위] 디버그 모드 커스텀 설정 (최우선)
@@ -150,11 +165,15 @@ object AdPolicyManager {
     }
 
     /**
-     * (v1.0 통합) 전면형 광고 노출 가능 여부를 결정
-     * (전면광고 + 앱오프닝 공통 사용)
+     * (v2.0) 전면광고 노출 가능 여부를 결정
+     *
+     * ⚠️ 중요 변경사항:
+     * - 오직 "전면광고(Interstitial Ad)"의 마지막 노출 시간만 체크합니다.
+     * - 앱 오프닝 광고와는 독립적으로 작동합니다.
+     * - 앱 오프닝을 봐도 이 함수의 결과에 영향 없음
      *
      * @param context Context
-     * @return true이면 광고 노출 가능, false이면 쿨타임 중 또는 Kill Switch 차단
+     * @return true이면 전면광고 노출 가능, false이면 쿨타임 중 또는 Kill Switch 차단
      */
     fun shouldShowInterstitialAd(context: Context): Boolean {
         // 1. Kill Switch 확인
@@ -166,22 +185,22 @@ object AdPolicyManager {
         try {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-            // 2. 쿨타임 간격 가져오기
+            // 2. 전면광고 쿨타임 간격 가져오기
             val intervalSeconds = getInterstitialIntervalSeconds(context)
             val intervalMillis = intervalSeconds * 1000L
 
-            // 3. 마지막 노출 시간 가져오기 (통합 키 사용)
-            val lastShownTime = prefs.getLong(KEY_LAST_AD_SHOWN_TIME_MS, 0L)
+            // 3. [v2.0 변경] 전면광고 마지막 노출 시간만 가져오기
+            val lastInterstitialTime = prefs.getLong(KEY_LAST_INTERSTITIAL_TIME_MS, 0L)
             val currentTime = System.currentTimeMillis()
-            val elapsedTime = currentTime - lastShownTime
+            val elapsedTime = currentTime - lastInterstitialTime
 
-            // 4. 쿨타임 검사
+            // 4. 쿨타임 검사 (전면광고 전용)
             val canShow = elapsedTime >= intervalMillis
 
             Log.d(TAG, "========================================")
-            Log.d(TAG, "[통합 쿨타임] 광고 노출 가능 여부 확인:")
+            Log.d(TAG, "[v2.0 전면광고 전용] 광고 노출 가능 여부 확인:")
             Log.d(TAG, "  - 쿨타임 간격: $intervalSeconds 초 (${intervalSeconds / 60}분)")
-            Log.d(TAG, "  - 마지막 노출: $lastShownTime")
+            Log.d(TAG, "  - 마지막 전면광고 노출: $lastInterstitialTime")
             Log.d(TAG, "  - 현재 시간: $currentTime")
             Log.d(TAG, "  - 경과 시간: ${elapsedTime / 1000} 초")
             Log.d(TAG, "  - 노출 가능: $canShow")
@@ -189,6 +208,7 @@ object AdPolicyManager {
                 val remainingTime = (intervalMillis - elapsedTime) / 1000
                 Log.d(TAG, "  - 남은 시간: $remainingTime 초 (${remainingTime / 60}분)")
             }
+            Log.d(TAG, "  ⚠️ 참고: 앱 오프닝 광고와는 독립적으로 작동")
             Log.d(TAG, "========================================")
 
             return canShow
@@ -199,29 +219,48 @@ object AdPolicyManager {
     }
 
     /**
-     * (v1.0 통합) 전면형 광고가 성공적으로 표시된 후 호출
-     * (전면광고, 앱오프닝 모두 이 함수 호출)
+     * (v2.0) 전면광고가 성공적으로 표시된 후 호출
+     *
+     * ⚠️ 중요: 이 함수는 "전면광고(Interstitial Ad) 전용"입니다.
+     * - 전면광고의 onAdDismissedFullScreenContent 콜백에서만 호출하세요.
+     * - 앱 오프닝 광고에서는 절대 호출하지 마세요!
      *
      * @param context Context
-     * @param adType 광고 타입 (로그용)
+     * @param adType 광고 타입 (로그용, 기본값: "interstitial")
      */
-    fun markAdShown(context: Context, adType: String = "unknown") {
+    fun markInterstitialAdShown(context: Context, adType: String = "interstitial") {
         try {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val currentTime = System.currentTimeMillis()
-            prefs.edit().putLong(KEY_LAST_AD_SHOWN_TIME_MS, currentTime).apply()
-            Log.d(TAG, "✅ [$adType] 광고 표시 완료 - 통합 쿨타임 시작: $currentTime")
+
+            // [v2.0] 전면광고 전용 타이머 업데이트
+            prefs.edit().putLong(KEY_LAST_INTERSTITIAL_TIME_MS, currentTime).apply()
+
+            Log.d(TAG, "✅ [v2.0 전면광고 전용] [$adType] 광고 표시 완료 - 쿨타임 시작: $currentTime")
+            Log.d(TAG, "  ⚠️ 주의: 앱 오프닝 광고 타이머는 별도 관리됨")
         } catch (t: Throwable) {
-            Log.e(TAG, "쿨타임 시작 실패", t)
+            Log.e(TAG, "전면광고 쿨타임 시작 실패", t)
         }
     }
 
     /**
-     * [Deprecated] 이전 버전 호환용 (markAdShown으로 대체)
+     * [DEPRECATED v2.0] 이전 통합 방식 (하위 호환용)
+     * 새 코드에서는 markInterstitialAdShown() 사용 권장
      */
-    @Deprecated("Use markAdShown() instead", ReplaceWith("markAdShown(context, \"interstitial\")"))
+    @Deprecated(
+        message = "Use markInterstitialAdShown() for interstitial ads only. App open ads are managed separately in AdController.",
+        replaceWith = ReplaceWith("markInterstitialAdShown(context, adType)")
+    )
+    fun markAdShown(context: Context, adType: String = "unknown") {
+        markInterstitialAdShown(context, adType)
+    }
+
+    /**
+     * [DEPRECATED v1.0] 이전 버전 호환용
+     */
+    @Deprecated("Use markInterstitialAdShown() instead", ReplaceWith("markInterstitialAdShown(context)"))
     fun markInterstitialShown(context: Context) {
-        markAdShown(context, "interstitial")
+        markInterstitialAdShown(context, "interstitial")
     }
 
     /**
@@ -318,13 +357,15 @@ object AdPolicyManager {
     }
 
     /**
-     * 마지막 광고 노출 시간 초기화 (테스트용)
+     * 디버그용: 마지막 광고 노출 시간 초기화
+     * (v2.0) 전면광고 타이머 초기화
      */
     fun resetLastShownTime(context: Context) {
         try {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            prefs.edit().remove(KEY_LAST_AD_SHOWN_TIME_MS).apply()
-            Log.d(TAG, "✅ 마지막 광고 노출 시간 초기화 완료")
+            // (v2.0) 전면광고 타이머 초기화
+            prefs.edit().remove(KEY_LAST_INTERSTITIAL_TIME_MS).apply()
+            Log.d(TAG, "✅ 전면광고 쿨타임 초기화 완료")
         } catch (t: Throwable) {
             Log.e(TAG, "시간 초기화 실패", t)
         }

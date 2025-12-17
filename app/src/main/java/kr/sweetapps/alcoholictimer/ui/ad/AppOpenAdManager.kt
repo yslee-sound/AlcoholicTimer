@@ -232,17 +232,10 @@ object AppOpenAdManager {
                             isShowing = true
                             lastShownAt = System.currentTimeMillis()
 
-                            // [통합 쿨타임 v1.0] 앱 오프닝 광고도 통합 타이머에 기록
-                            try {
-                                applicationRef?.let { app ->
-                                    kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.markAdShown(
-                                        app.applicationContext,
-                                        "app_open"
-                                    )
-                                }
-                            } catch (t: Throwable) {
-                                Log.e(TAG, "Failed to mark app open ad shown", t)
-                            }
+                            // [v2.0 분리] 앱 오프닝 광고는 전면광고 타이머에 영향 주지 않음
+                            // ⚠️ 중요: AdPolicyManager.markInterstitialAdShown()을 호출하지 않음
+                            // 앱 오프닝 쿨타임은 AdController에서 별도 관리
+                            Log.d(TAG, "AppOpen ad shown - 전면광고 쿨타임과 독립적으로 작동")
 
                             // Record shown in central controller so policy counters update
                             try { applicationRef?.let { AdController.recordAppOpenShown(it.applicationContext) } } catch (_: Throwable) {}

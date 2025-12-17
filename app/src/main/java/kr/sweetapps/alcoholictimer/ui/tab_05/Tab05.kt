@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -217,7 +218,7 @@ fun AboutScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // App Rating Button (simple)
+        // [NEW] 프로필 편집하기 버튼 (기존 앱 평가하기 버튼 자리)
         Column(modifier = Modifier.padding(horizontal = 20.dp)) {
             Box(
                 modifier = Modifier
@@ -225,20 +226,12 @@ fun AboutScreen(
                     .height(dims.component.buttonHeight)
                     .shadow(4.dp, RoundedCornerShape(12.dp))
                     .background(
-                        color = MainPrimaryBlue,  // [FIX] 메인 UI 색상 적용 (#1E40AF)
+                        color = MainPrimaryBlue,  // 메인 UI 색상
                         shape = RoundedCornerShape(12.dp)
                     )
                     .clickable {
-                        // [FIX] 디버그 빌드에서도 실제 앱의 플레이스토어 페이지로 이동
-                        val packageName = "kr.sweetapps.alcoholictimer" // 실제 릴리즈 앱의 패키지명 (하드코딩)
-                        try {
-                            val intent = Intent(Intent.ACTION_VIEW, "market://details?id=$packageName".toUri())
-                            intent.setPackage("com.android.vending")
-                            context.startActivity(intent)
-                        } catch (e: ActivityNotFoundException) {
-                            val intent = Intent(Intent.ACTION_VIEW, "https://play.google.com/store/apps/details?id=$packageName".toUri())
-                            context.startActivity(intent)
-                        }
+                        // 프로필 편집 화면으로 이동
+                        onNavigateEditNickname()
                     },
                 contentAlignment = Alignment.Center
             ) {
@@ -247,20 +240,20 @@ fun AboutScreen(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.star),
+                        imageVector = androidx.compose.material.icons.Icons.Default.Edit,
                         contentDescription = null,
-                        tint = Color(0xFFFBC02D), // 노란색
+                        tint = Color.White,
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = stringResource(R.string.tab05_rate_app), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text(text = "프로필 편집하기", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // --- Row of 3 action buttons
+        // [NEW] 1줄: 알림, 문의/제안, 앱 평가하기
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -283,16 +276,15 @@ fun AboutScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // [FIX] fontSize를 12.sp로 변경 (다른 버튼들과 통일)
                 AutoResizingTextLabel(
                     text = stringResource(R.string.tab05_notifications),
-                    fontSize = 12.sp, // ★ 여기를 12.sp로 수정
+                    fontSize = 12.sp,
                     color = Color.Black,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
 
-            // 2. 고객 문의 (Support)
+            // 2. 문의/제안 (Support)
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -308,16 +300,60 @@ fun AboutScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // [FIX] fontSize를 12.sp로 변경 (Notifications와 키 맞춤)
                 AutoResizingTextLabel(
                     text = stringResource(R.string.tab05_customer_support),
-                    fontSize = 12.sp, // ★ 여기를 12.sp로 수정
+                    fontSize = 12.sp,
                     color = Color.Black,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
 
-            // 3. 추천앱 (Apps)
+            // 3. 앱 평가하기 (Rate App) [NEW]
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable {
+                        // 플레이스토어로 이동
+                        val packageName = "kr.sweetapps.alcoholictimer"
+                        try {
+                            val intent = Intent(Intent.ACTION_VIEW, "market://details?id=$packageName".toUri())
+                            intent.setPackage("com.android.vending")
+                            context.startActivity(intent)
+                        } catch (e: ActivityNotFoundException) {
+                            val intent = Intent(Intent.ACTION_VIEW, "https://play.google.com/store/apps/details?id=$packageName".toUri())
+                            context.startActivity(intent)
+                        }
+                    }
+                    .padding(vertical = dims.spacing.sm),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.star),
+                    contentDescription = null,
+                    tint = Color(0xFFFBC02D), // 노란색 별
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                AutoResizingTextLabel(
+                    text = stringResource(R.string.tab05_rate_app),
+                    fontSize = 12.sp,
+                    color = Color.Black,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // [NEW] 2줄: 추천앱, 비움, 비움
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            // 1. 추천앱 (Apps)
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -332,14 +368,19 @@ fun AboutScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // [FIX] fontSize를 12.sp로 변경 (Notifications와 키 맞춤)
                 AutoResizingTextLabel(
                     text = stringResource(R.string.tab05_recommended_apps),
-                    fontSize = 12.sp, // ★ 여기를 12.sp로 수정
+                    fontSize = 12.sp,
                     color = Color(0xFFBDBDBD),
                     modifier = Modifier.fillMaxWidth()
                 )
             }
+
+            // 2. 비움 (Empty)
+            Spacer(modifier = Modifier.weight(1f))
+
+            // 3. 비움 (Empty)
+            Spacer(modifier = Modifier.weight(1f))
         }
 
         Spacer(modifier = Modifier.height(20.dp))
