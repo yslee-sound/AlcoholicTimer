@@ -90,10 +90,11 @@ fun LevelScreen(
         }
     }
 
-    // [NEW] Scaffold with BackTopBar
+    // [NEW] Scaffold with BackTopBar + Edge-to-Edge 이슈 해결
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = Color.White, // [FIX] 배경색 명시적 지정
+        contentWindowInsets = WindowInsets.systemBars, // [FIX] 시스템 바 영역 확보
         topBar = {
             kr.sweetapps.alcoholictimer.ui.components.BackTopBar(
                 title = "나의 레벨",
@@ -123,18 +124,19 @@ fun LevelScreenContent(
     startTime: Long?,
     viewModel: Tab03ViewModel
 ) {
-    // [FIX] innerPadding을 전체에 적용하지 않고, 상단/하단을 Spacer로 분리하여 적용
+    // [FIX] innerPadding을 제대로 적용하고 배경색을 White로 고정
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface)
+            .background(Color.White) // [FIX] MaterialTheme.colorScheme.surface → Color.White (색상 변질 방지)
+            .padding(innerPadding) // [FIX] innerPadding 적용 (시스템 바 영역 확보)
             .verticalScroll(rememberScrollState())
-            .padding(start = 20.dp, end = 20.dp),
-        // [REMOVED] .padding(innerPadding) 제거 - 전체 적용 방식의 문제
+            .padding(horizontal = 20.dp), // [FIX] 수평 패딩만 별도 적용
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
-        // [1] 상단 여백 확보 (TopBar 높이만큼)
-        Spacer(modifier = Modifier.height(innerPadding.calculateTopPadding()))
+        // [REMOVED] 상단 Spacer 제거 - innerPadding이 이미 처리함
+
+        Spacer(modifier = Modifier.height(16.dp)) // [NEW] 콘텐츠 상단 여백
 
         // 현재 레벨 카드
         CurrentLevelCard(
@@ -147,7 +149,7 @@ fun LevelScreenContent(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(20.dp)) // [FIX] 12.dp → 20.dp (섹션 간 간격 표준)
+        Spacer(modifier = Modifier.height(20.dp)) // 섹션 간 간격
 
         // 전체 레벨 리스트
         LevelListCard(
@@ -155,9 +157,7 @@ fun LevelScreenContent(
             currentDays = levelDays
         )
 
-        // [2] 하단 여백 확보 (BottomBar 높이 + 추가 여유 20dp)
-        // 스크롤 끝까지 내렸을 때 탭바에 가려지지 않도록
-        Spacer(modifier = Modifier.height(innerPadding.calculateBottomPadding() + 20.dp))
+        Spacer(modifier = Modifier.height(20.dp)) // [NEW] 하단 여백 (스크롤 여유)
     }
 }
 
