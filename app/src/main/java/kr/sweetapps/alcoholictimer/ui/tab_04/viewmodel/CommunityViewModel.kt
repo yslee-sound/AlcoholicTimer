@@ -17,6 +17,7 @@ import kr.sweetapps.alcoholictimer.data.repository.UserRepository
  *
  * (v2.0) 아바타 시스템 추가:
  * - UserRepository를 통해 사용자의 아바타 인덱스 관리
+ * (v2.1) WritePostTrigger 아바타 실시간 반영
  */
 class CommunityViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = CommunityRepository()
@@ -28,8 +29,37 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    // [NEW] 현재 사용자의 아바타 인덱스
+    private val _currentUserAvatarIndex = MutableStateFlow(0)
+    val currentUserAvatarIndex: StateFlow<Int> = _currentUserAvatarIndex.asStateFlow()
+
     init {
         loadPosts()
+        loadCurrentUserAvatar() // [NEW] 사용자 아바타 로드
+    }
+
+    /**
+     * [NEW] 현재 사용자의 아바타 인덱스 로드
+     * SharedPreferences 변경 감지를 위한 polling (간단한 구현)
+     */
+    private fun loadCurrentUserAvatar() {
+        viewModelScope.launch {
+            // 초기 로드
+            val avatarIndex = userRepository.getAvatarIndex()
+            _currentUserAvatarIndex.value = avatarIndex
+
+            // 주기적으로 체크 (1초마다)
+            // SharedPreferences 변경 시 즉시 반영
+            kotlinx.coroutines.delay(1000)
+            while (true) {
+                val newAvatarIndex = userRepository.getAvatarIndex()
+                if (newAvatarIndex != _currentUserAvatarIndex.value) {
+                    _currentUserAvatarIndex.value = newAvatarIndex
+                    android.util.Log.d("CommunityViewModel", "Avatar updated: $newAvatarIndex")
+                }
+                kotlinx.coroutines.delay(1000) // 1초마다 체크
+            }
+        }
     }
 
     /**

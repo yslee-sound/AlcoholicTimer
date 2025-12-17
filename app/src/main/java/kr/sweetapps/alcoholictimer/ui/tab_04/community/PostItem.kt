@@ -1,6 +1,7 @@
 package kr.sweetapps.alcoholictimer.ui.tab_04.community
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -23,7 +24,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kr.sweetapps.alcoholictimer.R
 
 /**
  * Phase 1: 커뮤니티 게시글 아이템 UI
@@ -120,6 +120,7 @@ private fun PostHeader(
             contentDescription = "프로필",
             modifier = Modifier
                 .size(40.dp)
+                .border(1.dp, Color(0xFFE0E0E0), CircleShape) // 회색 테두리
                 .clip(CircleShape)
                 .background(Color(0xFFF5F5F5))
         )

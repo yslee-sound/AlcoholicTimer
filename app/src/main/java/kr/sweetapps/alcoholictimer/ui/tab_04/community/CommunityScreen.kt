@@ -4,7 +4,9 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -32,6 +34,7 @@ fun CommunityScreen(
 ) {
     val posts by viewModel.posts.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val currentUserAvatarIndex by viewModel.currentUserAvatarIndex.collectAsState() // [NEW] 현재 사용자 아바타
 
     // 글쓰기 화면 표시 상태
     var isWritingScreenVisible by remember { mutableStateOf(false) }
@@ -77,7 +80,10 @@ fun CommunityScreen(
                         verticalArrangement = Arrangement.spacedBy(0.dp)
                     ) {
                         item {
-                            WritePostTrigger(onClick = { isWritingScreenVisible = true })
+                            WritePostTrigger(
+                                onClick = { isWritingScreenVisible = true },
+                                currentAvatarIndex = currentUserAvatarIndex // [NEW] 현재 사용자 아바타 전달
+                            )
                         }
 
                         // 광고 및 게시글 리스트 로직 (기존 동일)
@@ -288,10 +294,12 @@ private fun WritePostScreenContent(
 
 /**
  * [NEW] 페이스북 스타일 상단 작성 트리거
+ * (v2.1) 현재 사용자의 아바타 실시간 표시
  */
 @Composable
 private fun WritePostTrigger(
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    currentAvatarIndex: Int = 0 // [NEW] 현재 사용자 아바타 인덱스
 ) {
     Column(
         modifier = Modifier
@@ -305,21 +313,16 @@ private fun WritePostTrigger(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 좌측: 익명 프로필 아이콘
-            Box(
+            // [NEW] 좌측: 현재 사용자의 아바타 이미지
+            Image(
+                painter = painterResource(id = kr.sweetapps.alcoholictimer.util.AvatarManager.getAvatarResId(currentAvatarIndex)),
+                contentDescription = "내 프로필",
                 modifier = Modifier
                     .size(40.dp)
+                    .border(1.dp, Color(0xFFE0E0E0), CircleShape) // 회색 테두리
                     .clip(CircleShape)
-                    .background(Color(0xFFE0E0E0)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_user_circle),
-                    contentDescription = "프로필",
-                    tint = Color(0xFF9E9E9E),
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+                    .background(Color(0xFFF5F5F5))
+            )
 
             Spacer(modifier = Modifier.width(12.dp))
 

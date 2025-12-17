@@ -7,6 +7,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -208,6 +209,7 @@ fun AboutScreen(
                 contentDescription = "프로필 아바타",
                 modifier = Modifier
                     .size(80.dp)
+                    .border(2.dp, Color(0xFFE0E0E0), CircleShape) // 회색 테두리
                     .clip(CircleShape)
                     .background(Color(0xFFF5F5F5))
             )
