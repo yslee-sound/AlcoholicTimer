@@ -65,7 +65,7 @@ val RECORDS_STATS_ROW_SPACING: Dp = 10.dp // 12, 3칩 하단
 val RECORDS_CARD_IN_ROW_SPACING: Dp = 10.dp // 12, 3칩 사이 공간
 val RECORDS_HEADER_START_PADDING: Dp = 20.dp
 val RECORDS_TOP_SECTION_EXTERNAL_GAP: Dp = 15.dp // 화면 최상단 패딩
-private val RECORDS_HEADER_TO_CARD_GAP = 12.dp  // [UPDATE] 헤더와 카드 사이 간격 (Material Design 3 표준)
+private val RECORDS_HEADER_TO_CARD_GAP = 10.dp  // [UPDATE] 헤더와 카드 사이 간격 조정
 private val RECORDS_CARD_INTERNAL_TOP_PADDING = 8.dp // 8, 3칩 그룹 내부 상단
 val RECORDS_STATS_CARD_ELEVATION: Dp = 2.dp // <- change this number in this file to control this card's elevation
 val RECORDS_LIST_BOTTOM_PADDING: Dp = 100.dp // [UPDATED] Increased from 15.dp to 100.dp for breathing room at bottom
@@ -444,7 +444,7 @@ private fun PeriodHeaderRow(
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface
         )
         // [FIX] IconButton 대신 Icon + clickable 사용 (48dp 터치 영역 제거)
@@ -901,7 +901,7 @@ private fun RecentDiarySection(
         ) {
             Text(
                 text = stringResource(R.string.diary_recent_title),
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface
             )
 
@@ -920,7 +920,7 @@ private fun RecentDiarySection(
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp)) // [UPDATE] 제목-콘텐츠 간격: 8dp → 12dp (Material Design 3 표준)
+        Spacer(modifier = Modifier.height(10.dp)) // [UPDATE] 제목-콘텐츠 간격 조정
 
         // [수정] 일기 항목 카드 or 빈 상태 UI
         if (diaries.isEmpty()) {
