@@ -3,6 +3,7 @@ package kr.sweetapps.alcoholictimer.ui.tab_02.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +26,7 @@ import kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelDefinitions
  * 레벨 요약 배너
  * Tab 2의 상단에 표시되는 현재 레벨 정보
  * 클릭 시 LevelDetail 화면으로 이동
+ * [UPDATE] 레벨 마크와 진행 중 배지 추가
  */
 @Composable
 fun LevelSummaryBanner(
@@ -34,6 +36,8 @@ fun LevelSummaryBanner(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isActive = currentDays > 0 // 1일 이상이면 활성 상태
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -55,52 +59,83 @@ fun LevelSummaryBanner(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 좌측: 레벨 정보
-            Column(
-                modifier = Modifier.weight(1f)
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
             ) {
-                // 레벨 타이틀
-                Text(
-                    text = stringResource(id = currentLevel.nameResId),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // 현재 일수
-                Text(
-                    text = "${currentDays}일 달성",
-                    fontSize = 14.sp,
-                    color = Color.White.copy(alpha = 0.9f)
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // 진행률 바
+                // [NEW] 레벨 마크 뱃지 (축소 버전)
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.85f)
-                        .height(6.dp)
-                        .clip(RoundedCornerShape(3.dp))
-                        .background(Color.White.copy(alpha = 0.3f))
+                    modifier = Modifier.size(48.dp)
                 ) {
+                    // Glassmorphism Badge
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(progress.coerceIn(0f, 1f))
-                            .fillMaxHeight()
-                            .background(Color.White)
-                    )
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.White.copy(alpha = 0.2f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val levelNumber = if (currentDays < 1) {
+                            0
+                        } else {
+                            LevelDefinitions.getLevelNumber(currentDays) + 1
+                        }
+                        val levelText = if (levelNumber == 11) "L" else "$levelNumber"
+                        Text(
+                            text = "LV.$levelText",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp
+                            )
+                        )
+                    }
+
+                    // [NEW] 진행 중 상태 표시 (초록색 배지)
+                    if (isActive) {
+                        Box(
+                            modifier = Modifier
+                                .size(12.dp)
+                                .align(Alignment.TopEnd)
+                                .offset(x = 3.dp, y = (-3).dp)
+                                .clip(CircleShape)
+                                .background(Color.White)
+                                .padding(2.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape)
+                                    .background(Color(0xFF22C55E)) // 초록색
+                            )
+                        }
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
-                // 진행률 텍스트
-                Text(
-                    text = "다음 레벨까지 ${((1f - progress) * 100).toInt()}%",
-                    fontSize = 12.sp,
-                    color = Color.White.copy(alpha = 0.8f)
-                )
+                // 레벨 정보 Column
+                Column(
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    // 레벨 타이틀
+                    Text(
+                        text = stringResource(id = currentLevel.nameResId),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // 현재 일수
+                    Text(
+                        text = "${currentDays}일 달성",
+                        fontSize = 13.sp,
+                        color = Color.White.copy(alpha = 0.9f)
+                    )
+                }
             }
 
             // 우측: 화살표 아이콘
@@ -111,6 +146,8 @@ fun LevelSummaryBanner(
                 modifier = Modifier.size(24.dp)
             )
         }
+
+        // [REMOVED] 진행률 바와 텍스트 제거 (축소 버전이므로)
     }
 }
 
