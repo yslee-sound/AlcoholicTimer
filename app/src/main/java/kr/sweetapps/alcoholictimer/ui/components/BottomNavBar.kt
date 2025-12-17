@@ -67,25 +67,24 @@ private val bottomItems: List<BottomItem> = listOf(
     ),
     BottomItem(
         Screen.More,
-        R.drawable.ic_nav_gearsix,
+        R.drawable.user,
         R.string.drawer_menu_more,
         R.string.drawer_menu_more,
-        associatedRoutes = setOf(Screen.More.route, Screen.CurrencySettings.route)
-    ),
-    BottomItem(
-        Screen.About,
-        R.drawable.ic_nav_user,
-        R.string.drawer_menu_about,
-        R.string.drawer_menu_about,
-        // [UPDATED] HabitSettings, CurrencySettings 라우트 추가
+        // [UPDATED] Tab 4는 커뮤니티 화면, About 화면은 설정 버튼으로 진입
+        // About 관련 라우트도 Tab 4로 연결 (설정 버튼으로 진입하므로)
         associatedRoutes = setOf(
-            Screen.About.route,
+            Screen.More.route,
+            Screen.About.route, // [NEW] About는 Tab 4의 설정 버튼으로 진입
             Screen.AboutLicenses.route,
             Screen.NicknameEdit.route,
-            Screen.HabitSettings.route, // [NEW] 습관 설정
-            Screen.CurrencySettings.route // [NEW] 통화 설정 (Tab04와 공유)
+            Screen.HabitSettings.route,
+            Screen.CurrencySettings.route,
+            Screen.Debug.route, // [NEW] 디버그도 Tab 4 그룹
+            Screen.Notification.route, // [NEW] 알림도 Tab 4 그룹
+            "customer" // [NEW] 고객 지원도 Tab 4 그룹
         )
     )
+    // [REMOVED] Tab 5 (About) - 이제 Tab 4의 설정 버튼으로 진입
 )
 
 @Composable

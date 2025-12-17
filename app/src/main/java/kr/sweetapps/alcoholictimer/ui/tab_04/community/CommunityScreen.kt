@@ -30,7 +30,8 @@ import kr.sweetapps.alcoholictimer.ui.tab_04.viewmodel.CommunityViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommunityScreen(
-    viewModel: CommunityViewModel = viewModel()
+    viewModel: CommunityViewModel = viewModel(),
+    onSettingsClick: () -> Unit = {} // [NEW] 설정 화면으로 이동
 ) {
     val posts by viewModel.posts.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -57,6 +58,16 @@ fun CommunityScreen(
                             style = MaterialTheme.typography.titleLarge,
                             color = Color(0xFF111111)
                         )
+                    },
+                    actions = {
+                        // 설정 버튼 (우측 상단 톱니바퀴)
+                        IconButton(onClick = onSettingsClick) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.gearsix),
+                                contentDescription = "설정",
+                                tint = Color(0xFF111111)
+                            )
+                        }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.White,
