@@ -396,6 +396,6 @@ isActive = false
 
 ## 🔗 관련 문서
 
-- [SEQUENTIAL_EXECUTION_GUIDE.md](./SEQUENTIAL_EXECUTION_GUIDE.md) - 순차적 실행 구조 가이드
+- [SEQUENTIAL_EXECUTION_GUIDE.md](SEQUENTIAL_EXECUTION_GUIDE.md) - 순차적 실행 구조 가이드
 - [AD_POLICY_GUIDE.md](./reference/AD_POLICY_GUIDE.md) - 광고 정책 가이드
 
