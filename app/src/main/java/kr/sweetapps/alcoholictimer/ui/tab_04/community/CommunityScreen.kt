@@ -1,10 +1,12 @@
 package kr.sweetapps.alcoholictimer.ui.tab_04.community
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -18,19 +20,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.google.firebase.Timestamp
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.tab_04.viewmodel.CommunityViewModel
 
-/**
- * Phase 2: 커뮤니티 피드 메인 화면 (Firestore 연동)
- * Phase 3: 페이스북 스타일 글쓰기 (상단 입력바 + 전체화면 다이얼로그)
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommunityScreen(
@@ -39,113 +33,256 @@ fun CommunityScreen(
     val posts by viewModel.posts.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    // [NEW] 전체화면 글쓰기 다이얼로그 상태
+    // 글쓰기 화면 표시 상태
     var isWritingScreenVisible by remember { mutableStateOf(false) }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = Color(0xFFF5F5F5), // 연한 회색 배경
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.community_title), // "익명 응원 챌린지"
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Color(0xFF111111)
+    // [중요] 글쓰기 화면이 열려있을 때 뒤로가기 버튼 누르면 앱 종료 대신 글쓰기 창 닫기
+    BackHandler(enabled = isWritingScreenVisible) {
+        isWritingScreenVisible = false
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // === 1. 메인 리스트 화면 (뒤에 깔리는 화면) ===
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = Color(0xFFF5F5F5),
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = stringResource(R.string.community_title),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = Color(0xFF111111)
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.White,
+                        titleContentColor = Color(0xFF111111)
                     )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color(0xFF111111)
                 )
-            )
-        }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            if (isLoading && posts.isEmpty()) {
-                // 로딩 중
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            } else if (posts.isEmpty()) {
-                // 게시글 없음
-                EmptyState(modifier = Modifier.align(Alignment.Center))
-            } else {
-                // 게시글 목록
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(0.dp)
-                ) {
-                    // [NEW] 페이스북 스타일 상단 작성 트리거
-                    item {
-                        WritePostTrigger(
-                            onClick = { isWritingScreenVisible = true }
-                        )
-                    }
-
-                    // [NEW Phase 3] 6번째 아이템마다 광고 삽입
-                    val itemsWithAds = posts.flatMapIndexed { index, post ->
-                        if ((index + 1) % 6 == 0 && index > 0) {
-                            listOf(post, null) // null은 광고 슬롯
-                        } else {
-                            listOf(post)
-                        }
-                    }
-
-                    items(itemsWithAds.size, key = { index ->
-                        val item = itemsWithAds[index]
-                        item?.id ?: "ad_$index"
-                    }) { index ->
-                        val item = itemsWithAds[index]
-
-                        if (item == null) {
-                            // [NEW Phase 3] 네이티브 광고 슬롯
-                            NativeAdItem()
-                        } else {
-                            PostItem(
-                                nickname = item.nickname,
-                                timerDuration = item.timerDuration,
-                                content = item.content,
-                                imageUrl = item.imageUrl,
-                                likeCount = item.likeCount,
-                                isLiked = false, // Phase 3에서 사용자별 좋아요 상태 관리
-                                remainingTime = calculateRemainingTime(item.deleteAt),
-                                onLikeClick = {
-                                    viewModel.toggleLike(item.id)
-                                },
-                                onCommentClick = {
-                                    // Phase 3: 댓글 기능
-                                },
-                                onMoreClick = {
-                                    // Phase 3: 더보기 메뉴
-                                }
-                            )
+            }
+        ) { innerPadding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                if (isLoading && posts.isEmpty()) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                } else if (posts.isEmpty()) {
+                    EmptyState(modifier = Modifier.align(Alignment.Center))
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(0.dp)
+                    ) {
+                        item {
+                            WritePostTrigger(onClick = { isWritingScreenVisible = true })
                         }
 
-                        // 게시글 사이 구분선
-                        HorizontalDivider(
-                            thickness = 1.dp,
-                            color = Color(0xFFE0E0E0)
-                        )
+                        // 광고 및 게시글 리스트 로직 (기존 동일)
+                        val itemsWithAds = posts.flatMapIndexed { index, post ->
+                            if ((index + 1) % 6 == 0 && index > 0) listOf(post, null) else listOf(post)
+                        }
+
+                        items(itemsWithAds.size, key = { index ->
+                            val item = itemsWithAds[index]
+                            item?.id ?: "ad_$index"
+                        }) { index ->
+                            val item = itemsWithAds[index]
+                            if (item == null) {
+                                NativeAdItem()
+                            } else {
+                                PostItem(
+                                    nickname = item.nickname,
+                                    timerDuration = item.timerDuration,
+                                    content = item.content,
+                                    imageUrl = item.imageUrl,
+                                    likeCount = item.likeCount,
+                                    isLiked = false,
+                                    remainingTime = calculateRemainingTime(item.deleteAt),
+                                    onLikeClick = { viewModel.toggleLike(item.id) },
+                                    onCommentClick = { },
+                                    onMoreClick = { }
+                                )
+                            }
+                            HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
+                        }
                     }
                 }
             }
         }
-    }
 
-    // [NEW] 전체화면 글쓰기 다이얼로그 (1초 슬라이드 애니메이션 테스트)
-    FullScreenWriteDialog(
-        visible = isWritingScreenVisible,
-        onPost = { content ->
-            viewModel.addPost(content)
-            isWritingScreenVisible = false
-        },
-        onDismiss = { isWritingScreenVisible = false }
-    )
+        // === 2. 글쓰기 전체 화면 (앞에 덮이는 화면) ===
+        // Dialog 대신 AnimatedVisibility를 사용하여 부드러운 Slide Up 구현
+        AnimatedVisibility(
+            visible = isWritingScreenVisible,
+            enter = slideInVertically(
+                initialOffsetY = { fullHeight -> fullHeight }, // 화면 아래에서 위로
+                animationSpec = tween(durationMillis = 300) // 0.3초 동안 부드럽게
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { fullHeight -> fullHeight }, // 다시 아래로
+                animationSpec = tween(durationMillis = 300)
+            ),
+            modifier = Modifier.align(Alignment.BottomCenter) // 아래쪽에 배치
+        ) {
+            // 여기가 진짜 글쓰기 화면 내용
+            WritePostScreenContent(
+                onPost = { content ->
+                    viewModel.addPost(content)
+                    isWritingScreenVisible = false
+                },
+                onDismiss = { isWritingScreenVisible = false }
+            )
+        }
+    }
+}
+
+/**
+ * 글쓰기 화면의 내부 콘텐츠 (별도 Composable로 분리하여 깔끔하게 정리)
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun WritePostScreenContent(
+    onPost: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var content by remember { mutableStateOf("") }
+
+    // 전체 화면을 흰색으로 덮음
+    Scaffold(
+        modifier = Modifier.fillMaxSize(), // 전체 화면 꽉 채우기
+        containerColor = Color.White,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "새 게시글 작성",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color(0xFF1F2937)
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = "취소",
+                            tint = Color(0xFF6B7280)
+                        )
+                    }
+                },
+                actions = {
+                    TextButton(
+                        onClick = {
+                            if (content.isNotBlank()) onPost(content.trim())
+                        },
+                        enabled = content.isNotBlank()
+                    ) {
+                        Text(
+                            text = "게시하기",
+                            color = if (content.isNotBlank())
+                                kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue // 테마 색상 사용 권장
+                            else Color(0xFFD1D5DB),
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp)
+                // 키보드가 올라오면 패딩 자동 조절 (Manifest에 windowSoftInputMode="adjustResize" 필요)
+                .imePadding()
+        ) {
+            // 프로필 영역 (페이스북 느낌)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFE0E0E0)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_user_circle),
+                        contentDescription = null,
+                        tint = Color(0xFF9E9E9E),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Column {
+                    Text(
+                        text = "익명",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = Color.Black
+                    )
+                    Text(
+                        text = "모두에게 공개",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 텍스트 입력창
+            TextField(
+                value = content,
+                onValueChange = { content = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f), // 남은 공간 모두 차지
+                placeholder = {
+                    Text(
+                        text = "오늘 하루는 어땠나요? 솔직한 이야기를 들려주세요.",
+                        color = Color(0xFF9CA3AF),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                },
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent, // 밑줄 제거
+                    unfocusedIndicatorColor = Color.Transparent
+                ),
+                textStyle = MaterialTheme.typography.bodyLarge
+            )
+
+            // 하단 툴바 (이미지 추가 등)
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE0E0E0)),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .clickable { /* TODO: 이미지 선택 로직 */ },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Image,
+                        contentDescription = "사진",
+                        tint = Color(0xFF4CAF50) // 초록색 아이콘
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "사진 추가",
+                        color = Color(0xFF1F2937),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -220,156 +357,6 @@ private fun WritePostTrigger(
 }
 
 /**
- * [NEW] 전체화면 글쓰기 다이얼로그 (1초 슬라이드 애니메이션 테스트)
- * LaunchedEffect를 사용하여 열기/닫기 애니메이션 제어
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun FullScreenWriteDialog(
-    visible: Boolean,
-    onPost: (String) -> Unit,
-    onDismiss: () -> Unit
-) {
-    var content by remember { mutableStateOf("") }
-    var showDialog by remember { mutableStateOf(false) }
-    var animateContent by remember { mutableStateOf(false) }
-
-    // visible 상태 변화에 따라 Dialog와 애니메이션 제어
-    LaunchedEffect(visible) {
-        if (visible) {
-            showDialog = true
-            kotlinx.coroutines.delay(50) // Dialog 렌더링 대기
-            animateContent = true
-        } else {
-            animateContent = false
-            kotlinx.coroutines.delay(350) // 페이스북 스타일: 닫기는 350ms
-            showDialog = false
-        }
-    }
-
-    if (showDialog) {
-        Dialog(
-            onDismissRequest = onDismiss,
-            properties = DialogProperties(
-                usePlatformDefaultWidth = false // 전체 화면
-            )
-        ) {
-            // [FIX] animateContent 상태로 AnimatedVisibility 제어
-            androidx.compose.animation.AnimatedVisibility(
-                visible = animateContent,
-                enter = androidx.compose.animation.slideInVertically(
-                    initialOffsetY = { it }, // 화면 하단에서 시작
-                    animationSpec = androidx.compose.animation.core.tween(
-                        durationMillis = 1000, // 1초 (테스트용)
-                        easing = androidx.compose.animation.core.FastOutSlowInEasing
-                    )
-                ),
-                exit = androidx.compose.animation.slideOutVertically(
-                    targetOffsetY = { it }, // 화면 하단으로 슬라이드 다운
-                    animationSpec = androidx.compose.animation.core.tween(
-                        durationMillis = 1000, // 1초 (테스트용)
-                        easing = androidx.compose.animation.core.FastOutSlowInEasing
-                    )
-                )
-            ) {
-            Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            containerColor = Color.White,
-            topBar = {
-                // 상단바: 취소 - 제목 - 게시하기
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = "새 게시글 작성",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = Color(0xFF1F2937)
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = onDismiss) {
-                            Icon(
-                                imageVector = Icons.Filled.Close,
-                                contentDescription = "취소",
-                                tint = Color(0xFF6B7280)
-                            )
-                        }
-                    },
-                    actions = {
-                        TextButton(
-                            onClick = {
-                                if (content.isNotBlank()) {
-                                    onPost(content.trim())
-                                }
-                            },
-                            enabled = content.isNotBlank()
-                        ) {
-                            Text(
-                                text = "게시하기",
-                                color = if (content.isNotBlank())
-                                    kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
-                                else
-                                    Color(0xFFD1D5DB)
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.White
-                    )
-                )
-            }
-        ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(16.dp)
-                    .imePadding()
-            ) {
-                // 텍스트 입력창
-                TextField(
-                    value = content,
-                    onValueChange = { content = it },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    placeholder = {
-                        Text(
-                            text = "오늘 하루는 어땠나요? (익명)",
-                            color = Color(0xFF9CA3AF)
-                        )
-                    },
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    ),
-                    textStyle = MaterialTheme.typography.bodyLarge
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // 이미지 선택 버튼 (향후 기능)
-                OutlinedButton(
-                    onClick = { /* TODO: 이미지 선택 */ },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Image,
-                        contentDescription = "이미지 추가",
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("이미지 추가 (준비 중)")
-                }
-            }
-        }
-            } // AnimatedVisibility 닫기
-        } // Dialog 닫기
-    } // if (showDialog) 닫기
-}
-
-/**
  * 빈 상태 표시
  */
 @Composable
@@ -402,7 +389,7 @@ private fun EmptyState(modifier: Modifier = Modifier) {
 /**
  * 남은 시간 계산 (deleteAt - now)
  */
-private fun calculateRemainingTime(deleteAt: Timestamp): String {
+private fun calculateRemainingTime(deleteAt: com.google.firebase.Timestamp): String {
     val now = System.currentTimeMillis()
     val deleteAtMillis = deleteAt.seconds * 1000
     val diffMillis = deleteAtMillis - now
@@ -421,17 +408,15 @@ private fun calculateRemainingTime(deleteAt: Timestamp): String {
 
 /**
  * [NEW Phase 3] 네이티브 광고 아이템
- * PostItem과 동일한 디자인으로 통일
  */
 @Composable
 private fun NativeAdItem() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFFFFBF0)) // 연한 노란색 배경으로 광고임을 표시
+            .background(Color(0xFFFFFBF0))
             .padding(16.dp)
     ) {
-        // "광고" 라벨
         Text(
             text = "Sponsored",
             style = MaterialTheme.typography.bodySmall,
@@ -439,8 +424,6 @@ private fun NativeAdItem() {
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
-        // Phase 3: 실제 네이티브 광고 컴포넌트는 추후 구현
-        // 현재는 플레이스홀더 표시
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -456,77 +439,3 @@ private fun NativeAdItem() {
         }
     }
 }
-
-// ===== Preview (Phase 1 호환) =====
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun CommunityScreenPreview() {
-    MaterialTheme {
-        // Preview용 더미 데이터는 Phase 1 코드 유지
-        CommunityScreenWithDummyData()
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun CommunityScreenWithDummyData() {
-    val dummyPosts = remember {
-        listOf(
-            DummyPost(
-                id = "1",
-                nickname = "익명의 사자",
-                timerDuration = "72시간",
-                content = "오늘도 술 없이 하루를 보냈습니다. 처음엔 힘들었지만 점점 익숙해지고 있어요.",
-                imageUrl = "https://picsum.photos/seed/1/400/300",
-                likeCount = 24,
-                isLiked = false,
-                remainingTime = "5h"
-            )
-        )
-    }
-
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = Color(0xFFF5F5F5),
-        topBar = {
-            TopAppBar(
-                title = { Text(text = "익명 응원 챌린지") },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
-            )
-        }
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            items(dummyPosts) { post ->
-                PostItem(
-                    nickname = post.nickname,
-                    timerDuration = post.timerDuration,
-                    content = post.content,
-                    imageUrl = post.imageUrl,
-                    likeCount = post.likeCount,
-                    isLiked = post.isLiked,
-                    remainingTime = post.remainingTime
-                )
-                HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
-            }
-        }
-    }
-}
-
-/**
- * Phase 1 호환 더미 데이터 모델
- */
-data class DummyPost(
-    val id: String,
-    val nickname: String,
-    val timerDuration: String,
-    val content: String,
-    val imageUrl: String?,
-    val likeCount: Int,
-    val isLiked: Boolean,
-    val remainingTime: String
-)
