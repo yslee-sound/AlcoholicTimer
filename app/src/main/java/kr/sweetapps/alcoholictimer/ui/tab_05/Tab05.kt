@@ -330,7 +330,7 @@ fun AboutScreen(
                 Icon(
                     painter = painterResource(id = R.drawable.star),
                     contentDescription = null,
-                    tint = Color(0xFFFBC02D), // 노란색 별
+                    tint = Color.Black, // 검정색 (다른 버튼들과 통일)
                     modifier = Modifier.size(32.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
