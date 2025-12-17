@@ -107,8 +107,8 @@ object UiConstants {
     val BUTTON_BOTTOM_OFFSET: Dp = 32.dp // [FIX] 하단 버튼 안전 여백 확대 (네비게이션 바와 충분한 간격 확보)
 
     // Bottom navigation sizes (used in BottomNavBar)
-    val BOTTOM_NAV_ICON_SIZE: Dp = 28.dp // Icon size
-    val BOTTOM_NAV_ITEM_SIZE: Dp = 35.dp // Box size wrapping icon
+    val BOTTOM_NAV_ICON_SIZE: Dp = 32.dp // [UPDATE] Icon size: 28dp → 32dp (업계 표준 범위 상한)
+    val BOTTOM_NAV_ITEM_SIZE: Dp = 40.dp // [UPDATE] Box size wrapping icon: 35dp → 40dp (아이콘 증가에 맞춰 조정)
     val BOTTOM_NAV_BAR_HEIGHT: Dp = 60.dp // Total bar height
     val BOTTOM_NAV_ITEM_GAP: Dp = 50.dp // Gap between items
 }
