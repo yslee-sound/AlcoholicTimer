@@ -101,6 +101,7 @@ fun CommunityScreen(
                                     likeCount = item.likeCount,
                                     isLiked = false,
                                     remainingTime = calculateRemainingTime(item.deleteAt),
+                                    authorAvatarIndex = item.authorAvatarIndex, // [NEW] 아바타 인덱스 전달
                                     onLikeClick = { viewModel.toggleLike(item.id) },
                                     onCommentClick = { },
                                     onMoreClick = { }

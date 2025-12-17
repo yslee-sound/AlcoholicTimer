@@ -2,6 +2,7 @@ package kr.sweetapps.alcoholictimer.ui.tab_04.community
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -27,6 +28,7 @@ import kr.sweetapps.alcoholictimer.R
 /**
  * Phase 1: 커뮤니티 게시글 아이템 UI
  * 페이스북 스타일의 Full-width 디자인
+ * (v2.0) 아바타 시스템: authorAvatarIndex로 프로필 표시
  */
 @Composable
 fun PostItem(
@@ -37,6 +39,7 @@ fun PostItem(
     likeCount: Int,
     isLiked: Boolean = false,
     remainingTime: String, // "5h" 형식
+    authorAvatarIndex: Int = 0, // [NEW] 아바타 인덱스
     onLikeClick: () -> Unit = {},
     onCommentClick: () -> Unit = {},
     onMoreClick: () -> Unit = {}
@@ -50,6 +53,7 @@ fun PostItem(
         PostHeader(
             nickname = nickname,
             timerDuration = timerDuration,
+            authorAvatarIndex = authorAvatarIndex, // [NEW]
             onMoreClick = onMoreClick
         )
 
@@ -95,11 +99,13 @@ fun PostItem(
 
 /**
  * 게시글 헤더: 프로필 아이콘 + 닉네임 + 타이머 배지 + 더보기 메뉴
+ * (v2.0) 아바타 이미지 표시
  */
 @Composable
 private fun PostHeader(
     nickname: String,
     timerDuration: String,
+    authorAvatarIndex: Int = 0, // [NEW]
     onMoreClick: () -> Unit
 ) {
     Row(
@@ -108,21 +114,15 @@ private fun PostHeader(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 익명 프로필 아이콘
-        Box(
+        // [NEW] 아바타 이미지 (로컬 리소스)
+        Image(
+            painter = painterResource(id = kr.sweetapps.alcoholictimer.util.AvatarManager.getAvatarResId(authorAvatarIndex)),
+            contentDescription = "프로필",
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(Color(0xFFE0E0E0)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_user_circle),
-                contentDescription = "프로필",
-                tint = Color(0xFF9E9E9E),
-                modifier = Modifier.size(24.dp)
-            )
-        }
+                .background(Color(0xFFF5F5F5))
+        )
 
         Spacer(modifier = Modifier.width(12.dp))
 

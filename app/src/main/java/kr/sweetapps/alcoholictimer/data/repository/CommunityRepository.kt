@@ -93,7 +93,8 @@ class CommunityRepository {
                     imageUrl = if (hasImage) "https://picsum.photos/seed/${i}/400/300" else null,
                     likeCount = (0..50).random(),
                     createdAt = Timestamp(now.seconds - i * 3600, 0), // 1시간씩 간격
-                    deleteAt = deleteAt
+                    deleteAt = deleteAt,
+                    authorAvatarIndex = (0..19).random() // [NEW] 랜덤 아바타 (0~19)
                 )
 
                 batch.set(postRef, post)

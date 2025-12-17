@@ -3,10 +3,13 @@ package kr.sweetapps.alcoholictimer.ui.tab_05.viewmodel
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kr.sweetapps.alcoholictimer.data.repository.UserRepository
 
 /**
  * Tab05 설정 화면 UI 상태
@@ -14,12 +17,16 @@ import kotlinx.coroutines.flow.update
  * @param notificationsEnabled 알림 활성화 여부
  * @param nickname 사용자 닉네임
  * @param showCustomerFeedbackSheet 고객 문의 바텀시트 표시 여부
+ * @param avatarIndex 현재 아바타 인덱스 (0~19)
+ * @param showAvatarDialog 아바타 선택 다이얼로그 표시 여부
  */
 data class SettingsUiState(
     val isDarkMode: Boolean = false,
     val notificationsEnabled: Boolean = true,
     val nickname: String = "",
-    val showCustomerFeedbackSheet: Boolean = false
+    val showCustomerFeedbackSheet: Boolean = false,
+    val avatarIndex: Int = 0,
+    val showAvatarDialog: Boolean = false
 )
 
 /**
@@ -28,6 +35,7 @@ data class SettingsUiState(
  * - 다크모드, 알림 등의 설정 토글
  * - 닉네임 관리
  * - 고객 문의 시트 제어
+ * - 아바타 관리
  */
 class Tab05ViewModel : ViewModel() {
 
@@ -35,6 +43,7 @@ class Tab05ViewModel : ViewModel() {
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
     private var sharedPreferences: SharedPreferences? = null
+    private var userRepository: UserRepository? = null
 
     /**
      * ViewModel 초기화 - SharedPreferences 설정 및 닉네임 로드
@@ -44,7 +53,9 @@ class Tab05ViewModel : ViewModel() {
     fun initialize(context: Context, defaultNickname: String) {
         if (sharedPreferences == null) {
             sharedPreferences = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
+            userRepository = UserRepository(context)
             loadNickname(defaultNickname)
+            loadAvatarIndex()
         }
     }
 
@@ -54,6 +65,16 @@ class Tab05ViewModel : ViewModel() {
     private fun loadNickname(defaultNickname: String) {
         val savedNickname = sharedPreferences?.getString("nickname", defaultNickname) ?: defaultNickname
         _uiState.update { it.copy(nickname = savedNickname) }
+    }
+
+    /**
+     * 아바타 인덱스 로드
+     */
+    private fun loadAvatarIndex() {
+        viewModelScope.launch {
+            val avatarIndex = userRepository?.getAvatarIndex() ?: 0
+            _uiState.update { it.copy(avatarIndex = avatarIndex) }
+        }
     }
 
     /**
@@ -89,6 +110,30 @@ class Tab05ViewModel : ViewModel() {
      */
     fun setShowCustomerFeedbackSheet(show: Boolean) {
         _uiState.update { it.copy(showCustomerFeedbackSheet = show) }
+    }
+
+    /**
+     * 아바타 선택 다이얼로그 표시/숨김
+     * @param show 표시 여부
+     */
+    fun setShowAvatarDialog(show: Boolean) {
+        _uiState.update { it.copy(showAvatarDialog = show) }
+    }
+
+    /**
+     * 아바타 업데이트
+     * @param index 선택한 아바타 인덱스 (0~19)
+     */
+    fun updateAvatar(index: Int) {
+        viewModelScope.launch {
+            val success = userRepository?.updateAvatar(index) ?: false
+            if (success) {
+                _uiState.update { it.copy(avatarIndex = index) }
+                android.util.Log.d("Tab05ViewModel", "아바타 업데이트 성공: $index")
+            } else {
+                android.util.Log.e("Tab05ViewModel", "아바타 업데이트 실패")
+            }
+        }
     }
 
     /**

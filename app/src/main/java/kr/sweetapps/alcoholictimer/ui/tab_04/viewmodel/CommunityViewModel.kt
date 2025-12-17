@@ -1,6 +1,7 @@
 package kr.sweetapps.alcoholictimer.ui.tab_04.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -8,13 +9,18 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.data.model.Post
 import kr.sweetapps.alcoholictimer.data.repository.CommunityRepository
+import kr.sweetapps.alcoholictimer.data.repository.UserRepository
 
 /**
  * Phase 2: 커뮤니티 ViewModel
  * Firestore posts 데이터를 실시간으로 관리
+ *
+ * (v2.0) 아바타 시스템 추가:
+ * - UserRepository를 통해 사용자의 아바타 인덱스 관리
  */
-class CommunityViewModel : ViewModel() {
+class CommunityViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = CommunityRepository()
+    private val userRepository = UserRepository(application.applicationContext) // 아바타 관리용
 
     private val _posts = MutableStateFlow<List<Post>>(emptyList())
     val posts: StateFlow<List<Post>> = _posts.asStateFlow()
@@ -54,7 +60,8 @@ class CommunityViewModel : ViewModel() {
     }
 
     /**
-     * [NEW] 새 게시글 작성 (Tab 4에서 직접 작성)
+     * 새 게시글 작성 (Tab 4에서 직접 작성)
+     * (v2.0) 아바타 시스템: 사용자의 avatarIndex를 Post에 포함
      * @param content 게시글 내용
      */
     fun addPost(content: String) {
@@ -68,6 +75,14 @@ class CommunityViewModel : ViewModel() {
                 )
                 val nickname = anonymousNicknames.random()
 
+                // [NEW] 사용자의 현재 아바타 인덱스 가져오기
+                val avatarIndex = try {
+                    userRepository.getAvatarIndex()
+                } catch (e: Exception) {
+                    android.util.Log.e("CommunityViewModel", "아바타 인덱스 가져오기 실패, 기본값 0 사용", e)
+                    0
+                }
+
                 // 타이머 지속 시간 계산 (랜덤 또는 실제 유저 타이머)
                 val timerDuration = calculateTimerDuration()
 
@@ -76,7 +91,7 @@ class CommunityViewModel : ViewModel() {
                 val createdAt = com.google.firebase.Timestamp(now / 1000, 0)
                 val deleteAt = com.google.firebase.Timestamp((now / 1000) + 24 * 60 * 60, 0) // 24시간 후
 
-                // Post 객체 생성
+                // Post 객체 생성 (authorAvatarIndex 포함)
                 val post = Post(
                     nickname = nickname,
                     timerDuration = timerDuration,
@@ -84,13 +99,14 @@ class CommunityViewModel : ViewModel() {
                     imageUrl = null, // 이미지는 향후 추가
                     likeCount = 0,
                     createdAt = createdAt,
-                    deleteAt = deleteAt
+                    deleteAt = deleteAt,
+                    authorAvatarIndex = avatarIndex // [NEW] 아바타 인덱스 포함
                 )
 
                 // Firestore에 저장
                 repository.addPost(post)
 
-                android.util.Log.d("CommunityViewModel", "게시글 작성 완료: $nickname")
+                android.util.Log.d("CommunityViewModel", "게시글 작성 완료: $nickname (avatar: $avatarIndex)")
             } catch (e: Exception) {
                 android.util.Log.e("CommunityViewModel", "게시글 작성 실패", e)
             }
