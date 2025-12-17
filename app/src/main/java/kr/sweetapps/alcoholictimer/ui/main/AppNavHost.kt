@@ -4,6 +4,12 @@ import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -13,6 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
+import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.ad.HomeAdTrigger
 import kr.sweetapps.alcoholictimer.ui.common.BaseScaffold
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab01Graph
@@ -88,8 +95,16 @@ fun AppNavHost(
                     )
 
                     addTab03Graph(tabNavController)
-                    addTab04Graph(tabNavController) // [RESTORED] 탭4 유지 (다른 기능 예정)
-                    addTab05Graph(tabNavController)
+
+                    // [UPDATE] Tab04에서 설정 버튼 클릭 시 Root NavController로 About 화면 이동
+                    addTab04Graph(
+                        navController = tabNavController,
+                        onNavigateToSettings = {
+                            navController.navigate(Screen.About.route)
+                        }
+                    )
+
+                    // [REMOVED] addTab05Graph - About 메인 화면은 Root 레벨에서 처리
                 }
             }
         }
@@ -276,6 +291,51 @@ fun AppNavHost(
                 }
             )
         }
+
+        // [NEW] About (설정) 화면 - 독립적 구성 (슬라이드 애니메이션)
+        composable(
+            route = Screen.About.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeOut(animationSpec = tween(300))
+            },
+            popEnterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { -it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            kr.sweetapps.alcoholictimer.ui.tab_05.AboutScreen(
+                onNavigateLicenses = { navController.navigate(Screen.AboutLicenses.route) },
+                onNavigatePrivacy = { navController.navigate(Screen.Privacy.route) },
+                onNavigateEditNickname = { navController.navigate(Screen.NicknameEdit.route) },
+                onNavigateCurrencySettings = { navController.navigate(Screen.CurrencySettings.route) },
+                onNavigateHabitSettings = { navController.navigate(Screen.HabitSettings.route) },
+                onNavigateDebug = { navController.navigate(Screen.Debug.route) },
+                onNavigateNotification = { navController.navigate(Screen.Notification.route) },
+                onNavigateCustomer = { navController.navigate("customer") },
+                showBack = true,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // [NEW] About 서브 화면들 (Root 레벨에 등록)
+        addTab05Graph(navController)
     }
 }
 

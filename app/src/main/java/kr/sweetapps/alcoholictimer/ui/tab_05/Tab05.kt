@@ -184,16 +184,121 @@ fun AboutScreen(
     // Use design tokens
     val dims = LocalDimens.current
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .verticalScroll(scrollState)
-            .padding(bottom = dims.component.navBarHeight)
-    ) {
-        if (showBack) {
-            BackTopBar(title = stringResource(id = R.string.about_title), onBack = onBack)
+    // [NEW] showBack = true일 때 Scaffold로 독립 화면 구성
+    if (showBack) {
+        androidx.compose.material3.Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = Color.White,
+            topBar = {
+                BackTopBar(
+                    title = stringResource(id = R.string.about_title),
+                    onBack = onBack
+                )
+            }
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .verticalScroll(scrollState)
+            ) {
+                AboutScreenContent(
+                    nickname = nickname,
+                    versionInfo = versionInfo,
+                    versionTapCount = versionTapCount,
+                    lastTapTime = lastTapTime,
+                    context = context,
+                    uiState = uiState,
+                    viewModel = viewModel,
+                    dims = dims,
+                    onNavigateEditNickname = onNavigateEditNickname,
+                    onLicenseClick = onLicenseClick,
+                    onPrivacyClick = onPrivacyClick,
+                    onNavigateCurrencySettings = onNavigateCurrencySettings,
+                    onNavigateHabitSettings = onNavigateHabitSettings,
+                    onAdsClick = onAdsClick,
+                    onDebugClick = onDebugClick,
+                    onNavigateNotification = onNavigateNotification,
+                    showPrivacyOptions = showPrivacyOptions,
+                    showDebugMenu = showDebugMenu
+                )
+            }
         }
+    } else {
+        // BaseScaffold 내부에서 사용 (기존 방식)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .verticalScroll(scrollState)
+                .padding(bottom = dims.component.navBarHeight)
+        ) {
+            AboutScreenContent(
+                nickname = nickname,
+                versionInfo = versionInfo,
+                versionTapCount = versionTapCount,
+                lastTapTime = lastTapTime,
+                context = context,
+                uiState = uiState,
+                viewModel = viewModel,
+                dims = dims,
+                onNavigateEditNickname = onNavigateEditNickname,
+                onLicenseClick = onLicenseClick,
+                onPrivacyClick = onPrivacyClick,
+                onNavigateCurrencySettings = onNavigateCurrencySettings,
+                onNavigateHabitSettings = onNavigateHabitSettings,
+                onAdsClick = onAdsClick,
+                onDebugClick = onDebugClick,
+                onNavigateNotification = onNavigateNotification,
+                showPrivacyOptions = showPrivacyOptions,
+                showDebugMenu = showDebugMenu
+            )
+        }
+    }
+
+    // 고객 문의 바텀 시트
+    if (showCustomerFeedbackSheet) {
+        CustomerFeedbackBottomSheet(
+            onDismiss = { viewModel.setShowCustomerFeedbackSheet(false) },
+            onSubmit = { category, content, email ->
+                Log.d("Tab05", "Feedback submitted - Category: $category")
+            }
+        )
+    }
+
+    // [NEW] 아바타 선택 다이얼로그
+    if (uiState.showAvatarDialog) {
+        kr.sweetapps.alcoholictimer.ui.tab_05.components.AvatarSelectionDialog(
+            currentAvatarIndex = uiState.avatarIndex,
+            onAvatarSelected = { index ->
+                viewModel.updateAvatar(index)
+            },
+            onDismiss = { viewModel.setShowAvatarDialog(false) }
+        )
+    }
+}
+
+@Composable
+private fun AboutScreenContent(
+    nickname: String,
+    versionInfo: String,
+    versionTapCount: androidx.compose.runtime.MutableState<Int>,
+    lastTapTime: androidx.compose.runtime.MutableState<Long>,
+    context: android.content.Context,
+    uiState: kr.sweetapps.alcoholictimer.ui.tab_05.viewmodel.SettingsUiState,
+    viewModel: Tab05ViewModel,
+    dims: kr.sweetapps.alcoholictimer.ui.theme.Dimens,
+    onNavigateEditNickname: () -> Unit,
+    onLicenseClick: () -> Unit,
+    onPrivacyClick: () -> Unit,
+    onNavigateCurrencySettings: () -> Unit,
+    onNavigateHabitSettings: () -> Unit,
+    onAdsClick: () -> Unit,
+    onDebugClick: () -> Unit,
+    onNavigateNotification: () -> Unit,
+    showPrivacyOptions: Boolean,
+    showDebugMenu: Boolean
+) {
 
         // [NEW] Profile Row with Avatar
         Row(
@@ -566,31 +671,8 @@ fun AboutScreen(
                 })
             }
         }
-    }
-
-    // 고객 문의 바텀 시트
-    if (showCustomerFeedbackSheet) {
-        CustomerFeedbackBottomSheet(
-            onDismiss = { viewModel.setShowCustomerFeedbackSheet(false) },
-            onSubmit = { category, content, email ->
-                // Firebase 전송은 BottomSheet 내부에서 처리됨
-                // 여기서는 추가 로깅이나 분석 이벤트만 기록 가능
-                Log.d("Tab05", "Feedback submitted - Category: $category")
-            }
-        )
-    }
-
-    // [NEW] 아바타 선택 다이얼로그
-    if (uiState.showAvatarDialog) {
-        kr.sweetapps.alcoholictimer.ui.tab_05.components.AvatarSelectionDialog(
-            currentAvatarIndex = uiState.avatarIndex,
-            onAvatarSelected = { index ->
-                viewModel.updateAvatar(index)
-            },
-            onDismiss = { viewModel.setShowAvatarDialog(false) }
-        )
-    }
 }
+
 
 @Preview(showBackground = true)
 @Composable
