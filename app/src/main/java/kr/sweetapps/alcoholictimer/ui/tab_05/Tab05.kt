@@ -191,7 +191,7 @@ fun AboutScreen(
             containerColor = Color.White,
             topBar = {
                 BackTopBar(
-                    title = stringResource(id = R.string.about_title),
+                    title = "설정",
                     onBack = onBack
                 )
             }
@@ -305,7 +305,7 @@ private fun AboutScreenContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { viewModel.setShowAvatarDialog(true) } // 아바타 클릭 시 선택 다이얼로그
-                .padding(start = 20.dp, end = 20.dp, top = 45.dp, bottom = 0.dp),
+                .padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 0.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // [NEW] 아바타 이미지 (동그라미)
