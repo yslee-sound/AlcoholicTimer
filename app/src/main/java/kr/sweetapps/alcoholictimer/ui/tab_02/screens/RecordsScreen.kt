@@ -64,6 +64,7 @@ import kr.sweetapps.alcoholictimer.util.utils.DateOverlapUtils
 import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue  // [NEW] 메인 UI 색상
 import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager  // [NEW] 동적 통화 표시
 import kr.sweetapps.alcoholictimer.ui.common.rememberUserSettingsState  // [NEW] 실시간 설정 감지
+import kr.sweetapps.alcoholictimer.ui.components.AutoResizingText  // [NEW] 자동 크기 조절 텍스트
 
 val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 20.dp // 전체 화면 좌우 여백
 val RECORDS_SECTION_SPACING: Dp = 20.dp // [NEW] 섹션 간 통일 간격 (기간 선택 ↔ 월 통계 ↔ 최근 일기)
@@ -1364,12 +1365,14 @@ private fun StatCard(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // 값
-            Text(
+            // 값 - [FIX] AutoResizingText로 자동 크기 조절 (깜빡임 없음)
+            AutoResizingText(
                 text = value,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF111827)
+                color = Color(0xFF111827),
+                textAlign = TextAlign.Center,
+                minFontSize = 12.sp
             )
 
             // 단위
@@ -1439,11 +1442,14 @@ private fun TotalDaysCard(
                     verticalAlignment = Alignment.Bottom,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text(
+                    // [FIX] AutoResizingText로 자동 크기 조절 (깜빡임 없음)
+                    AutoResizingText(
                         text = decimalFormat.format(totalDays),
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF111827)
+                        color = Color(0xFF111827),
+                        textAlign = TextAlign.End,
+                        minFontSize = 16.sp
                     )
 
                     Text(
