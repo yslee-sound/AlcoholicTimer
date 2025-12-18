@@ -201,6 +201,7 @@ fun AboutScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
                     .verticalScroll(scrollState)
+                    .padding(bottom = 100.dp) // [NEW] 하단 스크롤 여백 추가
             ) {
                 AboutScreenContent(
                     nickname = nickname,
@@ -231,7 +232,7 @@ fun AboutScreen(
                 .fillMaxSize()
                 .background(Color.White)
                 .verticalScroll(scrollState)
-                .padding(bottom = dims.component.navBarHeight)
+                .padding(bottom = 100.dp) // [UPDATE] navBarHeight → 100dp 통일
         ) {
             AboutScreenContent(
                 nickname = nickname,
