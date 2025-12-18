@@ -933,9 +933,7 @@ private fun RecentDiarySection(
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
+                    modifier = Modifier.fillMaxWidth() // [FIX] 패딩 제거 - 아이템이 카드 끝까지 닿도록
                 ) {
                     // 일기 항목들
                     diaries.forEachIndexed { index, diary ->
@@ -946,7 +944,7 @@ private fun RecentDiarySection(
 
                         if (index < diaries.size - 1) {
                             HorizontalDivider(
-                                modifier = Modifier.padding(vertical = 12.dp),
+                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp), // [FIX] Divider에 좌우 패딩 추가
                                 thickness = 1.dp,
                                 color = Color(0xFFE2E8F0)
                             )
@@ -1060,9 +1058,9 @@ private fun DiaryListItem(
 
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(vertical = 8.dp),
+            .fillMaxWidth() // [순서 1] 영역 확보
+            .clickable { onClick() } // [순서 2] 클릭 리스너 (패딩보다 먼저!)
+            .padding(horizontal = 20.dp, vertical = 16.dp), // [순서 3] 내부 여백 (클릭 영역 안쪽으로 밀어넣기)
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
     ) {
