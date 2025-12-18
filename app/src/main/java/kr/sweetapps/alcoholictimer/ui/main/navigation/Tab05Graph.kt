@@ -3,11 +3,8 @@ package kr.sweetapps.alcoholictimer.ui.main.navigation
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.main.Screen
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.NicknameEditScreen
-import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DebugScreen
-import kr.sweetapps.alcoholictimer.ui.tab_05.screens.policy.DocumentScreen
 
 /**
  * Tab 05: 설정 & About 서브 화면 네비게이션 그래프
@@ -16,8 +13,8 @@ import kr.sweetapps.alcoholictimer.ui.tab_05.screens.policy.DocumentScreen
  * [UPDATE] CurrencySettings도 AppNavHost에서 처리 (슬라이드 애니메이션 적용)
  * [UPDATE] Privacy도 AppNavHost에서 처리 (슬라이드 애니메이션 적용)
  * [UPDATE] AboutLicenses도 AppNavHost에서 처리 (슬라이드 애니메이션 적용)
+ * [UPDATE] Debug도 AppNavHost에서 처리 (슬라이드 애니메이션 적용) - 2025-12-19
  * - NicknameEdit: 닉네임 편집
- * - Debug: 디버그 메뉴
  * - Notification: 알림 목록
  * - Customer: 고객 지원
  */
@@ -25,6 +22,9 @@ fun NavGraphBuilder.addTab05Graph(navController: NavHostController) {
     // [REMOVED] About 메인 화면 - AppNavHost에서 슬라이드 애니메이션과 함께 처리
     // [REMOVED] AboutLicenses - AppNavHost에서 슬라이드 애니메이션과 함께 처리
     // [REMOVED] Privacy - AppNavHost에서 슬라이드 애니메이션과 함께 처리
+    // [REMOVED] CurrencySettings - AppNavHost에서 슬라이드 애니메이션과 함께 처리
+    // [REMOVED] HabitSettings - AppNavHost에서 슬라이드 애니메이션과 함께 처리
+    // [REMOVED] Debug - AppNavHost에서 슬라이드 애니메이션과 함께 처리 (2025-12-19)
 
     // 닉네임 편집
     composable(Screen.NicknameEdit.route) {
@@ -34,13 +34,6 @@ fun NavGraphBuilder.addTab05Graph(navController: NavHostController) {
         )
     }
 
-    // [REMOVED] CurrencySettings - AppNavHost에서 슬라이드 애니메이션과 함께 처리
-    // [REMOVED] HabitSettings - AppNavHost에서 슬라이드 애니메이션과 함께 처리
-
-    // 디버그 메뉴
-    composable(Screen.Debug.route) {
-        DebugScreen(onBack = { navController.popBackStack() })
-    }
 
     // 알림 목록
     composable(Screen.Notification.route) {

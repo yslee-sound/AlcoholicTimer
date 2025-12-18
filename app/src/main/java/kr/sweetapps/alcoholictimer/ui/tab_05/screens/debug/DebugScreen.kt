@@ -26,7 +26,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,15 +59,25 @@ fun DebugScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    Column {
-        BackTopBar(
-            title = stringResource(id = R.string.debug_menu_title),
-            onBack = onBack
-        )
+    // [NEW] Scaffold로 감싸서 하단 시스템 바 투명화 방지 (2025-12-19)
+    androidx.compose.material3.Scaffold(
+        modifier = androidx.compose.ui.Modifier.fillMaxSize(),
+        containerColor = androidx.compose.ui.graphics.Color.White, // [FIX] 하단 비침 방지 (흰색 배경 고정)
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets.systemBars, // [FIX] 시스템 바 영역 침범 방지
+        topBar = {
+            BackTopBar(
+                title = stringResource(id = R.string.debug_menu_title),
+                onBack = onBack
+            )
+        }
+    ) { innerPadding ->
         Column(
             modifier = Modifier
-                .verticalScroll(rememberScrollState()) // [NEW] Enable scrolling
-                .padding(16.dp)
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 100.dp) // [NEW] 하단 스크롤 여유 공간 추가 (2025-12-19)
         ) {
             // [REMOVED] 맞춤형 광고 재설정 - 유럽 지역 배포 제외로 인해 불필요
 
@@ -411,9 +423,6 @@ fun DebugScreen(
                 color = androidx.compose.ui.graphics.Color.Gray,
                 modifier = Modifier.padding(top = 8.dp)
             )
-
-            // [NEW] Bottom spacer for breathing room
-            Spacer(modifier = Modifier.height(100.dp))
         }
     }
 }

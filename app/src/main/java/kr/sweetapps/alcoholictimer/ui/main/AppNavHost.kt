@@ -505,6 +505,39 @@ fun AppNavHost(
             )
         }
 
+        // [NEW] Debug (디버그 메뉴) - 슬라이드 애니메이션 (2025-12-19)
+        composable(
+            route = Screen.Debug.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeOut(animationSpec = tween(300))
+            },
+            popEnterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { -it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DebugScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
         // [NEW] About 서브 화면들 (Root 레벨에 등록)
         addTab05Graph(navController)
     }
