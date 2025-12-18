@@ -67,7 +67,6 @@ fun NavGraphBuilder.addTab02ListGraph(
 
             kr.sweetapps.alcoholictimer.ui.tab_02.Tab02Screen(
                 onNavigateToDetail = { record: SobrietyRecord ->
-                    // [NEW] 루트 네비게이션으로 전달하여 탭 위에 상세 화면 표시
                     try { AnalyticsManager.logViewRecordDetail(record.id) } catch (_: Throwable) {}
                     val route = Screen.Detail.createRoute(
                         startTime = record.startTime,
@@ -80,15 +79,15 @@ fun NavGraphBuilder.addTab02ListGraph(
                 },
                 onNavigateToAllRecords = { onNavigateToAllRecords() },
                 onNavigateToAllDiaries = { onNavigateToAllDiaries() },
+                onNavigateToDiaryWrite = { onNavigateToDiaryWrite() }, // [NEW] 일기 작성 콜백 전달
                 onAddRecord = {
-                    // [NEW] 일기 작성 진입도 루트 콜백으로 분리
+                    // 예전 FAB 콜백 - 필요시 유지
                     onNavigateToDiaryWrite()
                 },
                 onDiaryClick = { diary ->
                     val route = Screen.DiaryDetail.createRoute(diary.id.toString())
                     onNavigateToDiaryDetail(route)
                 },
-                // [NEW] Phase 2: 레벨 데이터 전달
                 currentLevel = currentLevel,
                 currentDays = levelDays,
                 levelProgress = tab03ViewModel.calculateProgress(),

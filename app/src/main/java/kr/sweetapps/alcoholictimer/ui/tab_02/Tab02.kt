@@ -50,6 +50,7 @@ fun Tab02Screen(
     onNavigateToDetail: (SobrietyRecord) -> Unit = {},
     onNavigateToAllRecords: () -> Unit = {},
     onNavigateToAllDiaries: () -> Unit = {},
+    onNavigateToDiaryWrite: () -> Unit = {}, // [NEW] 일기 작성 화면 이동
     onAddRecord: () -> Unit = {},
     onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {},
     // [NEW] Phase 2: 레벨 파라미터
@@ -107,8 +108,8 @@ fun Tab02Screen(
     }
 
     RecordsScreen(
-        records = filteredRecords, // 필터링된 기록 (화면 표시용)
-        allRecords = records, // [NEW] 전체 기록 (선택기용)
+        records = filteredRecords,
+        allRecords = records,
         isLoading = isLoading,
         selectedPeriod = selectedPeriod,
         selectedDetailPeriod = selectedDetailPeriod,
@@ -117,8 +118,7 @@ fun Tab02Screen(
         onDetailPeriodSelected = { viewModel.updateSelectedDetailPeriod(it) },
         onWeekRangeSelected = { viewModel.updateSelectedWeekRange(it) },
         recentDiaries = recentDiaries,
-        statsData = statsData, // [NEW] 실시간 통계 데이터 전달
-        // [NEW] Phase 2: 레벨 데이터 전달
+        statsData = statsData,
         currentLevel = currentLevel,
         currentDays = currentDays,
         levelProgress = levelProgress,
@@ -126,6 +126,7 @@ fun Tab02Screen(
         onNavigateToDetail = onNavigateToDetail,
         onNavigateToAllRecords = onNavigateToAllRecords,
         onNavigateToAllDiaries = onNavigateToAllDiaries,
+        onNavigateToDiaryWrite = onNavigateToDiaryWrite, // [NEW] 일기 작성 콜백 전달
         onAddRecord = onAddRecord,
         onDiaryClick = onDiaryClick
     )

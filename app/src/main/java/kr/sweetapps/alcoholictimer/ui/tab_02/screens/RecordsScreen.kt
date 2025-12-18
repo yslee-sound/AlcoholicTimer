@@ -102,6 +102,7 @@ fun RecordsScreen(
     onNavigateToDetail: (SobrietyRecord) -> Unit = {},
     onNavigateToAllRecords: () -> Unit = {},
     onNavigateToAllDiaries: () -> Unit = {},
+    onNavigateToDiaryWrite: () -> Unit = {}, // [NEW] 일기 작성 화면 이동
     onAddRecord: () -> Unit = {},
     onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {},
     fontScale: Float = 1.06f
@@ -267,9 +268,10 @@ fun RecordsScreen(
 
                     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
                         RecentDiarySection(
-                            diaries = recentDiaries, // [UPDATED] 파라미터로 전달받은 Room DB 데이터 사용
-                            onNavigateToAllDiaries = onNavigateToAllDiaries, // [FIX] 모든 일기 보기 콜백 사용
-                            onDiaryClick = onDiaryClick // [NEW] 일기 클릭 콜백 전달
+                            diaries = recentDiaries,
+                            onNavigateToAllDiaries = onNavigateToAllDiaries,
+                            onNavigateToDiaryWrite = onNavigateToDiaryWrite, // [NEW] 일기 작성 콜백 전달
+                            onDiaryClick = onDiaryClick
                         )
                     }
                 }
@@ -886,13 +888,14 @@ private fun StatisticItem(
  */
 @Composable
 private fun RecentDiarySection(
-    diaries: List<kr.sweetapps.alcoholictimer.data.room.DiaryEntity>, // [UPDATED] DiaryEntity 사용
+    diaries: List<kr.sweetapps.alcoholictimer.data.room.DiaryEntity>,
     onNavigateToAllDiaries: () -> Unit = {},
-    onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {} // [UPDATED] DiaryEntity 사용
+    onNavigateToDiaryWrite: () -> Unit = {}, // [NEW] 일기 작성 콜백
+    onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {}
 ) {
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        // [NEW] 헤더: 제목 + 더보기 버튼
+        // [UPDATE] 헤더: 제목 + 작성 버튼
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -906,16 +909,16 @@ private fun RecentDiarySection(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            // [UPDATE] 파란색 텍스트 "더보기"
+            // [UPDATE] "작성" 버튼 (기존 더보기와 동일한 스타일)
             Text(
-                text = "더보기",
+                text = "작성",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color(0xFF6366F1), // 보라색
+                color = Color(0xFF6366F1),
                 modifier = Modifier.clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = ripple(bounded = false, radius = 24.dp),
-                    onClick = onNavigateToAllDiaries
+                    onClick = onNavigateToDiaryWrite
                 )
             )
         }
@@ -934,7 +937,7 @@ private fun RecentDiarySection(
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth() // [FIX] 패딩 제거 - 아이템이 카드 끝까지 닿도록
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     // 일기 항목들
                     diaries.forEachIndexed { index, diary ->
@@ -945,11 +948,52 @@ private fun RecentDiarySection(
 
                         if (index < diaries.size - 1) {
                             HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp), // [FIX] Divider에 좌우 패딩 추가
+                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
                                 thickness = 1.dp,
                                 color = Color(0xFFE2E8F0)
                             )
                         }
+                    }
+
+                    // [NEW] 푸터: 전체 내역 보기
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                        thickness = 1.dp,
+                        color = Color(0xFFE2E8F0)
+                    )
+
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = ripple(bounded = true),
+                                    onClick = onNavigateToAllDiaries
+                                ),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "전체 내역 보기",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color(0xFF6B7280)
+                            )
+
+                            Spacer(modifier = Modifier.width(4.dp))
+
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_caret_right),
+                                contentDescription = "전체 내역 보기",
+                                tint = Color(0xFF6B7280),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+
+                        // [NEW] 하단 여백 추가 (카드 바닥과의 breathing room)
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
             }
