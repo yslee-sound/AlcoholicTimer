@@ -6,6 +6,7 @@ import android.content.Context
 import android.util.Log
 import android.os.Handler
 import android.os.Looper
+import androidx.core.content.edit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -341,6 +342,23 @@ object AppOpenAdManager {
     fun showIfAvailable(activity: Activity, bypassRecentFullscreenSuppression: Boolean = false): Boolean {
         Log.d(TAG, "showIfAvailable called - loaded=$loaded isShowing=$isShowing activity=${activity.javaClass.simpleName}")
         if (!loaded || isShowing) return false
+
+        // [NEW] 최초 실행 시 광고 노출 방지 (2025-12-19)
+        try {
+            val prefs = activity.getSharedPreferences("prefs_app_settings", Context.MODE_PRIVATE)
+            val isFirstRun = prefs.getBoolean("is_first_run_for_ad", true)
+
+            if (isFirstRun) {
+                Log.d(TAG, "showIfAvailable: first run detected - skipping ad and marking as not first run")
+                // 플래그를 false로 변경하여 다음부터는 광고 표시
+                prefs.edit {
+                    putBoolean("is_first_run_for_ad", false)
+                }
+                return false
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "showIfAvailable: failed to check first run flag: ${e.message}")
+        }
 
         // Consult central policy controller before showing
         try {
