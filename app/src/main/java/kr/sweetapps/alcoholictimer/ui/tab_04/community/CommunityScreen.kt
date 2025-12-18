@@ -145,8 +145,9 @@ fun CommunityScreen(
             ),
             modifier = Modifier.align(Alignment.BottomCenter) // 아래쪽에 배치
         ) {
-            // 여기가 진짜 글쓰기 화면 내용
+            // [MODIFIED] 여기가 진짜 글쓰기 화면 내용 - viewModel 전달 추가 (2025-12-19)
             WritePostScreenContent(
+                viewModel = viewModel, // [NEW] ViewModel 전달
                 onPost = { content ->
                     viewModel.addPost(content)
                     isWritingScreenVisible = false
@@ -159,14 +160,19 @@ fun CommunityScreen(
 
 /**
  * 글쓰기 화면의 내부 콘텐츠 (별도 Composable로 분리하여 깔끔하게 정리)
+ * [MODIFIED] 사용자 아바타 연동 (2025-12-19)
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WritePostScreenContent(
+    viewModel: CommunityViewModel, // [NEW] ViewModel 주입
     onPost: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
     var content by remember { mutableStateOf("") }
+
+    // [NEW] 1. 상태 구독 - 현재 사용자의 아바타 인덱스
+    val currentUserAvatarIndex by viewModel.currentUserAvatarIndex.collectAsState()
 
     // 전체 화면을 흰색으로 덮음
     Scaffold(
@@ -218,22 +224,18 @@ private fun WritePostScreenContent(
                 // 키보드가 올라오면 패딩 자동 조절 (Manifest에 windowSoftInputMode="adjustResize" 필요)
                 .imePadding()
         ) {
-            // 프로필 영역 (페이스북 느낌)
+            // [MODIFIED] 프로필 영역 - 실제 사용자 아바타 표시 (2025-12-19)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
+                // [NEW] 2 & 3. 실제 아바타 데이터 바인딩
+                Image(
+                    painter = painterResource(
+                        id = kr.sweetapps.alcoholictimer.util.AvatarManager.getAvatarResId(currentUserAvatarIndex)
+                    ),
+                    contentDescription = "내 아바타",
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFE0E0E0)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_user_circle),
-                        contentDescription = null,
-                        tint = Color(0xFF9E9E9E),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                )
                 Spacer(modifier = Modifier.width(10.dp))
                 Column {
                     Text(

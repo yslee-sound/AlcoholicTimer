@@ -164,9 +164,8 @@ fun RecordsScreen(
             ) {
                 // ==================== NEW: 상단 헤더 (모던 대시보드 스타일) ====================
                 item {
-                    ModernDashboardHeader(
-                        onNotificationClick = { /* TODO: 알림 화면 이동 */ }
-                    )
+                    // [MODIFIED] 종 버튼 제거로 인해 파라미터 제거 (2025-12-19)
+                    ModernDashboardHeader()
                 }
 
                 // ==================== Item 0: 레벨 요약 배너 ====================
@@ -1168,14 +1167,13 @@ private fun DiaryListItem(
  * "나의 건강 분석" 제목 + 인사말 + 알림 벨
  */
 @Composable
-private fun ModernDashboardHeader(
-    onNotificationClick: () -> Unit = {}
-) {
+// [MODIFIED] 종 버튼 제거 (2025-12-19)
+private fun ModernDashboardHeader() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
         // 좌측: 제목 + 인사말
@@ -1204,19 +1202,6 @@ private fun ModernDashboardHeader(
                 style = MaterialTheme.typography.bodySmall,
                 color = Color(0xFF9CA3AF),
                 fontSize = 13.sp
-            )
-        }
-
-        // 우측: 알림 벨
-        IconButton(
-            onClick = onNotificationClick,
-            modifier = Modifier.size(40.dp)
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.bell),
-                contentDescription = "알림",
-                tint = Color(0xFF111827),
-                modifier = Modifier.size(24.dp)
             )
         }
     }
