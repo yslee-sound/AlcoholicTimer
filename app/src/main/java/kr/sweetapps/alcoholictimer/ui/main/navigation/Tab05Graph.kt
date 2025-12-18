@@ -5,8 +5,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.main.Screen
-import kr.sweetapps.alcoholictimer.ui.tab_04.screens.CurrencyScreen
-import kr.sweetapps.alcoholictimer.ui.tab_05.AboutScreen
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.NicknameEditScreen
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DebugScreen
 import kr.sweetapps.alcoholictimer.ui.tab_05.screens.policy.DocumentScreen
@@ -15,34 +13,18 @@ import kr.sweetapps.alcoholictimer.ui.tab_05.screens.policy.DocumentScreen
  * Tab 05: 설정 & About 서브 화면 네비게이션 그래프
  * [UPDATE] About 메인 화면은 AppNavHost에서 처리 (애니메이션 적용)
  * [UPDATE] HabitSettings도 AppNavHost에서 처리 (슬라이드 애니메이션 적용)
- * - AboutLicenses: 오픈소스 라이선스
- * - Privacy: 개인정보처리방침
+ * [UPDATE] CurrencySettings도 AppNavHost에서 처리 (슬라이드 애니메이션 적용)
+ * [UPDATE] Privacy도 AppNavHost에서 처리 (슬라이드 애니메이션 적용)
+ * [UPDATE] AboutLicenses도 AppNavHost에서 처리 (슬라이드 애니메이션 적용)
  * - NicknameEdit: 닉네임 편집
- * - CurrencySettings: 통화 설정
  * - Debug: 디버그 메뉴
  * - Notification: 알림 목록
  * - Customer: 고객 지원
  */
 fun NavGraphBuilder.addTab05Graph(navController: NavHostController) {
     // [REMOVED] About 메인 화면 - AppNavHost에서 슬라이드 애니메이션과 함께 처리
-
-    // 오픈소스 라이선스
-    composable(Screen.AboutLicenses.route) {
-        DocumentScreen(
-            resName = "open_source_license",
-            onBack = { navController.popBackStack() },
-            titleResId = R.string.document_title_open_source
-        )
-    }
-
-    // 개인정보처리방침
-    composable(Screen.Privacy.route) {
-        DocumentScreen(
-            resName = "privacy_policy_bilingual",
-            onBack = { navController.popBackStack() },
-            titleResId = R.string.document_title_privacy
-        )
-    }
+    // [REMOVED] AboutLicenses - AppNavHost에서 슬라이드 애니메이션과 함께 처리
+    // [REMOVED] Privacy - AppNavHost에서 슬라이드 애니메이션과 함께 처리
 
     // 닉네임 편집
     composable(Screen.NicknameEdit.route) {
@@ -52,11 +34,7 @@ fun NavGraphBuilder.addTab05Graph(navController: NavHostController) {
         )
     }
 
-    // 통화 설정
-    composable(Screen.CurrencySettings.route) {
-        CurrencyScreen(onBack = { navController.popBackStack() })
-    }
-
+    // [REMOVED] CurrencySettings - AppNavHost에서 슬라이드 애니메이션과 함께 처리
     // [REMOVED] HabitSettings - AppNavHost에서 슬라이드 애니메이션과 함께 처리
 
     // 디버그 메뉴

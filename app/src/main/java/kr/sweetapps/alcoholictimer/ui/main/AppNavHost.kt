@@ -62,19 +62,20 @@ fun AppNavHost(
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Start.route,
+        startDestination = "home", // [FIX] 기본적으로 'home'에서 시작하여 Inner NavHost가 실제 탭을 관리
         enterTransition = { EnterTransition.None },
         exitTransition = { ExitTransition.None },
         popEnterTransition = { EnterTransition.None },
         popExitTransition = { ExitTransition.None }
     ) {
-        composable(Screen.Start.route) {
+        // [NEW] Home - BaseScaffold wrapper (탭 네비게이션 컨테이너)
+        composable("home") {
             val tabNavController = rememberNavController()
 
             BaseScaffold(navController = tabNavController) {
                 NavHost(
                     navController = tabNavController,
-                    startDestination = startDestination,
+                    startDestination = Screen.Start.route, // [FIX] Inner NavHost는 Tab01 (Start)부터 시작
                     enterTransition = { EnterTransition.None },
                     exitTransition = { ExitTransition.None },
                     popEnterTransition = { EnterTransition.None },
@@ -117,7 +118,7 @@ fun AppNavHost(
         composable(Screen.Success.route) {
             // [NEW] 홈으로 이동하는 공통 함수 (스택 완전 초기화)
             val navigateToHome = {
-                navController.navigate(Screen.Start.route) {
+                navController.navigate("home") { // [FIX] home으로 이동
                     // 0번(그래프 시작점)까지 다 지워서 Run 화면 제거
                     popUpTo(0) { inclusive = true }
                     launchSingleTop = true
@@ -203,7 +204,7 @@ fun AppNavHost(
                             .apply()
                     } catch (_: Exception) {}
 
-                    navController.navigate(Screen.Start.route) {
+                    navController.navigate("home") { // [FIX] home으로 이동
                         popUpTo(0) { inclusive = true }
                         launchSingleTop = true
                     }
@@ -215,7 +216,7 @@ fun AppNavHost(
         composable(Screen.GiveUp.route) {
             // [NEW] 홈으로 이동하는 공통 함수
             val navigateToHome = {
-                navController.navigate(Screen.Start.route) {
+                navController.navigate("home") { // [FIX] home으로 이동
                     // 0번(그래프 시작점)까지 다 지워서 Run 화면 제거
                     popUpTo(0) { inclusive = true }
                     launchSingleTop = true
@@ -284,7 +285,7 @@ fun AppNavHost(
                             .apply()
                     } catch (_: Exception) {}
 
-                    navController.navigate(Screen.Start.route) {
+                    navController.navigate("home") { // [FIX] home으로 이동
                         popUpTo(0) { inclusive = true }
                         launchSingleTop = true
                     }
@@ -401,13 +402,117 @@ fun AppNavHost(
             )
         }
 
+        // [NEW] Currency Settings (통화 설정) - 슬라이드 애니메이션
+        composable(
+            route = Screen.CurrencySettings.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeOut(animationSpec = tween(300))
+            },
+            popEnterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { -it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            kr.sweetapps.alcoholictimer.ui.tab_04.screens.CurrencyScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        // [NEW] Privacy Policy (개인정보 처리방침) - 슬라이드 애니메이션
+        composable(
+            route = Screen.Privacy.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeOut(animationSpec = tween(300))
+            },
+            popEnterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { -it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            kr.sweetapps.alcoholictimer.ui.tab_05.screens.policy.DocumentScreen(
+                resName = "privacy_policy_bilingual",
+                onBack = { navController.popBackStack() },
+                titleResId = R.string.document_title_privacy
+            )
+        }
+
+        // [NEW] Open Source Licenses (오픈소스 라이선스) - 슬라이드 애니메이션
+        composable(
+            route = Screen.AboutLicenses.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeOut(animationSpec = tween(300))
+            },
+            popEnterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { -it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            kr.sweetapps.alcoholictimer.ui.tab_05.screens.policy.DocumentScreen(
+                resName = "open_source_license",
+                onBack = { navController.popBackStack() },
+                titleResId = R.string.document_title_open_source
+            )
+        }
+
         // [NEW] About 서브 화면들 (Root 레벨에 등록)
         addTab05Graph(navController)
     }
 }
 
 private fun isHomeRoute(route: String?): Boolean {
-    return route == Screen.Start.route ||
+    return route == "home" ||
+            route == Screen.Start.route ||
             route == Screen.Run.route ||
             route == Screen.Quit.route ||
             route == Screen.Records.route ||

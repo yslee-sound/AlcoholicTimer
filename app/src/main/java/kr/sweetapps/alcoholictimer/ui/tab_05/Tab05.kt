@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -188,7 +189,8 @@ fun AboutScreen(
     if (showBack) {
         androidx.compose.material3.Scaffold(
             modifier = Modifier.fillMaxSize(),
-            containerColor = Color.White,
+            containerColor = Color.White, // [FIX] 하단 비침 방지 (흰색 배경 고정)
+            contentWindowInsets = androidx.compose.foundation.layout.WindowInsets.systemBars, // [FIX] 시스템 바 영역 침범 방지
             topBar = {
                 BackTopBar(
                     title = "설정",

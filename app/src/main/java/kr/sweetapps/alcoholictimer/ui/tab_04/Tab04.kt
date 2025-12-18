@@ -51,6 +51,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.util.Log
+import androidx.compose.foundation.layout.systemBars
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.ui.common.BaseActivity
@@ -413,7 +414,8 @@ fun HabitSettingsScreen(
     // [NEW] Scaffold with BackTopBar (DocumentScreen 스타일)
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = Color.White,
+        containerColor = Color.White, // [FIX] 하단 비침 방지 (흰색 배경 고정)
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets.systemBars, // [FIX] 시스템 바 영역 침범 방지
         topBar = {
             kr.sweetapps.alcoholictimer.ui.components.BackTopBar(
                 title = stringResource(R.string.settings_title),

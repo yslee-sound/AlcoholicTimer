@@ -8,13 +8,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -260,16 +263,23 @@ private fun parseMarkdownBlocks(text: String): List<MDBlock> {
 }
 
 @Composable
-private fun RenderMarkdownContent(content: String) {
+private fun RenderMarkdownContent(
+    content: String,
+    innerPadding: androidx.compose.foundation.layout.PaddingValues
+) {
     val context = LocalContext.current
     val blocks = remember(content) { parseMarkdownBlocks(content) }
     val scrollState = rememberScrollState()
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .background(Color.White)
-        .verticalScroll(scrollState)
-        .padding(16.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding) // [FIX] 안전 구역 적용
+            .background(Color.White)
+            .verticalScroll(scrollState)
+            .padding(16.dp)
+            .padding(bottom = 100.dp) // [NEW] 하단 스크롤 여백 추가
+    ) {
         for (block in blocks) {
             when (block) {
                 is MDBlock.Heading -> {
@@ -352,21 +362,37 @@ fun DocumentScreen(
     LaunchedEffect(resName) { viewModel.load(context, resName) }
     val content = viewModel.content
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // titleResId가 주어지면 리소스 우선 사용, 아니면 전달된 문자열 또는 기본값 사용
-        val titleText = when {
-            titleResId != null -> stringResource(titleResId)
-            title != null -> title
-            else -> stringResource(R.string.dialog_view_details) // 안전한 기본값
-        }
-        BackTopBar(title = titleText, onBack = onBack)
+    // titleResId가 주어지면 리소스 우선 사용, 아니면 전달된 문자열 또는 기본값 사용
+    val titleText = when {
+        titleResId != null -> stringResource(titleResId)
+        title != null -> title
+        else -> stringResource(R.string.dialog_view_details) // 안전한 기본값
+    }
 
+    // [FIX] Scaffold로 감싸서 하단 시스템 바 투명화 방지
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = Color.White, // [FIX] 하단 비침 방지 (흰색 배경 고정)
+        contentWindowInsets = WindowInsets.systemBars, // [FIX] 시스템 바 영역 침범 방지
+        topBar = {
+            BackTopBar(title = titleText, onBack = onBack)
+        }
+    ) { innerPadding ->
         if (content == null) {
-            Column(modifier = Modifier.fillMaxWidth().padding(top = 16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(innerPadding)
+                    .padding(top = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 CircularProgressIndicator()
             }
         } else {
-            RenderMarkdownContent(content)
+            RenderMarkdownContent(
+                content = content,
+                innerPadding = innerPadding
+            )
         }
     }
 }

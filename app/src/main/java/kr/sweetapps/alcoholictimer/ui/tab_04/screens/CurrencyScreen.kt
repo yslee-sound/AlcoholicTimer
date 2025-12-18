@@ -6,16 +6,19 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -41,57 +44,65 @@ import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager
 fun CurrencyScreen(onBack: () -> Unit = {}) {
     val context = LocalContext.current
 
-    Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
-        BackTopBar(title = stringResource(R.string.settings_currency), onBack = onBack)
+    // 상태: 실제 선택된 통화 코드(해당 통화 코드)와 사용자가 선택한 키(AUTO 또는 명시적 코드)를 분리
+    val prefs = context.getSharedPreferences("settings", 0)
+    val isExplicit = prefs.getBoolean("currency_explicit", false)
+    val selectedCodeState = remember { mutableStateOf(CurrencyManager.getSelectedCurrency(context).code) }
+    val selectedKeyState = remember { mutableStateOf(if (isExplicit) selectedCodeState.value else "AUTO") }
 
-        // 상태: 실제 선택된 통화 코드(해당 통화 코드)와 사용자가 선택한 키(AUTO 또는 명시적 코드)를 분리
-        val prefs = context.getSharedPreferences("settings", 0)
-        val isExplicit = prefs.getBoolean("currency_explicit", false)
-        val selectedCodeState = remember { mutableStateOf(CurrencyManager.getSelectedCurrency(context).code) }
-        val selectedKeyState = remember { mutableStateOf(if (isExplicit) selectedCodeState.value else "AUTO") }
-
-        LazyColumn(modifier = Modifier.padding(vertical = 8.dp)) {
-            // Auto / Locale-based 기본 통화 항목
-            item {
-                val label = stringResource(R.string.settings_currency_auto)
-                val isSelected = selectedKeyState.value == "AUTO"
-                val onSelect = {
-                    // 저장: AUTO 모드로 변경
-                    CurrencyManager.saveCurrency(context, "AUTO")
-                    prefs.edit { putBoolean("currency_explicit", false) }
-                    selectedKeyState.value = "AUTO"
-                    // 업데이트: 현재 해석된 통화 코드도 갱신
-                    selectedCodeState.value = CurrencyManager.getSelectedCurrency(context).code
-                }
-                CurrencyOptionRow(isSelected = isSelected, label = label, onSelected = onSelect)
-            }
-
-            items(CurrencyManager.supportedCurrencies) { currency ->
-                val isSelected = selectedKeyState.value == currency.code
-                CurrencyOptionRow(
-                    isSelected = isSelected,
-                    label = context.getString(currency.nameResId),
-                    onSelected = {
-                        CurrencyManager.saveCurrency(context, currency.code)
-                        // mark explicit selection
-                        prefs.edit { putBoolean("currency_explicit", true) }
-                        selectedKeyState.value = currency.code
-                        selectedCodeState.value = currency.code
-                    }
-                )
-            }
+    // [FIX] Scaffold로 감싸서 하단 시스템 바 투명화 방지
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = Color.White, // [FIX] 하단 비침 방지 (흰색 배경 고정)
+        contentWindowInsets = WindowInsets.systemBars, // [FIX] 시스템 바 영역 침범 방지
+        topBar = {
+            BackTopBar(title = stringResource(R.string.settings_currency), onBack = onBack)
         }
+    ) { innerPadding ->
+        Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            LazyColumn(modifier = Modifier.padding(vertical = 8.dp).weight(1f)) {
+                // Auto / Locale-based 기본 통화 항목
+                item {
+                    val label = stringResource(R.string.settings_currency_auto)
+                    val isSelected = selectedKeyState.value == "AUTO"
+                    val onSelect = {
+                        // 저장: AUTO 모드로 변경
+                        CurrencyManager.saveCurrency(context, "AUTO")
+                        prefs.edit { putBoolean("currency_explicit", false) }
+                        selectedKeyState.value = "AUTO"
+                        // 업데이트: 현재 해석된 통화 코드도 갱신
+                        selectedCodeState.value = CurrencyManager.getSelectedCurrency(context).code
+                    }
+                    CurrencyOptionRow(isSelected = isSelected, label = label, onSelected = onSelect)
+                }
 
-        // 추가: 현재 선택 통화 표시 (간단)
-        Text(
-            text = if (selectedKeyState.value == "AUTO")
-                stringResource(R.string.settings_currency_current_auto, selectedCodeState.value)
-            else
-                stringResource(R.string.settings_currency_current, selectedCodeState.value),
-            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = MainPrimaryBlue, // [NEW] 프라이머리 블루 색상 적용
-            modifier = Modifier.padding(16.dp)
-        )
+                items(CurrencyManager.supportedCurrencies) { currency ->
+                    val isSelected = selectedKeyState.value == currency.code
+                    CurrencyOptionRow(
+                        isSelected = isSelected,
+                        label = context.getString(currency.nameResId),
+                        onSelected = {
+                            CurrencyManager.saveCurrency(context, currency.code)
+                            // mark explicit selection
+                            prefs.edit { putBoolean("currency_explicit", true) }
+                            selectedKeyState.value = currency.code
+                            selectedCodeState.value = currency.code
+                        }
+                    )
+                }
+            }
+
+            // 추가: 현재 선택 통화 표시 (간단)
+            Text(
+                text = if (selectedKeyState.value == "AUTO")
+                    stringResource(R.string.settings_currency_current_auto, selectedCodeState.value)
+                else
+                    stringResource(R.string.settings_currency_current, selectedCodeState.value),
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = MainPrimaryBlue, // [NEW] 프라이머리 블루 색상 적용
+                modifier = Modifier.padding(16.dp)
+            )
+        }
     }
 }
 
