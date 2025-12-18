@@ -367,6 +367,40 @@ fun AppNavHost(
             )
         }
 
+        // [NEW] Habit Settings (습관 설정) - 슬라이드 애니메이션
+        composable(
+            route = Screen.HabitSettings.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeOut(animationSpec = tween(300))
+            },
+            popEnterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { -it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            kr.sweetapps.alcoholictimer.ui.tab_04.HabitSettingsScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateCurrencySettings = { navController.navigate(Screen.CurrencySettings.route) }
+            )
+        }
+
         // [NEW] About 서브 화면들 (Root 레벨에 등록)
         addTab05Graph(navController)
     }
