@@ -10,6 +10,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -188,7 +193,43 @@ fun RecordsScreen(
                     )
                 }
 
-                // ==================== Item 2: 분리된 통계 카드 그리드 ====================
+                // ==================== Item 2: 월간 네비게이터 (조건부 표시) ====================
+                item {
+                    // [NEW] 월간 탭 선택 시에만 표시되는 날짜 컨트롤러
+                    AnimatedVisibility(
+                        visible = selectedPeriod.contains("월"),
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically()
+                    ) {
+                        Column {
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            MonthNavigator(
+                                selectedDetailPeriod = selectedDetailPeriod,
+                                onPreviousMonth = {
+                                    // 이전 달로 이동
+                                    val (year, month) = parseYearMonth(selectedDetailPeriod)
+                                    val newMonth = if (month == 1) 12 else month - 1
+                                    val newYear = if (month == 1) year - 1 else year
+                                    onDetailPeriodSelected(context.getString(R.string.date_format_year_month, newYear, newMonth))
+                                },
+                                onNextMonth = {
+                                    // 다음 달로 이동
+                                    val (year, month) = parseYearMonth(selectedDetailPeriod)
+                                    val newMonth = if (month == 12) 1 else month + 1
+                                    val newYear = if (month == 12) year + 1 else year
+                                    onDetailPeriodSelected(context.getString(R.string.date_format_year_month, newYear, newMonth))
+                                },
+                                onDateClick = {
+                                    // 날짜 클릭 시 바텀시트 열기
+                                    showBottomSheet = true
+                                }
+                            )
+                        }
+                    }
+                }
+
+                // ==================== Item 3: 분리된 통계 카드 그리드 ====================
                 item {
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -205,7 +246,7 @@ fun RecordsScreen(
                     )
                 }
 
-                // ==================== Item 3: 최근 금주 일기 섹션 ====================
+                // ==================== Item 4: 최근 금주 일기 섹션 ====================
                 item {
                     // [FIX] 섹션 간격 통일 (20dp)
                     Spacer(modifier = Modifier.height(RECORDS_SECTION_SPACING))
@@ -1394,5 +1435,87 @@ private fun TotalDaysCard(
                 )
             }
         }
+    }
+}
+
+/**
+ * [NEW] 월간 네비게이터
+ * 이전/다음 달 이동 버튼과 현재 월 표시
+ */
+@Composable
+private fun MonthNavigator(
+    selectedDetailPeriod: String,
+    onPreviousMonth: () -> Unit,
+    onNextMonth: () -> Unit,
+    onDateClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // 이전 달 버튼
+        IconButton(
+            onClick = onPreviousMonth,
+            modifier = Modifier.size(32.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_caret_left),
+                contentDescription = "이전 달",
+                tint = Color(0xFF6B7280),
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        // 중앙: 현재 월 (클릭 가능)
+        Text(
+            text = selectedDetailPeriod,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF111827),
+            modifier = Modifier
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = ripple(bounded = false, radius = 24.dp),
+                    onClick = onDateClick
+                )
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+
+        // 다음 달 버튼
+        IconButton(
+            onClick = onNextMonth,
+            modifier = Modifier.size(32.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_caret_right),
+                contentDescription = "다음 달",
+                tint = Color(0xFF6B7280),
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+}
+
+/**
+ * [NEW] 날짜 문자열 파싱 헬퍼 함수
+ * "2025년 12월" → Pair(2025, 12)
+ */
+private fun parseYearMonth(dateString: String): Pair<Int, Int> {
+    return try {
+        // "2025년 12월" 형식 파싱
+        val yearRegex = Regex("(\\d{4})년")
+        val monthRegex = Regex("(\\d{1,2})월")
+
+        val year = yearRegex.find(dateString)?.groupValues?.getOrNull(1)?.toInt() ?: Calendar.getInstance().get(Calendar.YEAR)
+        val month = monthRegex.find(dateString)?.groupValues?.getOrNull(1)?.toInt() ?: Calendar.getInstance().get(Calendar.MONTH) + 1
+
+        Pair(year, month)
+    } catch (e: Exception) {
+        // 파싱 실패 시 현재 날짜 반환
+        val now = Calendar.getInstance()
+        Pair(now.get(Calendar.YEAR), now.get(Calendar.MONTH) + 1)
     }
 }
