@@ -44,6 +44,8 @@ import kr.sweetapps.alcoholictimer.ui.tab_02.components.WeekPickerBottomSheet
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.YearPickerBottomSheet
 import java.util.*
 import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.text.font.FontWeight
@@ -973,30 +975,26 @@ private fun DiaryEmptyState() {
 
 /**
  * [NEW] 일기 항목 아이템 (Room DB 기반)
+ * 첨부 사진과 같은 디자인: 캘린더 아이콘 + 날짜 + 이모지 + 내용
  */
 @Composable
 private fun DiaryListItem(
-    diary: kr.sweetapps.alcoholictimer.data.room.DiaryEntity, // [UPDATED] DiaryEntity 사용
+    diary: kr.sweetapps.alcoholictimer.data.room.DiaryEntity,
     onClick: () -> Unit = {}
 ) {
-    // [NEW] 현재 시스템 언어에 맞게 날짜 포맷팅 - 연도와 날짜 분리
     val locale = Locale.getDefault()
     val (yearText, dateText) = remember(diary.timestamp, locale) {
-        val calendar = Calendar.getInstance().apply { timeInMillis = diary.timestamp }
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH) + 1
-        val day = calendar.get(Calendar.DAY_OF_MONTH)
+        val cal = Calendar.getInstance().apply { timeInMillis = diary.timestamp }
+        val year = cal.get(Calendar.YEAR)
+        val month = cal.get(Calendar.MONTH) + 1
+        val day = cal.get(Calendar.DAY_OF_MONTH)
 
         when (locale.language) {
             "ko" -> Pair("${year}년", "${month}월 ${day}일")
             "ja" -> Pair("${year}年", "${month}月${day}日")
             "zh" -> Pair("${year}年", "${month}月${day}日")
-            "es" -> {
-                val monthName = SimpleDateFormat("MMMM", locale).format(Date(diary.timestamp))
-                Pair("$year", "$day de $monthName")
-            }
             else -> {
-                val monthName = SimpleDateFormat("MMM", locale).format(Date(diary.timestamp))
+                val monthName = SimpleDateFormat("MMM", Locale.ENGLISH).format(Date(diary.timestamp))
                 Pair("$year", "$monthName $day")
             }
         }
@@ -1005,69 +1003,67 @@ private fun DiaryListItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() } // [NEW] 클릭 이벤트 연결
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+            .clickable { onClick() }
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start
     ) {
-        // [FIX] 날짜 - Column으로 변경하여 연도와 날짜 수직 분리
+        // 왼쪽: 캘린더 아이콘
+        Icon(
+            painter = painterResource(id = R.drawable.ic_nav_calendardots),
+            contentDescription = null,
+            tint = Color(0xFF8B7BE8), // 보라색
+            modifier = Modifier.size(40.dp)
+        )
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        // 중앙: 날짜 정보
         Column(
-            modifier = Modifier.width(80.dp),
+            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.Start
         ) {
-            // 연도 (위쪽) - 고정 크기 유지
             Text(
                 text = yearText,
                 style = MaterialTheme.typography.bodySmall,
-                fontSize = 12.sp,
-                color = Color(0xFF94A3B8), // 회색
-                lineHeight = 14.sp,
-                maxLines = 1,
-                softWrap = false,
-                overflow = TextOverflow.Clip
+                fontSize = 13.sp,
+                color = Color(0xFF6B7280)
             )
-            // 날짜 (아래쪽) - AutoResizeSingleLineText 적용하여 줄바꿈 방지
-            AutoResizeSingleLineText(
+            Text(
                 text = dateText,
-                baseStyle = MaterialTheme.typography.bodyMedium.copy(
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    lineHeight = 18.sp
-                ),
-                color = Color(0xFF1E293B), // 검정
-                textAlign = TextAlign.Start,
-                step = 0.9f, // 10%씩 축소
-                minFontSize = 12f, // 최소 12sp
-                modifier = Modifier.fillMaxWidth()
+                style = MaterialTheme.typography.titleMedium,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF111827)
             )
         }
 
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.weight(1f))
 
-        // [FIX] 이모지 - Box로 감싸서 중앙 정렬 및 크기 확장하여 잘림 방지
-        Box(
-            modifier = Modifier.size(48.dp),
-            contentAlignment = Alignment.Center
+        // 오른쪽 상단: 이모지
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End
         ) {
+            // 이모지
             Text(
                 text = diary.emoji,
-                fontSize = 28.sp,
+                fontSize = 32.sp,
                 textAlign = TextAlign.Center
             )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // 내용 미리보기
+            Text(
+                text = diary.content,
+                style = MaterialTheme.typography.bodyMedium,
+                fontSize = 15.sp,
+                color = Color(0xFF374151),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.widthIn(max = 120.dp)
+            )
         }
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        // 내용 미리보기
-        Text(
-            text = diary.content,
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color(0xFF1E293B),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f)
-        )
-
-        // [REMOVED] 화살표 아이콘 제거 (사용자 요청)
     }
 }
