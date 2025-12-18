@@ -44,9 +44,10 @@ sealed class Screen(val route: String) {
     data object AllDiary : Screen("all_diaries")
 
     /**
-     * Level screen
+     * [REMOVED] Level screen - 이제 탭이 아닌 상세 페이지로만 접근
+     * LevelDetail을 사용하세요
      */
-    data object Level : Screen("level")
+    // data object Level : Screen("level")
 
     /**
      * [NEW] Level Detail screen (레벨 상세 페이지)
@@ -147,7 +148,8 @@ fun Screen.getTitleResId(): Int? = when (this) {
     is Screen.Quit -> kr.sweetapps.alcoholictimer.R.string.quit_title
     is Screen.Records -> null // kr.sweetapps.alcoholictimer.R.string.records_title
     is Screen.AllRecords -> kr.sweetapps.alcoholictimer.R.string.all_records_title
-    is Screen.Level -> kr.sweetapps.alcoholictimer.R.string.level_title
+    // [REMOVED] is Screen.Level -> 더 이상 사용되지 않음 (LevelDetail 사용)
+    is Screen.LevelDetail -> kr.sweetapps.alcoholictimer.R.string.level_title
     is Screen.More -> kr.sweetapps.alcoholictimer.R.string.more_title
     is Screen.About -> kr.sweetapps.alcoholictimer.R.string.about_title
     is Screen.AboutLicenses -> null // No resource

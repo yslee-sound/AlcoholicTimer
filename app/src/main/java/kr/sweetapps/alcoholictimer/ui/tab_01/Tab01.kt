@@ -17,8 +17,7 @@ import kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.Tab01ViewModel
 @Composable
 fun Tab01StartScreen(
     gateNavigation: Boolean = true,
-    onStart: (Int) -> Unit = {},
-    viewModel: Tab01ViewModel = viewModel(viewModelStoreOwner = androidx.activity.compose.LocalActivity.current as ComponentActivity)
+    onStart: (Int) -> Unit = {}
 ) {
     // [FIX] 화면 전체를 강제로 새로고침하기 위한 설정 감지
     val configuration = LocalConfiguration.current
@@ -36,8 +35,7 @@ fun Tab01StartScreen(
 fun Tab01RunScreen(
     onRequestQuit: (() -> Unit)? = null,
     onCompletedNavigateToDetail: ((String) -> Unit)? = null,
-    onRequireBackToStart: (() -> Unit)? = null,
-    viewModel: Tab01ViewModel = viewModel(viewModelStoreOwner = androidx.activity.compose.LocalActivity.current as ComponentActivity)
+    onRequireBackToStart: (() -> Unit)? = null
 ) {
     // Run 화면도 동일하게 적용
     val configuration = LocalConfiguration.current
@@ -46,8 +44,7 @@ fun Tab01RunScreen(
         RunScreenComposable(
             onRequestQuit = onRequestQuit,
             onCompletedNavigateToDetail = onCompletedNavigateToDetail,
-            onRequireBackToStart = onRequireBackToStart,
-            viewModel = viewModel
+            onRequireBackToStart = onRequireBackToStart
         )
     }
 }

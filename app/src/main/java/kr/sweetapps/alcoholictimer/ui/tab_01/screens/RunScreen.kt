@@ -66,12 +66,18 @@ import kr.sweetapps.alcoholictimer.ui.common.rememberUserSettingsState
 fun RunScreenComposable(
     onRequestQuit: (() -> Unit)? = null,
     onCompletedNavigateToDetail: ((String) -> Unit)? = null,
-    onRequireBackToStart: (() -> Unit)? = null,
-    viewModel: kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.Tab01ViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-        viewModelStoreOwner = androidx.activity.compose.LocalActivity.current as ComponentActivity
-    )
+    onRequireBackToStart: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
+
+    // [FIX] Activity Scope ViewModel을 안전하게 가져오기
+    val activity = context as? ComponentActivity
+    val viewModel: kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.Tab01ViewModel = if (activity != null) {
+        androidx.lifecycle.viewmodel.compose.viewModel(viewModelStoreOwner = activity)
+    } else {
+        // Fallback: Activity가 없으면 기본 ViewModel 생성 (이런 경우는 거의 없지만 안전장치)
+        androidx.lifecycle.viewmodel.compose.viewModel()
+    }
 
     // Local layout constants for RunScreen - keep local to avoid changing global constants
     val RUN_TOP_GROUP_TOP_PADDING = 15.dp            // vertical padding above top stat chips
