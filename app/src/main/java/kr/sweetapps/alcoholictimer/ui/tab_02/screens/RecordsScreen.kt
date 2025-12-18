@@ -120,6 +120,18 @@ fun RecordsScreen(
         Log.d("RecordsScreen", "showBottomSheet 상태 변경: $showBottomSheet, selectedPeriod=$selectedPeriod")
     }
 
+    // [NEW] 월간 탭 선택 시 자동 초기화
+    LaunchedEffect(selectedPeriod) {
+        if (selectedPeriod.contains("월") && selectedDetailPeriod.isBlank()) {
+            // 현재 월로 자동 초기화
+            val now = Calendar.getInstance()
+            val currentYear = now.get(Calendar.YEAR)
+            val currentMonth = now.get(Calendar.MONTH) + 1
+            onDetailPeriodSelected(context.getString(R.string.date_format_year_month, currentYear, currentMonth))
+            Log.d("RecordsScreen", "월간 탭 자동 초기화: ${currentYear}년 ${currentMonth}월")
+        }
+    }
+
     // [MOD] 필터링 로직 제거 - 이미 필터링된 데이터를 파라미터로 받음
 
     CompositionLocalProvider(
@@ -240,9 +252,10 @@ fun RecordsScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // 총 금주일 독립 카드
+                    // 총 금주일 독립 카드 (전체 기록 화면으로 이동)
                     TotalDaysCard(
-                        totalDays = statsData.totalDays
+                        totalDays = statsData.totalDays,
+                        onNavigateToAllRecords = onNavigateToAllRecords // [NEW] 전체 기록 화면 이동
                     )
                 }
 
@@ -1373,17 +1386,20 @@ private fun StatCard(
 
 /**
  * [NEW] 총 금주일 카드 (가로형)
+ * 클릭 시 전체 기록 화면으로 이동
  */
 @Composable
 private fun TotalDaysCard(
-    totalDays: Float
+    totalDays: Float,
+    onNavigateToAllRecords: () -> Unit = {} // [NEW] 전체 기록 화면 이동 콜백
 ) {
     val decimalFormat = remember { java.text.DecimalFormat("#,###.#") }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = 20.dp)
+            .clickable { onNavigateToAllRecords() }, // [NEW] 카드 전체 클릭 가능
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -1415,23 +1431,37 @@ private fun TotalDaysCard(
                 )
             }
 
-            // 우측: 값
+            // 우측: 값 + 화살표
             Row(
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = decimalFormat.format(totalDays),
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF111827)
-                )
+                // 날짜 값
+                Row(
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = decimalFormat.format(totalDays),
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF111827)
+                    )
 
-                Text(
-                    text = "일",
-                    fontSize = 14.sp,
-                    color = Color(0xFF6B7280),
-                    modifier = Modifier.padding(bottom = 2.dp)
+                    Text(
+                        text = "일",
+                        fontSize = 14.sp,
+                        color = Color(0xFF6B7280),
+                        modifier = Modifier.padding(bottom = 2.dp)
+                    )
+                }
+
+                // [NEW] 화살표 아이콘
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_caret_right),
+                    contentDescription = "전체 기록 보기",
+                    tint = Color(0xFF9CA3AF), // 연한 회색
+                    modifier = Modifier.size(20.dp)
                 )
             }
         }
@@ -1449,11 +1479,21 @@ private fun MonthNavigator(
     onNextMonth: () -> Unit,
     onDateClick: () -> Unit
 ) {
+    // 현재 선택된 월과 오늘의 월 비교
+    val (year, month) = parseYearMonth(selectedDetailPeriod)
+    val currentYearMonth = Calendar.getInstance().let {
+        it.get(Calendar.YEAR) * 12 + it.get(Calendar.MONTH) + 1
+    }
+    val selectedYearMonth = year * 12 + month
+
+    // 미래 날짜 선택 방지
+    val isFutureMonth = selectedYearMonth >= currentYearMonth
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.Center, // [FIX] SpaceBetween → Center
         verticalAlignment = Alignment.CenterVertically
     ) {
         // 이전 달 버튼
@@ -1468,6 +1508,8 @@ private fun MonthNavigator(
                 modifier = Modifier.size(20.dp)
             )
         }
+
+        Spacer(modifier = Modifier.width(24.dp)) // [NEW] 화살표-날짜 간격
 
         // 중앙: 현재 월 (클릭 가능)
         Text(
@@ -1484,15 +1526,18 @@ private fun MonthNavigator(
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         )
 
-        // 다음 달 버튼
+        Spacer(modifier = Modifier.width(24.dp)) // [NEW] 날짜-화살표 간격
+
+        // 다음 달 버튼 (미래 방지)
         IconButton(
             onClick = onNextMonth,
+            enabled = !isFutureMonth, // [NEW] 미래 월이면 비활성화
             modifier = Modifier.size(32.dp)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_caret_right),
                 contentDescription = "다음 달",
-                tint = Color(0xFF6B7280),
+                tint = if (isFutureMonth) Color(0xFFD1D5DB) else Color(0xFF6B7280), // [NEW] 비활성화 시 연한 회색
                 modifier = Modifier.size(20.dp)
             )
         }
