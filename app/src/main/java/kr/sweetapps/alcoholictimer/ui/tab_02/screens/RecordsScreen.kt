@@ -288,25 +288,6 @@ fun RecordsScreen(
                     CircularProgressIndicator()
                 }
             }
-
-            // [NEW] 글쓰기 FAB (우측 하단)
-            FloatingActionButton(
-                onClick = { onAddRecord() },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(
-                        end = 16.dp,
-                        bottom = safePadding.calculateBottomPadding() + 16.dp
-                    ),
-                containerColor = MainPrimaryBlue,  // [FIX] 메인 UI 색상 적용
-                contentColor = Color.White
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_plus),
-                    contentDescription = stringResource(R.string.diary_write_button),
-                    modifier = Modifier.size(24.dp)
-                )
-            }
         }
     }
 
