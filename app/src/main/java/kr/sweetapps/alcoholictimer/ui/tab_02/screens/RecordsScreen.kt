@@ -124,7 +124,7 @@ fun RecordsScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFEEEDE9)) // 원래대로 복원
+                .background(Color(0xFFF5F5F5)) // [UPDATE] 연한 회색 배경 (모던 대시보드 스타일)
         ) {
             // Overlay: match StartScreen / RunScreen subtle top highlight and bottom darkening
             Box(
@@ -167,15 +167,29 @@ fun RecordsScreen(
                     }
                 }
 
-                // ==================== Item 1: 기간 선택 섹션 ====================
+                // ==================== Item 1: 통계 제목줄 ====================
                 item {
                     Spacer(modifier = Modifier.height(RECORDS_TOP_SECTION_EXTERNAL_GAP))
 
+                    // 헤더
+                    Box(modifier = Modifier.fillMaxWidth().padding(start = RECORDS_HEADER_START_PADDING, end = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
+                        PeriodHeaderRow(
+                            selectedPeriod = selectedPeriod,
+                            onNavigateToAllRecords = onNavigateToAllRecords
+                        )
+                    }
+
+                    // 헤더와 필터 사이 간격
+                    Spacer(modifier = Modifier.height(RECORDS_HEADER_TO_CARD_GAP))
+                }
+
+                // ==================== Item 2: 기간 선택 섹션 ====================
+                item {
                     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
                         PeriodSelectionSection(
                             selectedPeriod = selectedPeriod,
                             onPeriodSelected = { period: String ->
-                                Log.d("RecordsScreen", "onPeriodSelected 호출: $period") // [NEW] 로그 추가
+                                Log.d("RecordsScreen", "onPeriodSelected 호출: $period")
                                 onPeriodSelected(period)
                                 // Analytics: 사용자 통계 뷰 변경 이벤트 전송
                                 try {
@@ -190,7 +204,7 @@ fun RecordsScreen(
                                 } catch (_: Throwable) {}
                             },
                             onPeriodClick = { clickedPeriod ->
-                                Log.d("RecordsScreen", "onPeriodClick 호출: $clickedPeriod, 바텀시트 열기") // [NEW] 로그 추가
+                                Log.d("RecordsScreen", "onPeriodClick 호출: $clickedPeriod, 바텀시트 열기")
                                 showBottomSheet = true
                             },
                             selectedDetailPeriod = selectedDetailPeriod,
@@ -199,20 +213,9 @@ fun RecordsScreen(
                     }
                 }
 
-                // ==================== Item 2: 월 통계 섹션 ====================
+                // ==================== Item 3: 통계 카드 ====================
                 item {
-                    // [FIX] 섹션 간격 통일 (20dp)
-                    Spacer(modifier = Modifier.height(RECORDS_SECTION_SPACING))
-
-                    // 헤더
-                    Box(modifier = Modifier.fillMaxWidth().padding(start = RECORDS_HEADER_START_PADDING, end = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
-                        PeriodHeaderRow(
-                            selectedPeriod = selectedPeriod,
-                            onNavigateToAllRecords = onNavigateToAllRecords
-                        )
-                    }
-
-                    // 헤더와 카드 사이 간격
+                    // 필터와 카드 사이 간격
                     Spacer(modifier = Modifier.height(RECORDS_HEADER_TO_CARD_GAP))
 
                     // 통계 카드
@@ -517,44 +520,18 @@ private fun PeriodStatisticsSection(
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        // Card container left transparent so image inside is visible (we still use elevation/border)
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        elevation = CardDefaults.cardElevation(defaultElevation = RECORDS_STATS_CARD_ELEVATION),
-        border = androidx.compose.foundation.BorderStroke(AppBorder.Hairline, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+        shape = RoundedCornerShape(16.dp), // [UPDATE] 16dp 둥근 모서리
+        colors = CardDefaults.cardColors(containerColor = Color.White), // [UPDATE] 깔끔한 흰색 배경
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp), // [UPDATE] 살짝 그림자
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE0E0E0)) // [UPDATE] 연한 테두리
     ) {
-        // Image background (bg7) clipped to card shape, with subtle overlay to keep text legible
-        Box(modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium)) {
-            Image(
-                painter = painterResource(id = R.drawable.bg11),
-                contentDescription = null,
-                modifier = Modifier
-                    .matchParentSize()
-                    .scale(2.3f, 2.3f)
-                    .clip(MaterialTheme.shapes.medium),
-                contentScale = ContentScale.Crop,
-                alignment = Alignment.TopStart
-            )
+        // [REMOVED] Image background 제거 - 깔끔한 흰색 카드로 변경
 
-            // subtle overlay (transparent -> white(0.8)) to ensure text contrast
-            val gradientEndY = with(LocalDensity.current) { 280.dp.toPx() } // 원하는 그라디언트 끝 위치 지정
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.White.copy(alpha = 0.8f)),
-                            startY = 0.0f,
-                            endY = gradientEndY
-                        )
-                    )
-            )
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = RECORDS_CARD_INTERNAL_TOP_PADDING, bottom = 24.dp, start = 16.dp, end = 16.dp)
-            ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp, bottom = 24.dp, start = 16.dp, end = 16.dp)
+        ) {
                 Spacer(modifier = Modifier.height(RECORDS_STATS_INTERNAL_TOP_GAP))
 
                 Row(
@@ -565,14 +542,14 @@ private fun PeriodStatisticsSection(
                 ) {
                     val statsScale = 1.3f
 
-                    // [NEW] 좌측: 줄인 칼로리 → 컷 (personsimplerun 아이콘) - 밝은 살구색/오렌지
+                    // [NEW] 좌측: 줄인 칼로리 → 컷 (personsimplerun 아이콘)
                     StatisticItem(
-                        title = stringResource(R.string.stats_label_calories_short),  // [NEW] "컷" (짧은 레이블)
+                        title = stringResource(R.string.stats_label_calories_short),
                         value = "$kcalFormatted ${stringResource(R.string.stats_unit_kcal)}",
                         color = MaterialTheme.colorScheme.tertiary,
-                        valueColor = Color(0xFFFFAB91), // 밝은 살구색
-                        icon = R.drawable.personsimplerun,  // [NEW] 커스텀 drawable 아이콘
-                        iconTint = Color.White,  // [NEW] 하얀색 (아이콘 색상)
+                        valueColor = Color(0xFF111111), // [UPDATE] 진한 검은색
+                        icon = R.drawable.personsimplerun,
+                        iconTint = Color(0xFF666666), // [UPDATE] 진한 회색
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight(),
@@ -580,14 +557,14 @@ private fun PeriodStatisticsSection(
                         valueScale = statsScale
                     )
 
-                    // [NEW] 중앙: 참아낸 술 → 절주 (wine 아이콘) - 밝은 시안/하늘색
+                    // [NEW] 중앙: 참아낸 술 → 절주 (wine 아이콘)
                     StatisticItem(
-                        title = stringResource(R.string.stats_label_drinks_short),  // [NEW] "절주" (짧은 레이블)
+                        title = stringResource(R.string.stats_label_drinks_short),
                         value = "$bottlesText ${stringResource(R.string.stats_unit_bottles)}",
                         color = MaterialTheme.colorScheme.primary,
-                        valueColor = Color(0xFF80DEEA), // 밝은 시안
-                        icon = R.drawable.wine,  // [NEW] 커스텀 drawable 아이콘
-                        iconTint = Color.White,  // [NEW] 하얀색 (아이콘 색상)
+                        valueColor = Color(0xFF111111), // [UPDATE] 진한 검은색
+                        icon = R.drawable.wine,
+                        iconTint = Color(0xFF666666), // [UPDATE] 진한 회색
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight(),
@@ -595,14 +572,14 @@ private fun PeriodStatisticsSection(
                         valueScale = statsScale
                     )
 
-                    // [NEW] 우측: 지켜낸 돈 → 저축 (piggybank 아이콘) - 밝은 네온 민트
+                    // [NEW] 우측: 지켜낸 돈 → 저축 (piggybank 아이콘)
                     StatisticItem(
-                        title = stringResource(R.string.stats_label_money_short),  // [NEW] "저축" (짧은 레이블)
-                        value = "$savedMoneyValue $savedMoneyUnit",  // [NEW] 숫자 + 통화 코드 (예: "1,964 KRW")
+                        title = stringResource(R.string.stats_label_money_short),
+                        value = "$savedMoneyValue $savedMoneyUnit",
                         color = MaterialTheme.colorScheme.error,
-                        valueColor = Color(0xFF69F0AE), // 밝은 네온 민트
-                        icon = R.drawable.piggybank,  // [NEW] 커스텀 drawable 아이콘
-                        iconTint = Color.White,  // [NEW] 하얀색 (아이콘 색상)
+                        valueColor = Color(0xFF111111), // [UPDATE] 진한 검은색
+                        icon = R.drawable.piggybank,
+                        iconTint = Color(0xFF666666), // [UPDATE] 진한 회색
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight(),
@@ -623,34 +600,31 @@ private fun PeriodStatisticsSection(
                     Text(
                         text = stringResource(R.string.stats_total_days),
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color(0xFF666666) // [UPDATE] 진한 회색
                     )
 
-                    // 변경: 숫자 오른쪽에 어두운 '펀치아웃' 박스 추가하여 가독성 향상
-                    // 상단 3개 카드의 마스크와 동일한 투명도 사용
-                    val badgeBg = Color.Black.copy(alpha = 0.3f)
-                     val totalTextStyle = MaterialTheme.typography.titleMedium.copy(
-                         fontWeight = FontWeight.Bold,
-                         shadow = Shadow(color = Color.Black.copy(alpha = 0.45f), offset = Offset(0f, 2f), blurRadius = 4f)
-                     )
+                    // [UPDATE] 연회색 배지로 변경
+                    val badgeBg = Color(0xFFF0F0F0) // 연회색
+                    val totalTextStyle = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF111111) // [UPDATE] 진한 검은색
+                    )
 
                     Box(
                         modifier = Modifier
                             .background(badgeBg, shape = MaterialTheme.shapes.small)
-                             .padding(horizontal = 10.dp, vertical = 4.dp),
+                            .padding(horizontal = 10.dp, vertical = 4.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = "$daysText$dayUnit",
-                            style = totalTextStyle,
-                            color = Color.White // [FIX] 노란색에서 흰색으로 변경
+                            style = totalTextStyle // [UPDATE] 색상은 totalTextStyle에 이미 정의됨
                         )
                     }
                 }
             }
         }
     }
-}
 
 /**
  * [NEW] 자동 크기 조절 텍스트 컴포넌트
@@ -726,15 +700,14 @@ private fun StatisticItem(
     modifier: Modifier = Modifier,
     titleScale: Float = 1.0f,
     valueScale: Float = 1.0f,
-    valueColor: Color = Color.White, // [기존] 숫자 색상 커스터마이징 파라미터
-    icon: Any? = null,  // [NEW] ImageVector 또는 Int(drawable resource id) 지원
-    iconTint: Color = Color.White  // [NEW] 아이콘 색상
+    valueColor: Color = Color(0xFF111111), // [UPDATE] 진한 검은색 (흰 배경용)
+    icon: Any? = null,
+    iconTint: Color = Color(0xFF666666)  // [UPDATE] 진한 회색 (흰 배경용)
 ) {
     Surface(
-        modifier = modifier, // [FIX] 부모가 정한 크기(weight + fillMaxHeight) 사용
+        modifier = modifier,
         shape = MaterialTheme.shapes.small,
-        // Make the translucent black mask stronger for better contrast over the background
-        color = Color.Black.copy(alpha = 0.3f) // 0.22f
+        color = Color(0xFFF8F8F8) // [UPDATE] 연한 회색 배경 (흰 카드 안에서 구분)
     ) {
         Column(
             modifier = Modifier
@@ -788,9 +761,9 @@ private fun StatisticItem(
                     if (unit.isNotBlank()) {
                         Text(
                             text = unit,
-                            fontSize = 11.sp, // [FIX] 10sp → 11sp (제목과 통일)
+                            fontSize = 11.sp,
                             fontWeight = FontWeight.Normal,
-                            color = Color.White.copy(alpha = 0.75f),
+                            color = Color(0xFF888888), // [UPDATE] 중간 톤 회색
                             textAlign = TextAlign.Center,
                             maxLines = 1,
                             overflow = TextOverflow.Visible,
@@ -863,8 +836,8 @@ private fun StatisticItem(
                         text = title,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        textAlign = TextAlign.Center,  // [FIX] 중앙 정렬
+                        color = Color(0xFF666666), // [UPDATE] 진한 회색
+                        textAlign = TextAlign.Center,
                         maxLines = 1,
                         softWrap = false,
                         overflow = TextOverflow.Visible,

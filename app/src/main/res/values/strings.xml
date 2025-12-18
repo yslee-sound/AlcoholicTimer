@@ -170,7 +170,7 @@
     <string name="stats_label_money_short">저축</string>
 
     <!-- Diary Section (일기 섹션) -->
-    <string name="diary_recent_title">최근 금주 일기</string>
+    <string name="diary_recent_title">최근 일기</string>
     <string name="diary_view_all">전체 일기 보기</string>
     <string name="diary_no_entries">아직 작성된 일기가 없어요</string>
     <string name="diary_write_prompt">우측 하단 + 버튼을 눌러\n첫 일기를 작성해보세요</string>

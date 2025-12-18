@@ -188,7 +188,7 @@
     <string name="stats_label_money_short">貯金</string>
 
     <!-- Diary Section (日記セクション) -->
-    <string name="diary_recent_title">最近の禁酒日記</string>
+    <string name="diary_recent_title">最近の日記</string>
     <string name="diary_view_all">全ての日記を見る</string>
     <string name="diary_no_entries">まだ作成された日記がありません</string>
     <string name="diary_write_prompt">右下の+ボタンを押して\n最初の日記を作成してみてください</string>
