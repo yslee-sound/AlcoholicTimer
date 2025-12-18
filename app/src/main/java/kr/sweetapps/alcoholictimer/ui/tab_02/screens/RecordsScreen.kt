@@ -126,18 +126,8 @@ fun RecordsScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF7F8FA)) // [UPDATE] 모던 대시보드 스타일: 연한 쿨그레이
+                .background(Color(0xFFF7F8FA))
         ) {
-            // Overlay: match StartScreen / RunScreen subtle top highlight and bottom darkening
-            Box(
-                modifier = Modifier.matchParentSize().background(
-                    Brush.verticalGradient(
-                        0.0f to Color.Transparent,
-                        0.88f to Color.Transparent,
-                        1.0f to Color.Black.copy(alpha = 0.12f)
-                    )
-                )
-            )
 
             val layoutDirection = LocalLayoutDirection.current
             val recordsContentPadding = PaddingValues(
@@ -875,33 +865,38 @@ private fun RecentDiarySection(
             )
         }
 
-        Spacer(modifier = Modifier.height(10.dp)) // [UPDATE] 제목-콘텐츠 간격 조정
+        Spacer(modifier = Modifier.height(10.dp))
 
         // [수정] 일기 항목 카드 or 빈 상태 UI
         if (diaries.isEmpty()) {
-            // [REDESIGN] 빈 상태 UI - 심리스형 (배경 투명)
             DiaryEmptyState()
         } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White)
-                    .padding(16.dp)
+            // [UPDATE] Card로 감싸서 elevation 적용
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                // 일기 항목들
-                diaries.forEachIndexed { index, diary ->
-                    DiaryListItem(
-                        diary = diary,
-                        onClick = { onDiaryClick(diary) } // [NEW] 클릭 이벤트 전달
-                    )
-
-                    if (index < diaries.size - 1) {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(vertical = 12.dp),
-                            thickness = 1.dp,
-                            color = Color(0xFFE2E8F0)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    // 일기 항목들
+                    diaries.forEachIndexed { index, diary ->
+                        DiaryListItem(
+                            diary = diary,
+                            onClick = { onDiaryClick(diary) }
                         )
+
+                        if (index < diaries.size - 1) {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(vertical = 12.dp),
+                                thickness = 1.dp,
+                                color = Color(0xFFE2E8F0)
+                            )
+                        }
                     }
                 }
             }
