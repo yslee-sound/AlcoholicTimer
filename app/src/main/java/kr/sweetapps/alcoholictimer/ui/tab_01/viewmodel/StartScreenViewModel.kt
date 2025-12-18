@@ -247,17 +247,53 @@ class StartScreenViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     /**
-     * [REMOVED] 타이머 시작 버튼 클릭 - 전면광고 제거됨
-     * 이전: 광고 정책 확인 → 전면광고 표시 → 카운트다운
-     * 현재: 즉시 카운트다운 시작
+     * [RESTORED] 타이머 시작 버튼 클릭 - 전면광고 복원
+     * 순서: 광고 정책 확인 → 전면광고 표시 → 카운트다운
      */
     fun onStartButtonClicked(context: Context) {
         viewModelScope.launch {
             try {
                 Log.d(TAG, "========================================")
-                Log.d(TAG, "Timer start button clicked - starting countdown immediately")
-                // [REMOVED] 전면광고 제거 - 타이머 시작 시 광고 없이 즉시 카운트다운 시작
-                startCountdown()
+                Log.d(TAG, "Timer start button clicked")
+
+                // [RESTORED] 전면광고 정책 확인
+                val shouldShowAd = try {
+                    kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to check ad policy", e)
+                    false
+                }
+
+                Log.d(TAG, "Should show interstitial ad: $shouldShowAd")
+
+                if (shouldShowAd) {
+                    // 광고 표시 시도
+                    val adLoaded = kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()
+                    Log.d(TAG, "Interstitial ad loaded: $adLoaded")
+
+                    if (adLoaded) {
+                        // Activity 가져오기
+                        val activity = context as? android.app.Activity
+                        if (activity != null) {
+                            Log.d(TAG, "Showing interstitial ad before countdown")
+                            kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(activity) { success ->
+                                Log.d(TAG, "Interstitial ad dismissed, success: $success")
+                                // 광고 종료 후 카운트다운 시작
+                                startCountdown()
+                            }
+                        } else {
+                            Log.w(TAG, "Activity is null, starting countdown without ad")
+                            startCountdown()
+                        }
+                    } else {
+                        Log.d(TAG, "Ad not loaded, starting countdown")
+                        startCountdown()
+                    }
+                } else {
+                    Log.d(TAG, "Ad policy blocked or cooldown active, starting countdown")
+                    startCountdown()
+                }
+
                 Log.d(TAG, "========================================")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to handle start button click", e)
