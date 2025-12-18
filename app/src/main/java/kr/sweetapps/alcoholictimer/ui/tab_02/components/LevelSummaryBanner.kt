@@ -5,6 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -36,23 +38,29 @@ fun LevelSummaryBanner(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isActive = currentDays > 0 // 1일 이상이면 활성 상태
+    val isActive = currentDays > 0
 
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                Brush.horizontalGradient(
-                    colors = listOf(
-                        Color(0xFF6366F1), // Indigo
-                        Color(0xFF8B5CF6)  // Purple
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            Color(0xFF6366F1),
+                            Color(0xFF8B5CF6)
+                        )
                     )
                 )
-            )
-            .clickable(onClick = onClick)
-            .padding(20.dp)
-    ) {
+                .clickable(onClick = onClick)
+                .padding(20.dp)
+        ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -148,6 +156,7 @@ fun LevelSummaryBanner(
         }
 
         // [REMOVED] 진행률 바와 텍스트 제거 (축소 버전이므로)
+        }
     }
 }
 

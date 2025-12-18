@@ -252,7 +252,7 @@ fun RunScreenComposable(
                             value = goalDaysText,
                             color = commonIconColor, // ★ 공통 컬러 적용
                             modifier = Modifier.weight(1f),
-                            iconRes = kr.sweetapps.alcoholictimer.R.drawable.calendar_blank,
+                             iconRes = kr.sweetapps.alcoholictimer.R.drawable.calendar_blank,
                             contentAlignment = runStatAlignments[0]
                         )
 

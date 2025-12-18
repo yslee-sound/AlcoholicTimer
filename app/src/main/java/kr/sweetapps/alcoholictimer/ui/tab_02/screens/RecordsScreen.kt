@@ -126,7 +126,7 @@ fun RecordsScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF5F5F5)) // [UPDATE] 연한 회색 배경 (모던 대시보드 스타일)
+                .background(Color(0xFFF7F8FA)) // [UPDATE] 모던 대시보드 스타일: 연한 쿨그레이
         ) {
             // Overlay: match StartScreen / RunScreen subtle top highlight and bottom darkening
             Box(
@@ -151,9 +151,16 @@ fun RecordsScreen(
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = recordsContentPadding,
-                verticalArrangement = Arrangement.spacedBy(0.dp) // [FIX] 명시적 Spacer로 제어
+                verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
-                // ==================== Item 0: 레벨 요약 배너 (Phase 2) ====================
+                // ==================== NEW: 상단 헤더 (모던 대시보드 스타일) ====================
+                item {
+                    ModernDashboardHeader(
+                        onNotificationClick = { /* TODO: 알림 화면 이동 */ }
+                    )
+                }
+
+                // ==================== Item 0: 레벨 요약 배너 ====================
                 if (currentLevel != null) {
                     item {
                         Spacer(modifier = Modifier.height(RECORDS_TOP_SECTION_EXTERNAL_GAP))
@@ -169,69 +176,43 @@ fun RecordsScreen(
                     }
                 }
 
-                // ==================== Item 1: 통계 제목줄 ====================
+                // ==================== Item 1: 통계 헤더 & 필터 통합 ====================
                 item {
-                    Spacer(modifier = Modifier.height(RECORDS_TOP_SECTION_EXTERNAL_GAP))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                    // 헤더
-                    Box(modifier = Modifier.fillMaxWidth().padding(start = RECORDS_HEADER_START_PADDING, end = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
-                        PeriodHeaderRow(
-                            selectedPeriod = selectedPeriod,
-                            onNavigateToAllRecords = onNavigateToAllRecords
-                        )
-                    }
-
-                    // 헤더와 필터 사이 간격
-                    Spacer(modifier = Modifier.height(RECORDS_HEADER_TO_CARD_GAP))
+                    // 통계 요약 제목 + [월간|전체] 토글
+                    StatisticsHeaderWithFilter(
+                        selectedPeriod = selectedPeriod,
+                        onPeriodSelected = { period: String ->
+                            Log.d("RecordsScreen", "onPeriodSelected 호출: $period")
+                            onPeriodSelected(period)
+                            try {
+                                val viewType = when (period) {
+                                    periodMonth -> "Month"
+                                    else -> "All"
+                                }
+                                val currentLevel = records.maxOfOrNull { it.achievedLevel } ?: 0
+                                AnalyticsManager.logChangeRecordView(viewType, currentLevel)
+                            } catch (_: Throwable) {}
+                        }
+                    )
                 }
 
-                // ==================== Item 2: 기간 선택 섹션 ====================
+                // ==================== Item 2: 분리된 통계 카드 그리드 ====================
                 item {
-                    Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
-                        PeriodSelectionSection(
-                            selectedPeriod = selectedPeriod,
-                            onPeriodSelected = { period: String ->
-                                Log.d("RecordsScreen", "onPeriodSelected 호출: $period")
-                                onPeriodSelected(period)
-                                // Analytics: 사용자 통계 뷰 변경 이벤트 전송
-                                try {
-                                    val viewType = when (period) {
-                                        periodWeek -> "Week"
-                                        periodMonth -> "Month"
-                                        periodYear -> "Year"
-                                        else -> "All"
-                                    }
-                                    val currentLevel = records.maxOfOrNull { it.achievedLevel } ?: 0
-                                    AnalyticsManager.logChangeRecordView(viewType, currentLevel)
-                                } catch (_: Throwable) {}
-                            },
-                            onPeriodClick = { clickedPeriod ->
-                                Log.d("RecordsScreen", "onPeriodClick 호출: $clickedPeriod, 바텀시트 열기")
-                                showBottomSheet = true
-                            },
-                            selectedDetailPeriod = selectedDetailPeriod,
-                            horizontalPadding = RECORDS_SCREEN_HORIZONTAL_PADDING
-                        )
-                    }
-                }
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                // ==================== Item 3: 통계 카드 ====================
-                item {
-                    // 필터와 카드 사이 간격
-                    Spacer(modifier = Modifier.height(RECORDS_HEADER_TO_CARD_GAP))
+                    // 3개의 독립 카드 (칼로리, 절주, 저축)
+                    ModernStatisticsGrid(
+                        statsData = statsData
+                    )
 
-                    // 통계 카드
-                    Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
-                        PeriodStatisticsSection(
-                            records = records,
-                            selectedPeriod = selectedPeriod,
-                            selectedDetailPeriod = selectedDetailPeriod,
-                            modifier = Modifier.fillMaxWidth(),
-                            weekRange = selectedWeekRange,
-                            statsData = statsData, // [NEW] 실시간 통계 데이터 전달
-                            onAddRecord = { onAddRecord() }
-                        )
-                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // 총 금주일 독립 카드
+                    TotalDaysCard(
+                        totalDays = statsData.totalDays
+                    )
                 }
 
                 // ==================== Item 3: 최근 금주 일기 섹션 ====================
@@ -866,11 +847,11 @@ private fun RecentDiarySection(
 ) {
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        // [NEW] 헤더: 제목 + 전체 보기 버튼
+        // [NEW] 헤더: 제목 + 더보기 버튼
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(32.dp), // [UPDATE] Row 높이: 28dp → 32dp (더 여유 있는 간격)
+                .height(32.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -880,18 +861,17 @@ private fun RecentDiarySection(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            // [FIX] IconButton 대신 Icon + clickable 사용 (48dp 터치 영역 제거)
-            Icon(
-                painter = painterResource(id = R.drawable.ic_caret_right),
-                contentDescription = stringResource(R.string.diary_view_all),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .size(24.dp)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = ripple(bounded = false, radius = 24.dp),
-                        onClick = onNavigateToAllDiaries
-                    )
+            // [UPDATE] 파란색 텍스트 "더보기"
+            Text(
+                text = "더보기",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF6366F1), // 보라색
+                modifier = Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = ripple(bounded = false, radius = 24.dp),
+                    onClick = onNavigateToAllDiaries
+                )
             )
         }
 
@@ -974,8 +954,8 @@ private fun DiaryEmptyState() {
 }
 
 /**
- * [NEW] 일기 항목 아이템 (Room DB 기반)
- * 첨부 사진과 같은 디자인: 캘린더 아이콘 + 날짜 + 이모지 + 내용
+ * [NEW] 일기 항목 아이템 (Magazine Style)
+ * 날짜 박스 + 제목 + 이모지
  */
 @Composable
 private fun DiaryListItem(
@@ -983,21 +963,50 @@ private fun DiaryListItem(
     onClick: () -> Unit = {}
 ) {
     val locale = Locale.getDefault()
-    val (yearText, dateText) = remember(diary.timestamp, locale) {
+
+    // 날짜 파싱
+    val (monthText, dayText, yearText) = remember(diary.timestamp, locale) {
         val cal = Calendar.getInstance().apply { timeInMillis = diary.timestamp }
         val year = cal.get(Calendar.YEAR)
         val month = cal.get(Calendar.MONTH) + 1
         val day = cal.get(Calendar.DAY_OF_MONTH)
 
         when (locale.language) {
-            "ko" -> Pair("${year}년", "${month}월 ${day}일")
-            "ja" -> Pair("${year}年", "${month}月${day}日")
-            "zh" -> Pair("${year}年", "${month}月${day}日")
+            "ko" -> {
+                val monthStr = when (month) {
+                    1 -> "JAN"
+                    2 -> "FEB"
+                    3 -> "MAR"
+                    4 -> "APR"
+                    5 -> "MAY"
+                    6 -> "JUN"
+                    7 -> "JUL"
+                    8 -> "AUG"
+                    9 -> "SEP"
+                    10 -> "OCT"
+                    11 -> "NOV"
+                    12 -> "DEC"
+                    else -> "DEC"
+                }
+                Triple(monthStr, day.toString(), "${year}년")
+            }
             else -> {
-                val monthName = SimpleDateFormat("MMM", Locale.ENGLISH).format(Date(diary.timestamp))
-                Pair("$year", "$monthName $day")
+                val monthStr = SimpleDateFormat("MMM", Locale.ENGLISH).format(Date(diary.timestamp)).uppercase()
+                Triple(monthStr, day.toString(), year.toString())
             }
         }
+    }
+
+    // 날짜 박스 색상 (랜덤 파스텔 컬러)
+    val boxColor = remember(diary.id) {
+        val colors = listOf(
+            Color(0xFFE3F2FD), // Light Blue
+            Color(0xFFE8F5E9), // Light Green
+            Color(0xFFF3E0E0), // Light Orange
+            Color(0xFFF3E5F5), // Light Purple
+            Color(0xFFFCE4EC)  // Light Pink
+        )
+        colors[kotlin.math.abs(diary.id.hashCode()) % colors.size]
     }
 
     Row(
@@ -1008,62 +1017,387 @@ private fun DiaryListItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
     ) {
-        // 왼쪽: 캘린더 아이콘
-        Icon(
-            painter = painterResource(id = R.drawable.ic_nav_calendardots),
-            contentDescription = null,
-            tint = Color(0xFF8B7BE8), // 보라색
-            modifier = Modifier.size(40.dp)
-        )
+        // 좌측: 날짜 박스 (2번째 사진 스타일: 더 작고 컴팩트)
+        Card(
+            modifier = Modifier.size(width = 52.dp, height = 52.dp),
+            shape = RoundedCornerShape(8.dp),
+            colors = CardDefaults.cardColors(containerColor = boxColor),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(vertical = 4.dp, horizontal = 2.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                // 월 (위)
+                Text(
+                    text = monthText,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF6366F1),
+                    letterSpacing = 0.3.sp,
+                    lineHeight = 12.sp
+                )
+
+                Spacer(modifier = Modifier.height(1.dp))
+
+                // 일 (아래)
+                Text(
+                    text = dayText,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF111827),
+                    lineHeight = 20.sp
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // 중앙: 날짜 정보
+        // 중앙: 제목 + 연도
         Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.Start
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = yearText,
-                style = MaterialTheme.typography.bodySmall,
-                fontSize = 13.sp,
-                color = Color(0xFF6B7280)
+                text = diary.content,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF111827),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
             Text(
-                text = dateText,
-                style = MaterialTheme.typography.titleMedium,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF111827)
+                text = yearText,
+                fontSize = 12.sp,
+                color = Color(0xFF9CA3AF)
             )
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.width(12.dp))
 
-        // 오른쪽 상단: 이모지
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.End
+        // 우측: 이모지
+        Text(
+            text = diary.emoji,
+            fontSize = 28.sp,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+/**
+ * [NEW] 모던 대시보드 스타일 헤더
+ * "나의 건강 분석" 제목 + 인사말 + 알림 벨
+ */
+@Composable
+private fun ModernDashboardHeader(
+    onNotificationClick: () -> Unit = {}
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // 좌측: 제목 + 인사말
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "나의 건강 ",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF111827),
+                    fontSize = 24.sp
+                )
+                Text(
+                    text = "분석",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF6366F1), // 보라색 강조
+                    fontSize = 24.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = "오늘도 건강한 하루 되세요!",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF9CA3AF),
+                fontSize = 13.sp
+            )
+        }
+
+        // 우측: 알림 벨
+        IconButton(
+            onClick = onNotificationClick,
+            modifier = Modifier.size(40.dp)
         ) {
-            // 이모지
-            Text(
-                text = diary.emoji,
-                fontSize = 32.sp,
-                textAlign = TextAlign.Center
+            Icon(
+                painter = painterResource(id = R.drawable.bell),
+                contentDescription = "알림",
+                tint = Color(0xFF111827),
+                modifier = Modifier.size(24.dp)
+            )
+        }
+    }
+}
+
+/**
+ * [NEW] 통계 헤더와 필터 통합 (한 줄)
+ * "통계 요약" (좌측) + [월간|전체] 토글 (우측)
+ */
+@Composable
+private fun StatisticsHeaderWithFilter(
+    selectedPeriod: String,
+    onPeriodSelected: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // 좌측: 제목
+        Text(
+            text = "통계 요약",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF111827),
+            fontSize = 18.sp
+        )
+
+        // 우측: [월간|전체] 토글
+        Row(
+            modifier = Modifier
+                .background(Color(0xFFF1F3F5), RoundedCornerShape(12.dp))
+                .padding(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            // 월간 버튼
+            ToggleButton(
+                text = "월간",
+                isSelected = selectedPeriod.contains("월"),
+                onClick = { onPeriodSelected("월") }
             )
 
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // 내용 미리보기
-            Text(
-                text = diary.content,
-                style = MaterialTheme.typography.bodyMedium,
-                fontSize = 15.sp,
-                color = Color(0xFF374151),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.widthIn(max = 120.dp)
+            // 전체 버튼
+            ToggleButton(
+                text = "전체",
+                isSelected = !selectedPeriod.contains("월"),
+                onClick = { onPeriodSelected("전체") }
             )
+        }
+    }
+}
+
+/**
+ * [NEW] 토글 버튼 (캡슐 모양)
+ */
+@Composable
+private fun ToggleButton(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(if (isSelected) Color.White else Color.Transparent)
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            fontSize = 13.sp,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            color = if (isSelected) Color(0xFF6366F1) else Color(0xFF6B7280)
+        )
+    }
+}
+
+/**
+ * [NEW] 모던 통계 그리드 (3개 독립 카드)
+ */
+@Composable
+private fun ModernStatisticsGrid(
+    statsData: kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.StatsData
+) {
+    val decimalFormat = remember { java.text.DecimalFormat("#,###") }
+    val context = LocalContext.current
+    val currency = CurrencyManager.getSelectedCurrency(context)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // 칼로리 카드
+        StatCard(
+            icon = R.drawable.personsimplerun,
+            iconColor = Color(0xFFFF9F66),
+            label = "CALORIES",
+            value = decimalFormat.format(statsData.totalKcal.toLong()),
+            unit = "kcal",
+            modifier = Modifier.weight(1f)
+        )
+
+        // 절주 카드
+        StatCard(
+            icon = R.drawable.wine,
+            iconColor = Color(0xFF6B9DFF),
+            label = "SOBER",
+            value = String.format("%.1f", statsData.totalBottles),
+            unit = "병",
+            modifier = Modifier.weight(1f)
+        )
+
+        // 저축 카드
+        StatCard(
+            icon = R.drawable.piggybank,
+            iconColor = Color(0xFF5CD88A),
+            label = "SAVED",
+            value = decimalFormat.format((statsData.savedMoney / currency.rate).toLong()),
+            unit = currency.code,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+/**
+ * [NEW] 개별 통계 카드 (세로형)
+ */
+@Composable
+private fun StatCard(
+    icon: Int,
+    iconColor: Color,
+    label: String,
+    value: String,
+    unit: String,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // 아이콘
+            Icon(
+                painter = painterResource(id = icon),
+                contentDescription = null,
+                tint = iconColor,
+                modifier = Modifier.size(32.dp)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 라벨
+            Text(
+                text = label,
+                fontSize = 10.sp,
+                color = Color(0xFF9CA3AF),
+                fontWeight = FontWeight.Medium
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // 값
+            Text(
+                text = value,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF111827)
+            )
+
+            // 단위
+            Text(
+                text = unit,
+                fontSize = 11.sp,
+                color = Color(0xFF9CA3AF)
+            )
+        }
+    }
+}
+
+/**
+ * [NEW] 총 금주일 카드 (가로형)
+ */
+@Composable
+private fun TotalDaysCard(
+    totalDays: Float
+) {
+    val decimalFormat = remember { java.text.DecimalFormat("#,###.#") }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // 좌측: 아이콘 + 제목
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.calendarblank_regular),
+                    contentDescription = null,
+                    tint = Color(0xFF6366F1),
+                    modifier = Modifier.size(28.dp)
+                )
+
+                Text(
+                    text = "총 금주일",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFF111827)
+                )
+            }
+
+            // 우측: 값
+            Row(
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = decimalFormat.format(totalDays),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF111827)
+                )
+
+                Text(
+                    text = "일",
+                    fontSize = 14.sp,
+                    color = Color(0xFF6B7280),
+                    modifier = Modifier.padding(bottom = 2.dp)
+                )
+            }
         }
     }
 }
