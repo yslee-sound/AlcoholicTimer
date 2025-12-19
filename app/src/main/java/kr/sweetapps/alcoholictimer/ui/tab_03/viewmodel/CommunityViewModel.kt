@@ -64,6 +64,9 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     // [NEW] 최근 숨긴 게시글 임시 저장 (Undo 지원용)
     private val _recentlyHiddenPosts = MutableStateFlow<Map<String, Post>>(emptyMap())
 
+    // [NEW] 원본 데이터 캐시 (DB에서 온 것 그대로 보관)
+    private var _cachedPostList: List<Post> = emptyList()
+
     init {
         loadPosts()
         loadCurrentUserAvatar() // [NEW] 사용자 아바타 로드
@@ -115,19 +118,44 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             _isLoading.value = true
             repository.getPosts().collect { postList ->
-                val currentTime = System.currentTimeMillis()
+                // 1) 원본 데이터 최신화 (캐시)
+                _cachedPostList = postList
 
-                // [FIX] 숨긴 글 + 만료된 글(deleteAt 지남) 필터링 (2025-12-20)
-                _posts.value = postList.filter { post ->
-                    val isHidden = _hiddenPostIds.value.contains(post.id)
-                    // deleteAt이 null이면 삭제 안 함(안전장치), 현재 시간보다 미래여야 살아남음
-                    val isExpired = (post.deleteAt?.seconds ?: Long.MAX_VALUE) * 1000 <= currentTime
+                // 2) 필터링 실행 (로그 포함)
+                executeFiltering()
 
-                    !isHidden && !isExpired
-                }
                 _isLoading.value = false
             }
         }
+    }
+
+    /**
+     * [CORE] 필터링 로직 분리
+     * DB 변경 시에도 불리고, 당겨서 새로고침(시간 경과) 시에도 불립니다.
+     */
+    private fun executeFiltering() {
+        val currentTimeMillis = System.currentTimeMillis()
+        android.util.Log.d("PostFilterDebug", "=== 필터링 실행! 기준 시간: $currentTimeMillis ===")
+
+        val filteredList = _cachedPostList.filter { post ->
+            val isHidden = _hiddenPostIds.value.contains(post.id)
+            val deleteTimeMillis = (post.deleteAt?.seconds ?: Long.MAX_VALUE) * 1000
+            val isExpired = deleteTimeMillis <= currentTimeMillis
+
+            try {
+                android.util.Log.d(
+                    "PostFilterDebug",
+                    "글ID: ${post.id.take(5)}... | 만료시간: $deleteTimeMillis | 현재시간: $currentTimeMillis | 만료됨?: $isExpired | 숨김됨?: $isHidden -> 최종결과: ${if (!isHidden && !isExpired) "보여줌(O)" else "숨김(X)"}"
+                )
+            } catch (e: Exception) {
+                android.util.Log.e("PostFilterDebug", "로그 출력 중 오류: ${e.message}")
+            }
+
+            !isHidden && !isExpired
+        }
+
+        android.util.Log.d("PostFilterDebug", "=== 결과: ${_cachedPostList.size}개 -> ${filteredList.size}개 ===")
+        _posts.value = filteredList
     }
 
     /**
@@ -137,9 +165,9 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             _isRefreshing.value = true
             try {
-                // loadPosts는 이미 Flow로 실시간 구독 중이므로
-                // 여기서는 간단히 로딩 상태만 표시하고 자동으로 업데이트됨
-                kotlinx.coroutines.delay(500) // 최소 표시 시간 (UX)
+                // 시간 기반 필터링을 강제로 재실행하여 만료된 글을 제거
+                executeFiltering()
+                kotlinx.coroutines.delay(1000) // UX용 최소 표시 시간 (1초로 늘림)
             } finally {
                 _isRefreshing.value = false
             }
