@@ -106,15 +106,21 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
 
     /**
      * Firestore에서 게시글 실시간 구독
-     * [NEW] Phase 3: 숨긴 게시글 필터링
+     * [NEW] Phase 3: 숨긴 게시글 + 만료된 게시글 필터링
      */
     private fun loadPosts() {
         viewModelScope.launch {
             _isLoading.value = true
             repository.getPosts().collect { postList ->
-                // [NEW] 숨긴 게시글 제외
+                val currentTime = System.currentTimeMillis()
+
+                // [FIX] 숨긴 글 + 만료된 글(deleteAt 지남) 필터링 (2025-12-20)
                 _posts.value = postList.filter { post ->
-                    !_hiddenPostIds.value.contains(post.id)
+                    val isHidden = _hiddenPostIds.value.contains(post.id)
+                    // deleteAt이 null이면 삭제 안 함(안전장치), 현재 시간보다 미래여야 살아남음
+                    val isExpired = (post.deleteAt?.seconds ?: Long.MAX_VALUE) * 1000 <= currentTime
+
+                    !isHidden && !isExpired
                 }
                 _isLoading.value = false
             }
