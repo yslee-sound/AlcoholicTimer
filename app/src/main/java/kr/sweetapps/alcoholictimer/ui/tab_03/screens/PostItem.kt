@@ -213,7 +213,7 @@ private fun PostFooter(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 8.dp), // [FIX] 하단 패딩 줄임 (2025-12-20)
         verticalAlignment = Alignment.CenterVertically
     ) {
         // 좋아요(쓰담쓰담) 버튼 + 카운트

@@ -77,6 +77,7 @@ fun CommunityScreen(
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = Color(0xFFF5F5F5),
+            contentWindowInsets = WindowInsets(0, 0, 0, 0), // [FIX] 하단 시스템 바 영역 중복 패딩 제거 (회색 여백 삭제) (2025-12-20)
             topBar = {
                 TopAppBar(
                     title = {
