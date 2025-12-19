@@ -276,8 +276,12 @@ dependencies {
     implementation("com.google.firebase:firebase-crashlytics-ktx")
     implementation("com.google.firebase:firebase-perf-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx") // [NEW] Firestore 추가
+    implementation("com.google.firebase:firebase-storage-ktx") // [NEW] Firebase Storage 추가 (2025-12-19)
     // 👇 [NEW] Remote Config 라이브러리 추가
     implementation("com.google.firebase:firebase-config-ktx")
+
+    // [NEW] Coil: 이미지 로딩 라이브러리 (2025-12-19)
+    implementation("io.coil-kt:coil-compose:2.5.0")
 
     // AdMob & UMP (명시 버전 사용)
     implementation("com.google.android.gms:play-services-ads:23.6.0")

@@ -1,15 +1,23 @@
 package kr.sweetapps.alcoholictimer.ui.tab_04.viewmodel
 
 import android.app.Application
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.Firebase
+import com.google.firebase.storage.storage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import kr.sweetapps.alcoholictimer.data.model.Post
 import kr.sweetapps.alcoholictimer.data.repository.CommunityRepository
 import kr.sweetapps.alcoholictimer.data.repository.UserRepository
+import java.util.UUID
 
 /**
  * Phase 2: 커뮤니티 ViewModel
@@ -18,6 +26,7 @@ import kr.sweetapps.alcoholictimer.data.repository.UserRepository
  * (v2.0) 아바타 시스템 추가:
  * - UserRepository를 통해 사용자의 아바타 인덱스 관리
  * (v2.1) WritePostTrigger 아바타 실시간 반영
+ * (v2.2) 이미지 업로드 기능 추가 (2025-12-19)
  */
 class CommunityViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = CommunityRepository()
@@ -33,9 +42,20 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     private val _currentUserAvatarIndex = MutableStateFlow(0)
     val currentUserAvatarIndex: StateFlow<Int> = _currentUserAvatarIndex.asStateFlow()
 
+    // [NEW] 선택된 이미지 URI (미리보기용) (2025-12-19)
+    private val _selectedImageUri = MutableStateFlow<Uri?>(null)
+    val selectedImageUri: StateFlow<Uri?> = _selectedImageUri.asStateFlow()
+
     init {
         loadPosts()
         loadCurrentUserAvatar() // [NEW] 사용자 아바타 로드
+    }
+
+    /**
+     * [NEW] 이미지 선택 시 호출 (2025-12-19)
+     */
+    fun onImageSelected(uri: Uri?) {
+        _selectedImageUri.value = uri
     }
 
     /**
@@ -92,12 +112,38 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     /**
      * 새 게시글 작성 (Tab 4에서 직접 작성)
      * (v2.0) 아바타 시스템: 사용자의 avatarIndex를 Post에 포함
+     * (v2.2) 이미지 업로드 기능 추가 (2025-12-19)
      * @param content 게시글 내용
+     * @param context Context (이미지 압축에 필요)
      */
-    fun addPost(content: String) {
+    fun addPost(content: String, context: Context) {
         viewModelScope.launch {
+            _isLoading.value = true
             try {
-                // 익명 닉네임 랜덤 생성
+                var imageUrl: String? = null
+
+                // 1. 이미지가 있다면 압축 후 Firebase Storage 업로드
+                val currentUri = _selectedImageUri.value
+                if (currentUri != null) {
+                    // 압축 작업 (IO 스레드)
+                    val imageBytes = withContext(Dispatchers.IO) {
+                        kr.sweetapps.alcoholictimer.util.ImageUtils.compressImage(context, currentUri)
+                    }
+
+                    if (imageBytes != null) {
+                        // Firebase Storage 업로드
+                        val storageRef = Firebase.storage.reference
+                            .child("community_images/${UUID.randomUUID()}.jpg")
+
+                        // 업로드
+                        storageRef.putBytes(imageBytes).await()
+                        // 다운로드 URL 획득
+                        imageUrl = storageRef.downloadUrl.await().toString()
+                        android.util.Log.d("CommunityViewModel", "이미지 업로드 완료: $imageUrl")
+                    }
+                }
+
+                // 2. 익명 닉네임 랜덤 생성
                 val anonymousNicknames = listOf(
                     "익명의 사자", "참는 중인 호랑이", "새벽의 독수리", "조용한 늑대",
                     "밤하늘의 별", "아침의 햇살", "강한 곰", "자유로운 독수리",
@@ -105,7 +151,7 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                 )
                 val nickname = anonymousNicknames.random()
 
-                // [NEW] 사용자의 현재 아바타 인덱스 가져오기
+                // 3. 사용자의 현재 아바타 인덱스 가져오기
                 val avatarIndex = try {
                     userRepository.getAvatarIndex()
                 } catch (e: Exception) {
@@ -113,32 +159,37 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                     0
                 }
 
-                // 타이머 지속 시간 계산 (랜덤 또는 실제 유저 타이머)
+                // 4. 타이머 지속 시간 계산 (랜덤 또는 실제 유저 타이머)
                 val timerDuration = calculateTimerDuration()
 
-                // 현재 시간
+                // 5. 현재 시간
                 val now = System.currentTimeMillis()
                 val createdAt = com.google.firebase.Timestamp(now / 1000, 0)
                 val deleteAt = com.google.firebase.Timestamp((now / 1000) + 24 * 60 * 60, 0) // 24시간 후
 
-                // Post 객체 생성 (authorAvatarIndex 포함)
+                // 6. Post 객체 생성 (이미지 URL 포함)
                 val post = Post(
                     nickname = nickname,
                     timerDuration = timerDuration,
                     content = content,
-                    imageUrl = null, // 이미지는 향후 추가
+                    imageUrl = imageUrl, // 업로드된 URL 또는 null
                     likeCount = 0,
                     createdAt = createdAt,
                     deleteAt = deleteAt,
-                    authorAvatarIndex = avatarIndex // [NEW] 아바타 인덱스 포함
+                    authorAvatarIndex = avatarIndex
                 )
 
-                // Firestore에 저장
+                // 7. Firestore에 저장
                 repository.addPost(post)
 
-                android.util.Log.d("CommunityViewModel", "게시글 작성 완료: $nickname (avatar: $avatarIndex)")
+                // 8. 성공 후 이미지 URI 초기화
+                _selectedImageUri.value = null
+
+                android.util.Log.d("CommunityViewModel", "게시글 작성 완료: $nickname (avatar: $avatarIndex, image: ${imageUrl != null})")
             } catch (e: Exception) {
                 android.util.Log.e("CommunityViewModel", "게시글 작성 실패", e)
+            } finally {
+                _isLoading.value = false
             }
         }
     }

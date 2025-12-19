@@ -1,6 +1,9 @@
 package kr.sweetapps.alcoholictimer.ui.tab_04.community
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,12 +21,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.tab_04.viewmodel.CommunityViewModel
 
@@ -36,6 +42,7 @@ fun CommunityScreen(
     val posts by viewModel.posts.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val currentUserAvatarIndex by viewModel.currentUserAvatarIndex.collectAsState() // [NEW] 현재 사용자 아바타
+    val context = LocalContext.current // [NEW] Context 가져오기 (2025-12-19)
 
     // 글쓰기 화면 표시 상태
     var isWritingScreenVisible by remember { mutableStateOf(false) }
@@ -144,7 +151,7 @@ fun CommunityScreen(
                 WritePostScreenContent(
                     viewModel = viewModel,
                     onPost = { content ->
-                        viewModel.addPost(content)
+                        viewModel.addPost(content, context) // [MODIFIED] context 전달 (2025-12-19)
                         isWritingScreenVisible = false
                     },
                     onDismiss = { isWritingScreenVisible = false }
@@ -156,7 +163,7 @@ fun CommunityScreen(
 
 /**
  * 글쓰기 화면의 내부 콘텐츠 (별도 Composable로 분리하여 깔끔하게 정리)
- * [MODIFIED] 사용자 아바타 연동 + bottomBar 구조로 리팩토링 (2025-12-19)
+ * [MODIFIED] 사용자 아바타 연동 + bottomBar 구조 + 이미지 업로드 기능 (2025-12-19)
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class) // [NEW] ExperimentalLayoutApi 추가 (isImeVisible 사용)
 @Composable
@@ -166,9 +173,20 @@ private fun WritePostScreenContent(
     onDismiss: () -> Unit
 ) {
     var content by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     // [NEW] 1. 상태 구독 - 현재 사용자의 아바타 인덱스
     val currentUserAvatarIndex by viewModel.currentUserAvatarIndex.collectAsState()
+
+    // [NEW] 2. 상태 구독 - 선택된 이미지 URI (2025-12-19)
+    val selectedImageUri by viewModel.selectedImageUri.collectAsState()
+
+    // [NEW] 3. Photo Picker 설정 (2025-12-19)
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        viewModel.onImageSelected(uri)
+    }
 
     // 전체 화면을 흰색으로 덮음
     Scaffold(
@@ -237,7 +255,12 @@ private fun WritePostScreenContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { /* TODO: 이미지 선택 로직 */ }
+                        .clickable {
+                            // [NEW] Photo Picker 실행 (2025-12-19)
+                            photoPickerLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        }
                         .padding(vertical = 12.dp, horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -314,6 +337,43 @@ private fun WritePostScreenContent(
                 ),
                 textStyle = MaterialTheme.typography.bodyLarge
             )
+
+            // [NEW] 이미지 미리보기 (2025-12-19)
+            if (selectedImageUri != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    // 이미지 표시
+                    AsyncImage(
+                        model = selectedImageUri,
+                        contentDescription = "선택된 이미지",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .clip(RoundedCornerShape(12.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+
+                    // 우측 상단 X 버튼
+                    IconButton(
+                        onClick = { viewModel.onImageSelected(null) },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(8.dp)
+                            .size(32.dp)
+                            .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = "이미지 제거",
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            }
         }
     }
 }
