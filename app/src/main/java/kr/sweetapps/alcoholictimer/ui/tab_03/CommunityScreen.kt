@@ -170,7 +170,8 @@ fun CommunityScreen(
                                     onHideClick = { viewModel.hidePost(item.id) } // [NEW] Phase 3: 빠른 숨기기 (X 버튼)
                                 )
                             }
-                            HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
+                            // [MODIFIED] 디바이더 진하게 (페이스북 스타일) (2025-12-20)
+                            HorizontalDivider(thickness = 1.dp, color = Color(0xFFBDBDBD))
                         }
                     }
                 }
