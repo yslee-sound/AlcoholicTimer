@@ -50,6 +50,18 @@ import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.tab_03.screens.PostItem
 import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.CommunityViewModel
 
+// [NEW IMPORTS] 아래 임포트가 파일 상단에 없다면 추가해주세요. (안전: 이미 있으면 중복 무시)
+// import androidx.compose.ui.viewinterop.AndroidView
+// import com.google.android.gms.ads.AdLoader
+// import com.google.android.gms.ads.AdRequest
+// import com.google.android.gms.ads.nativead.NativeAd
+// import com.google.android.gms.ads.nativead.NativeAdOptions
+// import com.google.android.gms.ads.nativead.NativeAdView
+// import android.view.LayoutInflater
+// import android.widget.Button
+// import android.widget.ImageView
+// import android.widget.TextView
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommunityScreen(
@@ -780,35 +792,123 @@ private fun calculateRemainingTime(deleteAt: com.google.firebase.Timestamp): Str
 }
 
 /**
- * [NEW Phase 3] 네이티브 광고 아이템
+ * [REAL] 구글 애드몹 네이티브 광고
+ * 기존의 노란색 Placeholder를 대체합니다.
  */
 @Composable
 private fun NativeAdItem() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFFFFFBF0))
-            .padding(16.dp)
-    ) {
-        Text(
-            text = "Sponsored",
-            style = MaterialTheme.typography.bodySmall,
-            color = Color(0xFF999999),
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+    val context = LocalContext.current // [NEW] Context 사용
 
-        Box(
+    // 테스트용 광고 ID (배포 시 실제 ID로 교체 필수!)
+    // 네이티브 고급 광고 테스트 ID: ca-app-pub-3940256099942544/2247696110
+    // [TODO] 배포 전 반드시 애드몹 콘솔에서 발급받은 네이티브 광고 단위 ID로 교체하세요!
+    // 현재는 플레이스홀더가 사용됩니다. (테스트용 ID 백업: "ca-app-pub-3940256099942544/2247696110")
+    val adUnitId = "실제_광고_ID_여기에_입력"
+
+    // 광고가 로드되면 UI를 갱신하기 위한 State
+    var nativeAd by remember { mutableStateOf<com.google.android.gms.ads.nativead.NativeAd?>(null) }
+
+    // 1. 광고 로드 (최초 1회)
+    LaunchedEffect(Unit) {
+        val adLoader = com.google.android.gms.ads.AdLoader.Builder(context, adUnitId)
+            .forNativeAd { ad: com.google.android.gms.ads.nativead.NativeAd ->
+                nativeAd = ad
+            }
+            .withAdListener(object : com.google.android.gms.ads.AdListener() {
+                override fun onAdFailedToLoad(error: com.google.android.gms.ads.LoadAdError) {
+                    android.util.Log.e("NativeAd", "광고 로드 실패: ${'$'}{error.message}")
+                }
+            })
+            .withNativeAdOptions(com.google.android.gms.ads.nativead.NativeAdOptions.Builder().build())
+            .build()
+
+        adLoader.loadAd(com.google.android.gms.ads.AdRequest.Builder().build())
+    }
+
+    // 2. 광고가 로드되었을 때만 표시
+    if (nativeAd != null) {
+        androidx.compose.ui.viewinterop.AndroidView(
+            factory = { ctx ->
+                // XML 레이아웃 없이 코드로 뷰 생성 (Compose 호환성 위해)
+                val adView = com.google.android.gms.ads.nativead.NativeAdView(ctx)
+
+                // --- 뷰 계층 구조 생성 (카드 형태) ---
+                val container = android.widget.LinearLayout(ctx).apply {
+                    orientation = android.widget.LinearLayout.VERTICAL
+                    setBackgroundColor(android.graphics.Color.WHITE)
+                    setPadding(32, 32, 32, 32)
+                }
+
+                // 1) 상단: 아이콘 + 헤드라인
+                val headerRow = android.widget.LinearLayout(ctx).apply {
+                    orientation = android.widget.LinearLayout.HORIZONTAL
+                }
+
+                val iconView = android.widget.ImageView(ctx).apply {
+                    layoutParams = android.widget.LinearLayout.LayoutParams(120, 120) // 약 40dp
+                }
+
+                val headlineView = android.widget.TextView(ctx).apply {
+                    textSize = 16f
+                    setTypeface(null, android.graphics.Typeface.BOLD)
+                    setPadding(16, 0, 0, 0)
+                    setTextColor(android.graphics.Color.BLACK)
+                }
+
+                headerRow.addView(iconView)
+                headerRow.addView(headlineView)
+                container.addView(headerRow)
+
+                // 2) 중간: 광고 문구 (Body)
+                val bodyView = android.widget.TextView(ctx).apply {
+                    textSize = 14f
+                    setPadding(0, 16, 0, 16)
+                    setTextColor(android.graphics.Color.DKGRAY)
+                    maxLines = 2
+                }
+                container.addView(bodyView)
+
+                // 3) 하단: 액션 버튼 (설치/자세히보기)
+                val callToActionView = android.widget.Button(ctx).apply {
+                    setBackgroundColor(android.graphics.Color.parseColor("#E0E0E0")) // 연회색
+                    setTextColor(android.graphics.Color.BLACK)
+                }
+                container.addView(callToActionView)
+
+                // --- AdView에 뷰 등록 ---
+                adView.addView(container)
+
+                adView.iconView = iconView
+                adView.headlineView = headlineView
+                adView.bodyView = bodyView
+                adView.callToActionView = callToActionView
+
+                adView
+            },
+            update = { adView ->
+                // 데이터 바인딩
+                val ad = nativeAd!!
+
+                (adView.headlineView as android.widget.TextView).text = ad.headline
+                (adView.bodyView as android.widget.TextView).text = ad.body
+                (adView.callToActionView as android.widget.Button).text = ad.callToAction ?: "자세히 보기"
+
+                if (ad.icon != null) {
+                    (adView.iconView as android.widget.ImageView).setImageDrawable(ad.icon?.drawable)
+                    adView.iconView?.visibility = android.view.View.VISIBLE
+                } else {
+                    adView.iconView?.visibility = android.view.View.GONE
+                }
+
+                // [중요] 광고 객체 등록 (클릭 이벤트 처리됨)
+                adView.setNativeAd(ad)
+            },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(120.dp)
-                .background(Color(0xFFE0E0E0)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "📢 Native Ad Placeholder",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF666666)
-            )
-        }
+                .padding(16.dp)
+                .background(Color.White, RoundedCornerShape(12.dp))
+                .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(12.dp))
+        )
     }
 }

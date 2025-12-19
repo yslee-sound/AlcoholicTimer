@@ -385,9 +385,10 @@ fun HabitSettingsScreen(
     LaunchedEffect(Unit) {
         Log.d("HabitSettingsScreen", "Entering Settings -> Preloading Interstitial Ad")
         try {
-            InterstitialAdManager.preload(context)
+            // [NEW] 전면광고 제거 결정: preload 호출 비활성화
+            // InterstitialAdManager.preload(context)
         } catch (e: Exception) {
-            Log.e("HabitSettingsScreen", "Failed to preload ad: ${e.message}")
+            Log.e("HabitSettingsScreen", "Failed to preload ad: ${'$'}{e.message}")
         }
     }
 

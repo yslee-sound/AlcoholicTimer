@@ -314,7 +314,8 @@ class MainActivity : BaseActivity() {
                 MobileAds.initialize(this) {
                     android.util.Log.d("MainActivity", "MobileAds initialized successfully")
                 }
-                InterstitialAdManager.preload(this)
+                // [NEW] 전면광고 제거 결정에 따라 Interstitial 사전 로드 비활성화
+                // InterstitialAdManager.preload(this)
 
                 // 광고 로드 시작 (리스너는 이미 설정됨)
                 android.util.Log.d("MainActivity", "Starting AppOpen ad preload...")
