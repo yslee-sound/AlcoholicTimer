@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.ui.tab_04.community
+package kr.sweetapps.alcoholictimer.ui.tab_03.screens.community
 
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -37,13 +37,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.google.firebase.Timestamp
+import kotlinx.coroutines.delay
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.ui.tab_04.viewmodel.CommunityViewModel
+import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.CommunityViewModel
+import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
+import kr.sweetapps.alcoholictimer.util.AvatarManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -191,7 +198,7 @@ fun CommunityScreen(
                 // [NEW] 애니메이션이 끝나면 실제 다이얼로그 닫기
                 LaunchedEffect(animateVisible) {
                     if (!animateVisible) {
-                        kotlinx.coroutines.delay(300) // 애니메이션 시간 대기
+                        delay(300) // 애니메이션 시간 대기
                         isWritingScreenVisible = false // 진짜 종료
                     }
                 }
@@ -314,7 +321,7 @@ private fun WritePostScreenContent(
                         Text(
                             text = "게시하기",
                             color = if (isModified)
-                                kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue // 테마 색상 사용 권장
+                                MainPrimaryBlue // 테마 색상 사용 권장
                             else Color(0xFFD1D5DB),
                             style = MaterialTheme.typography.titleSmall
                         )
@@ -459,10 +466,10 @@ private fun WritePostScreenContent(
                 Text(
                     text = "작성 중인 글을 삭제하시겠습니까?",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    fontWeight = FontWeight.Bold,
                     color = Color.Black,
                     maxLines = 1,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(start = 20.dp, top = 8.dp, bottom = 12.dp)
                 )
 
@@ -478,7 +485,7 @@ private fun WritePostScreenContent(
                         .padding(horizontal = 20.dp, vertical = 16.dp)
                 ) {
                     Icon(
-                        imageVector = androidx.compose.material.icons.Icons.Outlined.Delete,
+                        imageVector = Icons.Outlined.Delete,
                         contentDescription = null,
                         tint = Color(0xFF1F2937)
                     )
@@ -500,7 +507,7 @@ private fun WritePostScreenContent(
                         .padding(horizontal = 20.dp, vertical = 16.dp)
                 ) {
                     Icon(
-                        imageVector = androidx.compose.material.icons.Icons.Outlined.Edit,
+                        imageVector = Icons.Outlined.Edit,
                         contentDescription = null,
                         tint = Color(0xFF1F2937)
                     )
@@ -540,7 +547,7 @@ private fun WritePostTrigger(
         ) {
             // [NEW] 좌측: 현재 사용자의 아바타 이미지
             Image(
-                painter = painterResource(id = kr.sweetapps.alcoholictimer.util.AvatarManager.getAvatarResId(currentAvatarIndex)),
+                painter = painterResource(id = AvatarManager.getAvatarResId(currentAvatarIndex)),
                 contentDescription = "내 프로필",
                 modifier = Modifier
                     .size(40.dp)
@@ -610,7 +617,7 @@ private fun EmptyState(modifier: Modifier = Modifier) {
             text = "Tab 5 디버그 메뉴에서\n테스트 게시글을 생성해 보세요!",
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF999999),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            textAlign = TextAlign.Center
         )
     }
 }
@@ -618,7 +625,7 @@ private fun EmptyState(modifier: Modifier = Modifier) {
 /**
  * 남은 시간 계산 (deleteAt - now)
  */
-private fun calculateRemainingTime(deleteAt: com.google.firebase.Timestamp): String {
+private fun calculateRemainingTime(deleteAt: Timestamp): String {
     val now = System.currentTimeMillis()
     val deleteAtMillis = deleteAt.seconds * 1000
     val diffMillis = deleteAtMillis - now

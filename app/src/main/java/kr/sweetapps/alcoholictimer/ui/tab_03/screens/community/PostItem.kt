@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.ui.tab_04.community
+package kr.sweetapps.alcoholictimer.ui.tab_03.screens.community
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import kr.sweetapps.alcoholictimer.util.AvatarManager
 
 /**
  * Phase 1: 커뮤니티 게시글 아이템 UI
@@ -115,7 +116,7 @@ private fun PostHeader(
     ) {
         // [NEW] 아바타 이미지 (로컬 리소스)
         Image(
-            painter = painterResource(id = kr.sweetapps.alcoholictimer.util.AvatarManager.getAvatarResId(authorAvatarIndex)),
+            painter = painterResource(id = AvatarManager.getAvatarResId(authorAvatarIndex)),
             contentDescription = "프로필",
             modifier = Modifier
                 .size(40.dp)

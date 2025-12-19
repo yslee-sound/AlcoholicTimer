@@ -1,13 +1,16 @@
-package kr.sweetapps.alcoholictimer.ui.tab_04.viewmodel
+package kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel
 
 import android.app.Application
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Firebase
+import com.google.firebase.Timestamp
 import com.google.firebase.storage.storage
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,6 +20,7 @@ import kotlinx.coroutines.withContext
 import kr.sweetapps.alcoholictimer.data.model.Post
 import kr.sweetapps.alcoholictimer.data.repository.CommunityRepository
 import kr.sweetapps.alcoholictimer.data.repository.UserRepository
+import kr.sweetapps.alcoholictimer.util.ImageUtils
 import java.util.UUID
 
 /**
@@ -70,14 +74,14 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
 
             // 주기적으로 체크 (1초마다)
             // SharedPreferences 변경 시 즉시 반영
-            kotlinx.coroutines.delay(1000)
+            delay(1000)
             while (true) {
                 val newAvatarIndex = userRepository.getAvatarIndex()
                 if (newAvatarIndex != _currentUserAvatarIndex.value) {
                     _currentUserAvatarIndex.value = newAvatarIndex
-                    android.util.Log.d("CommunityViewModel", "Avatar updated: $newAvatarIndex")
+                    Log.d("CommunityViewModel", "Avatar updated: $newAvatarIndex")
                 }
-                kotlinx.coroutines.delay(1000) // 1초마다 체크
+                delay(1000) // 1초마다 체크
             }
         }
     }
@@ -127,7 +131,7 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                 if (currentUri != null) {
                     // 압축 작업 (IO 스레드)
                     val imageBytes = withContext(Dispatchers.IO) {
-                        kr.sweetapps.alcoholictimer.util.ImageUtils.compressImage(context, currentUri)
+                        ImageUtils.compressImage(context, currentUri)
                     }
 
                     if (imageBytes != null) {
@@ -139,7 +143,7 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                         storageRef.putBytes(imageBytes).await()
                         // 다운로드 URL 획득
                         imageUrl = storageRef.downloadUrl.await().toString()
-                        android.util.Log.d("CommunityViewModel", "이미지 업로드 완료: $imageUrl")
+                        Log.d("CommunityViewModel", "이미지 업로드 완료: $imageUrl")
                     }
                 }
 
@@ -155,7 +159,7 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                 val avatarIndex = try {
                     userRepository.getAvatarIndex()
                 } catch (e: Exception) {
-                    android.util.Log.e("CommunityViewModel", "아바타 인덱스 가져오기 실패, 기본값 0 사용", e)
+                    Log.e("CommunityViewModel", "아바타 인덱스 가져오기 실패, 기본값 0 사용", e)
                     0
                 }
 
@@ -164,8 +168,8 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
 
                 // 5. 현재 시간
                 val now = System.currentTimeMillis()
-                val createdAt = com.google.firebase.Timestamp(now / 1000, 0)
-                val deleteAt = com.google.firebase.Timestamp((now / 1000) + 24 * 60 * 60, 0) // 24시간 후
+                val createdAt = Timestamp(now / 1000, 0)
+                val deleteAt = Timestamp((now / 1000) + 24 * 60 * 60, 0) // 24시간 후
 
                 // 6. Post 객체 생성 (이미지 URL 포함)
                 val post = Post(
@@ -188,9 +192,9 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                 // [FIX] 게시글 목록 새로고침 (2025-12-19)
                 loadPosts()
 
-                android.util.Log.d("CommunityViewModel", "게시글 작성 완료: $nickname (avatar: $avatarIndex, image: ${imageUrl != null})")
+                Log.d("CommunityViewModel", "게시글 작성 완료: $nickname (avatar: $avatarIndex, image: ${imageUrl != null})")
             } catch (e: Exception) {
-                android.util.Log.e("CommunityViewModel", "게시글 작성 실패", e)
+                Log.e("CommunityViewModel", "게시글 작성 실패", e)
             } finally {
                 _isLoading.value = false
             }

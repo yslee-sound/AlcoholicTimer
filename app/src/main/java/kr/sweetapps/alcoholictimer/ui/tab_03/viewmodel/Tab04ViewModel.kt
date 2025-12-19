@@ -1,6 +1,8 @@
-package kr.sweetapps.alcoholictimer.ui.tab_04.viewmodel
+package kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel
 
 import android.app.Application
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.core.content.edit
@@ -9,6 +11,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.util.constants.Constants
+import org.json.JSONArray
+import org.json.JSONObject
+import java.util.Calendar
+import java.util.Random
 
 /**
  * [NEW] Tab04(설정 화면) 상태 관리 ViewModel
@@ -19,7 +25,7 @@ class Tab04ViewModel(application: Application) : AndroidViewModel(application) {
 
     private val sharedPref = application.getSharedPreferences(
         Constants.USER_SETTINGS_PREFS,
-        android.content.Context.MODE_PRIVATE
+        Context.MODE_PRIVATE
     )
 
     // [NEW] 음주 비용 설정 상태
@@ -95,12 +101,12 @@ class Tab04ViewModel(application: Application) : AndroidViewModel(application) {
     fun generateRandomMockData() {
         viewModelScope.launch {
             try {
-                val records = org.json.JSONArray()
-                val calendar = java.util.Calendar.getInstance()
-                val currentYear = calendar.get(java.util.Calendar.YEAR)
-                val random = java.util.Random()
+                val records = JSONArray()
+                val calendar = Calendar.getInstance()
+                val currentYear = calendar.get(Calendar.YEAR)
+                val random = Random()
 
-                android.util.Log.d("Tab04ViewModel", "랜덤 데이터 생성 시작: ${currentYear - 4} ~ ${currentYear - 1}")
+                Log.d("Tab04ViewModel", "랜덤 데이터 생성 시작: ${currentYear - 4} ~ ${currentYear - 1}")
 
                 // 1. 4년 전 ~ 1년 전까지 루프
                 for (yearOffset in 4 downTo 1) {
@@ -111,15 +117,15 @@ class Tab04ViewModel(application: Application) : AndroidViewModel(application) {
 
                     for (i in 0 until recordCount) {
                         // 날짜 랜덤 설정
-                        calendar.set(java.util.Calendar.YEAR, targetYear)
-                        calendar.set(java.util.Calendar.MONTH, random.nextInt(12)) // 0~11월
-                        calendar.set(java.util.Calendar.DAY_OF_MONTH, 1 + random.nextInt(25)) // 1~25일
+                        calendar.set(Calendar.YEAR, targetYear)
+                        calendar.set(Calendar.MONTH, random.nextInt(12)) // 0~11월
+                        calendar.set(Calendar.DAY_OF_MONTH, 1 + random.nextInt(25)) // 1~25일
 
                         // 시간 랜덤 (오전/오후)
-                        calendar.set(java.util.Calendar.HOUR_OF_DAY, random.nextInt(24))
-                        calendar.set(java.util.Calendar.MINUTE, random.nextInt(60))
-                        calendar.set(java.util.Calendar.SECOND, 0)
-                        calendar.set(java.util.Calendar.MILLISECOND, 0)
+                        calendar.set(Calendar.HOUR_OF_DAY, random.nextInt(24))
+                        calendar.set(Calendar.MINUTE, random.nextInt(60))
+                        calendar.set(Calendar.SECOND, 0)
+                        calendar.set(Calendar.MILLISECOND, 0)
 
                         val startTime = calendar.timeInMillis
 
@@ -133,7 +139,7 @@ class Tab04ViewModel(application: Application) : AndroidViewModel(application) {
                         val isCompleted = random.nextFloat() > 0.3f // 70% 성공률
 
                         // JSON 생성
-                        val obj = org.json.JSONObject().apply {
+                        val obj = JSONObject().apply {
                             put("id", "${startTime}_mock")
                             put("startTime", startTime)
                             put("endTime", endTime)
@@ -144,8 +150,8 @@ class Tab04ViewModel(application: Application) : AndroidViewModel(application) {
                         }
                         records.put(obj)
 
-                        android.util.Log.d("Tab04ViewModel",
-                            "생성: ${targetYear}년 ${calendar.get(java.util.Calendar.MONTH) + 1}월 - ${durationDays}일 (${if (isCompleted) "성공" else "실패"})")
+                        Log.d("Tab04ViewModel",
+                            "생성: ${targetYear}년 ${calendar.get(Calendar.MONTH) + 1}월 - ${durationDays}일 (${if (isCompleted) "성공" else "실패"})")
                     }
                 }
 
@@ -154,9 +160,9 @@ class Tab04ViewModel(application: Application) : AndroidViewModel(application) {
                     putString(Constants.PREF_SOBRIETY_RECORDS, records.toString())
                 }
 
-                android.util.Log.d("Tab04ViewModel", "랜덤 데이터 생성 완료: 총 ${records.length()}개 기록")
+                Log.d("Tab04ViewModel", "랜덤 데이터 생성 완료: 총 ${records.length()}개 기록")
             } catch (e: Exception) {
-                android.util.Log.e("Tab04ViewModel", "랜덤 데이터 생성 실패", e)
+                Log.e("Tab04ViewModel", "랜덤 데이터 생성 실패", e)
             }
         }
     }
@@ -172,9 +178,9 @@ class Tab04ViewModel(application: Application) : AndroidViewModel(application) {
                     remove(Constants.PREF_START_TIME)
                     putBoolean(Constants.PREF_TIMER_COMPLETED, false)
                 }
-                android.util.Log.d("Tab04ViewModel", "모든 기록 삭제 완료")
+                Log.d("Tab04ViewModel", "모든 기록 삭제 완료")
             } catch (e: Exception) {
-                android.util.Log.e("Tab04ViewModel", "기록 삭제 실패", e)
+                Log.e("Tab04ViewModel", "기록 삭제 실패", e)
             }
         }
     }
