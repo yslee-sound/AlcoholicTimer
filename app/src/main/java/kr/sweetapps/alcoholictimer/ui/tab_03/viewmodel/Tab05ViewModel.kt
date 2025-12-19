@@ -1,10 +1,10 @@
 package kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.preference.PreferenceManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -47,28 +47,18 @@ class Tab05ViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
-    private var sharedPreferences: SharedPreferences? = null
     private var userRepository: UserRepository? = null
 
-    /**
-     * ViewModel 초기화 - SharedPreferences 설정 및 닉네임 로드
-     * @param context Android Context
-     * @param defaultNickname 기본 닉네임 (리소스에서 가져온 값)
-     */
     fun initialize(context: Context, defaultNickname: String) {
-        if (sharedPreferences == null) {
-            sharedPreferences = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
+        if (userRepository == null) {
             userRepository = UserRepository(context)
             loadNickname(defaultNickname)
             loadAvatarIndex()
         }
     }
 
-    /**
-     * SharedPreferences에서 닉네임 로드
-     */
     private fun loadNickname(defaultNickname: String) {
-        val savedNickname = sharedPreferences?.getString("nickname", defaultNickname) ?: defaultNickname
+        val savedNickname = userRepository?.getNickname() ?: defaultNickname
         _uiState.update { it.copy(nickname = savedNickname) }
     }
 
@@ -150,7 +140,8 @@ class Tab05ViewModel : ViewModel() {
      */
     fun generateRandomMockData(context: Context) {
         try {
-            val prefs = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
+            // [FIX] 표준 저장소 사용
+            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
             val records = JSONArray()
             val calendar = Calendar.getInstance()
             val currentYear = calendar.get(Calendar.YEAR)
@@ -222,7 +213,8 @@ class Tab05ViewModel : ViewModel() {
      */
     fun clearAllRecords(context: Context) {
         try {
-            val prefs = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
+            // [FIX] 표준 저장소 사용
+            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
             prefs.edit().apply {
                 remove("sobriety_records")
                 remove("start_time")

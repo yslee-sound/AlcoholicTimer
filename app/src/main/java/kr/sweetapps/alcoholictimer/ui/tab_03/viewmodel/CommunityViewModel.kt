@@ -165,13 +165,9 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                     }
                 }
 
-                // 2. 익명 닉네임 랜덤 생성
-                val anonymousNicknames = listOf(
-                    "익명의 사자", "참는 중인 호랑이", "새벽의 독수리", "조용한 늑대",
-                    "밤하늘의 별", "아침의 햇살", "강한 곰", "자유로운 독수리",
-                    "평화로운 사슴", "용감한 여우"
-                )
-                val nickname = anonymousNicknames.random()
+                // 2. [Standard] 사용자 닉네임 가져오기
+                val nickname = userRepository.getNickname() ?: "익명"
+                android.util.Log.d("CommunityViewModel", "사용할 닉네임: $nickname")
 
                 // 3. 사용자의 현재 아바타 인덱스 가져오기
                 val avatarIndex = try {

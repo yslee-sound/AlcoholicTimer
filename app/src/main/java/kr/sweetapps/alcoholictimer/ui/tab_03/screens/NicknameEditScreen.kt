@@ -1,6 +1,5 @@
 package kr.sweetapps.alcoholictimer.ui.tab_03.screens
 
-import android.content.Context
 import android.content.SharedPreferences
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,11 +23,13 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
+import androidx.preference.PreferenceManager
 import kr.sweetapps.alcoholictimer.R
+import kr.sweetapps.alcoholictimer.data.repository.UserRepository
+import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,7 +39,9 @@ fun NicknameEditScreen(
     onCancel: () -> Unit
 ) {
     val context = LocalContext.current
-    val sp = remember { context.getSharedPreferences("user_settings", Context.MODE_PRIVATE) }
+    val userRepository = remember { UserRepository(context) }
+    // [FIX] "user_settings" 대신 표준 저장소 사용 -> UserRepository와 동기화
+    val sp = remember { PreferenceManager.getDefaultSharedPreferences(context) }
     val currentNickname = remember { sp.getString("nickname", context.getString(R.string.default_nickname)) ?: context.getString(R.string.default_nickname) }
     var nicknameText by rememberSaveable { mutableStateOf(currentNickname) }
     val focusRequester = remember { FocusRequester() }
