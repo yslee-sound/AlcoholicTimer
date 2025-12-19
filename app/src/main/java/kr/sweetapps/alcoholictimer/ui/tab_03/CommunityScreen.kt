@@ -23,7 +23,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -37,6 +40,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -59,6 +63,9 @@ fun CommunityScreen(
 
     // 글쓰기 화면 표시 상태
     var isWritingScreenVisible by remember { mutableStateOf(false) }
+
+    // [NEW] Phase 3: 게시글 옵션 바텀 시트
+    var selectedPost by remember { mutableStateOf<kr.sweetapps.alcoholictimer.data.model.Post?>(null) }
 
     // [중요] 글쓰기 화면이 열려있을 때 뒤로가기 버튼 누르면 앱 종료 대신 글쓰기 창 닫기
     BackHandler(enabled = isWritingScreenVisible) {
@@ -158,7 +165,7 @@ fun CommunityScreen(
                                     authorAvatarIndex = item.authorAvatarIndex, // [NEW] 아바타 인덱스 전달
                                     onLikeClick = { viewModel.toggleLike(item.id) },
                                     onCommentClick = { },
-                                    onMoreClick = { }
+                                    onMoreClick = { selectedPost = item } // [NEW] Phase 3: 바텀 시트 열기
                                 )
                             }
                             HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
@@ -218,6 +225,130 @@ fun CommunityScreen(
                         onDismiss = { triggerClose() } // [FIX] 뒤로가기 시 애니메이션 종료
                     )
                 }
+            }
+        }
+
+        // === 3. 게시글 옵션 바텀 시트 (Phase 3) ===
+        selectedPost?.let { post ->
+            ModalBottomSheet(
+                onDismissRequest = { selectedPost = null },
+                containerColor = Color.White
+            ) {
+                PostOptionsBottomSheet(
+                    post = post,
+                    isMyPost = viewModel.isMyPost(post),
+                    onDelete = {
+                        viewModel.deletePost(post.id)
+                        selectedPost = null
+                    },
+                    onHide = {
+                        viewModel.hidePost(post.id)
+                        selectedPost = null
+                    },
+                    onReport = {
+                        viewModel.reportPost(post.id)
+                        selectedPost = null
+                        // 토스트 메시지 표시
+                        android.widget.Toast.makeText(
+                            context,
+                            "신고가 접수되었습니다",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                )
+            }
+        }
+    }
+}
+
+/**
+ * [NEW] Phase 3: 게시글 옵션 바텀 시트
+ * 내 글: 삭제만
+ * 남의 글: 숨기기, 신고하기
+ */
+@Composable
+private fun PostOptionsBottomSheet(
+    post: kr.sweetapps.alcoholictimer.data.model.Post,
+    isMyPost: Boolean,
+    onDelete: () -> Unit,
+    onHide: () -> Unit,
+    onReport: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 24.dp)
+    ) {
+        // 타이틀
+        Text(
+            text = if (isMyPost) "게시글 관리" else "게시글 옵션",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black,
+            modifier = Modifier.padding(start = 20.dp, top = 8.dp, bottom = 12.dp)
+        )
+
+        if (isMyPost) {
+            // 내 글: 삭제 메뉴만
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onDelete() }
+                    .padding(horizontal = 20.dp, vertical = 16.dp)
+            ) {
+                Icon(
+                    imageVector = androidx.compose.material.icons.Icons.Outlined.Delete,
+                    contentDescription = null,
+                    tint = Color(0xFF1F2937)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = "게시글 삭제",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color(0xFF1F2937)
+                )
+            }
+        } else {
+            // 남의 글: 숨기기, 신고하기
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onHide() }
+                    .padding(horizontal = 20.dp, vertical = 16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.VisibilityOff,
+                    contentDescription = null,
+                    tint = Color(0xFF1F2937)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = "이 게시글 숨기기",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color(0xFF1F2937)
+                )
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onReport() }
+                    .padding(horizontal = 20.dp, vertical = 16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Warning,
+                    contentDescription = null,
+                    tint = Color(0xFF1F2937)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = "게시글 신고하기",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color(0xFF1F2937)
+                )
             }
         }
     }

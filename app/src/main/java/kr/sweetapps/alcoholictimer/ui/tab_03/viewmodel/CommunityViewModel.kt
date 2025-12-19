@@ -27,10 +27,18 @@ import java.util.UUID
  * - UserRepository를 통해 사용자의 아바타 인덱스 관리
  * (v2.1) WritePostTrigger 아바타 실시간 반영
  * (v2.2) 이미지 업로드 기능 추가 (2025-12-19)
+ * (v3.0) 게시글 관리 기능 추가 (2025-12-20):
+ * - authorId를 통한 소유권 식별
+ * - 삭제, 숨기기, 신고 기능
  */
 class CommunityViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = CommunityRepository()
     private val userRepository = UserRepository(application.applicationContext) // 아바타 관리용
+
+    // [NEW] Phase 3: 기기 고유 ID (Installation ID)
+    private val deviceUserId: String by lazy {
+        userRepository.getInstallationId()
+    }
 
     private val _posts = MutableStateFlow<List<Post>>(emptyList())
     val posts: StateFlow<List<Post>> = _posts.asStateFlow()
@@ -46,9 +54,19 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     private val _selectedImageUri = MutableStateFlow<Uri?>(null)
     val selectedImageUri: StateFlow<Uri?> = _selectedImageUri.asStateFlow()
 
+    // [NEW] Phase 3: 숨긴 게시글 ID 목록 (메모리 저장)
+    private val _hiddenPostIds = MutableStateFlow<Set<String>>(emptySet())
+
     init {
         loadPosts()
         loadCurrentUserAvatar() // [NEW] 사용자 아바타 로드
+    }
+
+    /**
+     * [NEW] Phase 3: 이 게시글이 내 글인지 확인
+     */
+    fun isMyPost(post: Post): Boolean {
+        return post.authorId == deviceUserId
     }
 
     /**
@@ -84,12 +102,16 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
 
     /**
      * Firestore에서 게시글 실시간 구독
+     * [NEW] Phase 3: 숨긴 게시글 필터링
      */
     private fun loadPosts() {
         viewModelScope.launch {
             _isLoading.value = true
             repository.getPosts().collect { postList ->
-                _posts.value = postList
+                // [NEW] 숨긴 게시글 제외
+                _posts.value = postList.filter { post ->
+                    !_hiddenPostIds.value.contains(post.id)
+                }
                 _isLoading.value = false
             }
         }
@@ -176,7 +198,8 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                     likeCount = 0,
                     createdAt = createdAt,
                     deleteAt = deleteAt,
-                    authorAvatarIndex = avatarIndex
+                    authorAvatarIndex = avatarIndex,
+                    authorId = deviceUserId // [NEW] Phase 3: 작성자 기기 ID
                 )
 
                 // 7. Firestore에 저장
@@ -205,5 +228,65 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
         // 현재는 랜덤으로 생성
         val hours = (24..240).random()
         return "${hours}시간"
+    }
+
+    // ==================== Phase 3: 게시글 관리 기능 ====================
+
+    /**
+     * [NEW] 게시글 삭제 (내 글만 가능)
+     */
+    fun deletePost(postId: String) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                // Firestore에서 삭제
+                val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                firestore.collection("posts").document(postId).delete().await()
+
+                android.util.Log.d("CommunityViewModel", "게시글 삭제 완료: $postId")
+
+                // 목록 새로고침 (자동으로 제거됨)
+                // loadPosts() 호출 불필요 (실시간 리스너가 자동 업데이트)
+            } catch (e: Exception) {
+                android.util.Log.e("CommunityViewModel", "게시글 삭제 실패", e)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    /**
+     * [NEW] 게시글 숨기기 (남의 글)
+     */
+    fun hidePost(postId: String) {
+        _hiddenPostIds.value = _hiddenPostIds.value + postId
+        // 목록에서 필터링 (loadPosts의 filter 로직이 자동 적용)
+        _posts.value = _posts.value.filter { it.id != postId }
+        android.util.Log.d("CommunityViewModel", "게시글 숨김 처리: $postId")
+    }
+
+    /**
+     * [NEW] 게시글 신고하기 (남의 글)
+     */
+    fun reportPost(postId: String) {
+        viewModelScope.launch {
+            try {
+                val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                val reportData = hashMapOf(
+                    "targetPostId" to postId,
+                    "reason" to "부적절한 콘텐츠",
+                    "reportedAt" to com.google.firebase.Timestamp.now(),
+                    "reporterId" to deviceUserId
+                )
+
+                firestore.collection("reports").add(reportData).await()
+                android.util.Log.d("CommunityViewModel", "신고 접수 완료: $postId")
+
+                // 신고 후 자동으로 숨기기
+                hidePost(postId)
+            } catch (e: Exception) {
+                android.util.Log.e("CommunityViewModel", "신고 실패", e)
+            }
+        }
     }
 }

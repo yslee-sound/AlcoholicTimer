@@ -20,6 +20,21 @@ class UserRepository(private val context: Context) {
     companion object {
         private const val TAG = "UserRepository"
         private const val KEY_AVATAR_INDEX = "avatar_index"
+        private const val KEY_INSTALLATION_ID = "installation_id"
+    }
+
+    /**
+     * [NEW] Phase 3: 기기 고유 ID 가져오기
+     * 앱 설치 시 한 번만 생성되고 계속 유지됨
+     */
+    fun getInstallationId(): String {
+        var installationId = prefs.getString(KEY_INSTALLATION_ID, null)
+        if (installationId == null) {
+            installationId = java.util.UUID.randomUUID().toString()
+            prefs.edit().putString(KEY_INSTALLATION_ID, installationId).apply()
+            Log.d(TAG, "새로운 Installation ID 생성: $installationId")
+        }
+        return installationId
     }
 
     /**

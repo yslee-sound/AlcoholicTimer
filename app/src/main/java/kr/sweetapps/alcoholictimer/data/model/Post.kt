@@ -11,6 +11,9 @@ import com.google.firebase.firestore.PropertyName
  * (v2.0) 아바타 시스템 추가:
  * - authorAvatarIndex: 작성자의 아바타 인덱스 (0~19)
  * - 기존 Firestore 데이터와의 하위 호환성 유지
+ *
+ * (v3.0) 게시글 관리 기능:
+ * - authorId: 작성자 기기 고유 ID (소유권 식별용)
  */
 data class Post(
     @DocumentId
@@ -25,6 +28,10 @@ data class Post(
 
     // [NEW] 아바타 시스템
     @PropertyName("authorAvatarIndex")
-    val authorAvatarIndex: Int = 0 // 기본값 0 (avatar_00) - 하위 호환성 확보
+    val authorAvatarIndex: Int = 0, // 기본값 0 (avatar_00) - 하위 호환성 확보
+
+    // [NEW] Phase 3: 게시글 관리 (소유권 식별)
+    @PropertyName("authorId")
+    val authorId: String = "" // 기본값 "" - 하위 호환성 확보
 )
 
