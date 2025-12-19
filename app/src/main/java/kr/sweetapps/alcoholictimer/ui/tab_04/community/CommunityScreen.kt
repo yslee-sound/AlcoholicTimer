@@ -1,8 +1,6 @@
 package kr.sweetapps.alcoholictimer.ui.tab_04.community
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,6 +21,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.tab_04.viewmodel.CommunityViewModel
@@ -131,38 +131,34 @@ fun CommunityScreen(
             }
         }
 
-        // === 2. 글쓰기 전체 화면 (앞에 덮이는 화면) ===
-        // Dialog 대신 AnimatedVisibility를 사용하여 부드러운 Slide Up 구현
-        AnimatedVisibility(
-            visible = isWritingScreenVisible,
-            enter = slideInVertically(
-                initialOffsetY = { fullHeight -> fullHeight }, // 화면 아래에서 위로
-                animationSpec = tween(durationMillis = 300) // 0.3초 동안 부드럽게
-            ),
-            exit = slideOutVertically(
-                targetOffsetY = { fullHeight -> fullHeight }, // 다시 아래로
-                animationSpec = tween(durationMillis = 300)
-            ),
-            modifier = Modifier.align(Alignment.BottomCenter) // 아래쪽에 배치
-        ) {
-            // [MODIFIED] 여기가 진짜 글쓰기 화면 내용 - viewModel 전달 추가 (2025-12-19)
-            WritePostScreenContent(
-                viewModel = viewModel, // [NEW] ViewModel 전달
-                onPost = { content ->
-                    viewModel.addPost(content)
-                    isWritingScreenVisible = false
-                },
-                onDismiss = { isWritingScreenVisible = false }
-            )
+        // === 2. 글쓰기 전체 화면 (최상위 레이어) ===
+        // [MODIFIED] Dialog로 변경하여 메인 BottomNavBar를 덮고 키보드와 1:1로 만남 (2025-12-19)
+        if (isWritingScreenVisible) {
+            Dialog(
+                onDismissRequest = { isWritingScreenVisible = false },
+                properties = DialogProperties(
+                    usePlatformDefaultWidth = false, // 가로 꽉 차게
+                    decorFitsSystemWindows = false   // 시스템 바 영역까지 제어 (Edge-to-Edge)
+                )
+            ) {
+                WritePostScreenContent(
+                    viewModel = viewModel,
+                    onPost = { content ->
+                        viewModel.addPost(content)
+                        isWritingScreenVisible = false
+                    },
+                    onDismiss = { isWritingScreenVisible = false }
+                )
+            }
         }
     }
 }
 
 /**
  * 글쓰기 화면의 내부 콘텐츠 (별도 Composable로 분리하여 깔끔하게 정리)
- * [MODIFIED] 사용자 아바타 연동 (2025-12-19)
+ * [MODIFIED] 사용자 아바타 연동 + bottomBar 구조로 리팩토링 (2025-12-19)
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class) // [NEW] ExperimentalLayoutApi 추가 (isImeVisible 사용)
 @Composable
 private fun WritePostScreenContent(
     viewModel: CommunityViewModel, // [NEW] ViewModel 주입
@@ -176,8 +172,11 @@ private fun WritePostScreenContent(
 
     // 전체 화면을 흰색으로 덮음
     Scaffold(
-        modifier = Modifier.fillMaxSize(), // 전체 화면 꽉 채우기
+        modifier = Modifier
+            .fillMaxSize()
+            .imePadding(), // [FIX] 키보드가 올라오면 Scaffold 전체 높이를 줄여서 bottomBar가 키보드 위로 올라오도록 함 (2025-12-19)
         containerColor = Color.White,
+        contentWindowInsets = WindowInsets.systemBars, // [FIX] 기본값 사용 - 시스템 바만 계산 (2025-12-19)
         topBar = {
             TopAppBar(
                 title = {
@@ -214,18 +213,59 @@ private fun WritePostScreenContent(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
+        },
+        // [NEW] bottomBar로 사진 추가 버튼 이동 (2025-12-19)
+        bottomBar = {
+            // [FIX] 키보드 가시성에 따라 조건부 패딩 적용
+            val isImeVisible = WindowInsets.isImeVisible
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White) // 배경 흰색으로 고정
+                    .windowInsetsPadding(
+                        if (isImeVisible) WindowInsets(0) else WindowInsets.navigationBars
+                    ) // 키보드 보이면 패딩 없음, 아니면 네비게이션바 높이만큼
+            ) {
+                // 상단 구분선
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = Color(0xFFE0E0E0)
+                )
+
+                // 사진 추가 버튼 (목록형)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { /* TODO: 이미지 선택 로직 */ }
+                        .padding(vertical = 12.dp, horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Image,
+                        contentDescription = "사진",
+                        tint = Color(0xFF4CAF50) // 초록색 아이콘
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "사진 추가",
+                        color = Color(0xFF1F2937),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
         }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(16.dp)
-                // 키보드가 올라오면 패딩 자동 조절 (Manifest에 windowSoftInputMode="adjustResize" 필요)
-                .imePadding()
+                .padding(innerPadding) // [FIX] Scaffold가 bottomBar 높이를 자동으로 계산하여 innerPadding에 포함
         ) {
             // [MODIFIED] 프로필 영역 - 실제 사용자 아바타 표시 (2025-12-19)
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(all = 16.dp) // [NEW] 개별 패딩 적용
+            ) {
                 // [NEW] 2 & 3. 실제 아바타 데이터 바인딩
                 Image(
                     painter = painterResource(
@@ -251,15 +291,14 @@ private fun WritePostScreenContent(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
             // 텍스트 입력창
             TextField(
                 value = content,
                 onValueChange = { content = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f), // 남은 공간 모두 차지
+                    .weight(1f) // 남은 공간 모두 차지
+                    .padding(horizontal = 16.dp), // [NEW] 좌우 패딩만 적용
                 placeholder = {
                     Text(
                         text = "오늘 하루는 어땠나요? 솔직한 이야기를 들려주세요.",
@@ -275,32 +314,6 @@ private fun WritePostScreenContent(
                 ),
                 textStyle = MaterialTheme.typography.bodyLarge
             )
-
-            // 하단 툴바 (이미지 추가 등)
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE0E0E0)),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .padding(12.dp)
-                        .clickable { /* TODO: 이미지 선택 로직 */ },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Image,
-                        contentDescription = "사진",
-                        tint = Color(0xFF4CAF50) // 초록색 아이콘
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "사진 추가",
-                        color = Color(0xFF1F2937),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
         }
     }
 }
