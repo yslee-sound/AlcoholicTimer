@@ -30,6 +30,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,8 +45,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.tab_03.screens.PostItem
 import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.CommunityViewModel
@@ -819,7 +820,8 @@ private fun NativeAdItem() {
     // 네이티브 고급 광고 테스트 ID: ca-app-pub-3940256099942544/2247696110
     // [TODO] 배포 전 반드시 애드몹 콘솔에서 발급받은 네이티브 광고 단위 ID로 교체하세요!
     // 현재는 플레이스홀더가 사용됩니다. (테스트용 ID 백업: "ca-app-pub-3940256099942544/2247696110")
-    val adUnitId = "실제_광고_ID_여기에_입력"
+    // [FIX] BuildConfig에서 빌드타입(Debug/Release)에 따라 자동으로 주입됩니다.
+    val adUnitId = try { BuildConfig.ADMOB_NATIVE_ID } catch (_: Throwable) { "" }
 
     // 광고가 로드되면 UI를 갱신하기 위한 State
     var nativeAd by remember { mutableStateOf<com.google.android.gms.ads.nativead.NativeAd?>(null) }

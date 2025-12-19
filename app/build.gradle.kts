@@ -177,12 +177,15 @@ android {
             val adMobAppId = getAdMobKey("ADMOB_APP_ID", "RELEASE")
             val adMobInterstitialId = getAdMobKey("ADMOB_INTERSTITIAL_ID", "RELEASE")
             val adMobOpenId = getAdMobKey("ADMOB_OPEN_ID", "RELEASE")
+            // [NEW] Native Ad Unit ID (Release)
+            val adMobNativeId = getAdMobKey("ADMOB_NATIVE_ID", "RELEASE")
 
             // Manifest용 (App ID)
             manifestPlaceholders["ADMOB_APP_ID"] = adMobAppId
 
             // Kotlin 코드용 (BuildConfig)
             buildConfigField("String", "ADMOB_INTERSTITIAL_UNIT_ID", "\"$adMobInterstitialId\"")
+            buildConfigField("String", "ADMOB_NATIVE_ID", "\"$adMobNativeId\"")
             buildConfigField("String", "ADMOB_APP_OPEN_UNIT_ID", "\"$adMobOpenId\"")
 
             // [DEPRECATED] 배너 광고는 제거되었지만 호환성을 위해 빈 문자열 유지
@@ -200,12 +203,15 @@ android {
             val adMobAppId = getAdMobKey("ADMOB_APP_ID", "DEBUG")
             val adMobInterstitialId = getAdMobKey("ADMOB_INTERSTITIAL_ID", "DEBUG")
             val adMobOpenId = getAdMobKey("ADMOB_OPEN_ID", "DEBUG")
+            // [NEW] Native Ad Unit ID (Debug)
+            val adMobNativeId = getAdMobKey("ADMOB_NATIVE_ID", "DEBUG")
 
             // Manifest용 (App ID)
             manifestPlaceholders["ADMOB_APP_ID"] = adMobAppId
 
             // Kotlin 코드용 (BuildConfig)
             buildConfigField("String", "ADMOB_INTERSTITIAL_UNIT_ID", "\"$adMobInterstitialId\"")
+            buildConfigField("String", "ADMOB_NATIVE_ID", "\"$adMobNativeId\"")
             buildConfigField("String", "ADMOB_APP_OPEN_UNIT_ID", "\"$adMobOpenId\"")
 
             // [DEPRECATED] 배너 광고는 제거되었지만 호환성을 위해 빈 문자열 유지
