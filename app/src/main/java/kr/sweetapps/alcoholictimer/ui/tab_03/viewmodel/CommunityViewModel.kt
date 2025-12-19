@@ -61,6 +61,9 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     // [NEW] Phase 3: 숨긴 게시글 ID 목록 (메모리 저장)
     private val _hiddenPostIds = MutableStateFlow<Set<String>>(emptySet())
 
+    // [NEW] 최근 숨긴 게시글 임시 저장 (Undo 지원용)
+    private val _recentlyHiddenPosts = MutableStateFlow<Map<String, Post>>(emptyMap())
+
     init {
         loadPosts()
         loadCurrentUserAvatar() // [NEW] 사용자 아바타 로드
@@ -144,15 +147,45 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     /**
-     * 좋아요 토글 (Phase 2: UI만, 실제 저장은 Phase 3)
+     * 좋아요 여부 확인 (내가 좋아요 했는지)
      */
-    fun toggleLike(postId: String) {
-        _posts.value = _posts.value.map { post ->
-            if (post.id == postId) {
-                // Phase 2: 로컬 상태만 변경 (Phase 3에서 Firestore 업데이트 추가)
-                post.copy(likeCount = post.likeCount + 1)
-            } else {
-                post
+    fun isLikedByMe(post: Post): Boolean {
+        return post.likedBy.contains(deviceUserId)
+    }
+
+    /**
+     * 좋아요 토글 (Optimistic UI update + Firestore arrayUnion/arrayRemove)
+     */
+    fun toggleLike(post: Post) {
+        val isLiked = isLikedByMe(post)
+        val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+        val postRef = firestore.collection("posts").document(post.id)
+
+        // 1) 낙관적 업데이트
+        val updatedList = if (isLiked) post.likedBy - deviceUserId else post.likedBy + deviceUserId
+        val updatedCount = if (isLiked) post.likeCount - 1 else post.likeCount + 1
+
+        _posts.value = _posts.value.map { p ->
+            if (p.id == post.id) p.copy(likedBy = updatedList, likeCount = updatedCount) else p
+        }
+
+        // 2) 서버 업데이트 비동기
+        viewModelScope.launch {
+            try {
+                if (isLiked) {
+                    postRef.update(
+                        "likeCount", com.google.firebase.firestore.FieldValue.increment(-1),
+                        "likedBy", com.google.firebase.firestore.FieldValue.arrayRemove(deviceUserId)
+                    ).await()
+                } else {
+                    postRef.update(
+                        "likeCount", com.google.firebase.firestore.FieldValue.increment(1),
+                        "likedBy", com.google.firebase.firestore.FieldValue.arrayUnion(deviceUserId)
+                    ).await()
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("CommunityViewModel", "좋아요 업데이트 실패", e)
+                // MVP: 롤백 생략 (선택적으로 재요청 또는 롤백 가능)
             }
         }
     }
@@ -283,39 +316,79 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
      * [NEW] 게시글 숨기기 (남의 글)
      */
     fun hidePost(postId: String) {
+        // 1) 현재 화면 리스트에서 해당 Post 객체를 찾아 임시 저장
+        val post = _posts.value.find { it.id == postId }
+        if (post != null) {
+            _recentlyHiddenPosts.value = _recentlyHiddenPosts.value + (postId to post)
+        }
+
+        // 2) 숨김 세트에 추가
         _hiddenPostIds.value = _hiddenPostIds.value + postId
-        // 목록에서 필터링 (loadPosts의 filter 로직이 자동 적용)
+
+        // 3) 목록에서 필터링 (UI 즉시 반영)
         _posts.value = _posts.value.filter { it.id != postId }
         android.util.Log.d("CommunityViewModel", "게시글 숨김 처리: $postId")
     }
 
     /**
-     * [NEW] 게시글 신고하기 (남의 글)
+     * [NEW] 숨김 취소(Undo)
      */
-    fun reportPost(postId: String) {
+    fun undoHidePost(postId: String) {
+        // 1) 숨김 세트에서 제거
+        _hiddenPostIds.value = _hiddenPostIds.value - postId
+
+        // 2) 임시 저장된 Post가 있으면 목록에 복구 (최상단에 삽입)
+        val restoredPost = _recentlyHiddenPosts.value[postId]
+        if (restoredPost != null) {
+            _posts.value = listOf(restoredPost) + _posts.value
+            // 임시 저장소에서 제거
+            _recentlyHiddenPosts.value = _recentlyHiddenPosts.value - postId
+            android.util.Log.d("CommunityViewModel", "숨김 복구(Undo) 처리: $postId")
+        } else {
+            // 만약 임시 저장이 없다면, repository의 실시간 흐름에서 곧 복구될 것임
+            android.util.Log.d("CommunityViewModel", "숨김 복구 시도: 데이터가 없어 즉시 복구되지 않을 수 있음: $postId")
+        }
+    }
+
+    /**
+     * [NEW] 게시글 신고하기 (남의 글)
+     * 중복 신고 방지 및 5회 누적 시 자동 삭제
+     */
+    fun reportPost(postId: String, context: Context) {
         viewModelScope.launch {
             try {
                 val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+
+                // 1) 중복 신고 여부 확인
+                val dupQuery = firestore.collection("reports")
+                    .whereEqualTo("targetPostId", postId)
+                    .whereEqualTo("reporterId", deviceUserId)
+                    .get()
+                    .await()
+
+                if (!dupQuery.isEmpty) {
+                    android.util.Log.w("CommunityViewModel", "중복 신고 차단: $postId")
+                    android.widget.Toast.makeText(context, "이미 신고한 게시글입니다.", android.widget.Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+
                 val postRef = firestore.collection("posts").document(postId)
 
-                // 트랜잭션으로 안전하게 처리: 신고 저장 + 카운트 증가 + 자동 삭제
+                // 2) 트랜잭션으로 신고 처리
                 firestore.runTransaction { transaction ->
                     val snapshot = transaction.get(postRef)
 
-                    // 게시글이 존재할 때만 카운트 증가/삭제 로직 수행
                     if (snapshot.exists()) {
                         val currentReports = snapshot.getLong("reportCount") ?: 0L
                         val newReportCount = currentReports + 1L
 
                         if (newReportCount >= 5L) {
-                            // 신고 5회 누적 시 -> 게시글 자동 삭제
                             transaction.delete(postRef)
                         } else {
-                            // 아직 임계치 미만이면 reportCount 필드 업데이트
                             transaction.update(postRef, "reportCount", newReportCount)
                         }
 
-                        // 신고 내역 저장 (관리자 참고용)
+                        // 신고 내역 기록
                         val reportRef = firestore.collection("reports").document()
                         val reportData = hashMapOf<String, Any>(
                             "targetPostId" to postId,
@@ -324,23 +397,20 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                             "reporterId" to deviceUserId
                         )
                         transaction.set(reportRef, reportData)
-                    } else {
-                        // 게시글이 이미 없을 경우에도 신고 로그는 남겨둡니다 (트랜잭션 외부에 기록)
                     }
 
-                    // 트랜잭션 블록의 반환값은 무시
                     null
                 }.await()
 
-                android.util.Log.d("CommunityViewModel", "신고 처리 완료(트랜잭션): $postId")
+                android.util.Log.d("CommunityViewModel", "신고 및 카운트 증가 완료: $postId")
+                android.widget.Toast.makeText(context, "신고가 접수되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
 
-                // 신고한 사용자의 화면에서는 즉시 숨김 처리
+                // 3) UI에서 즉시 숨김
                 hidePost(postId)
 
             } catch (e: Exception) {
                 android.util.Log.e("CommunityViewModel", "신고 실패", e)
-                // 실패 시에도 사용자에게 즉시 숨김 처리 적용 (로컬 편의)
-                try { hidePost(postId) } catch (_: Throwable) {}
+                try { android.widget.Toast.makeText(context, "오류가 발생했습니다.", android.widget.Toast.LENGTH_SHORT).show() } catch (_: Throwable) {}
             }
         }
     }

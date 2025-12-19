@@ -23,6 +23,8 @@ data class Post(
     val content: String = "",
     val imageUrl: String? = null, // 이미지 선택사항
     val likeCount: Int = 0,
+    // [NEW] 좋아요한 사용자 ID 목록 (MVP: 기본값 빈 리스트)
+    val likedBy: List<String> = emptyList(),
     val createdAt: Timestamp = Timestamp.now(),
     val deleteAt: Timestamp = Timestamp.now(), // 24시간 후 삭제 예정 시간
 
@@ -34,4 +36,3 @@ data class Post(
     @PropertyName("authorId")
     val authorId: String = "" // 기본값 "" - 하위 호환성 확보
 )
-

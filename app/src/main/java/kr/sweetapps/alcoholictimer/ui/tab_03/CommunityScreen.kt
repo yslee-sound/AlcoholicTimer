@@ -61,6 +61,7 @@ import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.CommunityViewModel
 // import android.widget.Button
 // import android.widget.ImageView
 // import android.widget.TextView
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,6 +74,10 @@ fun CommunityScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsState() // [NEW] Pull-to-Refresh 상태 (2025-12-20)
     val currentUserAvatarIndex by viewModel.currentUserAvatarIndex.collectAsState() // [NEW] 현재 사용자 아바타
     val context = LocalContext.current // [NEW] Context 가져오기 (2025-12-19)
+
+    // [UI State] Snackbar를 위한 상태 및 스코프
+    val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     // 글쓰기 화면 표시 상태
     var isWritingScreenVisible by remember { mutableStateOf(false) }
@@ -115,7 +120,8 @@ fun CommunityScreen(
                         titleContentColor = Color(0xFF111111)
                     )
                 )
-            }
+            },
+            snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { innerPadding ->
             Box(
                 modifier = Modifier
@@ -180,14 +186,30 @@ fun CommunityScreen(
                                         content = item.content,
                                         imageUrl = item.imageUrl,
                                         likeCount = item.likeCount,
-                                        isLiked = false,
+                                        isLiked = viewModel.isLikedByMe(item),
                                         remainingTime = calculateRemainingTime(item.deleteAt),
                                         authorAvatarIndex = item.authorAvatarIndex, // [NEW] 아바타 인덱스 전달
                                         isMine = viewModel.isMyPost(item), // [NEW] Phase 3: 내 글 여부
-                                        onLikeClick = { viewModel.toggleLike(item.id) },
+                                        onLikeClick = { viewModel.toggleLike(item) },
                                         onCommentClick = { },
                                         onMoreClick = { selectedPost = item }, // [NEW] Phase 3: 바텀 시트 열기
-                                        onHideClick = { viewModel.hidePost(item.id) } // [NEW] Phase 3: 빠른 숨기기 (X 버튼)
+                                        onHideClick = {
+                                            // 1) 즉시 숨김 처리
+                                            viewModel.hidePost(item.id)
+
+                                            // 2) 스낵바로 Undo 제공
+                                            coroutineScope.launch {
+                                                val result = snackbarHostState.showSnackbar(
+                                                    message = "게시글이 숨겨졌습니다.",
+                                                    actionLabel = "되돌리기",
+                                                    duration = androidx.compose.material3.SnackbarDuration.Short
+                                                )
+
+                                                if (result == androidx.compose.material3.SnackbarResult.ActionPerformed) {
+                                                    viewModel.undoHidePost(item.id)
+                                                }
+                                            }
+                                        } // [NEW] Phase 3: 빠른 숨기기 + Undo
                                     )
                                 }
                                 // [MODIFIED] 디바이더 진하게 (페이스북 스타일) (2025-12-20)
@@ -270,14 +292,8 @@ fun CommunityScreen(
                         selectedPost = null
                     },
                     onReport = {
-                        viewModel.reportPost(post.id)
+                        viewModel.reportPost(post.id, context)
                         selectedPost = null
-                        // 토스트 메시지 표시
-                        android.widget.Toast.makeText(
-                            context,
-                            "신고가 접수되었습니다",
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
                     }
                 )
             }
