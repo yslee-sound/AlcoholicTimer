@@ -1,5 +1,7 @@
 package kr.sweetapps.alcoholictimer.ui.tab_02.components
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -8,16 +10,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -160,17 +161,27 @@ fun LevelSummaryBanner(
             // [DEBUG] 프로그레스 값 로깅
             android.util.Log.d("LevelSummaryBanner", "Progress value: $progress (${(progress * 100).toInt()}%)")
 
-            // [NEW] 표준 LinearProgressIndicator (얇고 둥글게)
-            LinearProgressIndicator(
-                progress = { progress.coerceIn(0f, 1f) }, // [FIX] 범위 강제 제한 추가
+            // [FIX] Box 기반 프로그레스 바 (레벨 화면과 동일한 스타일)
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(8.dp) // [FIX] 얇게 (12dp → 8dp)
-                    .clip(CircleShape), // [FIX] 배경 트랙까지 완벽한 알약 모양으로 깎기
-                color = Color(0xFF00E676), // 밝은 민트색
-                trackColor = Color.White.copy(alpha = 0.3f),
-                strokeCap = StrokeCap.Round
-            )
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(Color.White.copy(alpha = 0.3f))
+            ) {
+                val animatedProgress by animateFloatAsState(
+                    targetValue = progress.coerceIn(0f, 1f),
+                    animationSpec = tween(durationMillis = 1000),
+                    label = "progress"
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(animatedProgress)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(Color.White.copy(alpha = 0.9f))
+                )
+            }
         }
     }
 }
