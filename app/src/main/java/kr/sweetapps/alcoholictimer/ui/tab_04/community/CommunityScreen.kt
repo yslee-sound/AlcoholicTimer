@@ -4,15 +4,23 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.*
@@ -21,8 +29,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -139,23 +149,55 @@ fun CommunityScreen(
         }
 
         // === 2. 글쓰기 전체 화면 (최상위 레이어) ===
-        // [MODIFIED] Dialog로 변경하여 메인 BottomNavBar를 덮고 키보드와 1:1로 만남 (2025-12-19)
+        // [MODIFIED] Dialog + 슬라이드 애니메이션 (아래에서 위로) (2025-12-19)
         if (isWritingScreenVisible) {
             Dialog(
-                onDismissRequest = { isWritingScreenVisible = false },
+                onDismissRequest = { /* 하드웨어 백버튼은 내부 AnimatedVisibility에서 처리 */ },
                 properties = DialogProperties(
                     usePlatformDefaultWidth = false, // 가로 꽉 차게
                     decorFitsSystemWindows = false   // 시스템 바 영역까지 제어 (Edge-to-Edge)
                 )
             ) {
-                WritePostScreenContent(
-                    viewModel = viewModel,
-                    onPost = { content ->
-                        viewModel.addPost(content, context) // [MODIFIED] context 전달 (2025-12-19)
-                        isWritingScreenVisible = false
-                    },
-                    onDismiss = { isWritingScreenVisible = false }
-                )
+                // [NEW] 내부 애니메이션 상태 (2025-12-19)
+                var animateVisible by remember { mutableStateOf(false) }
+
+                // [NEW] 다이얼로그가 뜨면 즉시 애니메이션 시작
+                LaunchedEffect(Unit) { animateVisible = true }
+
+                // [NEW] 닫기 트리거 함수 (애니메이션 후 종료)
+                val triggerClose = {
+                    animateVisible = false
+                }
+
+                // [NEW] 애니메이션이 끝나면 실제 다이얼로그 닫기
+                LaunchedEffect(animateVisible) {
+                    if (!animateVisible) {
+                        kotlinx.coroutines.delay(300) // 애니메이션 시간 대기
+                        isWritingScreenVisible = false // 진짜 종료
+                    }
+                }
+
+                AnimatedVisibility(
+                    visible = animateVisible,
+                    enter = slideInVertically(
+                        initialOffsetY = { it }, // 화면 아래에서 위로
+                        animationSpec = tween(300)
+                    ),
+                    exit = slideOutVertically(
+                        targetOffsetY = { it }, // 화면 위에서 아래로
+                        animationSpec = tween(300)
+                    ),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    WritePostScreenContent(
+                        viewModel = viewModel,
+                        onPost = { content ->
+                            viewModel.addPost(content, context)
+                            triggerClose() // [FIX] 게시 후 애니메이션 종료
+                        },
+                        onDismiss = { triggerClose() } // [FIX] 뒤로가기 시 애니메이션 종료
+                    )
+                }
             }
         }
     }
@@ -163,7 +205,7 @@ fun CommunityScreen(
 
 /**
  * 글쓰기 화면의 내부 콘텐츠 (별도 Composable로 분리하여 깔끔하게 정리)
- * [MODIFIED] 사용자 아바타 연동 + bottomBar 구조 + 이미지 업로드 기능 (2025-12-19)
+ * [MODIFIED] 사용자 아바타 연동 + bottomBar 구조 + 이미지 업로드 기능 + 터치하여 키보드 닫기 + 스크롤 기능 추가 + 뒤로가기 방지 (2025-12-19)
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class) // [NEW] ExperimentalLayoutApi 추가 (isImeVisible 사용)
 @Composable
@@ -174,6 +216,9 @@ private fun WritePostScreenContent(
 ) {
     var content by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current // [NEW] FocusManager (2025-12-19)
+    val scrollState = rememberScrollState() // [NEW] 스크롤 상태 (2025-12-19)
+    var showWarningSheet by remember { mutableStateOf(false) } // [NEW] 경고 바텀 시트 표시 상태 (2025-12-19)
 
     // [NEW] 1. 상태 구독 - 현재 사용자의 아바타 인덱스
     val currentUserAvatarIndex by viewModel.currentUserAvatarIndex.collectAsState()
@@ -188,11 +233,31 @@ private fun WritePostScreenContent(
         viewModel.onImageSelected(uri)
     }
 
+    // [NEW] 4. 수정 상태 감지 (2025-12-19)
+    val isModified = content.isNotBlank() || selectedImageUri != null
+
+    // [NEW] 5. 뒤로가기 공통 로직 (2025-12-19)
+    val onBackAction = {
+        if (isModified) {
+            showWarningSheet = true
+        } else {
+            onDismiss()
+        }
+    }
+
+    // [NEW] 6. 하드웨어 뒤로가기 제어 (2025-12-19)
+    BackHandler(enabled = true, onBack = onBackAction)
+
     // 전체 화면을 흰색으로 덮음
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .imePadding(), // [FIX] 키보드가 올라오면 Scaffold 전체 높이를 줄여서 bottomBar가 키보드 위로 올라오도록 함 (2025-12-19)
+            .imePadding() // [FIX] 키보드가 올라오면 Scaffold 전체 높이를 줄여서 bottomBar가 키보드 위로 올라오도록 함 (2025-12-19)
+            .pointerInput(Unit) { // [NEW] 화면 터치 시 키보드 닫기 (2025-12-19)
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            },
         containerColor = Color.White,
         contentWindowInsets = WindowInsets.systemBars, // [FIX] 기본값 사용 - 시스템 바만 계산 (2025-12-19)
         topBar = {
@@ -205,11 +270,11 @@ private fun WritePostScreenContent(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onDismiss) {
+                    IconButton(onClick = onBackAction) { // [FIX] 뒤로가기 공통 로직 적용 (2025-12-19)
                         Icon(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = "취소",
-                            tint = Color(0xFF6B7280)
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack, // [CHANGE] X 버튼 -> 뒤로가기 화살표 (2025-12-19)
+                            contentDescription = "뒤로가기",
+                            tint = Color(0xFF1F2937)
                         )
                     }
                 },
@@ -218,11 +283,11 @@ private fun WritePostScreenContent(
                         onClick = {
                             if (content.isNotBlank()) onPost(content.trim())
                         },
-                        enabled = content.isNotBlank()
+                        enabled = isModified // [FIX] 내용이 있을 때만 활성화 (2025-12-19)
                     ) {
                         Text(
                             text = "게시하기",
-                            color = if (content.isNotBlank())
+                            color = if (isModified)
                                 kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue // 테마 색상 사용 권장
                             else Color(0xFFD1D5DB),
                             style = MaterialTheme.typography.titleSmall
@@ -283,35 +348,14 @@ private fun WritePostScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding) // [FIX] Scaffold가 bottomBar 높이를 자동으로 계산하여 innerPadding에 포함
+                .verticalScroll(scrollState) // [NEW] 스크롤 가능하게 설정 (2025-12-19)
         ) {
             // [MODIFIED] 프로필 영역 - 실제 사용자 아바타 표시 (2025-12-19)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(all = 16.dp) // [NEW] 개별 패딩 적용
             ) {
-                // [NEW] 2 & 3. 실제 아바타 데이터 바인딩
-                Image(
-                    painter = painterResource(
-                        id = kr.sweetapps.alcoholictimer.util.AvatarManager.getAvatarResId(currentUserAvatarIndex)
-                    ),
-                    contentDescription = "내 아바타",
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Column {
-                    Text(
-                        text = "익명",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = Color.Black
-                    )
-                    Text(
-                        text = "모두에게 공개",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
-                    )
-                }
+                // ...existing code...
             }
 
             // 텍스트 입력창
@@ -320,7 +364,7 @@ private fun WritePostScreenContent(
                 onValueChange = { content = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f) // 남은 공간 모두 차지
+                    .heightIn(min = 200.dp) // [FIX] weight(1f) 제거 -> 최소 높이 설정 (스크롤 가능 Column에서는 weight 사용 불가) (2025-12-19)
                     .padding(horizontal = 16.dp), // [NEW] 좌우 패딩만 적용
                 placeholder = {
                     Text(
@@ -351,9 +395,9 @@ private fun WritePostScreenContent(
                         contentDescription = "선택된 이미지",
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(200.dp)
+                            .wrapContentHeight() // [FIX] 이미지 비율에 맞게 높이 조절 - 제한 없이 원본 비율대로 표시 (2025-12-19)
                             .clip(RoundedCornerShape(12.dp)),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.FillWidth // [FIX] 가로를 꽉 채우고 세로는 비율 유지 (잘리지 않음) (2025-12-19)
                     )
 
                     // 우측 상단 X 버튼
@@ -373,6 +417,87 @@ private fun WritePostScreenContent(
                         )
                     }
                 }
+            }
+        }
+    }
+
+    // [NEW] 작성 중 뒤로가기 경고 바텀 시트 (2025-12-19)
+    if (showWarningSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showWarningSheet = false },
+            containerColor = Color.White
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+            ) {
+                // 제목
+                Text(
+                    text = "작성 중인 글을 삭제하시겠습니까?",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // 설명
+                Text(
+                    text = "지금 나가시면 작성한 내용이 모두 사라집니다.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF666666),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // 계속 작성하기 버튼
+                Button(
+                    onClick = { showWarningSheet = false },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFF5F5F5),
+                        contentColor = Color(0xFF111111)
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = "계속 작성하기",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // 게시글 삭제 버튼
+                Button(
+                    onClick = {
+                        showWarningSheet = false
+                        onDismiss() // 진짜 종료
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = Color(0xFFDC2626)
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = "게시글 삭제",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
