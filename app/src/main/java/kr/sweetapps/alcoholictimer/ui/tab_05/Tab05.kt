@@ -1,3 +1,20 @@
+/**
+ * Tab 05: Settings & About Screen (설정 및 정보)
+ *
+ * [REFACTORED 2025-12-19]
+ * - 폴더명: tab_05 (변경하지 않음 - 안전성 우선)
+ * - 실제 의미: Settings (설정 및 정보)
+ * - 접근 경로: Tab 3 (커뮤니티) → 우측 상단 설정 버튼
+ *
+ * 하위 화면:
+ * - AboutScreen: 앱 정보 (메인)
+ * - NicknameEdit: 닉네임 편집
+ * - HabitSettings: 습관 설정
+ * - CurrencySettings: 통화 설정
+ * - Debug: 디버그 메뉴
+ * - Notification: 알림 목록
+ * - Customer: 고객 지원
+ */
 package kr.sweetapps.alcoholictimer.ui.tab_05
 
 import android.app.Activity
@@ -54,7 +71,6 @@ import kr.sweetapps.alcoholictimer.MainApplication
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import kr.sweetapps.alcoholictimer.ui.theme.LocalDimens
-import kr.sweetapps.alcoholictimer.ui.tab_04.SimpleAboutRow
 import kr.sweetapps.alcoholictimer.ui.tab_05.components.CustomerFeedbackBottomSheet
 import kr.sweetapps.alcoholictimer.ui.tab_05.viewmodel.Tab05ViewModel
 import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue  // [NEW] 메인 UI 색상
@@ -740,3 +756,30 @@ private fun AutoResizingTextLabel(
         }
     )
 }
+
+// [NEW] SimpleAboutRow 컴포저블 - 설정 메뉴 리스트 아이템
+@Composable
+private fun SimpleAboutRow(
+    title: String,
+    onClick: () -> Unit,
+    trailing: @Composable (() -> Unit)? = null
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color.Black,
+            modifier = Modifier.weight(1f)
+        )
+        if (trailing != null) {
+            trailing()
+        }
+    }
+}
+

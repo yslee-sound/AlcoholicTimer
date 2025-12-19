@@ -1,3 +1,16 @@
+/**
+ * Tab 04: Community Screen (커뮤니티 - 익명 응원 챌린지)
+ *
+ * [REFACTORED 2025-12-19]
+ * - 폴더명: tab_04 (변경하지 않음 - 안전성 우선)
+ * - 실제 의미: Community (커뮤니티)
+ * - 기능: 익명 게시글 작성/조회, 이미지 업로드, 24시간 자동 삭제
+ * - 접근 경로: 하단 탭 3번 (커뮤니티)
+ *
+ * 하위 화면:
+ * - CommunityScreen: 커뮤니티 피드 (메인)
+ * - WritePostScreen: 게시글 작성
+ */
 package kr.sweetapps.alcoholictimer.ui.tab_04
 
 import android.os.Bundle
