@@ -263,9 +263,9 @@
     <!-- Community screen (커뮤니티 화면) -->
     <string name="community_title">익명 응원 챌린지</string>
 
-    <!-- More (Tab04) tab labels - used instead of 'Settings' for tab04 -->
-    <string name="more_title">더보기</string>
-    <string name="drawer_menu_more">더보기</string>
+    <!-- More (Tab04) tab labels - [REFACTORED 2025-12-19] Tab 3으로 커뮤니티 탭 -->
+    <string name="more_title">커뮤니티</string>
+    <string name="drawer_menu_more">커뮤니티</string>
 
     <!-- Tab05 (More) Menu Items -->
     <string name="tab05_rate_app">앱 평가하기</string>

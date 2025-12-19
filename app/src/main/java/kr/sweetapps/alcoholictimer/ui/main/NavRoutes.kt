@@ -3,6 +3,11 @@ package kr.sweetapps.alcoholictimer.ui.main
 /**
  * Sealed Class defining all screens in the app
  * Used as routes for Jetpack Compose Navigation
+ *
+ * [REFACTORING 2025-12-19] 탭 구조 재정의:
+ * Tab 1: Timer (Start/Run)
+ * Tab 2: Records + LevelDetail (하위)
+ * Tab 3: Community (More) + Settings (About 하위)
  */
 sealed class Screen(val route: String) {
     /**
@@ -56,12 +61,20 @@ sealed class Screen(val route: String) {
     data object LevelDetail : Screen("level_detail")
 
     /**
-     * Settings screen
+     * [REFACTORED 2025-12-19] More screen → Community (커뮤니티) 메인 화면
+     * "익명 응원 챌린지" 화면
+     * 기존: Tab 4 (More)
+     * 신규: Tab 3 (Community)
+     * 라우트명 변경 없음 - 하위 호환성 100% 유지
      */
     data object More : Screen("more")
 
     /**
-     * About screen
+     * [REFACTORED 2025-12-19] About screen → Settings (설정) 진입점
+     * 커뮤니티 화면의 설정 버튼으로 진입
+     * 기존: Tab 5 (독립 탭)
+     * 신규: Tab 3 하위 메뉴
+     * 라우트명 변경 없음 - 하위 호환성 100% 유지
      */
     data object About : Screen("about")
 
