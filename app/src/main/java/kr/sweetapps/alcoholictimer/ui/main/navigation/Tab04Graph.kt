@@ -4,7 +4,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import kr.sweetapps.alcoholictimer.ui.main.Screen
-import kr.sweetapps.alcoholictimer.ui.tab_03.screens.community.CommunityScreen
+import kr.sweetapps.alcoholictimer.ui.tab_03.CommunityScreen
 
 /**
  * Tab 04: 커뮤니티 화면 (익명 응원 챌린지)
