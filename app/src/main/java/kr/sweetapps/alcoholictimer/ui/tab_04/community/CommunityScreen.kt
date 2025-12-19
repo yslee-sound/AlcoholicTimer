@@ -23,6 +23,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -248,6 +250,13 @@ private fun WritePostScreenContent(
     // [NEW] 6. 하드웨어 뒤로가기 제어 (2025-12-19)
     BackHandler(enabled = true, onBack = onBackAction)
 
+    // [NEW] 7. 스크롤 시 키보드 자동 숨김 (2025-12-19)
+    LaunchedEffect(scrollState.isScrollInProgress) {
+        if (scrollState.isScrollInProgress) {
+            focusManager.clearFocus()
+        }
+    }
+
     // 전체 화면을 흰색으로 덮음
     Scaffold(
         modifier = Modifier
@@ -421,83 +430,71 @@ private fun WritePostScreenContent(
         }
     }
 
-    // [NEW] 작성 중 뒤로가기 경고 바텀 시트 (2025-12-19)
+    // [NEW] 작성 중 뒤로가기 경고 바텀 시트 - 페이스북 스타일 (2025-12-19)
     if (showWarningSheet) {
         ModalBottomSheet(
             onDismissRequest = { showWarningSheet = false },
-            containerColor = Color.White
+            containerColor = Color.White,
+            dragHandle = { BottomSheetDefaults.DragHandle() }
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp)
-            ) {
-                // 제목
+            Column(modifier = Modifier.padding(bottom = 24.dp)) {
+                // 타이틀 (왼쪽 정렬, 한 줄 제한)
                 Text(
                     text = "작성 중인 글을 삭제하시겠습니까?",
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
+                    color = Color.Black,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(start = 20.dp, top = 8.dp, bottom = 12.dp)
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // 설명
-                Text(
-                    text = "지금 나가시면 작성한 내용이 모두 사라집니다.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF666666),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                // 계속 작성하기 버튼
-                Button(
-                    onClick = { showWarningSheet = false },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFF5F5F5),
-                        contentColor = Color(0xFF111111)
-                    ),
+                // 게시글 삭제 메뉴 (리스트 아이템 스타일)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(8.dp)
+                        .clickable {
+                            showWarningSheet = false
+                            onDismiss()
+                        }
+                        .padding(horizontal = 20.dp, vertical = 16.dp)
                 ) {
-                    Text(
-                        text = "계속 작성하기",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                    Icon(
+                        imageVector = androidx.compose.material.icons.Icons.Outlined.Delete,
+                        contentDescription = null,
+                        tint = Color(0xFF1F2937)
                     )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // 게시글 삭제 버튼
-                Button(
-                    onClick = {
-                        showWarningSheet = false
-                        onDismiss() // 진짜 종료
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent,
-                        contentColor = Color(0xFFDC2626)
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
+                    Spacer(modifier = Modifier.width(16.dp))
                     Text(
                         text = "게시글 삭제",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color(0xFF1F2937),
+                        maxLines = 1
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                // 수정 계속하기 메뉴 (리스트 아이템 스타일)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showWarningSheet = false }
+                        .padding(horizontal = 20.dp, vertical = 16.dp)
+                ) {
+                    Icon(
+                        imageVector = androidx.compose.material.icons.Icons.Outlined.Edit,
+                        contentDescription = null,
+                        tint = Color(0xFF1F2937)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        text = "수정 계속하기",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color(0xFF1F2937),
+                        maxLines = 1
+                    )
+                }
             }
         }
     }
