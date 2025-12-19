@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug
+package kr.sweetapps.alcoholictimer.ui.tab_03.screens.debug
 
 /**
  * 디버그용 데모 데이터를 관리하는 객체

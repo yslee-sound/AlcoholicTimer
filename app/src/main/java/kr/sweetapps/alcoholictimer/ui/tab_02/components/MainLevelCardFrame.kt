@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.ui.tab_03.components
+package kr.sweetapps.alcoholictimer.ui.tab_02.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image

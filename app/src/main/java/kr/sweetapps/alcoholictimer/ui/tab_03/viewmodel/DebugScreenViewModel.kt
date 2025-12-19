@@ -1,13 +1,14 @@
-﻿package kr.sweetapps.alcoholictimer.ui.tab_05.viewmodel
+﻿package kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel
 
 import android.app.Application
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
-import androidx.core.content.edit
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.ump.UserMessagingPlatform
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
@@ -20,8 +21,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kr.sweetapps.alcoholictimer.util.debug.DebugSettings
 import kr.sweetapps.alcoholictimer.BuildConfig
-import kr.sweetapps.alcoholictimer.MainApplication
 import kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager
+import kr.sweetapps.alcoholictimer.data.repository.CommunityRepository
 
 data class DebugScreenUiState(
     val switch1: Boolean = false,
@@ -161,7 +162,7 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
     fun generateDummyCommunityPosts(context: Context) {
         viewModelScope.launch {
             try {
-                val repository = kr.sweetapps.alcoholictimer.data.repository.CommunityRepository()
+                val repository = CommunityRepository()
                 val result = repository.generateDummyPosts()
 
                 val message = if (result.isSuccess) {
@@ -170,15 +171,15 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
                     "❌ 게시글 생성 실패: ${result.exceptionOrNull()?.message}"
                 }
 
-                android.os.Handler(android.os.Looper.getMainLooper()).post {
-                    android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_LONG).show()
+                Handler(Looper.getMainLooper()).post {
+                    Toast.makeText(context, message, Toast.LENGTH_LONG).show()
                 }
 
                 Log.d("DebugScreen", message)
             } catch (e: Exception) {
                 Log.e("DebugScreen", "게시글 생성 중 에러", e)
-                android.os.Handler(android.os.Looper.getMainLooper()).post {
-                    android.widget.Toast.makeText(context, "에러: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                Handler(Looper.getMainLooper()).post {
+                    Toast.makeText(context, "에러: ${e.message}", Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -190,7 +191,7 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
     fun deleteAllCommunityPosts(context: Context) {
         viewModelScope.launch {
             try {
-                val repository = kr.sweetapps.alcoholictimer.data.repository.CommunityRepository()
+                val repository = CommunityRepository()
                 val result = repository.deleteAllPosts()
 
                 val message = if (result.isSuccess) {
@@ -199,15 +200,15 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
                     "❌ 게시글 삭제 실패: ${result.exceptionOrNull()?.message}"
                 }
 
-                android.os.Handler(android.os.Looper.getMainLooper()).post {
-                    android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_SHORT).show()
+                Handler(Looper.getMainLooper()).post {
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                 }
 
                 Log.d("DebugScreen", message)
             } catch (e: Exception) {
                 Log.e("DebugScreen", "게시글 삭제 중 에러", e)
-                android.os.Handler(android.os.Looper.getMainLooper()).post {
-                    android.widget.Toast.makeText(context, "에러: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                Handler(Looper.getMainLooper()).post {
+                    Toast.makeText(context, "에러: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         }

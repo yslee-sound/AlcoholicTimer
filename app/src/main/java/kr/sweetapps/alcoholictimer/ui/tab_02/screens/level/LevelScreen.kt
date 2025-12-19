@@ -1,8 +1,10 @@
-package kr.sweetapps.alcoholictimer.ui.tab_03.screens
+package kr.sweetapps.alcoholictimer.ui.tab_02.screens.level
 
+import android.app.Activity
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,19 +14,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
-import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.ad.AdController
 import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
+import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab03ViewModel
-import kr.sweetapps.alcoholictimer.ui.tab_03.components.CurrentLevelCard
-import kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelListCard
-import kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelDefinitions
+import kr.sweetapps.alcoholictimer.ui.tab_02.components.CurrentLevelCard
+import kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelListCard
+import kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions
 
 /**
  * Tab03 - 레벨 화면
@@ -36,11 +36,11 @@ import kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelDefinitions
 fun LevelScreen(
     onNavigateBack: () -> Unit = {},
     viewModel: Tab03ViewModel = viewModel(
-        viewModelStoreOwner = androidx.activity.compose.LocalActivity.current as ComponentActivity
+        viewModelStoreOwner = LocalActivity.current as ComponentActivity
     )
 ) {
     val context = LocalContext.current
-    val activity = context as? android.app.Activity
+    val activity = context as? Activity
 
     // ViewModel에서 상태 구독
     val startTime by viewModel.startTime.collectAsState()
@@ -96,7 +96,7 @@ fun LevelScreen(
         containerColor = Color.White, // [FIX] 배경색 명시적 지정
         contentWindowInsets = WindowInsets.systemBars, // [FIX] 시스템 바 영역 확보
         topBar = {
-            kr.sweetapps.alcoholictimer.ui.components.BackTopBar(
+            BackTopBar(
                 title = "나의 레벨",
                 onBack = onNavigateBack
             )
@@ -162,7 +162,7 @@ fun LevelScreenContent(
 }
 
 // Compose Preview
-@androidx.compose.ui.tooling.preview.Preview(
+@Preview(
     name = "Tab03 - 레벨 화면 전체",
     showBackground = true,
     heightDp = 800,

@@ -1,5 +1,7 @@
-package kr.sweetapps.alcoholictimer.ui.tab_05.screens
+package kr.sweetapps.alcoholictimer.ui.tab_03.screens
 
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,7 +21,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -28,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.ui.theme.UiConstants
 import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,7 +38,7 @@ fun NicknameEditScreen(
     onCancel: () -> Unit
 ) {
     val context = LocalContext.current
-    val sp = remember { context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE) }
+    val sp = remember { context.getSharedPreferences("user_settings", Context.MODE_PRIVATE) }
     val currentNickname = remember { sp.getString("nickname", context.getString(R.string.default_nickname)) ?: context.getString(R.string.default_nickname) }
     var nicknameText by rememberSaveable { mutableStateOf(currentNickname) }
     val focusRequester = remember { FocusRequester() }
@@ -149,7 +149,7 @@ fun NicknameEditScreen(
     }
 }
 
-private fun saveNickname(sp: android.content.SharedPreferences, nickname: String) {
+private fun saveNickname(sp: SharedPreferences, nickname: String) {
     if (nickname.isNotBlank()) {
         sp.edit { putString("nickname", nickname) }
     }

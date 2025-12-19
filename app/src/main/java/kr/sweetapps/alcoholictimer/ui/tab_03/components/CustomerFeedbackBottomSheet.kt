@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.ui.tab_05.components
+package kr.sweetapps.alcoholictimer.ui.tab_03.components
 
 import android.widget.Toast
 import androidx.compose.foundation.background

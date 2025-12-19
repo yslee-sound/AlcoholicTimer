@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.ui.tab_05.viewmodel
+package kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel
 
 import android.content.Context
 import androidx.compose.runtime.getValue

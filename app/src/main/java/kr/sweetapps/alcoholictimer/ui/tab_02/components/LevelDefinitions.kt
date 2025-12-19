@@ -1,5 +1,5 @@
 // [NEW] Tab03 리팩토링: LevelDefinitions를 tab_03/components로 이동
-package kr.sweetapps.alcoholictimer.ui.tab_03.components
+package kr.sweetapps.alcoholictimer.ui.tab_02.components
 
 import android.content.Context
 import androidx.compose.ui.graphics.Color

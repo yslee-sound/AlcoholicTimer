@@ -21,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
@@ -41,24 +40,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.runtime.saveable.rememberSaveable
 import java.util.Locale
 import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.StandardScreenWithBottomButton
-import kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelDefinitions
+import kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions
 import kr.sweetapps.alcoholictimer.util.utils.FormatUtils
-import kotlinx.coroutines.delay
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.ui.main.Screen
-import kr.sweetapps.alcoholictimer.ui.theme.AppElevation
 import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.rememberTextMeasurer
-import kotlinx.coroutines.NonCancellable.isCompleted
 import kr.sweetapps.alcoholictimer.util.debug.DebugSettings
-import kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DemoData
-import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
+import kr.sweetapps.alcoholictimer.ui.tab_03.screens.debug.DemoData
 import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager
 import kr.sweetapps.alcoholictimer.ui.common.rememberUserSettingsState
 

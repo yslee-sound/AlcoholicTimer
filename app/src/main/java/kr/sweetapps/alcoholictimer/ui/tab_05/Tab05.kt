@@ -71,16 +71,17 @@ import kr.sweetapps.alcoholictimer.MainApplication
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import kr.sweetapps.alcoholictimer.ui.theme.LocalDimens
-import kr.sweetapps.alcoholictimer.ui.tab_05.components.CustomerFeedbackBottomSheet
-import kr.sweetapps.alcoholictimer.ui.tab_05.viewmodel.Tab05ViewModel
+import kr.sweetapps.alcoholictimer.ui.tab_03.components.CustomerFeedbackBottomSheet
+import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab05ViewModel
 import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue  // [NEW] 메인 UI 색상
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
+import kr.sweetapps.alcoholictimer.ui.tab_03.components.AvatarSelectionDialog
+import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.SettingsUiState
 
 private fun ContextToActivity(context: android.content.Context): Activity? {
     var ctx: android.content.Context? = context
@@ -287,7 +288,7 @@ fun AboutScreen(
 
     // [NEW] 아바타 선택 다이얼로그
     if (uiState.showAvatarDialog) {
-        kr.sweetapps.alcoholictimer.ui.tab_05.components.AvatarSelectionDialog(
+        AvatarSelectionDialog(
             currentAvatarIndex = uiState.avatarIndex,
             onAvatarSelected = { index ->
                 viewModel.updateAvatar(index)
@@ -304,7 +305,7 @@ private fun AboutScreenContent(
     versionTapCount: androidx.compose.runtime.MutableState<Int>,
     lastTapTime: androidx.compose.runtime.MutableState<Long>,
     context: android.content.Context,
-    uiState: kr.sweetapps.alcoholictimer.ui.tab_05.viewmodel.SettingsUiState,
+    uiState: SettingsUiState,
     viewModel: Tab05ViewModel,
     dims: kr.sweetapps.alcoholictimer.ui.theme.Dimens,
     onNavigateEditNickname: () -> Unit,

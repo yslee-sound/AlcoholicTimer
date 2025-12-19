@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.ui.tab_05.screens
+package kr.sweetapps.alcoholictimer.ui.tab_03.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -22,7 +22,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.data.model.NotificationItem
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
-import kr.sweetapps.alcoholictimer.ui.tab_05.viewmodel.NotificationViewModel
+import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.NotificationViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 

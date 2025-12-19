@@ -1,11 +1,10 @@
-package kr.sweetapps.alcoholictimer.ui.tab_05.screens.policy
+package kr.sweetapps.alcoholictimer.ui.tab_03.screens.policy
 
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -21,12 +20,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,10 +36,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.withStyle
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
-import kr.sweetapps.alcoholictimer.ui.tab_05.viewmodel.DocumentViewModel
+import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.DocumentViewModel
 
 // 간단한 블록 표현
 private sealed class MDBlock {
@@ -117,7 +113,7 @@ private fun appendInlineStyles(builder: AnnotatedString.Builder, text: String) {
                     val before = s.substring(cur, m.range.first)
                     builder.append(before)
                     val content = m.groups[1]?.value ?: ""
-                    builder.withStyle(SpanStyle(fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)) {
+                    builder.withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
                         append(content)
                     }
                     cur = m.range.last + 1
@@ -154,7 +150,7 @@ private fun appendInlineStyles(builder: AnnotatedString.Builder, text: String) {
 }
 
 // 확장 함수: convert compose Color to ARGB int style helper
-private fun Color.toArgbColor(): androidx.compose.ui.graphics.Color = this
+private fun Color.toArgbColor(): Color = this
 
 // Markdown 블록 파서 (간단)
 private fun parseMarkdownBlocks(text: String): List<MDBlock> {
@@ -265,7 +261,7 @@ private fun parseMarkdownBlocks(text: String): List<MDBlock> {
 @Composable
 private fun RenderMarkdownContent(
     content: String,
-    innerPadding: androidx.compose.foundation.layout.PaddingValues
+    innerPadding: PaddingValues
 ) {
     val context = LocalContext.current
     val blocks = remember(content) { parseMarkdownBlocks(content) }
@@ -309,7 +305,7 @@ private fun RenderMarkdownContent(
                                 }
                         },
                         modifier = Modifier.padding(bottom = 8.dp),
-                        style = androidx.compose.ui.text.TextStyle(color = Color.Black, fontSize = 14.sp)
+                        style = TextStyle(color = Color.Black, fontSize = 14.sp)
                     )
                 }
                 is MDBlock.ListBlock -> {
@@ -326,7 +322,7 @@ private fun RenderMarkdownContent(
                                             context.startActivity(intent)
                                         }
                                 },
-                                style = androidx.compose.ui.text.TextStyle(color = Color.Black, fontSize = 14.sp)
+                                style = TextStyle(color = Color.Black, fontSize = 14.sp)
                             )
                         }
                     }

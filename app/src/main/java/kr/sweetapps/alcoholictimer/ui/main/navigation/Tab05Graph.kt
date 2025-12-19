@@ -4,7 +4,9 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import kr.sweetapps.alcoholictimer.ui.main.Screen
-import kr.sweetapps.alcoholictimer.ui.tab_05.screens.NicknameEditScreen
+import kr.sweetapps.alcoholictimer.ui.tab_03.screens.CustomerScreen
+import kr.sweetapps.alcoholictimer.ui.tab_03.screens.NotificationListScreen
+import kr.sweetapps.alcoholictimer.ui.tab_03.screens.NicknameEditScreen
 
 /**
  * Tab 05: 설정 & About 서브 화면 네비게이션 그래프
@@ -37,14 +39,14 @@ fun NavGraphBuilder.addTab05Graph(navController: NavHostController) {
 
     // 알림 목록
     composable(Screen.Notification.route) {
-        kr.sweetapps.alcoholictimer.ui.tab_05.screens.NotificationListScreen(
+        NotificationListScreen(
             onBack = { navController.popBackStack() }
         )
     }
 
     // 고객 지원
     composable("customer") {
-        kr.sweetapps.alcoholictimer.ui.tab_05.screens.CustomerScreen(
+        CustomerScreen(
             onBack = { navController.popBackStack() }
         )
     }

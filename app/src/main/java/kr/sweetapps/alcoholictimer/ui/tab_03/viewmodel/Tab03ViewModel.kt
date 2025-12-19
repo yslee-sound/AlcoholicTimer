@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.data.repository.RecordsDataLoader
-import kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelDefinitions
+import kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions
 import kr.sweetapps.alcoholictimer.util.constants.Constants
 
 /**

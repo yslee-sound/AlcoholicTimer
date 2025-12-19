@@ -24,7 +24,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelDefinitions
 
 /**
  * 레벨 요약 배너 (공간 절약형 + 시각적 진행 바)

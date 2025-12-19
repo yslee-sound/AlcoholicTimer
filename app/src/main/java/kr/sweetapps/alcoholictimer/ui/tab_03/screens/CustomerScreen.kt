@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.ui.tab_05.screens
+package kr.sweetapps.alcoholictimer.ui.tab_03.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -15,7 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import kr.sweetapps.alcoholictimer.ui.tab_05.viewmodel.CustomerScreenViewModel
+import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.CustomerScreenViewModel
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 
 @Composable

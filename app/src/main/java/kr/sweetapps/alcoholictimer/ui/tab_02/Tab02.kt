@@ -16,6 +16,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.ui.common.BaseActivity
+import kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions
 import kr.sweetapps.alcoholictimer.ui.tab_02.screens.RecordsScreen
 import kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.Tab02ViewModel
 import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme
@@ -54,7 +55,7 @@ fun Tab02Screen(
     onAddRecord: () -> Unit = {},
     onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {},
     // [NEW] Phase 2: 레벨 파라미터
-    currentLevel: kr.sweetapps.alcoholictimer.ui.tab_03.components.LevelDefinitions.LevelInfo? = null,
+    currentLevel: LevelDefinitions.LevelInfo? = null,
     currentDays: Int = 0,
     levelProgress: Float = 0f,
     onNavigateToLevelDetail: () -> Unit = {},

@@ -15,7 +15,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab03ViewModel
-import kr.sweetapps.alcoholictimer.ui.tab_03.screens.LevelScreen as LevelScreenImpl
+import kr.sweetapps.alcoholictimer.ui.tab_02.screens.level.LevelScreen as LevelScreenImpl
 
 /**
  * Tab03 - 레벨 화면 진입점

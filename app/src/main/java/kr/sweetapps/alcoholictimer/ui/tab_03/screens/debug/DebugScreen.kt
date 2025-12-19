@@ -1,9 +1,10 @@
-package kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug
+package kr.sweetapps.alcoholictimer.ui.tab_03.screens.debug
 
 import android.widget.Toast
 import android.util.Log
 import android.app.Activity
-import androidx.compose.foundation.clickable
+import android.content.Context
+import android.content.ContextWrapper
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
@@ -26,24 +27,35 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import androidx.compose.ui.platform.LocalContext
-import kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager
-import kr.sweetapps.alcoholictimer.ui.tab_05.viewmodel.DebugScreenViewModel
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
+import kr.sweetapps.alcoholictimer.BuildConfig
+import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.DebugScreenViewModel
+import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab05ViewModel
 import kr.sweetapps.alcoholictimer.util.constants.Constants
 
 // Helper: get Activity from Context
-private fun ContextToActivity(context: android.content.Context): Activity? {
-    var ctx: android.content.Context? = context
-    while (ctx is android.content.ContextWrapper) {
+private fun ContextToActivity(context: Context): Activity? {
+    var ctx: Context? = context
+    while (ctx is ContextWrapper) {
         if (ctx is Activity) return ctx
         ctx = ctx.baseContext
     }
@@ -53,17 +65,17 @@ private fun ContextToActivity(context: android.content.Context): Activity? {
 @Composable
 fun DebugScreen(
     viewModel: DebugScreenViewModel = viewModel(),
-    tab05ViewModel: kr.sweetapps.alcoholictimer.ui.tab_05.viewmodel.Tab05ViewModel = viewModel(), // [NEW] Tab05ViewModel 추가
+    tab05ViewModel: Tab05ViewModel = viewModel(), // [NEW] Tab05ViewModel 추가
     onBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
     // [NEW] Scaffold로 감싸서 하단 시스템 바 투명화 방지 (2025-12-19)
-    androidx.compose.material3.Scaffold(
-        modifier = androidx.compose.ui.Modifier.fillMaxSize(),
-        containerColor = androidx.compose.ui.graphics.Color.White, // [FIX] 하단 비침 방지 (흰색 배경 고정)
-        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets.systemBars, // [FIX] 시스템 바 영역 침범 방지
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = Color.White, // [FIX] 하단 비침 방지 (흰색 배경 고정)
+        contentWindowInsets = WindowInsets.systemBars, // [FIX] 시스템 바 영역 침범 방지
         topBar = {
             BackTopBar(
                 title = stringResource(id = R.string.debug_menu_title),
@@ -113,14 +125,14 @@ fun DebugScreen(
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = if (actualFactor == 1) {
-                        androidx.compose.ui.graphics.Color.Gray
+                        Color.Gray
                     } else {
-                        androidx.compose.material3.MaterialTheme.colorScheme.primary
+                        MaterialTheme.colorScheme.primary
                     }
                 )
             }
 
-            androidx.compose.material3.Slider(
+            Slider(
                 value = acceleration.value,
                 onValueChange = { newValue ->
                     acceleration.value = newValue
@@ -148,30 +160,30 @@ fun DebugScreen(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("1x", fontSize = 11.sp, color = androidx.compose.ui.graphics.Color.Gray)
-                Text("10,000x", fontSize = 11.sp, color = androidx.compose.ui.graphics.Color.Gray)
+                Text("1x", fontSize = 11.sp, color = Color.Gray)
+                Text("10,000x", fontSize = 11.sp, color = Color.Gray)
             }
 
             Text(
                 text = "※ 슬라이더를 드래그하여 1배속 ~ 10,000배속 범위에서 조절 (선형)",
                 fontSize = 11.sp,
-                color = androidx.compose.ui.graphics.Color.Gray,
+                color = Color.Gray,
                 modifier = Modifier.padding(top = 4.dp)
             )
 
             Text(
                 text = "※ 실제 시간은 변경되지 않으며, 경과 시간 계산만 배속됩니다.",
                 fontSize = 11.sp,
-                color = androidx.compose.ui.graphics.Color.Gray,
+                color = Color.Gray,
                 modifier = Modifier.padding(top = 2.dp)
             )
 
             // [SECURITY] 릴리즈 빌드 경고
-            if (!kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
+            if (!BuildConfig.DEBUG) {
                 Text(
                     text = "⚠️ 릴리즈 빌드에서는 배속 기능이 비활성화됩니다.",
                     fontSize = 11.sp,
-                    color = androidx.compose.ui.graphics.Color.Red,
+                    color = Color.Red,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 4.dp)
                 )
@@ -181,7 +193,7 @@ fun DebugScreen(
 
 
             // [NEW] 전면 광고 쿨타임 설정 (초 단위) - 한 줄 레이아웃 + 스위치 제어
-            if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
+            if (BuildConfig.DEBUG) {
                 // 초기 상태 로드
                 val coolDownValue = remember {
                     mutableStateOf(
@@ -194,7 +206,7 @@ fun DebugScreen(
                 // 스위치 상태 (SharedPreferences에서 로드)
                 val isCoolDownEnabled = remember {
                     mutableStateOf(
-                        context.getSharedPreferences("ad_policy_prefs", android.content.Context.MODE_PRIVATE)
+                        context.getSharedPreferences("ad_policy_prefs", Context.MODE_PRIVATE)
                             .getBoolean("debug_cooldown_enabled", false)
                     )
                 }
@@ -238,21 +250,21 @@ fun DebugScreen(
                             keyboardType = KeyboardType.Number
                         ),
                         singleLine = true,
-                        textStyle = androidx.compose.ui.text.TextStyle(textAlign = androidx.compose.ui.text.style.TextAlign.Center),
-                        colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-                            disabledTextColor = androidx.compose.ui.graphics.Color.Gray.copy(alpha = 0.5f),
-                            disabledBorderColor = androidx.compose.ui.graphics.Color.Gray.copy(alpha = 0.3f)
+                        textStyle = TextStyle(textAlign = TextAlign.Center),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            disabledTextColor = Color.Gray.copy(alpha = 0.5f),
+                            disabledBorderColor = Color.Gray.copy(alpha = 0.3f)
                         )
                     )
 
                     // 3. 스위치 (우측 끝)
-                    androidx.compose.material3.Switch(
+                    Switch(
                         checked = isCoolDownEnabled.value,
                         onCheckedChange = { isChecked ->
                             isCoolDownEnabled.value = isChecked
 
                             // 상태 저장
-                            context.getSharedPreferences("ad_policy_prefs", android.content.Context.MODE_PRIVATE)
+                            context.getSharedPreferences("ad_policy_prefs", Context.MODE_PRIVATE)
                                 .edit()
                                 .putBoolean("debug_cooldown_enabled", isChecked)
                                 .apply()
@@ -280,7 +292,7 @@ fun DebugScreen(
                         "OFF: 기본 쿨타임 적용 (디버그: 1분, 릴리즈: 30분)"
                     },
                     fontSize = 12.sp,
-                    color = androidx.compose.ui.graphics.Color.Gray,
+                    color = Color.Gray,
                     modifier = Modifier.padding(start = 4.dp, top = 4.dp)
                 )
             }
@@ -319,7 +331,7 @@ fun DebugScreen(
             )
 
             // 랜덤 데이터 생성 버튼
-            androidx.compose.material3.Button(
+            Button(
                 onClick = {
                     tab05ViewModel.generateRandomMockData(context)
                     Toast.makeText(
@@ -329,17 +341,17 @@ fun DebugScreen(
                     ).show()
                 },
                 modifier = Modifier.fillMaxWidth(),
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = androidx.compose.ui.graphics.Color(0xFF4CAF50)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF4CAF50)
                 )
             ) {
-                Text("🎲 랜덤 과거 데이터 생성 (4년치)", color = androidx.compose.ui.graphics.Color.White)
+                Text("🎲 랜덤 과거 데이터 생성 (4년치)", color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
             // 모든 기록 삭제 버튼
-            androidx.compose.material3.Button(
+            Button(
                 onClick = {
                     tab05ViewModel.clearAllRecords(context)
                     Toast.makeText(
@@ -349,11 +361,11 @@ fun DebugScreen(
                     ).show()
                 },
                 modifier = Modifier.fillMaxWidth(),
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = androidx.compose.ui.graphics.Color(0xFFF44336)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFF44336)
                 )
             ) {
-                Text("🗑️ 모든 기록 삭제", color = androidx.compose.ui.graphics.Color.White)
+                Text("🗑️ 모든 기록 삭제", color = Color.White)
             }
 
             Text(
@@ -367,7 +379,7 @@ fun DebugScreen(
                     실제 생성된 값과는 크게 다를 수 있습니다.
                 """.trimIndent(),
                 fontSize = 11.sp,
-                color = androidx.compose.ui.graphics.Color.Gray,
+                color = Color.Gray,
                 modifier = Modifier.padding(top = 8.dp)
             )
 
@@ -381,33 +393,33 @@ fun DebugScreen(
             )
 
             // 테스트 게시글 10개 생성 버튼
-            androidx.compose.material3.Button(
+            Button(
                 onClick = {
                     viewModel.generateDummyCommunityPosts(context)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = androidx.compose.ui.graphics.Color(0xFF4CAF50)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF4CAF50)
                 )
             ) {
-                Text("📝 테스트 게시글 10개 생성", color = androidx.compose.ui.graphics.Color.White)
+                Text("📝 테스트 게시글 10개 생성", color = Color.White)
             }
 
             // 모든 게시글 삭제 버튼
-            androidx.compose.material3.Button(
+            Button(
                 onClick = {
                     viewModel.deleteAllCommunityPosts(context)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = androidx.compose.ui.graphics.Color(0xFFF44336)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFF44336)
                 )
             ) {
-                Text("🗑️ 모든 게시글 삭제", color = androidx.compose.ui.graphics.Color.White)
+                Text("🗑️ 모든 게시글 삭제", color = Color.White)
             }
 
             Text(
@@ -420,7 +432,7 @@ fun DebugScreen(
                     ※ 삭제 예정 시간: 생성 후 24시간
                 """.trimIndent(),
                 fontSize = 11.sp,
-                color = androidx.compose.ui.graphics.Color.Gray,
+                color = Color.Gray,
                 modifier = Modifier.padding(top = 8.dp)
             )
         }

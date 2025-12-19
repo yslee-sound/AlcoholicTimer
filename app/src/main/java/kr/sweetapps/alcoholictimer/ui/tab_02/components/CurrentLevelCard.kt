@@ -1,5 +1,6 @@
-package kr.sweetapps.alcoholictimer.ui.tab_03.components
+package kr.sweetapps.alcoholictimer.ui.tab_02.components
 
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -21,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kr.sweetapps.alcoholictimer.R
 import java.util.Locale
+import kotlin.math.floor
 
 /**
  * 현재 레벨 카드 컴포넌트
@@ -200,8 +202,8 @@ fun CurrentLevelCard(
                     // Footer Info
                     if (nextLevel != null) {
                         val remainingDaysFloat = (nextLevel.start - currentDays.toFloat()).coerceAtLeast(0f)
-                        val remainingDaysInt = kotlin.math.floor(remainingDaysFloat.toDouble()).toInt()
-                        val remainingHoursInt = kotlin.math.floor(((remainingDaysFloat - remainingDaysInt) * 24f).toDouble()).toInt()
+                        val remainingDaysInt = floor(remainingDaysFloat.toDouble()).toInt()
+                        val remainingHoursInt = floor(((remainingDaysFloat - remainingDaysInt) * 24f).toDouble()).toInt()
                         val remainingText = when {
                             remainingDaysInt > 0 && remainingHoursInt > 0 -> "$remainingDaysInt${context.getString(R.string.level_day_unit)} $remainingHoursInt${context.getString(R.string.level_hour_unit)} ${context.getString(R.string.level_days_remaining)}"
                             remainingDaysInt > 0 -> "$remainingDaysInt${context.getString(R.string.level_day_unit)} ${context.getString(R.string.level_days_remaining)}"
@@ -289,7 +291,7 @@ private fun ProgressToNextLevel(
         targetValue = if (isVisible) 1f else 0.3f,
         animationSpec = tween(
             durationMillis = 500,
-            easing = androidx.compose.animation.core.FastOutSlowInEasing
+            easing = FastOutSlowInEasing
         ),
         label = "indicator_blink"
     )

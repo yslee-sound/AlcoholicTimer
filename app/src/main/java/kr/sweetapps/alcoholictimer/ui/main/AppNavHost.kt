@@ -27,6 +27,9 @@ import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab02DetailGraph
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab02ListGraph
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab04Graph
 import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab05Graph
+import kr.sweetapps.alcoholictimer.ui.tab_02.screens.level.LevelScreen
+import kr.sweetapps.alcoholictimer.ui.tab_03.screens.debug.DebugScreen
+import kr.sweetapps.alcoholictimer.ui.tab_03.screens.policy.DocumentScreen
 
 /**
  * Navigation Host (Root-level Navigation Graph)
@@ -321,7 +324,7 @@ fun AppNavHost(
                 ) + fadeOut(animationSpec = tween(300))
             }
         ) {
-            kr.sweetapps.alcoholictimer.ui.tab_03.screens.LevelScreen(
+            LevelScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
@@ -463,7 +466,7 @@ fun AppNavHost(
                 ) + fadeOut(animationSpec = tween(300))
             }
         ) {
-            kr.sweetapps.alcoholictimer.ui.tab_05.screens.policy.DocumentScreen(
+            DocumentScreen(
                 resName = "privacy_policy_bilingual",
                 onBack = { navController.popBackStack() },
                 titleResId = R.string.document_title_privacy
@@ -498,7 +501,7 @@ fun AppNavHost(
                 ) + fadeOut(animationSpec = tween(300))
             }
         ) {
-            kr.sweetapps.alcoholictimer.ui.tab_05.screens.policy.DocumentScreen(
+            DocumentScreen(
                 resName = "open_source_license",
                 onBack = { navController.popBackStack() },
                 titleResId = R.string.document_title_open_source
@@ -533,7 +536,7 @@ fun AppNavHost(
                 ) + fadeOut(animationSpec = tween(300))
             }
         ) {
-            kr.sweetapps.alcoholictimer.ui.tab_05.screens.debug.DebugScreen(
+            DebugScreen(
                 onBack = { navController.popBackStack() }
             )
         }

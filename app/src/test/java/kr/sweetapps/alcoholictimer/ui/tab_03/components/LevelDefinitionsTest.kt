@@ -1,6 +1,7 @@
 // [테스트] 레벨 시스템 로직 검증
 package kr.sweetapps.alcoholictimer.ui.tab_03.components
 
+import kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions
 import org.junit.Test
 import org.junit.Assert.*
 
