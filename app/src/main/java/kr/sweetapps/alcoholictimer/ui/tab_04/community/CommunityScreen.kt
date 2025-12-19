@@ -103,7 +103,24 @@ fun CommunityScreen(
                 if (isLoading && posts.isEmpty()) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 } else if (posts.isEmpty()) {
-                    EmptyState(modifier = Modifier.align(Alignment.Center))
+                    // [FIX] 게시글이 없을 때도 글쓰기 버튼은 보여야 합니다! (2025-12-19)
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        // 1. 글쓰기 버튼 (여기 추가됨)
+                        WritePostTrigger(
+                            onClick = { isWritingScreenVisible = true },
+                            currentAvatarIndex = currentUserAvatarIndex
+                        )
+
+                        // 2. 나머지 공간에 빈 상태 아이콘 표시 (가운데 정렬)
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            EmptyState()
+                        }
+                    }
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
