@@ -30,6 +30,7 @@ import kr.sweetapps.alcoholictimer.ui.main.navigation.addTab05Graph
 import kr.sweetapps.alcoholictimer.ui.tab_02.screens.level.LevelScreen
 import kr.sweetapps.alcoholictimer.ui.tab_03.screens.debug.DebugScreen
 import kr.sweetapps.alcoholictimer.ui.tab_03.screens.policy.DocumentScreen
+import kr.sweetapps.alcoholictimer.ui.tab_03.screens.settings.AboutScreen
 
 /**
  * Navigation Host (Root-level Navigation Graph)
@@ -357,7 +358,7 @@ fun AppNavHost(
                 ) + fadeOut(animationSpec = tween(300))
             }
         ) {
-            kr.sweetapps.alcoholictimer.ui.tab_05.AboutScreen(
+            AboutScreen(
                 onNavigateLicenses = { navController.navigate(Screen.AboutLicenses.route) },
                 onNavigatePrivacy = { navController.navigate(Screen.Privacy.route) },
                 onNavigateEditNickname = { navController.navigate(Screen.NicknameEdit.route) },

@@ -15,10 +15,12 @@
  * - Notification: 알림 목록
  * - Customer: 고객 지원
  */
-package kr.sweetapps.alcoholictimer.ui.tab_05
+package kr.sweetapps.alcoholictimer.ui.tab_03.screens.settings
 
 import android.app.Activity
 import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.util.Log
 import android.widget.Toast
@@ -32,6 +34,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -43,12 +46,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -82,10 +88,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import kr.sweetapps.alcoholictimer.ui.tab_03.components.AvatarSelectionDialog
 import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.SettingsUiState
+import kr.sweetapps.alcoholictimer.ui.theme.Dimens
+import kr.sweetapps.alcoholictimer.util.AvatarManager
 
-private fun ContextToActivity(context: android.content.Context): Activity? {
-    var ctx: android.content.Context? = context
-    while (ctx is android.content.ContextWrapper) {
+private fun ContextToActivity(context: Context): Activity? {
+    var ctx: Context? = context
+    while (ctx is ContextWrapper) {
         if (ctx is Activity) return ctx
         ctx = ctx.baseContext
     }
@@ -204,10 +212,10 @@ fun AboutScreen(
 
     // [NEW] showBack = true일 때 Scaffold로 독립 화면 구성
     if (showBack) {
-        androidx.compose.material3.Scaffold(
+        Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = Color.White, // [FIX] 하단 비침 방지 (흰색 배경 고정)
-            contentWindowInsets = androidx.compose.foundation.layout.WindowInsets.systemBars, // [FIX] 시스템 바 영역 침범 방지
+            contentWindowInsets = WindowInsets.systemBars, // [FIX] 시스템 바 영역 침범 방지
             topBar = {
                 BackTopBar(
                     title = "설정",
@@ -302,12 +310,12 @@ fun AboutScreen(
 private fun AboutScreenContent(
     nickname: String,
     versionInfo: String,
-    versionTapCount: androidx.compose.runtime.MutableState<Int>,
-    lastTapTime: androidx.compose.runtime.MutableState<Long>,
-    context: android.content.Context,
+    versionTapCount: MutableState<Int>,
+    lastTapTime: MutableState<Long>,
+    context: Context,
     uiState: SettingsUiState,
     viewModel: Tab05ViewModel,
-    dims: kr.sweetapps.alcoholictimer.ui.theme.Dimens,
+    dims: Dimens,
     onNavigateEditNickname: () -> Unit,
     onLicenseClick: () -> Unit,
     onPrivacyClick: () -> Unit,
@@ -330,7 +338,7 @@ private fun AboutScreenContent(
         ) {
             // [NEW] 아바타 이미지 (동그라미)
             Image(
-                painter = painterResource(id = kr.sweetapps.alcoholictimer.util.AvatarManager.getAvatarResId(uiState.avatarIndex)),
+                painter = painterResource(id = AvatarManager.getAvatarResId(uiState.avatarIndex)),
                 contentDescription = "프로필 아바타",
                 modifier = Modifier
                     .size(80.dp)
@@ -374,7 +382,7 @@ private fun AboutScreenContent(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Icon(
-                        imageVector = androidx.compose.material.icons.Icons.Default.Edit,
+                        imageVector = Icons.Default.Edit,
                         contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.size(24.dp)
