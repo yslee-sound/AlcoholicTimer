@@ -183,7 +183,7 @@ private fun PostHeader(
                     modifier = Modifier.alignByBaseline() // [추가] 글자 밑줄 기준 정렬
                 )
 
-                Spacer(modifier = Modifier.width(6.dp))
+                Spacer(modifier = Modifier.width(4.dp)) // [FIX] 구분자 간격 좁힘
 
                 Text(
                     text = "·",
@@ -192,7 +192,7 @@ private fun PostHeader(
                     modifier = Modifier.alignByBaseline()
                 )
 
-                Spacer(modifier = Modifier.width(6.dp))
+                Spacer(modifier = Modifier.width(4.dp)) // [FIX] 구분자 간격 좁힘
 
                 Text(
                     text = "${currentDays}일차",
