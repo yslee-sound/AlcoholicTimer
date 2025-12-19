@@ -27,8 +27,8 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,6 +58,7 @@ fun CommunityScreen(
 ) {
     val posts by viewModel.posts.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState() // [NEW] Pull-to-Refresh 상태 (2025-12-20)
     val currentUserAvatarIndex by viewModel.currentUserAvatarIndex.collectAsState() // [NEW] 현재 사용자 아바타
     val context = LocalContext.current // [NEW] Context 가져오기 (2025-12-19)
 
@@ -131,48 +132,55 @@ fun CommunityScreen(
                         }
                     }
                 } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(0.dp)
+                    // [NEW] Pull-to-Refresh 적용 (2025-12-20)
+                    PullToRefreshBox(
+                        isRefreshing = isRefreshing,
+                        onRefresh = { viewModel.refreshPosts() },
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        item {
-                            WritePostTrigger(
-                                onClick = { isWritingScreenVisible = true },
-                                currentAvatarIndex = currentUserAvatarIndex // [NEW] 현재 사용자 아바타 전달
-                            )
-                        }
-
-                        // 광고 및 게시글 리스트 로직 (기존 동일)
-                        val itemsWithAds = posts.flatMapIndexed { index, post ->
-                            if ((index + 1) % 6 == 0 && index > 0) listOf(post, null) else listOf(post)
-                        }
-
-                        items(itemsWithAds.size, key = { index ->
-                            val item = itemsWithAds[index]
-                            item?.id ?: "ad_$index"
-                        }) { index ->
-                            val item = itemsWithAds[index]
-                            if (item == null) {
-                                NativeAdItem()
-                            } else {
-                                PostItem(
-                                    nickname = item.nickname,
-                                    timerDuration = item.timerDuration,
-                                    content = item.content,
-                                    imageUrl = item.imageUrl,
-                                    likeCount = item.likeCount,
-                                    isLiked = false,
-                                    remainingTime = calculateRemainingTime(item.deleteAt),
-                                    authorAvatarIndex = item.authorAvatarIndex, // [NEW] 아바타 인덱스 전달
-                                    isMine = viewModel.isMyPost(item), // [NEW] Phase 3: 내 글 여부
-                                    onLikeClick = { viewModel.toggleLike(item.id) },
-                                    onCommentClick = { },
-                                    onMoreClick = { selectedPost = item }, // [NEW] Phase 3: 바텀 시트 열기
-                                    onHideClick = { viewModel.hidePost(item.id) } // [NEW] Phase 3: 빠른 숨기기 (X 버튼)
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(0.dp)
+                        ) {
+                            item {
+                                WritePostTrigger(
+                                    onClick = { isWritingScreenVisible = true },
+                                    currentAvatarIndex = currentUserAvatarIndex // [NEW] 현재 사용자 아바타 전달
                                 )
                             }
-                            // [MODIFIED] 디바이더 진하게 (페이스북 스타일) (2025-12-20)
-                            HorizontalDivider(thickness = 1.dp, color = Color(0xFFBDBDBD))
+
+                            // 광고 및 게시글 리스트 로직 (기존 동일)
+                            val itemsWithAds = posts.flatMapIndexed { index, post ->
+                                if ((index + 1) % 6 == 0 && index > 0) listOf(post, null) else listOf(post)
+                            }
+
+                            items(itemsWithAds.size, key = { index ->
+                                val item = itemsWithAds[index]
+                                item?.id ?: "ad_$index"
+                            }) { index ->
+                                val item = itemsWithAds[index]
+                                if (item == null) {
+                                    NativeAdItem()
+                                } else {
+                                    PostItem(
+                                        nickname = item.nickname,
+                                        timerDuration = item.timerDuration,
+                                        content = item.content,
+                                        imageUrl = item.imageUrl,
+                                        likeCount = item.likeCount,
+                                        isLiked = false,
+                                        remainingTime = calculateRemainingTime(item.deleteAt),
+                                        authorAvatarIndex = item.authorAvatarIndex, // [NEW] 아바타 인덱스 전달
+                                        isMine = viewModel.isMyPost(item), // [NEW] Phase 3: 내 글 여부
+                                        onLikeClick = { viewModel.toggleLike(item.id) },
+                                        onCommentClick = { },
+                                        onMoreClick = { selectedPost = item }, // [NEW] Phase 3: 바텀 시트 열기
+                                        onHideClick = { viewModel.hidePost(item.id) } // [NEW] Phase 3: 빠른 숨기기 (X 버튼)
+                                    )
+                                }
+                                // [MODIFIED] 디바이더 진하게 (페이스북 스타일) (2025-12-20)
+                                HorizontalDivider(thickness = 1.dp, color = Color(0xFFBDBDBD))
+                            }
                         }
                     }
                 }

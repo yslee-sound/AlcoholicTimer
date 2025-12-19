@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
@@ -241,6 +240,8 @@ private fun PostFooter(
 
         Spacer(modifier = Modifier.width(24.dp))
 
+        // [FIX] 댓글 기능은 다음 버전(MVP 이후)으로 연기 -> UI 숨김 처리 (2025-12-20)
+        /*
         // 댓글 버튼
         IconButton(onClick = onCommentClick) {
             Icon(
@@ -250,6 +251,7 @@ private fun PostFooter(
                 modifier = Modifier.size(24.dp)
             )
         }
+        */
 
         Spacer(modifier = Modifier.weight(1f))
 

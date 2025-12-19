@@ -46,6 +46,10 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    // [NEW] Pull-to-Refresh 상태 (2025-12-20)
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
     // [NEW] 현재 사용자의 아바타 인덱스
     private val _currentUserAvatarIndex = MutableStateFlow(0)
     val currentUserAvatarIndex: StateFlow<Int> = _currentUserAvatarIndex.asStateFlow()
@@ -118,6 +122,22 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     /**
+     * [NEW] Pull-to-Refresh: 게시글 새로고침 (2025-12-20)
+     */
+    fun refreshPosts() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            try {
+                // loadPosts는 이미 Flow로 실시간 구독 중이므로
+                // 여기서는 간단히 로딩 상태만 표시하고 자동으로 업데이트됨
+                kotlinx.coroutines.delay(500) // 최소 표시 시간 (UX)
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
+
+    /**
      * 좋아요 토글 (Phase 2: UI만, 실제 저장은 Phase 3)
      */
     fun toggleLike(postId: String) {
@@ -183,7 +203,9 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                 // 5. 현재 시간
                 val now = System.currentTimeMillis()
                 val createdAt = com.google.firebase.Timestamp(now / 1000, 0)
-                val deleteAt = com.google.firebase.Timestamp((now / 1000) + 24 * 60 * 60, 0) // 24시간 후
+
+                // [TEST] 빠른 테스트를 위해 게시글 수명을 1분으로 단축 (배포 시 24 * 60 * 60으로 복구 필요)
+                val deleteAt = com.google.firebase.Timestamp((now / 1000) + 60, 0) // 1분 후
 
                 // 6. Post 객체 생성 (이미지 URL 포함)
                 val post = Post(
