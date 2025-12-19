@@ -185,6 +185,9 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                 // 8. 성공 후 이미지 URI 초기화
                 _selectedImageUri.value = null
 
+                // [FIX] 게시글 목록 새로고침 (2025-12-19)
+                loadPosts()
+
                 android.util.Log.d("CommunityViewModel", "게시글 작성 완료: $nickname (avatar: $avatarIndex, image: ${imageUrl != null})")
             } catch (e: Exception) {
                 android.util.Log.e("CommunityViewModel", "게시글 작성 실패", e)
