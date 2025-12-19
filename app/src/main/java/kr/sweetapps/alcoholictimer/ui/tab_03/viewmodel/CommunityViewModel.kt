@@ -274,23 +274,35 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                 // [TEST] 빠른 테스트를 위해 게시글 수명을 1분으로 단축 (배포 시 24 * 60 * 60으로 복구 필요)
                 val deleteAt = com.google.firebase.Timestamp((now / 1000) + 60, 0) // 1분 후
 
-                // 6. Post 객체 생성 (이미지 URL 포함)
+                // 6. 일차 및 레벨 계산: timer_prefs에서 실제 타이머 시작 시간 읽기
+                val timerPrefs = context.getSharedPreferences("timer_prefs", android.content.Context.MODE_PRIVATE)
+                val startTime = timerPrefs.getLong("start_time", 0L) // 저장된 시작 시간이 없으면 0
+                val diffMillis = if (startTime == 0L) 0L else now - startTime
+                val days = if (startTime == 0L) 1 else (diffMillis / (1000L * 60L * 60L * 24L)).toInt() + 1
+
+                // 레벨 공식: (일수 / 10) + 1  (예: 64일 -> 6 + 1 = Lv.7)
+                val level = (days / 10) + 1
+
+                // 7. Post 객체 생성 (이미지 URL 포함, 일차/레벨 포함)
                 val post = Post(
                     nickname = nickname,
                     timerDuration = timerDuration,
                     content = content,
                     imageUrl = imageUrl, // 업로드된 URL 또는 null
                     likeCount = 0,
+                    likedBy = emptyList(),
+                    currentDays = days,
+                    userLevel = level,
                     createdAt = createdAt,
                     deleteAt = deleteAt,
                     authorAvatarIndex = avatarIndex,
                     authorId = deviceUserId // [NEW] Phase 3: 작성자 기기 ID
                 )
 
-                // 7. Firestore에 저장
+                // 8. Firestore에 저장
                 repository.addPost(post)
 
-                // 8. 성공 후 이미지 URI 초기화
+                // 9. 성공 후 이미지 URI 초기화
                 _selectedImageUri.value = null
 
                 // [FIX] 게시글 목록 새로고침 (2025-12-19)
@@ -440,6 +452,85 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                 android.util.Log.e("CommunityViewModel", "신고 실패", e)
                 try { android.widget.Toast.makeText(context, "오류가 발생했습니다.", android.widget.Toast.LENGTH_SHORT).show() } catch (_: Throwable) {}
             }
+        }
+    }
+
+    /**
+     * [DEBUG] 다양한 케이스의 테스트 데이터 20개 생성
+     * - [NEW] 개발/테스트 전용 유틸, 배포시 제거 가능
+     */
+    fun generateMockData() {
+        viewModelScope.launch {
+            _isLoading.value = true
+
+            val longText = """
+                오늘 정말 힘든 하루였네요. 술 생각이 간절했지만 참아냈습니다.
+                처음에는 그냥 한 잔만 할까? 하는 유혹이 있었지만,
+                여기 계신 분들의 글을 보며 다시 마음을 다잡았습니다.
+                금주를 시작한 지 벌써 꽤 되었는데, 여전히 위기는 찾아오네요.
+                하지만 오늘을 넘기면 내일은 더 단단해질 거라 믿습니다.
+                다들 포기하지 마시고 끝까지 함께 가요! 할 수 있습니다!
+                (이 글은 긴 글 테스트를 위한 더미 데이터입니다. 더 길게 작성하여 줄임 표시를 확인합니다.)
+            """.trimIndent()
+
+            val shortTexts = listOf(
+                "오늘도 성공!",
+                "다들 화이팅입니다.",
+                "산책하고 오니 좋네요.",
+                "술 없는 주말 상쾌해요!",
+                "한 걸음씩 가자"
+            )
+
+            val random = java.util.Random()
+
+            repeat(20) { i ->
+                // 1) 내 글 vs 남의 글 (약 20% 확률로 내 글)
+                val isMyPost = random.nextInt(5) == 0
+                val authorId = if (isMyPost) deviceUserId else java.util.UUID.randomUUID().toString()
+                val nickname = if (isMyPost) "나(테스트)" else "익명 유저 ${i + 1}"
+
+                // 2) 일수 및 레벨 (1~600일)
+                val days = random.nextInt(600) + 1
+                val level = (days / 10) + 1
+
+                // 3) 내용 (30% 확률로 장문)
+                val content = if (random.nextInt(10) < 3) longText else shortTexts[random.nextInt(shortTexts.size)]
+
+                // 4) 이미지 (50% 확률)
+                val hasImage = random.nextBoolean()
+                val imageUrl = if (hasImage) "https://picsum.photos/seed/${System.currentTimeMillis() + i}/400/300" else null
+
+                // 5) 타임스탬프 및 만료: 24시간 유지
+                val now = System.currentTimeMillis()
+                val createdAt = com.google.firebase.Timestamp(now / 1000, 0)
+                val deleteAt = com.google.firebase.Timestamp((now / 1000) + (24 * 60 * 60), 0)
+
+                val post = Post(
+                    nickname = nickname,
+                    timerDuration = "${days * 24}시간",
+                    content = content,
+                    imageUrl = imageUrl,
+                    likeCount = random.nextInt(20),
+                    likedBy = emptyList(),
+                    currentDays = days,
+                    userLevel = level,
+                    createdAt = createdAt,
+                    deleteAt = deleteAt,
+                    authorAvatarIndex = random.nextInt(20),
+                    authorId = authorId
+                )
+
+                // Firestore에 저장 (순차 실행)
+                try {
+                    repository.addPost(post)
+                } catch (e: Exception) {
+                    android.util.Log.e("CommunityViewModel", "generateMockData: post 추가 실패", e)
+                }
+            }
+
+            android.util.Log.d("CommunityViewModel", "테스트 데이터 20개 생성 완료")
+            loadPosts()
+            _isLoading.value = false
         }
     }
 }

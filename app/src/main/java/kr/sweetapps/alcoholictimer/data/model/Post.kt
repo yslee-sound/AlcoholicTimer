@@ -25,6 +25,10 @@ data class Post(
     val likeCount: Int = 0,
     // [NEW] 좋아요한 사용자 ID 목록 (MVP: 기본값 빈 리스트)
     val likedBy: List<String> = emptyList(),
+    // [NEW] 작성 시점의 현재 금주 일수 (예: 64일차)
+    val currentDays: Int = 1,
+    // [NEW] 작성 시점의 사용자 레벨(1~5)
+    val userLevel: Int = 1,
     val createdAt: Timestamp = Timestamp.now(),
     val deleteAt: Timestamp = Timestamp.now(), // 24시간 후 삭제 예정 시간
 

@@ -1,21 +1,24 @@
 package kr.sweetapps.alcoholictimer.ui.tab_03.screens
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Spa
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import kr.sweetapps.alcoholictimer.util.AvatarManager
+import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
 
 /**
  * Phase 1: 커뮤니티 게시글 아이템 UI
@@ -38,12 +42,14 @@ import kr.sweetapps.alcoholictimer.util.AvatarManager
 @Composable
 fun PostItem(
     nickname: String,
-    timerDuration: String, // "72시간" 형식
+    timerDuration: String, // "72시간" 형식 (하위호환성)
     content: String,
     imageUrl: String? = null,
     likeCount: Int,
     isLiked: Boolean = false,
-    remainingTime: String, // "5h" 형식
+    remainingTime: String, // "5h" 형식 (하위호환성)
+    currentDays: Int = 1,
+    userLevel: Int = 1,
     authorAvatarIndex: Int = 0, // [NEW] 아바타 인덱스
     isMine: Boolean = false, // [NEW] Phase 3: 내 글 여부
     onLikeClick: () -> Unit = {},
@@ -60,21 +66,29 @@ fun PostItem(
         PostHeader(
             nickname = nickname,
             timerDuration = timerDuration,
+            currentDays = currentDays,
+            userLevel = userLevel,
             authorAvatarIndex = authorAvatarIndex, // [NEW]
             isMine = isMine, // [NEW] Phase 3
             onMoreClick = onMoreClick,
             onHideClick = onHideClick // [NEW] Phase 3
         )
 
-        // Body: 텍스트 본문
+        // Body: 텍스트 본문 (최대 5줄, 클릭 시 펼치기/접기)
         if (content.isNotBlank()) {
+            var isExpanded by remember { mutableStateOf(false) }
+
             Text(
                 text = content,
-                style = MaterialTheme.typography.bodyLarge,
-                color = Color(0xFF111111),
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFF1F2937),
+                maxLines = if (isExpanded) Int.MAX_VALUE else 5,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .animateContentSize()
+                    .clickable { isExpanded = !isExpanded }
             )
         }
 
@@ -114,6 +128,8 @@ fun PostItem(
 private fun PostHeader(
     nickname: String,
     timerDuration: String,
+    currentDays: Int = 1,
+    userLevel: Int = 1,
     authorAvatarIndex: Int = 0, // [NEW]
     isMine: Boolean = false, // [NEW] Phase 3
     onMoreClick: () -> Unit,
@@ -138,60 +154,67 @@ private fun PostHeader(
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // 닉네임 + 타이머 배지
-        Column(modifier = Modifier.weight(1f)) {
+        // 닉네임 + LV/일차: 닉네임 너비 기준으로 중앙 정렬
+        Column(
+            modifier = Modifier.wrapContentWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(
                 text = nickname,
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                 color = Color(0xFF111111)
             )
             Spacer(modifier = Modifier.height(4.dp))
-            // 타이머 배지
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "🏅",
-                    fontSize = 14.sp
+                    text = "LV.$userLevel",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MainPrimaryBlue,
+                    fontWeight = FontWeight.Bold
                 )
+
+                Spacer(modifier = Modifier.width(6.dp))
+
                 Text(
-                    text = timerDuration,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = Color(0xFF1E40AF) // MainPrimaryBlue
+                    text = "${currentDays}일차",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.Gray
                 )
             }
         }
 
+        // 남은 공간을 차지하여 오른쪽 아이콘들이 끝으로 밀리도록 함
+        Spacer(modifier = Modifier.weight(1f))
+
         // [MODIFIED] 버튼 순서: 3점 버튼 → X 버튼 (페이스북 스타일) (2025-12-20)
-        // 더보기 메뉴 (3점 버튼) - 먼저 배치
         IconButton(
             onClick = onMoreClick,
             modifier = Modifier
-                .size(40.dp) // [FIX] 페이스북과 동일한 크기
-                .offset(y = (-4).dp) // [FIX] 별명과 같은 줄에 정렬
+                .size(40.dp)
+                .offset(y = (-4).dp)
         ) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
                 contentDescription = "더보기",
                 tint = Color(0xFF666666),
-                modifier = Modifier.size(24.dp) // [FIX] 아이콘 크기 증가
+                modifier = Modifier.size(24.dp)
             )
         }
 
-        // 남의 글일 경우 X 버튼 표시 (빠른 숨기기) - 3점 버튼 오른쪽에 배치
         if (!isMine) {
             IconButton(
                 onClick = onHideClick,
                 modifier = Modifier
-                    .size(40.dp) // [FIX] 페이스북과 동일한 크기
-                    .offset(y = (-4).dp) // [FIX] 별명과 같은 줄에 정렬
+                    .size(40.dp)
+                    .offset(y = (-4).dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "숨기기",
                     tint = Color(0xFF999999),
-                    modifier = Modifier.size(24.dp) // [FIX] 아이콘 크기 증가
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }
@@ -302,4 +325,3 @@ fun PostItemWithoutImagePreview() {
         remainingTime = "18h"
     )
 }
-

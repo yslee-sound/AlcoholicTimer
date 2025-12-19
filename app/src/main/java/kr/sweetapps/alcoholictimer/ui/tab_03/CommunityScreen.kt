@@ -147,7 +147,7 @@ fun CommunityScreen(
                                 .fillMaxWidth(),
                             contentAlignment = Alignment.Center
                         ) {
-                            EmptyState()
+                            EmptyState(onGenerateMock = { viewModel.generateMockData() })
                         }
                     }
                 } else {
@@ -189,12 +189,14 @@ fun CommunityScreen(
                                         likeCount = item.likeCount,
                                         isLiked = viewModel.isLikedByMe(item),
                                         remainingTime = calculateRemainingTime(item.deleteAt),
-                                        authorAvatarIndex = item.authorAvatarIndex, // [NEW] 아바타 인덱스 전달
-                                        isMine = viewModel.isMyPost(item), // [NEW] Phase 3: 내 글 여부
-                                        onLikeClick = { viewModel.toggleLike(item) },
-                                        onCommentClick = { },
-                                        onMoreClick = { selectedPost = item }, // [NEW] Phase 3: 바텀 시트 열기
-                                        onHideClick = {
+                                        currentDays = item.currentDays,
+                                        userLevel = item.userLevel,
+                                         authorAvatarIndex = item.authorAvatarIndex, // [NEW] 아바타 인덱스 전달
+                                         isMine = viewModel.isMyPost(item), // [NEW] Phase 3: 내 글 여부
+                                         onLikeClick = { viewModel.toggleLike(item) },
+                                         onCommentClick = { },
+                                         onMoreClick = { selectedPost = item }, // [NEW] Phase 3: 바텀 시트 열기
+                                         onHideClick = {
                                             // 1) 즉시 숨김 처리
                                             viewModel.hidePost(item.id)
 
@@ -762,7 +764,7 @@ private fun WritePostTrigger(
  * 빈 상태 표시
  */
 @Composable
-private fun EmptyState(modifier: Modifier = Modifier) {
+private fun EmptyState(modifier: Modifier = Modifier, onGenerateMock: () -> Unit = {}) {
     Column(
         modifier = modifier.padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -785,6 +787,17 @@ private fun EmptyState(modifier: Modifier = Modifier) {
             color = Color(0xFF999999),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
+
+        // [NEW] 테스트용 버튼 (디버그 전용)
+        if (BuildConfig.DEBUG) {
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(
+                onClick = onGenerateMock,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "테스트 게시글 생성")
+            }
+        }
     }
 }
 
