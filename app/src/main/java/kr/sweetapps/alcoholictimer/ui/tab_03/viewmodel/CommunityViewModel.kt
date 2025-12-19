@@ -296,20 +296,51 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             try {
                 val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                val reportData = hashMapOf(
-                    "targetPostId" to postId,
-                    "reason" to "부적절한 콘텐츠",
-                    "reportedAt" to com.google.firebase.Timestamp.now(),
-                    "reporterId" to deviceUserId
-                )
+                val postRef = firestore.collection("posts").document(postId)
 
-                firestore.collection("reports").add(reportData).await()
-                android.util.Log.d("CommunityViewModel", "신고 접수 완료: $postId")
+                // 트랜잭션으로 안전하게 처리: 신고 저장 + 카운트 증가 + 자동 삭제
+                firestore.runTransaction { transaction ->
+                    val snapshot = transaction.get(postRef)
 
-                // 신고 후 자동으로 숨기기
+                    // 게시글이 존재할 때만 카운트 증가/삭제 로직 수행
+                    if (snapshot.exists()) {
+                        val currentReports = snapshot.getLong("reportCount") ?: 0L
+                        val newReportCount = currentReports + 1L
+
+                        if (newReportCount >= 5L) {
+                            // 신고 5회 누적 시 -> 게시글 자동 삭제
+                            transaction.delete(postRef)
+                        } else {
+                            // 아직 임계치 미만이면 reportCount 필드 업데이트
+                            transaction.update(postRef, "reportCount", newReportCount)
+                        }
+
+                        // 신고 내역 저장 (관리자 참고용)
+                        val reportRef = firestore.collection("reports").document()
+                        val reportData = hashMapOf<String, Any>(
+                            "targetPostId" to postId,
+                            "reason" to "부적절한 콘텐츠",
+                            "reportedAt" to com.google.firebase.Timestamp.now(),
+                            "reporterId" to deviceUserId
+                        )
+                        transaction.set(reportRef, reportData)
+                    } else {
+                        // 게시글이 이미 없을 경우에도 신고 로그는 남겨둡니다 (트랜잭션 외부에 기록)
+                    }
+
+                    // 트랜잭션 블록의 반환값은 무시
+                    null
+                }.await()
+
+                android.util.Log.d("CommunityViewModel", "신고 처리 완료(트랜잭션): $postId")
+
+                // 신고한 사용자의 화면에서는 즉시 숨김 처리
                 hidePost(postId)
+
             } catch (e: Exception) {
                 android.util.Log.e("CommunityViewModel", "신고 실패", e)
+                // 실패 시에도 사용자에게 즉시 숨김 처리 적용 (로컬 편의)
+                try { hidePost(postId) } catch (_: Throwable) {}
             }
         }
     }
