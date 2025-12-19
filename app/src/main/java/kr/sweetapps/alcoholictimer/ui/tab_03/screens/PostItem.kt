@@ -165,6 +165,8 @@ private fun PostHeader(
                 color = Color(0xFF111111)
             )
             Spacer(modifier = Modifier.height(4.dp))
+
+            // 레벨 및 일차 정보 Row
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -172,7 +174,17 @@ private fun PostHeader(
                     text = "LV.$userLevel",
                     style = MaterialTheme.typography.labelSmall,
                     color = MainPrimaryBlue,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.alignByBaseline() // [추가] 글자 밑줄 기준 정렬
+                )
+
+                Spacer(modifier = Modifier.width(6.dp))
+
+                Text(
+                    text = "·",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.Gray,
+                    modifier = Modifier.alignByBaseline()
                 )
 
                 Spacer(modifier = Modifier.width(6.dp))
@@ -180,7 +192,8 @@ private fun PostHeader(
                 Text(
                     text = "${currentDays}일차",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray
+                    color = Color.Gray,
+                    modifier = Modifier.alignByBaseline() // [추가] 글자 밑줄 기준 정렬
                 )
             }
         }
