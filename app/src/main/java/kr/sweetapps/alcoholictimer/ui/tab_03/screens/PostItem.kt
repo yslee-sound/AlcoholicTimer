@@ -78,6 +78,8 @@ fun PostItem(
         if (content.isNotBlank()) {
             var isExpanded by remember { mutableStateOf(false) }
 
+            val interactionSource = remember { MutableInteractionSource() }
+
             Text(
                 text = content,
                 style = MaterialTheme.typography.bodyMedium,
@@ -88,7 +90,10 @@ fun PostItem(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp)
                     .animateContentSize()
-                    .clickable { isExpanded = !isExpanded }
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = null
+                    ) { isExpanded = !isExpanded }
             )
         }
 
