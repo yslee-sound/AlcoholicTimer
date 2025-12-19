@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubbleOutline
 import androidx.compose.material.icons.filled.Favorite
@@ -19,11 +20,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 
 /**
  * Phase 1: 커뮤니티 게시글 아이템 UI
@@ -69,21 +72,17 @@ fun PostItem(
             )
         }
 
-        // Body: 이미지 (선택사항) - Phase 1: 플레이스홀더
+        // Body: 이미지 (선택사항) - [FIX] AsyncImage로 실제 이미지 표시 (2025-12-19)
         if (!imageUrl.isNullOrBlank()) {
-            Box(
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = "게시글 이미지",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(300.dp)
-                    .background(Color(0xFFE0E0E0)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "📷 Image",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color(0xFF999999)
-                )
-            }
+                    .wrapContentHeight() // 높이 제한 없이 원본 비율대로
+                    .clip(RoundedCornerShape(0.dp)), // 모서리 각지게 (페이스북 스타일)
+                contentScale = ContentScale.FillWidth // 가로를 꽉 채우고 세로는 비율 유지
+            )
         }
 
         // Footer: 좋아요 + 댓글 + 남은 시간
