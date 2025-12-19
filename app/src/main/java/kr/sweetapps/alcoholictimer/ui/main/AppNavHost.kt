@@ -78,7 +78,10 @@ fun AppNavHost(
         composable("home") {
             val tabNavController = rememberNavController()
 
-            BaseScaffold(navController = tabNavController) {
+            BaseScaffold(
+                navController = tabNavController,
+                rootNavController = navController // [NEW] Success 화면 이동용
+            ) {
                 NavHost(
                     navController = tabNavController,
                     startDestination = Screen.Start.route, // [FIX] Inner NavHost는 Tab01 (Start)부터 시작

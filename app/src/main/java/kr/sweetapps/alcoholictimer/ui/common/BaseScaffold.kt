@@ -32,6 +32,7 @@ import androidx.compose.ui.res.stringResource
 @Composable
 fun BaseScaffold(
     navController: NavHostController,
+    rootNavController: NavHostController? = null, // [NEW] Success 화면 이동용
     contentBackground: Color? = null,
     content: @Composable () -> Unit
 ) {
@@ -120,7 +121,10 @@ fun BaseScaffold(
                     shadowElevation = 0.dp,
                     tonalElevation = 0.dp
                 ) {
-                    BottomNavBar(navController = navController)
+                    BottomNavBar(
+                        navController = navController,
+                        rootNavController = rootNavController
+                    )
                 }
             }
 

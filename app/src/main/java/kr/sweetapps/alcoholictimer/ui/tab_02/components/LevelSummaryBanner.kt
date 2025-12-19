@@ -157,12 +157,16 @@ fun LevelSummaryBanner(
 
             Spacer(modifier = Modifier.weight(1f)) // [NEW] 남은 공간을 차지하여 프로그레스 바를 하단으로
 
+            // [DEBUG] 프로그레스 값 로깅
+            android.util.Log.d("LevelSummaryBanner", "Progress value: $progress (${(progress * 100).toInt()}%)")
+
             // [NEW] 표준 LinearProgressIndicator (얇고 둥글게)
             LinearProgressIndicator(
-                progress = { progress },
+                progress = { progress.coerceIn(0f, 1f) }, // [FIX] 범위 강제 제한 추가
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(8.dp), // [FIX] 얇게 (12dp → 8dp)
+                    .height(8.dp) // [FIX] 얇게 (12dp → 8dp)
+                    .clip(CircleShape), // [FIX] 배경 트랙까지 완벽한 알약 모양으로 깎기
                 color = Color(0xFF00E676), // 밝은 민트색
                 trackColor = Color.White.copy(alpha = 0.3f),
                 strokeCap = StrokeCap.Round

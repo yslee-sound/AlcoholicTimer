@@ -84,7 +84,11 @@ private val bottomItems: List<BottomItem> = listOf(
 )
 
 @Composable
-fun BottomNavBar(navController: NavHostController, modifier: Modifier = Modifier) {
+fun BottomNavBar(
+    navController: NavHostController,
+    rootNavController: NavHostController? = null, // [NEW] Success 화면 이동용
+    modifier: Modifier = Modifier
+) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
 
@@ -128,19 +132,24 @@ fun BottomNavBar(navController: NavHostController, modifier: Modifier = Modifier
                                     Log.d("BottomNavBar", "1번째 탭 클릭: isFinished=$isFinished")
 
                                     // [REFACTORED] 만료 상태가 true면 Success 화면으로 강제 이동
-                                    val targetRoute = if (isFinished) {
-                                        Screen.Success.route
+                                    if (isFinished) {
+                                        // [FIX] Success 화면은 루트 NavController에만 있음
+                                        if (rootNavController != null && currentRoute != Screen.Success.route) {
+                                            rootNavController.navigate(Screen.Success.route) {
+                                                launchSingleTop = true
+                                            }
+                                        }
                                     } else {
                                         // 만료 상태가 아니면 타이머 시작 시간 확인
                                         val startTime = kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.getStartTime()
-                                        if (startTime > 0) Screen.Run.route else Screen.Start.route
-                                    }
+                                        val targetRoute = if (startTime > 0) Screen.Run.route else Screen.Start.route
 
-                                    if (currentRoute != targetRoute) {
-                                        navController.navigate(targetRoute) {
-                                            launchSingleTop = true
-                                            restoreState = true
-                                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                        if (currentRoute != targetRoute) {
+                                            navController.navigate(targetRoute) {
+                                                launchSingleTop = true
+                                                restoreState = true
+                                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                            }
                                         }
                                     }
                                 } else {
