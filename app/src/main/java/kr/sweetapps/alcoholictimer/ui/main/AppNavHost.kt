@@ -32,6 +32,7 @@ import kr.sweetapps.alcoholictimer.ui.tab_03.screens.debug.DebugScreen
 import kr.sweetapps.alcoholictimer.ui.tab_03.screens.policy.DocumentScreen
 import kr.sweetapps.alcoholictimer.ui.tab_03.screens.settings.AboutScreen
 import kr.sweetapps.alcoholictimer.ui.tab_03.screens.settings.CurrencyScreen
+import kr.sweetapps.alcoholictimer.ui.tab_03.screens.settings.HabitSettingsScreen
 
 /**
  * Navigation Host (Root-level Navigation Graph)
@@ -401,7 +402,7 @@ fun AppNavHost(
                 ) + fadeOut(animationSpec = tween(300))
             }
         ) {
-            kr.sweetapps.alcoholictimer.ui.tab_04.HabitSettingsScreen(
+            HabitSettingsScreen(
                 onBack = { navController.popBackStack() },
                 onNavigateCurrencySettings = { navController.navigate(Screen.CurrencySettings.route) }
             )

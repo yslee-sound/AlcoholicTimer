@@ -11,7 +11,7 @@
  * - CommunityScreen: 커뮤니티 피드 (메인)
  * - WritePostScreen: 게시글 작성
  */
-package kr.sweetapps.alcoholictimer.ui.tab_04
+package kr.sweetapps.alcoholictimer.ui.tab_03.screens.settings
 
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
@@ -55,10 +55,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.material3.Switch
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.R
+import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.ui.common.BaseActivity
+import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import kr.sweetapps.alcoholictimer.ui.theme.LocalDimens
 import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue  // [NEW] 메인 UI 색상
 
@@ -89,8 +98,8 @@ class HabitActivity : BaseActivity() {
 fun HabitScreen(
     onNavigateCurrencySettings: () -> Unit = {},
     onApplyAndGoHome: () -> Unit = {},
-    viewModel: Tab04ViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-        viewModelStoreOwner = androidx.activity.compose.LocalActivity.current as androidx.activity.ComponentActivity
+    viewModel: Tab04ViewModel = viewModel(
+        viewModelStoreOwner = LocalActivity.current as ComponentActivity
     )
 ) {
     val context = LocalContext.current
@@ -103,10 +112,10 @@ fun HabitScreen(
     // [REMOVED] 통화 설정 관련 상태 제거 - Tab05로 이동됨
 
     // [NEW] 화면 진입 시 전면 광고 미리 로드 (성능 최적화)
-    androidx.compose.runtime.LaunchedEffect(Unit) {
+    LaunchedEffect(Unit) {
         Log.d("HabitScreen", "Entering Settings -> Preloading Interstitial Ad")
         try {
-            kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.preload(context)
+            InterstitialAdManager.preload(context)
         } catch (e: Exception) {
             Log.e("HabitScreen", "Failed to preload ad: ${e.message}")
         }
@@ -159,7 +168,7 @@ fun HabitScreen(
 // [REFACTORED] HabitScreen 콘텐츠 - 즉시 저장 방식
 @Composable
 fun HabitScreenContent(
-    innerPadding: androidx.compose.foundation.layout.PaddingValues,
+    innerPadding: PaddingValues,
     selectedCost: String,
     selectedFrequency: String,
     selectedDuration: String,
@@ -251,40 +260,7 @@ fun HabitScreenContent(
     }
 }
 
-@Composable
-fun CurrencyOptionRow(
-    isSelected: Boolean,
-    label: String,
-    onSelected: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
-            ) { onSelected() }
-            .height(56.dp)
-            .padding(horizontal = 20.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        RadioButton(
-            selected = isSelected,
-            onClick = null,
-            colors = RadioButtonDefaults.colors(
-                selectedColor = MainPrimaryBlue,  // [FIX] 메인 UI 색상 적용 (#1E40AF)
-                unselectedColor = colorResource(id = R.color.color_radio_unselected)
-            )
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = label,
-            style = if (isSelected) MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold) else MaterialTheme.typography.bodyMedium,
-            color = if (isSelected) MainPrimaryBlue else MaterialTheme.colorScheme.onSurface  // [FIX] 메인 UI 색상 적용
-        )
-    }
-}
-
+// [REMOVED] CurrencyOptionRow 함수 삭제 - CurrencyScreen.kt에 이미 정의되어 있음
 
 @Composable
 fun HabitSection(title: String, titleColor: Color, content: @Composable () -> Unit) {
@@ -373,7 +349,7 @@ fun HabitMenuWithSwitch(
     ) {
         Text(title, style = MaterialTheme.typography.bodyLarge)
         // Switch의 기본 minHeight가 큰 편이라 Row 높이를 밀어냄 -> 크기를 줄여 일치시킵니다
-        androidx.compose.material3.Switch(
+        Switch(
             checked = checked,
             onCheckedChange = null,
             modifier = Modifier.height(36.dp)
@@ -392,8 +368,8 @@ fun HabitScreenPreview() { HabitScreen() }
 fun HabitSettingsScreen(
     onBack: () -> Unit,
     onNavigateCurrencySettings: () -> Unit = {},
-    viewModel: Tab04ViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
-        viewModelStoreOwner = androidx.activity.compose.LocalActivity.current as androidx.activity.ComponentActivity
+    viewModel: Tab04ViewModel = viewModel(
+        viewModelStoreOwner = LocalActivity.current as ComponentActivity
     )
 ) {
     val context = LocalContext.current
@@ -406,10 +382,10 @@ fun HabitSettingsScreen(
     // [REMOVED] 통화 설정 관련 상태 제거 - Tab05 독립 메뉴로 이동됨
 
     // [NEW] 화면 진입 시 전면 광고 미리 로드
-    androidx.compose.runtime.LaunchedEffect(Unit) {
+    LaunchedEffect(Unit) {
         Log.d("HabitSettingsScreen", "Entering Settings -> Preloading Interstitial Ad")
         try {
-            kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.preload(context)
+            InterstitialAdManager.preload(context)
         } catch (e: Exception) {
             Log.e("HabitSettingsScreen", "Failed to preload ad: ${e.message}")
         }
@@ -419,9 +395,9 @@ fun HabitSettingsScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = Color.White, // [FIX] 하단 비침 방지 (흰색 배경 고정)
-        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets.systemBars, // [FIX] 시스템 바 영역 침범 방지
+        contentWindowInsets = WindowInsets.systemBars, // [FIX] 시스템 바 영역 침범 방지
         topBar = {
-            kr.sweetapps.alcoholictimer.ui.components.BackTopBar(
+            BackTopBar(
                 title = stringResource(R.string.settings_title),
                 onBack = onBack
             )
@@ -450,25 +426,4 @@ fun HabitSettingsScreen(
 
     // [REMOVED] 통화 선택 BottomSheet 제거 - Tab05의 독립 메뉴로 이동됨
 }
-
-@Composable
-fun SimpleAboutRow(
-    title: String,
-    onClick: () -> Unit = {},
-    trailing: @Composable (() -> Unit)? = null
-) {
-    val dims = LocalDimens.current
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(dims.component.listItemHeight)
-            .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { onClick() }
-            .padding(horizontal = 20.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text = title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-        if (trailing != null) {
-            trailing()
-        }
-    }
-}
+// [REMOVED] SimpleAboutRow 함수 삭제 - SettingsScreen.kt에 이미 정의되어 있음
