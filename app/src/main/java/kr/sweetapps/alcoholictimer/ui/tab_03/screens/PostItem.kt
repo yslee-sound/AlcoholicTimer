@@ -154,10 +154,10 @@ private fun PostHeader(
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // 닉네임 + LV/일차: 닉네임 너비 기준으로 중앙 정렬
+        // 닉네임 + LV/일차: 닉네임 너비 기준으로 왼쪽 정렬
         Column(
             modifier = Modifier.wrapContentWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.Start // [FIX] 중앙 정렬 -> 왼쪽 정렬로 변경
         ) {
             Text(
                 text = nickname,
