@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -33,6 +34,7 @@ import kr.sweetapps.alcoholictimer.util.AvatarManager
  * Phase 1: 커뮤니티 게시글 아이템 UI
  * 페이스북 스타일의 Full-width 디자인
  * (v2.0) 아바타 시스템: authorAvatarIndex로 프로필 표시
+ * (v3.0) X 버튼: 남의 글에 빠른 숨기기 버튼 추가
  */
 @Composable
 fun PostItem(
@@ -44,21 +46,25 @@ fun PostItem(
     isLiked: Boolean = false,
     remainingTime: String, // "5h" 형식
     authorAvatarIndex: Int = 0, // [NEW] 아바타 인덱스
+    isMine: Boolean = false, // [NEW] Phase 3: 내 글 여부
     onLikeClick: () -> Unit = {},
     onCommentClick: () -> Unit = {},
-    onMoreClick: () -> Unit = {}
+    onMoreClick: () -> Unit = {},
+    onHideClick: () -> Unit = {} // [NEW] Phase 3: 숨기기 (X 버튼)
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
     ) {
-        // Header: 프로필 + 닉네임 + 타이머 배지 + 더보기
+        // Header: 프로필 + 닉네임 + 타이머 배지 + X 버튼 + 더보기
         PostHeader(
             nickname = nickname,
             timerDuration = timerDuration,
             authorAvatarIndex = authorAvatarIndex, // [NEW]
-            onMoreClick = onMoreClick
+            isMine = isMine, // [NEW] Phase 3
+            onMoreClick = onMoreClick,
+            onHideClick = onHideClick // [NEW] Phase 3
         )
 
         // Body: 텍스트 본문
@@ -101,18 +107,24 @@ fun PostItem(
  * 게시글 헤더: 프로필 아이콘 + 닉네임 + 타이머 배지 + 더보기 메뉴
  * (v2.0) 아바타 이미지 표시
  */
+/**
+ * 게시글 헤더: 프로필 + 닉네임 + 타이머 배지 + X 버튼 + 더보기
+ * (v3.0) X 버튼: 남의 글에만 표시 (빠른 숨기기)
+ */
 @Composable
 private fun PostHeader(
     nickname: String,
     timerDuration: String,
     authorAvatarIndex: Int = 0, // [NEW]
-    onMoreClick: () -> Unit
+    isMine: Boolean = false, // [NEW] Phase 3
+    onMoreClick: () -> Unit,
+    onHideClick: () -> Unit = {} // [NEW] Phase 3
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.Top // [FIX] 버튼을 별명과 같은 줄에 정렬 (2025-12-20)
     ) {
         // [NEW] 아바타 이미지 (로컬 리소스)
         Image(
@@ -152,13 +164,37 @@ private fun PostHeader(
             }
         }
 
-        // 더보기 메뉴
-        IconButton(onClick = onMoreClick) {
+        // [MODIFIED] 버튼 순서: 3점 버튼 → X 버튼 (페이스북 스타일) (2025-12-20)
+        // 더보기 메뉴 (3점 버튼) - 먼저 배치
+        IconButton(
+            onClick = onMoreClick,
+            modifier = Modifier
+                .size(40.dp) // [FIX] 페이스북과 동일한 크기
+                .offset(y = (-4).dp) // [FIX] 별명과 같은 줄에 정렬
+        ) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
                 contentDescription = "더보기",
-                tint = Color(0xFF666666)
+                tint = Color(0xFF666666),
+                modifier = Modifier.size(24.dp) // [FIX] 아이콘 크기 증가
             )
+        }
+
+        // 남의 글일 경우 X 버튼 표시 (빠른 숨기기) - 3점 버튼 오른쪽에 배치
+        if (!isMine) {
+            IconButton(
+                onClick = onHideClick,
+                modifier = Modifier
+                    .size(40.dp) // [FIX] 페이스북과 동일한 크기
+                    .offset(y = (-4).dp) // [FIX] 별명과 같은 줄에 정렬
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "숨기기",
+                    tint = Color(0xFF999999),
+                    modifier = Modifier.size(24.dp) // [FIX] 아이콘 크기 증가
+                )
+            }
         }
     }
 }

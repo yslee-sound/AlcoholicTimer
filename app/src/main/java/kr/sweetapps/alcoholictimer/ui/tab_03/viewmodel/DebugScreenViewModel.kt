@@ -1,4 +1,4 @@
-﻿package kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel
+package kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel
 
 import android.app.Application
 import android.content.Context
@@ -157,16 +157,17 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     /**
-     * Phase 2: 커뮤니티 테스트 게시글 10개 생성
+     * Phase 2: 테스트용 게시글 10개 생성
+     * [UPDATED] Phase 3: 내 글 3개 + 남의 글 7개 생성
      */
     fun generateDummyCommunityPosts(context: Context) {
         viewModelScope.launch {
             try {
-                val repository = CommunityRepository()
+                val repository = CommunityRepository(context)
                 val result = repository.generateDummyPosts()
 
                 val message = if (result.isSuccess) {
-                    "✅ 테스트 게시글 10개 생성 완료!\nTab 4에서 확인하세요."
+                    "✅ 테스트 게시글 10개 생성 완료!\n(내 글 3개 + 남의 글 7개)\nTab 3에서 확인하세요."
                 } else {
                     "❌ 게시글 생성 실패: ${result.exceptionOrNull()?.message}"
                 }
@@ -191,7 +192,7 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
     fun deleteAllCommunityPosts(context: Context) {
         viewModelScope.launch {
             try {
-                val repository = CommunityRepository()
+                val repository = CommunityRepository(context)
                 val result = repository.deleteAllPosts()
 
                 val message = if (result.isSuccess) {
@@ -214,3 +215,4 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 }
+

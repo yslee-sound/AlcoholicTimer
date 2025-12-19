@@ -163,9 +163,11 @@ fun CommunityScreen(
                                     isLiked = false,
                                     remainingTime = calculateRemainingTime(item.deleteAt),
                                     authorAvatarIndex = item.authorAvatarIndex, // [NEW] 아바타 인덱스 전달
+                                    isMine = viewModel.isMyPost(item), // [NEW] Phase 3: 내 글 여부
                                     onLikeClick = { viewModel.toggleLike(item.id) },
                                     onCommentClick = { },
-                                    onMoreClick = { selectedPost = item } // [NEW] Phase 3: 바텀 시트 열기
+                                    onMoreClick = { selectedPost = item }, // [NEW] Phase 3: 바텀 시트 열기
+                                    onHideClick = { viewModel.hidePost(item.id) } // [NEW] Phase 3: 빠른 숨기기 (X 버튼)
                                 )
                             }
                             HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))

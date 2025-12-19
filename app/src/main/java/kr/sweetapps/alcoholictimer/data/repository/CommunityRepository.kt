@@ -1,5 +1,6 @@
 package kr.sweetapps.alcoholictimer.data.repository
 
+import android.content.Context
 import android.util.Log
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
@@ -10,14 +11,20 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import kr.sweetapps.alcoholictimer.data.model.Post
 import java.util.Calendar
+import java.util.UUID
 
 /**
  * Phase 2: 커뮤니티 게시글 Repository
  * Firestore posts 컬렉션 관리
+ *
+ * (v3.0) 테스트 데이터 생성 시 내 글/남의 글 구분
  */
-class CommunityRepository {
+class CommunityRepository(private val context: Context? = null) {
     private val firestore = FirebaseFirestore.getInstance()
     private val postsCollection = firestore.collection("posts")
+
+    // [NEW] UserRepository (테스트 데이터 생성용)
+    private val userRepository: UserRepository? = context?.let { UserRepository(it) }
 
     companion object {
         private const val TAG = "CommunityRepository"
@@ -55,12 +62,19 @@ class CommunityRepository {
     /**
      * Phase 2: 테스트용 더미 게시글 10개 생성
      * Tab 5 디버그 메뉴에서 호출
+     *
+     * [UPDATED] Phase 3: 내 글 3개 + 남의 글 7개로 생성
+     * - 첫 3개: 내 글 (authorId = 현재 사용자 ID)
+     * - 나머지 7개: 남의 글 (authorId = 랜덤 UUID)
      */
     suspend fun generateDummyPosts(): Result<Unit> {
         return try {
             val batch = firestore.batch()
             val now = Timestamp.now()
             val deleteAt = Timestamp(now.seconds + 24 * 60 * 60, 0) // 24시간 후
+
+            // [NEW] 내 사용자 ID 가져오기
+            val myUserId = userRepository?.getInstallationId() ?: UUID.randomUUID().toString()
 
             val nicknames = listOf(
                 "익명 1", "참는 중인 사자", "새벽의 독수리", "조용한 늑대",
@@ -85,6 +99,13 @@ class CommunityRepository {
                 val postRef = postsCollection.document()
                 val hasImage = i % 3 == 0 // 3개 중 1개만 이미지 포함
 
+                // [NEW] Phase 3: 첫 3개는 내 글, 나머지는 남의 글
+                val authorId = if (i < 3) {
+                    myUserId // 내 글 (삭제 테스트용)
+                } else {
+                    UUID.randomUUID().toString() // 남의 글 (숨기기/신고 테스트용)
+                }
+
                 val post = Post(
                     id = postRef.id,
                     nickname = nicknames[i],
@@ -94,14 +115,15 @@ class CommunityRepository {
                     likeCount = (0..50).random(),
                     createdAt = Timestamp(now.seconds - i * 3600, 0), // 1시간씩 간격
                     deleteAt = deleteAt,
-                    authorAvatarIndex = (0..19).random() // [NEW] 랜덤 아바타 (0~19)
+                    authorAvatarIndex = (0..19).random(), // [NEW] 랜덤 아바타 (0~19)
+                    authorId = authorId // [NEW] Phase 3: 작성자 ID
                 )
 
                 batch.set(postRef, post)
             }
 
             batch.commit().await()
-            Log.d(TAG, "Successfully generated 10 dummy posts")
+            Log.d(TAG, "Successfully generated 10 dummy posts (3 mine + 7 others)")
             Result.success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "Error generating dummy posts", e)

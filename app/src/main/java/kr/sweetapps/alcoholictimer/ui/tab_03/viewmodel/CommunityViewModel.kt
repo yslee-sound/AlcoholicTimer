@@ -32,7 +32,7 @@ import java.util.UUID
  * - 삭제, 숨기기, 신고 기능
  */
 class CommunityViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository = CommunityRepository()
+    private val repository = CommunityRepository(application.applicationContext) // [FIX] Context 전달
     private val userRepository = UserRepository(application.applicationContext) // 아바타 관리용
 
     // [NEW] Phase 3: 기기 고유 ID (Installation ID)
