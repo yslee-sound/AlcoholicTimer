@@ -791,7 +791,7 @@ private fun StatisticItem(
             }
 
             // [FIX] 고정 간격
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(8.dp)) // [FIX] 그룹간 간격 증가: 4.dp -> 8.dp
 
             // [FIX] 3단계: [아이콘 + 제목] 영역 - 중앙 정렬로 변경
             Box(
@@ -1361,7 +1361,7 @@ private fun StatCard(
                 style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false)) // [NEW] 폰트 패딩 제거
             )
 
-            Spacer(modifier = Modifier.height(2.dp)) // [UPDATED] 아이콘-통합텍스트 간격을 4.dp -> 2.dp로 감소
+            Spacer(modifier = Modifier.height(8.dp)) // [FIX] 그룹간 간격 증가: 2.dp -> 8.dp
 
             // 값 - [FIX] AutoResizingText로 자동 크기 조절 (깜빡임 없음)
             Column(
