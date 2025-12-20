@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -217,7 +218,7 @@ fun CommunityScreen(
         }
 
         // === 2. 글쓰기 전체 화면 (최상위 레이어) ===
-        // [MODIFIED] Dialog + 슬라이드 애니메이션 (아래에서 위로) (2025-12-19)
+        // MODIFIED Dialog + 슬라이드 애니메이션 (아래에서 위로) (2025-12-19)
         if (isWritingScreenVisible) {
             Dialog(
                 onDismissRequest = { /* 하드웨어 백버튼은 내부 AnimatedVisibility에서 처리 */ },
@@ -226,18 +227,18 @@ fun CommunityScreen(
                     decorFitsSystemWindows = false   // 시스템 바 영역까지 제어 (Edge-to-Edge)
                 )
             ) {
-                // [NEW] 내부 애니메이션 상태 (2025-12-19)
+                // NEW 내부 애니메이션 상태 (2025-12-19)
                 var animateVisible by remember { mutableStateOf(false) }
 
-                // [NEW] 다이얼로그가 뜨면 즉시 애니메이션 시작
+                // NEW 다이얼로그가 뜨면 즉시 애니메이션 시작
                 LaunchedEffect(Unit) { animateVisible = true }
 
-                // [NEW] 닫기 트리거 함수 (애니메이션 후 종료)
+                // NEW 닫기 트리거 함수 (애니메이션 후 종료)
                 val triggerClose = {
                     animateVisible = false
                 }
 
-                // [NEW] 애니메이션이 끝나면 실제 다이얼로그 닫기
+                // NEW 애니메이션이 끝나면 실제 다이얼로그 닫기
                 LaunchedEffect(animateVisible) {
                     if (!animateVisible) {
                         kotlinx.coroutines.delay(300) // 애니메이션 시간 대기
@@ -503,7 +504,7 @@ private fun WritePostScreenContent(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
-        // [RESTORE] 글쓰기 화면의 하단 바를 원래대로 복원합니다.
+        // RESTORE 글쓰기 화면의 하단 바를 원래대로 복원합니다.
         bottomBar = {
             val isImeVisible = WindowInsets.isImeVisible
 
@@ -584,7 +585,7 @@ private fun WritePostScreenContent(
                  modifier = Modifier
                      .fillMaxSize()
                      .padding(innerPadding) // [FIX] Scaffold가 bottomBar 높이를 자동으로 계산하여 innerPadding에 포함
-                     .verticalScroll(scrollState) // [NEW] 스크롤 가능하게 설정 (2025-12-19)
+                     .verticalScroll(scrollState) // NEW 스크롤 가능하게 설정 (2025-12-19)
                  ,
                  verticalArrangement = Arrangement.Top // [MODIFIED] 모든 요소를 Top에서부터 쌓도록 변경
              ) {
@@ -641,6 +642,7 @@ private fun WritePostScreenContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()) // [NEW] 가로 스크롤 허용
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -840,7 +842,7 @@ private fun WritePostScreenContent(
 }
 
 /**
- * [NEW] 사진 추가 화면
+ * NEW 사진 추가 화면
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
