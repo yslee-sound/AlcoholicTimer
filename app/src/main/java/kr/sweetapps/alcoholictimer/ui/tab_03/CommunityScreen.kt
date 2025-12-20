@@ -42,6 +42,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -463,6 +464,18 @@ private fun WritePostScreenContent(
         }
     }
 
+    // [NEW] IME(키보드) 상태를 구독하여, 키보드가 올라올 때 하단 패널들을 자동으로 닫습니다.
+    // WindowInsets.isImeVisible는 @Composable 컨텍스트에서만 안전하게 읽을 수 있으므로
+    // 여기서는 컴포저블에서 직접 값을 읽고 LaunchedEffect로 관찰합니다.
+    val isImeVisible = WindowInsets.isImeVisible
+    LaunchedEffect(isImeVisible) {
+        if (isImeVisible) {
+            // 키보드가 올라오면 하단의 패널은 닫음
+            showThirstSlider = false
+            showPhotoScreen = false
+        }
+    }
+
     // 전체 화면을 흰색으로 덮음
     Scaffold(
         modifier = Modifier
@@ -531,7 +544,11 @@ private fun WritePostScreenContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { showThirstSlider = !showThirstSlider }
+                        .clickable {
+                            // [FIX] 패널 열기 전에 키보드를 내립니다. (상호 배타적 동작 보장)
+                            focusManager.clearFocus()
+                            showThirstSlider = !showThirstSlider
+                        }
                         .padding(vertical = 12.dp, horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -570,7 +587,9 @@ private fun WritePostScreenContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            // [FIX] 시스템 이미지 선택기 실행하여 크래시 방지
+                            // [FIX] 사진 추가 패널을 열기 전에 키보드를 내립니다. (상호 배타적 동작)
+                            focusManager.clearFocus()
+                            // 시스템 이미지 선택기 실행
                             photoPickerLauncher.launch(
                                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                             )
@@ -598,13 +617,16 @@ private fun WritePostScreenContent(
                 // [NEW] 디바이더 + 작성자 정보 (Top bar 바로 아래에 노출되도록 이동)
                 // 기존에 bottomBar 근처에 있던 작성자 정보 블록을 여기로 옮겨서
                 // '새 게시글 작성' 제목줄 바로 아래에 보이게 합니다.
-                var currentNickname by remember { mutableStateOf("익명") }
+                var currentNickname by remember { mutableStateOf("") } // [NEW]
+
+                // 화면이 생성될 때(진입 시) 무조건 최신 닉네임을 불러옵니다. (하드코딩 금지)
                 LaunchedEffect(Unit) {
                      try {
                          val repo = kr.sweetapps.alcoholictimer.data.repository.UserRepository(context)
-                         currentNickname = repo.getNickname() ?: "익명"
+                         // 존재하면 값 사용, 없으면 빈 문자열 유지(화면에 아무것도 표시하지 않음)
+                         currentNickname = repo.getNickname() ?: ""
                      } catch (_: Throwable) {
-                         // 실패 시 기본값 유지
+                         // 실패 시 빈 문자열 유지(섣불리 '익명' 등 하드코딩 금지)
                      }
                  }
 
@@ -631,12 +653,14 @@ private fun WritePostScreenContent(
                     Column(modifier = Modifier.weight(1f)) {
                         // 닉네임과 뱃지의 배치를 Row로 변경: 닉네임, 구분자(" - "), 숫자 뱃지, 후행 텍스트(" 갈증") 순
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            // 1) 닉네임
-                            Text(
-                                text = currentNickname,
-                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                                color = Color(0xFF111827) // 색상 변경 금지
-                            )
+                            // 1) 닉네임: 로드되기 전까지는 비워두어 깜빡임을 방지합니다.
+                            if (currentNickname.isNotBlank()) {
+                                Text(
+                                    text = currentNickname,
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                    color = Color(0xFF111827) // 색상 변경 금지
+                                )
+                            }
 
                             // 2~4) selectedLevel이 있을 때만 구분자, 뱃지, 후행 텍스트 노출
                             if (selectedLevel != null) {
@@ -743,8 +767,15 @@ private fun WritePostScreenContent(
                  modifier = Modifier
                      .fillMaxWidth()
                      .heightIn(min = 200.dp) // [FIX] weight(1f) 제거 -> 최소 높이 설정 (스크롤 가능 Column에서는 weight 사용 불가) (2025-12-19)
-                     .padding(horizontal = 16.dp), // [NEW] 좌우 패딩만 적용
-                 placeholder = {
+                     .padding(horizontal = 16.dp) // [NEW] 좌우 패딩만 적용
+                     .onFocusChanged { state ->
+                         // [NEW] 입력창에 포커스가 생기면 하단 패널들을 닫아 키보드가 정상 동작하도록 함
+                         if (state.isFocused) {
+                             showThirstSlider = false
+                             showPhotoScreen = false
+                         }
+                     },
+                  placeholder = {
                     Text(
                         text = placeholderText,
                         color = Color(0xFF9CA3AF),
