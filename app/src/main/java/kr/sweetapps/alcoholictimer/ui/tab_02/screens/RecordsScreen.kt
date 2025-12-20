@@ -733,45 +733,42 @@ private fun StatisticItem(
                 val num = m.groupValues[1]
                 val unit = m.groupValues[2]
 
-                // [FIX] 1단계: 숫자 영역 - AutoResizing (유연한 크기)
-                Box(
+                // [FIX] 숫자와 단위를 같은 Column에 배치하여 위아래 간격을 매우 좁게 유지
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(40.dp), // 고정 높이
-                    contentAlignment = Alignment.BottomCenter // 바닥 앵커
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    val numberBaseStyle = numStyle // 기존 스타일 재사용
+
                     AutoResizeSingleLineText(
                         text = num,
-                        baseStyle = numStyle,
-                        color = valueColor,
-                        textAlign = TextAlign.Center,
+                        baseStyle = numberBaseStyle,
+                        modifier = Modifier
+                            .fillMaxWidth(),
                         step = 0.9f,
-                        modifier = Modifier.fillMaxWidth()
+                        minFontSize = 12f,
+                        color = valueColor,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(2.dp)) // 숫자-단위 간격을 아이콘-라벨 간격과 동일하게 2.dp로 설정
+
+                    // 단위 텍스트: offset 제거하고 includeFontPadding을 꺼서 시각적 간격을 더 타이트하게 만듭니다.
+                    Text(
+                        text = unit,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = Color(0xFF9CA3AF),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 1,
+                        style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
                     )
                 }
 
-                // [FIX] 2단계: 단위 영역 - 고정 11sp (제목과 통일)
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(28.dp),
-                    contentAlignment = Alignment.TopCenter
-                ) {
-                    if (unit.isNotBlank()) {
-                        Text(
-                            text = unit,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Normal,
-                            color = Color(0xFF888888), // [UPDATE] 중간 톤 회색
-                            textAlign = TextAlign.Center,
-                            maxLines = 1,
-                            overflow = TextOverflow.Visible,
-                            style = TextStyle(
-                                platformStyle = PlatformTextStyle(includeFontPadding = false)
-                            )
-                        )
-                    }
-                }
+                // [FIX] 단위는 위에서 Column 내부에 이미 렌더링되므로 중복 렌더링 블록을 제거했습니다.
+
             } else {
                 // 파싱 실패 시 전체 문자열 표시
                 Box(
@@ -1363,21 +1360,41 @@ private fun StatCard(
             Spacer(modifier = Modifier.height(2.dp)) // [UPDATED] 아이콘-통합텍스트 간격을 4.dp -> 2.dp로 감소
 
             // 값 - [FIX] AutoResizingText로 자동 크기 조절 (깜빡임 없음)
-            AutoResizingText(
-                text = value,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF111827),
-                textAlign = TextAlign.Center,
-                minFontSize = 12.sp
-            )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // 숫자 (자동 축소)
+                val numberStyle = TextStyle(
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    platformStyle = PlatformTextStyle(includeFontPadding = false)
+                )
 
-            // 단위
-            Text(
-                text = unit,
-                fontSize = 11.sp,
-                color = Color(0xFF9CA3AF)
-            )
+                AutoResizeSingleLineText(
+                    text = value,
+                    baseStyle = numberStyle,
+                    modifier = Modifier.fillMaxWidth(),
+                    step = 0.9f,
+                    minFontSize = 12f,
+                    color = Color(0xFF111827),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(2.dp)) // 숫자-단위 간격을 아이콘-라벨 간격과 동일하게 2.dp로 설정
+
+                // 단위 텍스트: offset 제거하고 includeFontPadding을 꺼서 시각적 간격을 더 타이트하게 만듭니다.
+                Text(
+                    text = unit,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color(0xFF9CA3AF),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 1,
+                    style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
+                )
+            }
         }
     }
 }
