@@ -627,66 +627,67 @@ private fun WritePostScreenContent(
             }
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding) // [FIX] Scaffold가 bottomBar 높이를 자동으로 계산하여 innerPadding에 포함
-                .verticalScroll(scrollState) // [NEW] 스크롤 가능하게 설정 (2025-12-19)
-        ) {
-            // [MODIFIED] 프로필 영역 - 실제 사용자 아바타 표시 (2025-12-19)
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(all = 16.dp) // [NEW] 개별 패딩 적용
-            ) {
-                // ...existing code...
-            }
+             Column(
+                 modifier = Modifier
+                     .fillMaxSize()
+                     .padding(innerPadding) // [FIX] Scaffold가 bottomBar 높이를 자동으로 계산하여 innerPadding에 포함
+                     .verticalScroll(scrollState) // [NEW] 스크롤 가능하게 설정 (2025-12-19)
+             ) {
+                 // [MODIFIED] 프로필 영역 - 실제 사용자 아바타 표시 (2025-12-19)
+                 Row(
+                     verticalAlignment = Alignment.CenterVertically,
+                     modifier = Modifier.padding(all = 16.dp) // [NEW] 개별 패딩 적용
+                 ) {
+                     // ...existing code...
+                 }
 
-            // [NEW] 작성자 정보: 현재 사용자 아바타와 닉네임 표시 (WritePost 상단)
-            // 안전한 추가: ViewModel의 currentUserAvatarIndex를 사용하고 UserRepository에서 닉네임을 로드합니다.
-            val currentUserAvatarIndexForHeader by viewModel.currentUserAvatarIndex.collectAsState()
-            var currentNickname by remember { mutableStateOf("익명") }
-            LaunchedEffect(currentUserAvatarIndexForHeader) {
-                try {
-                    val repo = kr.sweetapps.alcoholictimer.data.repository.UserRepository(context)
-                    currentNickname = repo.getNickname() ?: "익명"
-                } catch (_: Throwable) {
-                    // 실패 시 기본값 유지
+                // [NEW] 디바이더 + 작성자 정보 (Top bar 바로 아래에 노출되도록 이동)
+                // 기존에 bottomBar 근처에 있던 작성자 정보 블록을 여기로 옮겨서
+                // '새 게시글 작성' 제목줄 바로 아래에 보이게 합니다.
+                var currentNickname by remember { mutableStateOf("익명") }
+                LaunchedEffect(currentUserAvatarIndex) {
+                    try {
+                        val repo = kr.sweetapps.alcoholictimer.data.repository.UserRepository(context)
+                        currentNickname = repo.getNickname() ?: "익명"
+                    } catch (_: Throwable) {
+                        // 실패 시 기본값 유지
+                    }
                 }
-            }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    painter = painterResource(id = kr.sweetapps.alcoholictimer.util.AvatarManager.getAvatarResId(currentUserAvatarIndexForHeader)),
-                    contentDescription = "내 프로필",
+                HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
+
+                Row(
                     modifier = Modifier
-                        .size(40.dp)
-                        .border(1.dp, Color(0xFFE0E0E0), CircleShape)
-                        .clip(CircleShape)
-                        .background(Color(0xFFF5F5F5))
-                )
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = currentNickname,
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                        color = Color(0xFF111827)
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = painterResource(id = kr.sweetapps.alcoholictimer.util.AvatarManager.getAvatarResId(currentUserAvatarIndex)),
+                        contentDescription = "내 프로필",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .border(1.dp, Color(0xFFE0E0E0), CircleShape)
+                            .clip(CircleShape)
+                            .background(Color(0xFFF5F5F5))
                     )
 
-                    // 보조 텍스트: 필요 시 공개 범위나 기타 정보를 표시할 수 있음
-                    Text(
-                        text = "내 프로필",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF6B7280)
-                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = currentNickname,
+                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                            color = Color(0xFF111827)
+                        )
+
+                        Text(
+                            text = "내 프로필",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF6B7280)
+                        )
+                    }
                 }
-            }
 
             // 텍스트 입력창
             TextField(
