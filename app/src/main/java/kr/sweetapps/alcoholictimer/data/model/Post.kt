@@ -42,5 +42,9 @@ data class Post(
 
     // [NEW] 게시글 주제 태그 (예: "diary", "thanks", "reflect")
     @PropertyName("tagType")
-    val tagType: String = ""
+    val tagType: String = "",
+
+    // [NEW] 갈증 수치 (1..10) - 선택사항
+    @PropertyName("thirstLevel")
+    val thirstLevel: Int? = null
 )

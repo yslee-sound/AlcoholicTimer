@@ -175,37 +175,38 @@ fun CommunityScreen(
                                     NativeAdItem()
                                 } else {
                                     PostItem(
-                                        nickname = item.nickname,
-                                        timerDuration = item.timerDuration,
-                                        content = item.content,
-                                        imageUrl = item.imageUrl,
-                                        likeCount = item.likeCount,
-                                        isLiked = viewModel.isLikedByMe(item),
-                                        remainingTime = calculateRemainingTime(item.deleteAt),
-                                        currentDays = item.currentDays,
-                                        userLevel = item.userLevel,
+                                         nickname = item.nickname,
+                                         timerDuration = item.timerDuration,
+                                         content = item.content,
+                                         imageUrl = item.imageUrl,
+                                         likeCount = item.likeCount,
+                                         isLiked = viewModel.isLikedByMe(item),
+                                         remainingTime = calculateRemainingTime(item.deleteAt),
+                                         currentDays = item.currentDays,
+                                         userLevel = item.userLevel,
                                          authorAvatarIndex = item.authorAvatarIndex, // 아바타 인덱스 전달
-                                         isMine = viewModel.isMyPost(item), // Phase 3: 내 글 여부
-                                         onLikeClick = { viewModel.toggleLike(item) },
-                                         onCommentClick = { },
-                                         onMoreClick = { selectedPost = item }, // Phase 3: 바텀 시트 열기
-                                         onHideClick = {
-                                            // 1) 즉시 숨김 처리
-                                            viewModel.hidePost(item.id)
+                                         thirstLevel = item.thirstLevel,
+                                          isMine = viewModel.isMyPost(item), // Phase 3: 내 글 여부
+                                          onLikeClick = { viewModel.toggleLike(item) },
+                                          onCommentClick = { },
+                                          onMoreClick = { selectedPost = item }, // Phase 3: 바텀 시트 열기
+                                          onHideClick = {
+                                             // 1) 즉시 숨김 처리
+                                             viewModel.hidePost(item.id)
 
-                                            // 2) 스낵바로 Undo 제공
-                                            coroutineScope.launch {
-                                                val result = snackbarHostState.showSnackbar(
-                                                    message = "게시글이 숨겨졌습니다.",
-                                                    actionLabel = "되돌리기",
-                                                    duration = SnackbarDuration.Short
-                                                )
+                                             // 2) 스낵바로 Undo 제공
+                                             coroutineScope.launch {
+                                                 val result = snackbarHostState.showSnackbar(
+                                                     message = "게시글이 숨겨졌습니다.",
+                                                     actionLabel = "되돌리기",
+                                                     duration = SnackbarDuration.Short
+                                                 )
 
-                                                if (result == SnackbarResult.ActionPerformed) {
-                                                    viewModel.undoHidePost(item.id)
-                                                }
-                                            }
-                                        } // Phase 3: 빠른 숨기기 + Undo
+                                                 if (result == SnackbarResult.ActionPerformed) {
+                                                     viewModel.undoHidePost(item.id)
+                                                 }
+                                             }
+                                          } // Phase 3: 빠른 숨기기 + Undo
                                     )
                                 }
                                 // MODIFIED 디바이더 진하게 (페이스북 스타일) (2025-12-20)
@@ -497,7 +498,7 @@ private fun WritePostScreenContent(
                         onClick = {
                             if (content.isNotBlank()) {
                                 // [NEW] 선택된 주제 태그와 함께 게시
-                                viewModel.addPost(content.trim(), context, selectedTag)
+                                viewModel.addPost(content.trim(), context, selectedTag, selectedLevel)
                                 onPost(content.trim())
                             }
                         },
@@ -598,14 +599,14 @@ private fun WritePostScreenContent(
                 // 기존에 bottomBar 근처에 있던 작성자 정보 블록을 여기로 옮겨서
                 // '새 게시글 작성' 제목줄 바로 아래에 보이게 합니다.
                 var currentNickname by remember { mutableStateOf("익명") }
-                LaunchedEffect(currentUserAvatarIndex) {
-                    try {
-                        val repo = kr.sweetapps.alcoholictimer.data.repository.UserRepository(context)
-                        currentNickname = repo.getNickname() ?: "익명"
-                    } catch (_: Throwable) {
-                        // 실패 시 기본값 유지
-                    }
-                }
+                LaunchedEffect(Unit) {
+                     try {
+                         val repo = kr.sweetapps.alcoholictimer.data.repository.UserRepository(context)
+                         currentNickname = repo.getNickname() ?: "익명"
+                     } catch (_: Throwable) {
+                         // 실패 시 기본값 유지
+                     }
+                 }
 
                 HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
 
@@ -628,7 +629,7 @@ private fun WritePostScreenContent(
                     Spacer(modifier = Modifier.width(12.dp))
 
                     Column(modifier = Modifier.weight(1f)) {
-                        // 닉네임과 뱃지를 Row로 배치: 닉네임, 구분자(" - "), 숫자 뱃지, 후행 텍스트(" 갈증") 순
+                        // 닉네임과 뱃지의 배치를 Row로 변경: 닉네임, 구분자(" - "), 숫자 뱃지, 후행 텍스트(" 갈증") 순
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             // 1) 닉네임
                             Text(

@@ -250,7 +250,7 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
      * @param content 게시글 내용
      * @param context Context (이미지 압축에 필요)
      */
-    fun addPost(content: String, context: Context, tagType: String = "") {
+    fun addPost(content: String, context: Context, tagType: String = "", thirstLevel: Int? = null) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
@@ -322,7 +322,8 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                     deleteAt = deleteAt,
                     authorAvatarIndex = avatarIndex,
                     authorId = deviceUserId, // [NEW] Phase 3: 작성자 기기 ID
-                    tagType = tagType
+                    tagType = tagType,
+                    thirstLevel = thirstLevel
                 )
 
                 // 8. Firestore에 게시글 추가

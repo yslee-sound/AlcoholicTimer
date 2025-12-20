@@ -51,6 +51,7 @@ fun PostItem(
     currentDays: Int = 1,
     userLevel: Int = 1,
     authorAvatarIndex: Int = 0, // [NEW] 아바타 인덱스
+    thirstLevel: Int? = null, // [NEW] 갈증 수치 표시
     isMine: Boolean = false, // [NEW] Phase 3: 내 글 여부
     onLikeClick: () -> Unit = {},
     onCommentClick: () -> Unit = {},
@@ -69,6 +70,7 @@ fun PostItem(
             currentDays = currentDays,
             userLevel = userLevel,
             authorAvatarIndex = authorAvatarIndex, // [NEW]
+            thirstLevel = thirstLevel, // [NEW]
             isMine = isMine, // [NEW] Phase 3
             onMoreClick = onMoreClick,
             onHideClick = onHideClick // [NEW] Phase 3
@@ -136,6 +138,7 @@ private fun PostHeader(
     currentDays: Int = 1,
     userLevel: Int = 1,
     authorAvatarIndex: Int = 0, // [NEW]
+    thirstLevel: Int? = null, // [NEW] 갈증 수치
     isMine: Boolean = false, // [NEW] Phase 3
     onMoreClick: () -> Unit,
     onHideClick: () -> Unit = {} // [NEW] Phase 3
@@ -164,11 +167,61 @@ private fun PostHeader(
             modifier = Modifier.wrapContentWidth(),
             horizontalAlignment = Alignment.Start // [FIX] 중앙 정렬 -> 왼쪽 정렬로 변경
         ) {
-            Text(
-                text = nickname,
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                color = Color(0xFF111111)
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = nickname,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                    color = Color(0xFF111111)
+                )
+
+                // [NEW] 갈증 수치가 있으면 닉네임 옆에 구분자, 숫자 뱃지, 후행 텍스트를 표시합니다.
+                if (thirstLevel != null) {
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    // 구분자
+                    Text(
+                        text = " - ",
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        color = Color(0xFF111111)
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    // 색상 매핑 함수 (WritePostScreenContent와 동일한 규칙)
+                    val badgeColor = when (thirstLevel) {
+                        in 1..3 -> Color(0xFF4CAF50)
+                        in 4..7 -> Color(0xFFFFA726)
+                        else -> Color(0xFFE53935)
+                    }
+
+                    // 숫자 뱃지 (Rounded box)
+                    Box(
+                        modifier = Modifier
+                            .height(24.dp)
+                            .wrapContentWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(badgeColor)
+                            .padding(horizontal = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = thirstLevel.toString(),
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    // 후행 텍스트
+                    Text(
+                        text = " 갈증",
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        color = Color(0xFF111111)
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(4.dp))
 
             // 레벨 및 일차 정보 Row
