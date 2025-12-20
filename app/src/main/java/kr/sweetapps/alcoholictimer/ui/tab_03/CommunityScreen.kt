@@ -562,7 +562,12 @@ private fun WritePostScreenContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { showPhotoScreen = true }
+                        .clickable {
+                            // [FIX] 시스템 이미지 선택기 실행하여 크래시 방지
+                            photoPickerLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        }
                         .padding(vertical = 12.dp, horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
