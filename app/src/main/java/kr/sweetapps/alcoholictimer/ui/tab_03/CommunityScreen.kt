@@ -503,144 +503,16 @@ private fun WritePostScreenContent(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
-        // [NEW] bottomBar로 사진 추가 버튼 이동 (2025-12-19)
-        bottomBar = {
-            // [FIX] 키보드 가시성에 따라 조건부 패딩 적용
-            val isImeVisible = WindowInsets.isImeVisible
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White) // 배경 흰색으로 고정
-                    .windowInsetsPadding(
-                        if (isImeVisible) WindowInsets(0) else WindowInsets.navigationBars
-                    ) // 키보드 보이면 패딩 없음, 아니면 네비게이션바 높이만큼
-            ) {
-                // 상단 구분선
-                HorizontalDivider(
-                    thickness = 1.dp,
-                    color = Color(0xFFE0E0E0)
-                )
-
-                // [NEW] 갈증 수치 버튼 추가 (사진 추가 버튼 위에)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            showThirstSlider = !showThirstSlider
-                        }
-                        .padding(vertical = 12.dp, horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Restaurant, // [NEW] 물방울 아이콘으로 갈증 수치 표현
-                        contentDescription = "갈증 수치",
-                        tint = Color(0xFF2196F3) // 파란색 아이콘
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "갈증 수치",
-                        color = Color(0xFF1F2937),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-
-                // [NEW] 갈증 수치 슬라이더 (버튼 아래에 슬라이드 형태로 나타남)
-                AnimatedVisibility(
-                    visible = showThirstSlider,
-                    enter = slideInVertically(
-                        initialOffsetY = { -it }, // 위에서 아래로 슬라이드
-                        animationSpec = tween(300)
-                    ),
-                    exit = slideOutVertically(
-                        targetOffsetY = { -it }, // 아래에서 위로 슬라이드
-                        animationSpec = tween(300)
-                    )
-                ) {
-                    // [NEW] 1..10 숫자 선택기 - 가로 스크롤 가능한 박스 리스트 (LazyRow)
-                    var thirstLevel by remember { mutableStateOf(5) } // 선택값은 Int로 관리
-
-                    // Helper: 색상 매핑 함수
-                    fun thirstColor(level: Int): Color = when (level) {
-                        in 1..3 -> Color(0xFF4CAF50) // 초록
-                        in 4..7 -> Color(0xFFFFA726) // 주황
-                        else -> Color(0xFFE53935)    // 빨강
-                    }
-
-                    LazyRow(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(10) { index ->
-                            val value = index + 1
-                            val selected = thirstLevel == value
-
-                            Box(
-                                modifier = Modifier
-                                    // [MODIFIED] 숫자 박스 크기 70%로 축소 (원래 50.dp -> 35.dp)
-                                    .size(35.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(if (selected) thirstColor(value) else Color(0xFFF0F0F0))
-                                    .clickable(onClick = { thirstLevel = value }),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = value.toString(),
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = if (selected) Color.White else Color(0xFF374151)
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // [NEW] 갈증 수치 버튼 하단 디바이더
-                HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
-
-                // 사진 추가 버튼 (목록형)
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            showPhotoScreen = true
-                        }
-                        .padding(vertical = 12.dp, horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Image,
-                        contentDescription = "사진",
-                        tint = Color(0xFF4CAF50) // 초록색 아이콘
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "사진 추가",
-                        color = Color(0xFF1F2937),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-
-                // [NEW] 사진 추가 버튼 하단 디바이더
-                HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
-            }
-        }
+        // [REMOVED] bottomBar을 사용하지 않고 모든 입력 요소를 메인 Column으로 이동했습니다.
     ) { innerPadding ->
              Column(
                  modifier = Modifier
                      .fillMaxSize()
                      .padding(innerPadding) // [FIX] Scaffold가 bottomBar 높이를 자동으로 계산하여 innerPadding에 포함
                      .verticalScroll(scrollState) // [NEW] 스크롤 가능하게 설정 (2025-12-19)
+                 ,
+                 verticalArrangement = Arrangement.Top // [MODIFIED] 모든 요소를 Top에서부터 쌓도록 변경
              ) {
-                 // [MODIFIED] 프로필 영역 - 실제 사용자 아바타 표시 (2025-12-19)
-                 Row(
-                     verticalAlignment = Alignment.CenterVertically,
-                     modifier = Modifier.padding(all = 16.dp) // [NEW] 개별 패딩 적용
-                 ) {
-                     // ...existing code...
-                 }
-
                 // [NEW] 디바이더 + 작성자 정보 (Top bar 바로 아래에 노출되도록 이동)
                 // 기존에 bottomBar 근처에 있던 작성자 정보 블록을 여기로 옮겨서
                 // '새 게시글 작성' 제목줄 바로 아래에 보이게 합니다.
@@ -690,65 +562,136 @@ private fun WritePostScreenContent(
                 }
 
             // 텍스트 입력창
-            TextField(
-                value = content,
-                onValueChange = { content = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 200.dp) // [FIX] weight(1f) 제거 -> 최소 높이 설정 (스크롤 가능 Column에서는 weight 사용 불가) (2025-12-19)
-                    .padding(horizontal = 16.dp), // [NEW] 좌우 패딩만 적용
-                placeholder = {
+             TextField(
+                 value = content,
+                 onValueChange = { content = it },
+                 modifier = Modifier
+                     .fillMaxWidth()
+                     .heightIn(min = 200.dp) // [FIX] weight(1f) 제거 -> 최소 높이 설정 (스크롤 가능 Column에서는 weight 사용 불가) (2025-12-19)
+                     .padding(horizontal = 16.dp), // [NEW] 좌우 패딩만 적용
+                 placeholder = {
                     Text(
                         text = "오늘 하루는 어땠나요? 솔직한 이야기를 들려주세요.",
                         color = Color(0xFF9CA3AF),
                         style = MaterialTheme.typography.bodyLarge
                     )
-                },
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent, // 밑줄 제거
-                    unfocusedIndicatorColor = Color.Transparent
-                ),
-                textStyle = MaterialTheme.typography.bodyLarge
-            )
+                 },
+                 colors = TextFieldDefaults.colors(
+                     focusedContainerColor = Color.Transparent,
+                     unfocusedContainerColor = Color.Transparent,
+                     focusedIndicatorColor = Color.Transparent, // 밑줄 제거
+                     unfocusedIndicatorColor = Color.Transparent
+                 ),
+                 textStyle = MaterialTheme.typography.bodyLarge
+             )
 
-            // [NEW] 이미지 미리보기 (2025-12-19)
-            if (selectedImageUri != null) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
+             // [NEW] 이미지 미리보기 (2025-12-19)
+             if (selectedImageUri != null) {
+                 Box(
+                     modifier = Modifier
+                         .fillMaxWidth()
+                         .padding(16.dp)
+                 ) {
+                     // 이미지 표시
+                     AsyncImage(
+                         model = selectedImageUri,
+                         contentDescription = "선택된 이미지",
+                         modifier = Modifier
+                             .fillMaxWidth()
+                             .wrapContentHeight() // [FIX] 이미지 비율에 맞게 높이 조절 - 제한 없이 원본 비율대로 표시 (2025-12-19)
+                             .clip(RoundedCornerShape(12.dp)),
+                         contentScale = ContentScale.FillWidth // [FIX] 가로를 꽉 채우고 세로는 비율 유지 (잘리지 않음) (2025-12-19)
+                     )
+
+                     // 우측 상단 X 버튼
+                     IconButton(
+                         onClick = { viewModel.onImageSelected(null) },
+                         modifier = Modifier
+                             .align(Alignment.TopEnd)
+                             .padding(8.dp)
+                             .size(32.dp)
+                             .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                     ) {
+                         Icon(
+                             imageVector = Icons.Filled.Close,
+                             contentDescription = "이미지 제거",
+                             tint = Color.White,
+                             modifier = Modifier.size(20.dp)
+                         )
+                     }
+                 }
+             }
+
+            // === moved from bottomBar: 갈증 수치 & 사진 추가 UI (모든 입력 요소를 Column 안으로 이동) ===
+            HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
+
+            // 갈증 수치 버튼
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showThirstSlider = !showThirstSlider }
+                    .padding(vertical = 12.dp, horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Restaurant,
+                    contentDescription = "갈증 수치",
+                    tint = Color(0xFF2196F3)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = "갈증 수치", color = Color(0xFF1F2937), style = MaterialTheme.typography.bodyMedium)
+            }
+
+            AnimatedVisibility(
+                visible = showThirstSlider,
+                enter = slideInVertically(initialOffsetY = { -it }, animationSpec = tween(300)),
+                exit = slideOutVertically(targetOffsetY = { -it }, animationSpec = tween(300))
+            ) {
+                var thirstLevel by remember { mutableStateOf(5) }
+                fun thirstColor(level: Int): Color = when (level) {
+                    in 1..3 -> Color(0xFF4CAF50)
+                    in 4..7 -> Color(0xFFFFA726)
+                    else -> Color(0xFFE53935)
+                }
+
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // 이미지 표시
-                    AsyncImage(
-                        model = selectedImageUri,
-                        contentDescription = "선택된 이미지",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight() // [FIX] 이미지 비율에 맞게 높이 조절 - 제한 없이 원본 비율대로 표시 (2025-12-19)
-                            .clip(RoundedCornerShape(12.dp)),
-                        contentScale = ContentScale.FillWidth // [FIX] 가로를 꽉 채우고 세로는 비율 유지 (잘리지 않음) (2025-12-19)
-                    )
-
-                    // 우측 상단 X 버튼
-                    IconButton(
-                        onClick = { viewModel.onImageSelected(null) },
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(8.dp)
-                            .size(32.dp)
-                            .background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = "이미지 제거",
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
+                    items(10) { index ->
+                        val value = index + 1
+                        val selected = thirstLevel == value
+                        Box(
+                            modifier = Modifier
+                                .size(35.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (selected) thirstColor(value) else Color(0xFFF0F0F0))
+                                .clickable { thirstLevel = value },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = value.toString(), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = if (selected) Color.White else Color(0xFF374151))
+                        }
                     }
                 }
             }
+
+            HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
+
+            // 사진 추가 버튼
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showPhotoScreen = true }
+                    .padding(vertical = 12.dp, horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(imageVector = Icons.Filled.Image, contentDescription = "사진", tint = Color(0xFF4CAF50))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = "사진 추가", color = Color(0xFF1F2937), style = MaterialTheme.typography.bodyMedium)
+            }
+
+            HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
         }
     }
 
