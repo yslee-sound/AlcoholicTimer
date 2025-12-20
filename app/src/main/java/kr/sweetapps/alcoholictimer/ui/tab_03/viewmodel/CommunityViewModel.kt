@@ -67,6 +67,10 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     // [NEW] 원본 데이터 캐시 (DB에서 온 것 그대로 보관)
     private var _cachedPostList: List<Post> = emptyList()
 
+    // [NEW] 외부(일기)에서 공유된 초안 내용
+    private val _sharedDraftContent = MutableStateFlow<String?>(null)
+    val sharedDraftContent: StateFlow<String?> = _sharedDraftContent.asStateFlow()
+
     init {
         loadPosts()
         loadCurrentUserAvatar() // [NEW] 사용자 아바타 로드
@@ -532,5 +536,19 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
             loadPosts()
             _isLoading.value = false
         }
+    }
+
+    /**
+     * [NEW] 외부에서 공유된 초안 내용 설정
+     */
+    fun setDraftContent(content: String) {
+        _sharedDraftContent.value = content
+    }
+
+    /**
+     * [NEW] 외부에서 공유된 초안 내용 소비 (초기화)
+     */
+    fun consumeDraftContent() {
+        _sharedDraftContent.value = null
     }
 }

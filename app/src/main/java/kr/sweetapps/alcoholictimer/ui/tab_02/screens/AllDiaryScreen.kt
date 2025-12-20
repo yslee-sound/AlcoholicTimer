@@ -26,6 +26,8 @@ import kr.sweetapps.alcoholictimer.data.room.DiaryEntity
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.LinkedHashMap
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Share
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -184,7 +186,9 @@ fun AllDiaryScreen(
                 list.forEachIndexed { index, diary ->
                     item(key = diary.id) {
                         // [UPDATED] Clean white background list item (matches Tab 1 style)
-                        CleanDiaryListItem(diary = diary, onClick = { onOpenDiaryDetail(diary.id) })
+                        CleanDiaryListItem(diary = diary, onClick = { onOpenDiaryDetail(diary.id) }, onShareClick = { content ->
+
+                        })
 
                         // [NEW] Add divider between items (not after last item in group)
                         if (index < list.size - 1) {
@@ -213,7 +217,7 @@ fun AllDiaryScreen(
  * - [FIX] Use diary.timestamp instead of diary.date for proper i18n formatting
  */
 @Composable
-private fun CleanDiaryListItem(diary: DiaryEntity, onClick: () -> Unit) {
+private fun CleanDiaryListItem(diary: DiaryEntity, onClick: () -> Unit, onShareClick: (String) -> Unit) {
     // [FIX] Format date using timestamp and current Locale
     val locale = Locale.getDefault()
     val (yearMonth, day) = remember(diary.timestamp, locale) {
@@ -287,6 +291,15 @@ private fun CleanDiaryListItem(diary: DiaryEntity, onClick: () -> Unit) {
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f) // [FIX] Take remaining space
         )
+
+        // [NEW] 공유 버튼 추가
+        IconButton(onClick = { onShareClick(diary.content) }) {
+            Icon(
+                imageVector = Icons.Default.Share,
+                contentDescription = "커뮤니티에 공유",
+                tint = Color.Gray
+            )
+        }
     }
 }
 

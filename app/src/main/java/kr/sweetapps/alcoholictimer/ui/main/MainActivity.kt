@@ -20,6 +20,7 @@ import kr.sweetapps.alcoholictimer.MainApplication
 import kr.sweetapps.alcoholictimer.ui.common.BaseActivity
 import kr.sweetapps.alcoholictimer.ui.common.BaseScaffold
 import kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.Tab01ViewModel
+import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.CommunityViewModel
 // Navigation imports (now in ui.main package)
 // Note: Screen and AppNavHost are now in the same package
 import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
@@ -472,6 +473,15 @@ private fun AppContentWithStart(
 ) {
     val navController = rememberNavController()
     val context = LocalContext.current
+    val communityViewModel: CommunityViewModel = viewModel()
+
+    // [NEW] 공유 버튼 클릭 시 커뮤니티 글쓰기 화면으로 이동
+    fun navigateToCommunityWithDraft(draftContent: String) {
+        communityViewModel.setDraftContent(draftContent)
+        navController.navigate("community") {
+            popUpTo("community") { inclusive = true }
+        }
+    }
 
     // [NEW] 전역 타이머 완료 네비게이션 리스너 (Activity Scope ViewModel)
     val activity = context as? MainActivity
