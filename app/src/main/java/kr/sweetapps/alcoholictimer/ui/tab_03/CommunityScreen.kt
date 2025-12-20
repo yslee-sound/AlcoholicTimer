@@ -464,7 +464,7 @@ private fun WritePostScreenContent(
         }
     }
 
-    // [NEW] IME(키보드) 상태를 구독하여, 키보드가 올라올 때 하단 패널들을 자동으로 닫습니다.
+    // NEW IME(키보드) 상태를 구독하여, 키보드가 올라올 때 하단 패널들을 자동으로 닫습니다.
     // WindowInsets.isImeVisible는 @Composable 컨텍스트에서만 안전하게 읽을 수 있으므로
     // 여기서는 컴포저블에서 직접 값을 읽고 LaunchedEffect로 관찰합니다.
     val isImeVisible = WindowInsets.isImeVisible
@@ -697,11 +697,37 @@ private fun WritePostScreenContent(
                             }
                         }
 
-                        Text(
-                            text = "내 프로필",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF6B7280)
-                        )
+                        // [FIX] 하드코딩된 "내 프로필" 대신, 게시글 리스트에서 사용하는 포맷과 동일하게
+                        // LV.{레벨} · {일수}일차 를 표시합니다. SharedPreferences의 timer_prefs에서 시작시간을 읽어 계산합니다.
+                        val tab03Vm: kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab03ViewModel = viewModel()
+                        val levelDays by tab03Vm.levelDays.collectAsState()
+                        // 요구사항: 만약 levelDays == 0 이면 LV.0 으로 그대로 표시해야 함
+                        val levelNumber = if (levelDays == 0) 0 else kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions.getLevelNumber(levelDays) + 1
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "LV.$levelNumber",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue,
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                            )
+
+                            Spacer(modifier = Modifier.width(4.dp))
+
+                            Text(
+                                text = "·",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.Gray
+                            )
+
+                            Spacer(modifier = Modifier.width(4.dp))
+
+                            Text(
+                                text = "${levelDays}일차",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.Gray
+                            )
+                        }
                     }
                 }
 
