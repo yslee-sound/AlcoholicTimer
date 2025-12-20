@@ -6,7 +6,9 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.Delete
@@ -413,6 +416,7 @@ private fun WritePostScreenContent(
     val focusManager = LocalFocusManager.current // [NEW] FocusManager (2025-12-19)
     val scrollState = rememberScrollState() // [NEW] 스크롤 상태 (2025-12-19)
     var showWarningSheet by remember { mutableStateOf(false) } // [NEW] 경고 바텀 시트 표시 상태 (2025-12-19)
+    var showThirstScreen by remember { mutableStateOf(false) } // [NEW] 갈증 수치 화면 표시 상태
 
     // [NEW] 1. 상태 구독 - 현재 사용자의 아바타 인덱스
     val currentUserAvatarIndex by viewModel.currentUserAvatarIndex.collectAsState()
@@ -517,6 +521,32 @@ private fun WritePostScreenContent(
                     color = Color(0xFFE0E0E0)
                 )
 
+                // [NEW] 갈증 수치 버튼 추가 (사진 추가 버튼 위에)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            showThirstScreen = true
+                        }
+                        .padding(vertical = 12.dp, horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Restaurant, // [NEW] 물방울 아이콘으로 갈증 수치 표현
+                        contentDescription = "갈증 수치",
+                        tint = Color(0xFF2196F3) // 파란색 아이콘
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "갈증 수치",
+                        color = Color(0xFF1F2937),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                // [NEW] 갈증 수치 버튼 하단 디바이더
+                HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
+
                 // 사진 추가 버튼 (목록형)
                 Row(
                     modifier = Modifier
@@ -542,6 +572,9 @@ private fun WritePostScreenContent(
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
+
+                // [NEW] 사진 추가 버튼 하단 디바이더
+                HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
             }
         }
     ) { innerPadding ->
@@ -689,6 +722,22 @@ private fun WritePostScreenContent(
                 }
             }
         }
+    }
+
+    // [NEW] 갈증 수치 화면 (오른쪽에서 왼쪽 슬라이드)
+    AnimatedVisibility(
+        visible = showThirstScreen,
+        enter = slideInHorizontally(
+            initialOffsetX = { it }, // 오른쪽에서 왼쪽으로
+            animationSpec = tween(300)
+        ),
+        exit = slideOutHorizontally(
+            targetOffsetX = { it }, // 왼쪽에서 오른쪽으로
+            animationSpec = tween(300)
+        ),
+        modifier = Modifier.fillMaxSize()
+    ) {
+        ThirstLevelScreen(onDismiss = { showThirstScreen = false })
     }
 }
 
@@ -941,5 +990,55 @@ private fun NativeAdItem() {
                 .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
                 .clip(RoundedCornerShape(12.dp))
         )
+    }
+}
+
+/**
+ * [NEW] 갈증 수치 화면
+ * 뒤로가기가 있는 빈 화면, 제목: '오늘의 갈증 수치는?'
+ * 전환 효과: 오른쪽에서 왼쪽으로 슬라이드
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ThirstLevelScreen(onDismiss: () -> Unit) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = Color.White,
+        contentWindowInsets = WindowInsets.systemBars,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "오늘의 갈증 수치는?",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color(0xFF1F2937)
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "뒤로가기",
+                            tint = Color(0xFF1F2937)
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+            )
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentAlignment = Alignment.Center
+        ) {
+            // 빈 화면: 필요 시 콘텐츠 추가 가능
+            Text(
+                text = "갈증 수치 선택 기능은 추후 구현 예정입니다.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color(0xFF9CA3AF)
+            )
+        }
     }
 }
