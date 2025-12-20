@@ -527,38 +527,34 @@ private fun WritePostScreenContent(
                     Text(text = "갈증 수치", color = Color(0xFF1F2937), style = MaterialTheme.typography.bodyMedium)
                 }
 
-                AnimatedVisibility(
-                    visible = showThirstSlider,
-                    enter = slideInVertically(initialOffsetY = { -it }, animationSpec = tween(300)),
-                    exit = slideOutVertically(targetOffsetY = { -it }, animationSpec = tween(300))
-                ) {
-                    var thirstLevel by remember { mutableStateOf(5) }
-                    fun thirstColor(level: Int): Color = when (level) {
-                        in 1..3 -> Color(0xFF4CAF50)
-                        in 4..7 -> Color(0xFFFFA726)
-                        else -> Color(0xFFE53935)
-                    }
+                if (showThirstSlider) {
+                     var thirstLevel by remember { mutableStateOf(5) }
+                     fun thirstColor(level: Int): Color = when (level) {
+                         in 1..3 -> Color(0xFF4CAF50)
+                         in 4..7 -> Color(0xFFFFA726)
+                         else -> Color(0xFFE53935)
+                     }
 
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(10) { index ->
-                            val value = index + 1
-                            val selected = thirstLevel == value
-                            Box(
-                                modifier = Modifier
-                                    .size(35.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(if (selected) thirstColor(value) else Color(0xFFF0F0F0))
-                                    .clickable { thirstLevel = value },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(text = value.toString(), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = if (selected) Color.White else Color(0xFF374151))
-                            }
-                        }
-                    }
+                     LazyRow(
+                         modifier = Modifier.fillMaxWidth(),
+                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                         horizontalArrangement = Arrangement.spacedBy(8.dp)
+                     ) {
+                         items(10) { index ->
+                             val value = index + 1
+                             val selected = thirstLevel == value
+                             Box(
+                                 modifier = Modifier
+                                     .size(35.dp)
+                                     .clip(RoundedCornerShape(12.dp))
+                                     .background(if (selected) thirstColor(value) else Color(0xFFF0F0F0))
+                                     .clickable { thirstLevel = value },
+                                 contentAlignment = Alignment.Center
+                             ) {
+                                 Text(text = value.toString(), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = if (selected) Color.White else Color(0xFF374151))
+                             }
+                         }
+                     }
                 }
 
                 HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
