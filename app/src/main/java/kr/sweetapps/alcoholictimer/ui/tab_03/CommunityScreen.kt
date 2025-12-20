@@ -417,6 +417,7 @@ private fun WritePostScreenContent(
     val scrollState = rememberScrollState() // [NEW] 스크롤 상태 (2025-12-19)
     var showWarningSheet by remember { mutableStateOf(false) } // [NEW] 경고 바텀 시트 표시 상태 (2025-12-19)
     var showThirstScreen by remember { mutableStateOf(false) } // [NEW] 갈증 수치 화면 표시 상태
+    var showPhotoScreen by remember { mutableStateOf(false) } // [NEW] 사진 추가 화면 표시 상태
 
     // [NEW] 1. 상태 구독 - 현재 사용자의 아바타 인덱스
     val currentUserAvatarIndex by viewModel.currentUserAvatarIndex.collectAsState()
@@ -552,10 +553,7 @@ private fun WritePostScreenContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            // [NEW] Photo Picker 실행 (2025-12-19)
-                            photoPickerLauncher.launch(
-                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                            )
+                            showPhotoScreen = true
                         }
                         .padding(vertical = 12.dp, horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -738,6 +736,22 @@ private fun WritePostScreenContent(
         modifier = Modifier.fillMaxSize()
     ) {
         ThirstLevelScreen(onDismiss = { showThirstScreen = false })
+    }
+
+    // [NEW] 사진 추가 화면 표시 상태에 따른 AnimatedVisibility
+    AnimatedVisibility(
+        visible = showPhotoScreen,
+        enter = slideInHorizontally(
+            initialOffsetX = { it }, // 오른쪽에서 왼쪽으로
+            animationSpec = tween(300)
+        ),
+        exit = slideOutHorizontally(
+            targetOffsetX = { it }, // 왼쪽에서 오른쪽으로
+            animationSpec = tween(300)
+        ),
+        modifier = Modifier.fillMaxSize()
+    ) {
+        PhotoScreen(onDismiss = { showPhotoScreen = false })
     }
 }
 
@@ -1042,3 +1056,53 @@ private fun ThirstLevelScreen(onDismiss: () -> Unit) {
         }
     }
 }
+
+/**
+ * 사진 추가 화면 (임시로 텍스트만 표시)
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PhotoScreen(onDismiss: () -> Unit) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = Color.White,
+        contentWindowInsets = WindowInsets.systemBars,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "사진 추가",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color(0xFF1F2937)
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "뒤로가기",
+                            tint = Color(0xFF1F2937)
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+            )
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "사진 추가 기능은 추후 구현 예정입니다.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color(0xFF9CA3AF)
+            )
+        }
+    }
+}
+
+
+
