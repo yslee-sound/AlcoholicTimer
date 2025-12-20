@@ -1341,7 +1341,7 @@ private fun StatCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(8.dp), // [UPDATED] 내부 패딩을 더 컴팩트하게 축소 (기존 12.dp -> 8.dp)
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // 아이콘
@@ -1349,10 +1349,8 @@ private fun StatCard(
                 painter = painterResource(id = icon),
                 contentDescription = null,
                 tint = iconColor,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(28.dp) // [UPDATED] 아이콘 크기 축소 (32.dp -> 28.dp)로 시각적 간격 감소
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             // 라벨
             Text(
@@ -1362,7 +1360,7 @@ private fun StatCard(
                 fontWeight = FontWeight.Medium
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(2.dp)) // [UPDATED] 아이콘-통합텍스트 간격을 4.dp -> 2.dp로 감소
 
             // 값 - [FIX] AutoResizingText로 자동 크기 조절 (깜빡임 없음)
             AutoResizingText(
