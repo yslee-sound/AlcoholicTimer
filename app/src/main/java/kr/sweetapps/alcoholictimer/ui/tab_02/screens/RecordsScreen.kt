@@ -536,7 +536,8 @@ private fun PeriodStatisticsSection(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(140.dp), // [FIX] 고정 높이 추가로 3개 카드 높이 통일
+                        .height(140.dp) // [FIX] IntrinsicSize.Max 사용 시 SubcomposeLayout과 충돌하여 런타임 크래시 발생하므로 고정 높이로 대체 (원래 PeriodStatisticsSection에서 사용하던 값)
+                        .padding(horizontal = 20.dp),
                     horizontalArrangement = Arrangement.spacedBy(RECORDS_CARD_IN_ROW_SPACING)
                 ) {
                     val statsScale = 1.3f
@@ -713,7 +714,7 @@ private fun StatisticItem(
                 .fillMaxSize()
                 .padding(horizontal = 8.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center // [NEW] 내용물을 카드 중앙에 수직 정렬
         ) {
             // [개선] 숫자와 단위를 분리하여 표시
             val base = MaterialTheme.typography.titleMedium
@@ -1282,6 +1283,7 @@ private fun ModernStatisticsGrid(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .height(140.dp) // [FIX] IntrinsicSize.Max 대신 고정 높이 사용 - SubcomposeLayout 관련 런타임 예외 방지
             .padding(horizontal = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -1292,7 +1294,7 @@ private fun ModernStatisticsGrid(
             label = "CALORIES",
             value = decimalFormat.format(statsData.totalKcal.toLong()),
             unit = "kcal",
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f).fillMaxHeight() // [NEW] 자식이 부모 높이에 맞게 fillMaxHeight
         )
 
         // 절주 카드
@@ -1302,7 +1304,7 @@ private fun ModernStatisticsGrid(
             label = "SOBER",
             value = String.format("%.1f", statsData.totalBottles),
             unit = "병",
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f).fillMaxHeight() // [NEW]
         )
 
         // 저축 카드
@@ -1312,7 +1314,7 @@ private fun ModernStatisticsGrid(
             label = "SAVED",
             value = decimalFormat.format((statsData.savedMoney / currency.rate).toLong()),
             unit = currency.code,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f).fillMaxHeight() // [NEW]
         )
     }
 }
@@ -1337,9 +1339,10 @@ private fun StatCard(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp), // [UPDATED] 내부 패딩을 더 컴팩트하게 축소 (기존 12.dp -> 8.dp)
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
+                .padding(8.dp), // [UNCHANGED] 내부 패딩
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center // [NEW] 내용물을 카드 중앙에 수직 정렬
         ) {
             // 아이콘
             Icon(
@@ -1354,7 +1357,8 @@ private fun StatCard(
                 text = label,
                 fontSize = 10.sp,
                 color = Color(0xFF9CA3AF),
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false)) // [NEW] 폰트 패딩 제거
             )
 
             Spacer(modifier = Modifier.height(2.dp)) // [UPDATED] 아이콘-통합텍스트 간격을 4.dp -> 2.dp로 감소
