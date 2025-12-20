@@ -503,8 +503,82 @@ private fun WritePostScreenContent(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
-        // [REMOVED] bottomBar을 사용하지 않고 모든 입력 요소를 메인 Column으로 이동했습니다.
-    ) { innerPadding ->
+        // [RESTORE] 글쓰기 화면의 하단 바를 원래대로 복원합니다.
+        bottomBar = {
+            val isImeVisible = WindowInsets.isImeVisible
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .windowInsetsPadding(if (isImeVisible) WindowInsets(0) else WindowInsets.navigationBars)
+            ) {
+                HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showThirstSlider = !showThirstSlider }
+                        .padding(vertical = 12.dp, horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(imageVector = Icons.Filled.Restaurant, contentDescription = "갈증 수치", tint = Color(0xFF2196F3))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = "갈증 수치", color = Color(0xFF1F2937), style = MaterialTheme.typography.bodyMedium)
+                }
+
+                AnimatedVisibility(
+                    visible = showThirstSlider,
+                    enter = slideInVertically(initialOffsetY = { -it }, animationSpec = tween(300)),
+                    exit = slideOutVertically(targetOffsetY = { -it }, animationSpec = tween(300))
+                ) {
+                    var thirstLevel by remember { mutableStateOf(5) }
+                    fun thirstColor(level: Int): Color = when (level) {
+                        in 1..3 -> Color(0xFF4CAF50)
+                        in 4..7 -> Color(0xFFFFA726)
+                        else -> Color(0xFFE53935)
+                    }
+
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(10) { index ->
+                            val value = index + 1
+                            val selected = thirstLevel == value
+                            Box(
+                                modifier = Modifier
+                                    .size(35.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(if (selected) thirstColor(value) else Color(0xFFF0F0F0))
+                                    .clickable { thirstLevel = value },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(text = value.toString(), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = if (selected) Color.White else Color(0xFF374151))
+                            }
+                        }
+                    }
+                }
+
+                HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showPhotoScreen = true }
+                        .padding(vertical = 12.dp, horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(imageVector = Icons.Filled.Image, contentDescription = "사진", tint = Color(0xFF4CAF50))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = "사진 추가", color = Color(0xFF1F2937), style = MaterialTheme.typography.bodyMedium)
+                }
+
+                HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
+            }
+        }
+     ) { innerPadding ->
              Column(
                  modifier = Modifier
                      .fillMaxSize()
@@ -622,163 +696,92 @@ private fun WritePostScreenContent(
                  }
              }
 
-            // === moved from bottomBar: 갈증 수치 & 사진 추가 UI (모든 입력 요소를 Column 안으로 이동) ===
-            HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
-
-            // 갈증 수치 버튼
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showThirstSlider = !showThirstSlider }
-                    .padding(vertical = 12.dp, horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Restaurant,
-                    contentDescription = "갈증 수치",
-                    tint = Color(0xFF2196F3)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "갈증 수치", color = Color(0xFF1F2937), style = MaterialTheme.typography.bodyMedium)
-            }
-
-            AnimatedVisibility(
-                visible = showThirstSlider,
-                enter = slideInVertically(initialOffsetY = { -it }, animationSpec = tween(300)),
-                exit = slideOutVertically(targetOffsetY = { -it }, animationSpec = tween(300))
-            ) {
-                var thirstLevel by remember { mutableStateOf(5) }
-                fun thirstColor(level: Int): Color = when (level) {
-                    in 1..3 -> Color(0xFF4CAF50)
-                    in 4..7 -> Color(0xFFFFA726)
-                    else -> Color(0xFFE53935)
-                }
-
-                LazyRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+            // [NEW] 작성 중 뒤로가기 경고 바텀 시트 - 페이스북 스타일 (2025-12-19)
+            if (showWarningSheet) {
+                ModalBottomSheet(
+                    onDismissRequest = { showWarningSheet = false },
+                    containerColor = Color.White,
+                    dragHandle = { BottomSheetDefaults.DragHandle() }
                 ) {
-                    items(10) { index ->
-                        val value = index + 1
-                        val selected = thirstLevel == value
-                        Box(
+                    Column(modifier = Modifier.padding(bottom = 24.dp)) {
+                        // 타이틀 (왼쪽 정렬, 한 줄 제한)
+                        Text(
+                            text = "작성 중인 글을 삭제하시겠습니까?",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                            color = Color.Black,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(start = 20.dp, top = 8.dp, bottom = 12.dp)
+                        )
+
+                        // 게시글 삭제 메뉴 (리스트 아이템 스타일)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
-                                .size(35.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(if (selected) thirstColor(value) else Color(0xFFF0F0F0))
-                                .clickable { thirstLevel = value },
-                            contentAlignment = Alignment.Center
+                                .fillMaxWidth()
+                                .clickable {
+                                    showWarningSheet = false
+                                    onDismiss()
+                                }
+                                .padding(horizontal = 20.dp, vertical = 16.dp)
                         ) {
-                            Text(text = value.toString(), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = if (selected) Color.White else Color(0xFF374151))
+                            Icon(
+                                imageVector = androidx.compose.material.icons.Icons.Outlined.Delete,
+                                contentDescription = null,
+                                tint = Color(0xFF1F2937)
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Text(
+                                text = "게시글 삭제",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Color(0xFF1F2937),
+                                maxLines = 1
+                            )
+                        }
+
+                        // 수정 계속하기 메뉴 (리스트 아이템 스타일)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { showWarningSheet = false }
+                                .padding(horizontal = 20.dp, vertical = 16.dp)
+                        ) {
+                            Icon(
+                                imageVector = androidx.compose.material.icons.Icons.Outlined.Edit,
+                                contentDescription = null,
+                                tint = Color(0xFF1F2937)
+                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Text(
+                                text = "수정 계속하기",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Color(0xFF1F2937),
+                                maxLines = 1
+                            )
                         }
                     }
                 }
             }
 
-            HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
-
-            // 사진 추가 버튼
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showPhotoScreen = true }
-                    .padding(vertical = 12.dp, horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(imageVector = Icons.Filled.Image, contentDescription = "사진", tint = Color(0xFF4CAF50))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "사진 추가", color = Color(0xFF1F2937), style = MaterialTheme.typography.bodyMedium)
-            }
-
-            HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
-        }
-    }
-
-    // [NEW] 작성 중 뒤로가기 경고 바텀 시트 - 페이스북 스타일 (2025-12-19)
-    if (showWarningSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showWarningSheet = false },
-            containerColor = Color.White,
-            dragHandle = { BottomSheetDefaults.DragHandle() }
-        ) {
-            Column(modifier = Modifier.padding(bottom = 24.dp)) {
-                // 타이틀 (왼쪽 정렬, 한 줄 제한)
-                Text(
-                    text = "작성 중인 글을 삭제하시겠습니까?",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                    color = Color.Black,
-                    maxLines = 1,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(start = 20.dp, top = 8.dp, bottom = 12.dp)
-                )
-
-                // 게시글 삭제 메뉴 (리스트 아이템 스타일)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            showWarningSheet = false
-                            onDismiss()
-                        }
-                        .padding(horizontal = 20.dp, vertical = 16.dp)
-                ) {
-                    Icon(
-                        imageVector = androidx.compose.material.icons.Icons.Outlined.Delete,
-                        contentDescription = null,
-                        tint = Color(0xFF1F2937)
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Text(
-                        text = "게시글 삭제",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color(0xFF1F2937),
-                        maxLines = 1
-                    )
-                }
-
-                // 수정 계속하기 메뉴 (리스트 아이템 스타일)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { showWarningSheet = false }
-                        .padding(horizontal = 20.dp, vertical = 16.dp)
-                ) {
-                    Icon(
-                        imageVector = androidx.compose.material.icons.Icons.Outlined.Edit,
-                        contentDescription = null,
-                        tint = Color(0xFF1F2937)
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Text(
-                        text = "수정 계속하기",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color(0xFF1F2937),
-                        maxLines = 1
-                    )
-                }
-            }
-        }
-    }
-
-    // [NEW] 사진 추가 화면 표시 상태에 따른 AnimatedVisibility
-    AnimatedVisibility(
-        visible = showPhotoScreen,
-        enter = slideInHorizontally(
-            initialOffsetX = { it }, // 오른쪽에서 왼쪽으로
-            animationSpec = tween(300)
-        ),
-        exit = slideOutHorizontally(
-            targetOffsetX = { it }, // 왼쪽에서 오른쪽으로
-            animationSpec = tween(300)
-        ),
-        modifier = Modifier.fillMaxSize()
-    ) {
-        PhotoScreen(onDismiss = { showPhotoScreen = false })
-    }
+            // [NEW] 사진 추가 화면 표시 상태에 따른 AnimatedVisibility
+             AnimatedVisibility(
+                 visible = showPhotoScreen,
+                 enter = slideInHorizontally(
+                     initialOffsetX = { it }, // 오른쪽에서 왼쪽으로
+                     animationSpec = tween(300)
+                 ),
+                 exit = slideOutHorizontally(
+                     targetOffsetX = { it }, // 왼쪽에서 오른쪽으로
+                     animationSpec = tween(300)
+                 ),
+                 modifier = Modifier.fillMaxSize()
+             ) {
+                 PhotoScreen(onDismiss = { showPhotoScreen = false })
+             }
+         }
+     }
 }
 
 /**
@@ -942,7 +945,7 @@ private fun NativeAdItem() {
             }
             .withAdListener(object : com.google.android.gms.ads.AdListener() {
                 override fun onAdFailedToLoad(error: com.google.android.gms.ads.LoadAdError) {
-                    android.util.Log.e("NativeAd", "광고 로드 실패: ${'$'}{error.message}")
+                    android.util.Log.e("NativeAd", "광고 로드 실패: ${error.message}")
                 }
             })
             .withNativeAdOptions(com.google.android.gms.ads.nativead.NativeAdOptions.Builder().build())
