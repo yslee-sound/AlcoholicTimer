@@ -17,6 +17,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -53,19 +54,18 @@ import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.tab_03.screens.PostItem
 import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.CommunityViewModel
-
-// [NEW IMPORTS] 아래 임포트가 파일 상단에 없다면 추가해주세요. (안전: 이미 있으면 중복 무시)
-// import androidx.compose.ui.viewinterop.AndroidView
-// import com.google.android.gms.ads.AdLoader
-// import com.google.android.gms.ads.AdRequest
-// import com.google.android.gms.ads.nativead.NativeAd
-// import com.google.android.gms.ads.nativead.NativeAdOptions
-// import com.google.android.gms.ads.nativead.NativeAdView
-// import android.view.LayoutInflater
-// import android.widget.Button
-// import android.widget.ImageView
-// import android.widget.TextView
+import androidx.compose.ui.viewinterop.AndroidView
+import com.google.android.gms.ads.AdLoader
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.nativead.NativeAd
+import com.google.android.gms.ads.nativead.NativeAdOptions
+import com.google.android.gms.ads.nativead.NativeAdView
+import android.view.LayoutInflater
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.TextView
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.lazy.items
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -416,8 +416,8 @@ private fun WritePostScreenContent(
     val focusManager = LocalFocusManager.current // [NEW] FocusManager (2025-12-19)
     val scrollState = rememberScrollState() // [NEW] 스크롤 상태 (2025-12-19)
     var showWarningSheet by remember { mutableStateOf(false) } // [NEW] 경고 바텀 시트 표시 상태 (2025-12-19)
-    var showThirstScreen by remember { mutableStateOf(false) } // [NEW] 갈증 수치 화면 표시 상태
     var showPhotoScreen by remember { mutableStateOf(false) } // [NEW] 사진 추가 화면 표시 상태
+    var showThirstSlider by remember { mutableStateOf(false) } // [NEW] 갈증 수치 슬라이더 표시 상태
 
     // [NEW] 1. 상태 구독 - 현재 사용자의 아바타 인덱스
     val currentUserAvatarIndex by viewModel.currentUserAvatarIndex.collectAsState()
@@ -527,7 +527,7 @@ private fun WritePostScreenContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            showThirstScreen = true
+                            showThirstSlider = !showThirstSlider
                         }
                         .padding(vertical = 12.dp, horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -543,6 +543,57 @@ private fun WritePostScreenContent(
                         color = Color(0xFF1F2937),
                         style = MaterialTheme.typography.bodyMedium
                     )
+                }
+
+                // [NEW] 갈증 수치 슬라이더 (버튼 아래에 슬라이드 형태로 나타남)
+                AnimatedVisibility(
+                    visible = showThirstSlider,
+                    enter = slideInVertically(
+                        initialOffsetY = { -it }, // 위에서 아래로 슬라이드
+                        animationSpec = tween(300)
+                    ),
+                    exit = slideOutVertically(
+                        targetOffsetY = { -it }, // 아래에서 위로 슬라이드
+                        animationSpec = tween(300)
+                    )
+                ) {
+                    // [NEW] 1..10 숫자 선택기 - 가로 스크롤 가능한 박스 리스트 (LazyRow)
+                    var thirstLevel by remember { mutableStateOf(5) } // 선택값은 Int로 관리
+
+                    // Helper: 색상 매핑 함수
+                    fun thirstColor(level: Int): Color = when (level) {
+                        in 1..3 -> Color(0xFF4CAF50) // 초록
+                        in 4..7 -> Color(0xFFFFA726) // 주황
+                        else -> Color(0xFFE53935)    // 빨강
+                    }
+
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(10) { index ->
+                            val value = index + 1
+                            val selected = thirstLevel == value
+
+                            Box(
+                                modifier = Modifier
+                                    // [MODIFIED] 숫자 박스 크기 70%로 축소 (원래 50.dp -> 35.dp)
+                                    .size(35.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(if (selected) thirstColor(value) else Color(0xFFF0F0F0))
+                                    .clickable(onClick = { thirstLevel = value }),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = value.toString(),
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = if (selected) Color.White else Color(0xFF374151)
+                                )
+                            }
+                        }
+                    }
                 }
 
                 // [NEW] 갈증 수치 버튼 하단 디바이더
@@ -588,6 +639,53 @@ private fun WritePostScreenContent(
                 modifier = Modifier.padding(all = 16.dp) // [NEW] 개별 패딩 적용
             ) {
                 // ...existing code...
+            }
+
+            // [NEW] 작성자 정보: 현재 사용자 아바타와 닉네임 표시 (WritePost 상단)
+            // 안전한 추가: ViewModel의 currentUserAvatarIndex를 사용하고 UserRepository에서 닉네임을 로드합니다.
+            val currentUserAvatarIndexForHeader by viewModel.currentUserAvatarIndex.collectAsState()
+            var currentNickname by remember { mutableStateOf("익명") }
+            LaunchedEffect(currentUserAvatarIndexForHeader) {
+                try {
+                    val repo = kr.sweetapps.alcoholictimer.data.repository.UserRepository(context)
+                    currentNickname = repo.getNickname() ?: "익명"
+                } catch (_: Throwable) {
+                    // 실패 시 기본값 유지
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(id = kr.sweetapps.alcoholictimer.util.AvatarManager.getAvatarResId(currentUserAvatarIndexForHeader)),
+                    contentDescription = "내 프로필",
+                    modifier = Modifier
+                        .size(40.dp)
+                        .border(1.dp, Color(0xFFE0E0E0), CircleShape)
+                        .clip(CircleShape)
+                        .background(Color(0xFFF5F5F5))
+                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = currentNickname,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        color = Color(0xFF111827)
+                    )
+
+                    // 보조 텍스트: 필요 시 공개 범위나 기타 정보를 표시할 수 있음
+                    Text(
+                        text = "내 프로필",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF6B7280)
+                    )
+                }
             }
 
             // 텍스트 입력창
@@ -722,22 +820,6 @@ private fun WritePostScreenContent(
         }
     }
 
-    // [NEW] 갈증 수치 화면 (오른쪽에서 왼쪽 슬라이드)
-    AnimatedVisibility(
-        visible = showThirstScreen,
-        enter = slideInHorizontally(
-            initialOffsetX = { it }, // 오른쪽에서 왼쪽으로
-            animationSpec = tween(300)
-        ),
-        exit = slideOutHorizontally(
-            targetOffsetX = { it }, // 왼쪽에서 오른쪽으로
-            animationSpec = tween(300)
-        ),
-        modifier = Modifier.fillMaxSize()
-    ) {
-        ThirstLevelScreen(onDismiss = { showThirstScreen = false })
-    }
-
     // [NEW] 사진 추가 화면 표시 상태에 따른 AnimatedVisibility
     AnimatedVisibility(
         visible = showPhotoScreen,
@@ -752,6 +834,53 @@ private fun WritePostScreenContent(
         modifier = Modifier.fillMaxSize()
     ) {
         PhotoScreen(onDismiss = { showPhotoScreen = false })
+    }
+}
+
+/**
+ * [NEW] 사진 추가 화면
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PhotoScreen(onDismiss: () -> Unit) {
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = Color.White,
+        contentWindowInsets = WindowInsets.systemBars,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "사진 추가",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color(0xFF1F2937)
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "뒤로가기",
+                            tint = Color(0xFF1F2937)
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+            )
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "사진 추가 기능은 추후 구현 예정입니다.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.Gray
+            )
+        }
     }
 }
 
@@ -782,7 +911,7 @@ private fun WritePostTrigger(
                 contentDescription = "내 프로필",
                 modifier = Modifier
                     .size(40.dp)
-                    .border(1.dp, Color(0xFFE0E0E0), CircleShape) // 회색 테두리
+                    .border(1.dp, Color(0xFFE0E0E0), CircleShape)
                     .clip(CircleShape)
                     .background(Color(0xFFF5F5F5))
             )
@@ -809,58 +938,17 @@ private fun WritePostTrigger(
             IconButton(onClick = onClick) {
                 Icon(
                     imageVector = Icons.Filled.Image,
-                    contentDescription = "이미지 추가",
+                    contentDescription = "이미지",
                     tint = Color(0xFF65676B)
                 )
             }
         }
 
-        // 구분선
+        // 하단 구분선 (페이스북 스타일)
         HorizontalDivider(
             thickness = 8.dp,
             color = Color(0xFFF0F2F5)
         )
-    }
-}
-
-/**
- * 빈 상태 표시
- */
-@Composable
-private fun EmptyState(modifier: Modifier = Modifier, onGenerateMock: () -> Unit = {}) {
-    Column(
-        modifier = modifier.padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "📝",
-            style = MaterialTheme.typography.displayLarge
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "아직 게시글이 없습니다",
-            style = MaterialTheme.typography.titleMedium,
-            color = Color(0xFF666666)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Tab 5 디버그 메뉴에서\n테스트 게시글을 생성해 보세요!",
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color(0xFF999999),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-        )
-
-        // [NEW] 테스트용 버튼 (디버그 전용)
-        if (BuildConfig.DEBUG) {
-            Spacer(modifier = Modifier.height(24.dp))
-            Button(
-                onClick = onGenerateMock,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(text = "테스트 게시글 생성")
-            }
-        }
     }
 }
 
@@ -1008,101 +1096,28 @@ private fun NativeAdItem() {
 }
 
 /**
- * [NEW] 갈증 수치 화면
- * 뒤로가기가 있는 빈 화면, 제목: '오늘의 갈증 수치는?'
- * 전환 효과: 오른쪽에서 왼쪽으로 슬라이드
+ * 빈 상태 표시
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ThirstLevelScreen(onDismiss: () -> Unit) {
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = Color.White,
-        contentWindowInsets = WindowInsets.systemBars,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "오늘의 갈증 수치는?",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color(0xFF1F2937)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onDismiss) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "뒤로가기",
-                            tint = Color(0xFF1F2937)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
-            )
-        }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentAlignment = Alignment.Center
-        ) {
-            // 빈 화면: 필요 시 콘텐츠 추가 가능
-            Text(
-                text = "갈증 수치 선택 기능은 추후 구현 예정입니다.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = Color(0xFF9CA3AF)
-            )
+private fun EmptyState(modifier: Modifier = Modifier, onGenerateMock: () -> Unit = {}) {
+    Column(
+        modifier = modifier.padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "📝",
+            style = MaterialTheme.typography.displayLarge
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "아직 게시글이 없습니다",
+            style = MaterialTheme.typography.titleMedium,
+            color = Color.Gray
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onGenerateMock) {
+            Text("모의 데이터 생성")
         }
     }
 }
-
-/**
- * 사진 추가 화면 (임시로 텍스트만 표시)
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun PhotoScreen(onDismiss: () -> Unit) {
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = Color.White,
-        contentWindowInsets = WindowInsets.systemBars,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "사진 추가",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color(0xFF1F2937)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onDismiss) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "뒤로가기",
-                            tint = Color(0xFF1F2937)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
-            )
-        }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "사진 추가 기능은 추후 구현 예정입니다.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = Color(0xFF9CA3AF)
-            )
-        }
-    }
-}
-
-
-

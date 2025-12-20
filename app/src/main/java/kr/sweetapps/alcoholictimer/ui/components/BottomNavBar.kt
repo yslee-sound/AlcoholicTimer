@@ -191,11 +191,7 @@ private fun BottomNavItem(
             .clip(RoundedCornerShape(12.dp))
             .clickable(
                 interactionSource = interactionSource,
-                indication = ripple(
-                    bounded = true,
-                    radius = 28.dp,
-                    color = Color.Gray
-                ),
+                // use default indication (platform-dependent ripple)
                 onClick = onClick
             ),
         contentAlignment = Alignment.Center

@@ -458,7 +458,6 @@ private fun PeriodHeaderRow(
                 .size(24.dp)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
-                    indication = ripple(bounded = false, radius = 24.dp),
                     onClick = onNavigateToAllRecords
                 )
         )
@@ -884,7 +883,6 @@ private fun RecentDiarySection(
                 color = Color(0xFF6366F1),
                 modifier = Modifier.clickable(
                     interactionSource = remember { MutableInteractionSource() },
-                    indication = ripple(bounded = false, radius = 24.dp),
                     onClick = onNavigateToDiaryWrite
                 )
             )
@@ -936,7 +934,6 @@ private fun RecentDiarySection(
                                 .height(48.dp)
                                 .clickable(
                                     interactionSource = remember { MutableInteractionSource() },
-                                    indication = ripple(bounded = true),
                                     onClick = onNavigateToAllDiaries
                                 ),
                             horizontalArrangement = Arrangement.Center,
@@ -1542,7 +1539,6 @@ private fun MonthNavigator(
             modifier = Modifier
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
-                    indication = ripple(bounded = false, radius = 24.dp),
                     onClick = onDateClick
                 )
                 .padding(horizontal = 16.dp, vertical = 8.dp)
