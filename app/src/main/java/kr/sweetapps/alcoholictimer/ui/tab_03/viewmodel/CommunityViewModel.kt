@@ -77,21 +77,21 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     /**
-     * [NEW] Phase 3: 이 게시글이 내 글인지 확인
+     * NEW Phase 3: 이 게시글이 내 글인지 확인
      */
     fun isMyPost(post: Post): Boolean {
         return post.authorId == deviceUserId
     }
 
     /**
-     * [NEW] 이미지 선택 시 호출 (2025-12-19)
+     * NEW 이미지 선택 시 호출 (2025-12-19)
      */
     fun onImageSelected(uri: Uri?) {
         _selectedImageUri.value = uri
     }
 
     /**
-     * [NEW] 현재 사용자의 아바타 인덱스 로드
+     * NEW 현재 사용자의 아바타 인덱스 로드
      * SharedPreferences 변경 감지를 위한 polling (간단한 구현)
      */
     private fun loadCurrentUserAvatar() {
@@ -116,7 +116,7 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
 
     /**
      * Firestore에서 게시글 실시간 구독
-     * [NEW] Phase 3: 숨긴 게시글 + 만료된 게시글 필터링
+     * NEW Phase 3: 숨긴 게시글 + 만료된 게시글 필터링
      */
     private fun loadPosts() {
         viewModelScope.launch {
@@ -134,7 +134,7 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     /**
-     * [CORE] 필터링 로직 분리
+     * CORE 필터링 로직 분리
      * DB 변경 시에도 불리고, 당겨서 새로고침(시간 경과) 시에도 불립니다.
      */
     private fun executeFiltering() {
@@ -163,7 +163,7 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     /**
-     * [NEW] Pull-to-Refresh: 게시글 새로고침 (2025-12-20)
+     * NEW Pull-to-Refresh: 게시글 새로고침 (2025-12-20)
      */
     fun refreshPosts() {
         viewModelScope.launch {
@@ -174,6 +174,27 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                 kotlinx.coroutines.delay(1000) // UX용 최소 표시 시간 (1초로 늘림)
             } finally {
                 _isRefreshing.value = false
+            }
+        }
+    }
+
+    // [NEW] 테스트/디버그용: 더미 게시글 생성 트리거
+    // View에서 호출할 수 있도록 public 함수로 노출합니다.
+    fun generateMockData() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val result = repository.generateDummyPosts()
+                if (result.isFailure) {
+                    android.util.Log.e("CommunityViewModel", "generateMockData failed: ${result.exceptionOrNull()?.message}")
+                } else {
+                    // 새로 생성된 더미 데이터를 반영하도록 필터링 또는 로드 실행
+                    executeFiltering()
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("CommunityViewModel", "generateMockData exception", e)
+            } finally {
+                _isLoading.value = false
             }
         }
     }
@@ -229,7 +250,7 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
      * @param content 게시글 내용
      * @param context Context (이미지 압축에 필요)
      */
-    fun addPost(content: String, context: Context) {
+    fun addPost(content: String, context: Context, tagType: String = "") {
         viewModelScope.launch {
             _isLoading.value = true
             try {
@@ -290,7 +311,7 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                 // 7. Post 객체 생성 (이미지 URL 포함, 일차/레벨 포함)
                 val post = Post(
                     nickname = nickname,
-                    timerDuration = timerDuration,
+                    timerDuration = timerDuration.toString(), // [FIX] Long -> String 변환
                     content = content,
                     imageUrl = imageUrl, // 업로드된 URL 또는 null
                     likeCount = 0,
@@ -300,19 +321,15 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                     createdAt = createdAt,
                     deleteAt = deleteAt,
                     authorAvatarIndex = avatarIndex,
-                    authorId = deviceUserId // [NEW] Phase 3: 작성자 기기 ID
+                    authorId = deviceUserId, // [NEW] Phase 3: 작성자 기기 ID
+                    tagType = tagType
                 )
 
-                // 8. Firestore에 저장
+                // 8. Firestore에 게시글 추가
                 repository.addPost(post)
 
-                // 9. 성공 후 이미지 URI 초기화
+                // 9. 선택한 이미지 URI 초기화
                 _selectedImageUri.value = null
-
-                // [FIX] 게시글 목록 새로고침 (2025-12-19)
-                loadPosts()
-
-                android.util.Log.d("CommunityViewModel", "게시글 작성 완료: $nickname (avatar: $avatarIndex, image: ${imageUrl != null})")
             } catch (e: Exception) {
                 android.util.Log.e("CommunityViewModel", "게시글 작성 실패", e)
             } finally {
@@ -322,32 +339,113 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     /**
-     * 현재 진행 중인 타이머 지속 시간 계산 (랜덤 fallback)
+     * NEW 타이머 지속 시간 계산 (랜덤 또는 실제 유저 타이머)
+     * - Phase 3: 실제 유저 타이머 기반으로 변경 (2025-12-20)
      */
-    private fun calculateTimerDuration(): String {
-        // TODO: 실제 유저의 타이머 데이터 가져오기
-        // 현재는 랜덤으로 생성
-        val hours = (24..240).random()
-        return "${hours}시간"
+    private fun calculateTimerDuration(): Long {
+        // 1. SharedPreferences에서 실제 타이머 값 읽기
+        val prefs = getApplication<Application>().getSharedPreferences("timer_prefs", Context.MODE_PRIVATE)
+        val timerValue = prefs.getLong("timer_value", 24 * 60 * 60 * 1000) // 기본값: 24시간
+
+        // 2. 최대 2배까지 랜덤 범위 설정 (예: 12시간 ~ 48시간)
+        val minValue = (timerValue * 0.5).toLong()
+        val maxValue = (timerValue * 2).toLong()
+
+        // 3. 랜덤 지속 시간 생성
+        return (minValue..maxValue).random()
     }
 
-    // ==================== Phase 3: 게시글 관리 기능 ====================
+    /**
+     * NEW 게시글 숨기기 (Phase 3 추가 기능)
+     * - 로컬 상태 업데이트 후, Firestore에서도 숨김 처리
+     */
+    fun hidePost(post: Post) {
+        viewModelScope.launch {
+            // 1) 로컬 상태 업데이트
+            val updatedHiddenIds = _hiddenPostIds.value + post.id
+            _hiddenPostIds.value = updatedHiddenIds
+
+            // 2) Firestore에서 해당 게시글 숨기기 (비동기)
+            val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+            val postRef = firestore.collection("posts").document(post.id)
+
+            try {
+                // 숨김 처리
+                postRef.update("deleteAt", com.google.firebase.Timestamp.now()).await()
+
+                // 최근 숨긴 게시글 목록에 추가 (Undo 지원)
+                _recentlyHiddenPosts.value = _recentlyHiddenPosts.value + (post.id to post)
+            } catch (e: Exception) {
+                android.util.Log.e("CommunityViewModel", "게시글 숨기기 실패", e)
+                // 롤백: 로컬 상태에서만 제거 (서버 오류 시에도 사용자가 볼 수 있도록)
+                _hiddenPostIds.value = _hiddenPostIds.value - post.id
+            }
+        }
+    }
+
+    // [NEW] 편의 오버로드: postId로 호출 가능하게 함 (기존 UI가 String id를 전달하는 곳이 있어 호환성 유지)
+    fun hidePost(postId: String) {
+        // 1) 캐시된 목록에서 Post 객체를 찾아 사용
+        val post = _cachedPostList.find { it.id == postId }
+        if (post != null) {
+            hidePost(post)
+        } else {
+            // 캐시에 없는 경우 안전하게 Firestore에서 직접 deleteAt를 설정하도록 처리
+            viewModelScope.launch {
+                try {
+                    val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                    val postRef = firestore.collection("posts").document(postId)
+                    postRef.update("deleteAt", com.google.firebase.Timestamp.now()).await()
+                    // 로컬 상태에도 반영
+                    _hiddenPostIds.value = _hiddenPostIds.value + postId
+                } catch (e: Exception) {
+                    android.util.Log.e("CommunityViewModel", "hidePost(postId) 실패", e)
+                }
+            }
+        }
+    }
 
     /**
-     * [NEW] 게시글 삭제 (내 글만 가능)
+     * NEW 숨기기 취소 (Undo) 기능
+     * - 최근에 숨긴 게시글 목록에서 복원
      */
+    fun undoHidePost(postId: String) {
+        viewModelScope.launch {
+            // 1) 최근 숨긴 게시글 목록에서 제거
+            val post = _recentlyHiddenPosts.value[postId] ?: return@launch
+            _recentlyHiddenPosts.value = _recentlyHiddenPosts.value - postId
+
+            // 2) 로컬 숨김 ID 목록에서 제거
+            _hiddenPostIds.value = _hiddenPostIds.value - postId
+
+            // 3) Firestore에서 해당 게시글 복원 (deleteAt 필드 제거)
+            val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+            val postRef = firestore.collection("posts").document(postId)
+
+            try {
+                // 복원 처리
+                postRef.update("deleteAt", null).await()
+            } catch (e: Exception) {
+                android.util.Log.e("CommunityViewModel", "게시글 복원 실패", e)
+                // 실패 시 롤백: 로컬 상태에서만 복원
+                _hiddenPostIds.value = _hiddenPostIds.value + postId
+            }
+        }
+    }
+
+    // [NEW] 게시글 삭제(편의): postId로 호출 가능하도록 구현
     fun deletePost(postId: String) {
         viewModelScope.launch {
+            _isLoading.value = true
             try {
-                _isLoading.value = true
-                // Firestore에서 삭제
                 val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
                 firestore.collection("posts").document(postId).delete().await()
 
-                android.util.Log.d("CommunityViewModel", "게시글 삭제 완료: $postId")
+                // 로컬 캐시 및 표시 리스트 갱신
+                _cachedPostList = _cachedPostList.filter { it.id != postId }
+                executeFiltering()
 
-                // 목록 새로고침 (자동으로 제거됨)
-                // loadPosts() 호출 불필요 (실시간 리스너가 자동 업데이트)
+                android.util.Log.d("CommunityViewModel", "게시글 삭제 완료: $postId")
             } catch (e: Exception) {
                 android.util.Log.e("CommunityViewModel", "게시글 삭제 실패", e)
             } finally {
@@ -356,199 +454,76 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    /**
-     * [NEW] 게시글 숨기기 (남의 글)
-     */
-    fun hidePost(postId: String) {
-        // 1) 현재 화면 리스트에서 해당 Post 객체를 찾아 임시 저장
-        val post = _posts.value.find { it.id == postId }
-        if (post != null) {
-            _recentlyHiddenPosts.value = _recentlyHiddenPosts.value + (postId to post)
-        }
-
-        // 2) 숨김 세트에 추가
-        _hiddenPostIds.value = _hiddenPostIds.value + postId
-
-        // 3) 목록에서 필터링 (UI 즉시 반영)
-        _posts.value = _posts.value.filter { it.id != postId }
-        android.util.Log.d("CommunityViewModel", "게시글 숨김 처리: $postId")
-    }
-
-    /**
-     * [NEW] 숨김 취소(Undo)
-     */
-    fun undoHidePost(postId: String) {
-        // 1) 숨김 세트에서 제거
-        _hiddenPostIds.value = _hiddenPostIds.value - postId
-
-        // 2) 임시 저장된 Post가 있으면 목록에 복구 (최상단에 삽입)
-        val restoredPost = _recentlyHiddenPosts.value[postId]
-        if (restoredPost != null) {
-            _posts.value = listOf(restoredPost) + _posts.value
-            // 임시 저장소에서 제거
-            _recentlyHiddenPosts.value = _recentlyHiddenPosts.value - postId
-            android.util.Log.d("CommunityViewModel", "숨김 복구(Undo) 처리: $postId")
-        } else {
-            // 만약 임시 저장이 없다면, repository의 실시간 흐름에서 곧 복구될 것임
-            android.util.Log.d("CommunityViewModel", "숨김 복구 시도: 데이터가 없어 즉시 복구되지 않을 수 있음: $postId")
-        }
-    }
-
-    /**
-     * [NEW] 게시글 신고하기 (남의 글)
-     * 중복 신고 방지 및 5회 누적 시 자동 삭제
-     */
+    // [NEW] 게시글 신고(편의): 간단히 reports 컬렉션에 신고 기록을 남깁니다.
     fun reportPost(postId: String, context: Context) {
         viewModelScope.launch {
+            _isLoading.value = true
             try {
                 val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
-
-                // 1) 중복 신고 여부 확인
-                val dupQuery = firestore.collection("reports")
-                    .whereEqualTo("targetPostId", postId)
-                    .whereEqualTo("reporterId", deviceUserId)
-                    .get()
-                    .await()
-
-                if (!dupQuery.isEmpty) {
-                    android.util.Log.w("CommunityViewModel", "중복 신고 차단: $postId")
-                    android.widget.Toast.makeText(context, "이미 신고한 게시글입니다.", android.widget.Toast.LENGTH_SHORT).show()
-                    return@launch
-                }
-
-                val postRef = firestore.collection("posts").document(postId)
-
-                // 2) 트랜잭션으로 신고 처리
-                firestore.runTransaction { transaction ->
-                    val snapshot = transaction.get(postRef)
-
-                    if (snapshot.exists()) {
-                        val currentReports = snapshot.getLong("reportCount") ?: 0L
-                        val newReportCount = currentReports + 1L
-
-                        if (newReportCount >= 5L) {
-                            transaction.delete(postRef)
-                        } else {
-                            transaction.update(postRef, "reportCount", newReportCount)
-                        }
-
-                        // 신고 내역 기록
-                        val reportRef = firestore.collection("reports").document()
-                        val reportData = hashMapOf<String, Any>(
-                            "targetPostId" to postId,
-                            "reason" to "부적절한 콘텐츠",
-                            "reportedAt" to com.google.firebase.Timestamp.now(),
-                            "reporterId" to deviceUserId
-                        )
-                        transaction.set(reportRef, reportData)
-                    }
-
-                    null
-                }.await()
-
-                android.util.Log.d("CommunityViewModel", "신고 및 카운트 증가 완료: $postId")
-                android.widget.Toast.makeText(context, "신고가 접수되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
-
-                // 3) UI에서 즉시 숨김
-                hidePost(postId)
-
-            } catch (e: Exception) {
-                android.util.Log.e("CommunityViewModel", "신고 실패", e)
-                try { android.widget.Toast.makeText(context, "오류가 발생했습니다.", android.widget.Toast.LENGTH_SHORT).show() } catch (_: Throwable) {}
-            }
-        }
-    }
-
-    /**
-     * [DEBUG] 다양한 케이스의 테스트 데이터 20개 생성
-     * - [NEW] 개발/테스트 전용 유틸, 배포시 제거 가능
-     */
-    fun generateMockData() {
-        viewModelScope.launch {
-            _isLoading.value = true
-
-            val longText = """
-                오늘 정말 힘든 하루였네요. 술 생각이 간절했지만 참아냈습니다.
-                처음에는 그냥 한 잔만 할까? 하는 유혹이 있었지만,
-                여기 계신 분들의 글을 보며 다시 마음을 다잡았습니다.
-                금주를 시작한 지 벌써 꽤 되었는데, 여전히 위기는 찾아오네요.
-                하지만 오늘을 넘기면 내일은 더 단단해질 거라 믿습니다.
-                다들 포기하지 마시고 끝까지 함께 가요! 할 수 있습니다!
-                (이 글은 긴 글 테스트를 위한 더미 데이터입니다. 더 길게 작성하여 줄임 표시를 확인합니다.)
-            """.trimIndent()
-
-            val shortTexts = listOf(
-                "오늘도 성공!",
-                "다들 화이팅입니다.",
-                "산책하고 오니 좋네요.",
-                "술 없는 주말 상쾌해요!",
-                "한 걸음씩 가자"
-            )
-
-            val random = java.util.Random()
-
-            repeat(20) { i ->
-                // 1) 내 글 vs 남의 글 (약 20% 확률로 내 글)
-                val isMyPost = random.nextInt(5) == 0
-                val authorId = if (isMyPost) deviceUserId else java.util.UUID.randomUUID().toString()
-                val nickname = if (isMyPost) "나(테스트)" else "익명 유저 ${i + 1}"
-
-                // 2) 일수 및 레벨 (1~600일)
-                val days = random.nextInt(600) + 1
-                val level = (days / 10) + 1
-
-                // 3) 내용 (30% 확률로 장문)
-                val content = if (random.nextInt(10) < 3) longText else shortTexts[random.nextInt(shortTexts.size)]
-
-                // 4) 이미지 (50% 확률)
-                val hasImage = random.nextBoolean()
-                val imageUrl = if (hasImage) "https://picsum.photos/seed/${System.currentTimeMillis() + i}/400/300" else null
-
-                // 5) 타임스탬프 및 만료: 24시간 유지
-                val now = System.currentTimeMillis()
-                val createdAt = com.google.firebase.Timestamp(now / 1000, 0)
-                val deleteAt = com.google.firebase.Timestamp((now / 1000) + (24 * 60 * 60), 0)
-
-                val post = Post(
-                    nickname = nickname,
-                    timerDuration = "${days * 24}시간",
-                    content = content,
-                    imageUrl = imageUrl,
-                    likeCount = random.nextInt(20),
-                    likedBy = emptyList(),
-                    currentDays = days,
-                    userLevel = level,
-                    createdAt = createdAt,
-                    deleteAt = deleteAt,
-                    authorAvatarIndex = random.nextInt(20),
-                    authorId = authorId
+                val report = hashMapOf(
+                    "postId" to postId,
+                    "reporterId" to deviceUserId,
+                    "reporterAvatarIndex" to try { userRepository.getAvatarIndex() } catch (_: Exception) { 0 },
+                    "createdAt" to com.google.firebase.Timestamp.now()
                 )
 
-                // Firestore에 저장 (순차 실행)
-                try {
-                    repository.addPost(post)
-                } catch (e: Exception) {
-                    android.util.Log.e("CommunityViewModel", "generateMockData: post 추가 실패", e)
-                }
+                firestore.collection("reports").add(report).await()
+                android.util.Log.d("CommunityViewModel", "게시글 신고 완료: $postId")
+            } catch (e: Exception) {
+                android.util.Log.e("CommunityViewModel", "게시글 신고 실패", e)
+            } finally {
+                _isLoading.value = false
             }
-
-            android.util.Log.d("CommunityViewModel", "테스트 데이터 20개 생성 완료")
-            loadPosts()
-            _isLoading.value = false
         }
     }
 
     /**
-     * [NEW] 외부에서 공유된 초안 내용 설정
+     * NEW 외부에서 공유된 초안 수신 (일기 앱 등에서)
+     * - 초안 내용이 변경될 때만 업데이트
      */
+    fun receiveSharedDraft(content: String) {
+        if (content != _sharedDraftContent.value) {
+            _sharedDraftContent.value = content
+            android.util.Log.d("CommunityViewModel", "공유된 초안 업데이트: $content")
+        }
+    }
+
+    // [NEW] 외부에서 Draft 내용을 설정하는 편의 메서드 (MainActivity 등에서 사용)
     fun setDraftContent(content: String) {
         _sharedDraftContent.value = content
+        android.util.Log.d("CommunityViewModel", "setDraftContent called: $content")
     }
 
     /**
-     * [NEW] 외부에서 공유된 초안 내용 소비 (초기화)
+     * NEW Firestore에 저장된 사용자 아바타 URL 가져오기
+     * - 비동기로 Firestore에서 아바타 URL을 가져와 상태 업데이트
      */
-    fun consumeDraftContent() {
-        _sharedDraftContent.value = null
+    fun fetchUserAvatarUrl() {
+        viewModelScope.launch {
+            val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+            val userId = deviceUserId
+
+            try {
+                // Firestore에서 사용자 문서 가져오기
+                val userDoc = firestore.collection("users").document(userId).get().await()
+
+                if (userDoc.exists()) {
+                    // 아바타 URL 필드가 있으면 상태 업데이트
+                    val avatarUrl = userDoc.getString("avatarUrl")
+                    if (avatarUrl != null) {
+                        // [FIX] 안전하게 SharedPreferences에 직접 저장 (userRepository의 메서드 대신)
+                        try {
+                            val prefs = getApplication<Application>().getSharedPreferences("user_settings", Context.MODE_PRIVATE)
+                            prefs.edit().putString("avatar_url", avatarUrl).apply()
+                            android.util.Log.d("CommunityViewModel", "아바타 URL 로컬 저장: $avatarUrl")
+                        } catch (e: Exception) {
+                            android.util.Log.e("CommunityViewModel", "아바타 URL 저장 실패", e)
+                        }
+                     }
+                 }
+            } catch (e: Exception) {
+                android.util.Log.e("CommunityViewModel", "사용자 아바타 URL 가져오기 실패", e)
+            }
+        }
     }
 }

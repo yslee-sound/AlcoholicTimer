@@ -38,5 +38,9 @@ data class Post(
 
     // [NEW] Phase 3: 게시글 관리 (소유권 식별)
     @PropertyName("authorId")
-    val authorId: String = "" // 기본값 "" - 하위 호환성 확보
+    val authorId: String = "", // 기본값 "" - 하위 호환성 확보
+
+    // [NEW] 게시글 주제 태그 (예: "diary", "thanks", "reflect")
+    @PropertyName("tagType")
+    val tagType: String = ""
 )

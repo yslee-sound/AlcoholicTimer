@@ -12,19 +12,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import com.google.android.gms.ads.MobileAds
+import androidx.compose.ui.res.stringResource
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.MainApplication
 import kr.sweetapps.alcoholictimer.ui.common.BaseActivity
-import kr.sweetapps.alcoholictimer.ui.common.BaseScaffold
-import kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.Tab01ViewModel
-import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.CommunityViewModel
-// Navigation imports (now in ui.main package)
-// Note: Screen and AppNavHost are now in the same package
 import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
-import kr.sweetapps.alcoholictimer.ui.ad.AdController
 import kr.sweetapps.alcoholictimer.data.supabase.repository.EmergencyPolicyRepository
 import kr.sweetapps.alcoholictimer.data.supabase.repository.NoticePolicyRepository
 import kr.sweetapps.alcoholictimer.data.supabase.repository.PopupPolicyManager
@@ -36,7 +29,8 @@ import kr.sweetapps.alcoholictimer.data.supabase.model.EmergencyPolicy
 import kr.sweetapps.alcoholictimer.ui.dialogs.OptionalUpdateDialog
 import kr.sweetapps.alcoholictimer.ui.dialogs.AnnouncementDialog
 import kr.sweetapps.alcoholictimer.ui.dialogs.EmergencyRedirectDialog
-import kr.sweetapps.alcoholictimer.consent.UmpConsentManager as AdsUmpConsentManager
+import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.CommunityViewModel
+import kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.Tab01ViewModel
 
 // small noop comment to trigger reindex
 // MainActivity integrity check
@@ -54,15 +48,9 @@ class MainActivity : BaseActivity() {
     @Volatile
     private var hasHandledInitialAdLoad: Boolean = false
 
-    // [NEW] 최소 브랜딩 시간 보장 (AdMob 정책 준수)
-    private val minimumBrandingDurationMs = 1500L // 1.5초
-    private var appStartTimeMs: Long = 0L
-    @Volatile
-    private var isMinimumBrandingTimeMet: Boolean = false
-
     override fun onCreate(savedInstanceState: Bundle?) {
         // [NEW] 앱 시작 시각 기록 (최소 브랜딩 시간 계산용)
-        appStartTimeMs = System.currentTimeMillis()
+        val appStartTimeMs = System.currentTimeMillis()
 
         // 타이밍 진단: MainActivity 진입 시각 기록
         kr.sweetapps.alcoholictimer.ui.ad.AdTimingLogger.logMainActivityCreate()
@@ -407,8 +395,8 @@ class MainActivity : BaseActivity() {
     private fun showResultAndRecord() {
         android.util.Log.d("MainActivity", "결과 확인 버튼 클릭 -> 전면 광고 표시 시도")
 
-        if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
-            kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(this) { success ->
+        if (InterstitialAdManager.isLoaded()) {
+            InterstitialAdManager.show(this) { success ->
                 if (success) {
                     android.util.Log.d("MainActivity", "광고 종료 -> 결과 기록 화면으로 이동")
                 } else {
@@ -473,7 +461,7 @@ private fun AppContentWithStart(
 ) {
     val navController = rememberNavController()
     val context = LocalContext.current
-    val communityViewModel: CommunityViewModel = viewModel()
+    val communityViewModel = viewModel<CommunityViewModel>()
 
     // [NEW] 공유 버튼 클릭 시 커뮤니티 글쓰기 화면으로 이동
     fun navigateToCommunityWithDraft(draftContent: String) {
@@ -486,7 +474,7 @@ private fun AppContentWithStart(
     // [NEW] 전역 타이머 완료 네비게이션 리스너 (Activity Scope ViewModel)
     val activity = context as? MainActivity
     val tab01ViewModel: Tab01ViewModel? = activity?.let {
-        viewModel(viewModelStoreOwner = it)
+        viewModel<Tab01ViewModel>(viewModelStoreOwner = it)
     }
 
     // [REFACTORED] 타이머 완료/중단 시 전역 네비게이션 처리

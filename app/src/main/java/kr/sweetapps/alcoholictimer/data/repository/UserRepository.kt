@@ -91,5 +91,13 @@ class UserRepository(private val context: Context) {
         prefs.edit().putInt(KEY_AVATAR_INDEX, index).apply()
         return true
     }
-}
 
+    // [NEW] 아바타 URL 저장/조회 (ViewModel의 fetchUserAvatarUrl에서 사용됨)
+    fun getAvatarUrl(): String? {
+        return prefs.getString("avatar_url", null)
+    }
+
+    fun setAvatarUrl(url: String) {
+        prefs.edit().putString("avatar_url", url).apply()
+    }
+}

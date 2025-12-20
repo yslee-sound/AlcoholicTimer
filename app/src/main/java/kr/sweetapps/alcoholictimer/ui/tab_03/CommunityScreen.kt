@@ -54,39 +54,28 @@ import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.tab_03.screens.PostItem
 import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.CommunityViewModel
-import androidx.compose.ui.viewinterop.AndroidView
-import com.google.android.gms.ads.AdLoader
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.nativead.NativeAd
-import com.google.android.gms.ads.nativead.NativeAdOptions
-import com.google.android.gms.ads.nativead.NativeAdView
-import android.view.LayoutInflater
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
 import kotlinx.coroutines.launch
-import androidx.compose.foundation.lazy.items
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommunityScreen(
     viewModel: CommunityViewModel = viewModel(),
-    onSettingsClick: () -> Unit = {} // [NEW] 설정 화면으로 이동
+    onSettingsClick: () -> Unit = {} // 설정 화면으로 이동
 ) {
     val posts by viewModel.posts.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val isRefreshing by viewModel.isRefreshing.collectAsState() // [NEW] Pull-to-Refresh 상태 (2025-12-20)
-    val currentUserAvatarIndex by viewModel.currentUserAvatarIndex.collectAsState() // [NEW] 현재 사용자 아바타
-    val context = LocalContext.current // [NEW] Context 가져오기 (2025-12-19)
+    val isRefreshing by viewModel.isRefreshing.collectAsState() // Pull-to-Refresh 상태 (2025-12-20)
+    val currentUserAvatarIndex by viewModel.currentUserAvatarIndex.collectAsState() // 현재 사용자 아바타
+    val context = LocalContext.current // Context 가져오기 (2025-12-19)
 
     // [UI State] Snackbar를 위한 상태 및 스코프
-    val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
+    val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
     // 글쓰기 화면 표시 상태
     var isWritingScreenVisible by remember { mutableStateOf(false) }
 
-    // [NEW] Phase 3: 게시글 옵션 바텀 시트
+    // Phase 3: 게시글 옵션 바텀 시트
     var selectedPost by remember { mutableStateOf<kr.sweetapps.alcoholictimer.data.model.Post?>(null) }
 
     // [중요] 글쓰기 화면이 열려있을 때 뒤로가기 버튼 누르면 앱 종료 대신 글쓰기 창 닫기
@@ -154,7 +143,7 @@ fun CommunityScreen(
                         }
                     }
                 } else {
-                    // [NEW] Pull-to-Refresh 적용 (2025-12-20)
+                    // NEW Pull-to-Refresh 적용 (2025-12-20)
                     PullToRefreshBox(
                         isRefreshing = isRefreshing,
                         onRefresh = { viewModel.refreshPosts() },
@@ -167,7 +156,7 @@ fun CommunityScreen(
                             item {
                                 WritePostTrigger(
                                     onClick = { isWritingScreenVisible = true },
-                                    currentAvatarIndex = currentUserAvatarIndex // [NEW] 현재 사용자 아바타 전달
+                                    currentAvatarIndex = currentUserAvatarIndex // 현재 사용자 아바타 전달
                                 )
                             }
 
@@ -194,11 +183,11 @@ fun CommunityScreen(
                                         remainingTime = calculateRemainingTime(item.deleteAt),
                                         currentDays = item.currentDays,
                                         userLevel = item.userLevel,
-                                         authorAvatarIndex = item.authorAvatarIndex, // [NEW] 아바타 인덱스 전달
-                                         isMine = viewModel.isMyPost(item), // [NEW] Phase 3: 내 글 여부
+                                         authorAvatarIndex = item.authorAvatarIndex, // 아바타 인덱스 전달
+                                         isMine = viewModel.isMyPost(item), // Phase 3: 내 글 여부
                                          onLikeClick = { viewModel.toggleLike(item) },
                                          onCommentClick = { },
-                                         onMoreClick = { selectedPost = item }, // [NEW] Phase 3: 바텀 시트 열기
+                                         onMoreClick = { selectedPost = item }, // Phase 3: 바텀 시트 열기
                                          onHideClick = {
                                             // 1) 즉시 숨김 처리
                                             viewModel.hidePost(item.id)
@@ -208,17 +197,17 @@ fun CommunityScreen(
                                                 val result = snackbarHostState.showSnackbar(
                                                     message = "게시글이 숨겨졌습니다.",
                                                     actionLabel = "되돌리기",
-                                                    duration = androidx.compose.material3.SnackbarDuration.Short
+                                                    duration = SnackbarDuration.Short
                                                 )
 
-                                                if (result == androidx.compose.material3.SnackbarResult.ActionPerformed) {
+                                                if (result == SnackbarResult.ActionPerformed) {
                                                     viewModel.undoHidePost(item.id)
                                                 }
                                             }
-                                        } // [NEW] Phase 3: 빠른 숨기기 + Undo
+                                        } // Phase 3: 빠른 숨기기 + Undo
                                     )
                                 }
-                                // [MODIFIED] 디바이더 진하게 (페이스북 스타일) (2025-12-20)
+                                // MODIFIED 디바이더 진하게 (페이스북 스타일) (2025-12-20)
                                 HorizontalDivider(thickness = 1.dp, color = Color(0xFFBDBDBD))
                             }
                         }
@@ -270,10 +259,7 @@ fun CommunityScreen(
                 ) {
                     WritePostScreenContent(
                         viewModel = viewModel,
-                        onPost = { content ->
-                            viewModel.addPost(content, context)
-                            triggerClose() // [FIX] 게시 후 애니메이션 종료
-                        },
+                        onPost = { triggerClose() }, // [MODIFIED] 실제 게시처리는 내부에서 실행, 부모에는 닫기만 위임
                         onDismiss = { triggerClose() } // [FIX] 뒤로가기 시 애니메이션 종료
                     )
                 }
@@ -308,7 +294,7 @@ fun CommunityScreen(
 }
 
 /**
- * [NEW] Phase 3: 게시글 옵션 바텀 시트
+ * Phase 3: 게시글 옵션 바텀 시트
  * 내 글: 삭제만
  * 남의 글: 숨기기, 신고하기
  */
@@ -435,6 +421,16 @@ private fun WritePostScreenContent(
     // [NEW] 4. 수정 상태 감지 (2025-12-19)
     val isModified = content.isNotBlank() || selectedImageUri != null
 
+    // [NEW] 선택된 주제 태그 상태 (상단에 정의하여 topBar에서도 사용 가능하도록 함)
+    var selectedTag by remember { mutableStateOf("diary") } // diary, thanks, reflect
+
+    val placeholderText = when (selectedTag) {
+        "diary" -> "오늘 하루는 어땠나요? 솔직한 이야기를 들려주세요."
+        "thanks" -> "오늘 웃게 된 일이나 고마운 순간이 있었나요? 사소한 것도 좋아요. ✨"
+        "reflect" -> "아쉬웠던 점이나 내일을 위한 다짐을 적어보세요. 🌙"
+        else -> "오늘 하루는 어땠나요? 솔직한 이야기를 들려주세요."
+    }
+
     // [NEW] 5. 뒤로가기 공통 로직 (2025-12-19)
     val onBackAction = {
         if (isModified) {
@@ -487,7 +483,11 @@ private fun WritePostScreenContent(
                 actions = {
                     TextButton(
                         onClick = {
-                            if (content.isNotBlank()) onPost(content.trim())
+                            if (content.isNotBlank()) {
+                                // [NEW] 선택된 주제 태그와 함께 게시
+                                viewModel.addPost(content.trim(), context, selectedTag)
+                                onPost(content.trim())
+                            }
                         },
                         enabled = isModified // [FIX] 내용이 있을 때만 활성화 (2025-12-19)
                     ) {
@@ -636,6 +636,60 @@ private fun WritePostScreenContent(
                     }
                 }
 
+                // [NEW] 주제 선택 칩 (작성자 정보 바로 아래, 입력창 위)
+                // 선택된 태그에 따라 placeholder가 바뀝니다.
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = selectedTag == "diary",
+                        onClick = { selectedTag = "diary" },
+                        label = { Text("오늘의 일기") },
+                        colors = FilterChipDefaults.filterChipColors(
+                            // 비선택(기본) 상태 색상
+                            containerColor = Color(0xFFF0F0F0),
+                            labelColor = Color(0xFF374151),
+                            // 선택 상태 색상
+                            selectedContainerColor = Color(0xFF7C3AED), // 보라
+                            selectedLabelColor = Color.White
+                         ),
+                         modifier = Modifier.defaultMinSize(minHeight = 36.dp)
+                     )
+
+                    FilterChip(
+                        selected = selectedTag == "thanks",
+                        onClick = { selectedTag = "thanks" },
+                        label = { Text("오늘 감사할 일") },
+                        colors = FilterChipDefaults.filterChipColors(
+                            // 비선택(기본) 상태 색상
+                            containerColor = Color(0xFFF0F0F0),
+                            labelColor = Color(0xFF374151),
+                            // 선택 상태 색상
+                            selectedContainerColor = Color(0xFFFFD54F), // 노랑
+                            selectedLabelColor = Color.Black
+                         ),
+                         modifier = Modifier.defaultMinSize(minHeight = 36.dp)
+                     )
+
+                    FilterChip(
+                        selected = selectedTag == "reflect",
+                        onClick = { selectedTag = "reflect" },
+                        label = { Text("오늘 반성할 일") },
+                        colors = FilterChipDefaults.filterChipColors(
+                            // 비선택(기본) 상태 색상
+                            containerColor = Color(0xFFF0F0F0),
+                            labelColor = Color(0xFF374151),
+                            // 선택 상태 색상
+                            selectedContainerColor = Color(0xFF6B7280), // 회색
+                            selectedLabelColor = Color.White
+                         ),
+                         modifier = Modifier.defaultMinSize(minHeight = 36.dp)
+                     )
+                }
+
             // 텍스트 입력창
              TextField(
                  value = content,
@@ -646,7 +700,7 @@ private fun WritePostScreenContent(
                      .padding(horizontal = 16.dp), // [NEW] 좌우 패딩만 적용
                  placeholder = {
                     Text(
-                        text = "오늘 하루는 어땠나요? 솔직한 이야기를 들려주세요.",
+                        text = placeholderText,
                         color = Color(0xFF9CA3AF),
                         style = MaterialTheme.typography.bodyLarge
                     )
@@ -660,7 +714,7 @@ private fun WritePostScreenContent(
                  textStyle = MaterialTheme.typography.bodyLarge
              )
 
-             // [NEW] 이미지 미리보기 (2025-12-19)
+             // NEW 이미지 미리보기 (2025-12-19)
              if (selectedImageUri != null) {
                  Box(
                      modifier = Modifier
@@ -766,7 +820,7 @@ private fun WritePostScreenContent(
                 }
             }
 
-            // [NEW] 사진 추가 화면 표시 상태에 따른 AnimatedVisibility
+            // NEW 사진 추가 화면 표시 상태에 따른 AnimatedVisibility
              AnimatedVisibility(
                  visible = showPhotoScreen,
                  enter = slideInHorizontally(
@@ -833,7 +887,7 @@ private fun PhotoScreen(onDismiss: () -> Unit) {
 }
 
 /**
- * [NEW] 페이스북 스타일 상단 작성 트리거
+ * 페이스북 스타일 상단 작성 트리거
  * (v2.1) 현재 사용자의 아바타 실시간 표시
  */
 @Composable
@@ -921,12 +975,12 @@ private fun calculateRemainingTime(deleteAt: com.google.firebase.Timestamp): Str
 }
 
 /**
- * [REAL] 구글 애드몹 네이티브 광고
+ * REAL 구글 애드몹 네이티브 광고
  * 기존의 노란색 Placeholder를 대체합니다.
  */
 @Composable
 private fun NativeAdItem() {
-    val context = LocalContext.current // [NEW] Context 사용
+    val context = LocalContext.current // NEW Context 사용
 
     // 테스트용 광고 ID (배포 시 실제 ID로 교체 필수!)
     // 네이티브 고급 광고 테스트 ID: ca-app-pub-3940256099942544/2247696110
