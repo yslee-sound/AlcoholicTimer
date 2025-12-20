@@ -403,8 +403,19 @@ private fun WritePostScreenContent(
     val focusManager = LocalFocusManager.current // [NEW] FocusManager (2025-12-19)
     val scrollState = rememberScrollState() // [NEW] 스크롤 상태 (2025-12-19)
     var showWarningSheet by remember { mutableStateOf(false) } // [NEW] 경고 바텀 시트 표시 상태 (2025-12-19)
-    var showPhotoScreen by remember { mutableStateOf(false) } // [NEW] 사진 추가 화면 표시 상태
-    var showThirstSlider by remember { mutableStateOf(false) } // [NEW] 갈증 수치 슬라이더 표시 상태
+    var showPhotoScreen by remember { mutableStateOf(false) } // NEW 사진 추가 화면 표시 상태
+    var showThirstSlider by remember { mutableStateOf(false) } // NEW 갈증 수치 슬라이더 표시 상태
+
+    // [FIX] 갈증 수치 상태를 nullable로 변경하여 초기에는 선택이 없음
+    // 초기값: null (아무 숫자도 선택되지 않은 상태)
+    var selectedLevel by remember { mutableStateOf<Int?>(null) }
+
+    // [NEW] 갈증 레벨에 따른 색상 계산 함수(Reused by top badge and bottom selector)
+    fun thirstColor(level: Int): Color = when (level) {
+        in 1..3 -> Color(0xFF4CAF50)
+        in 4..7 -> Color(0xFFFFA726)
+        else -> Color(0xFFE53935)
+    }
 
     // [NEW] 1. 상태 구독 - 현재 사용자의 아바타 인덱스
     val currentUserAvatarIndex by viewModel.currentUserAvatarIndex.collectAsState()
@@ -529,33 +540,27 @@ private fun WritePostScreenContent(
                 }
 
                 if (showThirstSlider) {
-                     var thirstLevel by remember { mutableStateOf(5) }
-                     fun thirstColor(level: Int): Color = when (level) {
-                         in 1..3 -> Color(0xFF4CAF50)
-                         in 4..7 -> Color(0xFFFFA726)
-                         else -> Color(0xFFE53935)
-                     }
-
+                     // selectedLevel이 null이면 모두 비선택 상태(회색) 표시
                      LazyRow(
-                         modifier = Modifier.fillMaxWidth(),
-                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                         horizontalArrangement = Arrangement.spacedBy(8.dp)
-                     ) {
-                         items(10) { index ->
-                             val value = index + 1
-                             val selected = thirstLevel == value
-                             Box(
-                                 modifier = Modifier
-                                     .size(35.dp)
-                                     .clip(RoundedCornerShape(12.dp))
-                                     .background(if (selected) thirstColor(value) else Color(0xFFF0F0F0))
-                                     .clickable { thirstLevel = value },
-                                 contentAlignment = Alignment.Center
-                             ) {
-                                 Text(text = value.toString(), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = if (selected) Color.White else Color(0xFF374151))
-                             }
-                         }
-                     }
+                          modifier = Modifier.fillMaxWidth(),
+                          contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                          horizontalArrangement = Arrangement.spacedBy(8.dp)
+                      ) {
+                          items(10) { index ->
+                              val value = index + 1
+                              val selected = selectedLevel == value
+                              Box(
+                                  modifier = Modifier
+                                      .size(35.dp)
+                                      .clip(RoundedCornerShape(12.dp))
+                                      .background(if (selected) thirstColor(value) else Color(0xFFF0F0F0))
+                                      .clickable { selectedLevel = value },
+                                  contentAlignment = Alignment.Center
+                              ) {
+                                  Text(text = value.toString(), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = if (selected) Color.White else Color(0xFF374151))
+                              }
+                          }
+                      }
                 }
 
                 HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
@@ -623,11 +628,49 @@ private fun WritePostScreenContent(
                     Spacer(modifier = Modifier.width(12.dp))
 
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = currentNickname,
-                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                            color = Color(0xFF111827)
-                        )
+                        // 닉네임과 뱃지를 Row로 배치: 닉네임, 구분자(" - "), 숫자 뱃지, 후행 텍스트(" 갈증") 순
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            // 1) 닉네임
+                            Text(
+                                text = currentNickname,
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                color = Color(0xFF111827) // 색상 변경 금지
+                            )
+
+                            // 2~4) selectedLevel이 있을 때만 구분자, 뱃지, 후행 텍스트 노출
+                            if (selectedLevel != null) {
+                                // 요소 A: 구분자
+                                Text(
+                                    text = " - ",
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                    color = Color(0xFF111827)
+                                )
+
+                                // 요소 B: 숫자 뱃지 (숫자만, 배경색은 thirstColor 사용)
+                                Box(
+                                    modifier = Modifier
+                                        .height(24.dp)
+                                        .wrapContentWidth()
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(thirstColor(selectedLevel!!))
+                                        .padding(horizontal = 8.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = selectedLevel.toString(),
+                                        color = Color.White,
+                                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
+                                    )
+                                }
+
+                                // 요소 C: 후행 텍스트
+                                Text(
+                                    text = " 갈증",
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                    color = Color(0xFF111827)
+                                )
+                            }
+                        }
 
                         Text(
                             text = "내 프로필",
