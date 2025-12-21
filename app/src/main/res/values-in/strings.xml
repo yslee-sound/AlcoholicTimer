@@ -70,8 +70,6 @@
     <string name="unit_days_format">%.1f d</string>
     <string name="unit_hours_format">%.1f hr(s)</string>
     <string name="unit_won_format">₩%,.0f</string>
-    <string name="unit_life_hours_only">%.2f hr(s)</string>
-    <string name="unit_life_days_hours" formatted="false">%d d %.2f hr(s)</string>
 
     <!-- Unit labels for separated display -->
     <string name="unit_day">d</string>

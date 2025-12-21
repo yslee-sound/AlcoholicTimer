@@ -24,7 +24,6 @@
     <string name="run_progress_title">進捗</string>
     <string name="stat_goal_days">目標</string>
     <string name="stat_level">レベル</string>
-    <string name="stat_time">時間</string>
     <string name="stat_goal_days_format">%d日</string>
     <string name="indicator_title_days">禁酒日数</string>
     <string name="indicator_title_time">時間</string>
@@ -69,9 +68,7 @@
     <string name="detail_today_time">今日 - %1$s</string>
     <string name="unit_days_format">%.1f日</string>
     <string name="unit_hours_format">%.1f時間</string>
-    <string name="unit_won_format">¥%,.0f</string>
-    <string name="unit_life_hours_only">%.2f時間</string>
-    <string name="unit_life_days_hours" formatted="false">%d日 %.2f時間</string>
+    <string name="unit_won_format">₩%,.0f</string>
 
     <!-- Unit labels for separated display -->
     <string name="unit_day">日</string>

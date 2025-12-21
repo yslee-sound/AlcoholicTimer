@@ -24,7 +24,6 @@
     <string name="run_progress_title">진행률</string>
     <string name="stat_goal_days">목표일</string>
     <string name="stat_level">레벨</string>
-    <string name="stat_time">시간</string>
     <string name="stat_goal_days_format">%d일</string>
     <string name="indicator_title_days">금주 일수</string>
     <string name="indicator_title_time">시간</string>
@@ -69,11 +68,9 @@
     <string name="detail_today_time">오늘 - %1$s</string>
     <string name="unit_days_format">%.1f일</string>
     <string name="unit_hours_format">%.1f시간</string>
-    <string name="unit_won_format">%,.0f원</string>
-    <string name="unit_life_hours_only">%.2f시간</string>
-    <string name="unit_life_days_hours" formatted="false">%d일 %.2f시간</string>
+    <string name="unit_won_format">₩%,.0f</string>
 
-    <!-- Unit labels for separated display (단위 표시) -->
+    <!-- Unit labels for separated display (단위 라벨) -->
     <string name="unit_day">일</string>
     <string name="unit_hour">시간</string>
 
