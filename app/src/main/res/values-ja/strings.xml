@@ -222,6 +222,13 @@
     <string name="settings_drinking_cost">飲酒費用</string>
     <string name="settings_drinking_frequency">飲酒頻度</string>
     <string name="settings_drinking_duration">飲酒時間</string>
+    <string name="settings_currency">通貨</string>
+    <string name="settings_currency_auto">自動（地域ベース）</string>
+    <string name="settings_currency_current">現在の選択: %1$s</string>
+    <string name="settings_currency_current_auto">現在の選択: %1$s （自動）</string>
+
+    <!-- Community screen -->
+    <string name="community_title">匿名応援チャレンジ</string>
 
     <!-- Additional All Records screen strings -->
     <string name="all_records_delete_failed">削除に失敗しました</string>
@@ -295,11 +302,6 @@
     <string name="add_record_days_unit">日</string>
 
     <!-- Currency options (通貨選択) -->
-    <string name="settings_currency">通貨</string>
-    <string name="settings_currency_auto">自動（地域ベース）</string>
-    <string name="settings_currency_current">現在の選択: %1$s</string>
-    <string name="settings_currency_current_auto">現在の選択: %1$s （自動）</string>
-    <string name="settings_apply_button">適用</string>
     <string name="currency_krw">韓国ウォン (₩)</string>
     <string name="currency_jpy">日本円 (¥)</string>
     <string name="currency_usd">米ドル ($)</string>
@@ -441,7 +443,6 @@
     </string-array>
 
     <!-- Additional keys -->
-    <string name="community_title">匿名応援チャレンジ</string>
     <string name="add_record_saving">保存中&#8230;</string>
     <string name="debug_menu_title">デバッグメニュー</string>
 </resources>

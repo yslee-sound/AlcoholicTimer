@@ -247,6 +247,13 @@
     <string name="settings_drinking_cost">음주 비용</string>
     <string name="settings_drinking_frequency">음주 빈도</string>
     <string name="settings_drinking_duration">음주 시간</string>
+    <string name="settings_currency">통화</string>
+    <string name="settings_currency_auto">자동 (지역 기반)</string>
+    <string name="settings_currency_current">현재: %1$s</string>
+    <string name="settings_currency_current_auto">현재: %1$s (자동)</string>
+
+    <!-- Community screen -->
+    <string name="community_title">익명 응원 챌린지</string>
 
     <!-- Additional All Records screen strings -->
     <string name="all_records_delete_failed">삭제 실패</string>
@@ -320,11 +327,6 @@
     <string name="add_record_days_unit">일</string>
 
     <!-- Currency options (통화 선택) -->
-    <string name="settings_currency">통화</string>
-    <string name="settings_currency_auto">자동 (지역 기반)</string>
-    <string name="settings_currency_current">현재: %1$s</string>
-    <string name="settings_currency_current_auto">현재: %1$s (자동)</string>
-    <string name="settings_apply_button">적용</string>
     <string name="currency_krw">한국 원 (₩)</string>
     <string name="currency_jpy">일본 엔 (¥)</string>
     <string name="currency_usd">미국 달러 ($)</string>
@@ -441,7 +443,6 @@
     </string-array>
 
     <!-- Additional keys -->
-    <string name="community_title">익명 응원 챌린지</string>
     <string name="add_record_saving">저장 중&#8230;</string>
     <string name="debug_menu_title">디버그 메뉴</string>
 </resources>

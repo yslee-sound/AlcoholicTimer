@@ -247,7 +247,6 @@
     <string name="settings_drinking_cost">Drinking Cost</string>
     <string name="settings_drinking_frequency">Drinking Frequency</string>
     <string name="settings_drinking_duration">Drinking Duration</string>
-    <string name="settings_apply_button">Apply</string>
     <string name="settings_currency">Currency Settings</string>
     <string name="settings_currency_auto">Auto (Region-based)</string>
     <string name="settings_currency_current">Current: %1$s</string>
