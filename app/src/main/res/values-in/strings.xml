@@ -146,12 +146,9 @@
 
     <!-- Diary Section -->
     <string name="diary_recent_title">Recent Diary</string>
-    <string name="diary_view_all">View All Entries</string>
     <string name="diary_no_entries">No diary entries yet</string>
     <string name="diary_write_prompt">Tap the + button below\nto write your first entry</string>
-    <string name="diary_write_button">Write Diary</string>
     <string name="diary_write_button_action">Write Diary Entry</string>
-    <string name="diary_all_title">Sobriety Diary</string>
     <string name="diary_all_empty">No diary entries.</string>
     <string name="diary_write_title">Write Diary</string>
     <string name="diary_edit_title">Edit Diary</string>

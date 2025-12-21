@@ -152,26 +152,3 @@ sealed class Screen(val route: String) {
     data object Notification : Screen("notification")
 }
 
-/**
- * Extension function to return screen title resource ID
- */
-fun Screen.getTitleResId(): Int? = when (this) {
-    is Screen.Start -> kr.sweetapps.alcoholictimer.R.string.start_screen_title
-    is Screen.Run -> kr.sweetapps.alcoholictimer.R.string.run_title
-    is Screen.Quit -> kr.sweetapps.alcoholictimer.R.string.quit_title
-    is Screen.Records -> null // kr.sweetapps.alcoholictimer.R.string.records_title
-    is Screen.AllRecords -> kr.sweetapps.alcoholictimer.R.string.all_records_title
-    // [REMOVED] is Screen.Level -> 더 이상 사용되지 않음 (LevelDetail 사용)
-    is Screen.LevelDetail -> kr.sweetapps.alcoholictimer.R.string.level_title
-    is Screen.More -> kr.sweetapps.alcoholictimer.R.string.more_title
-    is Screen.About -> kr.sweetapps.alcoholictimer.R.string.about_title
-    is Screen.AboutLicenses -> null // No resource
-    is Screen.Privacy -> null
-    is Screen.NicknameEdit -> null // Uses custom title
-    is Screen.CurrencySettings -> kr.sweetapps.alcoholictimer.R.string.settings_currency
-    is Screen.HabitSettings -> kr.sweetapps.alcoholictimer.R.string.settings_title // [NEW] 습관 설정
-    is Screen.Detail -> null // Uses custom title
-    is Screen.Result -> null // [NEW] 결과 화면 (커스텀 타이틀 사용)
-    is Screen.AddRecord -> kr.sweetapps.alcoholictimer.R.string.add_record_title
-    else -> null
-}

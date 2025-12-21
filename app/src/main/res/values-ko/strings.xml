@@ -143,6 +143,59 @@
     <string name="stats_unit_bottles">병</string>
 
     <!-- Diary Section (일기 섹션) -->
+    <string name="diary_recent_title">최근 금주 일기</string>
+    <string name="diary_no_entries">아직 일기가 없습니다</string>
+    <string name="diary_write_prompt">아래 + 버튼을 눌러\n첫 일기를 작성해보세요</string>
+    <string name="diary_write_button_action">일기 쓰기</string>
+
+    <!-- Diary Screens -->
+    <string name="diary_all_empty">일기가 없습니다.</string>
+    <string name="diary_write_title">일기 쓰기</string>
+    <string name="diary_edit_title">일기 수정</string>
+    <string name="diary_menu_edit">수정하기</string>
+    <string name="diary_menu_delete">삭제하기</string>
+    <string name="diary_save_button">저장</string>
+    <string name="diary_question_title">오늘 하루, 술 생각이 나셨나요?</string>
+    <string name="diary_question_required">필수 항목입니다</string>
+    <string name="diary_craving_weak">안남</string>
+    <string name="diary_craving_strong">아주 많이</string>
+    <string name="diary_craving_label">갈망 수준: %d/10</string>
+    <string name="diary_mood_title">오늘의 기록</string>
+    <string name="diary_mood_optional">선택 사항</string>
+    <string name="diary_content_placeholder">오늘 가장 힘들었던 순간이나,\n스스로에게 해주고 싶은 칭찬을 작성해보세요.</string>
+    <string name="diary_content_empty">내용 없음</string>
+    <string name="diary_delete_confirm_title">일기 삭제</string>
+    <string name="diary_delete_confirm_message">정말로 이 일기를 삭제하시겠습니까?</string>
+    <string name="diary_delete_confirm_button">삭제</string>
+
+    <!-- Tab05 (More) Menu Items -->
+    <string name="tab05_rate_app">앱 평가하기</string>
+    <string name="tab05_notifications">공지사항</string>
+    <string name="tab05_customer_support">문의하기</string>
+    <string name="tab05_recommended_apps">추천 앱</string>
+
+    <!-- Notification Center -->
+    <string name="notification_center_title">알림 센터</string>
+    <string name="notification_empty_message">새로운 알림이 없습니다.</string>
+
+    <!-- Customer Feedback Bottom Sheet -->
+    <string name="feedback_title">문의하기</string>
+    <string name="feedback_category_label">문의 유형</string>
+    <string name="feedback_category_feature">기능 제안</string>
+    <string name="feedback_category_bug">버그 신고</string>
+    <string name="feedback_category_other">기타 문의</string>
+    <string name="feedback_content_label">문의 내용</string>
+    <string name="feedback_content_placeholder">예) 앱 실행 시 멈추는 현상이 있습니다.</string>
+    <string name="feedback_email_label">이메일 주소 (선택)</string>
+    <string name="feedback_email_placeholder">example@email.com</string>
+    <string name="feedback_email_note">답변을 원하시면 이메일 주소를 입력해주세요.\n이메일은 답변 용도로만 사용됩니다.</string>
+    <string name="feedback_submit_button">보내기</string>
+    <string name="feedback_email_error">올바른 이메일 형식이 아닙니다.</string>
+    <string name="feedback_submitting">전송 중&#8230;</string>
+    <string name="feedback_success_message">소중한 의견 감사합니다 🙏</string>
+    <string name="feedback_error_message">전송 실패\n%1$s</string>
+
+    <!-- Diary Section (일기 섹션) -->
     <string name="level_0">알코올 스톱</string>          <!-- Lv.1: 1~3일 -->
     <string name="level_1">3일 컷 통과</string>               <!-- Lv.2: 4~7일 -->
     <string name="level_2">1주일 클리어</string>                 <!-- Lv.3: 8~14일 -->
@@ -168,32 +221,7 @@
     <string name="level_hour_unit">시간</string>
 
 
-    <!-- Diary Section (일기 섹션) -->
-    <string name="diary_recent_title">최근 일기</string>
-    <string name="diary_view_all">전체 일기 보기</string>
-    <string name="diary_no_entries">아직 작성된 일기가 없어요</string>
-    <string name="diary_write_prompt">우측 하단 + 버튼을 눌러\n첫 일기를 작성해보세요</string>
-    <string name="diary_write_button">일기 작성</string>
-    <string name="diary_write_button_action">일기 작성하기</string>
-    <string name="diary_all_title">금주 일기</string>
-    <string name="diary_all_empty">작성된 일기가 없습니다.</string>
-    <string name="diary_write_title">일기 쓰기</string>
-    <string name="diary_edit_title">일기 수정</string>
-    <string name="diary_menu_edit">수정하기</string>
-    <string name="diary_menu_delete">삭제하기</string>
-    <string name="diary_save_button">저장</string>
-    <string name="diary_question_title">오늘 하루, 술 생각이 나셨나요?</string>
-    <string name="diary_question_required">필수 항목입니다</string>
-    <string name="diary_craving_weak">안남</string>
-    <string name="diary_craving_strong">아주 많이</string>
-    <string name="diary_craving_label">갈망 수준: %d/10</string>
-    <string name="diary_mood_title">오늘의 기록</string>
-    <string name="diary_mood_optional">선택 사항</string>
-    <string name="diary_content_placeholder">오늘 가장 힘들었던 순간이나,\n스스로에게 해주고 싶은 칭찬을 작성해보세요.</string>
-    <string name="diary_content_empty">내용 없음</string>
-    <string name="diary_delete_confirm_title">일기 삭제</string>
-    <string name="diary_delete_confirm_message">정말로 이 일기를 삭제하시겠습니까?</string>
-    <string name="diary_delete_confirm_button">삭제</string>
+
 
     <!-- Target Days Setting (목표 기간 설정) -->
     <string name="target_days_title_set">목표 기간 설정</string>
@@ -320,32 +348,7 @@
     <!-- More (Tab04) tab labels - used instead of 'Settings' for tab04 -->
     <string name="more_title">커뮤니티</string>
 
-    <!-- Tab05 (More) Menu Items -->
-    <string name="tab05_rate_app">앱 평가하기</string>
-    <string name="tab05_notifications">공지사항</string>
-    <string name="tab05_customer_support">문의하기</string>
-    <string name="tab05_recommended_apps">추천 앱</string>
 
-    <!-- Notification Center -->
-    <string name="notification_center_title">알림 센터</string>
-    <string name="notification_empty_message">새로운 알림이 없습니다.</string>
-
-    <!-- Customer Feedback Bottom Sheet -->
-    <string name="feedback_title">문의하기</string>
-    <string name="feedback_category_label">문의 유형</string>
-    <string name="feedback_category_feature">기능 제안</string>
-    <string name="feedback_category_bug">버그 신고</string>
-    <string name="feedback_category_other">기타 문의</string>
-    <string name="feedback_content_label">문의 내용</string>
-    <string name="feedback_content_placeholder">예) 앱 실행 시 멈추는 현상이 있습니다.</string>
-    <string name="feedback_email_label">이메일 주소 (선택)</string>
-    <string name="feedback_email_placeholder">example@email.com</string>
-    <string name="feedback_email_note">답변을 원하시면 이메일 주소를 입력해주세요.\n이메일은 답변 용도로만 사용됩니다.</string>
-    <string name="feedback_submit_button">보내기</string>
-    <string name="feedback_email_error">올바른 이메일 형식이 아닙니다.</string>
-    <string name="feedback_submitting">전송 중&#8230;</string>
-    <string name="feedback_success_message">소중한 의견 감사합니다 🙏</string>
-    <string name="feedback_error_message">전송 실패\n%1$s</string>
 
     <!-- 추가: 진행 화면 문자열 -->
     <string name="run_progress_title">진행률</string>
