@@ -17,11 +17,19 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
+import kotlin.math.roundToInt
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -78,6 +86,9 @@ fun CommunityScreen(
 
     // 글쓰기 화면 표시 상태
     var isWritingScreenVisible by remember { mutableStateOf(false) }
+    // 전체 화면 사진 선택 표시 상태 (CommunityScreen 레벨로 끌어올림)
+    var isPhotoSelectionVisible by remember { mutableStateOf(false) }
+    var photoIsClosing by remember { mutableStateOf(false) }
 
     // Phase 3: 게시글 옵션 바텀 시트
     var selectedPost by remember { mutableStateOf<kr.sweetapps.alcoholictimer.data.model.Post?>(null) }
@@ -265,11 +276,21 @@ fun CommunityScreen(
                     WritePostScreenContent(
                         viewModel = viewModel,
                         onPost = { triggerClose() }, // [MODIFIED] 실제 게시처리는 내부에서 실행, 부모에는 닫기만 위임
-                        onDismiss = { triggerClose() } // [FIX] 뒤로가기 시 애니메이션 종료
+                        onDismiss = { triggerClose() }, // [FIX] 뒤로가기 시 애니메이션 종료
+                        onOpenPhoto = {
+                            // 닫기 애니메이션 먼저 시작
+                            animateVisible = false
+                            // 다이얼로그가 완전히 닫힐 때까지 300ms 대기 후 photo overlay를 연다
+                            coroutineScope.launch {
+                                kotlinx.coroutines.delay(300)
+                                isWritingScreenVisible = false
+                                isPhotoSelectionVisible = true
+                            }
+                        }
                     )
-                }
-            }
-        }
+                 }
+             }
+         }
 
         // === 3. 게시글 옵션 바텀 시트 (Phase 3) ===
         selectedPost?.let { post ->
@@ -294,6 +315,60 @@ fun CommunityScreen(
                      }
                  )
              }
+        }
+
+        // === 전체 화면 사진 선택: Dialog로 변경하여 하단 네비게이션을 덮도록 함 ===
+        if (isPhotoSelectionVisible) {
+            Dialog(
+                onDismissRequest = {
+                    // start exit animation; actual hiding happens after animation completes
+                    /* handled inside */
+                },
+                properties = DialogProperties(
+                    usePlatformDefaultWidth = false,
+                    decorFitsSystemWindows = false
+                )
+            ) {
+                // 내부 애니메이션 상태: Dialog가 보여지는 동안 animateVisible을 켜고
+                // 닫을 때는 animateVisible을 끄고 애니메이션이 끝난 뒤 isPhotoSelectionVisible=false로 설정
+                var animateVisible by remember { mutableStateOf(false) }
+
+                LaunchedEffect(Unit) { animateVisible = true }
+
+                val triggerClosePhoto = {
+                    animateVisible = false
+                }
+
+                LaunchedEffect(animateVisible) {
+                    if (!animateVisible) {
+                        // wait for exit animation to finish before removing dialog
+                        kotlinx.coroutines.delay(300)
+                        isPhotoSelectionVisible = false
+                    }
+                }
+
+                AnimatedVisibility(
+                    visible = animateVisible,
+                    enter = slideInVertically(initialOffsetY = { it }, animationSpec = tween(300)),
+                    exit = slideOutVertically(targetOffsetY = { it }, animationSpec = tween(300)),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    FullScreenPhotoModal(onDismiss = { triggerClosePhoto() }) {
+                        PhotoSelectionContent(
+                            onImagePicked = { uri ->
+                                try {
+                                    viewModel.onImageSelected(uri)
+                                } catch (e: Exception) {
+                                    android.util.Log.e("CommunityScreen", "onImageSelected failed", e)
+                                }
+                                // close with animation
+                                triggerClosePhoto()
+                            },
+                            onClose = { triggerClosePhoto() }
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -400,14 +475,16 @@ private fun PostOptionsBottomSheet(
 private fun WritePostScreenContent(
     viewModel: CommunityViewModel, // [NEW] ViewModel 주입
     onPost: (String) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onOpenPhoto: () -> Unit // [NEW] 사진 선택 화면 열기 콜백 (네비게이션 호출)
 ) {
     var content by remember { mutableStateOf("") }
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current // [NEW] FocusManager (2025-12-19)
     var showWarningSheet by remember { mutableStateOf(false) } // [NEW] 경고 바텀 시트 표시 상태 (2025-12-19)
-    var showPhotoScreen by remember { mutableStateOf(false) } // NEW 사진 추가 화면 표시 상태
-    var showThirstSlider by remember { mutableStateOf(false) } // NEW 갈증 수치 슬라이더 표시 상태
+    // 하단 패널 상태: 갈증 수치 패널을 토글하기 위한 상태
+    var showThirstSlider by remember { mutableStateOf(false) }
+    // Note: showPhotoScreen handled via external navigation callback (onOpenPhoto)
 
     // [FIX] 갈증 수치 상태를 nullable로 변경하여 초기에는 선택이 없음
     // 초기값: null (아무 숫자도 선택되지 않은 상태)
@@ -436,14 +513,14 @@ private fun WritePostScreenContent(
         // perms: Map<String, Boolean>
         val allGranted = perms.values.all { it }
         if (allGranted) {
-            // 안전하게 open photo screen
+            // 모든 권한 허용일 경우 상위 콜백을 통해 전체 화면 갤러리를 연다
             try {
-                showPhotoScreen = true
+                onOpenPhoto()
             } catch (_: SecurityException) {
                 Toast.makeText(context, "권한 문제로 실행할 수 없습니다.", Toast.LENGTH_SHORT).show()
             }
-            // done
-        } else {
+              // done
+         } else {
             // Not all granted -> check for permanent denial
             val activity = context as? Activity
             var anyPermanentDenied = false
@@ -464,14 +541,17 @@ private fun WritePostScreenContent(
 
     // Helper to start permission flow when user taps '사진 추가'
     val requestPermissionsAndOpen: () -> Unit = {
-        // Build required permissions list per Android version
-        val perms = mutableListOf<String>()
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            perms.add(android.Manifest.permission.READ_MEDIA_IMAGES)
-        } else {
-            perms.add(android.Manifest.permission.READ_EXTERNAL_STORAGE)
-        }
-        perms.add(android.Manifest.permission.CAMERA)
+        // UX: open gallery UI immediately so user sees feedback; MediaStore will show empty list if no permission
+        onOpenPhoto()
+
+         // Build required permissions list per Android version
+         val perms = mutableListOf<String>()
+         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+             perms.add(android.Manifest.permission.READ_MEDIA_IMAGES)
+         } else {
+             perms.add(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+         }
+         perms.add(android.Manifest.permission.CAMERA)
 
         // Check currently granted
         val allGranted = perms.all { p ->
@@ -479,7 +559,7 @@ private fun WritePostScreenContent(
         }
         if (allGranted) {
             try {
-                showPhotoScreen = true
+                onOpenPhoto()
             } catch (_: SecurityException) {
                 Toast.makeText(context, "권한 문제로 실행할 수 없습니다.", Toast.LENGTH_SHORT).show()
             }
@@ -487,7 +567,7 @@ private fun WritePostScreenContent(
             // Launch permission request
             multiplePermissionLauncher.launch(perms.toTypedArray())
         }
-    }
+     }
 
     // [FIX] 갈증 수치 상태를 nullable로 변경하여 초기에는 선택이 없음
     // 초기값: null (아무 숫자도 선택되지 않은 상태)
@@ -520,7 +600,6 @@ private fun WritePostScreenContent(
         if (isImeVisible) {
             // 키보드가 올라오면 하단의 패널은 닫음
             showThirstSlider = false
-            showPhotoScreen = false
         }
     }
 
@@ -637,6 +716,7 @@ private fun WritePostScreenContent(
                         .clickable {
                             // [NEW] 사진 추가: 키보드 내리고 권한 체크 및 요청 후 풀스크린 갤러리 열기
                             focusManager.clearFocus()
+                            Toast.makeText(context, "사진 추가 버튼 눌림", Toast.LENGTH_SHORT).show()
                             requestPermissionsAndOpen()
                         }
                         .padding(vertical = 12.dp, horizontal = 16.dp),
@@ -844,7 +924,6 @@ private fun WritePostScreenContent(
                          // [NEW] 입력창에 포커스가 생기면 하단 패널들을 닫아 키보드가 정상 동작하도록 함
                          if (state.isFocused) {
                              showThirstSlider = false
-                             showPhotoScreen = false
                          }
                      },
                   placeholder = {
@@ -968,253 +1047,10 @@ private fun WritePostScreenContent(
                     }
                 }
             }
-
-             // Full-screen Photo gallery (Slide Up/Down)
-             AnimatedVisibility(
-                 visible = showPhotoScreen,
-                 enter = slideInVertically(
-                     initialOffsetY = { it }, // 아래에서 위로
-                     animationSpec = tween(300)
-                 ),
-                 exit = slideOutVertically(
-                     targetOffsetY = { it }, // 위에서 아래로
-                     animationSpec = tween(300)
-                 ),
-                 modifier = Modifier.fillMaxSize()
-             ) {
-                 PhotoScreen(viewModel = viewModel, onDismiss = { showPhotoScreen = false })
-             }
-
-            // Permission settings dialog for permanent denial
-            if (showPermissionSettingsDialog) {
-                AlertDialog(
-                    onDismissRequest = { showPermissionSettingsDialog = false },
-                    title = { Text("권한 필요") },
-                    text = { Text("앱 설정에서 권한을 허용해야 사진을 올릴 수 있습니다.") },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            showPermissionSettingsDialog = false
-                            // Open app settings
-                            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                data = Uri.fromParts("package", context.packageName, null)
-                            }
-                            context.startActivity(intent)
-                        }) {
-                            Text("설정으로 이동")
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showPermissionSettingsDialog = false }) { Text("취소") }
-                    }
-                )
-            }
-         }
-     }
+        }
+    }
 }
 
-/**
- * NEW 사진 추가 화면
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun PhotoScreen(viewModel: CommunityViewModel, onDismiss: () -> Unit) {
-    val context = LocalContext.current
-    // Permission handling: READ_MEDIA_IMAGES on Android 33+, else READ_EXTERNAL_STORAGE
-    val permissionString = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU)
-        android.Manifest.permission.READ_MEDIA_IMAGES
-    else
-        android.Manifest.permission.READ_EXTERNAL_STORAGE
-
-    var hasGalleryPermission by remember { mutableStateOf(
-        androidx.core.content.ContextCompat.checkSelfPermission(context, permissionString) == android.content.pm.PackageManager.PERMISSION_GRANTED
-    ) }
-
-    val permissionRequester = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted: Boolean ->
-        hasGalleryPermission = granted
-    }
-
-     // Images: pair of (uri, albumName)
-     var images by remember { mutableStateOf<List<Pair<android.net.Uri, String>>>(emptyList()) }
-     var selectedAlbum by remember { mutableStateOf("모든 사진") }
-     var showAlbumMenu by remember { mutableStateOf(false) }
-
-    // Camera launcher (TakePicturePreview -> save to MediaStore)
-    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
-        if (bitmap != null) {
-            val uri = saveBitmapToMediaStore(context, bitmap)
-            if (uri != null) {
-                viewModel.onImageSelected(uri)
-                onDismiss()
-            }
-        }
-    }
-
-    // Load images from MediaStore (most recent first) only when permission is granted
-    fun loadImages() {
-        try {
-            val list = mutableListOf<Pair<android.net.Uri, String>>()
-            val projection = arrayOf(
-                android.provider.MediaStore.Images.Media._ID,
-                android.provider.MediaStore.Images.Media.BUCKET_DISPLAY_NAME
-            )
-            val sort = "${android.provider.MediaStore.Images.Media.DATE_ADDED} DESC"
-            val cursor = context.contentResolver.query(
-                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                projection,
-                null,
-                null,
-                sort
-            )
-            cursor?.use {
-                val idIndex = it.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media._ID)
-                val bucketIndex = it.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
-                while (it.moveToNext()) {
-                    val id = it.getLong(idIndex)
-                    val bucket = it.getString(bucketIndex) ?: "기타"
-                    val uri = android.content.ContentUris.withAppendedId(
-                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                        id
-                    )
-                    list.add(uri to bucket)
-                }
-            }
-            images = list
-        } catch (_: SecurityException) {
-            // Permission denied - clear list and request permission from user
-            images = emptyList()
-            android.util.Log.w("PhotoScreen", "MediaStore query denied")
-        } catch (e: Exception) {
-            images = emptyList()
-            android.util.Log.e("PhotoScreen", "Failed to load images", e)
-        }
-    }
-
-    LaunchedEffect(hasGalleryPermission) {
-        if (hasGalleryPermission) {
-            loadImages()
-        }
-    }
-
-    val albums = remember(images) { listOf("모든 사진") + images.map { it.second }.distinct() }
-
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = Color.White,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = selectedAlbum, style = MaterialTheme.typography.titleMedium)
-                        IconButton(onClick = { showAlbumMenu = true }) {
-                            Icon(imageVector = Icons.Filled.ArrowDropDown, contentDescription = "앨범 선택")
-                        }
-                        DropdownMenu(expanded = showAlbumMenu, onDismissRequest = { showAlbumMenu = false }) {
-                            albums.forEach { name ->
-                                DropdownMenuItem(text = { Text(name) }, onClick = {
-                                    selectedAlbum = name
-                                    showAlbumMenu = false
-                                })
-                            }
-                        }
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onDismiss) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = "닫기")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { cameraLauncher.launch(null) }) {
-                        Icon(imageVector = Icons.Filled.Image, contentDescription = "카메라")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
-            )
-        }
-    ) { innerPadding ->
-        if (!hasGalleryPermission) {
-            // Show simple UI asking for permission
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(text = "사진 권한이 필요합니다.", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "갤러리 접근을 허용해야 사진을 선택할 수 있습니다." , color = Color.Gray)
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = { permissionRequester.launch(permissionString) }) {
-                    Text(text = "권한 허용")
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                TextButton(onClick = { onDismiss() }) { Text("닫기") }
-            }
-        } else {
-            val filtered = if (selectedAlbum == "모든 사진") images else images.filter { it.second == selectedAlbum }
-
-            // Grid of images
-            androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
-                columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                items(filtered.size) { idx ->
-                    val (uri, _) = filtered[idx]
-                    Box(modifier = Modifier
-                        .aspectRatio(1f)
-                        .padding(1.dp)
-                        .clickable {
-                            // Select immediately and close
-                            try {
-                                viewModel.onImageSelected(uri)
-                            } catch (e: Exception) {
-                                android.util.Log.e("PhotoScreen", "onImageSelected failed", e)
-                            }
-                            onDismiss()
-                        }
-                    ) {
-                        AsyncImage(
-                            model = uri,
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                }
-            }
-        }
-     }
- }
-
-/** Save bitmap to MediaStore and return Uri (or null) */
-private fun saveBitmapToMediaStore(context: Context, bitmap: Bitmap): Uri? {
-    return try {
-        val filename = "IMG_${System.currentTimeMillis()}.jpg"
-        val values = ContentValues().apply {
-            put(MediaStore.Images.Media.DISPLAY_NAME, filename)
-            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-            put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/AlcoholicTimer")
-        }
-
-        val resolver = context.contentResolver
-        val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-        if (uri != null) {
-            resolver.openOutputStream(uri)?.use { out ->
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
-            }
-        }
-        uri
-    } catch (e: Exception) {
-        Log.e("PhotoScreen", "Failed to save bitmap", e)
-        null
-    }
-}
 
 /**
  * 페이스북 스타일 상단 작성 트리거
@@ -1460,6 +1296,141 @@ private fun EmptyState(modifier: Modifier = Modifier, onGenerateMock: () -> Unit
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onGenerateMock) {
             Text("모의 데이터 생성")
+        }
+    }
+}
+
+/**
+ * Full-screen modal that allows swipe-down to dismiss with animation.
+ * Content should fill available space (e.g., PhotoScreen).
+ */
+@Composable
+private fun FullScreenPhotoModal(
+    onDismiss: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    val scope = rememberCoroutineScope()
+    val offsetY = remember { Animatable(0f) }
+    val configuration = LocalConfiguration.current
+    val screenHeightPx = with(LocalDensity.current) { configuration.screenHeightDp.dp.toPx() }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.32f))
+            .pointerInput(Unit) {
+                detectVerticalDragGestures(
+                    onVerticalDrag = { _change, dragAmount ->
+                        // Update offset by drag amount (no explicit consumption needed here)
+                        scope.launch {
+                            val new = offsetY.value + dragAmount
+                            offsetY.snapTo(new.coerceAtLeast(0f))
+                        }
+                    },
+                    onDragEnd = {
+                        scope.launch {
+                            if (offsetY.value > screenHeightPx * 0.25f) {
+                                // dismiss
+                                offsetY.animateTo(screenHeightPx, tween(200))
+                                onDismiss()
+                            } else {
+                                offsetY.animateTo(0f, spring(stiffness = 800f))
+                            }
+                        }
+                    }
+                )
+            }
+    ) {
+        Box(
+            modifier = Modifier
+                .offset { IntOffset(0, offsetY.value.roundToInt()) }
+                .fillMaxSize()
+                .background(Color.White)
+        ) {
+            content()
+        }
+    }
+}
+
+// Simple full-screen photo selection content (uses MediaStore query)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PhotoSelectionContent(
+    onImagePicked: (android.net.Uri) -> Unit,
+    onClose: () -> Unit
+) {
+    val context = LocalContext.current
+    var images by remember { mutableStateOf<List<android.net.Uri>>(emptyList()) }
+    var selectedAlbum by remember { mutableStateOf("모든 사진") }
+    var showAlbumMenu by remember { mutableStateOf(false) }
+
+    // Load images (most recent first)
+    LaunchedEffect(Unit) {
+        try {
+            val list = mutableListOf<android.net.Uri>()
+            val projection = arrayOf(android.provider.MediaStore.Images.Media._ID)
+            val sort = "${android.provider.MediaStore.Images.Media.DATE_ADDED} DESC"
+            val cursor = context.contentResolver.query(
+                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                projection, null, null, sort
+            )
+            cursor?.use {
+                val idIndex = it.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media._ID)
+                while (it.moveToNext()) {
+                    val id = it.getLong(idIndex)
+                    val uri = android.content.ContentUris.withAppendedId(
+                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id
+                    )
+                    list.add(uri)
+                }
+            }
+            images = list
+        } catch (se: SecurityException) {
+            images = emptyList()
+            android.util.Log.w("PhotoSelection", "MediaStore query denied: ${se.message}")
+        } catch (e: Exception) {
+            images = emptyList()
+            android.util.Log.e("PhotoSelection", "Failed to load images", e)
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = selectedAlbum) },
+                navigationIcon = {
+                    IconButton(onClick = onClose) { Icon(imageVector = Icons.Default.Close, contentDescription = "닫기") }
+                },
+                actions = {
+                    IconButton(onClick = { /* camera omitted */ }) { Icon(imageVector = Icons.Filled.CameraAlt, contentDescription = "카메라") }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+            )
+        }
+    ) { innerPadding ->
+        val modifier = Modifier.padding(innerPadding)
+        if (images.isEmpty()) {
+            Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(text = "사진이 없습니다", color = Color.Gray)
+            }
+        } else {
+            androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
+                columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
+                modifier = modifier.fillMaxSize()
+            ) {
+                items(images.size) { idx ->
+                    val uri = images[idx]
+                    Box(modifier = Modifier
+                        .aspectRatio(1f)
+                        .padding(1.dp)
+                        .clickable {
+                            onImagePicked(uri)
+                        }
+                    ) {
+                        AsyncImage(model = uri, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                    }
+                }
+            }
         }
     }
 }
