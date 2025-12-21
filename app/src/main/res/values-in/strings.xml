@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- [NEW] 인도네시아어(구조 준비) - 현재는 영어 원문을 복사하여 추후 번역용 틀로 사용합니다. -->
     <string name="app_name">Alcoholic Timer</string>
 
     <!-- AllRecords screen strings -->

@@ -215,19 +215,18 @@
     <string name="diary_delete_confirm_button">삭제</string>
 
     <!-- Target Days Setting (목표 기간 설정) -->
-    <string name="target_days_title">목표 기간 설정</string>
     <string name="target_days_title_set">목표 기간 설정</string>
     <string name="target_days_unit">일</string>
     <string name="target_days_unit_d">d</string>
-    <string name="target_days_hint">금주 목표 기간을 선택해주세요</string>
+    <string name="target_days_hint">금주/절주 목표 기간을 선택해주세요</string>
 
     <!-- Duration Badge Labels (기간 선택 뱃지) -->
     <string name="badge_one_day">딱 하루만</string>
-    <string name="badge_three_days">3일만 도전</string>
-    <string name="badge_one_week">일주일 챌린지</string>
+    <string name="badge_three_days">작심삼일</string>
+    <string name="badge_one_week">1주 챌린지</string>
     <string name="badge_21_days">21일 습관 만들기</string>
     <string name="badge_one_month">한 달의 기적</string>
-    <string name="badge_100_days">백일의 약속</string>
+    <string name="badge_100_days">100일의 약속</string>
 
     <!-- Target Days Picker (목표 일수 선택) -->
     <string name="target_days_picker_title">목표 일수 선택</string>
