@@ -361,7 +361,7 @@
     <string name="emergency_title_default">긴급 공지</string>
     <string name="debug_menu_title">디버그 메뉴</string>
 
-    <!-- FinishedScreen strings (타이머 완료 화면) -->
+    <!-- FinishedScreen strings (Timer completion screens) -->
     <string name="finished_back">뒤로</string>
     <string name="finished_success_title">🎉 목표 달성!</string>
     <string name="finished_success_description">축하합니다!\n금주 목표를 성공적으로 달성했습니다.</string>
@@ -369,7 +369,6 @@
     <string name="finished_new_timer">새 타이머 시작</string>
     <string name="finished_giveup_title">🍃 잠시 쉬어도 괜찮아요</string>
     <string name="finished_giveup_description">이번 도전은 여기서 멈추지만, 지금까지의 노력은 사라지지 않습니다.\n마음을 추스르고, 언제든 다시 돌아오세요.</string>
-
 
     <!-- Motivational Quotes (동기부여 명언) -->
     <string-array name="motivational_quotes">
@@ -432,4 +431,3 @@
     </string-array>
 
 </resources>
-
