@@ -543,7 +543,7 @@ private fun PeriodStatisticsSection(
 
                     // [NEW] 좌측: 줄인 칼로리 → 컷 (personsimplerun 아이콘)
                     StatisticItem(
-                        title = stringResource(R.string.stats_label_calories_short),
+                        title = "CALORIES",
                         value = "$kcalFormatted ${stringResource(R.string.stats_unit_kcal)}",
                         color = MaterialTheme.colorScheme.tertiary,
                         valueColor = Color(0xFF111111), // [UPDATE] 진한 검은색
@@ -558,7 +558,7 @@ private fun PeriodStatisticsSection(
 
                     // [NEW] 중앙: 참아낸 술 → 절주 (wine 아이콘)
                     StatisticItem(
-                        title = stringResource(R.string.stats_label_drinks_short),
+                        title = "SOBER",
                         value = "$bottlesText ${stringResource(R.string.stats_unit_bottles)}",
                         color = MaterialTheme.colorScheme.primary,
                         valueColor = Color(0xFF111111), // [UPDATE] 진한 검은색
@@ -573,7 +573,7 @@ private fun PeriodStatisticsSection(
 
                     // [NEW] 우측: 지켜낸 돈 → 저축 (piggybank 아이콘)
                     StatisticItem(
-                        title = stringResource(R.string.stats_label_money_short),
+                        title = "SAVED",
                         value = "$savedMoneyValue $savedMoneyUnit",
                         color = MaterialTheme.colorScheme.error,
                         valueColor = Color(0xFF111111), // [UPDATE] 진한 검은색

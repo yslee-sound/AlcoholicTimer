@@ -142,10 +142,6 @@
     <string name="stats_unit_kcal">kcal</string>
     <string name="stats_unit_bottles">bottle(s)</string>
 
-    <!-- [NEW] Short Statistics Labels (with icons, prevents text truncation) -->
-    <string name="stats_label_calories_short">Cut</string>
-    <string name="stats_label_drinks_short">Passed</string>
-    <string name="stats_label_money_short">Saved</string>
 
     <!-- Diary Section -->
     <string name="diary_recent_title">Recent Diary</string>

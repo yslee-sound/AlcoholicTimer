@@ -142,12 +142,7 @@
     <string name="stats_unit_kcal">kcal</string>
     <string name="stats_unit_bottles">병</string>
 
-    <!-- [NEW] 짧은 통계 라벨 (아이콘과 함께 사용, 텍스트 잘림 방지) -->
-    <string name="stats_label_calories_short">컷</string>
-    <string name="stats_label_drinks_short">절주</string>
-    <string name="stats_label_money_short">저축</string>
-
-    <!-- Level names - [재설계] 11단계 시스템 (2025-12-03) -->
+    <!-- Diary Section (일기 섹션) -->
     <string name="level_0">알코올 스톱</string>          <!-- Lv.1: 1~3일 -->
     <string name="level_1">3일 컷 통과</string>               <!-- Lv.2: 4~7일 -->
     <string name="level_2">1주일 클리어</string>                 <!-- Lv.3: 8~14일 -->

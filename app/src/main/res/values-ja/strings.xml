@@ -143,12 +143,7 @@
     <string name="stats_unit_kcal">kcal</string>
     <string name="stats_unit_bottles">本</string>
 
-    <!-- [NEW] 短い統計ラベル (アイコンと一緒に使用、テキスト切り捨て防止) -->
-    <string name="stats_label_calories_short">カット</string>
-    <string name="stats_label_drinks_short">減酒</string>
-    <string name="stats_label_money_short">貯金</string>
-
-    <!-- Level names - [再設計] 11段階システム (2025-12-03) -->
+    <!-- Diary Section (日記セクション) -->
     <string name="level_0">アルコールストップ</string>          <!-- Lv.1: 1~3日 -->
     <string name="level_1">3日カット通過</string>               <!-- Lv.2: 4~7日 -->
     <string name="level_2">1週間クリア</string>                 <!-- Lv.3: 8~14日 -->
