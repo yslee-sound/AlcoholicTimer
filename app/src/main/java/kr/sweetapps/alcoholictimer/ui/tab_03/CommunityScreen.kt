@@ -65,6 +65,7 @@ import coil.compose.AsyncImage
 import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.tab_03.screens.PostItem
+import kr.sweetapps.alcoholictimer.ui.common.CustomGalleryScreen
 import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.CommunityViewModel
 import kotlinx.coroutines.launch
 
@@ -354,8 +355,8 @@ fun CommunityScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     FullScreenPhotoModal(onDismiss = { triggerClosePhoto() }) {
-                        PhotoSelectionContent(
-                            onImagePicked = { uri ->
+                        CustomGalleryScreen(
+                            onImageSelected = { uri ->
                                 try {
                                     viewModel.onImageSelected(uri)
                                 } catch (e: Exception) {
@@ -1348,89 +1349,6 @@ private fun FullScreenPhotoModal(
                 .background(Color.White)
         ) {
             content()
-        }
-    }
-}
-
-// Simple full-screen photo selection content (uses MediaStore query)
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun PhotoSelectionContent(
-    onImagePicked: (android.net.Uri) -> Unit,
-    onClose: () -> Unit
-) {
-    val context = LocalContext.current
-    var images by remember { mutableStateOf<List<android.net.Uri>>(emptyList()) }
-    var selectedAlbum by remember { mutableStateOf("모든 사진") }
-    var showAlbumMenu by remember { mutableStateOf(false) }
-
-    // Load images (most recent first)
-    LaunchedEffect(Unit) {
-        try {
-            val list = mutableListOf<android.net.Uri>()
-            val projection = arrayOf(android.provider.MediaStore.Images.Media._ID)
-            val sort = "${android.provider.MediaStore.Images.Media.DATE_ADDED} DESC"
-            val cursor = context.contentResolver.query(
-                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                projection, null, null, sort
-            )
-            cursor?.use {
-                val idIndex = it.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media._ID)
-                while (it.moveToNext()) {
-                    val id = it.getLong(idIndex)
-                    val uri = android.content.ContentUris.withAppendedId(
-                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id
-                    )
-                    list.add(uri)
-                }
-            }
-            images = list
-        } catch (se: SecurityException) {
-            images = emptyList()
-            android.util.Log.w("PhotoSelection", "MediaStore query denied: ${se.message}")
-        } catch (e: Exception) {
-            images = emptyList()
-            android.util.Log.e("PhotoSelection", "Failed to load images", e)
-        }
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(text = selectedAlbum) },
-                navigationIcon = {
-                    IconButton(onClick = onClose) { Icon(imageVector = Icons.Default.Close, contentDescription = "닫기") }
-                },
-                actions = {
-                    IconButton(onClick = { /* camera omitted */ }) { Icon(imageVector = Icons.Filled.CameraAlt, contentDescription = "카메라") }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
-            )
-        }
-    ) { innerPadding ->
-        val modifier = Modifier.padding(innerPadding)
-        if (images.isEmpty()) {
-            Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = "사진이 없습니다", color = Color.Gray)
-            }
-        } else {
-            androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
-                columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
-                modifier = modifier.fillMaxSize()
-            ) {
-                items(images.size) { idx ->
-                    val uri = images[idx]
-                    Box(modifier = Modifier
-                        .aspectRatio(1f)
-                        .padding(1.dp)
-                        .clickable {
-                            onImagePicked(uri)
-                        }
-                    ) {
-                        AsyncImage(model = uri, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                    }
-                }
-            }
         }
     }
 }
