@@ -832,47 +832,48 @@ private fun WritePostScreenContent(
                         // 닉네임과 뱃지의 배치를 Row로 변경: 닉네임, 구분자(" - "), 숫자 뱃지, 후행 텍스트(" 갈증") 순
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             // 1) 닉네임: 로드되기 전까지는 비워두어 깜빡임을 방지합니다.
-                            if (currentNickname.isNotBlank()) {
+                            // [NEW] 작성자 닉네임 표시 보장: 닉네임이 비어있으면 '익명'으로 대체하여 항상 텍스트가 노출되게 함
+                            val displayNickname = if (currentNickname.isNotBlank()) currentNickname else "익명"
+                            Text(
+                                // [NEW] 상단에 항상 내 별명이 보이도록 기본값 처리
+                                text = displayNickname,
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                color = Color(0xFF111827) // 색상 변경 금지
+                            )
+
+                        // 2~4) selectedLevel이 있을 때만 구분자, 뱃지, 후행 텍스트 노출
+                        if (selectedLevel != null) {
+                            // 요소 A: 구분자
+                            Text(
+                                text = " - ",
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                color = Color(0xFF111827)
+                            )
+
+                            // 요소 B: 숫자 뱃지 (숫자만, 배경색은 thirstColor 사용)
+                            Box(
+                                modifier = Modifier
+                                    .height(24.dp)
+                                    .wrapContentWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(thirstColor(selectedLevel!!))
+                                    .padding(horizontal = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
                                 Text(
-                                    text = currentNickname,
-                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                                    color = Color(0xFF111827) // 색상 변경 금지
+                                    text = selectedLevel.toString(),
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
                                 )
                             }
 
-                            // 2~4) selectedLevel이 있을 때만 구분자, 뱃지, 후행 텍스트 노출
-                            if (selectedLevel != null) {
-                                // 요소 A: 구분자
-                                Text(
-                                    text = " - ",
-                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                                    color = Color(0xFF111827)
-                                )
-
-                                // 요소 B: 숫자 뱃지 (숫자만, 배경색은 thirstColor 사용)
-                                Box(
-                                    modifier = Modifier
-                                        .height(24.dp)
-                                        .wrapContentWidth()
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(thirstColor(selectedLevel!!))
-                                        .padding(horizontal = 8.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = selectedLevel.toString(),
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
-                                    )
-                                }
-
-                                // 요소 C: 후행 텍스트
-                                Text(
-                                    text = " 갈증",
-                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                                    color = Color(0xFF111827)
-                                )
-                            }
+                            // 요소 C: 후행 텍스트
+                            Text(
+                                text = " 갈증",
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                color = Color(0xFF111827)
+                            )
+                        }
                         }
 
                         // [FIX] 하드코딩된 "내 프로필" 대신, 게시글 리스트에서 사용하는 포맷과 동일하게
