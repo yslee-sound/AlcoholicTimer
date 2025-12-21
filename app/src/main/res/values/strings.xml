@@ -21,6 +21,7 @@
 
     <!-- Run screen -->
     <string name="run_title">Sobriety Progress</string>
+    <string name="run_progress_title">Progress</string>
     <string name="stat_goal_days">Goal</string>
     <string name="stat_level">Level</string>
     <string name="stat_time">Time</string>
@@ -345,9 +346,6 @@
     <string name="update_dialog_update">Update</string>
     <string name="update_dialog_icon_description">Update icon</string>
 
-    <string name="run_progress_title">Progress</string>
-    <string name="run_start_label">Start</string>
-    <string name="run_target_label">Target: %1$d d</string>
 
     <!-- Privacy / About UMP strings (added) -->
     <string name="about_ad_consent_settings">Privacy Settings</string>

@@ -21,6 +21,7 @@
 
     <!-- Run screen -->
     <string name="run_title">禁酒の進捗</string>
+    <string name="run_progress_title">進捗</string>
     <string name="stat_goal_days">目標</string>
     <string name="stat_level">レベル</string>
     <string name="stat_time">時間</string>
@@ -350,10 +351,6 @@
     <string name="feedback_success_message">貴重なご意見ありがとうございます 🙏</string>
     <string name="feedback_error_message">送信に失敗しました\n%1$s</string>
 
-    <!-- 추가: 진행 화면 문자열 -->
-    <string name="run_progress_title">進捗</string>
-    <string name="run_start_label">開始</string>
-    <string name="run_target_label">目標: %1$d日</string>
 
     <!-- About / UMP helper strings (added) -->
     <string name="about_ad_consent_settings">Privacy Settings</string>

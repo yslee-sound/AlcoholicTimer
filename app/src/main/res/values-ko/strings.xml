@@ -21,6 +21,7 @@
 
     <!-- Run screen -->
     <string name="run_title">금주 진행</string>
+    <string name="run_progress_title">진행률</string>
     <string name="stat_goal_days">목표일</string>
     <string name="stat_level">레벨</string>
     <string name="stat_time">시간</string>
@@ -345,15 +346,6 @@
     <string name="update_dialog_update">업데이트</string>
     <string name="update_dialog_icon_description">업데이트 아이콘</string>
 
-    <!-- More (Tab04) tab labels - used instead of 'Settings' for tab04 -->
-    <string name="more_title">커뮤니티</string>
-
-
-
-    <!-- 추가: 진행 화면 문자열 -->
-    <string name="run_progress_title">진행률</string>
-    <string name="run_start_label">시작</string>
-    <string name="run_target_label">목표: %1$d일</string>
 
     <!-- About / UMP helper strings (added) -->
     <string name="about_ad_consent_settings">Privacy Settings</string>
