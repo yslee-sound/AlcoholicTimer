@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- App Name -->
     <string name="app_name">Alcoholic Timer</string>
 
-    <!-- AllRecords screen strings -->
-    <string name="all_records_title">All Records</string>
-    <string name="cd_navigate_back">Navigate back</string>
-    <string name="error_loading_records">Failed to load records</string>
-    <string name="retry">Retry</string>
-    <string name="empty_records_title">No records yet</string>
-    <string name="empty_records_subtitle">Start your first sobriety journey!</string>
-    <string name="empty_records_cd">No records to display</string>
+    <!-- Start Screen -->
+    <string name="start_screen_title">Sobriety Start</string>
+    <string name="target_days_title_set">Set Target Period</string>
+    <string name="target_days_unit">d</string>
+    <string name="target_days_hint">Please select your sobriety goal period</string>
+    <string name="badge_one_day">Just 1 Day</string>
+    <string name="badge_three_days">3 Days Trial</string>
+    <string name="badge_one_week">1 Week Challenge</string>
+    <string name="badge_21_days">21-Day Habit</string>
+    <string name="badge_one_month">One-Month Miracle</string>
+    <string name="badge_100_days">100-Day Promise</string>
+    <string name="target_days_picker_title">Select Target Days</string>
+    <string name="target_days_picker_unit">d</string>
+    <string name="target_days_picker_cancel">Cancel</string>
+    <string name="target_days_picker_confirm">OK</string>
 
-    <!-- Delete all records -->
-    <string name="cd_delete_all_records">Delete all records</string>
-    <string name="all_records_delete_title">Delete All Records</string>
-    <string name="all_records_delete_message">Are you sure you want to delete all sobriety records?&#10;This action cannot be undone.</string>
-    <string name="all_records_delete_confirm">Delete All</string>
-    <string name="cd_more_options">More options</string>
-    <string name="menu_delete_all_records">Delete all records</string>
-
-    <!-- Run screen -->
+    <!-- Run Screen -->
     <string name="run_title">Sobriety Progress</string>
     <string name="run_progress_title">Progress</string>
     <string name="stat_goal_days">Goal</string>
@@ -35,14 +35,7 @@
     <string name="cd_continue">Continue</string>
     <string name="toast_goal_completed">You\'ve achieved your sobriety goal!</string>
 
-    <!-- Update Snackbar (Flexible download completed) -->
-    <string name="update_downloaded_restart_prompt">Update downloaded. Restart to install.</string>
-    <string name="action_restart">Restart</string>
-
-    <!-- Start overlay -->
-    <string name="checking_update">Checking for updates&#8230;</string>
-
-    <!-- Quit screen -->
+    <!-- Quit Screen -->
     <string name="quit_title">End Sobriety</string>
     <string name="quit_confirm_title">Are you sure you want to stop?</string>
     <string name="quit_confirm_subtitle">You\'ve been doing so well&#8230;</string>
@@ -50,67 +43,16 @@
     <string name="stat_saved_money_short">Savings</string>
     <string name="stat_saved_hours_short">Time Saved</string>
 
-    <!-- Detail screen -->
-    <string name="detail_title">Record Details</string>
-    <string name="detail_result_title">Goal Achievement Result</string>
-    <string name="detail_restart_button">Start Again</string>
-    <string name="detail_menu_delete">Delete Record</string>
-    <string name="dialog_delete_title">Delete Record</string>
-    <string name="dialog_delete_message">Are you sure you want to delete this sobriety record?&#10;This action cannot be undone.</string>
-    <string name="dialog_delete_confirm">Delete</string>
-    <string name="dialog_ok">OK</string>
-    <string name="dialog_cancel">Cancel</string>
-    <string name="detail_start_label">Started:</string>
-    <string name="detail_end_label">Ended:</string>
-    <string name="detail_progress_rate">Goal Achievement</string>
-    <string name="detail_progress_current">Progress: %1$s d</string>
-    <string name="detail_progress_target">Goal: %1$d d</string>
-    <string name="detail_today_time">Today - %1$s</string>
-    <string name="unit_days_format">%.1f d</string>
-    <string name="unit_hours_format">%.1f hr(s)</string>
-    <string name="unit_won_format">₩%,.0f</string>
+    <!-- Finished Screen (Timer Completion) -->
+    <string name="finished_back">Back</string>
+    <string name="finished_success_title">🎉 Goal Achieved!</string>
+    <string name="finished_success_description">Congratulations!\nYou have successfully completed your sobriety goal.</string>
+    <string name="finished_result_check">Check Result</string>
+    <string name="finished_new_timer">Start New Timer</string>
+    <string name="finished_giveup_title">🍃 It\'s Okay to Take a Break</string>
+    <string name="finished_giveup_description">This challenge ends here, but your efforts won\'t disappear.\nTake a moment to regroup and come back anytime.</string>
 
-    <!-- Unit labels for separated display -->
-    <string name="unit_day">d</string>
-    <string name="unit_hour">hr(s)</string>
-
-    <!-- About screen -->
-    <string name="about_title">About</string>
-    <string name="about_version_info">Version Info</string>
-    <string name="about_open_license_notice">Open Source Licenses</string>
-
-    <!-- Document screen titles -->
-    <string name="document_title_open_source">Open Source License</string>
-    <string name="document_title_privacy">Privacy Policy</string>
-    <string name="about_section_app_icon">App Icon</string>
-    <string name="about_label_original_work">Original Work</string>
-    <string name="about_label_author">Author</string>
-    <string name="about_label_source">Source</string>
-    <string name="about_label_source_link">Source Link</string>
-    <string name="about_label_license">License</string>
-    <string name="about_label_changes">Changes Made</string>
-    <string name="action_copy">Copy</string>
-    <string name="toast_copied">Address copied.</string>
-
-    <!-- Drawer menu (Navigation drawer) -->
-    <string name="default_nickname">SoberHero1</string>
-    <string name="drawer_menu_sobriety">Sobriety</string>
-    <string name="drawer_menu_records">Records</string>
-    <string name="drawer_menu_more">More</string>
-    <string name="cd_menu">Menu</string>
-
-    <!-- Profile Edit screen -->
-    <string name="profile_edit_title">Edit Profile</string>
-    <string name="profile_edit_instruction">Please enter your new nickname</string>
-    <string name="profile_nickname_label">Nickname</string>
-    <string name="profile_nickname_placeholder">Enter nickname</string>
-    <string name="profile_save">Save</string>
-    <string name="profile_cancel">Cancel</string>
-    <string name="cd_clear_text">Clear text</string>
-    <string name="error_only_spaces">Cannot input only spaces</string>
-    <string name="error_too_long">Maximum length exceeded</string>
-
-    <!-- Records screen -->
+    <!-- Records Screen -->
     <string name="records_title">Sobriety Records</string>
     <string name="records_period_week">Week</string>
     <string name="records_period_month">Month</string>
@@ -132,7 +74,59 @@
     <string name="records_day_unit">d</string>
     <string name="records_percent_unit">%</string>
 
-    <!-- Statistics Card Labels -->
+    <!-- All Records Screen -->
+    <string name="all_records_title">All Records</string>
+    <string name="cd_navigate_back">Navigate back</string>
+    <string name="error_loading_records">Failed to load records</string>
+    <string name="retry">Retry</string>
+    <string name="empty_records_title">No records yet</string>
+    <string name="empty_records_subtitle">Start your first sobriety journey!</string>
+    <string name="empty_records_cd">No records to display</string>
+    <string name="cd_more_options">More options</string>
+    <string name="menu_delete_all_records">Delete all records</string>
+    <string name="all_records_delete_title">Delete All Records</string>
+    <string name="all_records_delete_message">Are you sure you want to delete all sobriety records?&#10;This action cannot be undone.</string>
+    <string name="all_records_delete_confirm">Delete All</string>
+    <string name="all_records_delete_failed">Delete failed</string>
+    <string name="record_completed">Completed</string>
+    <string name="record_incomplete">Incomplete</string>
+    <string name="record_actual_days">Actual Days</string>
+    <string name="record_target_days">Target Days</string>
+    <string name="record_success_rate">Success Rate</string>
+    <string name="record_start_time">Start</string>
+    <string name="record_end_time">End</string>
+    <string name="record_days_format">%.1f d</string>
+    <string name="record_target_days_format">%d d</string>
+    <string name="record_rate_format">%.1f%%</string>
+
+    <!-- Detail Screen -->
+    <string name="detail_title">Record Details</string>
+    <string name="detail_result_title">Goal Achievement Result</string>
+    <string name="detail_restart_button">Start Again</string>
+    <string name="detail_menu_delete">Delete Record</string>
+    <string name="detail_start_label">Started:</string>
+    <string name="detail_end_label">Ended:</string>
+    <string name="detail_progress_rate">Goal Achievement</string>
+    <string name="detail_progress_current">Progress: %1$s d</string>
+    <string name="detail_progress_target">Goal: %1$d d</string>
+    <string name="detail_today_time">Today - %1$s</string>
+
+    <!-- Add Record Screen -->
+    <string name="add_record_title">Add Sobriety Record</string>
+    <string name="add_record_button">Add Record</string>
+    <string name="add_record_start_date_time">Start Date &amp; Time</string>
+    <string name="add_record_end_date_time">End Date &amp; Time</string>
+    <string name="add_record_target_days">Target Days</string>
+    <string name="add_record_error_invalid_range">End time must be after start time</string>
+    <string name="add_record_error_set_target">Please enter valid target days</string>
+    <string name="add_record_cancel">Cancel</string>
+    <string name="add_record_save">Save</string>
+    <string name="add_record_toast_success">Sobriety record added successfully</string>
+    <string name="add_record_toast_conflict">Selected time conflicts with existing records</string>
+    <string name="add_record_days_unit">d</string>
+    <string name="add_record_saving">Saving&#8230;</string>
+
+    <!-- Statistics -->
     <string name="stats_calories_reduced">Calories Cut</string>
     <string name="stats_drinks_resisted">Drinks Passed</string>
     <string name="stats_money_saved">Money Saved</string>
@@ -140,13 +134,34 @@
     <string name="stats_unit_kcal">kcal</string>
     <string name="stats_unit_bottles">bottle(s)</string>
 
-    <!-- Diary Section -->
+    <!-- Level System -->
+    <string name="level_0">Alcohol Stop</string>
+    <string name="level_1">3-Day Cut Passed</string>
+    <string name="level_2">1-Week Clear</string>
+    <string name="level_3">Skin\'s Transformation</string>
+    <string name="level_4">Habit Formed (21 Days)</string>
+    <string name="level_5">One-Month Miracle</string>
+    <string name="level_6">Changed Fit</string>
+    <string name="level_7">100 Days, Pro Soberer</string>
+    <string name="level_8">Plus Balance</string>
+    <string name="level_9">Sobriety Master</string>
+    <string name="level_10">Legendary Legend</string>
+    <string name="level_title">Sobriety Levels</string>
+    <string name="level_days_label">Days</string>
+    <string name="level_until_next">Until Next Level</string>
+    <string name="level_days_remaining">left</string>
+    <string name="level_hours_remaining">left</string>
+    <string name="level_days_hours_remaining">%d d %d hour(s) left</string>
+    <string name="level_soon_levelup">Level Up Soon!</string>
+    <string name="level_all_levels">All Levels</string>
+    <string name="level_day_unit">d</string>
+    <string name="level_hour_unit">hour(s)</string>
+
+    <!-- Diary -->
     <string name="diary_recent_title">Recent Diary</string>
     <string name="diary_no_entries">No diary entries yet</string>
     <string name="diary_write_prompt">Tap the + button below\nto write your first entry</string>
     <string name="diary_write_button_action">Write Diary Entry</string>
-
-    <!-- Diary Screens -->
     <string name="diary_all_empty">No diary entries.</string>
     <string name="diary_write_title">Write Diary</string>
     <string name="diary_edit_title">Edit Diary</string>
@@ -166,7 +181,82 @@
     <string name="diary_delete_confirm_message">Are you sure you want to delete this diary entry?</string>
     <string name="diary_delete_confirm_button">Delete</string>
 
-    <!-- Tab05 (More) Menu Items -->
+    <!-- Settings Screen -->
+    <string name="settings_title">Habit Settings</string>
+    <string name="settings_drinking_cost">Drinking Cost</string>
+    <string name="settings_drinking_frequency">Drinking Frequency</string>
+    <string name="settings_drinking_duration">Drinking Duration</string>
+    <string name="settings_cost_low">Low</string>
+    <string name="settings_cost_medium">Medium</string>
+    <string name="settings_cost_high">High</string>
+    <string name="settings_cost_low_label">Low (Under $10)</string>
+    <string name="settings_cost_medium_label">Medium ($10~50)</string>
+    <string name="settings_cost_high_label">High (Over $50)</string>
+    <string name="settings_frequency_low">Once a week or less</string>
+    <string name="settings_frequency_medium">2-3 times a week</string>
+    <string name="settings_frequency_high">4+ times a week</string>
+    <string name="settings_duration_short">Short</string>
+    <string name="settings_duration_medium">Medium</string>
+    <string name="settings_duration_long">Long</string>
+    <string name="settings_duration_short_label">Short (Under 2 hours)</string>
+    <string name="settings_duration_medium_label">Medium (3-5 hours)</string>
+    <string name="settings_duration_long_label">Long (Over 6 hours)</string>
+    <string name="settings_currency">Currency Settings</string>
+    <string name="settings_currency_auto">Auto (Region-based)</string>
+    <string name="settings_currency_current">Current: %1$s</string>
+    <string name="settings_currency_current_auto">Current: %1$s (Auto)</string>
+    <string name="currency_krw">Korean Won (₩)</string>
+    <string name="currency_jpy">Japanese Yen (¥)</string>
+    <string name="currency_usd">US Dollar ($)</string>
+    <string name="currency_eur">Euro (€)</string>
+    <string name="currency_mxn">Mexican Peso (MX$)</string>
+    <string name="currency_cny">Chinese Yuan (¥)</string>
+    <string name="currency_brl">Brazilian Real (R$)</string>
+    <string name="settings_privacy_unavailable">Cannot show ad settings because activity is unavailable.</string>
+    <string name="settings_privacy_checking">Checking ad consent&#8230;</string>
+    <string name="settings_privacy_load_failed">Failed to load consent form: %1$s</string>
+    <string name="settings_privacy_not_required">Consent form not required or already handled.</string>
+    <string name="settings_privacy_update_failed">Failed to update consent info: %1$s</string>
+
+    <!-- Community Screen -->
+    <string name="community_title">Anonymous Support Challenge</string>
+
+    <!-- Navigation -->
+    <string name="default_nickname">SoberHero1</string>
+    <string name="drawer_menu_sobriety">Sobriety</string>
+    <string name="drawer_menu_records">Records</string>
+    <string name="drawer_menu_more">More</string>
+    <string name="cd_menu">Menu</string>
+
+    <!-- Profile Edit Screen -->
+    <string name="profile_edit_title">Edit Profile</string>
+    <string name="profile_edit_instruction">Please enter your new nickname</string>
+    <string name="profile_nickname_label">Nickname</string>
+    <string name="profile_nickname_placeholder">Enter nickname</string>
+    <string name="profile_save">Save</string>
+    <string name="profile_cancel">Cancel</string>
+    <string name="cd_clear_text">Clear text</string>
+    <string name="error_only_spaces">Cannot input only spaces</string>
+    <string name="error_too_long">Maximum length exceeded</string>
+
+    <!-- About Screen -->
+    <string name="about_title">About</string>
+    <string name="about_version_info">Version Info</string>
+    <string name="about_open_license_notice">Open Source Licenses</string>
+    <string name="about_section_app_icon">App Icon</string>
+    <string name="about_label_original_work">Original Work</string>
+    <string name="about_label_author">Author</string>
+    <string name="about_label_source">Source</string>
+    <string name="about_label_source_link">Source Link</string>
+    <string name="about_label_license">License</string>
+    <string name="about_label_changes">Changes Made</string>
+    <string name="about_ad_consent_settings">Privacy Settings</string>
+    <string name="document_title_open_source">Open Source License</string>
+    <string name="document_title_privacy">Privacy Policy</string>
+    <string name="action_copy">Copy</string>
+    <string name="toast_copied">Address copied.</string>
+
+    <!-- More Menu -->
     <string name="tab05_rate_app">Rate App</string>
     <string name="tab05_notifications">Notifications</string>
     <string name="tab05_customer_support">Support</string>
@@ -176,7 +266,7 @@
     <string name="notification_center_title">Notification Center</string>
     <string name="notification_empty_message">No new notifications.</string>
 
-    <!-- Customer Feedback Bottom Sheet -->
+    <!-- Feedback -->
     <string name="feedback_title">Contact Us</string>
     <string name="feedback_category_label">Inquiry Type</string>
     <string name="feedback_category_feature">Feature Request</string>
@@ -193,179 +283,54 @@
     <string name="feedback_success_message">Thank you for your feedback 🙏</string>
     <string name="feedback_error_message">Submission failed\n%1$s</string>
 
-    <!-- Level names - [Redesigned] 11-level system (2025-12-03) -->
-    <string name="level_0">Alcohol Stop</string>              <!-- Lv.1: 1~3 days -->
-    <string name="level_1">3-Day Cut Passed</string>          <!-- Lv.2: 4~7 days -->
-    <string name="level_2">1-Week Clear</string>              <!-- Lv.3: 8~14 days -->
-    <string name="level_3">Skin\'s Transformation</string>    <!-- Lv.4: 15~21 days -->
-    <string name="level_4">Habit Formed (21 Days)</string>    <!-- Lv.5: 22~30 days -->
-    <string name="level_5">One-Month Miracle</string>         <!-- Lv.6: 31~60 days -->
-    <string name="level_6">Changed Fit</string>               <!-- Lv.7: 61~99 days -->
-    <string name="level_7">100 Days, Pro Soberer</string>     <!-- Lv.8: 100~179 days -->
-    <string name="level_8">Plus Balance</string>              <!-- Lv.9: 180~299 days -->
-    <string name="level_9">Sobriety Master</string>           <!-- Lv.10: 300~364 days -->
-    <string name="level_10">Legendary Legend</string>         <!-- Legend: 365+ days -->
-
-    <!-- Level screen -->
-    <string name="level_title">Sobriety Levels</string>
-    <string name="level_days_label">Days</string>
-    <string name="level_until_next">Until Next Level</string>
-    <string name="level_days_remaining">left</string>
-    <string name="level_hours_remaining">left</string>
-    <string name="level_days_hours_remaining">%d d %d hour(s) left</string>
-    <string name="level_soon_levelup">Level Up Soon!</string>
-    <string name="level_all_levels">All Levels</string>
-    <string name="level_day_unit">d</string>
-    <string name="level_hour_unit">hour(s)</string>
-
-    <!-- Target Days Setting -->
-    <string name="target_days_title_set">Set Target Period</string>
-    <string name="target_days_unit">d</string>
-    <string name="target_days_hint">Please select your sobriety goal period</string>
-
-    <!-- Duration Badge Labels -->
-    <string name="badge_one_day">Just 1 Day</string>
-    <string name="badge_three_days">3 Days Trial</string>
-    <string name="badge_one_week">1 Week Challenge</string>
-    <string name="badge_21_days">21-Day Habit</string>
-    <string name="badge_one_month">One-Month Miracle</string>
-    <string name="badge_100_days">100-Day Promise</string>
-
-    <!-- Target Days Picker -->
-    <string name="target_days_picker_title">Select Target Days</string>
-    <string name="target_days_picker_unit">d</string>
-    <string name="target_days_picker_cancel">Cancel</string>
-    <string name="target_days_picker_confirm">OK</string>
-
-    <!-- Start Activity screen title -->
-    <string name="start_screen_title">Sobriety Start</string>
-
-    <!-- Settings screen -->
-    <string name="settings_title">Habit Settings</string>
-    <string name="settings_drinking_cost">Drinking Cost</string>
-    <string name="settings_drinking_frequency">Drinking Frequency</string>
-    <string name="settings_drinking_duration">Drinking Duration</string>
-    <string name="settings_currency">Currency Settings</string>
-    <string name="settings_currency_auto">Auto (Region-based)</string>
-    <string name="settings_currency_current">Current: %1$s</string>
-    <string name="settings_currency_current_auto">Current: %1$s (Auto)</string>
-
-    <!-- Community screen -->
-    <string name="community_title">Anonymous Support Challenge</string>
-
-    <!-- Additional All Records screen strings -->
-    <string name="all_records_delete_failed">Delete failed</string>
-    <string name="record_completed">Completed</string>
-    <string name="record_incomplete">Incomplete</string>
-    <string name="record_actual_days">Actual Days</string>
-    <string name="record_target_days">Target Days</string>
-    <string name="record_success_rate">Success Rate</string>
-    <string name="record_start_time">Start</string>
-    <string name="record_end_time">End</string>
-    <string name="record_days_format">%.1f d</string>
-    <string name="record_target_days_format">%d d</string>
-    <string name="record_rate_format">%.1f%%</string>
-
-    <!-- Month Picker -->
-    <string name="month_picker_title">Select Month</string>
-    <string name="month_picker_year_format">%d</string>
-    <string name="month_picker_month_format">%d</string>
-    <string name="month_picker_no_data">No data available</string>
-    <string name="month_picker_select">Select</string>
-
-    <!-- Date Format -->
-    <string name="date_format_year_month">%2$d/%1$d</string>
-    <string name="date_format_year">%d</string>
-    <string name="date_format_month">%d</string>
-
-    <!-- Week Picker -->
-    <string name="week_picker_title">Select Week</string>
-    <string name="week_picker_this_week">This Week</string>
-    <string name="week_picker_last_week">Last Week</string>
-    <string name="week_picker_select">Select</string>
-
-    <!-- Year Picker -->
-    <string name="year_picker_title">Select Year</string>
-    <string name="year_picker_year_format">%d</string>
-    <string name="year_picker_no_data">No data available</string>
-    <string name="year_picker_select">Select</string>
-
-    <!-- Cost options -->
-    <string name="settings_cost_low">Low</string>
-    <string name="settings_cost_medium">Medium</string>
-    <string name="settings_cost_high">High</string>
-    <string name="settings_cost_low_label">Low (Under $10)</string>
-    <string name="settings_cost_medium_label">Medium ($10~50)</string>
-    <string name="settings_cost_high_label">High (Over $50)</string>
-
-    <!-- Frequency options -->
-    <string name="settings_frequency_low">Once a week or less</string>
-    <string name="settings_frequency_medium">2-3 times a week</string>
-    <string name="settings_frequency_high">4+ times a week</string>
-
-    <!-- Duration options -->
-    <string name="settings_duration_short">Short</string>
-    <string name="settings_duration_medium">Medium</string>
-    <string name="settings_duration_long">Long</string>
-    <string name="settings_duration_short_label">Short (Under 2 hours)</string>
-    <string name="settings_duration_medium_label">Medium (3-5 hours)</string>
-    <string name="settings_duration_long_label">Long (Over 6 hours)</string>
-
-    <!-- Add Record screen -->
-    <string name="add_record_title">Add Sobriety Record</string>
-    <string name="add_record_button">Add Record</string>
-    <string name="add_record_start_date_time">Start Date &amp; Time</string>
-    <string name="add_record_end_date_time">End Date &amp; Time</string>
-    <string name="add_record_target_days">Target Days</string>
-    <string name="add_record_error_invalid_range">End time must be after start time</string>
-    <string name="add_record_error_set_target">Please enter valid target days</string>
-    <string name="add_record_cancel">Cancel</string>
-    <string name="add_record_save">Save</string>
-    <string name="add_record_toast_success">Sobriety record added successfully</string>
-    <string name="add_record_toast_conflict">Selected time conflicts with existing records</string>
-    <string name="add_record_days_unit">d</string>
-    <string name="add_record_saving">Saving&#8230;</string>
-
-    <!-- Currency options -->
-    <string name="currency_krw">Korean Won (₩)</string>
-    <string name="currency_jpy">Japanese Yen (¥)</string>
-    <string name="currency_usd">US Dollar ($)</string>
-    <string name="currency_eur">Euro (€)</string>
-    <string name="currency_mxn">Mexican Peso (MX$)</string>
-    <string name="currency_cny">Chinese Yuan (¥)</string>
-    <string name="currency_brl">Brazilian Real (R$)</string>
-
-    <!-- Update dialog strings -->
-    <string name="update_dialog_title">New version available! 🎉</string>
-    <string name="update_dialog_version_format">Version %1$s</string>
-    <string name="update_dialog_default_message">Contains new features and improvements.</string>
-    <string name="update_dialog_later">Later</string>
-    <string name="update_dialog_update">Update</string>
-    <string name="update_dialog_icon_description">Update icon</string>
-
-    <!-- Privacy / About UMP strings (added) -->
-    <string name="about_ad_consent_settings">Privacy Settings</string>
-    <string name="settings_privacy_unavailable">Cannot show ad settings because activity is unavailable.</string>
-    <string name="settings_privacy_checking">Checking ad consent&#8230;</string>
-    <string name="settings_privacy_load_failed">Failed to load consent form: %1$s</string>
-    <string name="settings_privacy_not_required">Consent form not required or already handled.</string>
-    <string name="settings_privacy_update_failed">Failed to update consent info: %1$s</string>
-
-    <!-- Dialog common strings -->
+    <!-- Dialogs -->
+    <string name="dialog_delete_title">Delete Record</string>
+    <string name="dialog_delete_message">Are you sure you want to delete this sobriety record?&#10;This action cannot be undone.</string>
+    <string name="dialog_delete_confirm">Delete</string>
+    <string name="dialog_ok">OK</string>
+    <string name="dialog_cancel">Cancel</string>
     <string name="dialog_confirm">Confirm</string>
     <string name="dialog_view_details">View details</string>
     <string name="dialog_close">Close</string>
     <string name="emergency_title_default">Emergency Notice</string>
     <string name="debug_menu_title">Debug Menu</string>
 
-    <!-- FinishedScreen strings (Timer completion screens) -->
-    <string name="finished_back">Back</string>
-    <string name="finished_success_title">🎉 Goal Achieved!</string>
-    <string name="finished_success_description">Congratulations!\nYou have successfully completed your sobriety goal.</string>
-    <string name="finished_result_check">Check Result</string>
-    <string name="finished_new_timer">Start New Timer</string>
-    <string name="finished_giveup_title">🍃 It\'s Okay to Take a Break</string>
-    <string name="finished_giveup_description">This challenge ends here, but your efforts won\'t disappear.\nTake a moment to regroup and come back anytime.</string>
+    <!-- Pickers -->
+    <string name="month_picker_title">Select Month</string>
+    <string name="month_picker_year_format">%d</string>
+    <string name="month_picker_month_format">%d</string>
+    <string name="month_picker_no_data">No data available</string>
+    <string name="month_picker_select">Select</string>
+    <string name="week_picker_title">Select Week</string>
+    <string name="week_picker_this_week">This Week</string>
+    <string name="week_picker_last_week">Last Week</string>
+    <string name="week_picker_select">Select</string>
+    <string name="year_picker_title">Select Year</string>
+    <string name="year_picker_year_format">%d</string>
+    <string name="year_picker_no_data">No data available</string>
+    <string name="year_picker_select">Select</string>
+
+    <!-- Date Format -->
+    <string name="date_format_year_month">%2$d/%1$d</string>
+    <string name="date_format_year">%d</string>
+    <string name="date_format_month">%d</string>
+
+    <!-- Units -->
+    <string name="unit_days_format">%.1f d</string>
+    <string name="unit_hours_format">%.1f hr(s)</string>
+    <string name="unit_won_format">₩%,.0f</string>
+    <string name="unit_day">d</string>
+    <string name="unit_hour">hr(s)</string>
+
+    <!-- Update Dialog -->
+    <string name="update_dialog_title">New version available! 🎉</string>
+    <string name="update_dialog_version_format">Version %1$s</string>
+    <string name="update_dialog_default_message">Contains new features and improvements.</string>
+    <string name="update_dialog_later">Later</string>
+    <string name="update_dialog_update">Update</string>
+    <string name="update_dialog_icon_description">Update icon</string>
+    <string name="update_downloaded_restart_prompt">Update downloaded. Restart to install.</string>
+    <string name="action_restart">Restart</string>
 
     <!-- Motivational Quotes -->
     <string-array name="motivational_quotes">
@@ -428,3 +393,4 @@
     </string-array>
 
 </resources>
+
