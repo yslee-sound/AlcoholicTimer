@@ -1172,17 +1172,6 @@ private fun WritePostTrigger(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
                 )
             }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            // 우측: 이미지 아이콘
-            IconButton(onClick = onClick) {
-                Icon(
-                    imageVector = Icons.Filled.Image,
-                    contentDescription = "이미지",
-                    tint = Color(0xFF65676B)
-                )
-            }
         }
 
         // 하단 구분선 (페이스북 스타일)
