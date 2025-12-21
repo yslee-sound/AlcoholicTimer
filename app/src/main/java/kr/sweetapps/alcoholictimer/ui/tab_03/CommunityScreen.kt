@@ -709,7 +709,8 @@ private fun WritePostScreenContent(
                                 text = "LV.$levelNumber",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue,
-                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                                modifier = Modifier.alignByBaseline() // [FIX] PostItem과 동일한 baseline 정렬 사용
                             )
 
                             Spacer(modifier = Modifier.width(4.dp))
@@ -717,7 +718,8 @@ private fun WritePostScreenContent(
                             Text(
                                 text = "·",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = Color.Gray
+                                color = Color.Gray,
+                                modifier = Modifier.alignByBaseline() // [FIX] baseline 정렬
                             )
 
                             Spacer(modifier = Modifier.width(4.dp))
@@ -725,7 +727,8 @@ private fun WritePostScreenContent(
                             Text(
                                 text = "${levelDays}일차",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = Color.Gray
+                                color = Color.Gray,
+                                modifier = Modifier.alignByBaseline() // [FIX] baseline 정렬
                             )
                         }
                     }
