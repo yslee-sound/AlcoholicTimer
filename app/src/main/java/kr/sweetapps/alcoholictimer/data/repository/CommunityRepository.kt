@@ -67,7 +67,7 @@ class CommunityRepository(private val context: Context? = null) {
      * - 첫 3개: 내 글 (authorId = 현재 사용자 ID)
      * - 나머지 7개: 남의 글 (authorId = 랜덤 UUID)
      */
-    suspend fun generateDummyPosts(): Result<Unit> {
+    suspend fun generateDummyPosts(targetLanguage: String = "en"): Result<Unit> {
         return try {
             val batch = firestore.batch()
             val now = Timestamp.now()
@@ -117,6 +117,7 @@ class CommunityRepository(private val context: Context? = null) {
                     deleteAt = deleteAt,
                     authorAvatarIndex = (0..19).random(), // [NEW] 랜덤 아바타 (0~19)
                     authorId = authorId // [NEW] Phase 3: 작성자 ID
+                    ,languageCode = targetLanguage
                 )
 
                 batch.set(postRef, post)

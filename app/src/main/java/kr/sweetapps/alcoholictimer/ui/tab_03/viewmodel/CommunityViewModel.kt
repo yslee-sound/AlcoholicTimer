@@ -219,11 +219,12 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val result = repository.generateDummyPosts()
+                val deviceLang = normalizeLanguage(Locale.getDefault().language)
+                val result = repository.generateDummyPosts(targetLanguage = deviceLang)
                 if (result.isFailure) {
                     android.util.Log.e("CommunityViewModel", "generateMockData failed: ${result.exceptionOrNull()?.message}")
                 } else {
-                    // 새로 생성된 더미 데이터를 반영하도록 필터링 또는 로드 실행
+                    // 새로 생성된 더미 데이터를 반영하도록 필터링 실행
                     executeFiltering()
                 }
             } catch (e: Exception) {
