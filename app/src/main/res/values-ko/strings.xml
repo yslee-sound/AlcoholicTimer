@@ -326,7 +326,7 @@
     <string name="add_record_toast_conflict">선택한 시간이 기존 기록과 중복됩니다</string>
     <string name="add_record_days_unit">일</string>
 
-    <!-- Currency options (통화 선택) -->
+    <!-- Currency options -->
     <string name="currency_krw">한국 원 (₩)</string>
     <string name="currency_jpy">일본 엔 (¥)</string>
     <string name="currency_usd">미국 달러 ($)</string>
