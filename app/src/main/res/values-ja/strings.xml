@@ -360,8 +360,6 @@
     <string name="settings_privacy_not_required">同意フォームは不要、または既に処理されています。</string>
     <string name="settings_privacy_update_failed">同意情報の更新に失敗しました: %1$s</string>
 
-    <!-- Login label -->
-    <string name="login_label">ログイン</string>
 
     <!-- Dialog common strings -->
     <string name="dialog_confirm">確認</string>

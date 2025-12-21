@@ -358,8 +358,6 @@
     <string name="settings_privacy_not_required">Consent form not required or already handled.</string>
     <string name="settings_privacy_update_failed">Failed to update consent info: %1$s</string>
 
-    <!-- Login label -->
-    <string name="login_label">Login</string>
 
     <!-- Dialog common strings -->
     <string name="dialog_confirm">Confirm</string>

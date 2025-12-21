@@ -346,7 +346,6 @@
     <string name="update_dialog_update">Update</string>
     <string name="update_dialog_icon_description">Update icon</string>
 
-
     <!-- Privacy / About UMP strings (added) -->
     <string name="about_ad_consent_settings">Privacy Settings</string>
     <string name="settings_privacy_unavailable">Cannot show ad settings because activity is unavailable.</string>
@@ -354,9 +353,6 @@
     <string name="settings_privacy_load_failed">Failed to load consent form: %1$s</string>
     <string name="settings_privacy_not_required">Consent form not required or already handled.</string>
     <string name="settings_privacy_update_failed">Failed to update consent info: %1$s</string>
-
-    <!-- Login label -->
-    <string name="login_label">Login</string>
 
     <!-- Dialog common strings -->
     <string name="dialog_confirm">Confirm</string>
