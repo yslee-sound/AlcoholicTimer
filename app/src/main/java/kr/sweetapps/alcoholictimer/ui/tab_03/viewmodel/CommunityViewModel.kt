@@ -251,13 +251,17 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
      * @param context Context (이미지 압축에 필요)
      */
     fun addPost(content: String, context: Context, tagType: String = "", thirstLevel: Int? = null) {
+        // COPY selected image URI immediately and clear UI state to avoid sticky image when reopening write screen
+        val uriToUpload = _selectedImageUri.value
+        _selectedImageUri.value = null
+
         viewModelScope.launch {
             _isLoading.value = true
             try {
                 var imageUrl: String? = null
 
-                // 1. 이미지가 있다면 압축 후 Firebase Storage 업로드
-                val currentUri = _selectedImageUri.value
+                // 1. 이미지가 있다면 압축 후 Firebase Storage 업로드 (use copied uri)
+                val currentUri = uriToUpload
                 if (currentUri != null) {
                     // 압축 작업 (IO 스레드)
                     val imageBytes = withContext(Dispatchers.IO) {

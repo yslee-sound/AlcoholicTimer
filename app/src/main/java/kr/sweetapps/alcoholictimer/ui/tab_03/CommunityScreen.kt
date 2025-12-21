@@ -279,14 +279,8 @@ fun CommunityScreen(
                         onPost = { triggerClose() }, // [MODIFIED] 실제 게시처리는 내부에서 실행, 부모에는 닫기만 위임
                         onDismiss = { triggerClose() }, // [FIX] 뒤로가기 시 애니메이션 종료
                         onOpenPhoto = {
-                            // 닫기 애니메이션 먼저 시작
-                            animateVisible = false
-                            // 다이얼로그가 완전히 닫힐 때까지 300ms 대기 후 photo overlay를 연다
-                            coroutineScope.launch {
-                                kotlinx.coroutines.delay(300)
-                                isWritingScreenVisible = false
-                                isPhotoSelectionVisible = true
-                            }
+                            // 글쓰기 다이얼로그를 닫지 않고, 그 위에 사진 선택 Dialog를 띄웁니다. (스택 방식)
+                            isPhotoSelectionVisible = true
                         }
                     )
                  }
@@ -480,6 +474,11 @@ private fun WritePostScreenContent(
     onOpenPhoto: () -> Unit // [NEW] 사진 선택 화면 열기 콜백 (네비게이션 호출)
 ) {
     var content by remember { mutableStateOf("") }
+    // [FIX] 화면 진입 시 로컬 입력 상태를 초기화하여 이전 내용이 남지 않도록 함
+    LaunchedEffect(Unit) {
+        content = ""
+    }
+
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current // [NEW] FocusManager (2025-12-19)
     var showWarningSheet by remember { mutableStateOf(false) } // [NEW] 경고 바텀 시트 표시 상태 (2025-12-19)
@@ -637,13 +636,21 @@ private fun WritePostScreenContent(
                 actions = {
                     TextButton(
                         onClick = {
-                            if (content.isNotBlank()) {
-                                // [NEW] 선택된 주제 태그와 함께 게시
-                                viewModel.addPost(content.trim(), context, selectedTag, selectedLevel)
-                                onPost(content.trim())
+                            // Allow posting when either text exists or an image is selected
+                            if (content.isNotBlank() || selectedImageUri != null) {
+                                val payload = content.trim()
+                                // Clear local UI state immediately to avoid sticky state
+                                content = ""
+                                try {
+                                    viewModel.addPost(payload, context, selectedTag, selectedLevel)
+                                } catch (e: Exception) {
+                                    android.util.Log.e("CommunityScreen", "addPost call failed", e)
+                                }
+                                // Notify parent to close UI
+                                onPost(payload)
                             }
                         },
-                        enabled = isModified // [FIX] 내용이 있을 때만 활성화 (2025-12-19)
+                        enabled = isModified // 활성화 조건: 텍스트 또는 이미지가 있을 때
                     ) {
                         Text(
                             text = "게시하기",
