@@ -46,5 +46,9 @@ data class Post(
 
     // [NEW] 갈증 수치 (1..10) - 선택사항
     @PropertyName("thirstLevel")
-    val thirstLevel: Int? = null
+    val thirstLevel: Int? = null,
+
+    // [NEW] 게시글 언어 코드 (ISO 639-1), 기본값 영어
+    @PropertyName("languageCode")
+    val languageCode: String = "en"
 )

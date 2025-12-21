@@ -168,4 +168,119 @@ class CommunityRepository(private val context: Context? = null) {
             Result.failure(e)
         }
     }
+
+    /**
+     * 실시간 게시글 목록 가져오기
+     * - languageCode: ISO 639-1 코드로 필터. null이면 모든 언어를 반환
+     * - includeEnglishFallback: true일 경우 primary 언어 포스트가 적으면 영어("en") 포스트를 함께 병합하여 반환
+     */
+    fun getPosts(languageCode: String? = null, includeEnglishFallback: Boolean = false): Flow<List<Post>> = callbackFlow {
+        if (languageCode == null) {
+            val listener = postsCollection
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        Log.e(TAG, "Error listening to posts", error)
+                        trySend(emptyList())
+                        return@addSnapshotListener
+                    }
+
+                    val posts = snapshot?.documents?.mapNotNull { doc ->
+                        try {
+                            doc.toObject(Post::class.java)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error parsing post: ${doc.id}", e)
+                            null
+                        }
+                    } ?: emptyList()
+
+                    trySend(posts)
+                }
+
+            awaitClose { listener.remove() }
+        } else if (!includeEnglishFallback) {
+            val q = postsCollection
+                .whereEqualTo("languageCode", languageCode)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+
+            val listener = q.addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e(TAG, "Error listening to posts(language=$languageCode)", error)
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+
+                val posts = snapshot?.documents?.mapNotNull { doc ->
+                    try {
+                        doc.toObject(Post::class.java)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing post: ${doc.id}", e)
+                        null
+                    }
+                } ?: emptyList()
+
+                trySend(posts)
+            }
+
+            awaitClose { listener.remove() }
+        } else {
+            // includeEnglishFallback == true: set up two listeners and merge results
+            val primaryQuery = postsCollection
+                .whereEqualTo("languageCode", languageCode)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+
+            val fallbackQuery = postsCollection
+                .whereEqualTo("languageCode", "en")
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+
+            var primaryList: List<Post> = emptyList()
+            var fallbackList: List<Post> = emptyList()
+
+            val primaryListener = primaryQuery.addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e(TAG, "Error listening primary language posts ($languageCode)", error)
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+
+                primaryList = snapshot?.documents?.mapNotNull { doc ->
+                    try { doc.toObject(Post::class.java) } catch (e: Exception) { null }
+                } ?: emptyList()
+
+                // merge and send
+                val merged = mutableListOf<Post>()
+                val ids = mutableSetOf<String>()
+                primaryList.forEach { if (ids.add(it.id)) merged.add(it) }
+                if (merged.size < 10) {
+                    fallbackList.forEach { if (ids.add(it.id)) merged.add(it) }
+                }
+                trySend(merged)
+            }
+
+            val fallbackListener = fallbackQuery.addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e(TAG, "Error listening fallback English posts", error)
+                    return@addSnapshotListener
+                }
+
+                fallbackList = snapshot?.documents?.mapNotNull { doc ->
+                    try { doc.toObject(Post::class.java) } catch (e: Exception) { null }
+                } ?: emptyList()
+
+                // merge and send (use latest primaryList)
+                val merged = mutableListOf<Post>()
+                val ids = mutableSetOf<String>()
+                primaryList.forEach { if (ids.add(it.id)) merged.add(it) }
+                if (merged.size < 10) {
+                    fallbackList.forEach { if (ids.add(it.id)) merged.add(it) }
+                }
+                trySend(merged)
+            }
+
+            awaitClose {
+                primaryListener.remove()
+                fallbackListener.remove()
+            }
+        }
+    }
 }

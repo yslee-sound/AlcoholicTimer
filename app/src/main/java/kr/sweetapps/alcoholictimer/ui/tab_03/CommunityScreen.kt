@@ -28,6 +28,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.IntOffset
 import kotlin.math.roundToInt
 import androidx.compose.foundation.layout.*
@@ -35,6 +36,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -68,6 +70,7 @@ import kr.sweetapps.alcoholictimer.ui.tab_03.screens.PostItem
 import kr.sweetapps.alcoholictimer.ui.common.CustomGalleryScreen
 import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.CommunityViewModel
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -132,11 +135,21 @@ fun CommunityScreen(
             },
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
+            // LANGUAGE FILTER UI: TopBar 바로 아래에 배치됩니다.
+            val deviceLangRaw = Locale.getDefault().language
+            val deviceLang = if (deviceLangRaw.lowercase() == "in") "id" else deviceLangRaw.lowercase()
+            var showAllLanguages by remember { mutableStateOf(false) }
+
+            // Apply initial filter (ensure ViewModel matches UI) - sync when Composable first runs
+            LaunchedEffect(Unit) {
+                viewModel.setLanguageFilter(if (showAllLanguages) null else deviceLang)
+            }
+
+             Box(
+                 modifier = Modifier
+                     .fillMaxSize()
+                     .padding(innerPadding)
+             ) {
                 if (isLoading && posts.isEmpty()) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 } else if (posts.isEmpty()) {
@@ -473,11 +486,10 @@ private fun WritePostScreenContent(
     onDismiss: () -> Unit,
     onOpenPhoto: () -> Unit // [NEW] 사진 선택 화면 열기 콜백 (네비게이션 호출)
 ) {
-    var content by remember { mutableStateOf("") }
-    // [FIX] 화면 진입 시 로컬 입력 상태를 초기화하여 이전 내용이 남지 않도록 함
-    LaunchedEffect(Unit) {
-        content = ""
-    }
+    // Use TextFieldValue to track cursor position and selection
+    var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
+    // initialize empty on entry
+    LaunchedEffect(Unit) { textFieldValue = TextFieldValue("") }
 
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current // [NEW] FocusManager (2025-12-19)
@@ -584,7 +596,7 @@ private fun WritePostScreenContent(
     }
 
     // [NEW] 수정 상태 감지
-    val isModified = content.isNotBlank() || selectedImageUri != null
+    val isModified = textFieldValue.text.isNotBlank() || selectedImageUri != null
 
     // [NEW] 뒤로가기 공통 로직
     val onBackAction = {
@@ -640,8 +652,8 @@ private fun WritePostScreenContent(
                     TextButton(
                         onClick = {
                             // Allow posting when either text exists or an image is selected
-                            if ((content.isNotBlank() || selectedImageUri != null) && !isLoading) {
-                                val payload = content.trim()
+                            if ((textFieldValue.text.isNotBlank() || selectedImageUri != null) && !isLoading) {
+                                val payload = textFieldValue.text.trim()
                                 try {
                                     // Do NOT clear local UI state here. ViewModel starts loading immediately and
                                     // will call onSuccess when upload completes. Then we close the dialog.
@@ -761,10 +773,23 @@ private fun WritePostScreenContent(
             }
         }
      ) { innerPadding ->
+             // [NEW] 스크롤 상태: 화면 콘텐츠가 길어질 경우 위아래로 스크롤 가능하게 함
+             val scrollState = rememberScrollState()
+             val localScope = rememberCoroutineScope()
+
+             // 자동 스크롤: 이미지가 추가되면 맨 아래로 스크롤하여 사용자가 바로 이미지를 보도록 함
+             LaunchedEffect(selectedImageUri) {
+                 if (selectedImageUri != null) {
+                     // animateScrollTo에 큰 값을 줘도 안전: ScrollState는 콘텐츠 크기에 맞게 clamp됨
+                     localScope.launch { scrollState.animateScrollTo(Int.MAX_VALUE) }
+                 }
+             }
+
              Column(
                  modifier = Modifier
                      .fillMaxSize()
-                     .padding(innerPadding), // [FIX] Scaffold가 bottomBar 높이를 자동으로 계산하여 innerPadding에 포함
+                     .padding(innerPadding) // Scaffold가 bottomBar 높이를 자동으로 계산하여 innerPadding에 포함
+                     .verticalScroll(scrollState), // [NEW] 스크롤 가능하게 변경
                  verticalArrangement = Arrangement.Top // [MODIFIED] 모든 요소를 Top에서부터 쌓도록 변경
              ) {
                 // [NEW] 디바이더 + 작성자 정보 (Top bar 바로 아래에 노출되도록 이동)
@@ -943,15 +968,25 @@ private fun WritePostScreenContent(
                 }
 
             // 텍스트 입력창
+             // Compute cursor/line metrics for spacer calculation
+             val lineHeightDp = with(LocalDensity.current) { MaterialTheme.typography.bodyLarge.fontSize.toDp() }
+             val totalLines = textFieldValue.text.count { it == '\n' } + 1
+             val cursorOffset = textFieldValue.selection.start.coerceIn(0, textFieldValue.text.length)
+             val cursorLine = textFieldValue.text.take(cursorOffset).count { it == '\n' } + 1
+             val minLines = 4
+             val maxLines = maxOf(minLines, totalLines)
+             val desiredDistanceLines = 4 // 사진은 커서로부터 4줄 아래에 위치
+             val currentDistanceLines = (maxLines - cursorLine + 1)
+             val extraLinesNeeded = maxOf(0, desiredDistanceLines - currentDistanceLines)
+
              TextField(
-                  value = content,
-                  onValueChange = { if (!isLoading) content = it },
+                  value = textFieldValue,
+                  onValueChange = { if (!isLoading) textFieldValue = it },
                   modifier = Modifier
                       .fillMaxWidth()
-                      .weight(1f) // [FIX] 부모 Column이 고정 높이를 가지므로 TextField에 weight를 주어 남은 공간을 채우도록 함
-                      .padding(horizontal = 16.dp) // [NEW] 좌우 패딩만 적용
+                      .padding(horizontal = 16.dp) // 좌우 패딩
                       .onFocusChanged { state ->
-                          // [NEW] 입력창에 포커스가 생기면 하단 패널들을 닫아 키보드가 정상 동작하도록 함
+                          // 입력창에 포커스가 생기면 하단 패널들을 닫아 키보드가 정상 동작하도록 함
                           if (state.isFocused) {
                               showThirstSlider = false
                           }
@@ -963,6 +998,7 @@ private fun WritePostScreenContent(
                         style = MaterialTheme.typography.bodyLarge
                     )
                  },
+                 minLines = minLines,
                  colors = TextFieldDefaults.colors(
                      focusedContainerColor = Color.Transparent,
                      unfocusedContainerColor = Color.Transparent,
@@ -970,8 +1006,13 @@ private fun WritePostScreenContent(
                      unfocusedIndicatorColor = Color.Transparent
                  ),
                  textStyle = MaterialTheme.typography.bodyLarge,
-                 enabled = !isLoading // [NEW] 비활성화 상태 추가
+                 enabled = !isLoading // 비활성화 상태 추가
              )
+
+             // Spacer to ensure photo stays desiredDistanceLines below the cursor
+             if (extraLinesNeeded > 0) {
+                 Spacer(modifier = Modifier.height(lineHeightDp * extraLinesNeeded))
+             }
 
              // NEW 이미지 미리보기 (2025-12-19)
              if (selectedImageUri != null) {

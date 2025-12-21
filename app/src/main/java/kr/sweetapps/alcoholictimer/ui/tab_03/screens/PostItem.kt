@@ -106,9 +106,9 @@ fun PostItem(
                 contentDescription = "게시글 이미지",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .wrapContentHeight() // 높이 제한 없이 원본 비율대로
+                    .aspectRatio(1f / 1f) // [MODIFIED] 사용자 요청: 1:1 정사각형 비율
                     .clip(RoundedCornerShape(0.dp)), // 모서리 각지게 (페이스북 스타일)
-                contentScale = ContentScale.FillWidth // 가로를 꽉 채우고 세로는 비율 유지
+                contentScale = ContentScale.Crop // 영역을 사진으로 가득 채우고 넘치는 부분은 크롭
             )
         }
 

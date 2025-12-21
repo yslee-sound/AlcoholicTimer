@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.Firebase
 import com.google.firebase.storage.storage
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,6 +18,7 @@ import kotlinx.coroutines.withContext
 import kr.sweetapps.alcoholictimer.data.model.Post
 import kr.sweetapps.alcoholictimer.data.repository.CommunityRepository
 import kr.sweetapps.alcoholictimer.data.repository.UserRepository
+import java.util.Locale
 import java.util.UUID
 
 /**
@@ -72,8 +74,41 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     val sharedDraftContent: StateFlow<String?> = _sharedDraftContent.asStateFlow()
 
     init {
-        loadPosts()
+        // Load posts with device language filter by default
+        val deviceLang = normalizeLanguage(Locale.getDefault().language)
+        setLanguageFilter(deviceLang)
+
         loadCurrentUserAvatar() // [NEW] 사용자 아바타 로드
+    }
+
+    // Helper to normalize language codes (handle old 'in' -> 'id')
+    private fun normalizeLanguage(lang: String?): String {
+        if (lang.isNullOrBlank()) return "en"
+        return when (lang.lowercase().trim()) {
+            "in" -> "id"
+            else -> lang.lowercase().trim()
+        }
+    }
+
+    private var postsJob: Job? = null
+
+    // Public API: set language filter for posts. If lang == null -> all languages
+    fun setLanguageFilter(lang: String?) {
+        postsJob?.cancel()
+        val normalized = lang?.let { normalizeLanguage(it) }
+        postsJob = viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                repository.getPosts(normalized, includeEnglishFallback = true).collect { postList ->
+                    _cachedPostList = postList
+                    executeFiltering()
+                    _isLoading.value = false
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("CommunityViewModel", "setLanguageFilter error", e)
+                _isLoading.value = false
+            }
+        }
     }
 
     /**
@@ -315,6 +350,7 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                 val level = (days / 10) + 1
 
                 // 7. Post 객체 생성 (이미지 URL 포함, 일차/레벨 포함)
+                val deviceLang = normalizeLanguage(Locale.getDefault().language)
                 val post = Post(
                     nickname = nickname,
                     timerDuration = timerDuration.toString(), // [FIX] Long -> String 변환
@@ -330,6 +366,7 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                     authorId = deviceUserId, // [NEW] Phase 3: 작성자 기기 ID
                     tagType = tagType,
                     thirstLevel = thirstLevel
+                    ,languageCode = deviceLang
                 )
 
                 // 8. Firestore에 게시글 추가
