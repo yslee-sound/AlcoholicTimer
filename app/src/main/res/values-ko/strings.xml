@@ -315,6 +315,7 @@
 
     <!-- Add Record screen -->
     <string name="add_record_title">금주 기록 추가</string>
+    <string name="add_record_button">기록 추가</string>
     <string name="add_record_start_date_time">시작 일시</string>
     <string name="add_record_end_date_time">종료 일시</string>
     <string name="add_record_target_days">목표 일수</string>
@@ -325,6 +326,7 @@
     <string name="add_record_toast_success">금주 기록이 추가되었습니다</string>
     <string name="add_record_toast_conflict">선택한 시간이 기존 기록과 중복됩니다</string>
     <string name="add_record_days_unit">일</string>
+    <string name="add_record_saving">저장 중&#8230;</string>
 
     <!-- Currency options -->
     <string name="currency_krw">한국 원 (₩)</string>
@@ -379,8 +381,6 @@
     <string name="finished_giveup_title">🍃 잠시 쉬어도 괜찮아요</string>
     <string name="finished_giveup_description">이번 도전은 여기서 멈추지만, 지금까지의 노력은 사라지지 않습니다.\n마음을 추스르고, 언제든 다시 돌아오세요.</string>
 
-    <!-- Add Record/Diary buttons -->
-    <string name="add_record_button">기록 추가</string>
 
     <!-- Motivational Quotes (동기부여 명언) -->
     <string-array name="motivational_quotes">
@@ -443,7 +443,6 @@
     </string-array>
 
     <!-- Additional keys -->
-    <string name="add_record_saving">저장 중&#8230;</string>
     <string name="debug_menu_title">디버그 메뉴</string>
 </resources>
 

@@ -326,6 +326,7 @@
     <string name="add_record_toast_success">Sobriety record added successfully</string>
     <string name="add_record_toast_conflict">Selected time conflicts with existing records</string>
     <string name="add_record_days_unit">d</string>
+    <string name="add_record_saving">Saving&#8230;</string>
 
     <!-- Currency options -->
     <string name="currency_krw">Korean Won (₩)</string>
@@ -438,6 +439,5 @@
     <string name="finished_giveup_description">This challenge ends here, but your efforts won\'t disappear.\nTake a moment to regroup and come back anytime.</string>
 
     <!-- Additional keys -->
-    <string name="add_record_saving">Saving&#8230;</string>
     <string name="debug_menu_title">Debug Menu</string>
 </resources>

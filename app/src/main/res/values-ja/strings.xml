@@ -290,6 +290,7 @@
 
     <!-- Add Record screen -->
     <string name="add_record_title">禁酒記録を追加</string>
+    <string name="add_record_button">記録を追加</string>
     <string name="add_record_start_date_time">開始日時</string>
     <string name="add_record_end_date_time">終了日時</string>
     <string name="add_record_target_days">目標日数</string>
@@ -300,6 +301,7 @@
     <string name="add_record_toast_success">禁酒記録が追加されました</string>
     <string name="add_record_toast_conflict">選択した時間が既存の記録と重複しています</string>
     <string name="add_record_days_unit">日</string>
+    <string name="add_record_saving">保存中&#8230;</string>
 
     <!-- Currency options (通貨選択) -->
     <string name="currency_krw">韓国ウォン (₩)</string>
@@ -379,8 +381,6 @@
     <string name="finished_giveup_title">🍃 少し休んでも大丈夫です</string>
     <string name="finished_giveup_description">今回の挑戦はここで止まりますが、これまでの努力は消えません。\n心を落ち着かせて、いつでも戻ってきてください。</string>
 
-    <!-- Add Record/Diary buttons -->
-    <string name="add_record_button">記録を追加</string>
 
     <!-- Motivational Quotes (動機づけの名言) -->
     <string-array name="motivational_quotes">
@@ -443,6 +443,5 @@
     </string-array>
 
     <!-- Additional keys -->
-    <string name="add_record_saving">保存中&#8230;</string>
     <string name="debug_menu_title">デバッグメニュー</string>
 </resources>
