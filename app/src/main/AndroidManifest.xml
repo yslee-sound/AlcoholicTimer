@@ -5,6 +5,18 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- 사진/카메라 권한: 버전별로 선언 -->
+    <!-- 모든 안드로이드 버전에서 카메라 권한 필요(카메라 촬영 시) -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- 카메라 하드웨어는 옵션(필수 아님)임을 명시 -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <!-- Android 12(API<=32) 이하: READ_EXTERNAL_STORAGE 필요 -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+
+    <!-- Android 13(API>=33): READ_MEDIA_IMAGES 권한 사용 -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
     <!-- [REQUIRED] 광고 ID 권한 (Android 13+ 필수)
          - 목적: 개인화된 광고 게재 및 광고 성과 측정
          - 사용처: Google AdMob (전면 광고, 오픈 광고)
