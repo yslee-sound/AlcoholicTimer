@@ -361,6 +361,15 @@
     <string name="emergency_title_default">Emergency Notice</string>
     <string name="debug_menu_title">Debug Menu</string>
 
+    <!-- FinishedScreen strings (Timer completion screens) -->
+    <string name="finished_back">Back</string>
+    <string name="finished_success_title">🎉 Goal Achieved!</string>
+    <string name="finished_success_description">Congratulations!\nYou have successfully completed your sobriety goal.</string>
+    <string name="finished_result_check">Check Result</string>
+    <string name="finished_new_timer">Start New Timer</string>
+    <string name="finished_giveup_title">🍃 It\'s Okay to Take a Break</string>
+    <string name="finished_giveup_description">This challenge ends here, but your efforts won\'t disappear.\nTake a moment to regroup and come back anytime.</string>
+
     <!-- Motivational Quotes -->
     <string-array name="motivational_quotes">
         <item>Patience weighs a few grams, but regret weighs tons.</item>
@@ -421,12 +430,5 @@
         <item>Sobriety isn\'t endless endurance; it\'s the start of a new life.</item>
     </string-array>
 
-    <!-- FinishedScreen strings (Timer completion screens) -->
-    <string name="finished_back">Back</string>
-    <string name="finished_success_title">🎉 Goal Achieved!</string>
-    <string name="finished_success_description">Congratulations!\nYou have successfully completed your sobriety goal.</string>
-    <string name="finished_result_check">Check Result</string>
-    <string name="finished_new_timer">Start New Timer</string>
-    <string name="finished_giveup_title">🍃 It\'s Okay to Take a Break</string>
-    <string name="finished_giveup_description">This challenge ends here, but your efforts won\'t disappear.\nTake a moment to regroup and come back anytime.</string>
+
 </resources>

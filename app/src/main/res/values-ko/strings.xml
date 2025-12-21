@@ -359,6 +359,7 @@
     <string name="dialog_view_details">자세히 보기</string>
     <string name="dialog_close">닫기</string>
     <string name="emergency_title_default">긴급 공지</string>
+    <string name="debug_menu_title">디버그 메뉴</string>
 
     <!-- FinishedScreen strings (타이머 완료 화면) -->
     <string name="finished_back">뒤로</string>
@@ -430,7 +431,5 @@
         <item>금주는 끝없는 참음이 아니라, 새로운 인생의 시작입니다.</item>
     </string-array>
 
-    <!-- Additional keys -->
-    <string name="debug_menu_title">디버그 메뉴</string>
 </resources>
 

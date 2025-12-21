@@ -364,6 +364,7 @@
     <string name="dialog_view_details">View details</string>
     <string name="dialog_close">Close</string>
     <string name="emergency_title_default">Emergency Notice</string>
+    <string name="debug_menu_title">Debug Menu</string>
 
     <!-- Motivational Quotes -->
     <string-array name="motivational_quotes">
@@ -434,6 +435,4 @@
     <string name="finished_giveup_title">🍃 It\'s Okay to Take a Break</string>
     <string name="finished_giveup_description">This challenge ends here, but your efforts won\'t disappear.\nTake a moment to regroup and come back anytime.</string>
 
-    <!-- Additional keys -->
-    <string name="debug_menu_title">Debug Menu</string>
 </resources>

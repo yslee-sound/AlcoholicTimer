@@ -366,6 +366,7 @@
     <string name="dialog_view_details">詳細を見る</string>
     <string name="dialog_close">閉じる</string>
     <string name="emergency_title_default">緊急のお知らせ</string>
+    <string name="debug_menu_title">デバッグメニュー</string>
 
     <!-- FinishedScreen strings (タイマー完了画面) -->
     <string name="finished_back">戻る</string>
@@ -437,6 +438,4 @@
         <item>断酒は終わりのない我慢ではなく、新しい人生の始まりです。</item>
     </string-array>
 
-    <!-- Additional keys -->
-    <string name="debug_menu_title">デバッグメニュー</string>
 </resources>
