@@ -195,7 +195,7 @@
     <string name="feedback_success_message">소중한 의견 감사합니다 🙏</string>
     <string name="feedback_error_message">전송 실패\n%1$s</string>
 
-    <!-- Diary Section (일기 섹션) -->
+    <!-- Level names - [Redesigned] 11-level system (2025-12-03) -->
     <string name="level_0">알코올 스톱</string>          <!-- Lv.1: 1~3일 -->
     <string name="level_1">3일 컷 통과</string>               <!-- Lv.2: 4~7일 -->
     <string name="level_2">1주일 클리어</string>                 <!-- Lv.3: 8~14일 -->
@@ -219,9 +219,6 @@
     <string name="level_all_levels">모든 레벨</string>
     <string name="level_day_unit">일</string>
     <string name="level_hour_unit">시간</string>
-
-
-
 
     <!-- Target Days Setting (목표 기간 설정) -->
     <string name="target_days_title_set">목표 기간 설정</string>
