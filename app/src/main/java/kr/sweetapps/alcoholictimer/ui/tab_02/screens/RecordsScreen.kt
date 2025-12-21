@@ -877,7 +877,7 @@ private fun RecentDiarySection(
 
             // [UPDATE] "작성" 버튼 (기존 더보기와 동일한 스타일)
             Text(
-                text = "작성",
+                text = stringResource(R.string.records_diary_write_action),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 color = Color(0xFF6366F1),
@@ -940,7 +940,7 @@ private fun RecentDiarySection(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "전체 내역 보기",
+                                text = stringResource(R.string.records_diary_view_all),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = Color(0xFF6B7280)
@@ -950,7 +950,7 @@ private fun RecentDiarySection(
 
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_caret_right),
-                                contentDescription = "전체 내역 보기",
+                                contentDescription = stringResource(R.string.records_diary_view_all),
                                 tint = Color(0xFF6B7280),
                                 modifier = Modifier.size(16.dp)
                             )
@@ -1164,14 +1164,14 @@ private fun ModernDashboardHeader() {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "나의 건강 ",
+                    text = stringResource(R.string.records_dashboard_title_health),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF111827),
                     fontSize = 24.sp
                 )
                 Text(
-                    text = "분석",
+                    text = stringResource(R.string.records_dashboard_title_analysis),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF6366F1), // 보라색 강조
@@ -1182,7 +1182,7 @@ private fun ModernDashboardHeader() {
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "오늘도 건강한 하루 되세요!",
+                text = stringResource(R.string.records_dashboard_greeting),
                 style = MaterialTheme.typography.bodySmall,
                 color = Color(0xFF9CA3AF),
                 fontSize = 13.sp
@@ -1200,6 +1200,10 @@ private fun StatisticsHeaderWithFilter(
     selectedPeriod: String,
     onPeriodSelected: (String) -> Unit
 ) {
+    val context = LocalContext.current
+    val monthlyText = stringResource(R.string.records_period_filter_monthly)
+    val allText = stringResource(R.string.records_period_filter_all)
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -1209,7 +1213,7 @@ private fun StatisticsHeaderWithFilter(
     ) {
         // 좌측: 제목
         Text(
-            text = "통계 요약",
+            text = stringResource(R.string.records_statistics_summary),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF111827),
@@ -1225,14 +1229,14 @@ private fun StatisticsHeaderWithFilter(
         ) {
             // 월간 버튼
             ToggleButton(
-                text = "월간",
+                text = monthlyText,
                 isSelected = selectedPeriod.contains("월"),
                 onClick = { onPeriodSelected("월") }
             )
 
             // 전체 버튼
             ToggleButton(
-                text = "전체",
+                text = allText,
                 isSelected = !selectedPeriod.contains("월"),
                 onClick = { onPeriodSelected("전체") }
             )
@@ -1440,7 +1444,7 @@ private fun TotalDaysCard(
                 )
 
                 Text(
-                    text = "총 금주일",
+                    text = stringResource(R.string.records_total_sober_days),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color(0xFF111827)

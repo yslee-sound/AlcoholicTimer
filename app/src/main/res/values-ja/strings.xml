@@ -221,6 +221,17 @@
     <!-- Community Screen -->
     <string name="community_title">匿名応援チャレンジ</string>
 
+    <!-- Records Dashboard Header -->
+    <string name="records_dashboard_title_health">私の健康 </string>
+    <string name="records_dashboard_title_analysis">分析</string>
+    <string name="records_dashboard_greeting">今日も健康な一日を！</string>
+    <string name="records_statistics_summary">統計要約</string>
+    <string name="records_period_filter_monthly">月間</string>
+    <string name="records_period_filter_all">全体</string>
+    <string name="records_total_sober_days">総禁酒日数</string>
+    <string name="records_diary_write_action">記入</string>
+    <string name="records_diary_view_all">全ての記録を表示</string>
+
     <!-- Navigation -->
     <string name="default_nickname">禁酒ヒーロー1</string>
     <string name="drawer_menu_sobriety">禁酒</string>

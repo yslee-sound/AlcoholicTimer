@@ -221,6 +221,17 @@
     <!-- Community Screen -->
     <string name="community_title">익명 응원 챌린지</string>
 
+    <!-- Records Dashboard Header -->
+    <string name="records_dashboard_title_health">나의 건강 </string>
+    <string name="records_dashboard_title_analysis">분석</string>
+    <string name="records_dashboard_greeting">오늘도 건강한 하루 되세요!</string>
+    <string name="records_statistics_summary">통계 요약</string>
+    <string name="records_period_filter_monthly">월간</string>
+    <string name="records_period_filter_all">전체</string>
+    <string name="records_total_sober_days">총 금주일</string>
+    <string name="records_diary_write_action">작성</string>
+    <string name="records_diary_view_all">전체 내역 보기</string>
+
     <!-- Navigation -->
     <string name="default_nickname">알중이1</string>
     <string name="drawer_menu_sobriety">금주</string>

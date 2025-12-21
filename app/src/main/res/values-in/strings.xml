@@ -221,6 +221,17 @@
     <!-- Community Screen -->
     <string name="community_title">Anonymous Support Challenge</string>
 
+    <!-- Records Dashboard Header -->
+    <string name="records_dashboard_title_health">My Health </string>
+    <string name="records_dashboard_title_analysis">Analysis</string>
+    <string name="records_dashboard_greeting">Have a healthy day today!</string>
+    <string name="records_statistics_summary">Statistics Summary</string>
+    <string name="records_period_filter_monthly">Monthly</string>
+    <string name="records_period_filter_all">All</string>
+    <string name="records_total_sober_days">Total Sober Days</string>
+    <string name="records_diary_write_action">Write</string>
+    <string name="records_diary_view_all">View All Entries</string>
+
     <!-- Navigation -->
     <string name="default_nickname">SoberHero1</string>
     <string name="drawer_menu_sobriety">Sobriety</string>
