@@ -221,10 +221,8 @@
     <string name="level_hour_unit">hour(s)</string>
 
     <!-- Target Days Setting -->
-    <string name="target_days_title">Set Target Period</string>
     <string name="target_days_title_set">Set Target Period</string>
     <string name="target_days_unit">d</string>
-    <string name="target_days_unit_d">d</string>
     <string name="target_days_hint">Please select your sobriety goal period</string>
 
     <!-- Duration Badge Labels -->

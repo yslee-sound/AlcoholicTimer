@@ -223,7 +223,6 @@
     <!-- Target Days Setting (목표 기간 설정) -->
     <string name="target_days_title_set">목표 기간 설정</string>
     <string name="target_days_unit">일</string>
-    <string name="target_days_unit_d">d</string>
     <string name="target_days_hint">금주/절주 목표 기간을 선택해주세요</string>
 
     <!-- Duration Badge Labels (기간 선택 뱃지) -->

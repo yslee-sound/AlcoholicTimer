@@ -196,10 +196,8 @@
     <string name="diary_delete_confirm_button">削除</string>
 
     <!-- Target Days Setting -->
-    <string name="target_days_title">目標期間を設定</string>
     <string name="target_days_title_set">目標期間を設定</string>
     <string name="target_days_unit">日</string>
-    <string name="target_days_unit_d">d</string>
     <string name="target_days_hint">禁酒の目標期間を選択してください</string>
 
     <!-- Duration Badge Labels (目標期間選択バッジ) -->
