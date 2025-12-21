@@ -461,4 +461,11 @@
         <item>揺れる酒杯の中に私の未来を入れないでください。</item>
         <item>断酒は終わりのない我慢ではなく、新しい人生の始まりです。</item>
     </string-array>
+
+    <!-- Additional keys -->
+    <string name="error_only_spaces">空白のみは入力できません</string>
+    <string name="error_too_long">入力可能な最大長を超えました</string>
+    <string name="community_title">匿名応援チャレンジ</string>
+    <string name="add_record_saving">保存中&#8230;</string>
+    <string name="debug_menu_title">デバッグメニュー</string>
 </resources>

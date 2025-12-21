@@ -1,495 +1,472 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+<resources>
     <string name="app_name">Alcoholic Timer</string>
 
     <!-- AllRecords screen strings -->
-    <string name="all_records_title">모든 기록</string>
-    <string name="cd_navigate_back">뒤로가기</string>
-    <string name="error_loading_records">기록을 불러오는 데 실패했어요</string>
-    <string name="retry">다시 시도</string>
-    <string name="empty_records_title">기록이 없습니다</string>
-    <string name="empty_records_subtitle">첫 번째 금주 기록을 시작해보세요!</string>
-    <string name="empty_records_cd">표시할 기록이 없습니다</string>
+    <string name="all_records_title">All Records</string>
+    <string name="cd_navigate_back">Navigate back</string>
+    <string name="error_loading_records">Failed to load records</string>
+    <string name="retry">Retry</string>
+    <string name="empty_records_title">No records yet</string>
+    <string name="empty_records_subtitle">Start your first sobriety journey!</string>
+    <string name="empty_records_cd">No records to display</string>
     <!-- Delete all records -->
-    <string name="cd_delete_all_records">모든 기록 삭제</string>
-    <string name="all_records_delete_title">모든 기록 삭제</string>
-    <string name="all_records_delete_message">정말로 모든 금주 기록을 삭제하시겠습니까?&#10;삭제 후 복구할 수 없습니다.</string>
-    <string name="all_records_delete_confirm">모두 삭제</string>
-    <!-- [NEW] 모든 기록 화면 추가 리소스 -->
-    <string name="cd_more_options">더보기</string>
-    <string name="menu_delete_all_records">모든 기록 삭제</string>
-    <string name="cd_add_record">기록 추가</string>
+    <string name="cd_delete_all_records">Delete all records</string>
+    <string name="all_records_delete_title">Delete All Records</string>
+    <string name="all_records_delete_message">Are you sure you want to delete all sobriety records?&#10;This action cannot be undone.</string>
+    <string name="all_records_delete_confirm">Delete All</string>
+    <!-- [NEW] All records screen additional resources -->
+    <string name="cd_more_options">More options</string>
+    <string name="menu_delete_all_records">Delete all records</string>
+    <string name="cd_add_record">Add record</string>
 
-    <!-- Run screen (진행 화면) -->
-    <string name="run_title">금주 진행</string>
-    <string name="stat_goal_days">목표일</string>
-    <string name="stat_level">레벨</string>
-    <string name="stat_time">시간</string>
-    <string name="stat_goal_days_format">%d일</string>
+    <!-- Run screen -->
+    <string name="run_title">Sobriety Progress</string>
+    <string name="stat_goal_days">Goal</string>
+    <string name="stat_level">Level</string>
+    <string name="stat_time">Time</string>
+    <string name="stat_goal_days_format">%d d</string>
 
-    <string name="indicator_title_days">금주 일수</string>
-    <string name="indicator_title_time">시간</string>
-    <string name="indicator_title_saved_money">절약한 금액</string>
-    <string name="indicator_title_saved_hours">절약한 시간</string>
-    <string name="indicator_title_life_gain">기대 수명+</string>
-    <string name="tap_to_switch_indicator">탭하여 다른 지표 보기</string>
+    <string name="indicator_title_days">Days Sober</string>
+    <string name="indicator_title_time">Time</string>
+    <string name="indicator_title_saved_money">Money Saved</string>
+    <string name="indicator_title_saved_hours">Hours Saved</string>
+    <string name="indicator_title_life_gain">Life Gain +</string>
+    <string name="tap_to_switch_indicator">Tap to view other metrics</string>
 
-    <string name="cd_stop">정지</string>
-    <string name="cd_continue">계속</string>
+    <string name="cd_stop">Stop</string>
+    <string name="cd_continue">Continue</string>
 
-    <string name="toast_goal_completed">금주 목표를 달성했습니다!</string>
+    <string name="toast_goal_completed">You\'ve achieved your sobriety goal!</string>
 
     <!-- Update Snackbar (Flexible download completed) -->
-    <string name="update_downloaded_restart_prompt">업데이트가 다운로드되었습니다. 다시 시작하여 설치하세요.</string>
-    <string name="action_restart">다시 시작</string>
+    <string name="update_downloaded_restart_prompt">Update downloaded. Restart to install.</string>
+    <string name="action_restart">Restart</string>
 
     <!-- Start overlay -->
-    <string name="checking_update">업데이트 확인 중&#8230;</string>
+    <string name="checking_update">Checking for updates&#8230;</string>
 
     <!-- Quit screen -->
-    <string name="quit_title">금주 종료</string>
-    <string name="quit_confirm_title">정말 멈추시겠어요?</string>
-    <string name="quit_confirm_subtitle">지금까지 잘 해오셨는데&#8230;</string>
-    <string name="stat_total_days">총 금주 일수</string>
-    <string name="stat_saved_money_short">절약한 금액</string>
-    <string name="stat_saved_hours_short">절약한 시간</string>
+    <string name="quit_title">End Sobriety</string>
+    <string name="quit_confirm_title">Are you sure you want to stop?</string>
+    <string name="quit_confirm_subtitle">You\'ve been doing so well&#8230;</string>
+    <string name="stat_total_days">Sober Days</string>
+    <string name="stat_saved_money_short">Savings</string>
+    <string name="stat_saved_hours_short">Time Saved</string>
 
     <!-- Detail screen -->
-    <string name="detail_title">기록 상세</string>
-    <string name="detail_result_title">목표 달성 결과</string>
-    <string name="detail_restart_button">다시 시작하기</string>
-    <string name="detail_menu_delete">기록 삭제</string>
-    <string name="dialog_delete_title">기록 삭제</string>
-    <string name="dialog_delete_message">정말로 이 금주 기록을 삭제하시겠습니까?&#10;삭제 후 복구할 수 없습니다.</string>
-    <string name="dialog_delete_confirm">삭제</string>
-    <string name="dialog_ok">확인</string>
-    <string name="dialog_cancel">취소</string>
-    <string name="detail_start_label">시작:</string>
-    <string name="detail_end_label">종료:</string>
-    <string name="detail_progress_rate">목표 달성률</string>
-    <string name="detail_progress_current">진행: %1$s일</string>
-    <string name="detail_progress_target">목표: %1$d일</string>
-    <string name="detail_today_time">오늘 - %1$s</string>
-    <string name="unit_days_format">%.1f일</string>
-    <string name="unit_hours_format">%.1f시간</string>
-    <string name="unit_won_format">%,.0f원</string>
-    <string name="unit_life_hours_only">%.2f시간</string>
-    <string name="unit_life_days_hours" formatted="false">%d일 %.2f시간</string>
+    <string name="detail_title">Record Details</string>
+    <string name="detail_result_title">Goal Achievement Result</string>
+    <string name="detail_restart_button">Start Again</string>
+    <string name="detail_menu_delete">Delete Record</string>
+    <string name="dialog_delete_title">Delete Record</string>
+    <string name="dialog_delete_message">Are you sure you want to delete this sobriety record?&#10;This action cannot be undone.</string>
+    <string name="dialog_delete_confirm">Delete</string>
+    <string name="dialog_ok">OK</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="detail_start_label">Started:</string>
+    <string name="detail_end_label">Ended:</string>
+    <string name="detail_progress_rate">Goal Achievement</string>
+    <string name="detail_progress_current">Progress: %1$s d</string>
+    <string name="detail_progress_target">Goal: %1$d d</string>
+    <string name="detail_today_time">Today - %1$s</string>
+    <string name="unit_days_format">%.1f d</string>
+    <string name="unit_hours_format">%.1f hr(s)</string>
+    <string name="unit_won_format">₩%,.0f</string>
+    <string name="unit_life_hours_only">%.2f hr(s)</string>
+    <string name="unit_life_days_hours" formatted="false">%d d %.2f hr(s)</string>
 
-    <!-- 단위 표시 전용 (UI 분리 표시용) -->
-    <string name="unit_day">일</string>
-    <string name="unit_hour">시간</string>
+    <!-- Unit labels for separated display -->
+    <string name="unit_day">d</string>
+    <string name="unit_hour">hr(s)</string>
 
-    <!-- About screen (앱 정보) -->
-    <string name="about_title">앱 정보</string>
-    <string name="about_version_info">버전 정보</string>
-    <string name="about_open_license_notice">Open Source License</string>
-    <!-- Document screen titles -->
+    <!-- About screen -->
+    <string name="about_title">About</string>
+    <string name="about_version_info">Version Info</string>
+    <string name="about_open_license_notice">Open Source Licenses</string>
     <string name="document_title_open_source">Open Source License</string>
-    <string name="document_title_privacy">개인정보 처리방침</string>
-    <string name="about_section_app_icon">앱 아이콘</string>
-    <string name="about_label_original_work">원본 저작물</string>
-    <string name="about_label_author">원저작자</string>
-    <string name="about_label_source">출처</string>
-    <string name="about_label_source_link">출처 링크</string>
-    <string name="about_label_license">라이선스</string>
-    <string name="about_label_changes">변경 사항</string>
+    <string name="document_title_privacy">Privacy Policy</string>
+    <string name="about_section_app_icon">App Icon</string>
+    <string name="about_label_original_work">Original Work</string>
+    <string name="about_label_author">Author</string>
+    <string name="about_label_source">Source</string>
+    <string name="about_label_source_link">Source Link</string>
+    <string name="about_label_license">License</string>
+    <string name="about_label_changes">Changes Made</string>
 
-    <!-- Updated license notice values -->
+    <!-- License notice values (these remain in English for both languages) -->
     <string name="about_value_icon_name">Free Wayfinding vector icons - Guidance icon set</string>
     <string name="about_value_icon_author">Streamline and Vincent le moign</string>
     <string name="about_value_source_url">https://www.figma.com/community/file/1227184301417272677/free-wayfinding-vector-icons-guidance-icon-set</string>
 
     <string name="about_value_license_cc_by">Creative Commons Attribution 4.0 International (CC BY 4.0)</string>
     <string name="about_value_license_cc_by_url">https://creativecommons.org/licenses/by/4.0/</string>
-    <string name="about_value_change_desc">아이콘의 색상 및 모양 일부를 수정하여 사용함.</string>
-    <string name="about_notice_compliance">본 앱은 CC BY 4.0 조건에 따라 적절한 저작자 표시, 출처 및 라이선스 링크 제공, 변경 사항 고지를 준수합니다.</string>
+    <string name="about_value_change_desc">Modified colors and shapes of the icon.</string>
+    <string name="about_notice_compliance">This app complies with CC BY 4.0 by providing proper attribution, source link, license link, and notice of changes.</string>
 
-    <string name="action_copy">복사</string>
-    <string name="toast_copied">주소를 복사했습니다.</string>
+    <string name="action_copy">Copy</string>
+    <string name="toast_copied">Address copied.</string>
 
-    <!-- Drawer menu (네비게이션 드로어) -->
-    <string name="default_nickname">알중이1</string>
-    <string name="drawer_edit_profile">프로필 편집</string>
-    <string name="drawer_section_menu">메뉴</string>
-    <string name="drawer_section_settings">설정</string>
-    <string name="drawer_menu_sobriety">금주</string>
-    <string name="drawer_menu_records">기록</string>
-    <string name="drawer_menu_level">레벨</string>
-    <string name="drawer_menu_settings">설정</string>
-    <string name="drawer_menu_about">앱 정보</string>
-    <string name="cd_avatar">아바타</string>
-    <string name="cd_menu">메뉴</string>
+    <!-- Drawer menu (Navigation drawer) -->
+    <string name="default_nickname">SoberHero1</string>
+    <string name="drawer_edit_profile">Edit Profile</string>
+    <string name="drawer_section_menu">Menu</string>
+    <string name="drawer_section_settings">Settings</string>
+    <string name="drawer_menu_sobriety">Sobriety</string>
+    <string name="drawer_menu_records">Records</string>
+    <string name="drawer_menu_level">Level</string>
+    <string name="drawer_menu_settings">Settings</string>
+    <string name="drawer_menu_about">About</string>
+    <string name="drawer_menu_more">More</string>
+    <string name="cd_avatar">Avatar</string>
+    <string name="cd_menu">Menu</string>
 
-    <!-- Profile Edit screen (프로필 편집) -->
-    <string name="profile_edit_title">프로필 편집</string>
-    <string name="profile_edit_instruction">새로운 별명을 입력해주세요</string>
-    <string name="profile_nickname_label">별명</string>
-    <string name="profile_nickname_placeholder">별명을 입력하세요</string>
-    <string name="profile_save">저장</string>
-    <string name="profile_cancel">취소</string>
-    <string name="cd_clear_text">텍스트 지우기</string>
+    <!-- Profile Edit screen -->
+    <string name="profile_edit_title">Edit Profile</string>
+    <string name="profile_edit_instruction">Please enter your new nickname</string>
+    <string name="profile_nickname_label">Nickname</string>
+    <string name="profile_nickname_placeholder">Enter nickname</string>
+    <string name="profile_save">Save</string>
+    <string name="profile_cancel">Cancel</string>
+    <string name="cd_clear_text">Clear text</string>
+    <string name="error_only_spaces">Cannot input only spaces</string>
+    <string name="error_too_long">Maximum length exceeded</string>
 
-    <!-- 추가: 로그인 레이블 (About 화면 상단에서 사용) -->
-    <string name="login_label">로그인</string>
-
-    <!-- Records screen (기록 화면) -->
-    <string name="records_title">금주 기록</string>
-    <string name="records_period_week">주</string>
-    <string name="records_period_month">월</string>
-    <string name="records_period_year">년</string>
-    <string name="records_period_all">전체</string>
-    <string name="records_this_week">이번 주</string>
-    <string name="records_weekly_stats">주간 통계</string>
-    <string name="records_monthly_stats">월간 통계</string>
-    <string name="records_yearly_stats">연간 통계</string>
-    <string name="records_all_stats">전체 통계</string>
-    <string name="records_success_rate">성공률</string>
-    <string name="records_avg_duration">평균 지속일</string>
-    <string name="records_max_duration">최대 지속일</string>
-    <string name="records_total_days">총 누적 금주일</string>
-    <string name="records_no_records">금주 기록이 아직 없습니다</string>
-    <string name="records_view_all">전체 기록 보기 (%d)</string>
-    <string name="records_view_all_icon_cd">전체 기록 보기</string>
-    <string name="records_add">금주 기록 추가</string>
-    <string name="records_day_unit">일</string>
-
-    <!-- Statistics Card Labels (통계 카드 레이블) -->
-    <string name="stats_calories_reduced">줄인 칼로리</string>
-    <string name="stats_drinks_resisted">참아낸 술</string>
-    <string name="stats_money_saved">지켜낸 돈</string>
-    <string name="stats_total_days">총 금주일</string>
-    <string name="stats_unit_kcal">kcal</string>
-    <string name="stats_unit_bottles">병</string>
-    <string name="stats_unit_won">원</string>
-    <string name="stats_unit_days">d</string>
-
-    <!-- [NEW] 짧은 통계 레이블 (아이콘과 함께 사용, 텍스트 잘림 방지) -->
-    <string name="stats_label_calories_short">컷</string>
-    <string name="stats_label_drinks_short">절주</string>
-    <string name="stats_label_money_short">저축</string>
-
-    <!-- Diary Section (일기 섹션) -->
-    <string name="diary_recent_title">최근 일기</string>
-    <string name="diary_view_all">전체 일기 보기</string>
-    <string name="diary_no_entries">아직 작성된 일기가 없어요</string>
-    <string name="diary_write_prompt">우측 하단 + 버튼을 눌러\n첫 일기를 작성해보세요</string>
-    <string name="diary_write_button">일기 작성</string>
-    <string name="diary_write_button_action">일기 작성하기</string>
-
-    <!-- Diary Screens (일기 화면) -->
-    <string name="diary_all_title">금주 일기</string>
-    <string name="diary_all_empty">작성된 일기가 없습니다.</string>
-    <string name="diary_write_title">일기 쓰기</string>
-    <string name="diary_edit_title">일기 수정</string>
-    <string name="diary_menu_edit">수정하기</string>
-    <string name="diary_menu_delete">삭제하기</string>
-    <string name="diary_save_button">저장</string>
-    <string name="diary_question_title">오늘 하루, 술 생각이 나셨나요?</string>
-    <string name="diary_question_required">필수 항목입니다</string>
-    <string name="diary_craving_weak">안남</string>
-    <string name="diary_craving_strong">아주 많이</string>
-    <string name="diary_craving_label">욕구 수치: %d/10</string>
-    <string name="diary_mood_title">오늘의 기록</string>
-    <string name="diary_mood_optional">선택사항</string>
-    <string name="diary_content_placeholder">오늘 가장 힘들었던 순간이나,\n나에게 해주고 싶은 칭찬을 적어보세요.</string>
-    <string name="diary_content_empty">내용 없음</string>
-    <string name="diary_delete_confirm_title">일기 삭제</string>
-    <string name="diary_delete_confirm_message">이 일기를 정말 삭제하시겠습니까?</string>
-    <string name="diary_delete_confirm_button">삭제</string>
-
+    <!-- Records screen -->
+    <string name="records_title">Sobriety Records</string>
+    <string name="records_period_week">Week</string>
+    <string name="records_period_month">Month</string>
+    <string name="records_period_year">Year</string>
+    <string name="records_period_all">All</string>
+    <string name="records_this_week">This Week</string>
+    <string name="records_weekly_stats">Weekly Stats</string>
+    <string name="records_monthly_stats">Monthly Stats</string>
+    <string name="records_yearly_stats">Yearly Stats</string>
+    <string name="records_all_stats">All Stats</string>
+    <string name="records_success_rate">Success Rate</string>
+    <string name="records_avg_duration">Avg. Duration</string>
+    <string name="records_max_duration">Max Duration</string>
+    <string name="records_total_days">Total Sober Days</string>
+    <string name="records_no_records">No sobriety records yet</string>
+    <string name="records_view_all">View All Records (%d)</string>
+    <string name="records_view_all_icon_cd">View all records</string>
+    <string name="records_add">Add Sobriety Record</string>
+    <string name="records_day_unit">d</string>
     <string name="records_percent_unit">%</string>
 
-    <!-- Level names (레벨 이름) - [개편] 11단계 시스템 (2025-12-03) -->
-    <string name="level_0">알코올 스톱</string>           <!-- Lv.1: 1~3일 -->
-    <string name="level_1">3일 컷 통과</string>           <!-- Lv.2: 4~7일 -->
-    <string name="level_2">1주 클리어</string>            <!-- Lv.3: 8~14일 -->
-    <string name="level_3">피부의 변화</string>           <!-- Lv.4: 15~21일 -->
-    <string name="level_4">습관 형성 (21일)</string>      <!-- Lv.5: 22~30일 -->
-    <string name="level_5">한달의 기적</string>           <!-- Lv.6: 31~60일 -->
-    <string name="level_6">달라진 핏(Fit)</string>        <!-- Lv.7: 61~99일 -->
-    <string name="level_7">100일, 프로 금주러</string>    <!-- Lv.8: 100~179일 -->
-    <string name="level_8">플러스 통장</string>           <!-- Lv.9: 180~299일 -->
-    <string name="level_9">금주 마스터</string>           <!-- Lv.10: 300~364일 -->
-    <string name="level_10">전설의 레전드</string>        <!-- Legend: 365일+ -->
+    <!-- Statistics Card Labels -->
+    <string name="stats_calories_reduced">Calories Cut</string>
+    <string name="stats_drinks_resisted">Drinks Passed</string>
+    <string name="stats_money_saved">Money Saved</string>
+    <string name="stats_total_days">Total Days</string>
+    <string name="stats_unit_kcal">kcal</string>
+    <string name="stats_unit_bottles">bottle(s)</string>
+    <string name="stats_unit_won">KRW</string>
+    <string name="stats_unit_days">d</string>
 
-    <!-- Level screen (레벨 화면) -->
-    <string name="level_title">금주 레벨</string>
-    <string name="level_days_label">일차</string>
-    <string name="level_until_next">다음 레벨까지</string>
-    <string name="level_days_remaining">남음</string>
-    <string name="level_hours_remaining">남음</string>
-    <string name="level_days_hours_remaining">일 %d시간 남음</string>
-    <string name="level_soon_levelup">곧 레벨업</string>
-    <string name="level_all_levels">전체 레벨</string>
-    <string name="level_day_unit">일</string>
-    <string name="level_hour_unit">시간</string>
+    <!-- [NEW] Short Statistics Labels (with icons, prevents text truncation) -->
+    <string name="stats_label_calories_short">Cut</string>
+    <string name="stats_label_drinks_short">Passed</string>
+    <string name="stats_label_money_short">Saved</string>
 
-    <!-- Target Days Setting (목표 기간 설정) -->
-    <string name="target_days_title">목표 기간 설정</string>
-    <string name="target_days_title_set">목표 기간 설정</string>
-    <string name="target_days_unit">일</string>
-    <string name="target_days_unit_d">d</string>
-    <string name="target_days_hint">금주할 목표 기간을 선택해주세요</string>
+    <!-- Diary Section -->
+    <string name="diary_recent_title">Recent Diary</string>
+    <string name="diary_view_all">View All Entries</string>
+    <string name="diary_no_entries">No diary entries yet</string>
+    <string name="diary_write_prompt">Tap the + button below\nto write your first entry</string>
+    <string name="diary_write_button">Write Diary</string>
+    <string name="diary_write_button_action">Write Diary Entry</string>
 
-    <!-- Duration Badge Labels (목표 기간 선택 뱃지) -->
-    <string name="badge_one_day">딱 하루만</string>
-    <string name="badge_three_days">작심삼일</string>
-    <string name="badge_one_week">1주 챌린지</string>
-    <string name="badge_21_days">21일 습관 만들기</string>
-    <string name="badge_one_month">한 달의 기적</string>
-    <string name="badge_100_days">100일의 약속</string>
-
-    <!-- Target Days Picker (목표 일수 선택) -->
-    <string name="target_days_picker_title">목표 일수 선택</string>
-    <string name="target_days_picker_unit">일</string>
-    <string name="target_days_picker_cancel">취소</string>
-    <string name="target_days_picker_confirm">확인</string>
-
-    <!-- Start Activity screen title (금주 시작 화면 제목) -->
-    <string name="start_screen_title">금주 시작</string>
-
-    <!-- Settings screen (설정 화면) -->
-    <string name="settings_title">습관 설정</string>
-    <string name="settings_drinking_cost">음주 비용</string>
-    <string name="settings_drinking_frequency">음주 빈도</string>
-    <string name="settings_drinking_duration">음주 시간</string>
-    <string name="settings_apply_button">적용</string>
-    <string name="settings_currency">통화 설정</string>
-    <string name="settings_currency_auto">자동(지역 기반)</string>
-    <string name="settings_currency_current">현재 선택: %1$s</string>
-    <string name="settings_currency_current_auto">현재 선택: %1$s (자동)</string>
-
-    <!-- Community screen (커뮤니티 화면) -->
-    <string name="community_title">익명 응원 챌린지</string>
-
-    <!-- More (Tab04) tab labels - [REFACTORED 2025-12-19] Tab 3으로 커뮤니티 탭 -->
-    <string name="more_title">커뮤니티</string>
-    <string name="drawer_menu_more">커뮤니티</string>
+    <!-- Diary Screens -->
+    <string name="diary_all_title">Sobriety Diary</string>
+    <string name="diary_all_empty">No diary entries.</string>
+    <string name="diary_write_title">Write Diary</string>
+    <string name="diary_edit_title">Edit Diary</string>
+    <string name="diary_menu_edit">Edit</string>
+    <string name="diary_menu_delete">Delete</string>
+    <string name="diary_save_button">Save</string>
+    <string name="diary_question_title">Did you think about drinking today?</string>
+    <string name="diary_question_required">Required</string>
+    <string name="diary_craving_weak">Not at all</string>
+    <string name="diary_craving_strong">Very much</string>
+    <string name="diary_craving_label">Craving Level: %d/10</string>
+    <string name="diary_mood_title">Today\'s Note</string>
+    <string name="diary_mood_optional">Optional</string>
+    <string name="diary_content_placeholder">Write about the hardest moment today,\nor give yourself a compliment.</string>
+    <string name="diary_content_empty">No content</string>
+    <string name="diary_delete_confirm_title">Delete Diary</string>
+    <string name="diary_delete_confirm_message">Are you sure you want to delete this diary entry?</string>
+    <string name="diary_delete_confirm_button">Delete</string>
 
     <!-- Tab05 (More) Menu Items -->
-    <string name="tab05_rate_app">앱 평가하기</string>
-    <string name="tab05_notifications">알림</string>
-    <string name="tab05_customer_support">문의/제안</string>
-    <string name="tab05_recommended_apps">추천앱</string>
+    <string name="more_title">More</string>
+    <string name="tab05_rate_app">Rate App</string>
+    <string name="tab05_notifications">Notifications</string>
+    <string name="tab05_customer_support">Support</string>
+    <string name="tab05_recommended_apps">Apps</string>
 
     <!-- Notification Center -->
-    <string name="notification_center_title">알림 센터</string>
-    <string name="notification_empty_message">새로운 알림이 없습니다.</string>
+    <string name="notification_center_title">Notification Center</string>
+    <string name="notification_empty_message">No new notifications.</string>
 
     <!-- Customer Feedback Bottom Sheet -->
-    <string name="feedback_title">문의하기</string>
-    <string name="feedback_category_label">문의 유형</string>
-    <string name="feedback_category_feature">기능 제안</string>
-    <string name="feedback_category_bug">버그 신고</string>
-    <string name="feedback_category_other">기타 문의</string>
-    <string name="feedback_content_label">문의 내용</string>
-    <string name="feedback_content_placeholder">예시) 앱 시작시 중지되는 현상이 있습니다.</string>
-    <string name="feedback_email_label">이메일 주소 (선택)</string>
+    <string name="feedback_title">Contact Us</string>
+    <string name="feedback_category_label">Inquiry Type</string>
+    <string name="feedback_category_feature">Feature Request</string>
+    <string name="feedback_category_bug">Bug Report</string>
+    <string name="feedback_category_other">Other</string>
+    <string name="feedback_content_label">Message</string>
+    <string name="feedback_content_placeholder">e.g.) The app crashes on startup.</string>
+    <string name="feedback_email_label">Email Address (Optional)</string>
     <string name="feedback_email_placeholder">example@email.com</string>
-    <string name="feedback_email_note">답변을 받으시려면 이메일 주소를 입력해주세요.이메일 주소는 답변 용도 외에 사용되지 않습니다.</string>
-    <string name="feedback_submit_button">보내기</string>
-    <string name="feedback_email_error">올바른 이메일 형식이 아닙니다.</string>
-    <string name="feedback_submitting">전송 중&#8230;</string>
-    <string name="feedback_success_message">소중한 의견 감사합니다 🙏</string>
-    <string name="feedback_error_message">전송에 실패했습니다\n%1$s</string>
+    <string name="feedback_email_note">Please provide your email if you\'d like a response.\nYour email will only be used for replies.</string>
+    <string name="feedback_submit_button">Submit</string>
+    <string name="feedback_email_error">Invalid email format.</string>
+    <string name="feedback_submitting">Submitting&#8230;</string>
+    <string name="feedback_success_message">Thank you for your feedback 🙏</string>
+    <string name="feedback_error_message">Submission failed\n%1$s</string>
 
-    <!-- Privacy options (UMP) -->
-    <string name="settings_privacy_section_title">개인정보 및 광고 설정</string>
-    <string name="settings_privacy_open_button">동의/광고 설정 열기</string>
-    <string name="settings_privacy_description">광고 맞춤설정 동의 변경 또는 철회를 할 수 있어요.</string>
-    <!-- Ad personalization status labels (used in AboutScreens UMP UI) -->
-    <string name="settings_privacy_personalization_allowed">허용됨</string>
-    <string name="settings_privacy_personalization_denied">거부됨</string>
+    <!-- Level names - [Redesigned] 11-level system (2025-12-03) -->
+    <string name="level_0">Alcohol Stop</string>              <!-- Lv.1: 1~3 days -->
+    <string name="level_1">3-Day Cut Passed</string>          <!-- Lv.2: 4~7 days -->
+    <string name="level_2">1-Week Clear</string>              <!-- Lv.3: 8~14 days -->
+    <string name="level_3">Skin\'s Transformation</string>    <!-- Lv.4: 15~21 days -->
+    <string name="level_4">Habit Formed (21 Days)</string>    <!-- Lv.5: 22~30 days -->
+    <string name="level_5">One-Month Miracle</string>         <!-- Lv.6: 31~60 days -->
+    <string name="level_6">Changed Fit</string>               <!-- Lv.7: 61~99 days -->
+    <string name="level_7">100 Days, Pro Soberer</string>     <!-- Lv.8: 100~179 days -->
+    <string name="level_8">Plus Balance</string>              <!-- Lv.9: 180~299 days -->
+    <string name="level_9">Sobriety Master</string>           <!-- Lv.10: 300~364 days -->
+    <string name="level_10">Legendary Legend</string>         <!-- Legend: 365+ days -->
 
-    <!-- About / UMP helper strings -->
-    <string name="about_ad_consent_settings">Privacy Settings</string>
-    <string name="settings_privacy_unavailable">활동을 사용할 수 없어 광고 설정을 표시할 수 없습니다.</string>
-    <string name="settings_privacy_checking">광고 동의 확인 중&#8230;</string>
-    <string name="settings_privacy_load_failed">동의 폼 로드 실패: %1$s</string>
-    <string name="settings_privacy_not_required">동의 폼이 필요하지 않거나 이미 처리되었습니다.</string>
-    <string name="settings_privacy_update_failed">동의 정보 업데이트 실패: %1$s</string>
+    <!-- Level screen -->
+    <string name="level_title">Sobriety Levels</string>
+    <string name="level_days_label">Days</string>
+    <string name="level_until_next">Until Next Level</string>
+    <string name="level_days_remaining">left</string>
+    <string name="level_hours_remaining">left</string>
+    <string name="level_days_hours_remaining">%d d %d hour(s) left</string>
+    <string name="level_soon_levelup">Level Up Soon!</string>
+    <string name="level_all_levels">All Levels</string>
+    <string name="level_day_unit">d</string>
+    <string name="level_hour_unit">hour(s)</string>
 
-    <!-- About screen: ad personalization labels (reusable) -->
-    <string name="about_ad_personalization">광고 개인화 허용</string>
-    <string name="about_ad_personalization_dialog_title">광고 개인화 허용</string>
-    <string name="about_ad_personalization_dialog_message">광고 개인화를 위해 기기 광고 ID(Advertising ID)를 사용합니다. 동의하면 광고 ID에 접근할 수 있습니다. 계속하시겠습니까?</string>
+    <!-- Target Days Setting -->
+    <string name="target_days_title">Set Target Period</string>
+    <string name="target_days_title_set">Set Target Period</string>
+    <string name="target_days_unit">d</string>
+    <string name="target_days_unit_d">d</string>
+    <string name="target_days_hint">Please select your sobriety goal period</string>
 
-    <!-- Dialog common strings -->
-    <string name="dialog_confirm">확인</string>
-    <string name="dialog_view_details">자세히 보기</string>
-    <string name="dialog_close">닫기</string>
-    <string name="emergency_title_default">긴급 안내</string>
+    <!-- Duration Badge Labels -->
+    <string name="badge_one_day">Just 1 Day</string>
+    <string name="badge_three_days">3 Days Trial</string>
+    <string name="badge_one_week">1 Week Challenge</string>
+    <string name="badge_21_days">21-Day Habit</string>
+    <string name="badge_one_month">One-Month Miracle</string>
+    <string name="badge_100_days">100-Day Promise</string>
 
-    <!-- Additional All Records screen strings (추가 모든 기록 화면 문자열) -->
-    <string name="all_records_delete_failed">삭제 실패</string>
-    <string name="record_completed">완료</string>
-    <string name="record_incomplete">미완료</string>
-    <string name="record_actual_days">달성 일수</string>
-    <string name="record_target_days">목표 일수</string>
-    <string name="record_success_rate">달성률</string>
-    <string name="record_start_time">시작</string>
-    <string name="record_end_time">종료</string>
-    <string name="record_days_format">%.1f일</string>
-    <string name="record_target_days_format">%d일</string>
+    <!-- Target Days Picker -->
+    <string name="target_days_picker_title">Select Target Days</string>
+    <string name="target_days_picker_unit">d</string>
+    <string name="target_days_picker_cancel">Cancel</string>
+    <string name="target_days_picker_confirm">OK</string>
+
+    <!-- Start Activity screen title -->
+    <string name="start_screen_title">Sobriety Start</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Habit Settings</string>
+    <string name="settings_drinking_cost">Drinking Cost</string>
+    <string name="settings_drinking_frequency">Drinking Frequency</string>
+    <string name="settings_drinking_duration">Drinking Duration</string>
+    <string name="settings_apply_button">Apply</string>
+    <string name="settings_currency">Currency Settings</string>
+    <string name="settings_currency_auto">Auto (Region-based)</string>
+    <string name="settings_currency_current">Current: %1$s</string>
+    <string name="settings_currency_current_auto">Current: %1$s (Auto)</string>
+
+    <!-- Community screen -->
+    <string name="community_title">Anonymous Support Challenge</string>
+
+    <!-- Additional All Records screen strings -->
+    <string name="all_records_delete_failed">Delete failed</string>
+    <string name="record_completed">Completed</string>
+    <string name="record_incomplete">Incomplete</string>
+    <string name="record_actual_days">Actual Days</string>
+    <string name="record_target_days">Target Days</string>
+    <string name="record_success_rate">Success Rate</string>
+    <string name="record_start_time">Start</string>
+    <string name="record_end_time">End</string>
+    <string name="record_days_format">%.1f d</string>
+    <string name="record_target_days_format">%d d</string>
     <string name="record_rate_format">%.1f%%</string>
 
-    <!-- Month Picker (월 선택) -->
-    <string name="month_picker_title">월 선택</string>
-    <string name="month_picker_year_format">%d년</string>
-    <string name="month_picker_month_format">%d월</string>
-    <string name="month_picker_no_data">표시할 항목이 없습니다</string>
-    <string name="month_picker_select">선택</string>
+    <!-- Month Picker -->
+    <string name="month_picker_title">Select Month</string>
+    <string name="month_picker_year_format">%d</string>
+    <string name="month_picker_month_format">%d</string>
+    <string name="month_picker_no_data">No data available</string>
+    <string name="month_picker_select">Select</string>
 
-    <!-- Date Format (날짜 형식) -->
-    <string name="date_format_year_month">%1$d년 %2$d월</string>
-    <string name="date_format_year">%d년</string>
-    <string name="date_format_month">%d월</string>
+    <!-- Date Format -->
+    <string name="date_format_year_month">%2$d/%1$d</string>
+    <string name="date_format_year">%d</string>
+    <string name="date_format_month">%d</string>
 
-    <!-- Week Picker (주 선택) -->
-    <string name="week_picker_title">주 선택</string>
-    <string name="week_picker_this_week">이번 주</string>
-    <string name="week_picker_last_week">지난 주</string>
-    <string name="week_picker_select">선택</string>
+    <!-- Week Picker -->
+    <string name="week_picker_title">Select Week</string>
+    <string name="week_picker_this_week">This Week</string>
+    <string name="week_picker_last_week">Last Week</string>
+    <string name="week_picker_select">Select</string>
 
-    <!-- Year Picker (연도 선택) -->
-    <string name="year_picker_title">연도 선택</string>
-    <string name="year_picker_year_format">%d년</string>
-    <string name="year_picker_no_data">표시할 항목이 없습니다</string>
-    <string name="year_picker_select">선택</string>
+    <!-- Year Picker -->
+    <string name="year_picker_title">Select Year</string>
+    <string name="year_picker_year_format">%d</string>
+    <string name="year_picker_no_data">No data available</string>
+    <string name="year_picker_select">Select</string>
 
     <!-- Cost options -->
-    <string name="settings_cost_low">저</string>
-    <string name="settings_cost_medium">중</string>
-    <string name="settings_cost_high">고</string>
-    <string name="settings_cost_low_label">저 (1만원 이하)</string>
-    <string name="settings_cost_medium_label">중 (1~5만원)</string>
-    <string name="settings_cost_high_label">고 (5만원 이상)</string>
+    <string name="settings_cost_low">Low</string>
+    <string name="settings_cost_medium">Medium</string>
+    <string name="settings_cost_high">High</string>
+    <string name="settings_cost_low_label">Low (Under $10)</string>
+    <string name="settings_cost_medium_label">Medium ($10~50)</string>
+    <string name="settings_cost_high_label">High (Over $50)</string>
 
     <!-- Frequency options -->
-    <string name="settings_frequency_low">주 1회 이하</string>
-    <string name="settings_frequency_medium">주 2~3회</string>
-    <string name="settings_frequency_high">주 4회 이상</string>
+    <string name="settings_frequency_low">Once a week or less</string>
+    <string name="settings_frequency_medium">2-3 times a week</string>
+    <string name="settings_frequency_high">4+ times a week</string>
 
     <!-- Duration options -->
-    <string name="settings_duration_short">짧음</string>
-    <string name="settings_duration_medium">보통</string>
-    <string name="settings_duration_long">길게</string>
-    <string name="settings_duration_short_label">짧음 (2시간 이하)</string>
-    <string name="settings_duration_medium_label">보통 (3~5시간)</string>
-    <string name="settings_duration_long_label">길게 (6시간 이상)</string>
+    <string name="settings_duration_short">Short</string>
+    <string name="settings_duration_medium">Medium</string>
+    <string name="settings_duration_long">Long</string>
+    <string name="settings_duration_short_label">Short (Under 2 hours)</string>
+    <string name="settings_duration_medium_label">Medium (3-5 hours)</string>
+    <string name="settings_duration_long_label">Long (Over 6 hours)</string>
 
-    <!-- Add Record screen (금주 기록 추가) -->
-    <string name="add_record_title">금주 기록 추가</string>
-    <string name="add_record_button">기록 추가하기</string>
-    <string name="add_record_start_date_time">시작일 및 시간</string>
-    <string name="add_record_end_date_time">종료일 및 시간</string>
-    <string name="add_record_target_days">목표 일수</string>
-    <string name="add_record_error_invalid_range">종료 시간은 시작 시간 이후이어야 합니다</string>
-    <string name="add_record_error_set_target">목표 일수를 올바르게 입력하세요</string>
-    <string name="add_record_cancel">취소</string>
-    <string name="add_record_save">저장</string>
-    <string name="add_record_toast_success">금주 기록이 추가되었습니다</string>
-    <string name="add_record_toast_conflict">선택한 시간이 기존 기록과 겹칩니다</string>
-    <string name="add_record_days_unit">일</string>
-    <string name="add_record_error_invalid_input">입력값이 올바르지 않습니다</string>
-    <string name="add_record_error_time_conflict">선택한 시간이 기존 기록과 겹칩니다</string>
-    <string name="add_record_error_save_failed">저장에 실패했습니다</string>
-    <string name="add_record_saving">저장 중&#8230;</string>
+    <!-- Add Record screen -->
+    <string name="add_record_title">Add Sobriety Record</string>
+    <string name="add_record_button">Add Record</string>
+    <string name="add_record_start_date_time">Start Date &amp; Time</string>
+    <string name="add_record_end_date_time">End Date &amp; Time</string>
+    <string name="add_record_target_days">Target Days</string>
+    <string name="add_record_error_invalid_range">End time must be after start time</string>
+    <string name="add_record_error_set_target">Please enter valid target days</string>
+    <string name="add_record_cancel">Cancel</string>
+    <string name="add_record_save">Save</string>
+    <string name="add_record_toast_success">Sobriety record added successfully</string>
+    <string name="add_record_toast_conflict">Selected time conflicts with existing records</string>
+    <string name="add_record_days_unit">d</string>
+    <string name="add_record_saving">Saving&#8230;</string>
 
-    <!-- Currency options (통화 선택) -->
-    <string name="currency_krw">대한민국 원 (₩)</string>
-    <string name="currency_jpy">일본 엔 (¥)</string>
-    <string name="currency_usd">미국 달러 ($)</string>
-    <string name="currency_eur">유로 (€)</string>
-    <string name="currency_mxn">멕시코 페소 (MX$)</string>
-    <string name="currency_cny">중국 위안 (¥)</string>
-    <string name="currency_brl">브라질 헤알 (R$)</string>
+    <!-- Currency options -->
+    <string name="currency_krw">Korean Won (₩)</string>
+    <string name="currency_jpy">Japanese Yen (¥)</string>
+    <string name="currency_usd">US Dollar ($)</string>
+    <string name="currency_eur">Euro (€)</string>
+    <string name="currency_mxn">Mexican Peso (MX$)</string>
+    <string name="currency_cny">Chinese Yuan (¥)</string>
+    <string name="currency_brl">Brazilian Real (R$)</string>
 
-    <!-- Update dialog strings (localization keys added) -->
-    <string name="update_dialog_title">새 버전이 있습니다! 🎉</string>
-    <string name="update_dialog_version_format">버전 %1$s</string>
-    <string name="update_dialog_default_message">새로운 기능과 개선사항이 포함되어 있습니다.</string>
-    <string name="update_dialog_later">나중에</string>
-    <string name="update_dialog_update">업데이트</string>
-    <string name="update_dialog_icon_description">업데이트 아이콘</string>
+    <!-- Update dialog strings -->
+    <string name="update_dialog_title">New version available! 🎉</string>
+    <string name="update_dialog_version_format">Version %1$s</string>
+    <string name="update_dialog_default_message">Contains new features and improvements.</string>
+    <string name="update_dialog_later">Later</string>
+    <string name="update_dialog_update">Update</string>
+    <string name="update_dialog_icon_description">Update icon</string>
 
-    <!-- Nickname error messages -->
-    <string name="error_only_spaces">공백만 입력할 수 없어요</string>
-    <string name="error_too_long">입력 가능한 최대 길이를 초과했어요</string>
+    <string name="run_progress_title">Progress</string>
+    <string name="run_start_label">Start</string>
+    <string name="run_target_label">Target: %1$d d</string>
 
-    <!-- 추가: 진행 화면 문자열 -->
-    <string name="run_progress_title">진행 상황</string>
-    <string name="run_start_label">시작</string>
-    <string name="run_target_label">목표: %1$d일</string>
+    <!-- Privacy / About UMP strings (added) -->
+    <string name="about_ad_consent_settings">Privacy Settings</string>
+    <string name="settings_privacy_unavailable">Cannot show ad settings because activity is unavailable.</string>
+    <string name="settings_privacy_checking">Checking ad consent&#8230;</string>
+    <string name="settings_privacy_load_failed">Failed to load consent form: %1$s</string>
+    <string name="settings_privacy_not_required">Consent form not required or already handled.</string>
+    <string name="settings_privacy_update_failed">Failed to update consent info: %1$s</string>
+
+    <!-- Login label -->
+    <string name="login_label">Login</string>
+
+    <!-- Dialog common strings -->
+    <string name="dialog_confirm">Confirm</string>
+    <string name="dialog_view_details">View details</string>
+    <string name="dialog_close">Close</string>
+    <string name="emergency_title_default">Emergency Notice</string>
     <string name="debug_menu_title">Debug Menu</string>
 
-    <!-- Motivational Quotes (동기부여 명언) -->
+    <!-- Motivational Quotes -->
     <string-array name="motivational_quotes">
-        <item>인내의 무게는 몇 그램이지만, 후회의 무게는 몇 톤이나 됩니다.</item>
-        <item>습관이란 처음에는 거미줄 같지만, 나중에는 쇠줄 같아집니다.</item>
-        <item>나를 사랑하는 가장 확실한 방법은 절제입니다.</item>
-        <item>오늘의 참음이 내일의 건강하고 맑은 정신을 만듭니다.</item>
-        <item>포기하고 싶은 순간, 왜 시작했는지를 다시 생각해보세요.</item>
-        <item>미래의 나에게 부끄럽지 않은 오늘을 선물하세요.</item>
-        <item>깨어있는 아침의 기분을 기억하세요.</item>
-        <item>내일 아침의 나는 오늘 밤의 내게 고마워할 거예요.</item>
-        <item>술잔을 비우면 통장이 채워지고, 건강이 채워집니다.</item>
-        <item>술기운을 빌려야만 살 수 있는 인생이라면, 인생부터 바꿔야 합니다.</item>
-        <item>진정한 자유는 술병 안에 있지 않습니다.</item>
-        <item>오늘 마신 술은 내일의 체력과 맞바꾼 것입니다.</item>
-        <item>취해서 얻는 용기는 가짜지만, 맨정신으로 버티는 인내는 진짜입니다.</item>
-        <item>단 한 번의 실수로 공든 탑이 무너질 수 있습니다. 경계를 늦추지 마세요.</item>
-        <item>금주는 \'참는 것\'이 아니라, 나쁜 습관을 \'버리는 것\'입니다.</item>
-        <item>오늘 참은 한 잔이, 1년 뒤의 기적을 만듭니다.</item>
-        <item>맑은 정신으로 맞이하는 아침 햇살은 그 무엇보다 달콤합니다.</item>
-        <item>스스로를 통제할 수 있는 사람만이 인생의 주인이 됩니다.</item>
-        <item>지금의 고통은 나비가 되기 위한 번데기의 과정입니다.</item>
-        <item>한 잔의 유혹을 이기면, 천 잔의 후회를 막을 수 있습니다.</item>
-        <item>문제를 술로 덮지 마세요. 술이 깨면 문제는 더 커져 있습니다.</item>
-        <item>당신이 술을 거절할 때마다, 자존감은 1점씩 올라갑니다.</item>
-        <item>적당히 마실 수 없다면, 아예 마시지 않는 것이 정답입니다.</item>
-        <item>필름이 끊긴 어제보다, 생생하게 기억나는 오늘을 선택하세요.</item>
-        <item>오늘 마시지 않으면 내일은 더 강해집니다.</item>
-        <item>금주는 포기가 아닙니다. 더 나은 삶을 위한 현명한 선택입니다.</item>
-        <item>과거를 탓하며 마시는 술은 미래까지 망칠 뿐입니다.</item>
-        <item>변화는 \'나중에\'가 아니라 \'지금 당장\' 술잔을 내려놓을 때 시작됩니다.</item>
-        <item>가족에게 줄 수 있는 최고의 선물은 건강한 가장의 모습입니다.</item>
-        <item>진정한 휴식은 술에 취해 기절하는 것이 아니라, 맑은 정신으로 잠드는 것입니다.</item>
-        <item>당신의 잠재력은 알코올에 절어있기엔 너무나 아깝습니다.</item>
-        <item>성공한 사람들의 아침은 숙취로 시작되지 않습니다.</item>
-        <item>술이 없어도 당신은 충분히 매력적이고 재미있는 사람입니다.</item>
-        <item>오늘 밤의 절제는 내일 아침의 자존감으로 돌아옵니다.</item>
-        <item>술잔을 채우는 대신, 당신의 꿈과 목표를 채우세요.</item>
-        <item>기억나지 않는 밤보다, 생생하게 빛나는 아침을 맞이하세요.</item>
-        <item>술은 잠시 고민을 잊게 하지만, 해결책은 주지 않습니다.</item>
-        <item>술을 마시지 않는 것은 잃는 것이 아니라, 맑은 시간을 얻는 것입니다.</item>
-        <item>지금 멈추는 것이 가장 빠른 회복입니다.</item>
-        <item>술 없는 저녁이 주는 여유를 즐겨보세요.</item>
-        <item>당신이 이겨낸 유혹의 횟수만큼 당신은 단단해집니다.</item>
-        <item>술기운에 기대지 않아도 당신은 이미 강한 사람입니다.</item>
-        <item>술 마실 시간에 나를 위한 투자를 시작하세요.</item>
-        <item>흐릿한 현실 도피보다 또렷한 현실 직시가 당신을 성장시킵니다.</item>
-        <item>당신의 아이들은 술 냄새가 아닌 아빠의 따뜻한 향기를 기억할 것입니다.</item>
-        <item>술을 끊으면 하루가 24시간보다 길게 느껴집니다.</item>
-        <item>잠깐의 쾌락을 위해 내일의 컨디션을 희생하지 마세요.</item>
-        <item>스스로와의 약속을 지키는 것이 가장 큰 성공입니다.</item>
-        <item>맑은 눈으로 세상을 볼 때, 기회는 더 잘 보입니다.</item>
-        <item>술을 거절하는 것은 무례함이 아니라, 나를 지키는 당당함입니다.</item>
-        <item>술이 없어야 진짜 휴식이 시작됩니다.</item>
-        <item>오늘 참아낸 당신, 이미 어제보다 나은 사람입니다.</item>
-        <item>깨진 유리조각 같은 기억보다, 보석처럼 빛나는 추억을 만드세요.</item>
-        <item>술값으로 낭비되던 돈이 당신의 미래 자산이 됩니다.</item>
-        <item>흔들리는 술잔 속에 내 미래를 담지 마세요.</item>
-        <item>금주는 끝이 없는 참음이 아니라, 새로운 삶의 시작입니다.</item>
+        <item>Patience weighs a few grams, but regret weighs tons.</item>
+        <item>Habits start as spider webs but become iron chains.</item>
+        <item>The surest way to love yourself is through self-control.</item>
+        <item>Today\'s restraint creates tomorrow\'s healthy, clear mind.</item>
+        <item>When you want to give up, remember why you started.</item>
+        <item>Give today as a gift to your future self without regret.</item>
+        <item>Remember the feeling of a clear morning.</item>
+        <item>Tomorrow morning\'s you will thank tonight\'s you.</item>
+        <item>Empty the glass, fill your wallet and health.</item>
+        <item>If you need alcohol to live, change your life first.</item>
+        <item>True freedom isn\'t found inside a bottle.</item>
+        <item>Today\'s drink is tomorrow\'s energy traded away.</item>
+        <item>Drunk courage is fake, sober patience is real.</item>
+        <item>One mistake can topple a tower built with care. Stay vigilant.</item>
+        <item>Sobriety isn\'t endurance; it\'s letting go of bad habits.</item>
+        <item>One drink resisted today creates a miracle in a year.</item>
+        <item>Morning sunlight with a clear mind is sweeter than anything.</item>
+        <item>Only those who control themselves become masters of their lives.</item>
+        <item>Current pain is the cocoon stage before becoming a butterfly.</item>
+        <item>Resist one glass of temptation, prevent a thousand regrets.</item>
+        <item>Don\'t cover problems with alcohol. They\'ll be bigger when you sober up.</item>
+        <item>Every time you refuse a drink, your self-esteem goes up one point.</item>
+        <item>If you can\'t drink moderately, not drinking at all is the answer.</item>
+        <item>Choose a vivid today over a blacked-out yesterday.</item>
+        <item>Not drinking today makes you stronger tomorrow.</item>
+        <item>Sobriety isn\'t giving up. It\'s a wise choice for a better life.</item>
+        <item>Drinking to blame the past only ruins your future.</item>
+        <item>Change starts not "later" but "right now" when you put the glass down.</item>
+        <item>The best gift for your family is a healthy you.</item>
+        <item>True rest isn\'t passing out drunk, but sleeping with a clear mind.</item>
+        <item>Your potential is too valuable to be soaked in alcohol.</item>
+        <item>Successful people\'s mornings don\'t start with hangovers.</item>
+        <item>You\'re charming and fun enough without alcohol.</item>
+        <item>Tonight\'s restraint returns as tomorrow morning\'s self-respect.</item>
+        <item>Instead of filling glasses, fill your dreams and goals.</item>
+        <item>Welcome vivid, bright mornings over unmemorable nights.</item>
+        <item>Alcohol temporarily forgets worries but offers no solutions.</item>
+        <item>Not drinking isn\'t losing; it\'s gaining clear time.</item>
+        <item>Stopping now is the fastest recovery.</item>
+        <item>Enjoy the leisure an alcohol-free evening brings.</item>
+        <item>You become stronger with each temptation you overcome.</item>
+        <item>You\'re already strong without leaning on alcohol.</item>
+        <item>Invest in yourself instead of drinking time away.</item>
+        <item>Facing reality clearly grows you more than blurry escapism.</item>
+        <item>Your children will remember your warm presence, not alcohol smell.</item>
+        <item>Without alcohol, days feel longer than 24 hours.</item>
+        <item>Don\'t sacrifice tomorrow\'s condition for momentary pleasure.</item>
+        <item>Keeping promises to yourself is the greatest success.</item>
+        <item>With clear eyes, opportunities become more visible.</item>
+        <item>Refusing alcohol isn\'t rudeness; it\'s confident self-protection.</item>
+        <item>True rest starts only without alcohol.</item>
+        <item>You who endured today are already better than yesterday.</item>
+        <item>Create gem-like memories instead of shattered glass fragments.</item>
+        <item>Money wasted on drinks becomes your future assets.</item>
+        <item>Don\'t put your future in a wobbling glass.</item>
+        <item>Sobriety isn\'t endless endurance; it\'s the start of a new life.</item>
     </string-array>
 
-    <!-- FinishedScreen strings (타이머 완료 화면) -->
-    <string name="finished_back">뒤로 가기</string>
-    <string name="finished_success_title">🎉 목표 달성!</string>
-    <string name="finished_success_description">축하합니다!\n금주 목표를 성공적으로 완료했습니다.</string>
-    <string name="finished_result_check">결과 확인</string>
-    <string name="finished_new_timer">새 타이머 시작</string>
-    <string name="finished_giveup_title">🍃 잠시 쉬어가도 괜찮아요</string>
-    <string name="finished_giveup_description">이번 도전은 여기서 멈추지만, 그동안의 노력은 사라지지 않아요.\n마음을 추스르고 언제든 다시 돌아오세요.</string>
+    <!-- FinishedScreen strings (Timer completion screens) -->
+    <string name="finished_back">Back</string>
+    <string name="finished_success_title">🎉 Goal Achieved!</string>
+    <string name="finished_success_description">Congratulations!\nYou have successfully completed your sobriety goal.</string>
+    <string name="finished_result_check">Check Result</string>
+    <string name="finished_new_timer">Start New Timer</string>
+    <string name="finished_giveup_title">🍃 It\'s Okay to Take a Break</string>
+    <string name="finished_giveup_description">This challenge ends here, but your efforts won\'t disappear.\nTake a moment to regroup and come back anytime.</string>
 </resources>

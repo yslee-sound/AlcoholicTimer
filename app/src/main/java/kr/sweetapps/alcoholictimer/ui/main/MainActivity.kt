@@ -52,6 +52,43 @@ class MainActivity : BaseActivity() {
         // [NEW] 앱 시작 시각 기록 (최소 브랜딩 시간 계산용)
         val appStartTimeMs = System.currentTimeMillis()
 
+        // [DEBUG] 로케일 진단 로그 추가 (한국어 리소스 로드 문제 디버깅용)
+        try {
+            val systemLocale = java.util.Locale.getDefault().language
+            @Suppress("DEPRECATION")
+            val appResourceLocale = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                resources.configuration.locales[0]?.language ?: "unknown"
+            } else {
+                resources.configuration.locale?.language ?: "unknown"
+            }
+            @Suppress("DEPRECATION")
+            val allLocales = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                (0 until resources.configuration.locales.size()).joinToString(", ") {
+                    resources.configuration.locales[it]?.toString() ?: "null"
+                }
+            } else {
+                resources.configuration.locale?.toString() ?: "unknown"
+            }
+            android.util.Log.d("LocaleCheck", "========================================")
+            android.util.Log.d("LocaleCheck", "System Locale: $systemLocale")
+            android.util.Log.d("LocaleCheck", "App Resource Locale: $appResourceLocale")
+            android.util.Log.d("LocaleCheck", "All App Locales: [$allLocales]")
+            android.util.Log.d("LocaleCheck", "----------------------------------------")
+            android.util.Log.d("LocaleCheck", "[Common] app_name: ${getString(R.string.app_name)}")
+            android.util.Log.d("LocaleCheck", "[Tab Menu] drawer_menu_more: ${getString(R.string.drawer_menu_more)}")
+            android.util.Log.d("LocaleCheck", "[Tab Menu] drawer_menu_sobriety: ${getString(R.string.drawer_menu_sobriety)}")
+            android.util.Log.d("LocaleCheck", "[Tab Menu] drawer_menu_records: ${getString(R.string.drawer_menu_records)}")
+            android.util.Log.d("LocaleCheck", "[Screen] run_title: ${getString(R.string.run_title)}")
+            android.util.Log.d("LocaleCheck", "[Screen] records_title: ${getString(R.string.records_title)}")
+            android.util.Log.d("LocaleCheck", "[Button] dialog_confirm: ${getString(R.string.dialog_confirm)}")
+            android.util.Log.d("LocaleCheck", "[Button] dialog_cancel: ${getString(R.string.dialog_cancel)}")
+            android.util.Log.d("LocaleCheck", "[Profile] profile_edit_title: ${getString(R.string.profile_edit_title)}")
+            android.util.Log.d("LocaleCheck", "[Diary] diary_write_title: ${getString(R.string.diary_write_title)}")
+            android.util.Log.d("LocaleCheck", "========================================")
+        } catch (e: Exception) {
+            android.util.Log.e("LocaleCheck", "Failed to log locale info", e)
+        }
+
         // 타이밍 진단: MainActivity 진입 시각 기록
         kr.sweetapps.alcoholictimer.ui.ad.AdTimingLogger.logMainActivityCreate()
 
