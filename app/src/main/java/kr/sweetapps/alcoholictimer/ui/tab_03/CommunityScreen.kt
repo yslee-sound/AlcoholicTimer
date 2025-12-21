@@ -500,6 +500,9 @@ private fun WritePostScreenContent(
     // [NEW] 1. 상태 구독 - 현재 사용자의 아바타 인덱스
     val currentUserAvatarIndex by viewModel.currentUserAvatarIndex.collectAsState()
 
+    // [NEW] 로딩 상태 구독 - 업로드 진행 중이면 입력을 잠급니다
+    val isLoading by viewModel.isLoading.collectAsState()
+
     // [NEW] 2. 상태 구독 - 선택된 이미지 URI (2025-12-19)
     val selectedImageUri by viewModel.selectedImageUri.collectAsState()
 
@@ -637,28 +640,45 @@ private fun WritePostScreenContent(
                     TextButton(
                         onClick = {
                             // Allow posting when either text exists or an image is selected
-                            if (content.isNotBlank() || selectedImageUri != null) {
+                            if ((content.isNotBlank() || selectedImageUri != null) && !isLoading) {
                                 val payload = content.trim()
-                                // Clear local UI state immediately to avoid sticky state
-                                content = ""
                                 try {
-                                    viewModel.addPost(payload, context, selectedTag, selectedLevel)
+                                    // Do NOT clear local UI state here. ViewModel starts loading immediately and
+                                    // will call onSuccess when upload completes. Then we close the dialog.
+                                    viewModel.addPost(
+                                        content = payload,
+                                        context = context,
+                                        tagType = selectedTag,
+                                        thirstLevel = selectedLevel,
+                                        onSuccess = {
+                                            // Called from ViewModel after upload & DB save succeed
+                                            onPost(payload)
+                                        }
+                                    )
                                 } catch (e: Exception) {
                                     android.util.Log.e("CommunityScreen", "addPost call failed", e)
                                 }
-                                // Notify parent to close UI
-                                onPost(payload)
                             }
                         },
-                        enabled = isModified // 활성화 조건: 텍스트 또는 이미지가 있을 때
+                        // 시각적으로는 활성처럼 보이게 하되 실제 클릭은 onClick에서 막음
+                        enabled = (isLoading || isModified)
                     ) {
-                        Text(
-                            text = "게시하기",
-                            color = if (isModified)
-                                kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue // 테마 색상 사용 권장
-                            else Color(0xFFD1D5DB),
-                            style = MaterialTheme.typography.titleSmall
-                        )
+                        if (isLoading) {
+                            // 작은 로딩 인디케이터를 버튼 내부에 표시
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = "게시하기",
+                                color = if (isModified)
+                                    kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
+                                else Color(0xFFD1D5DB),
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
@@ -707,9 +727,11 @@ private fun WritePostScreenContent(
                                       .size(35.dp)
                                       .clip(RoundedCornerShape(12.dp))
                                       .background(if (selected) thirstColor(value) else Color(0xFFF0F0F0))
-                                      .clickable { selectedLevel = value },
-                                  contentAlignment = Alignment.Center
-                              ) {
+                                      .then(
+                                          if (!isLoading) Modifier.clickable { selectedLevel = value } else Modifier
+                                      ),
+                                   contentAlignment = Alignment.Center
+                               ) {
                                   Text(text = value.toString(), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = if (selected) Color.White else Color(0xFF374151))
                               }
                           }
@@ -721,12 +743,12 @@ private fun WritePostScreenContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable {
+                        .then(if (!isLoading) Modifier.clickable {
                             // [NEW] 사진 추가: 키보드 내리고 권한 체크 및 요청 후 풀스크린 갤러리 열기
                             focusManager.clearFocus()
                             Toast.makeText(context, "사진 추가 버튼 눌림", Toast.LENGTH_SHORT).show()
                             requestPermissionsAndOpen()
-                        }
+                        } else Modifier)
                         .padding(vertical = 12.dp, horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -876,7 +898,7 @@ private fun WritePostScreenContent(
                 ) {
                     FilterChip(
                         selected = selectedTag == "diary",
-                        onClick = { selectedTag = "diary" },
+                        onClick = { if (!isLoading) selectedTag = "diary" },
                         label = { Text("오늘의 일기") },
                         colors = FilterChipDefaults.filterChipColors(
                             // 비선택(기본) 상태 색상
@@ -891,7 +913,7 @@ private fun WritePostScreenContent(
 
                     FilterChip(
                         selected = selectedTag == "thanks",
-                        onClick = { selectedTag = "thanks" },
+                        onClick = { if (!isLoading) selectedTag = "thanks" },
                         label = { Text("오늘 감사할 일") },
                         colors = FilterChipDefaults.filterChipColors(
                             // 비선택(기본) 상태 색상
@@ -906,7 +928,7 @@ private fun WritePostScreenContent(
 
                     FilterChip(
                         selected = selectedTag == "reflect",
-                        onClick = { selectedTag = "reflect" },
+                        onClick = { if (!isLoading) selectedTag = "reflect" },
                         label = { Text("오늘 반성할 일") },
                         colors = FilterChipDefaults.filterChipColors(
                             // 비선택(기본) 상태 색상
@@ -922,18 +944,18 @@ private fun WritePostScreenContent(
 
             // 텍스트 입력창
              TextField(
-                 value = content,
-                 onValueChange = { content = it },
-                 modifier = Modifier
-                     .fillMaxWidth()
-                     .weight(1f) // [FIX] 부모 Column이 고정 높이를 가지므로 TextField에 weight를 주어 남은 공간을 채우도록 함
-                     .padding(horizontal = 16.dp) // [NEW] 좌우 패딩만 적용
-                     .onFocusChanged { state ->
-                         // [NEW] 입력창에 포커스가 생기면 하단 패널들을 닫아 키보드가 정상 동작하도록 함
-                         if (state.isFocused) {
-                             showThirstSlider = false
-                         }
-                     },
+                  value = content,
+                  onValueChange = { if (!isLoading) content = it },
+                  modifier = Modifier
+                      .fillMaxWidth()
+                      .weight(1f) // [FIX] 부모 Column이 고정 높이를 가지므로 TextField에 weight를 주어 남은 공간을 채우도록 함
+                      .padding(horizontal = 16.dp) // [NEW] 좌우 패딩만 적용
+                      .onFocusChanged { state ->
+                          // [NEW] 입력창에 포커스가 생기면 하단 패널들을 닫아 키보드가 정상 동작하도록 함
+                          if (state.isFocused) {
+                              showThirstSlider = false
+                          }
+                      },
                   placeholder = {
                     Text(
                         text = placeholderText,
@@ -947,7 +969,8 @@ private fun WritePostScreenContent(
                      focusedIndicatorColor = Color.Transparent, // 밑줄 제거
                      unfocusedIndicatorColor = Color.Transparent
                  ),
-                 textStyle = MaterialTheme.typography.bodyLarge
+                 textStyle = MaterialTheme.typography.bodyLarge,
+                 enabled = !isLoading // [NEW] 비활성화 상태 추가
              )
 
              // NEW 이미지 미리보기 (2025-12-19)
@@ -971,6 +994,7 @@ private fun WritePostScreenContent(
                      // 우측 상단 X 버튼
                      IconButton(
                          onClick = { viewModel.onImageSelected(null) },
+                         enabled = !isLoading,
                          modifier = Modifier
                              .align(Alignment.TopEnd)
                              .padding(8.dp)

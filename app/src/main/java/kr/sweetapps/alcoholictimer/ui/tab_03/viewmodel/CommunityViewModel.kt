@@ -250,13 +250,15 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
      * @param content 게시글 내용
      * @param context Context (이미지 압축에 필요)
      */
-    fun addPost(content: String, context: Context, tagType: String = "", thirstLevel: Int? = null) {
+    fun addPost(content: String, context: Context, tagType: String = "", thirstLevel: Int? = null, onSuccess: () -> Unit = {}) {
+        // Immediately mark loading so UI can reflect spinner synchronously
+        _isLoading.value = true
+
         // COPY selected image URI immediately and clear UI state to avoid sticky image when reopening write screen
         val uriToUpload = _selectedImageUri.value
         _selectedImageUri.value = null
 
         viewModelScope.launch {
-            _isLoading.value = true
             try {
                 var imageUrl: String? = null
 
@@ -333,8 +335,12 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                 // 8. Firestore에 게시글 추가
                 repository.addPost(post)
 
-                // 9. 선택한 이미지 URI 초기화
-                _selectedImageUri.value = null
+                // 9. 성공 콜백 호출 (UI 쪽에서 창 닫기 등 후속 처리 담당)
+                try {
+                    onSuccess()
+                } catch (e: Exception) {
+                    android.util.Log.w("CommunityViewModel", "onSuccess callback failed: ${e.message}")
+                }
             } catch (e: Exception) {
                 android.util.Log.e("CommunityViewModel", "게시글 작성 실패", e)
             } finally {
