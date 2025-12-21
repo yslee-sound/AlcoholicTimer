@@ -10,12 +10,14 @@
     <string name="empty_records_title">기록이 없습니다</string>
     <string name="empty_records_subtitle">첫 번째 금주 기록을 시작해보세요!</string>
     <string name="empty_records_cd">표시할 기록이 없습니다</string>
+
     <!-- Delete all records -->
     <string name="cd_delete_all_records">모든 기록 삭제</string>
     <string name="all_records_delete_title">모든 기록 삭제</string>
     <string name="all_records_delete_message">정말로 모든 금주 기록을 삭제하시겠습니까?&#10;삭제 후 복구할 수 없습니다.</string>
     <string name="all_records_delete_confirm">모두 삭제</string>
     <string name="menu_delete_all_records">모든 기록 삭제</string>
+    <string name="cd_more_options">더보기 옵션</string>
 
     <!-- Run screen -->
     <string name="run_title">금주 진행</string>
@@ -23,17 +25,14 @@
     <string name="stat_level">레벨</string>
     <string name="stat_time">시간</string>
     <string name="stat_goal_days_format">%d일</string>
-
     <string name="indicator_title_days">금주 일수</string>
     <string name="indicator_title_time">시간</string>
     <string name="indicator_title_saved_money">절약한 금액</string>
     <string name="indicator_title_saved_hours">절약한 시간</string>
     <string name="indicator_title_life_gain">기대 수명+</string>
     <string name="tap_to_switch_indicator">탭하여 다른 지표 보기</string>
-
     <string name="cd_stop">정지</string>
     <string name="cd_continue">계속</string>
-
     <string name="toast_goal_completed">금주 목표를 달성했습니다!</string>
 
     <!-- Update Snackbar (Flexible download completed) -->
@@ -60,6 +59,7 @@
     <string name="dialog_delete_message">정말로 이 금주 기록을 삭제하시겠습니까?&#10;삭제 후 복구할 수 없습니다.</string>
     <string name="dialog_delete_confirm">삭제</string>
     <string name="dialog_cancel">취소</string>
+    <string name="dialog_ok">확인</string>
     <string name="detail_start_label">시작:</string>
     <string name="detail_end_label">종료:</string>
     <string name="detail_progress_rate">목표 달성률</string>
@@ -80,6 +80,7 @@
     <string name="about_title">앱 정보</string>
     <string name="about_version_info">버전 정보</string>
     <string name="about_open_license_notice">Open Source License</string>
+
     <!-- Document screen titles -->
     <string name="document_title_open_source">Open Source License</string>
     <string name="document_title_privacy">개인정보 처리방침</string>
@@ -90,31 +91,14 @@
     <string name="about_label_source_link">출처 링크</string>
     <string name="about_label_license">라이선스</string>
     <string name="about_label_changes">변경 사항</string>
-
-    <!-- License notice values (these remain in English for both languages) -->
-    <string name="about_value_icon_name">Free Wayfinding vector icons - Guidance icon set</string>
-    <string name="about_value_icon_author">Streamline and Vincent le moign</string>
-    <string name="about_value_source_url">https://www.figma.com/community/file/1227184301417272677/free-wayfinding-vector-icons-guidance-icon-set</string>
-
-    <string name="about_value_license_cc_by">Creative Commons Attribution 4.0 International (CC BY 4.0)</string>
-    <string name="about_value_license_cc_by_url">https://creativecommons.org/licenses/by/4.0/</string>
-    <string name="about_value_change_desc">아이콘의 색상 및 모양 일부를 수정하여 사용함.</string>
-    <string name="about_notice_compliance">본 앱은 CC BY 4.0 조건에 따라 적절한 저작자 표시, 출처 및 라이선스 링크 제공, 변경 사항 고지를 준수합니다.</string>
-
     <string name="action_copy">복사</string>
     <string name="toast_copied">주소를 복사했습니다.</string>
 
     <!-- Drawer menu (Navigation drawer) -->
     <string name="default_nickname">알중이1</string>
-    <string name="drawer_edit_profile">프로필 편집</string>
-    <string name="drawer_section_menu">메뉴</string>
-    <string name="drawer_section_settings">설정</string>
     <string name="drawer_menu_sobriety">금주</string>
     <string name="drawer_menu_records">기록</string>
-    <string name="drawer_menu_level">레벨</string>
-    <string name="drawer_menu_settings">설정</string>
-    <string name="drawer_menu_about">앱 정보</string>
-    <string name="cd_avatar">아바타</string>
+    <string name="drawer_menu_more">커뮤니티</string>
     <string name="cd_menu">메뉴</string>
 
     <!-- Profile Edit screen -->
@@ -125,6 +109,8 @@
     <string name="profile_save">저장</string>
     <string name="profile_cancel">취소</string>
     <string name="cd_clear_text">텍스트 지우기</string>
+    <string name="error_only_spaces">공백만 입력할 수 없어요</string>
+    <string name="error_too_long">입력 가능한 최대 길이를 초과했어요</string>
 
     <!-- Records screen -->
     <string name="records_title">금주 기록</string>
@@ -143,9 +129,23 @@
     <string name="records_total_days">총 누적 금주일</string>
     <string name="records_no_records">금주 기록이 아직 없습니다</string>
     <string name="records_view_all">전체 기록 보기 (%d)</string>
+    <string name="records_view_all_icon_cd">전체 기록 보기</string>
     <string name="records_add">금주 기록 추가</string>
     <string name="records_day_unit">일</string>
     <string name="records_percent_unit">%</string>
+
+    <!-- Statistics Card Labels (통계 카드 라벨) -->
+    <string name="stats_calories_reduced">줄인 칼로리</string>
+    <string name="stats_drinks_resisted">참아낸 술</string>
+    <string name="stats_money_saved">지켜낸 돈</string>
+    <string name="stats_total_days">총 누적 금주일</string>
+    <string name="stats_unit_kcal">kcal</string>
+    <string name="stats_unit_bottles">병</string>
+
+    <!-- [NEW] 짧은 통계 라벨 (아이콘과 함께 사용, 텍스트 잘림 방지) -->
+    <string name="stats_label_calories_short">컷</string>
+    <string name="stats_label_drinks_short">절주</string>
+    <string name="stats_label_money_short">저축</string>
 
     <!-- Level names - [재설계] 11단계 시스템 (2025-12-03) -->
     <string name="level_0">알코올 스톱</string>          <!-- Lv.1: 1~3일 -->
@@ -172,20 +172,6 @@
     <string name="level_day_unit">일</string>
     <string name="level_hour_unit">시간</string>
 
-    <!-- Statistics Card Labels (통계 카드 라벨) -->
-    <string name="stats_calories_reduced">줄인 칼로리</string>
-    <string name="stats_drinks_resisted">참아낸 술</string>
-    <string name="stats_money_saved">지켜낸 돈</string>
-    <string name="stats_total_days">총 누적 금주일</string>
-    <string name="stats_unit_kcal">kcal</string>
-    <string name="stats_unit_bottles">병</string>
-    <string name="stats_unit_won">원</string>
-    <string name="stats_unit_days">d</string>
-
-    <!-- [NEW] 짧은 통계 라벨 (아이콘과 함께 사용, 텍스트 잘림 방지) -->
-    <string name="stats_label_calories_short">컷</string>
-    <string name="stats_label_drinks_short">절주</string>
-    <string name="stats_label_money_short">저축</string>
 
     <!-- Diary Section (일기 섹션) -->
     <string name="diary_recent_title">최근 일기</string>
@@ -338,7 +324,6 @@
 
     <!-- More (Tab04) tab labels - used instead of 'Settings' for tab04 -->
     <string name="more_title">커뮤니티</string>
-    <string name="drawer_menu_more">커뮤니티</string>
 
     <!-- Tab05 (More) Menu Items -->
     <string name="tab05_rate_app">앱 평가하기</string>
@@ -462,8 +447,6 @@
     </string-array>
 
     <!-- Additional keys -->
-    <string name="error_only_spaces">공백만 입력할 수 없어요</string>
-    <string name="error_too_long">입력 가능한 최대 길이를 초과했어요</string>
     <string name="community_title">익명 응원 챌린지</string>
     <string name="add_record_saving">저장 중&#8230;</string>
     <string name="debug_menu_title">디버그 메뉴</string>

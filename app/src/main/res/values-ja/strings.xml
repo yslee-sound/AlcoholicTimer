@@ -10,12 +10,14 @@
     <string name="empty_records_title">まだ記録がありません</string>
     <string name="empty_records_subtitle">最初の禁酒チャレンジを始めましょう！</string>
     <string name="empty_records_cd">表示する記録がありません</string>
+
     <!-- Delete all records -->
     <string name="cd_delete_all_records">全ての記録を削除</string>
     <string name="all_records_delete_title">全ての記録を削除</string>
     <string name="all_records_delete_message">本当に全ての禁酒記録を削除しますか？&#10;この操作は元に戻せません。</string>
     <string name="all_records_delete_confirm">全て削除</string>
     <string name="menu_delete_all_records">全ての記録を削除</string>
+    <string name="cd_more_options">その他のオプション</string>
 
     <!-- Run screen -->
     <string name="run_title">禁酒の進捗</string>
@@ -23,17 +25,14 @@
     <string name="stat_level">レベル</string>
     <string name="stat_time">時間</string>
     <string name="stat_goal_days_format">%d日</string>
-
     <string name="indicator_title_days">禁酒日数</string>
     <string name="indicator_title_time">時間</string>
     <string name="indicator_title_saved_money">節約金額</string>
     <string name="indicator_title_saved_hours">節約時間</string>
     <string name="indicator_title_life_gain">寿命延長</string>
     <string name="tap_to_switch_indicator">タップして他の指標を表示</string>
-
     <string name="cd_stop">停止</string>
     <string name="cd_continue">続ける</string>
-
     <string name="toast_goal_completed">禁酒目標を達成しました！</string>
 
     <!-- Update Snackbar (Flexible download completed) -->
@@ -60,6 +59,7 @@
     <string name="dialog_delete_message">この記録を削除しますか？&#10;この操作は元に戻せません。</string>
     <string name="dialog_delete_confirm">削除</string>
     <string name="dialog_cancel">キャンセル</string>
+    <string name="dialog_ok">OK</string>
     <string name="detail_start_label">開始:</string>
     <string name="detail_end_label">終了:</string>
     <string name="detail_progress_rate">目標達成率</string>
@@ -91,30 +91,15 @@
     <string name="about_label_license">ライセンス</string>
     <string name="about_label_changes">変更内容</string>
 
-    <!-- License notice values (these remain in English for both languages) -->
-    <string name="about_value_icon_name">Free Wayfinding vector icons - Guidance icon set</string>
-    <string name="about_value_icon_author">Streamline and Vincent le moign</string>
-    <string name="about_value_source_url">https://www.figma.com/community/file/1227184301417272677/free-wayfinding-vector-icons-guidance-icon-set</string>
-
-    <string name="about_value_license_cc_by">Creative Commons Attribution 4.0 International (CC BY 4.0)</string>
-    <string name="about_value_license_cc_by_url">https://creativecommons.org/licenses/by/4.0/</string>
-    <string name="about_value_change_desc">アイコンの色と形状を変更しました。</string>
-    <string name="about_notice_compliance">このアプリは、適切な帰属表示、ソースリンク、ライセンスリンク、および変更の通知を提供することにより、CC BY 4.0に準拠しています。</string>
 
     <string name="action_copy">コピー</string>
     <string name="toast_copied">アドレスをコピーしました。</string>
 
     <!-- Drawer menu (Navigation drawer) -->
     <string name="default_nickname">禁酒ヒーロー1</string>
-    <string name="drawer_edit_profile">プロフィール編集</string>
-    <string name="drawer_section_menu">メニュー</string>
-    <string name="drawer_section_settings">設定</string>
     <string name="drawer_menu_sobriety">禁酒</string>
     <string name="drawer_menu_records">記録</string>
-    <string name="drawer_menu_level">レベル</string>
-    <string name="drawer_menu_settings">設定</string>
-    <string name="drawer_menu_about">アプリについて</string>
-    <string name="cd_avatar">アバター</string>
+    <string name="drawer_menu_more">もっと見る</string>
     <string name="cd_menu">メニュー</string>
 
     <!-- Profile Edit screen -->
@@ -125,6 +110,8 @@
     <string name="profile_save">保存</string>
     <string name="profile_cancel">キャンセル</string>
     <string name="cd_clear_text">テキストをクリア</string>
+    <string name="error_only_spaces">空白のみは入力できません</string>
+    <string name="error_too_long">入力可能な最大長を超えました</string>
 
     <!-- Records screen -->
     <string name="records_title">禁酒記録</string>
@@ -143,9 +130,23 @@
     <string name="records_total_days">総禁酒日数</string>
     <string name="records_no_records">禁酒記録がまだありません</string>
     <string name="records_view_all">全ての記録を表示 (%d)</string>
+    <string name="records_view_all_icon_cd">全ての記録を表示</string>
     <string name="records_add">禁酒記録を追加</string>
     <string name="records_day_unit">日</string>
     <string name="records_percent_unit">%</string>
+
+    <!-- Statistics Card Labels (統計カードラベル) -->
+    <string name="stats_calories_reduced">減らしたカロリー</string>
+    <string name="stats_drinks_resisted">我慢したお酒</string>
+    <string name="stats_money_saved">守ったお金</string>
+    <string name="stats_total_days">総禁酒日数</string>
+    <string name="stats_unit_kcal">kcal</string>
+    <string name="stats_unit_bottles">本</string>
+
+    <!-- [NEW] 短い統計ラベル (アイコンと一緒に使用、テキスト切り捨て防止) -->
+    <string name="stats_label_calories_short">カット</string>
+    <string name="stats_label_drinks_short">減酒</string>
+    <string name="stats_label_money_short">貯金</string>
 
     <!-- Level names - [再設計] 11段階システム (2025-12-03) -->
     <string name="level_0">アルコールストップ</string>          <!-- Lv.1: 1~3日 -->
@@ -172,20 +173,6 @@
     <string name="level_day_unit">日</string>
     <string name="level_hour_unit">時間</string>
 
-    <!-- Statistics Card Labels (統計カードラベル) -->
-    <string name="stats_calories_reduced">減らしたカロリー</string>
-    <string name="stats_drinks_resisted">我慢したお酒</string>
-    <string name="stats_money_saved">守ったお金</string>
-    <string name="stats_total_days">総禁酒日数</string>
-    <string name="stats_unit_kcal">kcal</string>
-    <string name="stats_unit_bottles">本</string>
-    <string name="stats_unit_won">円</string>
-    <string name="stats_unit_days">d</string>
-
-    <!-- [NEW] 短い統計ラベル (アイコンと一緒に使用、テキスト切り捨て防止) -->
-    <string name="stats_label_calories_short">カット</string>
-    <string name="stats_label_drinks_short">減酒</string>
-    <string name="stats_label_money_short">貯金</string>
 
     <!-- Diary Section (日記セクション) -->
     <string name="diary_recent_title">最近の日記</string>
@@ -339,7 +326,6 @@
 
     <!-- More (Tab04) tab labels - used instead of 'Settings' for tab04 -->
     <string name="more_title">もっと見る</string>
-    <string name="drawer_menu_more">もっと見る</string>
 
     <!-- Tab05 (More) Menu Items -->
     <string name="tab05_rate_app">アプリを評価する</string>
@@ -463,8 +449,6 @@
     </string-array>
 
     <!-- Additional keys -->
-    <string name="error_only_spaces">空白のみは入力できません</string>
-    <string name="error_too_long">入力可能な最大長を超えました</string>
     <string name="community_title">匿名応援チャレンジ</string>
     <string name="add_record_saving">保存中&#8230;</string>
     <string name="debug_menu_title">デバッグメニュー</string>
