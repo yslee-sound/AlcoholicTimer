@@ -187,4 +187,65 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
         }
         return sdf.format(Date(timestamp))
     }
+
+    /**
+     * [NEW] 테스트용 랜덤 일기 데이터 생성 (사진 포함) (2025-12-22)
+     * - 약 40%의 확률로 사진 URL 포함
+     * - 다양한 갈증 수치와 내용으로 UI 테스트 용이
+     */
+    fun generateMockDiaries() {
+        viewModelScope.launch {
+            val random = java.util.Random()
+            val contents = listOf(
+                "오늘 날씨가 너무 좋아서 사진 한 장 찍어봤어요! ☀️",
+                "술 대신 맛있는 안주만 먹고 왔습니다. 사진 보니까 또 먹고 싶네요. 🍜",
+                "운동 끝나고 오니 개운하네요. 금주 5일차! 💪",
+                "사진은 없지만 오늘 정말 보람찬 하루였습니다.",
+                "조금 힘들었지만 잘 참아낸 나 자신, 칭찬해! 👏",
+                "친구들과 즐거운 시간을 보냈어요. 술 없어도 재밌네요! 🎉",
+                "오늘은 좀 갈증이 심했지만 버텨냈습니다.",
+                "맛있는 저녁 먹고 산책했어요. 기분 좋은 하루! 🌙",
+                "일기 쓰는 습관이 들어가고 있어요. 뿌듯해요!",
+                "오늘도 무사히 하루를 마무리합니다. 감사합니다. 🙏"
+            )
+
+            val emojis = listOf("📝", "✅", "🌟", "💧", "💪", "😊", "🎯", "🔥", "✨", "🌈")
+
+            repeat(10) { index ->
+                // 0~364일 전의 랜덤 날짜 생성
+                val randomDaysAgo = random.nextInt(365)
+                val cal = Calendar.getInstance()
+                cal.add(Calendar.DAY_OF_YEAR, -randomDaysAgo)
+                val timestamp = cal.timeInMillis
+
+                // 40% 확률로 사진 포함, 나머지는 빈 문자열
+                val mockImageUrl = if (random.nextFloat() < 0.4f) {
+                    // Picsum Photos API를 사용하여 랜덤 테스트 이미지 생성
+                    "https://picsum.photos/seed/${random.nextInt(1000)}/400/300"
+                } else {
+                    ""
+                }
+
+                // 10% 확률로 갈증 수치 0 (미입력), 나머지는 1~10
+                val cravingLevel = if (random.nextFloat() < 0.1f) {
+                    0
+                } else {
+                    random.nextInt(10) + 1
+                }
+
+                val mockDiary = DiaryEntity(
+                    timestamp = timestamp,
+                    date = formatDate(timestamp),
+                    emoji = emojis.random(),
+                    content = contents.random(),
+                    cravingLevel = cravingLevel,
+                    imageUrl = mockImageUrl // [NEW] 랜덤 사진 URL 포함
+                )
+
+                repository.addDiary(mockDiary)
+            }
+
+            android.util.Log.d("DiaryViewModel", "✅ 테스트용 일기 10개 생성 완료 (사진 포함 비율: 40%)")
+        }
+    }
 }

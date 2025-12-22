@@ -8,6 +8,7 @@ import androidx.room.PrimaryKey
  * Room Database의 diary_table에 저장됩니다.
  *
  * [ROBUST] 모든 필드에 기본값 설정으로 마이그레이션 안전성 확보
+ * [NEW] imageUrl 필드 추가 (2025-12-22)
  */
 @Entity(tableName = "diary_table")
 data class DiaryEntity(
@@ -27,6 +28,9 @@ data class DiaryEntity(
     val content: String = "",
 
     /** 갈망 수치 (0~10) */
-    val cravingLevel: Int = 0
+    val cravingLevel: Int = 0,
+
+    /** [NEW] 사진 URL (2025-12-22) */
+    val imageUrl: String = ""
 )
 

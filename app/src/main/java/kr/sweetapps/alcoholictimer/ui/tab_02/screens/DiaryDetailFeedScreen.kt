@@ -125,7 +125,7 @@ fun DiaryDetailFeedScreen(
                             nickname = myNickname,
                             timerDuration = formatTimerDuration(diary.timestamp),
                             content = diary.content,
-                            imageUrl = null, // 일기는 이미지 없음 (필요시 추가)
+                            imageUrl = diary.imageUrl.takeIf { it.isNotBlank() }, // [NEW] 이미지 URL 전달 (2025-12-22)
                             likeCount = 0, // 일기는 좋아요 없음
                             isLiked = false,
                             remainingTime = "", // 사용 안 함
