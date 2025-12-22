@@ -227,7 +227,7 @@ private fun CalendarGrid(
     // 달력 그리드 생성
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(0.dp)
+        verticalArrangement = Arrangement.spacedBy(0.dp) // 행 사이 간격 제거
     ) {
         var dayCounter = 1 - firstDayOfWeek
 
@@ -314,20 +314,17 @@ private fun CalendarDayCell(
 ) {
     Column(
         modifier = modifier
-            .aspectRatio(0.65f) // [FIX] 세로 공간 확보 (0.75 -> 0.65) - 38dp 원과 10dp 점 모두 수용 (2025-12-22)
-            .padding(vertical = 2.dp), // [FIX] 패딩 최소화 (6dp -> 2dp) - 콘텐츠 공간 확보 (2025-12-22)
+            .aspectRatio(0.7f) // 0.75f fillMaxSize()[FIX] 세로 높이 조정 - 행 간격 축소 (2025-12-23)
+            .padding(vertical = 0.dp)
+            .clickable(enabled = isCurrentMonth && !isFuture) { onClick() },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // [MODIFIED] 날짜 숫자를 원형 배경으로 감싸기 (2025-12-22)
+        // [FIX] 날짜 숫자 영역을 고정 크기로 변경하여 레이아웃 흔들림 방지 (2025-12-23)
         Box(
             modifier = Modifier
-                .size(
-                    // [FIX] 오늘과 선택된 날짜 모두 38dp 통일 (2025-12-22)
-                    if (isToday || isSelected) 38.dp else 28.dp
-                )
-                .clip(CircleShape) // [핵심] 리플 효과를 이 원형 안으로 제한
-                .clickable(enabled = isCurrentMonth && !isFuture) { onClick() } // [FIX] clickable을 clip 뒤로 이동 (2025-12-22)
+                .size(36.dp) // [중요] 항상 고정된 크기 유지
+                .clip(CircleShape)
                 .then(
                     if (isToday) {
                         // [NEW] 오늘 날짜에만 그림자 효과 (2025-12-22)
@@ -365,11 +362,11 @@ private fun CalendarDayCell(
 
         Spacer(modifier = Modifier.height(6.dp)) // 숫자와 점 사이 간격
 
-        // 갈증 수치 점 (Dot)
+        // 갈증 수치 점 (Dot) - 항상 동일한 공간 차지
         if (diary != null && isCurrentMonth) {
             Box(
                 modifier = Modifier
-                    .size(10.dp) // [유지] 10dp 점 크기 유지 - 명확한 가시성
+                    .size(10.dp) // 점 크기
                     .clip(CircleShape)
                     .background(kr.sweetapps.alcoholictimer.util.ThirstColorUtil.getColor(diary.cravingLevel))
             )
