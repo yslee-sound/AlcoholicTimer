@@ -249,6 +249,19 @@ fun RecordsScreen(
                     )
                 }
 
+                // ==================== NEW: 네이티브 광고 아이템 (2025-12-22) ====================
+                item {
+                    Spacer(modifier = Modifier.height(RECORDS_SECTION_SPACING)) // 상단 간격 (20dp)
+
+                    // 광고 컨테이너 (좌우 여백 적용)
+                    Box(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)
+                    ) {
+                        NativeAdItem()
+                    }
+                }
+
                 // ==================== Item 4: 최근 금주 일기 섹션 ====================
                 item {
                     // [FIX] 섹션 간격 통일 (20dp)
@@ -850,7 +863,7 @@ private fun StatisticItem(
 
 
 /**
- * [MODIFIED] 일기 섹션 - 캘린더 뷰로 변경 (2025-12-22)
+ * [NEW] 일기 섹션 - 캘린더 뷰로 변경 (2025-12-22)
  */
 @Composable
 private fun RecentDiarySection(
@@ -1532,5 +1545,120 @@ private fun parseYearMonth(dateString: String): Pair<Int, Int> {
         // 파싱 실패 시 현재 날짜 반환
         val now = Calendar.getInstance()
         Pair(now.get(Calendar.YEAR), now.get(Calendar.MONTH) + 1)
+    }
+}
+
+/**
+ * [NEW] 네이티브 광고 아이템 (2025-12-22)
+ * - CommunityScreen의 NativeAdItem과 동일한 구현
+ * - RecordsScreen 중간에 삽입하여 섹션 분리 역할
+ */
+@Composable
+private fun NativeAdItem() {
+    val context = LocalContext.current
+
+    val adUnitId = try { kr.sweetapps.alcoholictimer.BuildConfig.ADMOB_NATIVE_ID } catch (_: Throwable) { "" }
+
+    var nativeAd by remember { mutableStateOf<com.google.android.gms.ads.nativead.NativeAd?>(null) }
+
+    LaunchedEffect(Unit) {
+        try {
+            try {
+                com.google.android.gms.ads.MobileAds.initialize(context)
+            } catch (initEx: Exception) {
+                android.util.Log.w("NativeAd", "MobileAds.initialize failed: ${initEx.message}")
+            }
+            val adLoader = com.google.android.gms.ads.AdLoader.Builder(context, adUnitId)
+                .forNativeAd { ad: com.google.android.gms.ads.nativead.NativeAd ->
+                    nativeAd = ad
+                }
+                .withNativeAdOptions(com.google.android.gms.ads.nativead.NativeAdOptions.Builder().build())
+                .build()
+
+            try {
+                adLoader.loadAd(com.google.android.gms.ads.AdRequest.Builder().build())
+            } catch (se: SecurityException) {
+                android.util.Log.w("NativeAd", "Ad load blocked by SecurityException: ${se.message}")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("NativeAd", "Failed setting up ad loader", e)
+        }
+    }
+
+    if (nativeAd != null) {
+        androidx.compose.ui.viewinterop.AndroidView(
+            factory = { ctx ->
+                val adView = com.google.android.gms.ads.nativead.NativeAdView(ctx)
+
+                val container = android.widget.LinearLayout(ctx).apply {
+                    orientation = android.widget.LinearLayout.VERTICAL
+                    setBackgroundColor(android.graphics.Color.WHITE)
+                    setPadding(32, 32, 32, 32)
+                }
+
+                val headerRow = android.widget.LinearLayout(ctx).apply {
+                    orientation = android.widget.LinearLayout.HORIZONTAL
+                }
+
+                val iconView = android.widget.ImageView(ctx).apply {
+                    layoutParams = android.widget.LinearLayout.LayoutParams(120, 120)
+                }
+
+                val headlineView = android.widget.TextView(ctx).apply {
+                    textSize = 16f
+                    setTypeface(null, android.graphics.Typeface.BOLD)
+                    setPadding(16, 0, 0, 0)
+                    setTextColor(android.graphics.Color.BLACK)
+                }
+
+                headerRow.addView(iconView)
+                headerRow.addView(headlineView)
+                container.addView(headerRow)
+
+                val bodyView = android.widget.TextView(ctx).apply {
+                    textSize = 14f
+                    setPadding(0, 16, 0, 16)
+                    setTextColor(android.graphics.Color.DKGRAY)
+                    maxLines = 2
+                }
+                container.addView(bodyView)
+
+                val callToActionView = android.widget.Button(ctx).apply {
+                    setBackgroundColor(android.graphics.Color.parseColor("#E0E0E0"))
+                    setTextColor(android.graphics.Color.BLACK)
+                }
+                container.addView(callToActionView)
+
+                adView.addView(container)
+
+                adView.iconView = iconView
+                adView.headlineView = headlineView
+                adView.bodyView = bodyView
+                adView.callToActionView = callToActionView
+
+                adView
+            },
+            update = { adView ->
+                val ad = nativeAd!!
+
+                (adView.headlineView as android.widget.TextView).text = ad.headline
+                (adView.bodyView as android.widget.TextView).text = ad.body
+                (adView.callToActionView as android.widget.Button).text = ad.callToAction ?: "자세히 보기"
+
+                if (ad.icon != null) {
+                    (adView.iconView as android.widget.ImageView).setImageDrawable(ad.icon?.drawable)
+                    adView.iconView?.visibility = android.view.View.VISIBLE
+                } else {
+                    adView.iconView?.visibility = android.view.View.GONE
+                }
+
+                adView.setNativeAd(ad)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .background(Color.White, RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(12.dp))
+        )
     }
 }
