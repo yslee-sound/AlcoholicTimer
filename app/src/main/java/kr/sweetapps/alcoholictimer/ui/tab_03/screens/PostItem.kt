@@ -53,6 +53,7 @@ fun PostItem(
     authorAvatarIndex: Int = 0, // [NEW] 아바타 인덱스
     thirstLevel: Int? = null, // [NEW] 갈증 수치 표시
     isMine: Boolean = false, // [NEW] Phase 3: 내 글 여부
+    createdDate: String? = null, // [NEW] 작성 날짜 "yyyy/MM/dd" (2025-12-22)
     onLikeClick: () -> Unit = {},
     onCommentClick: () -> Unit = {},
     onMoreClick: () -> Unit = {},
@@ -72,6 +73,7 @@ fun PostItem(
             authorAvatarIndex = authorAvatarIndex, // [NEW]
             thirstLevel = thirstLevel, // [NEW]
             isMine = isMine, // [NEW] Phase 3
+            createdDate = createdDate, // [NEW] 날짜 전달 (2025-12-22)
             onMoreClick = onMoreClick,
             onHideClick = onHideClick // [NEW] Phase 3
         )
@@ -135,13 +137,14 @@ fun PostItem(
 private fun PostHeader(
     nickname: String,
     timerDuration: String,
-    currentDays: Int = 1,
-    userLevel: Int = 1,
-    authorAvatarIndex: Int = 0, // [NEW]
-    thirstLevel: Int? = null, // [NEW] 갈증 수치
-    isMine: Boolean = false, // [NEW] Phase 3
+    currentDays: Int,
+    userLevel: Int,
+    authorAvatarIndex: Int,
+    thirstLevel: Int?,
+    isMine: Boolean,
+    createdDate: String?, // [NEW] 작성 날짜 (2025-12-22)
     onMoreClick: () -> Unit,
-    onHideClick: () -> Unit = {} // [NEW] Phase 3
+    onHideClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -220,7 +223,7 @@ private fun PostHeader(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // 레벨 및 일차 정보 Row
+            // [MODIFIED] 레벨, 일차, 날짜 통합 표시 (2025-12-22)
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -229,10 +232,10 @@ private fun PostHeader(
                     style = MaterialTheme.typography.labelSmall,
                     color = MainPrimaryBlue,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.alignByBaseline() // [추가] 글자 밑줄 기준 정렬
+                    modifier = Modifier.alignByBaseline()
                 )
 
-                Spacer(modifier = Modifier.width(4.dp)) // [FIX] 구분자 간격 좁힘
+                Spacer(modifier = Modifier.width(4.dp))
 
                 Text(
                     text = "·",
@@ -241,14 +244,35 @@ private fun PostHeader(
                     modifier = Modifier.alignByBaseline()
                 )
 
-                Spacer(modifier = Modifier.width(4.dp)) // [FIX] 구분자 간격 좁힘
+                Spacer(modifier = Modifier.width(4.dp))
 
                 Text(
                     text = "${currentDays}일차",
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.Gray,
-                    modifier = Modifier.alignByBaseline() // [추가] 글자 밑줄 기준 정렬
+                    modifier = Modifier.alignByBaseline()
                 )
+
+                // [NEW] 날짜 표시 (2025-12-22)
+                if (createdDate != null) {
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(
+                        text = "·",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Gray,
+                        modifier = Modifier.alignByBaseline()
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text(
+                        text = createdDate,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Gray,
+                        modifier = Modifier.alignByBaseline()
+                    )
+                }
             }
         }
 

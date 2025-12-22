@@ -120,6 +120,12 @@ fun DiaryDetailFeedScreen(
                         items = sortedDiaries,
                         key = { it.id }
                     ) { diary ->
+                        // [NEW] 날짜 포맷 변환 (2025-12-22)
+                        val formattedDate = remember(diary.timestamp) {
+                            val sdf = java.text.SimpleDateFormat("yyyy/MM/dd", java.util.Locale.getDefault())
+                            sdf.format(java.util.Date(diary.timestamp))
+                        }
+
                         // DiaryEntity를 PostItem에 맞게 변환
                         PostItem(
                             nickname = myNickname,
@@ -134,6 +140,7 @@ fun DiaryDetailFeedScreen(
                             authorAvatarIndex = myAvatarIndex,
                             thirstLevel = if (diary.cravingLevel > 0) diary.cravingLevel else null,
                             isMine = true, // 본인 일기
+                            createdDate = formattedDate, // [NEW] 날짜 전달 (2025-12-22)
                             onLikeClick = { /* 일기는 좋아요 기능 없음 */ },
                             onCommentClick = { /* 일기는 댓글 기능 없음 */ },
                             onMoreClick = {
