@@ -142,6 +142,33 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
+     * [NEW] 특정 날짜의 일기를 조회합니다 (캘린더용) (2025-12-22)
+     * @param date LocalDate 객체
+     * @return 해당 날짜의 DiaryEntity 또는 null
+     */
+    suspend fun getDiaryByDate(date: java.time.LocalDate): DiaryEntity? {
+        val startOfDay = date.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val endOfDay = date.plusDays(1).atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+
+        return uiState.value.firstOrNull { diary ->
+            diary.timestamp in startOfDay until endOfDay
+        }
+    }
+
+    /**
+     * [NEW] 일기 데이터를 날짜별 Map으로 변환 (캘린더용) (2025-12-22)
+     * @return Map<String, DiaryEntity> (Key: "yyyy-MM-dd")
+     */
+    fun getDiaryMapByDate(): Map<String, DiaryEntity> {
+        return uiState.value.associateBy { diary ->
+            val date = java.time.Instant.ofEpochMilli(diary.timestamp)
+                .atZone(java.time.ZoneId.systemDefault())
+                .toLocalDate()
+            date.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+        }
+    }
+
+    /**
      * timestamp를 날짜 문자열로 변환합니다.
      * 현재 시스템 Locale에 맞춰 날짜를 표시합니다.
      * 예: 한국어 - "2025년 12월 6일"

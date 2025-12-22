@@ -850,18 +850,17 @@ private fun StatisticItem(
 
 
 /**
- * [NEW] 최근 금주 일기 섹션 (Room DB 기반)
+ * [MODIFIED] 일기 섹션 - 캘린더 뷰로 변경 (2025-12-22)
  */
 @Composable
 private fun RecentDiarySection(
     diaries: List<kr.sweetapps.alcoholictimer.data.room.DiaryEntity>,
     onNavigateToAllDiaries: () -> Unit = {},
-    onNavigateToDiaryWrite: () -> Unit = {}, // [NEW] 일기 작성 콜백
+    onNavigateToDiaryWrite: () -> Unit = {},
     onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {}
 ) {
-
     Column(modifier = Modifier.fillMaxWidth()) {
-        // [UPDATE] 헤더: 제목 + 작성 버튼
+        // [NEW] 헤더: 제목 + 작성 버튼 (2025-12-22)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -875,7 +874,7 @@ private fun RecentDiarySection(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            // [UPDATE] "작성" 버튼 (기존 더보기와 동일한 스타일)
+            // "작성" 버튼
             Text(
                 text = stringResource(R.string.records_diary_write_action),
                 fontSize = 14.sp,
@@ -890,78 +889,27 @@ private fun RecentDiarySection(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // [수정] 일기 항목 카드 or 빈 상태 UI
-        if (diaries.isEmpty()) {
-            DiaryEmptyState()
-        } else {
-            // [UPDATE] Card로 감싸서 elevation 적용
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    // 일기 항목들
-                    diaries.forEachIndexed { index, diary ->
-                        DiaryListItem(
-                            diary = diary,
-                            onClick = { onDiaryClick(diary) }
-                        )
-
-                        if (index < diaries.size - 1) {
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-                                thickness = 1.dp,
-                                color = Color(0xFFE2E8F0)
-                            )
-                        }
-                    }
-
-                    // [NEW] 푸터: 전체 내역 보기
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-                        thickness = 1.dp,
-                        color = Color(0xFFE2E8F0)
-                    )
-
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    onClick = onNavigateToAllDiaries
-                                ),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = stringResource(R.string.records_diary_view_all),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = Color(0xFF6B7280)
-                            )
-
-                            Spacer(modifier = Modifier.width(4.dp))
-
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_caret_right),
-                                contentDescription = stringResource(R.string.records_diary_view_all),
-                                tint = Color(0xFF6B7280),
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-
-                        // [NEW] 하단 여백 추가 (카드 바닥과의 breathing room)
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
+        // [NEW] 캘린더 위젯 (2025-12-22)
+        kr.sweetapps.alcoholictimer.ui.tab_02.components.CalendarWidget(
+            diaries = diaries,
+            onDateClick = { selectedDate ->
+                // 해당 날짜의 일기 찾기
+                val diary = diaries.firstOrNull {
+                    val diaryDate = java.util.Calendar.getInstance().apply { timeInMillis = it.timestamp }
+                    diaryDate.get(java.util.Calendar.YEAR) == selectedDate.get(java.util.Calendar.YEAR) &&
+                    diaryDate.get(java.util.Calendar.DAY_OF_YEAR) == selectedDate.get(java.util.Calendar.DAY_OF_YEAR)
                 }
-            }
-        }
+
+                if (diary != null) {
+                    // 기존 일기가 있으면 상세 화면으로
+                    onDiaryClick(diary)
+                } else {
+                    // 일기가 없으면 새로 작성
+                    onNavigateToDiaryWrite()
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 
