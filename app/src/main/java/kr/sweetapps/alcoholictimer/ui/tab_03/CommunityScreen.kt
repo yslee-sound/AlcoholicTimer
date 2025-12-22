@@ -683,8 +683,25 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
         else -> "오늘 하루는 어땠나요? 솔직한 이야기를 들려주세요."
     }
 
-    // [NEW] 수정 상태 감지
-    val isModified = textFieldValue.text.isNotBlank() || selectedImageUri != null
+    // [FIX] 변경 사항 감지 로직 (Dirty Check) (2025-12-23)
+    val isModified = remember(textFieldValue, selectedLevel, selectedImageUri, selectedTag, postToEdit) {
+        if (postToEdit == null) {
+            // [신규 작성 모드] 내용이 있거나 사진이 있으면 수정된 것으로 간주
+            textFieldValue.text.isNotBlank() || selectedImageUri != null
+        } else {
+            // [수정 모드] 원본 데이터와 현재 상태를 비교
+            val contentChanged = textFieldValue.text.trim() != postToEdit.content.trim()
+            val levelChanged = selectedLevel != postToEdit.thirstLevel
+            val tagChanged = selectedTag != postToEdit.tagType
+
+            // 이미지 변경 여부 (URL 문자열 비교)
+            val currentUriString = selectedImageUri?.toString() ?: ""
+            val originalUrlString = postToEdit.imageUrl ?: ""
+            val imageChanged = currentUriString != originalUrlString
+
+            contentChanged || levelChanged || tagChanged || imageChanged
+        }
+    }
 
     // [NEW] 뒤로가기 공통 로직
     val onBackAction = {
@@ -1214,9 +1231,12 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                     dragHandle = { BottomSheetDefaults.DragHandle() }
                 ) {
                     Column(modifier = Modifier.padding(bottom = 24.dp)) {
+                        // [FIX] 타이틀 문구 분기 처리 (2025-12-23)
+                        val titleText = if (isEditMode) "수정을 취소하시겠습니까?" else "작성 중인 글을 삭제하시겠습니까?"
+
                         // 타이틀 (왼쪽 정렬, 한 줄 제한)
                         Text(
-                            text = "작성 중인 글을 삭제하시겠습니까?",
+                            text = titleText,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black,
@@ -1225,7 +1245,12 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                             modifier = Modifier.padding(start = 20.dp, top = 8.dp, bottom = 12.dp)
                         )
 
-                        // 게시글 삭제 메뉴 (리스트 아이템 스타일)
+                        // [FIX] 첫 번째 버튼 (취소/삭제) 분기 처리 (2025-12-23)
+                        val actionText = if (isEditMode) "변경사항 버리기" else "게시글 삭제"
+                        val actionIcon = if (isEditMode) Icons.AutoMirrored.Filled.ArrowBack else Icons.Filled.Delete
+                        val actionColor = if (isEditMode) Color(0xFF1F2937) else Color(0xFFEF4444)
+
+                        // 게시글 삭제/변경사항 버리기 메뉴 (리스트 아이템 스타일)
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
@@ -1237,20 +1262,23 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                                 .padding(horizontal = 20.dp, vertical = 16.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Filled.Delete,
+                                imageVector = actionIcon,
                                 contentDescription = null,
-                                tint = Color(0xFF1F2937)
+                                tint = actionColor
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
-                                text = "게시글 삭제",
+                                text = actionText,
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = Color(0xFF1F2937),
+                                color = actionColor,
                                 maxLines = 1
                             )
                         }
 
-                        // 수정 계속하기 메뉴 (리스트 아이템 스타일)
+                        // [FIX] 두 번째 버튼 (계속 작성하기) 문구 분기 (2025-12-23)
+                        val continueText = if (isEditMode) "수정 계속하기" else "작성 계속하기"
+
+                        // 수정/작성 계속하기 메뉴 (리스트 아이템 스타일)
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
@@ -1265,7 +1293,7 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
-                                text = "수정 계속하기",
+                                text = continueText,
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = Color(0xFF1F2937),
                                 maxLines = 1
