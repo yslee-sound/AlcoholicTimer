@@ -149,6 +149,10 @@ fun DiaryWriteScreen(
             // [NEW] 광고 억제 활성화 - 카메라/갤러리 복귀 시 광고 차단 (2025-12-22)
             kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.isAdSuppressed = true
 
+            // [핵심] 시간 기반 억제 설정 - 현재 시간부터 10초간 광고 노출 금지 (2025-12-22)
+            kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.lastAdSuppressedTime = System.currentTimeMillis()
+            android.util.Log.d("DiaryWriteScreen", "광고 억제 설정: 10초간 광고 차단 시작")
+
             // 사진 선택 화면 열기
             isPhotoSelectionVisible = true
         }

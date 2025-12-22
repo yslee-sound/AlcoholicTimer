@@ -32,6 +32,19 @@ object AppOpenAdManager {
     // [NEW] Ad Suppression Flag - 카메라/갤러리 사용 중 광고 차단 (2025-12-22)
     @Volatile var isAdSuppressed: Boolean = false
 
+    // [NEW] Time-based Ad Suppression - 시간 기반 억제 로직 (2025-12-22)
+    @Volatile var lastAdSuppressedTime: Long = 0L
+    private const val SUPPRESS_DURATION_MS = 10_000L // 10초 동안 억제
+
+    /**
+     * [NEW] 시간 기반 억제 여부 확인 (2025-12-22)
+     * 마지막 억제 요청 시점으로부터 10초 이내인지 확인
+     */
+    private fun isTimeSuppressed(): Boolean {
+        val elapsed = System.currentTimeMillis() - lastAdSuppressedTime
+        return elapsed < SUPPRESS_DURATION_MS
+    }
+
     fun setAutoShowEnabled(enabled: Boolean) { autoShowEnabled = enabled }
 
     fun isAutoShowEnabled(): Boolean = autoShowEnabled
@@ -345,10 +358,18 @@ object AppOpenAdManager {
     fun showIfAvailable(activity: Activity, bypassRecentFullscreenSuppression: Boolean = false): Boolean {
         Log.d(TAG, "showIfAvailable called - loaded=$loaded isShowing=$isShowing activity=${activity.javaClass.simpleName}")
 
-        // [핵심] 광고 억제 플래그 체크 - 카메라/갤러리 복귀 시 광고 차단 (2025-12-22)
+        // [핵심 1] Boolean 플래그 체크 - 카메라/갤러리 복귀 시 광고 차단 (2025-12-22)
         if (isAdSuppressed) {
-            Log.d(TAG, "showIfAvailable: Ad suppressed (camera/gallery usage) - resetting flag")
+            Log.d(TAG, "showIfAvailable: Ad suppressed by boolean flag - resetting")
             isAdSuppressed = false // 한 번 차단 후 자동 해제
+            return false
+        }
+
+        // [핵심 2] 시간 기반 억제 체크 - 카메라/갤러리 복귀 후 10초간 광고 차단 (2025-12-22)
+        if (isTimeSuppressed()) {
+            val elapsed = System.currentTimeMillis() - lastAdSuppressedTime
+            val remaining = SUPPRESS_DURATION_MS - elapsed
+            Log.d(TAG, "showIfAvailable: Ad suppressed by time guard - ${elapsed}ms elapsed, ${remaining}ms remaining")
             return false
         }
 

@@ -309,6 +309,10 @@ fun CommunityScreen(
                             // [NEW] 광고 억제 활성화 - 카메라/갤러리 복귀 시 광고 차단 (2025-12-22)
                             kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.isAdSuppressed = true
 
+                            // [핵심] 시간 기반 억제 설정 - 현재 시간부터 10초간 광고 노출 금지 (2025-12-22)
+                            kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.lastAdSuppressedTime = System.currentTimeMillis()
+                            android.util.Log.d("CommunityScreen", "광고 억제 설정: 10초간 광고 차단 시작")
+
                             // 글쓰기 다이얼로그를 닫지 않고, 그 위에 사진 선택 Dialog를 띄웁니다. (스택 방식)
                             isPhotoSelectionVisible = true
                         }

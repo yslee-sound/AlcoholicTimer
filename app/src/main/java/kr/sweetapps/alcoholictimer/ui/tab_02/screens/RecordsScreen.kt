@@ -908,26 +908,35 @@ private fun RecentDiarySection(
         kr.sweetapps.alcoholictimer.ui.tab_02.components.CalendarWidget(
             diaries = diaries,
             onDateClick = { selectedDate ->
-                // [FIX] 엄격한 모드: 오늘 날짜만 새 일기 작성 허용 (2025-12-22)
+                // 1. [최우선] 해당 날짜에 저장된 일기가 있는지 먼저 검색
+                val existingDiary = diaries.firstOrNull {
+                    val diaryCal = java.util.Calendar.getInstance().apply { timeInMillis = it.timestamp }
+                    diaryCal.get(java.util.Calendar.YEAR) == selectedDate.get(java.util.Calendar.YEAR) &&
+                    diaryCal.get(java.util.Calendar.DAY_OF_YEAR) == selectedDate.get(java.util.Calendar.DAY_OF_YEAR)
+                }
+
+                // 2. 오늘 날짜 여부 판별
                 val today = java.util.Calendar.getInstance()
                 val isToday = selectedDate.get(java.util.Calendar.YEAR) == today.get(java.util.Calendar.YEAR) &&
                               selectedDate.get(java.util.Calendar.DAY_OF_YEAR) == today.get(java.util.Calendar.DAY_OF_YEAR)
 
-                // 해당 날짜의 일기 찾기
-                val diary = diaries.firstOrNull {
-                    val diaryDate = java.util.Calendar.getInstance().apply { timeInMillis = it.timestamp }
-                    diaryDate.get(java.util.Calendar.YEAR) == selectedDate.get(java.util.Calendar.YEAR) &&
-                    diaryDate.get(java.util.Calendar.DAY_OF_YEAR) == selectedDate.get(java.util.Calendar.DAY_OF_YEAR)
+                // 3. [핵심] 일기 존재 여부를 최우선으로 확인하는 분기 로직 (2025-12-22)
+                when {
+                    existingDiary != null -> {
+                        // 이미 일기가 있다면 오늘이든 과거든 수정/보기 모드로 진입
+                        onDiaryClick(existingDiary)
+                        android.util.Log.d("RecordsScreen", "기존 일기 열기 (수정 모드): ${existingDiary.id}")
+                    }
+                    isToday -> {
+                        // 일기가 없고 오늘인 경우에만 새 일기 작성
+                        onNavigateToDiaryWrite(null)
+                        android.util.Log.d("RecordsScreen", "새 일기 작성 (오늘)")
+                    }
+                    else -> {
+                        // 과거 날짜에 일기가 없는 경우는 아무 동작 안 함 (No-op)
+                        android.util.Log.d("RecordsScreen", "과거 날짜 클릭 (일기 없음) - No action")
+                    }
                 }
-
-                if (diary != null) {
-                    // 기존 일기가 있으면 날짜 상관없이 수정 모드로 진입
-                    onDiaryClick(diary)
-                } else if (isToday) {
-                    // 오늘이면 새 글 작성 (null = 오늘 날짜)
-                    onNavigateToDiaryWrite(null)
-                }
-                // [FIX] 과거 날짜 클릭 시 토스트 메시지 제거 - 아무 반응 없음 (No-op) (2025-12-22)
             },
             modifier = Modifier.fillMaxWidth()
         )
