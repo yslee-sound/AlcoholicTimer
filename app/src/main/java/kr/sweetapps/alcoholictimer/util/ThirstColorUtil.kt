@@ -16,16 +16,16 @@ object ThirstColorUtil {
      */
     fun getColor(level: Int): Color {
         return when (level) {
-            1 -> Color(0xFF4CAF50)  // Green 500 (안정)
-            2 -> Color(0xFF8BC34A)  // Light Green 500
-            3 -> Color(0xFFCDDC39)  // Lime 500
-            4 -> Color(0xFFD4E157)  // Lime 400 (조금 더 노란빛)
-            5 -> Color(0xFFFFCA28)  // Amber 400 (주의 시작)
-            6 -> Color(0xFFFFB300)  // Amber 600
-            7 -> Color(0xFFFB8C00)  // Orange 600
-            8 -> Color(0xFFF4511E)  // Deep Orange 600 (위험 진입)
-            9 -> Color(0xFFE53935)  // Red 600
-            10 -> Color(0xFFB71C1C) // Red 900 (매우 위험)
+            1 -> Color(0xFFC8E6C9)  // Very Light Green (매우 안전 - Very Safe)
+            2 -> Color(0xFFA3D9A5)  // Light Green (안전 - Safe)
+            3 -> Color(0xFF81C784)  // Medium Green (약간 안전 - Mildly Safe)
+            4 -> Color(0xFFFFF176)  // Light Yellow (중립 - Neutral)
+            5 -> Color(0xFFFFD54F)  // Muted Yellow/Amber (약간 주의 - Slightly Elevated)
+            6 -> Color(0xFFFFB300)  // Vibrant Yellow/Orange (주의 - Caution)
+            7 -> Color(0xFFE0BBE4)  // Light Lavender/Purple (증가된 주의 - Increased Caution)
+            8 -> Color(0xFF957DAD)  // Medium Purple (경고 - Warning)
+            9 -> Color(0xFF6A5ACD)  // Darker Lavender/Indigo (강한 경고 - Strong Warning)
+            10 -> Color(0xFF483D8B) // Deep Purple/Slate Blue (매우 경고 - Severe Warning)
             else -> Color(0xFF9E9E9E) // 기본 회색 (0 or Error)
         }
     }
