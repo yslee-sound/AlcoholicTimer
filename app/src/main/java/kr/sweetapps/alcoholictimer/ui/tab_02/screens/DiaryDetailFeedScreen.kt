@@ -3,7 +3,7 @@ package kr.sweetapps.alcoholictimer.ui.tab_02.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -96,7 +96,7 @@ fun DiaryDetailFeedScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color(0xFFF0F2F5)) // 커뮤니티 배경색
+                .background(Color.White) // [FIX] 커뮤니티 피드와 동일하게 흰색 배경 (2025-12-22)
         ) {
             if (allDiaries.isEmpty()) {
                 // 빈 상태
@@ -118,10 +118,10 @@ fun DiaryDetailFeedScreen(
                     state = listState,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items(
+                    itemsIndexed(
                         items = allDiaries,
-                        key = { it.id }
-                    ) { diary ->
+                        key = { _, diary -> diary.id }
+                    ) { index, diary ->
                         // [NEW] 날짜 포맷 변환 (2025-12-22)
                         val formattedDate = remember(diary.timestamp) {
                             val sdf = java.text.SimpleDateFormat("yyyy/MM/dd", java.util.Locale.getDefault())
@@ -152,11 +152,13 @@ fun DiaryDetailFeedScreen(
                             onHideClick = { /* 본인 글이므로 숨기기 없음 */ }
                         )
 
-                        // 구분선
-                        HorizontalDivider(
-                            thickness = 8.dp,
-                            color = Color(0xFFF0F2F5)
-                        )
+                        // [FIX] 마지막 아이템이 아닐 때만 구분선 추가 (커뮤니티 피드와 동일한 스타일) (2025-12-22)
+                        if (index < allDiaries.lastIndex) {
+                            HorizontalDivider(
+                                thickness = 1.dp,
+                                color = Color(0xFFBDBDBD)
+                            )
+                        }
                     }
                 }
             }
