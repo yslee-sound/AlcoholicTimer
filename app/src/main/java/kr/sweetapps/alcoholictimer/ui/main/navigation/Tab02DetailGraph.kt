@@ -387,13 +387,21 @@ fun NavGraphBuilder.addTab02DetailGraph(
         }
     ) { backStackEntry ->
         val diaryId = backStackEntry.arguments?.getString("diaryId") ?: return@composable
+        val diaryIdLong = diaryId.toLongOrNull()
 
         kr.sweetapps.alcoholictimer.ui.tab_02.screens.DiaryWriteScreen(
-            diaryId = diaryId.toLongOrNull(),
+            diaryId = diaryIdLong,
             onDismiss = {
-                // [REMOVED] 전면광고 제거 - 일기 삭제 후 즉시 뒤로 이동
+                // [FIX] 수정 모드일 때는 상세 화면으로 복귀, 새 작성일 때는 탭2로 복귀 (2025-12-23)
                 onRefreshCounterIncrement()
-                navController.popBackStack()
+
+                if (diaryIdLong != null) {
+                    // 수정 모드: 현재 화면을 pop하고 Tab02로 돌아감 (상세 화면이 다시 표시됨)
+                    navController.popBackStack()
+                } else {
+                    // 새 작성 모드: 그냥 뒤로가기
+                    navController.popBackStack()
+                }
             }
         )
     }

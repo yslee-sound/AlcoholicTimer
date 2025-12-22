@@ -11,6 +11,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -69,8 +70,8 @@ fun Tab02Screen(
         viewModelStoreOwner = androidx.activity.compose.LocalActivity.current as ComponentActivity
     )
 ) {
-    // [NEW] 일기 상세 피드 화면 표시 상태 (2025-12-22)
-    var selectedDetailDiaryId by remember { mutableStateOf<Long?>(null) }
+    // [FIX] 일기 상세 피드 화면 표시 상태 - rememberSaveable로 네비게이션 후에도 유지 (2025-12-23)
+    var selectedDetailDiaryId by rememberSaveable { mutableStateOf<Long?>(null) }
 
     // [NEW] ViewModel 데이터 구독
     val records by viewModel.records.collectAsState()
@@ -158,8 +159,8 @@ fun Tab02Screen(
                     selectedDetailDiaryId = null
                 },
                 onEditClick = { id ->
-                    // [FIX] 일기 수정: DiaryDetail 라우트로 이동 (2025-12-23)
-                    selectedDetailDiaryId = null
+                    // [FIX] 일기 수정: DiaryDetail 라우트로 이동 (selectedDetailDiaryId 유지) (2025-12-23)
+                    // selectedDetailDiaryId를 유지하여 수정 후 다시 상세 화면으로 돌아옴
                     val route = kr.sweetapps.alcoholictimer.ui.main.Screen.DiaryDetail.createRoute(id.toString())
                     onNavigateToDiaryDetail(route)
                 },
