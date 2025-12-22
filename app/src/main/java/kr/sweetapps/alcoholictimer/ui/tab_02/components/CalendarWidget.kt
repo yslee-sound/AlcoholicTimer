@@ -335,24 +335,12 @@ private fun CalendarDayCell(
                 modifier = Modifier
                     .size(5.dp) // [MODIFIED] 점 크기 조정 (2025-12-22)
                     .clip(CircleShape)
-                    .background(getCravingColor(diary.cravingLevel))
+                    .background(kr.sweetapps.alcoholictimer.util.ThirstColorUtil.getColor(diary.cravingLevel)) // [MODIFIED] ThirstColorUtil 사용 (2025-12-22)
             )
         } else {
             // 빈 공간 유지 (레이아웃 일관성)
             Spacer(modifier = Modifier.size(5.dp))
         }
-    }
-}
-
-/**
- * 갈증 수치에 따른 색상 반환
- */
-private fun getCravingColor(level: Int): Color {
-    return when (level) {
-        in 1..3 -> Color(0xFF4CAF50) // 초록색 (안정)
-        in 4..7 -> Color(0xFFFFA726) // 주황색 (주의)
-        in 8..10 -> Color(0xFFE53935) // 빨간색 (위험)
-        else -> Color(0xFF9CA3AF) // 회색 (기본)
     }
 }
 

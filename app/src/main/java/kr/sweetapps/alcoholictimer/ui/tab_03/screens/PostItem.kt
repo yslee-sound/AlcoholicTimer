@@ -187,12 +187,8 @@ private fun PostHeader(
 
                     Spacer(modifier = Modifier.width(4.dp))
 
-                    // 색상 매핑 함수 (WritePostScreenContent와 동일한 규칙)
-                    val badgeColor = when (thirstLevel) {
-                        in 1..3 -> Color(0xFF4CAF50)
-                        in 4..7 -> Color(0xFFFFA726)
-                        else -> Color(0xFFE53935)
-                    }
+                    // [MODIFIED] ThirstColorUtil 사용 (2025-12-22)
+                    val badgeColor = kr.sweetapps.alcoholictimer.util.ThirstColorUtil.getColor(thirstLevel)
 
                     // 숫자 뱃지 (Rounded box)
                     Box(

@@ -564,12 +564,7 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
         mutableStateOf<Int?>(postToEdit?.thirstLevel)
     }
 
-    // [NEW] 갈증 레벨에 따른 색상 계산 함수(Reused by top badge and bottom selector)
-    fun thirstColor(level: Int): Color = when (level) {
-        in 1..3 -> Color(0xFF4CAF50)
-        in 4..7 -> Color(0xFFFFA726)
-        else -> Color(0xFFE53935)
-    }
+    // [DELETED] thirstColor 함수 제거 - ThirstColorUtil 사용 (2025-12-22)
 
     // [NEW] 1. 상태 구독 - 현재 사용자의 아바타 인덱스
     val currentUserAvatarIndex by viewModel.currentUserAvatarIndex.collectAsState()
@@ -857,7 +852,7 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                                   modifier = Modifier
                                       .size(35.dp)
                                       .clip(RoundedCornerShape(12.dp))
-                                      .background(if (selected) thirstColor(value) else Color(0xFFF0F0F0))
+                                      .background(if (selected) kr.sweetapps.alcoholictimer.util.ThirstColorUtil.getColor(value) else Color(0xFFF0F0F0)) // [MODIFIED] ThirstColorUtil 사용 (2025-12-22)
                                       .then(
                                           if (!isLoading) Modifier.clickable { selectedLevel = value } else Modifier
                                       ),
