@@ -74,6 +74,9 @@ fun DiaryDetailFeedScreen(
     var selectedDiaryForOptions by remember { mutableStateOf<DiaryEntity?>(null) }
 
     Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = Color.White,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0), // [FIX] 커뮤니티 화면과 동일 - 하단 여백 제거
         topBar = {
             TopAppBar(
                 title = { Text("일기 보기") },
@@ -116,49 +119,46 @@ fun DiaryDetailFeedScreen(
             } else {
                 LazyColumn(
                     state = listState,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
                     itemsIndexed(
                         items = allDiaries,
                         key = { _, diary -> diary.id }
                     ) { index, diary ->
-                        // [NEW] 날짜 포맷 변환 (2025-12-22)
-                        val formattedDate = remember(diary.timestamp) {
-                            val sdf = java.text.SimpleDateFormat("yyyy/MM/dd", java.util.Locale.getDefault())
-                            sdf.format(java.util.Date(diary.timestamp))
-                        }
-
                         // DiaryEntity를 PostItem에 맞게 변환
                         PostItem(
                             nickname = myNickname,
                             timerDuration = formatTimerDuration(diary.timestamp),
                             content = diary.content,
-                            imageUrl = diary.imageUrl.takeIf { it.isNotBlank() }, // [NEW] 이미지 URL 전달 (2025-12-22)
-                            likeCount = 0, // 일기는 좋아요 없음
+                            imageUrl = diary.imageUrl.takeIf { it.isNotBlank() },
+                            likeCount = 0,
                             isLiked = false,
-                            remainingTime = "", // 사용 안 함
+                            remainingTime = "",
                             currentDays = calculateDaysSince(diary.timestamp),
-                            userLevel = 1, // 사용 안 함
+                            userLevel = 1,
                             authorAvatarIndex = myAvatarIndex,
                             thirstLevel = if (diary.cravingLevel > 0) diary.cravingLevel else null,
-                            isMine = true, // 본인 일기
-                            createdDate = formattedDate, // [NEW] 날짜 전달 (2025-12-22)
-                            onLikeClick = { /* 일기는 좋아요 기능 없음 */ },
-                            onCommentClick = { /* 일기는 댓글 기능 없음 */ },
+                            isMine = true,
+                            createdDate = remember(diary.timestamp) {
+                                val sdf = java.text.SimpleDateFormat("yyyy/MM/dd", java.util.Locale.getDefault())
+                                sdf.format(java.util.Date(diary.timestamp))
+                            },
+                            onLikeClick = { },
+                            onCommentClick = { },
                             onMoreClick = {
-                                // 옵션 바텀시트 열기
                                 selectedDiaryForOptions = diary
                             },
-                            onHideClick = { /* 본인 글이므로 숨기기 없음 */ }
+                            onHideClick = { }
                         )
 
-                        // [FIX] 마지막 아이템이 아닐 때만 구분선 추가 (커뮤니티 피드와 동일한 스타일) (2025-12-22)
-                        if (index < allDiaries.lastIndex) {
-                            HorizontalDivider(
-                                thickness = 1.dp,
-                                color = Color(0xFFBDBDBD)
-                            )
-                        }
+                        // [FIX] 커뮤니티 피드와 동일: 모든 아이템 뒤에 구분선 추가 (마지막 포함) (2025-12-22)
+                        // 이렇게 해야 PostItem의 하단 패딩(8dp)이 PostItem 내부(흰색)에 포함되고
+                        // 구분선 다음에는 여백이 없어 네비게이션 바와 깔끔하게 연결됨
+                        HorizontalDivider(
+                            thickness = 1.dp,
+                            color = Color(0xFFBDBDBD)
+                        )
                     }
                 }
             }
