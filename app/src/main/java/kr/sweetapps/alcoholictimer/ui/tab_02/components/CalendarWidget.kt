@@ -28,6 +28,8 @@ import java.util.*
  * - 일기 데이터를 달력 형태로 표시
  * - 각 날짜 아래에 갈증 수치를 나타내는 색상 점(Dot) 표시
  * - Calendar 기반 (API 21+ 호환)
+ * [MODIFIED] UI 디자인 고도화 (2025-12-22)
+ * - 전체 너비 확장, 요일 색상 구분, 선택 시 solid circle 배경
  */
 @Composable
 fun CalendarWidget(
@@ -37,6 +39,9 @@ fun CalendarWidget(
 ) {
     // 현재 표시 중인 년월 (사용자가 이동 가능)
     var currentCalendar by remember { mutableStateOf(Calendar.getInstance()) }
+
+    // [NEW] 선택된 날짜 상태 (2025-12-22)
+    var selectedDate by remember { mutableStateOf<Calendar?>(null) }
 
     // 다이어리 데이터를 날짜별로 매핑 (yyyy-MM-dd -> DiaryEntity)
     val diaryMap = remember(diaries) {
@@ -48,8 +53,8 @@ fun CalendarWidget(
 
     Card(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp),
+            .fillMaxWidth() // [MODIFIED] 가로 꽉 채우기 (2025-12-22)
+            .padding(horizontal = 16.dp, vertical = 8.dp), // [MODIFIED] 좌우 패딩만 (2025-12-22)
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -78,16 +83,20 @@ fun CalendarWidget(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 요일 행
+            // [MODIFIED] 요일 행 - 색상 구분 (2025-12-22)
             WeekdayRow()
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp)) // [MODIFIED] 간격 조정 (2025-12-22)
 
             // 날짜 그리드
             CalendarGrid(
                 calendar = currentCalendar,
                 diaryMap = diaryMap,
-                onDateClick = onDateClick
+                selectedDate = selectedDate, // [NEW] 선택된 날짜 전달 (2025-12-22)
+                onDateClick = { date ->
+                    selectedDate = date // [NEW] 선택 상태 업데이트 (2025-12-22)
+                    onDateClick(date)
+                }
             )
         }
     }
@@ -146,7 +155,9 @@ private fun CalendarHeader(
 }
 
 /**
- * 요일 행 (일, 월, 화, 수, 목, 금, 토)
+ * [MODIFIED] 요일 행 - 색상 구분 (2025-12-22)
+ * - 일요일: 빨강, 토요일: 파랑, 평일: 검정
+ * - 모두 Bold 처리
  */
 @Composable
 private fun WeekdayRow() {
@@ -162,12 +173,18 @@ private fun WeekdayRow() {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        weekdays.forEach { day ->
+        weekdays.forEachIndexed { index, day ->
             Text(
                 text = day,
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF9CA3AF),
-                fontWeight = FontWeight.SemiBold,
+                // [MODIFIED] 요일별 색상 구분 (2025-12-22)
+                color = when (index) {
+                    0 -> Color(0xFFE53935) // 일요일: 빨강
+                    6 -> Color(0xFF1E88E5) // 토요일: 파랑
+                    else -> Color(0xFF111111) // 평일: 진한 검정
+                },
+                fontWeight = FontWeight.Bold, // [MODIFIED] 모두 굵게 (2025-12-22)
+                fontSize = 13.sp, // [MODIFIED] 크기 조정 (2025-12-22)
                 textAlign = TextAlign.Center,
                 modifier = Modifier.weight(1f)
             )
@@ -176,12 +193,13 @@ private fun WeekdayRow() {
 }
 
 /**
- * 날짜 그리드 (달력 본체)
+ * [MODIFIED] 날짜 그리드 - 선택 상태 지원 (2025-12-22)
  */
 @Composable
 private fun CalendarGrid(
     calendar: Calendar,
     diaryMap: Map<String, DiaryEntity>,
+    selectedDate: Calendar?, // [NEW] 선택된 날짜 (2025-12-22)
     onDateClick: (Calendar) -> Unit
 ) {
     val year = calendar.get(Calendar.YEAR)
@@ -204,7 +222,7 @@ private fun CalendarGrid(
     // 달력 그리드 생성
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp) // [MODIFIED] 간격 축소 (2025-12-22)
     ) {
         var dayCounter = 1 - firstDayOfWeek
 
@@ -223,6 +241,11 @@ private fun CalendarGrid(
                             date.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
                             date.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)
 
+                    // [NEW] 선택 여부 확인 (2025-12-22)
+                    val isSelected = isCurrentMonth && selectedDate != null &&
+                            date.get(Calendar.YEAR) == selectedDate.get(Calendar.YEAR) &&
+                            date.get(Calendar.DAY_OF_YEAR) == selectedDate.get(Calendar.DAY_OF_YEAR)
+
                     val dateKey = if (isCurrentMonth) {
                         SimpleDateFormat("yyyy-MM-dd", Locale.US).format(date.time)
                     } else {
@@ -234,6 +257,7 @@ private fun CalendarGrid(
                         date = date,
                         isCurrentMonth = isCurrentMonth,
                         isToday = isToday,
+                        isSelected = isSelected, // [NEW] 선택 상태 전달 (2025-12-22)
                         diary = diary,
                         onClick = { if (isCurrentMonth) onDateClick(date) },
                         modifier = Modifier.weight(1f)
@@ -252,62 +276,70 @@ private fun CalendarGrid(
 }
 
 /**
- * 개별 날짜 셀
+ * [MODIFIED] 개별 날짜 셀 - Solid Circle 선택, 간격 개선 (2025-12-22)
+ * - 선택 시: 파란 원형 배경 + 흰색 텍스트
+ * - 오늘: 연한 배경 (선택되지 않은 경우)
+ * - 숫자 크기 축소, 숫자와 점 사이 간격 확보
  */
 @Composable
 private fun CalendarDayCell(
     date: Calendar,
     isCurrentMonth: Boolean,
     isToday: Boolean,
+    isSelected: Boolean, // [NEW] 선택 상태 (2025-12-22)
     diary: DiaryEntity?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(
+    Column(
         modifier = modifier
-            .aspectRatio(1f)
+            .aspectRatio(0.9f) // [MODIFIED] 세로 비율 증가로 하단 공간 확보 (2025-12-22)
             .clip(RoundedCornerShape(8.dp))
-            .then(
-                if (isToday) {
-                    Modifier.border(2.dp, kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue, RoundedCornerShape(8.dp))
-                } else {
-                    Modifier
-                }
-            )
             .clickable(enabled = isCurrentMonth) { onClick() }
-            .padding(4.dp),
-        contentAlignment = Alignment.Center
+            .padding(vertical = 4.dp), // [MODIFIED] 상하 패딩 추가 (2025-12-22)
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        // [MODIFIED] 날짜 숫자를 원형 배경으로 감싸기 (2025-12-22)
+        Box(
+            modifier = Modifier
+                .size(32.dp) // [MODIFIED] 원형 배경 크기 (2025-12-22)
+                .background(
+                    color = when {
+                        isSelected -> kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue // [NEW] 선택: 파란 원 (2025-12-22)
+                        isToday && !isSelected -> Color(0xFFE3F2FD) // [NEW] 오늘(미선택): 연한 파랑 (2025-12-22)
+                        else -> Color.Transparent // 그 외: 투명
+                    },
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            // 날짜 숫자
             Text(
                 text = date.get(Calendar.DAY_OF_MONTH).toString(),
+                fontSize = 14.sp, // [MODIFIED] 폰트 크기 축소 (2025-12-22)
                 style = MaterialTheme.typography.bodyMedium,
                 color = when {
                     !isCurrentMonth -> Color(0xFFD1D5DB) // 다른 달: 연한 회색
-                    isToday -> kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue // 오늘: 파란색
+                    isSelected -> Color.White // [MODIFIED] 선택: 흰색 (2025-12-22)
                     else -> Color(0xFF111827) // 이번 달: 검정
                 },
-                fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal // [MODIFIED] 선택 시 Bold (2025-12-22)
             )
+        }
 
-            Spacer(modifier = Modifier.height(2.dp))
+        Spacer(modifier = Modifier.height(6.dp)) // [MODIFIED] 숫자와 점 사이 간격 확보 (2025-12-22)
 
-            // 갈증 수치 점 (Dot)
-            if (diary != null && isCurrentMonth) {
-                Box(
-                    modifier = Modifier
-                        .size(6.dp)
-                        .clip(CircleShape)
-                        .background(getCravingColor(diary.cravingLevel))
-                )
-            } else {
-                // 빈 공간 유지 (레이아웃 일관성)
-                Spacer(modifier = Modifier.size(6.dp))
-            }
+        // 갈증 수치 점 (Dot)
+        if (diary != null && isCurrentMonth) {
+            Box(
+                modifier = Modifier
+                    .size(5.dp) // [MODIFIED] 점 크기 조정 (2025-12-22)
+                    .clip(CircleShape)
+                    .background(getCravingColor(diary.cravingLevel))
+            )
+        } else {
+            // 빈 공간 유지 (레이아웃 일관성)
+            Spacer(modifier = Modifier.size(5.dp))
         }
     }
 }
