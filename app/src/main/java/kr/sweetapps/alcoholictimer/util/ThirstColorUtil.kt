@@ -23,9 +23,9 @@ object ThirstColorUtil {
             5 -> Color(0xFFFFD54F)  // Muted Yellow/Amber (약간 주의 - Slightly Elevated)
             6 -> Color(0xFFFFB300)  // Vibrant Yellow/Orange (주의 - Caution)
             7 -> Color(0xFFE0BBE4)  // Light Lavender/Purple (증가된 주의 - Increased Caution)
-            8 -> Color(0xFF957DAD)  // Medium Purple (경고 - Warning)
-            9 -> Color(0xFF6A5ACD)  // Darker Lavender/Indigo (강한 경고 - Strong Warning)
-            10 -> Color(0xFF483D8B) // Deep Purple/Slate Blue (매우 경고 - Severe Warning)
+            8 -> Color(0xFFE57373)  // Soft Red (경고 - Warning)
+            9 -> Color(0xFFEF5350)  // Medium Red (강한 경고 - Strong Warning)
+            10 -> Color(0xFFD32F2F) // Deep Red (매우 경고 - Severe Warning)
             else -> Color(0xFF9E9E9E) // 기본 회색 (0 or Error)
         }
     }

@@ -356,3 +356,108 @@ private fun CalendarDayCell(
     }
 }
 
+/**
+ * [PREVIEW] 캘린더 위젯 프리뷰
+ */
+@androidx.compose.ui.tooling.preview.Preview(
+    name = "캘린더 위젯 - 빈 상태",
+    showBackground = true,
+    backgroundColor = 0xFFF5F5F5
+)
+@Composable
+private fun CalendarWidgetPreview_Empty() {
+    MaterialTheme {
+        CalendarWidget(
+            diaries = emptyList(),
+            onDateClick = {},
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(
+    name = "캘린더 위젯 - 일기 데이터 포함",
+    showBackground = true,
+    backgroundColor = 0xFFF5F5F5
+)
+@Composable
+private fun CalendarWidgetPreview_WithData() {
+    MaterialTheme {
+        val sampleDiaries = listOf(
+            DiaryEntity(
+                id = 1,
+                timestamp = Calendar.getInstance().apply {
+                    set(Calendar.DAY_OF_MONTH, 5)
+                }.timeInMillis,
+                date = "2025-12-05",
+                content = "좋은 하루",
+                emoji = "😊",
+                cravingLevel = 2
+            ),
+            DiaryEntity(
+                id = 2,
+                timestamp = Calendar.getInstance().apply {
+                    set(Calendar.DAY_OF_MONTH, 10)
+                }.timeInMillis,
+                date = "2025-12-10",
+                content = "조금 힘든 날",
+                emoji = "😐",
+                cravingLevel = 5
+            ),
+            DiaryEntity(
+                id = 3,
+                timestamp = Calendar.getInstance().apply {
+                    set(Calendar.DAY_OF_MONTH, 15)
+                }.timeInMillis,
+                date = "2025-12-15",
+                content = "매우 힘듦",
+                emoji = "😰",
+                cravingLevel = 8
+            ),
+            DiaryEntity(
+                id = 4,
+                timestamp = Calendar.getInstance().timeInMillis, // 오늘
+                date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()),
+                content = "오늘 일기",
+                emoji = "🎉",
+                cravingLevel = 3
+            )
+        )
+
+        CalendarWidget(
+            diaries = sampleDiaries,
+            onDateClick = {},
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(
+    name = "캘린더 위젯 - 다양한 갈증 수치",
+    showBackground = true,
+    backgroundColor = 0xFFF5F5F5
+)
+@Composable
+private fun CalendarWidgetPreview_VariousLevels() {
+    MaterialTheme {
+        val cal = Calendar.getInstance()
+        val sampleDiaries = (1..20).map { day ->
+            DiaryEntity(
+                id = day.toLong(),
+                timestamp = Calendar.getInstance().apply {
+                    set(Calendar.DAY_OF_MONTH, day)
+                }.timeInMillis,
+                date = "2025-12-${String.format("%02d", day)}",
+                content = "Day $day",
+                emoji = "📝",
+                cravingLevel = (day % 10) + 1 // 1~10 순환
+            )
+        }
+
+        CalendarWidget(
+            diaries = sampleDiaries,
+            onDateClick = {},
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
