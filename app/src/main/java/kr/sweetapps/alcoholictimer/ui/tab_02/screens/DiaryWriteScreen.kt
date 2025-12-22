@@ -146,7 +146,10 @@ fun DiaryWriteScreen(
             onDismiss()
         },
         onOpenPhoto = {
-            // [MODIFIED] 사진 선택 화면 열기 (2025-12-22)
+            // [NEW] 광고 억제 활성화 - 카메라/갤러리 복귀 시 광고 차단 (2025-12-22)
+            kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.isAdSuppressed = true
+
+            // 사진 선택 화면 열기
             isPhotoSelectionVisible = true
         }
     )

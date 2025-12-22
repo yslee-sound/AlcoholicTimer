@@ -29,6 +29,9 @@ object AppOpenAdManager {
     @Volatile private var isLoading: Boolean = false
     @Volatile private var autoShowEnabled: Boolean = true
 
+    // [NEW] Ad Suppression Flag - 카메라/갤러리 사용 중 광고 차단 (2025-12-22)
+    @Volatile var isAdSuppressed: Boolean = false
+
     fun setAutoShowEnabled(enabled: Boolean) { autoShowEnabled = enabled }
 
     fun isAutoShowEnabled(): Boolean = autoShowEnabled
@@ -341,6 +344,14 @@ object AppOpenAdManager {
 
     fun showIfAvailable(activity: Activity, bypassRecentFullscreenSuppression: Boolean = false): Boolean {
         Log.d(TAG, "showIfAvailable called - loaded=$loaded isShowing=$isShowing activity=${activity.javaClass.simpleName}")
+
+        // [핵심] 광고 억제 플래그 체크 - 카메라/갤러리 복귀 시 광고 차단 (2025-12-22)
+        if (isAdSuppressed) {
+            Log.d(TAG, "showIfAvailable: Ad suppressed (camera/gallery usage) - resetting flag")
+            isAdSuppressed = false // 한 번 차단 후 자동 해제
+            return false
+        }
+
         if (!loaded || isShowing) return false
 
         // [NEW] 최초 실행 시 광고 노출 방지 (2025-12-19)
