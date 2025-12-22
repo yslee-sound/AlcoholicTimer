@@ -1057,11 +1057,15 @@ private fun WritePostScreenContent(
                     )
                  },
                  minLines = minLines,
+                 isError = false, // [FIX] 에러 상태 강제 해제 (2025-12-22)
                  colors = TextFieldDefaults.colors(
                      focusedContainerColor = Color.Transparent,
                      unfocusedContainerColor = Color.Transparent,
+                     disabledContainerColor = Color.Transparent, // [FIX] 로딩 중에도 투명 배경 유지 (2025-12-22)
                      focusedIndicatorColor = Color.Transparent, // 밑줄 제거
-                     unfocusedIndicatorColor = Color.Transparent
+                     unfocusedIndicatorColor = Color.Transparent,
+                     disabledIndicatorColor = Color.Transparent, // [FIX] 로딩 중 밑줄도 투명 유지 (2025-12-22)
+                     disabledTextColor = Color(0xFF6B7280) // [FIX] 로딩 중 텍스트는 회색으로 (2025-12-22)
                  ),
                  textStyle = MaterialTheme.typography.bodyLarge,
                  enabled = !isLoading // 비활성화 상태 추가

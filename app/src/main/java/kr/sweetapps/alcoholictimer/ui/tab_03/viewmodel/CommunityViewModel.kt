@@ -333,9 +333,9 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
         // Immediately mark loading so UI can reflect spinner synchronously
         _isLoading.value = true
 
-        // COPY selected image URI immediately and clear UI state to avoid sticky image when reopening write screen
+        // [MODIFIED] 현재 선택된 URI를 로컬 변수에 캡처만 하고 즉시 지우지 않음 (2025-12-22)
+        // 업로드가 끝난 후 finally 블록에서 초기화하여 로딩 중에도 미리보기 유지
         val uriToUpload = _selectedImageUri.value
-        _selectedImageUri.value = null
 
         viewModelScope.launch {
             try {
@@ -425,6 +425,8 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
             } catch (e: Exception) {
                 android.util.Log.e("CommunityViewModel", "게시글 작성 실패", e)
             } finally {
+                // [MODIFIED] 모든 작업이 끝난 후에 이미지 초기화 (성공/실패 무관) (2025-12-22)
+                _selectedImageUri.value = null
                 _isLoading.value = false
             }
         }
