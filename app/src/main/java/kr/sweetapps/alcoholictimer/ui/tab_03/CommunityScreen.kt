@@ -1092,9 +1092,9 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                     // 태그 데이터 정의 (tagKey, tagName, selectedBgColor, selectedTextColor)
                     data class TagInfo(val key: String, val name: String, val bgColor: Color, val textColor: Color)
                     val tags = listOf(
-                        TagInfo("diary", "오늘의 일기", Color(0xFF6D4ADB), Color.White), // 보라색 + 흰색 텍스트
-                        TagInfo("thanks", "오늘 감사할 일", Color(0xFF4A90E2), Color.White), // 파란색 + 흰색 텍스트
-                        TagInfo("reflect", "오늘 반성할 일", Color(0xFFFF69B4), Color.White) // 핑크색 + 흰색 텍스트
+                        TagInfo("diary", "오늘의 일기", Color(0xFF7C4DFF), Color.White), // 밝은 보라 (Material Purple) + 흰색
+                        TagInfo("thanks", "오늘 감사할 일", Color(0xFF00BFA5), Color.White), // 민트 그린 (Material Teal) + 흰색
+                        TagInfo("reflect", "오늘 반성할 일", Color(0xFFFF6F00), Color.White) // 따뜻한 오렌지 (Material Orange) + 흰색
                     )
 
                     tags.forEach { tag ->
