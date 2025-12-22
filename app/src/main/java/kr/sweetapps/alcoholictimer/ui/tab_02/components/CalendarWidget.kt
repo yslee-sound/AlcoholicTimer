@@ -53,8 +53,7 @@ fun CalendarWidget(
 
     Card(
         modifier = modifier
-            .fillMaxWidth() // [MODIFIED] 가로 꽉 채우기 (2025-12-22)
-            .padding(horizontal = 16.dp, vertical = 8.dp), // [MODIFIED] 좌우 패딩만 (2025-12-22)
+            .fillMaxWidth(), // [FIX] 내부 패딩 제거 - 상위 레이아웃 패딩과 중복 방지 (2025-12-22)
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -293,21 +292,21 @@ private fun CalendarDayCell(
 ) {
     Column(
         modifier = modifier
-            .aspectRatio(0.9f) // [MODIFIED] 세로 비율 증가로 하단 공간 확보 (2025-12-22)
+            .aspectRatio(0.85f) // [FIX] 세로 비율 미세 조정 (2025-12-22)
             .clip(RoundedCornerShape(8.dp))
             .clickable(enabled = isCurrentMonth) { onClick() }
-            .padding(vertical = 4.dp), // [MODIFIED] 상하 패딩 추가 (2025-12-22)
+            .padding(vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         // [MODIFIED] 날짜 숫자를 원형 배경으로 감싸기 (2025-12-22)
         Box(
             modifier = Modifier
-                .size(32.dp) // [MODIFIED] 원형 배경 크기 (2025-12-22)
+                .size(28.dp) // [FIX] 배경 원 크기 축소 (32dp -> 28dp) (2025-12-22)
                 .background(
                     color = when {
-                        isSelected -> kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue // [NEW] 선택: 파란 원 (2025-12-22)
-                        isToday && !isSelected -> Color(0xFFE3F2FD) // [NEW] 오늘(미선택): 연한 파랑 (2025-12-22)
+                        isSelected -> kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue // [NEW] 선택: 파란 원
+                        isToday && !isSelected -> Color(0xFFE3F2FD) // [NEW] 오늘(미선택): 연한 파랑
                         else -> Color.Transparent // 그 외: 투명
                     },
                     shape = CircleShape
@@ -316,30 +315,30 @@ private fun CalendarDayCell(
         ) {
             Text(
                 text = date.get(Calendar.DAY_OF_MONTH).toString(),
-                fontSize = 14.sp, // [MODIFIED] 폰트 크기 축소 (2025-12-22)
+                fontSize = 12.sp, // [FIX] 폰트 크기 축소 (14sp -> 12sp) (2025-12-22)
                 style = MaterialTheme.typography.bodyMedium,
                 color = when {
                     !isCurrentMonth -> Color(0xFFD1D5DB) // 다른 달: 연한 회색
-                    isSelected -> Color.White // [MODIFIED] 선택: 흰색 (2025-12-22)
+                    isSelected -> Color.White // [MODIFIED] 선택: 흰색
                     else -> Color(0xFF111827) // 이번 달: 검정
                 },
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal // [MODIFIED] 선택 시 Bold (2025-12-22)
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
             )
         }
 
-        Spacer(modifier = Modifier.height(6.dp)) // [MODIFIED] 숫자와 점 사이 간격 확보 (2025-12-22)
+        Spacer(modifier = Modifier.height(4.dp)) // [FIX] 간격 축소 (6dp -> 4dp) (2025-12-22)
 
         // 갈증 수치 점 (Dot)
         if (diary != null && isCurrentMonth) {
             Box(
                 modifier = Modifier
-                    .size(5.dp) // [MODIFIED] 점 크기 조정 (2025-12-22)
+                    .size(7.dp) // [FIX] 점 크기 확대 (5dp -> 7dp) (2025-12-22)
                     .clip(CircleShape)
-                    .background(kr.sweetapps.alcoholictimer.util.ThirstColorUtil.getColor(diary.cravingLevel)) // [MODIFIED] ThirstColorUtil 사용 (2025-12-22)
+                    .background(kr.sweetapps.alcoholictimer.util.ThirstColorUtil.getColor(diary.cravingLevel))
             )
         } else {
-            // 빈 공간 유지 (레이아웃 일관성)
-            Spacer(modifier = Modifier.size(5.dp))
+            // 빈 공간 유지 (레이아웃 흔들림 방지)
+            Spacer(modifier = Modifier.size(7.dp)) // [FIX] 점 크기와 동일하게 맞춤 (2025-12-22)
         }
     }
 }
