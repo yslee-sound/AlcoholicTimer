@@ -56,6 +56,10 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     private val _currentUserAvatarIndex = MutableStateFlow(0)
     val currentUserAvatarIndex: StateFlow<Int> = _currentUserAvatarIndex.asStateFlow()
 
+    // [NEW] 현재 사용자의 닉네임 (2025-12-22)
+    private val _currentNickname = MutableStateFlow("")
+    val currentNickname: StateFlow<String> = _currentNickname.asStateFlow()
+
     // [NEW] 선택된 이미지 URI (미리보기용) (2025-12-19)
     private val _selectedImageUri = MutableStateFlow<Uri?>(null)
     val selectedImageUri: StateFlow<Uri?> = _selectedImageUri.asStateFlow()
@@ -78,7 +82,8 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
         val deviceLang = normalizeLanguage(Locale.getDefault().language)
         setLanguageFilter(deviceLang)
 
-        loadCurrentUserAvatar() // [NEW] 사용자 아바타 로드
+        // [MODIFIED] 통합된 동기화 함수 호출 (2025-12-22)
+        startUserInfoSync()
     }
 
     // Helper to normalize language codes (handle old 'in' -> 'id')
@@ -126,26 +131,64 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     /**
-     * NEW 현재 사용자의 아바타 인덱스 로드
-     * SharedPreferences 변경 감지를 위한 polling (간단한 구현)
+     * [NEW] 통합 동기화 함수 (2025-12-22)
+     * - 아바타와 닉네임을 주기적으로(1초마다) 동기화하여 변경사항 실시간 반영
+     * - 기존 loadCurrentUserAvatar()와 loadUserInfo() 통합
      */
-    private fun loadCurrentUserAvatar() {
+    private fun startUserInfoSync() {
         viewModelScope.launch {
-            // 초기 로드
-            val avatarIndex = userRepository.getAvatarIndex()
-            _currentUserAvatarIndex.value = avatarIndex
+            // 초기 실행 (딜레이 없이 즉시 로드)
+            syncUserData()
 
-            // 주기적으로 체크 (1초마다)
-            // SharedPreferences 변경 시 즉시 반영
-            kotlinx.coroutines.delay(1000)
+            // 주기적 폴링 (1초마다 변경사항 감지)
             while (true) {
-                val newAvatarIndex = userRepository.getAvatarIndex()
-                if (newAvatarIndex != _currentUserAvatarIndex.value) {
-                    _currentUserAvatarIndex.value = newAvatarIndex
-                    android.util.Log.d("CommunityViewModel", "Avatar updated: $newAvatarIndex")
-                }
-                kotlinx.coroutines.delay(1000) // 1초마다 체크
+                kotlinx.coroutines.delay(1000)
+                syncUserData()
             }
+        }
+    }
+
+    /**
+     * [NEW] 실제 데이터 확인 및 업데이트 로직 (2025-12-22)
+     * - 아바타 인덱스와 닉네임을 UserRepository에서 읽어와 변경사항이 있으면 상태 업데이트
+     */
+    private suspend fun syncUserData() {
+        try {
+            // 1. 아바타 동기화
+            val newAvatarIndex = try {
+                userRepository.getAvatarIndex()
+            } catch (e: Exception) {
+                0
+            }
+
+            if (newAvatarIndex != _currentUserAvatarIndex.value) {
+                _currentUserAvatarIndex.value = newAvatarIndex
+                android.util.Log.d("CommunityViewModel", "아바타 변경 감지 및 업데이트: $newAvatarIndex")
+            }
+
+            // 2. 닉네임 동기화
+            var nickname = userRepository.getNickname()
+
+            // 닉네임이 없으면 생성 (신규 유저 케이스)
+            if (nickname.isNullOrBlank()) {
+                val newNickname = try {
+                    kr.sweetapps.alcoholictimer.util.NicknameGenerator.generateRandomNickname()
+                } catch (e: Exception) {
+                    "Unknown User"
+                }
+                userRepository.saveNickname(newNickname)
+                nickname = newNickname
+                android.util.Log.d("CommunityViewModel", "신규 닉네임 생성: $nickname")
+            }
+
+            // [핵심] 변경 사항이 있을 때만 StateFlow 업데이트
+            if (nickname != _currentNickname.value) {
+                _currentNickname.value = nickname
+                android.util.Log.d("CommunityViewModel", "닉네임 변경 감지 및 업데이트: $nickname")
+            }
+
+        } catch (e: Exception) {
+            android.util.Log.e("CommunityViewModel", "UserData Sync Failed", e)
         }
     }
 

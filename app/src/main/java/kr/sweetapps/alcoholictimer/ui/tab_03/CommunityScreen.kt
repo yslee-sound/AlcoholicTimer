@@ -82,6 +82,7 @@ fun CommunityScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState() // Pull-to-Refresh 상태 (2025-12-20)
     val currentUserAvatarIndex by viewModel.currentUserAvatarIndex.collectAsState() // 현재 사용자 아바타
+    val currentNickname by viewModel.currentNickname.collectAsState() // [NEW] 현재 사용자 닉네임 (2025-12-22)
     val context = LocalContext.current // Context 가져오기 (2025-12-19)
 
     // [UI State] Snackbar를 위한 상태 및 스코프
@@ -289,6 +290,7 @@ fun CommunityScreen(
                 ) {
                     WritePostScreenContent(
                         viewModel = viewModel,
+                        currentNickname = currentNickname, // [NEW] ViewModel에서 받은 닉네임 전달 (2025-12-22)
                         onPost = { triggerClose() }, // [MODIFIED] 실제 게시처리는 내부에서 실행, 부모에는 닫기만 위임
                         onDismiss = { triggerClose() }, // [FIX] 뒤로가기 시 애니메이션 종료
                         onOpenPhoto = {
@@ -482,6 +484,7 @@ private fun PostOptionsBottomSheet(
 @Composable
 private fun WritePostScreenContent(
     viewModel: CommunityViewModel, // [NEW] ViewModel 주입
+    currentNickname: String, // [NEW] ViewModel에서 전달받은 닉네임 (2025-12-22)
     onPost: (String) -> Unit,
     onDismiss: () -> Unit,
     onOpenPhoto: () -> Unit // [NEW] 사진 선택 화면 열기 콜백 (네비게이션 호출)
@@ -795,18 +798,8 @@ private fun WritePostScreenContent(
                 // [NEW] 디바이더 + 작성자 정보 (Top bar 바로 아래에 노출되도록 이동)
                 // 기존에 bottomBar 근처에 있던 작성자 정보 블록을 여기로 옮겨서
                 // '새 게시글 작성' 제목줄 바로 아래에 보이게 합니다.
-                var currentNickname by remember { mutableStateOf("") } // [NEW]
-
-                // 화면이 생성될 때(진입 시) 무조건 최신 닉네임을 불러옵니다. (하드코딩 금지)
-                LaunchedEffect(Unit) {
-                     try {
-                         val repo = kr.sweetapps.alcoholictimer.data.repository.UserRepository(context)
-                         // 존재하면 값 사용, 없으면 빈 문자열 유지(화면에 아무것도 표시하지 않음)
-                         currentNickname = repo.getNickname() ?: ""
-                     } catch (_: Throwable) {
-                         // 실패 시 빈 문자열 유지(섣불리 '익명' 등 하드코딩 금지)
-                     }
-                 }
+                // [DELETED] var currentNickname by remember { mutableStateOf("") } - ViewModel에서 관리 (2025-12-22)
+                // [DELETED] LaunchedEffect(Unit) { ... } - ViewModel에서 로드 (2025-12-22)
 
                 HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
 
