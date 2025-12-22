@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -221,7 +222,7 @@ private fun CalendarGrid(
     // 달력 그리드 생성
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp) // [MODIFIED] 간격 축소 (2025-12-22)
+        verticalArrangement = Arrangement.spacedBy(8.dp) // [FIX] 간격 확대 (4dp -> 8dp) - 점 가시성 향상 (2025-12-22)
     ) {
         var dayCounter = 1 - firstDayOfWeek
 
@@ -292,21 +293,32 @@ private fun CalendarDayCell(
 ) {
     Column(
         modifier = modifier
-            .aspectRatio(0.85f) // [FIX] 세로 비율 미세 조정 (2025-12-22)
+            .aspectRatio(0.65f) // [FIX] 세로 공간 확보 (0.75 -> 0.65) - 38dp 원과 10dp 점 모두 수용 (2025-12-22)
             .clip(RoundedCornerShape(8.dp))
             .clickable(enabled = isCurrentMonth) { onClick() }
-            .padding(vertical = 4.dp),
+            .padding(vertical = 2.dp), // [FIX] 패딩 최소화 (6dp -> 2dp) - 콘텐츠 공간 확보 (2025-12-22)
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         // [MODIFIED] 날짜 숫자를 원형 배경으로 감싸기 (2025-12-22)
         Box(
             modifier = Modifier
-                .size(28.dp) // [FIX] 배경 원 크기 축소 (32dp -> 28dp) (2025-12-22)
+                .size(if (isToday) 38.dp else 28.dp) // [중요] 오늘 날짜 38dp 크기 유지 (수정 금지)
+                .then(
+                    if (isToday) {
+                        // [NEW] 오늘 날짜에 그림자 효과 추가 (2025-12-22)
+                        Modifier.shadow(
+                            elevation = 4.dp,
+                            shape = CircleShape
+                        )
+                    } else {
+                        Modifier
+                    }
+                )
                 .background(
                     color = when {
-                        isSelected -> kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue // [NEW] 선택: 파란 원
-                        isToday && !isSelected -> Color(0xFFE3F2FD) // [NEW] 오늘(미선택): 연한 파랑
+                        isToday -> Color(0xFF6366F1) // [MODIFIED] 오늘: #6366F1 파란 원 + 그림자
+                        isSelected -> kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue // 선택: 파란 원
                         else -> Color.Transparent // 그 외: 투명
                     },
                     shape = CircleShape
@@ -315,30 +327,31 @@ private fun CalendarDayCell(
         ) {
             Text(
                 text = date.get(Calendar.DAY_OF_MONTH).toString(),
-                fontSize = 12.sp, // [FIX] 폰트 크기 축소 (14sp -> 12sp) (2025-12-22)
+                fontSize = 12.sp,
                 style = MaterialTheme.typography.bodyMedium,
                 color = when {
                     !isCurrentMonth -> Color(0xFFD1D5DB) // 다른 달: 연한 회색
-                    isSelected -> Color.White // [MODIFIED] 선택: 흰색
+                    isToday -> Color.White // 오늘: 흰색
+                    isSelected -> Color.White // 선택: 흰색
                     else -> Color(0xFF111827) // 이번 달: 검정
                 },
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                fontWeight = FontWeight.Bold // [MODIFIED] 모든 날짜 Bold 처리
             )
         }
 
-        Spacer(modifier = Modifier.height(4.dp)) // [FIX] 간격 축소 (6dp -> 4dp) (2025-12-22)
+        Spacer(modifier = Modifier.height(4.dp)) // [FIX] 간격 축소 (8dp -> 4dp) - 공간 효율화 (2025-12-22)
 
         // 갈증 수치 점 (Dot)
         if (diary != null && isCurrentMonth) {
             Box(
                 modifier = Modifier
-                    .size(7.dp) // [FIX] 점 크기 확대 (5dp -> 7dp) (2025-12-22)
+                    .size(10.dp) // [유지] 10dp 점 크기 유지 - 명확한 가시성
                     .clip(CircleShape)
                     .background(kr.sweetapps.alcoholictimer.util.ThirstColorUtil.getColor(diary.cravingLevel))
             )
         } else {
             // 빈 공간 유지 (레이아웃 흔들림 방지)
-            Spacer(modifier = Modifier.size(7.dp)) // [FIX] 점 크기와 동일하게 맞춤 (2025-12-22)
+            Spacer(modifier = Modifier.size(10.dp))
         }
     }
 }
