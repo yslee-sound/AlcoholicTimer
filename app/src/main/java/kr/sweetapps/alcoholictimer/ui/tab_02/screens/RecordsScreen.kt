@@ -94,6 +94,7 @@ fun RecordsScreen(
     onNavigateToDiaryWrite: (Long?) -> Unit = {}, // [FIX] 선택된 날짜 타임스탬프 전달 (2025-12-22)
     onAddRecord: () -> Unit = {},
     onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {},
+    onNavigateToDiaryDetail: (Long) -> Unit = {}, // [NEW] 일기 상세 피드 화면으로 이동 (2025-12-22)
     fontScale: Float = 1.06f
 ) {
     val context = LocalContext.current
@@ -272,7 +273,8 @@ fun RecordsScreen(
                             diaries = recentDiaries,
                             onNavigateToAllDiaries = onNavigateToAllDiaries,
                             onNavigateToDiaryWrite = onNavigateToDiaryWrite, // [NEW] 일기 작성 콜백 전달
-                            onDiaryClick = onDiaryClick
+                            onDiaryClick = onDiaryClick,
+                            onNavigateToDiaryDetail = onNavigateToDiaryDetail // [NEW] 상세 화면 네비게이션 (2025-12-22)
                         )
                     }
                 }
@@ -870,7 +872,8 @@ private fun RecentDiarySection(
     diaries: List<kr.sweetapps.alcoholictimer.data.room.DiaryEntity>,
     onNavigateToAllDiaries: () -> Unit = {},
     onNavigateToDiaryWrite: (Long?) -> Unit = {}, // [FIX] 날짜 파라미터 추가 (2025-12-22)
-    onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {}
+    onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {},
+    onNavigateToDiaryDetail: (Long) -> Unit = {} // [NEW] 일기 상세 피드 화면으로 이동 (2025-12-22)
 ) {
     val context = LocalContext.current // [NEW] Context 가져오기 (2025-12-22)
 
@@ -923,9 +926,9 @@ private fun RecentDiarySection(
                 // 3. [핵심] 일기 존재 여부를 최우선으로 확인하는 분기 로직 (2025-12-22)
                 when {
                     existingDiary != null -> {
-                        // 이미 일기가 있다면 오늘이든 과거든 수정/보기 모드로 진입
-                        onDiaryClick(existingDiary)
-                        android.util.Log.d("RecordsScreen", "기존 일기 열기 (수정 모드): ${existingDiary.id}")
+                        // [FIX] 이미 일기가 있다면 상세 피드 화면으로 이동 (2025-12-22)
+                        onNavigateToDiaryDetail(existingDiary.id)
+                        android.util.Log.d("RecordsScreen", "일기 상세 피드 열기: ${existingDiary.id}")
                     }
                     isToday -> {
                         // 일기가 없고 오늘인 경우에만 새 일기 작성
