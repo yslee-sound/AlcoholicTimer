@@ -57,6 +57,7 @@ fun Tab02Screen(
     onNavigateToAllRecords: () -> Unit = {},
     onNavigateToAllDiaries: () -> Unit = {},
     onNavigateToDiaryWrite: (Long?) -> Unit = {}, // [FIX] 선택된 날짜 타임스탬프 전달 (2025-12-22)
+    onNavigateToDiaryDetail: (String) -> Unit = {}, // [NEW] 일기 수정용 네비게이션 (2025-12-23)
     onAddRecord: () -> Unit = {},
     onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {},
     // [NEW] Phase 2: 레벨 파라미터
@@ -157,9 +158,10 @@ fun Tab02Screen(
                     selectedDetailDiaryId = null
                 },
                 onEditClick = { id ->
-                    // 수정 로직 연결
+                    // [FIX] 일기 수정: DiaryDetail 라우트로 이동 (2025-12-23)
                     selectedDetailDiaryId = null
-                    onNavigateToDiaryWrite(id)
+                    val route = kr.sweetapps.alcoholictimer.ui.main.Screen.DiaryDetail.createRoute(id.toString())
+                    onNavigateToDiaryDetail(route)
                 },
                 onDeleteClick = { id ->
                     // 삭제 로직 연결

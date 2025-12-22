@@ -80,6 +80,7 @@ fun NavGraphBuilder.addTab02ListGraph(
                 onNavigateToAllRecords = { onNavigateToAllRecords() },
                 onNavigateToAllDiaries = { onNavigateToAllDiaries() },
                 onNavigateToDiaryWrite = { selectedDate -> onNavigateToDiaryWrite(selectedDate) }, // [FIX] 선택된 날짜 전달 (2025-12-22)
+                onNavigateToDiaryDetail = { route -> onNavigateToDiaryDetail(route) }, // [NEW] 일기 수정용 전달 (2025-12-23)
                 onAddRecord = {
                     // 예전 FAB 콜백 - 필요시 유지
                     onNavigateToDiaryWrite(null) // [FIX] 오늘 날짜로 작성 (2025-12-22)

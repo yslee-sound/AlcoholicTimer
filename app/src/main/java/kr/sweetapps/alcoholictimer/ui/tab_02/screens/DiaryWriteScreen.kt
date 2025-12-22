@@ -12,7 +12,9 @@ import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -62,7 +64,10 @@ fun DiaryWriteScreen(
 
     // 3. 기존 일기 데이터 로드 (수정 모드)
     var existingDiary by remember { mutableStateOf<DiaryEntity?>(null) }
-    var postToEdit by remember { mutableStateOf<Post?>(null) }
+    var postToEdit by remember(diaryId) { mutableStateOf<Post?>(null) } // [FIX] diaryId를 key로 추가 (2025-12-23)
+
+    // [NEW] 데이터 로딩 상태 추가 (2025-12-23)
+    var isDataLoaded by remember(diaryId) { mutableStateOf(diaryId == null) } // ID가 없으면 즉시 표시
 
     LaunchedEffect(diaryId) {
         if (diaryId != null) {
@@ -73,39 +78,58 @@ fun DiaryWriteScreen(
 
                 // Post 객체로 변환하여 WritePostScreenContent에 전달
                 if (diary != null) {
+                    // [FIX] 타이머 시작 시간 가져오기 (2025-12-23)
+                    val prefs = context.getSharedPreferences("timer_prefs", android.content.Context.MODE_PRIVATE)
+                    val startTime = prefs.getLong("start_time", 0L)
+
+                    // [FIX] 일기 작성 당시의 경과 일수 및 레벨 계산 (2025-12-23)
+                    val elapsedDays = if (startTime > 0) {
+                        kotlin.math.max(1, ((diary.timestamp - startTime) / (1000 * 60 * 60 * 24)).toInt() + 1)
+                    } else {
+                        1 // 타이머 없으면 기본값
+                    }
+                    val levelNumber = kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions.getLevelNumber(elapsedDays)
+
                     postToEdit = Post(
                         id = diary.id.toString(),
                         content = diary.content,
                         tagType = "diary", // 일기 태그
                         thirstLevel = diary.cravingLevel, // [FIX] cravingLevel -> thirstLevel 매핑
-                        imageUrl = "", // 일기에 이미지가 없음 (필요시 추가)
+                        imageUrl = diary.imageUrl, // [FIX] 기존 이미지 URL 매핑 (2025-12-23)
                         nickname = "",
-                        timerDuration = "",
+                        timerDuration = "", // 사용하지 않음
                         likeCount = 0,
                         likedBy = emptyList(),
-                        currentDays = 0,
-                        userLevel = 0,
-                        createdAt = com.google.firebase.Timestamp.now(),
+                        currentDays = elapsedDays, // [FIX] 일기 작성 당시 경과 일수 (2025-12-23)
+                        userLevel = levelNumber + 1, // [FIX] 레벨 번호 (1-indexed) (2025-12-23)
+                        createdAt = com.google.firebase.Timestamp(diary.timestamp / 1000, 0), // [FIX] 일기 작성 시간 (2025-12-23)
                         deleteAt = com.google.firebase.Timestamp.now(),
                         authorAvatarIndex = 0,
                         authorId = "",
                         languageCode = ""
                     )
+
+                    // [DEBUG] postToEdit 설정 확인 (2025-12-23)
+                    android.util.Log.d("DiaryWriteScreen", "postToEdit 설정됨: id=${diary.id}, content=${diary.content.take(20)}, days=$elapsedDays, level=${levelNumber + 1}")
                 }
+
+                // [NEW] 데이터 로드 완료 (2025-12-23)
+                isDataLoaded = true
             }
         }
     }
 
-    // 4. WritePostScreenContent 호출
-    WritePostScreenContent(
-        viewModel = communityViewModel,
-        currentNickname = currentNickname,
-        isDiaryMode = true, // [중요] 일기 모드 활성화
-        postToEdit = postToEdit, // 수정 모드일 경우 기존 데이터 전달
-        onPost = {
-            // 저장/게시 완료 후 화면 닫기
-            onDismiss()
-        },
+    // 4. [FIX] 데이터가 로드된 후에만 화면을 그림 (2025-12-23)
+    if (isDataLoaded) {
+        WritePostScreenContent(
+            viewModel = communityViewModel,
+            currentNickname = currentNickname,
+            isDiaryMode = true, // [중요] 일기 모드 활성화
+            postToEdit = postToEdit, // 수정 모드일 경우 기존 데이터 전달
+            onPost = {
+                // 저장/게시 완료 후 화면 닫기
+                onDismiss()
+            },
         onSaveDiary = { postData ->
             // [핵심] 로컬 일기장(Room DB) 저장 로직
             scope.launch {
@@ -157,6 +181,17 @@ fun DiaryWriteScreen(
             isPhotoSelectionVisible = true
         }
     )
+    } else {
+        // [NEW] 로딩 중일 때 표시할 화면 (2025-12-23)
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(
+                color = kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
+            )
+        }
+    }
 
     // [NEW] 5. 전체 화면 사진 선택 Dialog (CommunityScreen과 동일 로직) (2025-12-22)
     if (isPhotoSelectionVisible) {

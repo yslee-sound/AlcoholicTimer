@@ -131,6 +131,13 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     /**
+     * [NEW] 선택된 이미지 초기화 (2025-12-23)
+     */
+    fun clearSelectedImage() {
+        _selectedImageUri.value = null
+    }
+
+    /**
      * [NEW] 통합 동기화 함수 (2025-12-22)
      * - 아바타와 닉네임을 주기적으로(1초마다) 동기화하여 변경사항 실시간 반영
      * - 기존 loadCurrentUserAvatar()와 loadUserInfo() 통합

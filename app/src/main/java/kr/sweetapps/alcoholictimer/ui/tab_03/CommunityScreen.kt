@@ -542,21 +542,26 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
     // [MODIFIED] 수정 모드인 경우 기존 내용으로 초기화 (2025-12-22)
     val isEditMode = postToEdit != null
 
+    // [DEBUG] 수정 모드 확인 로그 (2025-12-23)
+    LaunchedEffect(postToEdit, isDiaryMode, isEditMode) {
+        android.util.Log.d("WritePostScreen", "수정 모드 확인: isDiaryMode=$isDiaryMode, isEditMode=$isEditMode, postToEdit=${postToEdit?.content?.take(20)}")
+    }
+
     // [NEW] 일기 모드에서 커뮤니티 공유 여부 (2025-12-22)
     var isShareToCommunity by remember { mutableStateOf(false) }
 
-    // Use TextFieldValue to track cursor position and selection
-    var textFieldValue by remember { mutableStateOf(
-        TextFieldValue(postToEdit?.content ?: "")
-    ) }
-
-    // [MODIFIED] 수정 모드가 아닐 때만 초기화 (2025-12-22)
-    LaunchedEffect(postToEdit) {
-        if (postToEdit == null) {
-            textFieldValue = TextFieldValue("")
-        } else {
-            textFieldValue = TextFieldValue(postToEdit.content)
-        }
+    // [FIX] postToEdit를 key로 사용하여 수정 모드 진입 시 자동으로 내용 채우기 (2025-12-23)
+    var textFieldValue by remember(postToEdit) {
+        mutableStateOf(
+            if (postToEdit != null) {
+                TextFieldValue(
+                    text = postToEdit.content,
+                    selection = androidx.compose.ui.text.TextRange(postToEdit.content.length)
+                )
+            } else {
+                TextFieldValue("")
+            }
+        )
     }
 
     val context = LocalContext.current
@@ -569,6 +574,24 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
     // [MODIFIED] 수정 모드인 경우 기존 값으로 초기화 (2025-12-22)
     var selectedLevel by remember(postToEdit) {
         mutableStateOf<Int?>(postToEdit?.thirstLevel)
+    }
+
+    // [FIX] 이미지 복원만 LaunchedEffect에서 처리 (2025-12-23)
+    LaunchedEffect(postToEdit) {
+        if (postToEdit == null) {
+            viewModel.clearSelectedImage()
+        } else {
+            // 기존 이미지 복원
+            if (!postToEdit.imageUrl.isNullOrBlank()) {
+                try {
+                    viewModel.onImageSelected(android.net.Uri.parse(postToEdit.imageUrl))
+                } catch (e: Exception) {
+                    android.util.Log.e("WritePostScreen", "이미지 복원 실패: ${postToEdit.imageUrl}", e)
+                }
+            } else {
+                viewModel.clearSelectedImage()
+            }
+        }
     }
 
     // [DELETED] thirstColor 함수 제거 - ThirstColorUtil 사용 (2025-12-22)
@@ -700,7 +723,8 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                 title = {
                     Text(
                         text = when {
-                            isDiaryMode -> "일기 작성" // [NEW] 일기 모드 (2025-12-22)
+                            isDiaryMode && isEditMode -> "일기 수정" // [FIX] 일기 수정 모드 (2025-12-23)
+                            isDiaryMode -> "일기 작성" // [NEW] 일기 작성 모드 (2025-12-22)
                             isEditMode -> "게시글 수정"
                             else -> "새 게시글 작성"
                         },
@@ -802,7 +826,8 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                         } else {
                             Text(
                                 text = when {
-                                    isDiaryMode -> "저장" // [NEW] 일기 모드 (2025-12-22)
+                                    isDiaryMode && isEditMode -> "수정 완료" // [FIX] 일기 수정 모드 (2025-12-23)
+                                    isDiaryMode -> "저장" // [NEW] 일기 작성 모드 (2025-12-22)
                                     isEditMode -> "수정완료"
                                     else -> "게시하기"
                                 },
@@ -963,16 +988,24 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                         // [수정 2, 3] 알약 2개를 담는 Row
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             // --- 알약 1: 레벨 및 일차 정보 ---
-                            val tab03Vm: kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab03ViewModel = viewModel()
-                            val levelDays by tab03Vm.levelDays.collectAsState()
-                            val levelNumber = if (levelDays == 0) 0 else kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions.getLevelNumber(levelDays) + 1
+                            // [FIX] 수정 모드일 때는 일기 작성 당시의 레벨/일차 정보 사용 (2025-12-23)
+                            val levelInfoText = if (postToEdit != null) {
+                                // 수정 모드: 저장된 일기의 레벨/일차 사용
+                                "LV.${postToEdit.userLevel} · ${postToEdit.currentDays}일차"
+                            } else {
+                                // 작성 모드: 현재 타이머 상태 사용
+                                val tab03Vm: kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab03ViewModel = viewModel()
+                                val levelDays by tab03Vm.levelDays.collectAsState()
+                                val levelNumber = if (levelDays == 0) 0 else kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions.getLevelNumber(levelDays) + 1
+                                "LV.$levelNumber · ${levelDays}일차"
+                            }
 
                             Surface(
                                 shape = RoundedCornerShape(50),
                                 color = kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue.copy(alpha = 0.1f), // 연한 하늘색 배경
                             ) {
                                 Text(
-                                    text = "LV.$levelNumber · ${levelDays}일차",
+                                    text = levelInfoText, // [FIX] 계산된 텍스트 사용 (2025-12-23)
                                     style = MaterialTheme.typography.labelMedium.copy(
                                         color = kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue,
                                         fontWeight = FontWeight.SemiBold
