@@ -53,20 +53,22 @@ fun DiaryDetailFeedScreen(
     // 일기 목록 구독 (최신순)
     val diaries by diaryViewModel.uiState.collectAsState()
 
-    // 선택된 일기를 최상단으로 정렬하고 나머지는 최신순
-    val sortedDiaries = remember(diaries, targetDiaryId) {
-        val target = diaries.find { it.id == targetDiaryId }
-        val others = diaries.filter { it.id != targetDiaryId }.sortedByDescending { it.timestamp }
-
-        if (target != null) {
-            listOf(target) + others
-        } else {
-            others
-        }
+    // [FIX] 전체 일기를 최신순으로만 정렬 (선택 일기 강제 상단 이동 제거) (2025-12-22)
+    val allDiaries = remember(diaries) {
+        diaries.sortedByDescending { it.timestamp }
     }
 
-    // 스크롤 상태 (선택된 일기가 최상단)
+    // 스크롤 상태
     val listState = rememberLazyListState()
+
+    // [NEW] 선택된 일기 위치로 초기 스크롤 이동 (2025-12-22)
+    LaunchedEffect(targetDiaryId, allDiaries) {
+        val index = allDiaries.indexOfFirst { it.id == targetDiaryId }
+        if (index != -1) {
+            // 즉시 이동하여 해당 일기부터 보이도록 함
+            listState.scrollToItem(index)
+        }
+    }
 
     // 선택된 일기 ID 추적 (옵션 바텀시트용)
     var selectedDiaryForOptions by remember { mutableStateOf<DiaryEntity?>(null) }
@@ -96,7 +98,7 @@ fun DiaryDetailFeedScreen(
                 .padding(paddingValues)
                 .background(Color(0xFFF0F2F5)) // 커뮤니티 배경색
         ) {
-            if (sortedDiaries.isEmpty()) {
+            if (allDiaries.isEmpty()) {
                 // 빈 상태
                 Column(
                     modifier = Modifier
@@ -117,7 +119,7 @@ fun DiaryDetailFeedScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(
-                        items = sortedDiaries,
+                        items = allDiaries,
                         key = { it.id }
                     ) { diary ->
                         // [NEW] 날짜 포맷 변환 (2025-12-22)
