@@ -189,6 +189,65 @@ fun CommunityScreen(
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.spacedBy(0.dp)
                         ) {
+                            // [NEW] 언어 필터 칩 (2025-12-23)
+                            item {
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(Color.White)
+                                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        // 언어별 라벨 텍스트
+                                        val myLanguageLabel = when(deviceLang) {
+                                            "ko" -> "🇰🇷 한국어"
+                                            "ja" -> "🇯🇵 日本語"
+                                            "id" -> "🇮🇩 Indonesia"
+                                            else -> "📱 My Language"
+                                        }
+
+                                        // 1. 내 언어 보기
+                                        FilterChip(
+                                            selected = !showAllLanguages,
+                                            onClick = {
+                                                showAllLanguages = false
+                                                viewModel.setLanguageFilter(deviceLang)
+                                            },
+                                            label = { Text(myLanguageLabel) },
+                                            colors = FilterChipDefaults.filterChipColors(
+                                                containerColor = Color(0xFFF0F0F0),
+                                                labelColor = Color(0xFF374151),
+                                                selectedContainerColor = Color(0xFF6366F1),
+                                                selectedLabelColor = Color.White
+                                            )
+                                        )
+
+                                        // 2. 전 세계 보기
+                                        FilterChip(
+                                            selected = showAllLanguages,
+                                            onClick = {
+                                                showAllLanguages = true
+                                                viewModel.setLanguageFilter(null)
+                                            },
+                                            label = { Text("🌍 Global") },
+                                            colors = FilterChipDefaults.filterChipColors(
+                                                containerColor = Color(0xFFF0F0F0),
+                                                labelColor = Color(0xFF374151),
+                                                selectedContainerColor = Color(0xFF6366F1),
+                                                selectedLabelColor = Color.White
+                                            )
+                                        )
+                                    }
+
+                                    // [NEW] 회색 디바이더 (2025-12-23)
+                                    HorizontalDivider(
+                                        thickness = 1.dp,
+                                        color = Color(0xFFE5E7EB)
+                                    )
+                                }
+                            }
+
                             item {
                                 WritePostTrigger(
                                     onClick = { isWritingScreenVisible = true },

@@ -30,34 +30,6 @@ class CommunityRepository(private val context: Context? = null) {
         private const val TAG = "CommunityRepository"
     }
 
-    /**
-     * 실시간 게시글 목록 가져오기
-     * createdAt 내림차순 정렬 (최신글이 위로)
-     */
-    fun getPosts(): Flow<List<Post>> = callbackFlow {
-        val listener = postsCollection
-            .orderBy("createdAt", Query.Direction.DESCENDING)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    Log.e(TAG, "Error listening to posts", error)
-                    trySend(emptyList())
-                    return@addSnapshotListener
-                }
-
-                val posts = snapshot?.documents?.mapNotNull { doc ->
-                    try {
-                        doc.toObject(Post::class.java)
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Error parsing post: ${doc.id}", e)
-                        null
-                    }
-                } ?: emptyList()
-
-                trySend(posts)
-            }
-
-        awaitClose { listener.remove() }
-    }
 
     /**
      * Phase 2: 테스트용 더미 게시글 10개 생성

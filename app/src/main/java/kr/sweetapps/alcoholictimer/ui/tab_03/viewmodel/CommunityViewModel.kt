@@ -120,13 +120,37 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
         postsJob = viewModelScope.launch {
             _isLoading.value = true
             try {
-                repository.getPosts(normalized, includeEnglishFallback = true).collect { postList ->
-                    _cachedPostList = postList
+                // 1차 시도: 설정된 언어로 데이터 요청
+                repository.getPosts(normalized, includeEnglishFallback = false).collect { postList ->
+                    if (postList.isEmpty() && normalized != null && normalized != "en") {
+                        // [Fallback 전략] 내 언어 게시글이 하나도 없으면 영어 게시글 불러오기
+                        android.util.Log.d("CommunityViewModel", "No posts in $normalized, loading English fallback")
+                        loadEnglishFallback()
+                    } else {
+                        // 데이터가 있거나 전체보기/영어 모드라면 그대로 표시
+                        _cachedPostList = postList
+                        executeFiltering()
+                        _isLoading.value = false
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("CommunityViewModel", "setLanguageFilter error", e)
+                _isLoading.value = false
+            }
+        }
+    }
+
+    // [NEW] 폴백용 영어 데이터 로드 (2025-12-23)
+    private fun loadEnglishFallback() {
+        viewModelScope.launch {
+            try {
+                repository.getPosts("en", includeEnglishFallback = false).collect { posts ->
+                    _cachedPostList = posts
                     executeFiltering()
                     _isLoading.value = false
                 }
             } catch (e: Exception) {
-                android.util.Log.e("CommunityViewModel", "setLanguageFilter error", e)
+                android.util.Log.e("CommunityViewModel", "loadEnglishFallback error", e)
                 _isLoading.value = false
             }
         }
