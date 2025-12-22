@@ -44,11 +44,12 @@ fun CalendarWidget(
     // [NEW] 선택된 날짜 상태 (2025-12-22)
     var selectedDate by remember { mutableStateOf<Calendar?>(null) }
 
-    // 다이어리 데이터를 날짜별로 매핑 (yyyy-MM-dd -> DiaryEntity)
+    // [FIX] diaryMap 생성 - 타임존 문제 해결 (2025-12-22)
     val diaryMap = remember(diaries) {
+        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
         diaries.associateBy {
             val cal = Calendar.getInstance().apply { timeInMillis = it.timestamp }
-            SimpleDateFormat("yyyy-MM-dd", Locale.US).format(cal.time)
+            formatter.format(cal.time)
         }
     }
 
@@ -88,7 +89,7 @@ fun CalendarWidget(
 
             Spacer(modifier = Modifier.height(12.dp)) // [MODIFIED] 간격 조정 (2025-12-22)
 
-            // 날짜 그리드
+            // [FIX] 날짜 그리드 - diaryMap 사용 (2025-12-22)
             CalendarGrid(
                 calendar = currentCalendar,
                 diaryMap = diaryMap,
@@ -194,6 +195,7 @@ private fun WeekdayRow() {
 
 /**
  * [MODIFIED] 날짜 그리드 - 선택 상태 지원 (2025-12-22)
+ * [FIX] diaryMap 사용 및 클릭 로직 개선 (2025-12-22)
  */
 @Composable
 private fun CalendarGrid(
@@ -219,10 +221,13 @@ private fun CalendarGrid(
     // 오늘 날짜
     val today = Calendar.getInstance()
 
+    // [NEW] 날짜 포맷터 (2025-12-22)
+    val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+
     // 달력 그리드 생성
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(0.dp) // [FIX] Row 사이 간격 축소 (8dp -> 4dp) - 날짜 셀 간격 좁힘 (2025-12-22)
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         var dayCounter = 1 - firstDayOfWeek
 
@@ -234,6 +239,11 @@ private fun CalendarGrid(
                 repeat(7) {
                     val date = Calendar.getInstance().apply {
                         set(year, month, dayCounter)
+                        // [FIX] 시간 정보 초기화 (2025-12-22)
+                        set(Calendar.HOUR_OF_DAY, 0)
+                        set(Calendar.MINUTE, 0)
+                        set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
                     }
 
                     val isCurrentMonth = dayCounter in 1..lastDay
@@ -241,33 +251,32 @@ private fun CalendarGrid(
                             date.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
                             date.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)
 
-                    // [FIX] 미래 날짜 체크 - 시간 제외하고 년/월/일만 비교 (2025-12-22)
+                    // [FIX] 미래 날짜 체크
                     val isFuture = date.get(Calendar.YEAR) > today.get(Calendar.YEAR) ||
                             (date.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
                              date.get(Calendar.DAY_OF_YEAR) > today.get(Calendar.DAY_OF_YEAR))
 
-                    // [NEW] 선택 여부 확인 (2025-12-22)
+                    // [NEW] 선택 여부 확인
                     val isSelected = isCurrentMonth && selectedDate != null &&
                             date.get(Calendar.YEAR) == selectedDate.get(Calendar.YEAR) &&
                             date.get(Calendar.DAY_OF_YEAR) == selectedDate.get(Calendar.DAY_OF_YEAR)
 
-                    val dateKey = if (isCurrentMonth) {
-                        SimpleDateFormat("yyyy-MM-dd", Locale.US).format(date.time)
-                    } else {
-                        ""
-                    }
+                    // [FIX] dateKey 생성 및 일기 조회 (2025-12-22)
+                    val dateKey = dateFormatter.format(date.time)
                     val diary = diaryMap[dateKey]
 
                     CalendarDayCell(
                         date = date,
                         isCurrentMonth = isCurrentMonth,
                         isToday = isToday,
-                        isFuture = isFuture, // [NEW] 미래 날짜 전달 (2025-12-22)
+                        isFuture = isFuture,
                         isSelected = isSelected,
                         diary = diary,
                         onClick = {
-                            // [FIX] 미래 날짜 클릭 차단 (2025-12-22)
-                            if (isCurrentMonth && !isFuture) onDateClick(date)
+                            // [FIX] 일기가 있으면 클릭 허용, 없으면 현재 월+미래 아닌 경우만 (2025-12-22)
+                            if (diary != null || (isCurrentMonth && !isFuture)) {
+                                onDateClick(date)
+                            }
                         },
                         modifier = Modifier.weight(1f)
                     )
