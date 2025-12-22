@@ -58,7 +58,9 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.app.ActivityCompat
@@ -516,19 +518,25 @@ private fun PostOptionsBottomSheet(
 /**
  * 글쓰기 화면의 내부 콘텐츠 (별도 Composable로 분리하여 깔끔하게 정리)
  * [MODIFIED] 사용자 아바타 연동 + bottomBar 구조 + 이미지 업로드 기능 + 터치하여 키보드 닫기 + 스크롤 기능 추가 + 뒤로가기 방지 (2025-12-19)
+ * [MODIFIED] 일기 모드 지원 추가 (2025-12-22)
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class) // [NEW] ExperimentalLayoutApi 추가 (isImeVisible 사용)
 @Composable
-private fun WritePostScreenContent(
+fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
     viewModel: CommunityViewModel, // [NEW] ViewModel 주입
     currentNickname: String, // [NEW] ViewModel에서 전달받은 닉네임 (2025-12-22)
+    isDiaryMode: Boolean = false, // [NEW] 일기 모드 여부 (2025-12-22)
     postToEdit: Post? = null, // [NEW] 수정할 게시글 (2025-12-22)
     onPost: (String) -> Unit,
+    onSaveDiary: (Post) -> Unit = {}, // [NEW] 일기 저장 콜백 (2025-12-22)
     onDismiss: () -> Unit,
     onOpenPhoto: () -> Unit // [NEW] 사진 선택 화면 열기 콜백 (네비게이션 호출)
 ) {
     // [MODIFIED] 수정 모드인 경우 기존 내용으로 초기화 (2025-12-22)
     val isEditMode = postToEdit != null
+
+    // [NEW] 일기 모드에서 커뮤니티 공유 여부 (2025-12-22)
+    var isShareToCommunity by remember { mutableStateOf(false) }
 
     // Use TextFieldValue to track cursor position and selection
     var textFieldValue by remember { mutableStateOf(
@@ -689,7 +697,11 @@ private fun WritePostScreenContent(
             TopAppBar(
                 title = {
                     Text(
-                        text = if (isEditMode) "게시글 수정" else "새 게시글 작성", // [MODIFIED] 수정 모드 표시 (2025-12-22)
+                        text = when {
+                            isDiaryMode -> "일기 작성" // [NEW] 일기 모드 (2025-12-22)
+                            isEditMode -> "게시글 수정"
+                            else -> "새 게시글 작성"
+                        },
                         style = MaterialTheme.typography.titleMedium,
                         color = Color(0xFF1F2937)
                     )
@@ -710,8 +722,44 @@ private fun WritePostScreenContent(
                             if ((textFieldValue.text.isNotBlank() || selectedImageUri != null) && !isLoading) {
                                 val payload = textFieldValue.text.trim()
                                 try {
-                                    // [MODIFIED] 수정 모드와 신규 작성 모드 분기 (2025-12-22)
-                                    if (isEditMode && postToEdit != null) {
+                                    // [MODIFIED] 일기 모드, 수정 모드, 신규 작성 모드 분기 (2025-12-22)
+                                    if (isDiaryMode) {
+                                        // 일기 모드: 로컬 저장 + 선택적 커뮤니티 공유
+                                        val diaryEntry = Post(
+                                            content = payload,
+                                            tagType = selectedTag,
+                                            thirstLevel = selectedLevel,
+                                            imageUrl = selectedImageUri?.toString() ?: "",
+                                            nickname = currentNickname,
+                                            timerDuration = "",
+                                            likeCount = 0,
+                                            likedBy = emptyList(),
+                                            currentDays = 0,
+                                            userLevel = 0,
+                                            createdAt = com.google.firebase.Timestamp.now(),
+                                            deleteAt = com.google.firebase.Timestamp.now(),
+                                            authorAvatarIndex = 0,
+                                            authorId = "",
+                                            languageCode = ""
+                                        )
+
+                                        // 로컬 일기 저장
+                                        onSaveDiary(diaryEntry)
+
+                                        // 커뮤니티 공유가 체크되었으면 업로드 수행
+                                        if (isShareToCommunity) {
+                                            viewModel.addPost(
+                                                content = payload,
+                                                context = context,
+                                                tagType = selectedTag,
+                                                thirstLevel = selectedLevel,
+                                                onSuccess = { onPost(payload) }
+                                            )
+                                        } else {
+                                            // 공유 안 함 -> 바로 닫기
+                                            onPost(payload)
+                                        }
+                                    } else if (isEditMode && postToEdit != null) {
                                         // 수정 모드: updatePost 호출
                                         viewModel.updatePost(
                                             postId = postToEdit.id,
@@ -751,7 +799,11 @@ private fun WritePostScreenContent(
                             )
                         } else {
                             Text(
-                                text = if (isEditMode) "수정완료" else "게시하기", // [MODIFIED] 수정 모드 버튼 텍스트 (2025-12-22)
+                                text = when {
+                                    isDiaryMode -> "저장" // [NEW] 일기 모드 (2025-12-22)
+                                    isEditMode -> "수정완료"
+                                    else -> "게시하기"
+                                },
                                 color = if (isModified)
                                     kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
                                 else Color(0xFFD1D5DB),
@@ -867,105 +919,111 @@ private fun WritePostScreenContent(
 
                 HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
 
+                // [MODIFIED] 상단 작성자 정보 영역 Row (2025-12-22)
                 Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
                 ) {
+                    // 1. 아바타 이미지
                     Image(
                         painter = painterResource(id = kr.sweetapps.alcoholictimer.util.AvatarManager.getAvatarResId(currentUserAvatarIndex)),
                         contentDescription = "내 프로필",
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            .size(40.dp)
-                            .border(1.dp, Color(0xFFE0E0E0), CircleShape)
+                            .size(48.dp)
                             .clip(CircleShape)
+                            .border(1.dp, Color(0xFFE5E7EB), CircleShape)
                             .background(Color(0xFFF5F5F5))
                     )
 
                     Spacer(modifier = Modifier.width(12.dp))
 
-                    Column(modifier = Modifier.weight(1f)) {
-                        // 닉네임과 뱃지의 배치를 Row로 변경: 닉네임, 구분자(" - "), 숫자 뱃지, 후행 텍스트(" 갈증") 순
+                    // 2. 닉네임 및 알약 2개 영역 Column
+                    Column(
+                        modifier = Modifier.weight(1f) // 남은 공간 차지
+                    ) {
+                        // [수정 1] 닉네임: 한 줄 제한 및 말줄임표(...) 처리
+                        val displayNickname = if (currentNickname.isNotBlank()) currentNickname else "익명"
+                        Text(
+                            text = displayNickname,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            ),
+                            color = Color(0xFF111827),
+                            maxLines = 1, // [핵심] 1줄 제한
+                            overflow = TextOverflow.Ellipsis // [핵심] 넘치면 ... 처리
+                        )
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        // [수정 2, 3] 알약 2개를 담는 Row
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            // 1) 닉네임: 로드되기 전까지는 비워두어 깜빡임을 방지합니다.
-                            // [NEW] 작성자 닉네임 표시 보장: 닉네임이 비어있으면 '익명'으로 대체하여 항상 텍스트가 노출되게 함
-                            val displayNickname = if (currentNickname.isNotBlank()) currentNickname else "익명"
-                            Text(
-                                // [NEW] 상단에 항상 내 별명이 보이도록 기본값 처리
-                                text = displayNickname,
-                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                                color = Color(0xFF111827) // 색상 변경 금지
-                            )
+                            // --- 알약 1: 레벨 및 일차 정보 ---
+                            val tab03Vm: kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab03ViewModel = viewModel()
+                            val levelDays by tab03Vm.levelDays.collectAsState()
+                            val levelNumber = if (levelDays == 0) 0 else kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions.getLevelNumber(levelDays) + 1
 
-                        // 2~4) selectedLevel이 있을 때만 구분자, 뱃지, 후행 텍스트 노출
-                        if (selectedLevel != null) {
-                            // 요소 A: 구분자
-                            Text(
-                                text = " - ",
-                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                                color = Color(0xFF111827)
-                            )
-
-                            // 요소 B: 숫자 뱃지 (숫자만, 배경색은 thirstColor 사용)
-                            Box(
-                                modifier = Modifier
-                                    .height(24.dp)
-                                    .wrapContentWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(thirstColor(selectedLevel!!))
-                                    .padding(horizontal = 8.dp),
-                                contentAlignment = Alignment.Center
+                            Surface(
+                                shape = RoundedCornerShape(50),
+                                color = kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue.copy(alpha = 0.1f), // 연한 하늘색 배경
                             ) {
                                 Text(
-                                    text = selectedLevel.toString(),
-                                    color = Color.White,
-                                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
+                                    text = "LV.$levelNumber · ${levelDays}일차",
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        color = kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue,
+                                        fontWeight = FontWeight.SemiBold
+                                    ),
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                                 )
                             }
 
-                            // 요소 C: 후행 텍스트
-                            Text(
-                                text = " 갈증",
-                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                                color = Color(0xFF111827)
-                            )
-                        }
-                        }
+                            // --- 알약 2: 챌린지 공유 토글 (일기 모드일 때만) ---
+                            if (isDiaryMode) {
+                                Spacer(modifier = Modifier.width(8.dp)) // 알약 사이 간격
 
-                        // [FIX] 하드코딩된 "내 프로필" 대신, 게시글 리스트에서 사용하는 포맷과 동일하게
-                        // LV.{레벨} · {일수}일차 를 표시합니다. SharedPreferences의 timer_prefs에서 시작시간을 읽어 계산합니다.
-                        val tab03Vm: kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab03ViewModel = viewModel()
-                        val levelDays by tab03Vm.levelDays.collectAsState()
-                        // 요구사항: 만약 levelDays == 0 이면 LV.0 으로 그대로 표시해야 함
-                        val levelNumber = if (levelDays == 0) 0 else kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions.getLevelNumber(levelDays) + 1
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "LV.$levelNumber",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue,
-                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                                modifier = Modifier.alignByBaseline() // [FIX] PostItem과 동일한 baseline 정렬 사용
-                            )
-
-                            Spacer(modifier = Modifier.width(4.dp))
-
-                            Text(
-                                text = "·",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Color.Gray,
-                                modifier = Modifier.alignByBaseline() // [FIX] baseline 정렬
-                            )
-
-                            Spacer(modifier = Modifier.width(4.dp))
-
-                            Text(
-                                text = "${levelDays}일차",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Color.Gray,
-                                modifier = Modifier.alignByBaseline() // [FIX] baseline 정렬
-                            )
+                                // 클릭 가능한 커스텀 칩 (스타일 통일을 위해 Surface 사용)
+                                Surface(
+                                    shape = RoundedCornerShape(50),
+                                    // 체크 여부에 따라 배경색 변경 (진한 하늘색 vs 연한 하늘색)
+                                    color = if (isShareToCommunity)
+                                        kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
+                                    else
+                                        kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue.copy(alpha = 0.1f),
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(50))
+                                        .clickable { isShareToCommunity = !isShareToCommunity }
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = if (isShareToCommunity) Icons.Filled.CheckBox else Icons.Filled.CheckBoxOutlineBlank,
+                                            contentDescription = null,
+                                            // 체크 여부에 따라 아이콘/글자색 변경 (흰색 vs 하늘색)
+                                            tint = if (isShareToCommunity)
+                                                Color.White
+                                            else
+                                                kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(
+                                            text = "챌린지 공유",
+                                            style = MaterialTheme.typography.labelMedium.copy(
+                                                color = if (isShareToCommunity)
+                                                    Color.White
+                                                else
+                                                    kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }

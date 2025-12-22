@@ -98,6 +98,26 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
+     * [NEW] 새로운 일기를 저장합니다 (DiaryEntity 직접 받기)
+     * WritePostScreenContent와의 통합을 위해 추가 (2025-12-22)
+     */
+    fun insertDiary(diary: DiaryEntity) {
+        viewModelScope.launch {
+            repository.addDiary(diary)
+        }
+    }
+
+    /**
+     * [NEW] 기존 일기를 수정합니다 (DiaryEntity 직접 받기)
+     * WritePostScreenContent와의 통합을 위해 추가 (2025-12-22)
+     */
+    fun updateDiary(diary: DiaryEntity) {
+        viewModelScope.launch {
+            repository.updateDiary(diary)
+        }
+    }
+
+    /**
      * 일기를 삭제합니다.
      *
      * @param id 일기 ID
