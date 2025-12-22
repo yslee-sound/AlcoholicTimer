@@ -117,44 +117,66 @@ fun DiaryDetailFeedScreen(
                     )
                 }
             } else {
+                // [NEW] 광고가 포함된 리스트 생성 (4개 간격) (2025-12-23)
+                val itemsWithAds = remember(allDiaries) {
+                    allDiaries.flatMapIndexed { index, diary ->
+                        // 4번째 아이템 뒤에 광고 삽입 (마지막 아이템 뒤에는 제외)
+                        if ((index + 1) % 4 == 0 && index < allDiaries.lastIndex) {
+                            listOf(diary, null) // null은 광고를 의미
+                        } else {
+                            listOf(diary)
+                        }
+                    }
+                }
+
                 LazyColumn(
                     state = listState,
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
-                    itemsIndexed(
-                        items = allDiaries,
-                        key = { _, diary -> diary.id }
-                    ) { index, diary ->
-                        // DiaryEntity를 PostItem에 맞게 변환
-                        PostItem(
-                            nickname = myNickname,
-                            timerDuration = formatTimerDuration(diary.timestamp),
-                            content = diary.content,
-                            imageUrl = diary.imageUrl.takeIf { it.isNotBlank() },
-                            likeCount = 0,
-                            isLiked = false,
-                            remainingTime = "",
-                            currentDays = calculateDaysSince(diary.timestamp),
-                            userLevel = 1,
-                            authorAvatarIndex = myAvatarIndex,
-                            thirstLevel = if (diary.cravingLevel > 0) diary.cravingLevel else null,
-                            isMine = true,
-                            createdDate = remember(diary.timestamp) {
-                                val sdf = java.text.SimpleDateFormat("yyyy/MM/dd", java.util.Locale.getDefault())
-                                sdf.format(java.util.Date(diary.timestamp))
-                            },
-                            onLikeClick = { },
-                            onCommentClick = { },
-                            onMoreClick = {
-                                selectedDiaryForOptions = diary
-                            },
-                            onHideClick = { }
-                        )
+                    items(
+                        count = itemsWithAds.size,
+                        // [중요] 키 관리: 일기는 ID, 광고는 인덱스 기반 고유 키 사용
+                        key = { index ->
+                            val item = itemsWithAds[index]
+                            item?.id ?: "ad_$index"
+                        }
+                    ) { index ->
+                        val item = itemsWithAds[index]
 
-                        // [FIX] 커뮤니티 피드와 동일: 모든 아이템 뒤에 구분선 추가 (마지막 포함) (2025-12-22)
-                        // 이렇게 해야 PostItem의 하단 패딩(8dp)이 PostItem 내부(흰색)에 포함되고
-                        // 구분선 다음에는 여백이 없어 네비게이션 바와 깔끔하게 연결됨
+                        if (item != null) {
+                            // === [A] 일기 아이템 렌더링 ===
+                            // DiaryEntity를 PostItem에 맞게 변환
+                            PostItem(
+                                nickname = myNickname,
+                                timerDuration = formatTimerDuration(item.timestamp),
+                                content = item.content,
+                                imageUrl = item.imageUrl.takeIf { it.isNotBlank() },
+                                likeCount = 0,
+                                isLiked = false,
+                                remainingTime = "",
+                                currentDays = calculateDaysSince(item.timestamp),
+                                userLevel = 1,
+                                authorAvatarIndex = myAvatarIndex,
+                                thirstLevel = if (item.cravingLevel > 0) item.cravingLevel else null,
+                                isMine = true,
+                                createdDate = remember(item.timestamp) {
+                                    val sdf = java.text.SimpleDateFormat("yyyy/MM/dd", java.util.Locale.getDefault())
+                                    sdf.format(java.util.Date(item.timestamp))
+                                },
+                                onLikeClick = { },
+                                onCommentClick = { },
+                                onMoreClick = {
+                                    selectedDiaryForOptions = item
+                                },
+                                onHideClick = { }
+                            )
+                        } else {
+                            // === [B] 광고 아이템 렌더링 ===
+                            NativeAdItem()
+                        }
+
+                        // [FIX] 구분선 (일기, 광고 모두 하단에 표시) (2025-12-23)
                         HorizontalDivider(
                             thickness = 1.dp,
                             color = Color(0xFFBDBDBD)
@@ -264,3 +286,133 @@ private fun calculateDaysSince(timestamp: Long): Int {
     return (diff / (1000 * 60 * 60 * 24)).toInt() + 1
 }
 
+/**
+ * [NEW] 네이티브 광고 아이템 (2025-12-23)
+ * CommunityScreen의 NativeAdItem과 동일한 구현
+ */
+@Composable
+private fun NativeAdItem() {
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    val adUnitId = try {
+        kr.sweetapps.alcoholictimer.BuildConfig.ADMOB_NATIVE_ID
+    } catch (_: Throwable) {
+        "ca-app-pub-3940256099942544/2247696110"
+    }
+
+    var nativeAd by remember { mutableStateOf<com.google.android.gms.ads.nativead.NativeAd?>(null) }
+
+    // 1. 광고 로드 (최초 1회)
+    LaunchedEffect(Unit) {
+        try {
+            try {
+                com.google.android.gms.ads.MobileAds.initialize(context)
+            } catch (initEx: Exception) {
+                android.util.Log.w("NativeAd", "MobileAds.initialize failed: ${initEx.message}")
+            }
+            val adLoader = com.google.android.gms.ads.AdLoader.Builder(context, adUnitId)
+                .forNativeAd { ad: com.google.android.gms.ads.nativead.NativeAd ->
+                    nativeAd = ad
+                }
+                .withNativeAdOptions(com.google.android.gms.ads.nativead.NativeAdOptions.Builder().build())
+                .build()
+
+            try {
+                adLoader.loadAd(com.google.android.gms.ads.AdRequest.Builder().build())
+            } catch (se: SecurityException) {
+                android.util.Log.w("NativeAd", "Ad load blocked by SecurityException: ${se.message}")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("NativeAd", "Failed setting up ad loader", e)
+        }
+    }
+
+    // 2. 광고가 로드되었을 때만 표시
+    if (nativeAd != null) {
+        androidx.compose.ui.viewinterop.AndroidView(
+            factory = { ctx ->
+                val adView = com.google.android.gms.ads.nativead.NativeAdView(ctx)
+
+                val container = android.widget.LinearLayout(ctx).apply {
+                    orientation = android.widget.LinearLayout.VERTICAL
+                    setBackgroundColor(android.graphics.Color.WHITE)
+                    setPadding(40, 40, 40, 40)
+                    layoutParams = android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
+                }
+
+                // 상단: 아이콘 + 헤드라인
+                val topRow = android.widget.LinearLayout(ctx).apply {
+                    orientation = android.widget.LinearLayout.HORIZONTAL
+                    gravity = android.view.Gravity.CENTER_VERTICAL
+                }
+
+                val iconView = android.widget.ImageView(ctx).apply {
+                    layoutParams = android.widget.LinearLayout.LayoutParams(60, 60).apply {
+                        setMargins(0, 0, 24, 0)
+                    }
+                }
+                topRow.addView(iconView)
+
+                val headlineView = android.widget.TextView(ctx).apply {
+                    textSize = 15f
+                    setTypeface(null, android.graphics.Typeface.BOLD)
+                    setTextColor(android.graphics.Color.parseColor("#111827"))
+                    maxLines = 1
+                    ellipsize = android.text.TextUtils.TruncateAt.END
+                }
+                topRow.addView(headlineView)
+                container.addView(topRow)
+
+                // 본문
+                val bodyView = android.widget.TextView(ctx).apply {
+                    textSize = 13f
+                    setTextColor(android.graphics.Color.parseColor("#6B7280"))
+                    maxLines = 2
+                    ellipsize = android.text.TextUtils.TruncateAt.END
+                    setPadding(0, 24, 0, 32)
+                }
+                container.addView(bodyView)
+
+                // 하단: 버튼
+                val callToActionView = android.widget.Button(ctx).apply {
+                    setBackgroundColor(android.graphics.Color.parseColor("#F3F4F6"))
+                    setTextColor(android.graphics.Color.parseColor("#4B5563"))
+                    textSize = 13f
+                    stateListAnimator = null
+                    layoutParams = android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
+                }
+                container.addView(callToActionView)
+
+                adView.addView(container)
+
+                // 바인딩
+                nativeAd?.let { ad ->
+                    ad.icon?.let { iconView.setImageDrawable(it.drawable) }
+                    adView.iconView = iconView
+
+                    headlineView.text = ad.headline
+                    adView.headlineView = headlineView
+
+                    bodyView.text = ad.body
+                    adView.bodyView = bodyView
+
+                    callToActionView.text = ad.callToAction ?: "자세히 보기"
+                    adView.callToActionView = callToActionView
+
+                    adView.setNativeAd(ad)
+                }
+
+                adView
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+        )
+    }
+}
