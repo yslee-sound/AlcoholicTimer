@@ -879,7 +879,6 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                         .then(if (!isLoading) Modifier.clickable {
                             // [NEW] 사진 추가: 키보드 내리고 권한 체크 및 요청 후 풀스크린 갤러리 열기
                             focusManager.clearFocus()
-                            Toast.makeText(context, "사진 추가 버튼 눌림", Toast.LENGTH_SHORT).show()
                             requestPermissionsAndOpen()
                         } else Modifier)
                         .padding(vertical = 12.dp, horizontal = 16.dp),
