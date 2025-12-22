@@ -44,6 +44,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -111,71 +112,154 @@ fun CommunityScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         // === 1. 메인 리스트 화면 (뒤에 깔리는 화면) ===
+
+        // 언어 필터 관련 변수 선언 (Scaffold 밖으로 이동)
+        val deviceLangRaw = Locale.getDefault().language
+        val deviceLang = if (deviceLangRaw.lowercase() == "in") "id" else deviceLangRaw.lowercase()
+
+        val currentFilterState by viewModel.currentLangFilter.collectAsState()
+
+        val myLanguageLabel = remember(deviceLang) {
+            when (deviceLang) {
+                "ko" -> "한국어"
+                "en" -> "English"
+                "ja" -> "日本語"
+                "id" -> "Bahasa Indo"
+                else -> "My Language"
+            }
+        }
+
+        val selectedTabIndex = if (currentFilterState == null) 1 else 0
+
+        val selectedColor = Color(0xFF000000) // 활성 탭 색상 (검정색)
+        val unselectedColor = Color(0xFF9CA3AF) // 비활성 탭 색상
+        val dividerColor = Color(0xFFBDBDBD) // 하단 디바이더 색상
+
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = Color(0xFFF5F5F5),
-            contentWindowInsets = WindowInsets(0, 0, 0, 0), // [FIX] 하단 시스템 바 영역 중복 패딩 제거 (회색 여백 삭제) (2025-12-20)
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(R.string.community_title),
-                            style = MaterialTheme.typography.titleLarge,
-                            color = Color(0xFF111111)
-                        )
-                    },
-                    actions = {
-                        // 설정 버튼 (우측 상단 톱니바퀴)
-                        IconButton(onClick = onSettingsClick) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.gearsix),
-                                contentDescription = "설정",
-                                tint = Color(0xFF111111)
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.White,
-                        titleContentColor = Color(0xFF111111)
-                    )
-                )
-            },
+            contentWindowInsets = WindowInsets(0.dp),
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { innerPadding ->
-            // LANGUAGE FILTER UI: TopBar 바로 아래에 배치됩니다.
-            val deviceLangRaw = Locale.getDefault().language
-            val deviceLang = if (deviceLangRaw.lowercase() == "in") "id" else deviceLangRaw.lowercase()
-            var showAllLanguages by remember { mutableStateOf(false) }
-
-            // Apply initial filter (ensure ViewModel matches UI) - sync when Composable first runs
-            LaunchedEffect(Unit) {
-                viewModel.setLanguageFilter(if (showAllLanguages) null else deviceLang)
-            }
-
-             Box(
-                 modifier = Modifier
-                     .fillMaxSize()
-                     .padding(innerPadding)
-             ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
                 if (isLoading && posts.isEmpty()) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 } else if (posts.isEmpty()) {
-                    // [FIX] 게시글이 없을 때도 글쓰기 버튼은 보여야 합니다! (2025-12-19)
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        // 1. 글쓰기 버튼 (여기 추가됨)
-                        WritePostTrigger(
-                            onClick = { isWritingScreenVisible = true },
-                            currentAvatarIndex = currentUserAvatarIndex
-                        )
-
-                        // 2. 나머지 공간에 빈 상태 아이콘 표시 (가운데 정렬)
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth(),
-                            contentAlignment = Alignment.Center
+                    // 게시글이 없을 때도 헤더 + 빈 상태 표시
+                    PullToRefreshBox(
+                        isRefreshing = isRefreshing,
+                        onRefresh = { viewModel.refreshPosts() },
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(0.dp)
                         ) {
-                            EmptyState(onGenerateMock = { viewModel.generateMockData() })
+                            // 헤더 (제목 + 탭)
+                            item {
+                                Column(modifier = Modifier.background(Color.White)) {
+                                    TopAppBar(
+                                        title = {
+                                            Text(
+                                                text = stringResource(R.string.community_title),
+                                                style = MaterialTheme.typography.titleLarge.copy(
+                                                    fontSize = 18.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                ),
+                                                color = Color(0xFF111111)
+                                            )
+                                        },
+                                        actions = {
+                                            IconButton(onClick = onSettingsClick) {
+                                                Icon(
+                                                    painter = painterResource(id = R.drawable.gearsix),
+                                                    contentDescription = "설정",
+                                                    tint = Color(0xFF111111)
+                                                )
+                                            }
+                                        },
+                                        colors = TopAppBarDefaults.topAppBarColors(
+                                            containerColor = Color.White,
+                                            titleContentColor = Color(0xFF111111)
+                                        ),
+                                        modifier = Modifier.height(48.dp),
+                                        windowInsets = WindowInsets(0, 0, 0, 0)
+                                    )
+
+                                    TabRow(
+                                        selectedTabIndex = selectedTabIndex,
+                                        containerColor = Color.White,
+                                        contentColor = selectedColor,
+                                        indicator = { tabPositions ->
+                                            if (selectedTabIndex < tabPositions.size) {
+                                                TabRowDefaults.SecondaryIndicator(
+                                                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
+                                                    height = 3.dp,
+                                                    color = selectedColor
+                                                )
+                                            }
+                                        },
+                                        divider = {
+                                            HorizontalDivider(thickness = 1.dp, color = dividerColor)
+                                        }
+                                    ) {
+                                        Tab(
+                                            selected = selectedTabIndex == 0,
+                                            onClick = { viewModel.setLanguageFilter(deviceLang) },
+                                            modifier = Modifier.height(40.dp),
+                                            text = {
+                                                Text(
+                                                    text = myLanguageLabel,
+                                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                                        fontSize = 15.sp,
+                                                        fontWeight = if (selectedTabIndex == 0) FontWeight.Bold else FontWeight.Medium
+                                                    ),
+                                                    color = if (selectedTabIndex == 0) selectedColor else unselectedColor
+                                                )
+                                            }
+                                        )
+                                        Tab(
+                                            selected = selectedTabIndex == 1,
+                                            onClick = { viewModel.setLanguageFilter(null) },
+                                            modifier = Modifier.height(40.dp),
+                                            text = {
+                                                Text(
+                                                    text = "Global",
+                                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                                        fontSize = 15.sp,
+                                                        fontWeight = if (selectedTabIndex == 1) FontWeight.Bold else FontWeight.Medium
+                                                    ),
+                                                    color = if (selectedTabIndex == 1) selectedColor else unselectedColor
+                                                )
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+
+                            // 글쓰기 버튼
+                            item {
+                                WritePostTrigger(
+                                    onClick = { isWritingScreenVisible = true },
+                                    currentAvatarIndex = currentUserAvatarIndex
+                                )
+                            }
+
+                            // 빈 상태 표시
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(400.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    EmptyState(onGenerateMock = { viewModel.generateMockData() })
+                                }
+                            }
                         }
                     }
                 } else {
@@ -189,71 +273,102 @@ fun CommunityScreen(
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.spacedBy(0.dp)
                         ) {
-                            // [NEW] 언어 필터 칩 (2025-12-23)
+                            // === [1] 헤더 영역 (제목 + 탭) - 스크롤됨 ===
                             item {
-                                Column(modifier = Modifier.fillMaxWidth()) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .background(Color.White)
-                                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        // 언어별 라벨 텍스트
-                                        val myLanguageLabel = when(deviceLang) {
-                                            "ko" -> "🇰🇷 한국어"
-                                            "ja" -> "🇯🇵 日本語"
-                                            "id" -> "🇮🇩 Indonesia"
-                                            else -> "📱 My Language"
+                                Column(modifier = Modifier.background(Color.White)) {
+                                    // 1-1. 제목줄 (TopAppBar)
+                                    TopAppBar(
+                                        title = {
+                                            Text(
+                                                text = stringResource(R.string.community_title),
+                                                style = MaterialTheme.typography.titleLarge.copy(
+                                                    fontSize = 18.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                ),
+                                                color = Color(0xFF111111)
+                                            )
+                                        },
+                                        actions = {
+                                            IconButton(onClick = onSettingsClick) {
+                                                Icon(
+                                                    painter = painterResource(id = R.drawable.gearsix),
+                                                    contentDescription = "설정",
+                                                    tint = Color(0xFF111111)
+                                                )
+                                            }
+                                        },
+                                        colors = TopAppBarDefaults.topAppBarColors(
+                                            containerColor = Color.White,
+                                            titleContentColor = Color(0xFF111111)
+                                        ),
+                                        modifier = Modifier.height(48.dp),
+                                        windowInsets = WindowInsets(0, 0, 0, 0)
+                                    )
+
+                                    // 1-2. 탭 바 (TabRow)
+                                    TabRow(
+                                        selectedTabIndex = selectedTabIndex,
+                                        containerColor = Color.White,
+                                        contentColor = selectedColor,
+                                        indicator = { tabPositions ->
+                                            if (selectedTabIndex < tabPositions.size) {
+                                                TabRowDefaults.SecondaryIndicator(
+                                                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
+                                                    height = 3.dp,
+                                                    color = selectedColor
+                                                )
+                                            }
+                                        },
+                                        divider = {
+                                            HorizontalDivider(
+                                                thickness = 1.dp,
+                                                color = dividerColor
+                                            )
                                         }
-
-                                        // 1. 내 언어 보기
-                                        FilterChip(
-                                            selected = !showAllLanguages,
-                                            onClick = {
-                                                showAllLanguages = false
-                                                viewModel.setLanguageFilter(deviceLang)
-                                            },
-                                            label = { Text(myLanguageLabel) },
-                                            colors = FilterChipDefaults.filterChipColors(
-                                                containerColor = Color(0xFFF0F0F0),
-                                                labelColor = Color(0xFF374151),
-                                                selectedContainerColor = Color(0xFF6366F1),
-                                                selectedLabelColor = Color.White
-                                            )
+                                    ) {
+                                        Tab(
+                                            selected = selectedTabIndex == 0,
+                                            onClick = { viewModel.setLanguageFilter(deviceLang) },
+                                            modifier = Modifier.height(40.dp),
+                                            text = {
+                                                Text(
+                                                    text = myLanguageLabel,
+                                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                                        fontSize = 15.sp,
+                                                        fontWeight = if (selectedTabIndex == 0) FontWeight.Bold else FontWeight.Medium
+                                                    ),
+                                                    color = if (selectedTabIndex == 0) selectedColor else unselectedColor
+                                                )
+                                            }
                                         )
-
-                                        // 2. 전 세계 보기
-                                        FilterChip(
-                                            selected = showAllLanguages,
-                                            onClick = {
-                                                showAllLanguages = true
-                                                viewModel.setLanguageFilter(null)
-                                            },
-                                            label = { Text("🌍 Global") },
-                                            colors = FilterChipDefaults.filterChipColors(
-                                                containerColor = Color(0xFFF0F0F0),
-                                                labelColor = Color(0xFF374151),
-                                                selectedContainerColor = Color(0xFF6366F1),
-                                                selectedLabelColor = Color.White
-                                            )
+                                        Tab(
+                                            selected = selectedTabIndex == 1,
+                                            onClick = { viewModel.setLanguageFilter(null) },
+                                            modifier = Modifier.height(40.dp),
+                                            text = {
+                                                Text(
+                                                    text = "Global",
+                                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                                        fontSize = 15.sp,
+                                                        fontWeight = if (selectedTabIndex == 1) FontWeight.Bold else FontWeight.Medium
+                                                    ),
+                                                    color = if (selectedTabIndex == 1) selectedColor else unselectedColor
+                                                )
+                                            }
                                         )
                                     }
-
-                                    // [NEW] 회색 디바이더 (2025-12-23)
-                                    HorizontalDivider(
-                                        thickness = 1.dp,
-                                        color = Color(0xFFE5E7EB)
-                                    )
                                 }
                             }
 
+                            // === [2] 글쓰기 트리거 ===
                             item {
                                 WritePostTrigger(
                                     onClick = { isWritingScreenVisible = true },
-                                    currentAvatarIndex = currentUserAvatarIndex // 현재 사용자 아바타 전달
+                                    currentAvatarIndex = currentUserAvatarIndex
                                 )
                             }
+
+                            // === [3] 광고 및 게시글 리스트 ===
 
                             // 광고 및 게시글 리스트 로직 (기존 동일)
                             val itemsWithAds = posts.flatMapIndexed { index, post ->
@@ -309,9 +424,9 @@ fun CommunityScreen(
                             }
                         }
                     }
-                }
-            }
-        }
+                } // else 닫기
+            } // Box 닫기 (innerPadding)
+        } // Scaffold 닫기
 
         // === 2. 글쓰기 전체 화면 (최상위 레이어) ===
         // MODIFIED Dialog + 슬라이드 애니메이션 (아래에서 위로) (2025-12-19)
@@ -1400,10 +1515,10 @@ private fun WritePostTrigger(
             }
         }
 
-        // 하단 구분선 (페이스북 스타일)
+        // 하단 구분선 (기본 디바이더 스타일)
         HorizontalDivider(
-            thickness = 8.dp,
-            color = Color(0xFFF0F2F5)
+            thickness = 1.dp,
+            color = Color(0xFFBDBDBD)
         )
     }
 }

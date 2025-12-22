@@ -90,6 +90,10 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     private val _sharedDraftContent = MutableStateFlow<String?>(null)
     val sharedDraftContent: StateFlow<String?> = _sharedDraftContent.asStateFlow()
 
+    // [NEW] 현재 언어 필터 상태 (null = Global, 값 = 특정 언어) (2025-12-23)
+    private val _currentLangFilter = MutableStateFlow<String?>(null)
+    val currentLangFilter: StateFlow<String?> = _currentLangFilter.asStateFlow()
+
     init {
         // Load posts with device language filter by default
         val deviceLang = normalizeLanguage(Locale.getDefault().language)
@@ -117,6 +121,7 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     fun setLanguageFilter(lang: String?) {
         postsJob?.cancel()
         val normalized = lang?.let { normalizeLanguage(it) }
+        _currentLangFilter.value = normalized // [NEW] 현재 필터 상태 업데이트 (2025-12-23)
         postsJob = viewModelScope.launch {
             _isLoading.value = true
             try {
