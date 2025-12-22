@@ -38,12 +38,13 @@ import kotlin.math.roundToInt
  * [MODIFIED] 일기 작성/수정 화면
  * - WritePostScreenContent를 재사용하여 커뮤니티 글쓰기와 동일한 UI 제공
  * - isDiaryMode = true로 설정하여 "챌린지 공유" 기능 활성화
- * - 새 일기 작성: diaryId = null
- * - 기존 일기 수정: diaryId != null
+ * - 새 일기 작성: diaryId = null, selectedDate = 선택된 날짜 타임스탬프
+ * - 기존 일기 수정: diaryId != null (날짜 유지)
  */
 @Composable
 fun DiaryWriteScreen(
     diaryId: Long? = null,
+    selectedDate: Long? = null, // [NEW] 선택된 날짜 받기 (2025-12-22)
     onDismiss: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -109,32 +110,31 @@ fun DiaryWriteScreen(
             // [핵심] 로컬 일기장(Room DB) 저장 로직
             scope.launch {
                 try {
-                    val timestamp = System.currentTimeMillis()
-                    val dateString = formatDate(timestamp)
-
                     if (diaryId != null) {
-                        // 수정 모드: 기존 일기 업데이트
+                        // [수정 모드] 날짜 변경 금지 (기존 타임스탬프 유지)
+                        val originalTimestamp = existingDiary?.timestamp ?: System.currentTimeMillis()
                         val updatedDiary = existingDiary?.copy(
                             content = postData.content,
-                            cravingLevel = postData.thirstLevel ?: 0, // [FIX] thirstLevel -> cravingLevel 매핑
-                            timestamp = timestamp,
-                            date = dateString
+                            cravingLevel = postData.thirstLevel ?: 0,
+                            timestamp = originalTimestamp, // [FIX] 기존 시간 유지 (2025-12-22)
+                            date = formatDate(originalTimestamp)
                         )
                         if (updatedDiary != null) {
                             diaryViewModel.updateDiary(updatedDiary)
                             android.util.Log.d("DiaryWriteScreen", "일기 수정 성공: ${postData.content}")
                         }
                     } else {
-                        // 신규 작성: 새 일기 생성
+                        // [신규 모드] 선택된 날짜 사용
+                        val targetTimestamp = selectedDate ?: System.currentTimeMillis() // [FIX] 선택된 날짜 우선 사용 (2025-12-22)
                         val newDiary = DiaryEntity(
                             emoji = "📝", // 기본 이모지 (추후 선택 기능 추가 가능)
                             content = postData.content,
-                            cravingLevel = postData.thirstLevel ?: 0, // [FIX] thirstLevel -> cravingLevel 매핑
-                            timestamp = timestamp,
-                            date = dateString
+                            cravingLevel = postData.thirstLevel ?: 0,
+                            timestamp = targetTimestamp, // [FIX] 선택된 날짜로 저장 (2025-12-22)
+                            date = formatDate(targetTimestamp)
                         )
                         diaryViewModel.insertDiary(newDiary)
-                        android.util.Log.d("DiaryWriteScreen", "일기 생성 성공: ${postData.content}")
+                        android.util.Log.d("DiaryWriteScreen", "일기 생성 성공 (날짜: ${formatDate(targetTimestamp)}): ${postData.content}")
                     }
                 } catch (e: Exception) {
                     android.util.Log.e("DiaryWriteScreen", "일기 저장 실패", e)

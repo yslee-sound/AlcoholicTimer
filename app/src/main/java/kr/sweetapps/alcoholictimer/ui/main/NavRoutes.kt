@@ -141,7 +141,15 @@ sealed class Screen(val route: String) {
     data object AddRecord : Screen("add_record")
 
     /** [NEW] Diary write screen */
-    data object DiaryWrite : Screen("diary_write")
+    data object DiaryWrite : Screen("diary_write?selectedDate={selectedDate}") {
+        fun createRoute(selectedDate: Long? = null): String {
+            return if (selectedDate != null) {
+                "diary_write?selectedDate=$selectedDate"
+            } else {
+                "diary_write"
+            }
+        }
+    }
 
     /** [NEW] Diary detail/edit screen */
     data object DiaryDetail : Screen("diary_detail/{diaryId}") {

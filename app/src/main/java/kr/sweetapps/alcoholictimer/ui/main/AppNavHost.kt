@@ -96,7 +96,10 @@ fun AppNavHost(
                         navController = tabNavController,
                         activity = activity,
                         onNavigateToDetail = { route -> navController.navigate(route) },
-                        onNavigateToDiaryWrite = { navController.navigate(Screen.DiaryWrite.route) },
+                        onNavigateToDiaryWrite = { selectedDate: Long? ->
+                            // [FIX] 선택된 날짜를 파라미터로 전달 (2025-12-22)
+                            navController.navigate(Screen.DiaryWrite.createRoute(selectedDate))
+                        },
                         onNavigateToAllRecords = { navController.navigate(Screen.AllRecords.route) },
                         onNavigateToAllDiaries = { navController.navigate(Screen.AllDiary.route) },
                         onNavigateToDiaryDetail = { route -> navController.navigate(route) },

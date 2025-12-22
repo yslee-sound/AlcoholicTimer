@@ -313,6 +313,13 @@ fun NavGraphBuilder.addTab02DetailGraph(
     // 일기 작성 화면
     composable(
         route = Screen.DiaryWrite.route,
+        arguments = listOf(
+            navArgument("selectedDate") {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
+            }
+        ),
         enterTransition = {
             slideInHorizontally(
                 initialOffsetX = { it },
@@ -337,8 +344,12 @@ fun NavGraphBuilder.addTab02DetailGraph(
                 animationSpec = tween(300, easing = FastOutSlowInEasing)
             ) + fadeOut(animationSpec = tween(300))
         }
-    ) {
+    ) { backStackEntry ->
+        val selectedDateString = backStackEntry.arguments?.getString("selectedDate")
+        val selectedDate = selectedDateString?.toLongOrNull()
+
         kr.sweetapps.alcoholictimer.ui.tab_02.screens.DiaryWriteScreen(
+            selectedDate = selectedDate, // [FIX] 선택된 날짜 전달 (2025-12-22)
             onDismiss = {
                 onRefreshCounterIncrement()
                 navController.popBackStack()

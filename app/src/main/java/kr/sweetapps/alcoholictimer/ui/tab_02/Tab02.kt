@@ -51,7 +51,7 @@ fun Tab02Screen(
     onNavigateToDetail: (SobrietyRecord) -> Unit = {},
     onNavigateToAllRecords: () -> Unit = {},
     onNavigateToAllDiaries: () -> Unit = {},
-    onNavigateToDiaryWrite: () -> Unit = {}, // [NEW] 일기 작성 화면 이동
+    onNavigateToDiaryWrite: (Long?) -> Unit = {}, // [FIX] 선택된 날짜 타임스탬프 전달 (2025-12-22)
     onAddRecord: () -> Unit = {},
     onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {},
     // [NEW] Phase 2: 레벨 파라미터
@@ -76,7 +76,7 @@ fun Tab02Screen(
     val diaryViewModel: kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.DiaryViewModel = viewModel(
         viewModelStoreOwner = androidx.activity.compose.LocalActivity.current as ComponentActivity
     )
-    val allDiaries by diaryViewModel.uiState.collectAsState()
+    val allDiaries by diaryViewModel.uiState.collectAsState() // [중요] collectAsState()로 실시간 관찰 (2025-12-22)
 
     // [NEW] 최신 3개의 일기만 추출 (이미 timestamp 내림차순 정렬됨)
     val recentDiaries = remember(allDiaries) {

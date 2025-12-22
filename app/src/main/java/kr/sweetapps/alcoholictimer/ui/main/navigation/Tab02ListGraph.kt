@@ -22,7 +22,7 @@ fun NavGraphBuilder.addTab02ListGraph(
     navController: NavHostController,
     activity: Activity?,
     onNavigateToDetail: (String) -> Unit,
-    onNavigateToDiaryWrite: () -> Unit,
+    onNavigateToDiaryWrite: (Long?) -> Unit, // [FIX] 선택된 날짜 파라미터 추가 (2025-12-22)
     onNavigateToAllRecords: () -> Unit,
     onNavigateToAllDiaries: () -> Unit,
     onNavigateToDiaryDetail: (String) -> Unit,
@@ -79,10 +79,10 @@ fun NavGraphBuilder.addTab02ListGraph(
                 },
                 onNavigateToAllRecords = { onNavigateToAllRecords() },
                 onNavigateToAllDiaries = { onNavigateToAllDiaries() },
-                onNavigateToDiaryWrite = { onNavigateToDiaryWrite() }, // [NEW] 일기 작성 콜백 전달
+                onNavigateToDiaryWrite = { selectedDate -> onNavigateToDiaryWrite(selectedDate) }, // [FIX] 선택된 날짜 전달 (2025-12-22)
                 onAddRecord = {
                     // 예전 FAB 콜백 - 필요시 유지
-                    onNavigateToDiaryWrite()
+                    onNavigateToDiaryWrite(null) // [FIX] 오늘 날짜로 작성 (2025-12-22)
                 },
                 onDiaryClick = { diary ->
                     val route = Screen.DiaryDetail.createRoute(diary.id.toString())

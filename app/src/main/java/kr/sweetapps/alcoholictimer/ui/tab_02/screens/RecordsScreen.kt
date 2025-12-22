@@ -91,7 +91,7 @@ fun RecordsScreen(
     onNavigateToDetail: (SobrietyRecord) -> Unit = {},
     onNavigateToAllRecords: () -> Unit = {},
     onNavigateToAllDiaries: () -> Unit = {},
-    onNavigateToDiaryWrite: () -> Unit = {}, // [NEW] 일기 작성 화면 이동
+    onNavigateToDiaryWrite: (Long?) -> Unit = {}, // [FIX] 선택된 날짜 타임스탬프 전달 (2025-12-22)
     onAddRecord: () -> Unit = {},
     onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {},
     fontScale: Float = 1.06f
@@ -869,7 +869,7 @@ private fun StatisticItem(
 private fun RecentDiarySection(
     diaries: List<kr.sweetapps.alcoholictimer.data.room.DiaryEntity>,
     onNavigateToAllDiaries: () -> Unit = {},
-    onNavigateToDiaryWrite: () -> Unit = {},
+    onNavigateToDiaryWrite: (Long?) -> Unit = {}, // [FIX] 날짜 파라미터 추가 (2025-12-22)
     onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {}
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -887,7 +887,7 @@ private fun RecentDiarySection(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            // "작성" 버튼
+            // "작성" 버튼 - 헤더 버튼은 '오늘'로 간주 (null)
             Text(
                 text = stringResource(R.string.records_diary_write_action),
                 fontSize = 14.sp,
@@ -895,7 +895,7 @@ private fun RecentDiarySection(
                 color = Color(0xFF6366F1),
                 modifier = Modifier.clickable(
                     interactionSource = remember { MutableInteractionSource() },
-                    onClick = onNavigateToDiaryWrite
+                    onClick = { onNavigateToDiaryWrite(null) } // [FIX] null = 오늘 날짜 (2025-12-22)
                 )
             )
         }
@@ -917,8 +917,8 @@ private fun RecentDiarySection(
                     // 기존 일기가 있으면 상세 화면으로
                     onDiaryClick(diary)
                 } else {
-                    // 일기가 없으면 새로 작성
-                    onNavigateToDiaryWrite()
+                    // [FIX] 일기가 없으면 해당 날짜의 타임스탬프를 전달하여 작성 화면 열기 (2025-12-22)
+                    onNavigateToDiaryWrite(selectedDate.timeInMillis)
                 }
             },
             modifier = Modifier.fillMaxWidth()
