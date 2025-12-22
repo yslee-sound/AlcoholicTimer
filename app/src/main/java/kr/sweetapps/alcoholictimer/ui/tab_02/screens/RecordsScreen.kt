@@ -171,7 +171,7 @@ fun RecordsScreen(
                                 currentLevel = currentLevel,
                                 currentDays = currentDays,
                                 progress = levelProgress,
-                                containerColor = Color(0xFF6366F1), // Light Purple (탭2 전용 색상)
+                                containerColor = Color(0xFF6366F1), // 단색 보라색
                                 cardHeight = 130.dp,
                                 showDetailedInfo = false, // 간소화된 프로그레스만 표시
                                 onClick = onNavigateToLevelDetail

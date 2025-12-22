@@ -69,7 +69,14 @@ fun LevelCard(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(containerColor)
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            Color(0xFF6366F1), // 밝은 보라색
+                            Color(0xFF8B5CF6)  // 진한 보라색
+                        )
+                    )
+                )
                 .padding(20.dp)
         ) {
             Column(
@@ -241,8 +248,8 @@ private fun LevelProgressSection(
                     .background(
                         Brush.horizontalGradient(
                             colors = listOf(
-                                Color(0xFFFBC528).copy(alpha = 0.7f),
-                                Color(0xFFFBC528)
+                                Color(0xFF34D399), // 밝은 민트 그린
+                                Color(0xFF10B981)  // 진한 에메랄드 그린
                             )
                         )
                     )
@@ -290,7 +297,14 @@ private fun SimpleLevelProgress(progress: Float) {
             modifier = Modifier
                 .fillMaxHeight()
                 .fillMaxWidth(animatedProgress)
-                .background(Color(0xFFFBC528))
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            Color(0xFF34D399), // 밝은 민트 그린
+                            Color(0xFF10B981)  // 진한 에메랄드 그린
+                        )
+                    )
+                )
         )
     }
 }
