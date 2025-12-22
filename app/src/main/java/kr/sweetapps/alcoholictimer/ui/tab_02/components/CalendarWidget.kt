@@ -241,8 +241,10 @@ private fun CalendarGrid(
                             date.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
                             date.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)
 
-                    // [NEW] 미래 날짜 체크 (2025-12-22)
-                    val isFuture = date.after(today)
+                    // [FIX] 미래 날짜 체크 - 시간 제외하고 년/월/일만 비교 (2025-12-22)
+                    val isFuture = date.get(Calendar.YEAR) > today.get(Calendar.YEAR) ||
+                            (date.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                             date.get(Calendar.DAY_OF_YEAR) > today.get(Calendar.DAY_OF_YEAR))
 
                     // [NEW] 선택 여부 확인 (2025-12-22)
                     val isSelected = isCurrentMonth && selectedDate != null &&
@@ -312,10 +314,13 @@ private fun CalendarDayCell(
         // [MODIFIED] 날짜 숫자를 원형 배경으로 감싸기 (2025-12-22)
         Box(
             modifier = Modifier
-                .size(if (isToday) 38.dp else 28.dp) // [중요] 오늘 날짜 38dp 크기 유지 (수정 금지)
+                .size(
+                    // [FIX] 오늘과 선택된 날짜 모두 38dp 통일 (2025-12-22)
+                    if (isToday || isSelected) 38.dp else 28.dp
+                )
                 .then(
                     if (isToday) {
-                        // [NEW] 오늘 날짜에 그림자 효과 추가 (2025-12-22)
+                        // [NEW] 오늘 날짜에만 그림자 효과 (2025-12-22)
                         Modifier.shadow(
                             elevation = 4.dp,
                             shape = CircleShape
@@ -326,8 +331,8 @@ private fun CalendarDayCell(
                 )
                 .background(
                     color = when {
-                        isToday -> Color(0xFF6366F1) // [MODIFIED] 오늘: #6366F1 파란 원 + 그림자
-                        isSelected -> kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue // 선택: 파란 원
+                        isToday -> Color(0xFF6366F1) // [오늘] 진한 파랑 + 그림자
+                        isSelected -> Color(0xFFE5E7EB) // [선택] 연한 회색 (오늘과 구분)
                         else -> Color.Transparent // 그 외: 투명
                     },
                     shape = CircleShape
@@ -339,13 +344,12 @@ private fun CalendarDayCell(
                 fontSize = 12.sp,
                 style = MaterialTheme.typography.bodyMedium,
                 color = when {
-                    !isCurrentMonth -> Color(0xFFD1D5DB) // 다른 달: 연한 회색
-                    isFuture -> Color(0xFFD1D5DB) // [NEW] 미래: 연한 회색 (비활성화) (2025-12-22)
-                    isToday -> Color.White // 오늘: 흰색
-                    isSelected -> Color.White // 선택: 흰색
-                    else -> Color(0xFF111827) // 이번 달: 검정
+                    !isCurrentMonth || isFuture -> Color(0xFFD1D5DB) // 비활성: 연한 회색
+                    isToday -> Color.White // 오늘(파란 원): 흰색
+                    isSelected -> Color(0xFF111111) // 선택(회색 원): 검정
+                    else -> Color(0xFF111827) // 나머지: 검정
                 },
-                fontWeight = FontWeight.Bold // [MODIFIED] 모든 날짜 Bold 처리
+                fontWeight = FontWeight.Bold
             )
         }
 
