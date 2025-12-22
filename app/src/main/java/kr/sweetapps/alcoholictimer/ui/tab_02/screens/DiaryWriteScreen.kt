@@ -1,16 +1,38 @@
 // [MODIFIED] 일기 작성 화면 - WritePostScreenContent 재사용 (2025-12-22)
 package kr.sweetapps.alcoholictimer.ui.tab_02.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.data.model.Post
 import kr.sweetapps.alcoholictimer.data.room.DiaryEntity
+import kr.sweetapps.alcoholictimer.ui.common.CustomGalleryScreen
 import kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.DiaryViewModel
 import kr.sweetapps.alcoholictimer.ui.tab_03.WritePostScreenContent
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.roundToInt
 
 /**
  * [MODIFIED] 일기 작성/수정 화면
@@ -33,6 +55,9 @@ fun DiaryWriteScreen(
 
     // 2. DiaryViewModel 인스턴스 획득 (로컬 DB 저장용)
     val diaryViewModel: DiaryViewModel = viewModel()
+
+    // [NEW] 사진 선택 화면 표시 상태 (2025-12-22)
+    var isPhotoSelectionVisible by remember { mutableStateOf(false) }
 
     // 3. 기존 일기 데이터 로드 (수정 모드)
     var existingDiary by remember { mutableStateOf<DiaryEntity?>(null) }
@@ -121,11 +146,61 @@ fun DiaryWriteScreen(
             onDismiss()
         },
         onOpenPhoto = {
-            // [TODO] 사진 선택 권한 요청 및 갤러리 열기 로직
-            // 현재는 커뮤니티 탭과 동일한 권한 요청 로직이 WritePostScreenContent 내부에 구현되어 있음
-            // 필요 시 추가 커스터마이징 가능
+            // [MODIFIED] 사진 선택 화면 열기 (2025-12-22)
+            isPhotoSelectionVisible = true
         }
     )
+
+    // [NEW] 5. 전체 화면 사진 선택 Dialog (CommunityScreen과 동일 로직) (2025-12-22)
+    if (isPhotoSelectionVisible) {
+        Dialog(
+            onDismissRequest = { /* 내부 애니메이션으로 처리 */ },
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = false
+            )
+        ) {
+            var animateVisible by remember { mutableStateOf(false) }
+
+            LaunchedEffect(Unit) { animateVisible = true }
+
+            val triggerClosePhoto = { animateVisible = false }
+
+            LaunchedEffect(animateVisible) {
+                if (!animateVisible) {
+                    kotlinx.coroutines.delay(300)
+                    isPhotoSelectionVisible = false
+                }
+            }
+
+            AnimatedVisibility(
+                visible = animateVisible,
+                enter = slideInVertically(
+                    initialOffsetY = { it },
+                    animationSpec = tween(300)
+                ),
+                exit = slideOutVertically(
+                    targetOffsetY = { it },
+                    animationSpec = tween(300)
+                ),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                FullScreenPhotoModal(onDismiss = { triggerClosePhoto() }) {
+                    CustomGalleryScreen(
+                        onImageSelected = { uri ->
+                            try {
+                                communityViewModel.onImageSelected(uri)
+                            } catch (e: Exception) {
+                                android.util.Log.e("DiaryWriteScreen", "Photo select failed", e)
+                            }
+                            triggerClosePhoto()
+                        },
+                        onClose = { triggerClosePhoto() }
+                    )
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -143,3 +218,53 @@ private fun formatDate(timestamp: Long): String {
     return sdf.format(Date(timestamp))
 }
 
+/**
+ * [NEW] Full-screen photo modal with swipe-down to dismiss animation (2025-12-22)
+ * CommunityScreen과 동일한 로직
+ */
+@Composable
+private fun FullScreenPhotoModal(
+    onDismiss: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    val scope = rememberCoroutineScope()
+    val offsetY = remember { Animatable(0f) }
+    val configuration = LocalConfiguration.current
+    val screenHeightPx = with(LocalDensity.current) { configuration.screenHeightDp.dp.toPx() }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.32f))
+            .pointerInput(Unit) {
+                detectVerticalDragGestures(
+                    onVerticalDrag = { _, dragAmount ->
+                        scope.launch {
+                            val new = offsetY.value + dragAmount
+                            offsetY.snapTo(new.coerceAtLeast(0f))
+                        }
+                    },
+                    onDragEnd = {
+                        scope.launch {
+                            if (offsetY.value > screenHeightPx * 0.25f) {
+                                // dismiss
+                                offsetY.animateTo(screenHeightPx, tween(200))
+                                onDismiss()
+                            } else {
+                                offsetY.animateTo(0f, spring(stiffness = 800f))
+                            }
+                        }
+                    }
+                )
+            }
+    ) {
+        Box(
+            modifier = Modifier
+                .offset { IntOffset(0, offsetY.value.roundToInt()) }
+                .fillMaxSize()
+                .background(Color.White)
+        ) {
+            content()
+        }
+    }
+}
