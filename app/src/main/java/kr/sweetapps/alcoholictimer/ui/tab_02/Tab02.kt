@@ -130,6 +130,7 @@ fun Tab02Screen(
             onDetailPeriodSelected = { viewModel.updateSelectedDetailPeriod(it) },
             onWeekRangeSelected = { viewModel.updateSelectedWeekRange(it) },
             recentDiaries = recentDiaries,
+            allDiaries = allDiaries, // [NEW] 전체 일기 전달 (캘린더용) (2025-12-22)
             statsData = statsData,
             currentLevel = currentLevel,
             currentDays = currentDays,

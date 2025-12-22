@@ -82,6 +82,7 @@ fun RecordsScreen(
     onDetailPeriodSelected: (String) -> Unit = {},
     onWeekRangeSelected: (Pair<Long, Long>?) -> Unit = {},
     recentDiaries: List<kr.sweetapps.alcoholictimer.data.room.DiaryEntity> = emptyList(),
+    allDiaries: List<kr.sweetapps.alcoholictimer.data.room.DiaryEntity> = recentDiaries, // [NEW] 전체 일기 (캘린더용) (2025-12-22)
     // [NEW] Phase 2: 레벨 관련 파라미터
     currentLevel: LevelDefinitions.LevelInfo? = null,
     currentDays: Int = 0,
@@ -271,6 +272,7 @@ fun RecordsScreen(
                     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
                         RecentDiarySection(
                             diaries = recentDiaries,
+                            allDiaries = allDiaries, // [NEW] 전체 일기 전달 (캘린더용) (2025-12-22)
                             onNavigateToAllDiaries = onNavigateToAllDiaries,
                             onNavigateToDiaryWrite = onNavigateToDiaryWrite, // [NEW] 일기 작성 콜백 전달
                             onDiaryClick = onDiaryClick,
@@ -870,6 +872,7 @@ private fun StatisticItem(
 @Composable
 private fun RecentDiarySection(
     diaries: List<kr.sweetapps.alcoholictimer.data.room.DiaryEntity>,
+    allDiaries: List<kr.sweetapps.alcoholictimer.data.room.DiaryEntity>, // [NEW] 전체 일기 (캘린더용) (2025-12-22)
     onNavigateToAllDiaries: () -> Unit = {},
     onNavigateToDiaryWrite: (Long?) -> Unit = {}, // [FIX] 날짜 파라미터 추가 (2025-12-22)
     onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {},
@@ -908,11 +911,12 @@ private fun RecentDiarySection(
         Spacer(modifier = Modifier.height(10.dp))
 
         // [NEW] 캘린더 위젯 (2025-12-22)
+        // [FIX] allDiaries 사용 - 모든 과거 일기 표시 (2025-12-22)
         kr.sweetapps.alcoholictimer.ui.tab_02.components.CalendarWidget(
-            diaries = diaries,
+            diaries = allDiaries, // [FIX] recentDiaries -> allDiaries (2025-12-22)
             onDateClick = { selectedDate ->
                 // 1. [최우선] 해당 날짜에 저장된 일기가 있는지 먼저 검색
-                val existingDiary = diaries.firstOrNull {
+                val existingDiary = allDiaries.firstOrNull { // [FIX] allDiaries 사용
                     val diaryCal = java.util.Calendar.getInstance().apply { timeInMillis = it.timestamp }
                     diaryCal.get(java.util.Calendar.YEAR) == selectedDate.get(java.util.Calendar.YEAR) &&
                     diaryCal.get(java.util.Calendar.DAY_OF_YEAR) == selectedDate.get(java.util.Calendar.DAY_OF_YEAR)
