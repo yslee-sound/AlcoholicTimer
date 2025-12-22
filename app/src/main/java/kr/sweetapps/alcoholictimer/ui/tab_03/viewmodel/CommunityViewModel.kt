@@ -2,9 +2,11 @@ package kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel
 
 import android.app.Application
 import android.content.Context
+import android.content.SharedPreferences
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.preference.PreferenceManager
 import com.google.firebase.Firebase
 import com.google.firebase.storage.storage
 import kotlinx.coroutines.Dispatchers
@@ -67,6 +69,17 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     // [NEW] Phase 3: 숨긴 게시글 ID 목록 (메모리 저장)
     private val _hiddenPostIds = MutableStateFlow<Set<String>>(emptySet())
 
+    // [NEW] SharedPreferences 변경 리스너 (가비지 컬렉션 방지 위해 변수로 유지) (2025-12-23)
+    private val preferenceChangeListener =
+        SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            // 닉네임이나 아바타 설정이 변경된 경우에만 동기화 실행
+            if (key == "nickname" || key == "avatar_index") {
+                viewModelScope.launch {
+                    syncUserData()
+                }
+            }
+        }
+
     // [NEW] 최근 숨긴 게시글 임시 저장 (Undo 지원용)
     private val _recentlyHiddenPosts = MutableStateFlow<Map<String, Post>>(emptyMap())
 
@@ -82,8 +95,11 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
         val deviceLang = normalizeLanguage(Locale.getDefault().language)
         setLanguageFilter(deviceLang)
 
-        // [MODIFIED] 통합된 동기화 함수 호출 (2025-12-22)
-        startUserInfoSync()
+        // [MODIFIED] 무한 루프 대신 리스너 등록 방식 사용 (2025-12-23)
+        registerPreferenceListener()
+
+        // 초기 1회 실행
+        viewModelScope.launch { syncUserData() }
     }
 
     // Helper to normalize language codes (handle old 'in' -> 'id')
@@ -138,21 +154,13 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     /**
-     * [NEW] 통합 동기화 함수 (2025-12-22)
-     * - 아바타와 닉네임을 주기적으로(1초마다) 동기화하여 변경사항 실시간 반영
-     * - 기존 loadCurrentUserAvatar()와 loadUserInfo() 통합
+     * [NEW] SharedPreferences 리스너 등록 (2025-12-23)
+     * - 닉네임이나 아바타 변경 시에만 자동 동기화
      */
-    private fun startUserInfoSync() {
-        viewModelScope.launch {
-            // 초기 실행 (딜레이 없이 즉시 로드)
-            syncUserData()
-
-            // 주기적 폴링 (1초마다 변경사항 감지)
-            while (true) {
-                kotlinx.coroutines.delay(1000)
-                syncUserData()
-            }
-        }
+    private fun registerPreferenceListener() {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(getApplication())
+        prefs.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
+        android.util.Log.d("CommunityViewModel", "SharedPreferences 변경 리스너 등록 완료")
     }
 
     /**
@@ -670,5 +678,15 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                 android.util.Log.e("CommunityViewModel", "사용자 아바타 URL 가져오기 실패", e)
             }
         }
+    }
+
+    /**
+     * [NEW] ViewModel 정리 시 리스너 해제 (메모리 누수 방지) (2025-12-23)
+     */
+    override fun onCleared() {
+        super.onCleared()
+        val prefs = PreferenceManager.getDefaultSharedPreferences(getApplication())
+        prefs.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
+        android.util.Log.d("CommunityViewModel", "SharedPreferences 변경 리스너 해제 완료")
     }
 }
