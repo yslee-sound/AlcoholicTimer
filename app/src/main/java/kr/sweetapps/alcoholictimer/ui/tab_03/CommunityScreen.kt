@@ -1323,22 +1323,15 @@ private fun calculateRemainingTime(deleteAt: com.google.firebase.Timestamp): Str
  */
 @Composable
 private fun NativeAdItem() {
-    val context = LocalContext.current // NEW Context 사용
+    val context = LocalContext.current
 
-    // 테스트용 광고 ID (배포 시 실제 ID로 교체 필수!)
-    // 네이티브 고급 광고 테스트 ID: ca-app-pub-3940256099942544/2247696110
-    // [TODO] 배포 전 반드시 애드몹 콘솔에서 발급받은 네이티브 광고 단위 ID로 교체하세요!
-    // 현재는 플레이스홀더가 사용됩니다. (테스트용 ID 백업: "ca-app-pub-3940256099942544/2247696110")
-    // [FIX] BuildConfig에서 빌드타입(Debug/Release)에 따라 자동으로 주입됩니다.
-    val adUnitId = try { BuildConfig.ADMOB_NATIVE_ID } catch (_: Throwable) { "" }
+    val adUnitId = try { BuildConfig.ADMOB_NATIVE_ID } catch (_: Throwable) { "ca-app-pub-3940256099942544/2247696110" }
 
-    // 광고가 로드되면 UI를 갱신하기 위한 State
     var nativeAd by remember { mutableStateOf<com.google.android.gms.ads.nativead.NativeAd?>(null) }
 
     // 1. 광고 로드 (최초 1회)
     LaunchedEffect(Unit) {
         try {
-            // Ensure Mobile Ads SDK initialized; guard against exceptions on some devices / setups
             try {
                 com.google.android.gms.ads.MobileAds.initialize(context)
             } catch (initEx: Exception) {
@@ -1351,7 +1344,6 @@ private fun NativeAdItem() {
                 .withNativeAdOptions(com.google.android.gms.ads.nativead.NativeAdOptions.Builder().build())
                 .build()
 
-            // Guard against SecurityException coming from Play Services broker
             try {
                 adLoader.loadAd(com.google.android.gms.ads.AdRequest.Builder().build())
             } catch (se: SecurityException) {
@@ -1364,55 +1356,65 @@ private fun NativeAdItem() {
 
     // 2. 광고가 로드되었을 때만 표시
     if (nativeAd != null) {
+        // [FIX] 카드 스타일 제거 -> 피드형(Flat) 스타일로 변경 (2025-12-22)
         androidx.compose.ui.viewinterop.AndroidView(
             factory = { ctx ->
-                // XML 레이아웃 없이 코드로 뷰 생성 (Compose 호환성 위해)
                 val adView = com.google.android.gms.ads.nativead.NativeAdView(ctx)
 
-                // --- 뷰 계층 구조 생성 (카드 형태) ---
+                // 내부 컨테이너: 흰색 배경, 테두리 없음, 평면 디자인
                 val container = android.widget.LinearLayout(ctx).apply {
                     orientation = android.widget.LinearLayout.VERTICAL
                     setBackgroundColor(android.graphics.Color.WHITE)
-                    setPadding(32, 32, 32, 32)
+                    // [중요] 게시글 텍스트 여백과 비슷하게 맞춤 (44px ≈ 16dp)
+                    setPadding(44, 32, 44, 32)
                 }
 
                 // 1) 상단: 아이콘 + 헤드라인
                 val headerRow = android.widget.LinearLayout(ctx).apply {
                     orientation = android.widget.LinearLayout.HORIZONTAL
+                    gravity = android.view.Gravity.CENTER_VERTICAL
                 }
 
                 val iconView = android.widget.ImageView(ctx).apply {
-                    layoutParams = android.widget.LinearLayout.LayoutParams(120, 120) // 약 40dp
+                    layoutParams = android.widget.LinearLayout.LayoutParams(110, 110)
                 }
 
                 val headlineView = android.widget.TextView(ctx).apply {
-                    textSize = 16f
+                    textSize = 15f
                     setTypeface(null, android.graphics.Typeface.BOLD)
-                    setPadding(16, 0, 0, 0)
-                    setTextColor(android.graphics.Color.BLACK)
+                    setPadding(24, 0, 0, 0)
+                    setTextColor(android.graphics.Color.parseColor("#111827"))
+                    maxLines = 1
+                    ellipsize = android.text.TextUtils.TruncateAt.END
                 }
 
                 headerRow.addView(iconView)
                 headerRow.addView(headlineView)
                 container.addView(headerRow)
 
-                // 2) 중간: 광고 문구 (Body)
+                // 2) 중간: Body
                 val bodyView = android.widget.TextView(ctx).apply {
-                    textSize = 14f
-                    setPadding(0, 16, 0, 16)
-                    setTextColor(android.graphics.Color.DKGRAY)
+                    textSize = 13f
+                    setPadding(0, 24, 0, 32)
+                    setTextColor(android.graphics.Color.parseColor("#6B7280"))
                     maxLines = 2
+                    ellipsize = android.text.TextUtils.TruncateAt.END
                 }
                 container.addView(bodyView)
 
-                // 3) 하단: 액션 버튼 (설치/자세히보기)
+                // 3) 하단: 버튼
                 val callToActionView = android.widget.Button(ctx).apply {
-                    setBackgroundColor(android.graphics.Color.parseColor("#E0E0E0")) // 연회색
-                    setTextColor(android.graphics.Color.BLACK)
+                    setBackgroundColor(android.graphics.Color.parseColor("#F3F4F6"))
+                    setTextColor(android.graphics.Color.parseColor("#4B5563"))
+                    textSize = 13f
+                    stateListAnimator = null
+                    layoutParams = android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
                 }
                 container.addView(callToActionView)
 
-                // --- AdView에 뷰 등록 ---
                 adView.addView(container)
 
                 adView.iconView = iconView
@@ -1423,7 +1425,6 @@ private fun NativeAdItem() {
                 adView
             },
             update = { adView ->
-                // 데이터 바인딩
                 val ad = nativeAd!!
 
                 (adView.headlineView as android.widget.TextView).text = ad.headline
@@ -1437,15 +1438,12 @@ private fun NativeAdItem() {
                     adView.iconView?.visibility = android.view.View.GONE
                 }
 
-                // [중요] 광고 객체 등록 (클릭 이벤트 처리됨)
                 adView.setNativeAd(ad)
             },
+            // [중요] Modifier 대폭 수정: 패딩/보더/클립 제거 -> 평면 스타일
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
-                .background(Color.White, RoundedCornerShape(12.dp))
-                .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
-                .clip(RoundedCornerShape(12.dp))
+                .background(Color.White)
         )
     }
 }
