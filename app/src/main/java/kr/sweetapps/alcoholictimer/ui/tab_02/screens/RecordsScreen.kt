@@ -880,8 +880,12 @@ private fun RecentDiarySection(
 ) {
     val context = LocalContext.current // [NEW] Context 가져오기 (2025-12-22)
 
+    // [NEW] 일기 존재 여부에 따른 버튼 동작 분기 (2025-12-22)
+    val hasAnyDiary = allDiaries.isNotEmpty()
+    val latestDiaryId = allDiaries.firstOrNull()?.id // 최신 일기 ID (timestamp 내림차순 정렬)
+
     Column(modifier = Modifier.fillMaxWidth()) {
-        // [NEW] 헤더: 제목 + 작성 버튼 (2025-12-22)
+        // [NEW] 헤더: 제목 + 동적 버튼 (작성/전체보기) (2025-12-22)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -895,15 +899,27 @@ private fun RecentDiarySection(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            // "작성" 버튼 - 헤더 버튼은 '오늘'로 간주 (null)
+            // [UPDATE] 동적 버튼: 일기 없음 = "작성", 일기 있음 = "전체보기" (2025-12-22)
             Text(
-                text = stringResource(R.string.records_diary_write_action),
+                text = stringResource(
+                    if (hasAnyDiary) R.string.records_diary_view_all
+                    else R.string.records_diary_write_action
+                ),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 color = Color(0xFF6366F1),
                 modifier = Modifier.clickable(
                     interactionSource = remember { MutableInteractionSource() },
-                    onClick = { onNavigateToDiaryWrite(null) } // [FIX] null = 오늘 날짜 (2025-12-22)
+                    indication = null,
+                    onClick = {
+                        if (hasAnyDiary && latestDiaryId != null) {
+                            // [NEW] 일기가 있으면 DiaryDetailFeedScreen으로 이동 (최신 글부터)
+                            onNavigateToDiaryDetail(latestDiaryId)
+                        } else {
+                            // [NEW] 일기가 없으면 오늘 날짜 일기 작성
+                            onNavigateToDiaryWrite(null)
+                        }
+                    }
                 )
             )
         }
