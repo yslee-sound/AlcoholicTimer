@@ -339,7 +339,7 @@ private fun CalendarDayCell(
             )
         }
 
-        Spacer(modifier = Modifier.height(4.dp)) // [FIX] 간격 축소 (8dp -> 4dp) - 공간 효율화 (2025-12-22)
+        Spacer(modifier = Modifier.height(6.dp)) // [FIX] 간격 증가 (4dp -> 6dp) - 점 위치 하단 이동 (2025-12-22)
 
         // 갈증 수치 점 (Dot)
         if (diary != null && isCurrentMonth) {
