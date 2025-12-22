@@ -1566,6 +1566,7 @@ private fun parseYearMonth(dateString: String): Pair<Int, Int> {
  * [NEW] 네이티브 광고 아이템 (2025-12-22)
  * - RecordsScreen 중간에 삽입하여 섹션 분리 역할
  * - 다른 통계 카드들과 동일한 스타일 (Shadow, Radius 16dp)
+ * - [FIX] 고정 높이로 UI 흔들림 방지 (2025-12-22)
  */
 @Composable
 private fun NativeAdItem() {
@@ -1600,41 +1601,47 @@ private fun NativeAdItem() {
         }
     }
 
-    // 2. 광고가 로드되면 표시
-    if (nativeAd != null) {
-        // [FIX] Card로 감싸서 다른 UI와 통일감 부여 (Shadow, Radius 16dp)
-        Card(
-            modifier = Modifier.fillMaxWidth(), // 패딩 제거 (부모에서 처리함)
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
+    // 2. [FIX] 광고 로드 여부와 관계없이 일정한 높이를 가진 카드 생성 (2025-12-22)
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(160.dp), // [FIX] 광고 영역 높이를 고정하여 UI 흔들림 방지
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        if (nativeAd != null) {
+            // 광고 로드 완료 시
             androidx.compose.ui.viewinterop.AndroidView(
                 factory = { ctx ->
                     val adView = com.google.android.gms.ads.nativead.NativeAdView(ctx)
 
-                    // 내부 레이아웃
+                    // 내부 레이아웃 - 가로/세로 꽉 채우기
                     val container = android.widget.LinearLayout(ctx).apply {
                         orientation = android.widget.LinearLayout.VERTICAL
                         setBackgroundColor(android.graphics.Color.WHITE)
-                        setPadding(40, 40, 40, 40) // 내부 콘텐츠 여백 (px 단위, 약 16dp)
+                        setPadding(40, 40, 40, 40)
+                        layoutParams = android.widget.LinearLayout.LayoutParams(
+                            android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                            android.widget.LinearLayout.LayoutParams.MATCH_PARENT // [FIX] 카드 크기에 맞춤
+                        )
                     }
 
                     // 1) 상단: 아이콘 + 헤드라인
                     val headerRow = android.widget.LinearLayout(ctx).apply {
                         orientation = android.widget.LinearLayout.HORIZONTAL
-                        gravity = android.view.Gravity.CENTER_VERTICAL // 수직 중앙 정렬
+                        gravity = android.view.Gravity.CENTER_VERTICAL
                     }
 
                     val iconView = android.widget.ImageView(ctx).apply {
-                        layoutParams = android.widget.LinearLayout.LayoutParams(110, 110) // 크기 미세 조정
+                        layoutParams = android.widget.LinearLayout.LayoutParams(110, 110)
                     }
 
                     val headlineView = android.widget.TextView(ctx).apply {
-                        textSize = 15f // 폰트 크기 조정
+                        textSize = 15f
                         setTypeface(null, android.graphics.Typeface.BOLD)
-                        setPadding(24, 0, 0, 0) // 텍스트 간격
-                        setTextColor(android.graphics.Color.parseColor("#111827")) // 진한 검정
+                        setPadding(24, 0, 0, 0)
+                        setTextColor(android.graphics.Color.parseColor("#111827"))
                         maxLines = 1
                         ellipsize = android.text.TextUtils.TruncateAt.END
                     }
@@ -1647,7 +1654,7 @@ private fun NativeAdItem() {
                     val bodyView = android.widget.TextView(ctx).apply {
                         textSize = 13f
                         setPadding(0, 24, 0, 32)
-                        setTextColor(android.graphics.Color.parseColor("#6B7280")) // 회색
+                        setTextColor(android.graphics.Color.parseColor("#6B7280"))
                         maxLines = 2
                         ellipsize = android.text.TextUtils.TruncateAt.END
                     }
@@ -1655,10 +1662,10 @@ private fun NativeAdItem() {
 
                     // 3) 하단: 버튼
                     val callToActionView = android.widget.Button(ctx).apply {
-                        setBackgroundColor(android.graphics.Color.parseColor("#F3F4F6")) // 연회색 배경
-                        setTextColor(android.graphics.Color.parseColor("#4B5563")) // 버튼 글씨
+                        setBackgroundColor(android.graphics.Color.parseColor("#F3F4F6"))
+                        setTextColor(android.graphics.Color.parseColor("#4B5563"))
                         textSize = 13f
-                        stateListAnimator = null // 버튼 그림자 제거 (플랫하게)
+                        stateListAnimator = null
                         layoutParams = android.widget.LinearLayout.LayoutParams(
                             android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
                             android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
@@ -1686,8 +1693,22 @@ private fun NativeAdItem() {
                     }
                     adView.setNativeAd(ad)
                 },
-                modifier = Modifier.fillMaxWidth() // [중요] 여기 패딩 제거됨
+                modifier = Modifier.fillMaxSize() // [FIX] 카드 전체 영역 사용
             )
+        } else {
+            // [NEW] 광고 로딩 중 표시될 Placeholder (스켈레톤) (2025-12-22)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFF9FAFB)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Ad",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color(0xFFD1D5DB)
+                )
+            }
         }
     }
 }
