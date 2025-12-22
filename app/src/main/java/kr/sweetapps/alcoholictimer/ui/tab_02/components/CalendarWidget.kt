@@ -222,7 +222,7 @@ private fun CalendarGrid(
     // 달력 그리드 생성
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp) // [FIX] 간격 확대 (4dp -> 8dp) - 점 가시성 향상 (2025-12-22)
+        verticalArrangement = Arrangement.spacedBy(0.dp) // [FIX] Row 사이 간격 축소 (8dp -> 4dp) - 날짜 셀 간격 좁힘 (2025-12-22)
     ) {
         var dayCounter = 1 - firstDayOfWeek
 
@@ -339,7 +339,7 @@ private fun CalendarDayCell(
             )
         }
 
-        Spacer(modifier = Modifier.height(6.dp)) // [FIX] 간격 증가 (4dp -> 6dp) - 점 위치 하단 이동 (2025-12-22)
+        Spacer(modifier = Modifier.height(6.dp)) // 숫자와 점 사이 간격
 
         // 갈증 수치 점 (Dot)
         if (diary != null && isCurrentMonth) {
