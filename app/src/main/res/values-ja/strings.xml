@@ -162,6 +162,7 @@
     <string name="diary_no_entries">まだ日記がありません</string>
     <string name="diary_write_prompt">下の + ボタンを押して\n最初の日記を書いてみましょう</string>
     <string name="diary_write_button_action">日記を書く</string>
+    <string name="diary_write_today_only">日記は当日のみ作成できます</string>
     <string name="diary_all_empty">日記がありません。</string>
     <string name="diary_write_title">日記を書く</string>
     <string name="diary_edit_title">日記を編集</string>

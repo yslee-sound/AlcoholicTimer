@@ -872,6 +872,8 @@ private fun RecentDiarySection(
     onNavigateToDiaryWrite: (Long?) -> Unit = {}, // [FIX] 날짜 파라미터 추가 (2025-12-22)
     onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {}
 ) {
+    val context = LocalContext.current // [NEW] Context 가져오기 (2025-12-22)
+
     Column(modifier = Modifier.fillMaxWidth()) {
         // [NEW] 헤더: 제목 + 작성 버튼 (2025-12-22)
         Row(
@@ -906,6 +908,11 @@ private fun RecentDiarySection(
         kr.sweetapps.alcoholictimer.ui.tab_02.components.CalendarWidget(
             diaries = diaries,
             onDateClick = { selectedDate ->
+                // [FIX] 엄격한 모드: 오늘 날짜만 새 일기 작성 허용 (2025-12-22)
+                val today = java.util.Calendar.getInstance()
+                val isToday = selectedDate.get(java.util.Calendar.YEAR) == today.get(java.util.Calendar.YEAR) &&
+                              selectedDate.get(java.util.Calendar.DAY_OF_YEAR) == today.get(java.util.Calendar.DAY_OF_YEAR)
+
                 // 해당 날짜의 일기 찾기
                 val diary = diaries.firstOrNull {
                     val diaryDate = java.util.Calendar.getInstance().apply { timeInMillis = it.timestamp }
@@ -914,11 +921,18 @@ private fun RecentDiarySection(
                 }
 
                 if (diary != null) {
-                    // 기존 일기가 있으면 상세 화면으로
+                    // 기존 일기가 있으면 날짜 상관없이 수정 모드로 진입
                     onDiaryClick(diary)
+                } else if (isToday) {
+                    // 오늘이면 새 글 작성 (null = 오늘 날짜)
+                    onNavigateToDiaryWrite(null)
                 } else {
-                    // [FIX] 일기가 없으면 해당 날짜의 타임스탬프를 전달하여 작성 화면 열기 (2025-12-22)
-                    onNavigateToDiaryWrite(selectedDate.timeInMillis)
+                    // [NEW] 과거인데 일기가 없음 -> 차단 및 토스트 메시지 (2025-12-22)
+                    android.widget.Toast.makeText(
+                        context,
+                        context.getString(R.string.diary_write_today_only), // "일기는 당일에만 작성할 수 있습니다."
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
                 }
             },
             modifier = Modifier.fillMaxWidth()

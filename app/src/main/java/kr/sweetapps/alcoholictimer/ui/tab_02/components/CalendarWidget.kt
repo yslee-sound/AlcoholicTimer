@@ -241,6 +241,9 @@ private fun CalendarGrid(
                             date.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
                             date.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)
 
+                    // [NEW] 미래 날짜 체크 (2025-12-22)
+                    val isFuture = date.after(today)
+
                     // [NEW] 선택 여부 확인 (2025-12-22)
                     val isSelected = isCurrentMonth && selectedDate != null &&
                             date.get(Calendar.YEAR) == selectedDate.get(Calendar.YEAR) &&
@@ -257,9 +260,13 @@ private fun CalendarGrid(
                         date = date,
                         isCurrentMonth = isCurrentMonth,
                         isToday = isToday,
-                        isSelected = isSelected, // [NEW] 선택 상태 전달 (2025-12-22)
+                        isFuture = isFuture, // [NEW] 미래 날짜 전달 (2025-12-22)
+                        isSelected = isSelected,
                         diary = diary,
-                        onClick = { if (isCurrentMonth) onDateClick(date) },
+                        onClick = {
+                            // [FIX] 미래 날짜 클릭 차단 (2025-12-22)
+                            if (isCurrentMonth && !isFuture) onDateClick(date)
+                        },
                         modifier = Modifier.weight(1f)
                     )
 
@@ -276,9 +283,10 @@ private fun CalendarGrid(
 }
 
 /**
- * [MODIFIED] 개별 날짜 셀 - Solid Circle 선택, 간격 개선 (2025-12-22)
+ * [MODIFIED] 개별 날짜 셀 - Solid Circle 선택, 간격 개선, 미래 날짜 비활성화 (2025-12-22)
  * - 선택 시: 파란 원형 배경 + 흰색 텍스트
  * - 오늘: 연한 배경 (선택되지 않은 경우)
+ * - 미래 날짜: 연한 회색으로 비활성화 표시
  * - 숫자 크기 축소, 숫자와 점 사이 간격 확보
  */
 @Composable
@@ -286,7 +294,8 @@ private fun CalendarDayCell(
     date: Calendar,
     isCurrentMonth: Boolean,
     isToday: Boolean,
-    isSelected: Boolean, // [NEW] 선택 상태 (2025-12-22)
+    isFuture: Boolean, // [NEW] 미래 날짜 여부 (2025-12-22)
+    isSelected: Boolean,
     diary: DiaryEntity?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -295,7 +304,7 @@ private fun CalendarDayCell(
         modifier = modifier
             .aspectRatio(0.65f) // [FIX] 세로 공간 확보 (0.75 -> 0.65) - 38dp 원과 10dp 점 모두 수용 (2025-12-22)
             .clip(RoundedCornerShape(8.dp))
-            .clickable(enabled = isCurrentMonth) { onClick() }
+            .clickable(enabled = isCurrentMonth && !isFuture) { onClick() } // [FIX] 미래 날짜 클릭 비활성화 (2025-12-22)
             .padding(vertical = 2.dp), // [FIX] 패딩 최소화 (6dp -> 2dp) - 콘텐츠 공간 확보 (2025-12-22)
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -331,6 +340,7 @@ private fun CalendarDayCell(
                 style = MaterialTheme.typography.bodyMedium,
                 color = when {
                     !isCurrentMonth -> Color(0xFFD1D5DB) // 다른 달: 연한 회색
+                    isFuture -> Color(0xFFD1D5DB) // [NEW] 미래: 연한 회색 (비활성화) (2025-12-22)
                     isToday -> Color.White // 오늘: 흰색
                     isSelected -> Color.White // 선택: 흰색
                     else -> Color(0xFF111827) // 이번 달: 검정

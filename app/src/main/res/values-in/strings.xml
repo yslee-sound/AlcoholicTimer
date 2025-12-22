@@ -162,6 +162,7 @@
     <string name="diary_no_entries">No diary entries yet</string>
     <string name="diary_write_prompt">Tap the + button below\nto write your first entry</string>
     <string name="diary_write_button_action">Write Diary Entry</string>
+    <string name="diary_write_today_only">Diary can only be written on the same day</string>
     <string name="diary_all_empty">No diary entries.</string>
     <string name="diary_write_title">Write Diary</string>
     <string name="diary_edit_title">Edit Diary</string>
