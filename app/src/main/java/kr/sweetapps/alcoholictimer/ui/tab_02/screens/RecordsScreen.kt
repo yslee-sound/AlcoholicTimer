@@ -38,6 +38,7 @@ import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme
 import kr.sweetapps.alcoholictimer.ui.theme.UiConstants
 import kr.sweetapps.alcoholictimer.ui.common.LocalSafeContentPadding
+import kr.sweetapps.alcoholictimer.ui.common.LevelCard
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.MonthPickerBottomSheet
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.WeekPickerBottomSheet
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.YearPickerBottomSheet
@@ -165,10 +166,14 @@ fun RecordsScreen(
                         Spacer(modifier = Modifier.height(RECORDS_TOP_SECTION_EXTERNAL_GAP))
 
                         Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
-                            kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelSummaryBanner(
+                            // [MODIFIED] 공통 LevelCard 컴포넌트 사용 (배너 스타일) (2025-12-23)
+                            LevelCard(
                                 currentLevel = currentLevel,
                                 currentDays = currentDays,
                                 progress = levelProgress,
+                                containerColor = Color(0xFF6366F1), // Light Purple (탭2 전용 색상)
+                                cardHeight = 130.dp,
+                                showDetailedInfo = false, // 간소화된 프로그레스만 표시
                                 onClick = onNavigateToLevelDetail
                             )
                         }

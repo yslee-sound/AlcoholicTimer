@@ -22,7 +22,7 @@ import kr.sweetapps.alcoholictimer.ui.ad.AdController
 import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab03ViewModel
-import kr.sweetapps.alcoholictimer.ui.tab_02.components.CurrentLevelCard
+import kr.sweetapps.alcoholictimer.ui.common.LevelCard
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelListCard
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions
 
@@ -138,14 +138,15 @@ fun LevelScreenContent(
 
         Spacer(modifier = Modifier.height(16.dp)) // [NEW] 콘텐츠 상단 여백
 
-        // 현재 레벨 카드
-        CurrentLevelCard(
+        // [MODIFIED] 공통 LevelCard 컴포넌트 사용 (2025-12-23)
+        LevelCard(
             currentLevel = currentLevel,
             currentDays = levelDays,
-            elapsedDaysFloat = totalElapsedDaysFloat,
-            startTime = startTime ?: 0L,
-            nextLevel = viewModel.getNextLevel(),
             progress = viewModel.calculateProgress(),
+            containerColor = Color(0xFF1E40AF), // Deep Blue
+            cardHeight = 200.dp,
+            showDetailedInfo = true,
+            onClick = null,
             modifier = Modifier.fillMaxWidth()
         )
 
