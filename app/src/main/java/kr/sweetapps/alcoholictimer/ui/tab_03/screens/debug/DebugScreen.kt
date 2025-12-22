@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -42,6 +43,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
 import androidx.compose.ui.platform.LocalContext
@@ -50,6 +52,7 @@ import androidx.compose.ui.text.style.TextAlign
 import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.DebugScreenViewModel
 import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab05ViewModel
+import kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.DiaryViewModel
 import kr.sweetapps.alcoholictimer.util.constants.Constants
 
 // Helper: get Activity from Context
@@ -66,10 +69,12 @@ private fun ContextToActivity(context: Context): Activity? {
 fun DebugScreen(
     viewModel: DebugScreenViewModel = viewModel(),
     tab05ViewModel: Tab05ViewModel = viewModel(), // [NEW] Tab05ViewModel 추가
+    diaryViewModel: DiaryViewModel = viewModel(), // [NEW] DiaryViewModel 추가 (2025-12-22)
     onBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope() // [NEW] Coroutine scope (2025-12-22)
 
     // [NEW] Scaffold로 감싸서 하단 시스템 바 투명화 방지 (2025-12-19)
     Scaffold(
@@ -320,6 +325,33 @@ fun DebugScreen(
                     Toast.makeText(context, "Performance trace started (debug)", Toast.LENGTH_SHORT).show()
                 }
             })
+
+            // [NEW] 테스트 일기 10개 생성 버튼 (2025-12-22)
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = {
+                    scope.launch {
+                        try {
+                            diaryViewModel.generateMockDiaries()
+                            Toast.makeText(context, "✅ 테스트 일기 10개 생성 완료! 기록 탭을 확인하세요.", Toast.LENGTH_LONG).show()
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "❌ 생성 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF4CAF50)
+                )
+            ) {
+                Text("테스트 일기 10개 생성 (사진 포함 40%)")
+            }
+            Text(
+                text = "과거 1년치 랜덤 데이터 생성 (날짜/갈증수치/사진 랜덤)",
+                fontSize = 12.sp,
+                color = Color.Gray,
+                modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+            )
 
             // [NEW] 랜덤 데이터 생성 섹션
             Spacer(modifier = Modifier.height(24.dp))
