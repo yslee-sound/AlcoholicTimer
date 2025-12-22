@@ -93,7 +93,7 @@ fun DiaryWriteScreen(
                     postToEdit = Post(
                         id = diary.id.toString(),
                         content = diary.content,
-                        tagType = "diary", // 일기 태그
+                        tagType = diary.tagType, // [FIX] DB에 저장된 실제 태그 값 사용 (2025-12-23)
                         thirstLevel = diary.cravingLevel, // [FIX] cravingLevel -> thirstLevel 매핑
                         imageUrl = diary.imageUrl, // [FIX] 기존 이미지 URL 매핑 (2025-12-23)
                         nickname = "",
