@@ -164,6 +164,7 @@ fun DiaryDetailFeedScreen(
                                     val sdf = java.text.SimpleDateFormat("yyyy/MM/dd", java.util.Locale.getDefault())
                                     sdf.format(java.util.Date(item.timestamp))
                                 },
+                                tagType = item.tagType, // [FIX] DB에 저장된 tagType 사용 (2025-12-23)
                                 onLikeClick = { },
                                 onCommentClick = { },
                                 onMoreClick = {

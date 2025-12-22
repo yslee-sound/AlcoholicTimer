@@ -31,6 +31,9 @@ data class DiaryEntity(
     val cravingLevel: Int = 0,
 
     /** [NEW] 사진 URL (2025-12-22) */
-    val imageUrl: String = ""
+    val imageUrl: String = "",
+
+    /** [NEW] 태그 타입 (diary, thanks, reflect 등) (2025-12-23) */
+    val tagType: String = "diary"
 )
 

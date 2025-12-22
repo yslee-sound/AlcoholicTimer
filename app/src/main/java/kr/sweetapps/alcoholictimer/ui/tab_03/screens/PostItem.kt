@@ -54,6 +54,7 @@ fun PostItem(
     thirstLevel: Int? = null, // [NEW] 갈증 수치 표시
     isMine: Boolean = false, // [NEW] Phase 3: 내 글 여부
     createdDate: String? = null, // [NEW] 작성 날짜 "yyyy/MM/dd" (2025-12-22)
+    tagType: String = "diary", // [NEW] 태그 타입 (2025-12-23)
     onLikeClick: () -> Unit = {},
     onCommentClick: () -> Unit = {},
     onMoreClick: () -> Unit = {},
@@ -84,21 +85,41 @@ fun PostItem(
 
             val interactionSource = remember { MutableInteractionSource() }
 
-            Text(
-                text = content,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF1F2937),
-                maxLines = if (isExpanded) Int.MAX_VALUE else 5,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-                    .animateContentSize()
-                    .clickable(
-                        interactionSource = interactionSource,
-                        indication = null
-                    ) { isExpanded = !isExpanded }
-            )
+            // [NEW] 태그 텍스트 변환 (2025-12-23)
+            val tagLabel = when (tagType) {
+                "thanks" -> "#오늘 감사할 일"
+                "reflect" -> "#오늘 반성할 일"
+                else -> "#오늘의 일기"
+            }
+
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+                // [NEW] 카테고리 태그 표시 (2025-12-23)
+                Text(
+                    text = tagLabel,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = Color(0xFF6366F1), // MainPrimaryBlue
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp
+                    ),
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+
+                // 본문 내용
+                Text(
+                    text = content,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF1F2937),
+                    maxLines = if (isExpanded) Int.MAX_VALUE else 5,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateContentSize()
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null
+                        ) { isExpanded = !isExpanded }
+                )
+            }
         }
 
         // Body: 이미지 (선택사항) - [FIX] AsyncImage로 실제 이미지 표시 (2025-12-19)

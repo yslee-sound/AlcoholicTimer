@@ -140,12 +140,14 @@ fun DiaryWriteScreen(
                         val updatedDiary = existingDiary?.copy(
                             content = postData.content,
                             cravingLevel = postData.thirstLevel ?: 0,
+                            imageUrl = postData.imageUrl ?: "", // [FIX] 이미지 URL 업데이트 (2025-12-23)
+                            tagType = postData.tagType, // [NEW] 태그 타입 저장 (2025-12-23)
                             timestamp = originalTimestamp, // [FIX] 기존 시간 유지 (2025-12-22)
                             date = formatDate(originalTimestamp)
                         )
                         if (updatedDiary != null) {
                             diaryViewModel.updateDiary(updatedDiary)
-                            android.util.Log.d("DiaryWriteScreen", "일기 수정 성공: ${postData.content}")
+                            android.util.Log.d("DiaryWriteScreen", "일기 수정 성공: 태그=${postData.tagType}")
                         }
                     } else {
                         // [신규 모드] 선택된 날짜 사용
@@ -155,10 +157,12 @@ fun DiaryWriteScreen(
                             content = postData.content,
                             cravingLevel = postData.thirstLevel ?: 0,
                             timestamp = targetTimestamp, // [FIX] 선택된 날짜로 저장 (2025-12-22)
-                            date = formatDate(targetTimestamp)
+                            date = formatDate(targetTimestamp),
+                            imageUrl = postData.imageUrl ?: "", // [NEW] 이미지 URL 저장 (2025-12-23)
+                            tagType = postData.tagType // [NEW] 태그 타입 저장 (2025-12-23)
                         )
                         diaryViewModel.insertDiary(newDiary)
-                        android.util.Log.d("DiaryWriteScreen", "일기 생성 성공 (날짜: ${formatDate(targetTimestamp)}): ${postData.content}")
+                        android.util.Log.d("DiaryWriteScreen", "일기 생성 성공: 태그=${postData.tagType}, 날짜=${formatDate(targetTimestamp)}")
                     }
                 } catch (e: Exception) {
                     android.util.Log.e("DiaryWriteScreen", "일기 저장 실패", e)

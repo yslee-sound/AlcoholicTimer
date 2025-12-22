@@ -12,10 +12,11 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  * Singleton 패턴을 사용하여 앱 전체에서 하나의 DB 인스턴스만 사용합니다.
  *
  * [NEW] Version 2: imageUrl 필드 추가 (2025-12-22)
+ * [NEW] Version 3: tagType 필드 추가 (2025-12-23)
  */
 @Database(
     entities = [DiaryEntity::class],
-    version = 2, // [UPDATED] 1 -> 2 (imageUrl 필드 추가)
+    version = 3, // [UPDATED] 2 -> 3 (tagType 필드 추가)
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -41,6 +42,16 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
+         * [NEW] Migration 2 -> 3: tagType 컬럼 추가 (2025-12-23)
+         */
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // tagType 컬럼 추가 (기본값 "diary")
+                database.execSQL("ALTER TABLE diary_table ADD COLUMN tagType TEXT NOT NULL DEFAULT 'diary'")
+            }
+        }
+
+        /**
          * Database 인스턴스를 가져옵니다.
          * 없으면 새로 생성하고, 있으면 기존 인스턴스를 반환합니다.
          */
@@ -53,8 +64,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "alcoholic_timer_database"
                 )
-                    // [NEW] Migration 추가 (2025-12-22)
-                    .addMigrations(MIGRATION_1_2)
+                    // [NEW] Migration 추가 (2025-12-22, 2025-12-23)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
 
                     // [옵션] 메인 스레드에서 쿼리 허용 (개발 중에만 사용, 프로덕션에서는 제거 권장)
                     // .allowMainThreadQueries()

@@ -221,6 +221,7 @@ fun CommunityScreen(
                                          authorAvatarIndex = item.authorAvatarIndex, // 아바타 인덱스 전달
                                          thirstLevel = item.thirstLevel,
                                           isMine = viewModel.isMyPost(item), // Phase 3: 내 글 여부
+                                          tagType = item.tagType, // [NEW] 태그 타입 전달 (2025-12-23)
                                           onLikeClick = { viewModel.toggleLike(item) },
                                           onCommentClick = { },
                                           onMoreClick = { selectedPost = item }, // Phase 3: 바텀 시트 열기
