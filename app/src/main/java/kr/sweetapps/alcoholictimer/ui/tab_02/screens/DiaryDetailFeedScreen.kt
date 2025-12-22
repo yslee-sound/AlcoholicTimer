@@ -344,7 +344,7 @@ private fun NativeAdItem() {
                     )
                 }
 
-                // 상단: 아이콘 + 헤드라인
+                // 상단: 아이콘 + 광고 배지 + 헤드라인
                 val topRow = android.widget.LinearLayout(ctx).apply {
                     orientation = android.widget.LinearLayout.HORIZONTAL
                     gravity = android.view.Gravity.CENTER_VERTICAL
@@ -357,6 +357,31 @@ private fun NativeAdItem() {
                 }
                 topRow.addView(iconView)
 
+                // [NEW] 텍스트 컨테이너 (배지 + 제목을 세로로 배치) (2025-12-23)
+                val textContainer = android.widget.LinearLayout(ctx).apply {
+                    orientation = android.widget.LinearLayout.VERTICAL
+                    layoutParams = android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
+                }
+
+                // [NEW] ★ 광고 배지 (Ad Badge) 추가 ★ (2025-12-23)
+                val badgeView = android.widget.TextView(ctx).apply {
+                    text = "광고"
+                    textSize = 10f
+                    setTextColor(android.graphics.Color.WHITE)
+                    setBackgroundColor(android.graphics.Color.parseColor("#FBC02D"))
+                    setPadding(8, 2, 8, 2)
+                    layoutParams = android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        bottomMargin = 4
+                    }
+                }
+                textContainer.addView(badgeView)
+
                 val headlineView = android.widget.TextView(ctx).apply {
                     textSize = 15f
                     setTypeface(null, android.graphics.Typeface.BOLD)
@@ -364,7 +389,9 @@ private fun NativeAdItem() {
                     maxLines = 1
                     ellipsize = android.text.TextUtils.TruncateAt.END
                 }
-                topRow.addView(headlineView)
+                textContainer.addView(headlineView)
+
+                topRow.addView(textContainer)
                 container.addView(topRow)
 
                 // 본문

@@ -158,7 +158,7 @@
     <string name="level_hour_unit">hour(s)</string>
 
     <!-- Diary -->
-    <string name="diary_recent_title">Recent Diary</string>
+    <string name="diary_recent_title">Records</string>
     <string name="diary_no_entries">No diary entries yet</string>
     <string name="diary_write_prompt">Tap the + button below\nto write your first entry</string>
     <string name="diary_write_button_action">Write Diary Entry</string>
@@ -226,7 +226,7 @@
     <string name="records_dashboard_title_health">My Health </string>
     <string name="records_dashboard_title_analysis">Analysis</string>
     <string name="records_dashboard_greeting">Have a healthy day today!</string>
-    <string name="records_statistics_summary">Statistics Summary</string>
+    <string name="records_statistics_summary">Stats</string>
     <string name="records_period_filter_monthly">Monthly</string>
     <string name="records_period_filter_all">All</string>
     <string name="records_total_sober_days">Total Sober Days</string>

@@ -895,8 +895,10 @@ private fun RecentDiarySection(
         ) {
             Text(
                 text = stringResource(R.string.diary_recent_title),
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF111827),
+                fontSize = 18.sp
             )
 
             // [UPDATE] 동적 버튼: 일기 없음 = "작성", 일기 있음 = "전체보기" (2025-12-22)
@@ -1653,7 +1655,7 @@ private fun NativeAdItem() {
                         )
                     }
 
-                    // 1) 상단: 아이콘 + 헤드라인
+                    // 1) 상단: 아이콘 + 광고 배지 + 헤드라인
                     val headerRow = android.widget.LinearLayout(ctx).apply {
                         orientation = android.widget.LinearLayout.HORIZONTAL
                         gravity = android.view.Gravity.CENTER_VERTICAL
@@ -1662,18 +1664,45 @@ private fun NativeAdItem() {
                     val iconView = android.widget.ImageView(ctx).apply {
                         layoutParams = android.widget.LinearLayout.LayoutParams(110, 110)
                     }
+                    headerRow.addView(iconView)
+
+                    // [NEW] 텍스트 컨테이너 (배지 + 제목을 세로로 배치) (2025-12-23)
+                    val textContainer = android.widget.LinearLayout(ctx).apply {
+                        orientation = android.widget.LinearLayout.VERTICAL
+                        layoutParams = android.widget.LinearLayout.LayoutParams(
+                            android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                        ).apply {
+                            marginStart = 24
+                        }
+                    }
+
+                    // [NEW] ★ 광고 배지 (Ad Badge) 추가 ★ (2025-12-23)
+                    val badgeView = android.widget.TextView(ctx).apply {
+                        text = "광고"
+                        textSize = 10f
+                        setTextColor(android.graphics.Color.WHITE)
+                        setBackgroundColor(android.graphics.Color.parseColor("#FBC02D"))
+                        setPadding(8, 2, 8, 2)
+                        layoutParams = android.widget.LinearLayout.LayoutParams(
+                            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                        ).apply {
+                            bottomMargin = 4
+                        }
+                    }
+                    textContainer.addView(badgeView)
 
                     val headlineView = android.widget.TextView(ctx).apply {
                         textSize = 15f
                         setTypeface(null, android.graphics.Typeface.BOLD)
-                        setPadding(24, 0, 0, 0)
                         setTextColor(android.graphics.Color.parseColor("#111827"))
                         maxLines = 1
                         ellipsize = android.text.TextUtils.TruncateAt.END
                     }
+                    textContainer.addView(headlineView)
 
-                    headerRow.addView(iconView)
-                    headerRow.addView(headlineView)
+                    headerRow.addView(textContainer)
                     container.addView(headerRow)
 
                     // 2) 중간: Body
