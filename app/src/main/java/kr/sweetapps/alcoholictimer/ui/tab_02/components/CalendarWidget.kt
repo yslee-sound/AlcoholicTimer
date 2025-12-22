@@ -305,8 +305,6 @@ private fun CalendarDayCell(
     Column(
         modifier = modifier
             .aspectRatio(0.65f) // [FIX] 세로 공간 확보 (0.75 -> 0.65) - 38dp 원과 10dp 점 모두 수용 (2025-12-22)
-            .clip(RoundedCornerShape(8.dp))
-            .clickable(enabled = isCurrentMonth && !isFuture) { onClick() } // [FIX] 미래 날짜 클릭 비활성화 (2025-12-22)
             .padding(vertical = 2.dp), // [FIX] 패딩 최소화 (6dp -> 2dp) - 콘텐츠 공간 확보 (2025-12-22)
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -318,6 +316,8 @@ private fun CalendarDayCell(
                     // [FIX] 오늘과 선택된 날짜 모두 38dp 통일 (2025-12-22)
                     if (isToday || isSelected) 38.dp else 28.dp
                 )
+                .clip(CircleShape) // [핵심] 리플 효과를 이 원형 안으로 제한
+                .clickable(enabled = isCurrentMonth && !isFuture) { onClick() } // [FIX] clickable을 clip 뒤로 이동 (2025-12-22)
                 .then(
                     if (isToday) {
                         // [NEW] 오늘 날짜에만 그림자 효과 (2025-12-22)

@@ -926,14 +926,8 @@ private fun RecentDiarySection(
                 } else if (isToday) {
                     // 오늘이면 새 글 작성 (null = 오늘 날짜)
                     onNavigateToDiaryWrite(null)
-                } else {
-                    // [NEW] 과거인데 일기가 없음 -> 차단 및 토스트 메시지 (2025-12-22)
-                    android.widget.Toast.makeText(
-                        context,
-                        context.getString(R.string.diary_write_today_only), // "일기는 당일에만 작성할 수 있습니다."
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
                 }
+                // [FIX] 과거 날짜 클릭 시 토스트 메시지 제거 - 아무 반응 없음 (No-op) (2025-12-22)
             },
             modifier = Modifier.fillMaxWidth()
         )
