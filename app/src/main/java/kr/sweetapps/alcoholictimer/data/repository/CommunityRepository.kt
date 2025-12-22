@@ -171,6 +171,22 @@ class CommunityRepository(private val context: Context? = null) {
     }
 
     /**
+     * [NEW] 게시글 수정 (2025-12-22)
+     * @param postId 수정할 게시글 ID
+     * @param updates 업데이트할 필드 맵 (content, tagType, thirstLevel 등)
+     */
+    suspend fun updatePost(postId: String, updates: Map<String, Any?>): Result<Unit> {
+        return try {
+            postsCollection.document(postId).update(updates).await()
+            Log.d(TAG, "Successfully updated post: $postId")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating post: $postId", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
      * 실시간 게시글 목록 가져오기
      * - languageCode: ISO 639-1 코드로 필터. null이면 모든 언어를 반환
      * - includeEnglishFallback: true일 경우 primary 언어 포스트가 적으면 영어("en") 포스트를 함께 병합하여 반환

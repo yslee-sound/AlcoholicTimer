@@ -431,6 +431,50 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     /**
+     * [NEW] 게시글 수정 (2025-12-22)
+     * @param postId 수정할 게시글 ID
+     * @param newContent 새로운 내용
+     * @param newTagType 새로운 태그 타입
+     * @param newThirstLevel 새로운 갈증 수치
+     * @param onSuccess 성공 콜백
+     */
+    fun updatePost(
+        postId: String,
+        newContent: String,
+        newTagType: String = "",
+        newThirstLevel: Int? = null,
+        onSuccess: () -> Unit = {}
+    ) {
+        _isLoading.value = true
+
+        viewModelScope.launch {
+            try {
+                // Firestore 업데이트
+                val updates = mutableMapOf<String, Any?>(
+                    "content" to newContent,
+                    "tagType" to newTagType,
+                    "thirstLevel" to newThirstLevel
+                )
+
+                repository.updatePost(postId, updates)
+
+                android.util.Log.d("CommunityViewModel", "게시글 수정 완료: $postId")
+
+                // 성공 콜백 호출
+                try {
+                    onSuccess()
+                } catch (e: Exception) {
+                    android.util.Log.w("CommunityViewModel", "onSuccess callback failed: ${e.message}")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("CommunityViewModel", "게시글 수정 실패", e)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    /**
      * NEW 타이머 지속 시간 계산 (랜덤 또는 실제 유저 타이머)
      * - Phase 3: 실제 유저 타이머 기반으로 변경 (2025-12-20)
      */

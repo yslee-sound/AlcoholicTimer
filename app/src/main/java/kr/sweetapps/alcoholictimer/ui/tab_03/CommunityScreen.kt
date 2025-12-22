@@ -70,6 +70,7 @@ import kr.sweetapps.alcoholictimer.ui.tab_03.screens.PostItem
 import kr.sweetapps.alcoholictimer.ui.common.CustomGalleryScreen
 import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.CommunityViewModel
 import kotlinx.coroutines.launch
+import kr.sweetapps.alcoholictimer.data.model.Post
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,6 +92,8 @@ fun CommunityScreen(
 
     // 글쓰기 화면 표시 상태
     var isWritingScreenVisible by remember { mutableStateOf(false) }
+    // [NEW] 수정할 게시글 상태 (2025-12-22)
+    var postToEdit by remember { mutableStateOf<kr.sweetapps.alcoholictimer.data.model.Post?>(null) }
     // 전체 화면 사진 선택 표시 상태 (CommunityScreen 레벨로 끌어올림)
     var isPhotoSelectionVisible by remember { mutableStateOf(false) }
     var photoIsClosing by remember { mutableStateOf(false) }
@@ -291,8 +294,15 @@ fun CommunityScreen(
                     WritePostScreenContent(
                         viewModel = viewModel,
                         currentNickname = currentNickname, // [NEW] ViewModel에서 받은 닉네임 전달 (2025-12-22)
-                        onPost = { triggerClose() }, // [MODIFIED] 실제 게시처리는 내부에서 실행, 부모에는 닫기만 위임
-                        onDismiss = { triggerClose() }, // [FIX] 뒤로가기 시 애니메이션 종료
+                        postToEdit = postToEdit, // [NEW] 수정할 게시글 전달 (2025-12-22)
+                        onPost = {
+                            postToEdit = null // [NEW] 완료 시 초기화 (2025-12-22)
+                            triggerClose()
+                        },
+                        onDismiss = {
+                            postToEdit = null // [NEW] 취소 시 초기화 (2025-12-22)
+                            triggerClose()
+                        },
                         onOpenPhoto = {
                             // 글쓰기 다이얼로그를 닫지 않고, 그 위에 사진 선택 Dialog를 띄웁니다. (스택 방식)
                             isPhotoSelectionVisible = true
@@ -311,6 +321,11 @@ fun CommunityScreen(
                  PostOptionsBottomSheet(
                      post,
                      isMyPost = viewModel.isMyPost(post),
+                     onEdit = { // [NEW] 수정 버튼 콜백 (2025-12-22)
+                         postToEdit = post
+                         selectedPost = null
+                         isWritingScreenVisible = true
+                     },
                      onDelete = {
                          viewModel.deletePost(post.id)
                          selectedPost = null
@@ -392,6 +407,7 @@ fun CommunityScreen(
 private fun PostOptionsBottomSheet(
     post: kr.sweetapps.alcoholictimer.data.model.Post,
     isMyPost: Boolean,
+    onEdit: () -> Unit, // [NEW] 수정 콜백 (2025-12-22)
     onDelete: () -> Unit,
     onHide: () -> Unit,
     onReport: () -> Unit
@@ -411,7 +427,28 @@ private fun PostOptionsBottomSheet(
         )
 
         if (isMyPost) {
-            // 내 글: 삭제 메뉴만
+            // [NEW] 수정 버튼 추가 (2025-12-22)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onEdit() }
+                    .padding(horizontal = 20.dp, vertical = 16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Edit,
+                    contentDescription = null,
+                    tint = Color(0xFF1F2937)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = "게시글 수정",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color(0xFF1F2937)
+                )
+            }
+
+            // 내 글: 삭제 메뉴
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -485,14 +522,27 @@ private fun PostOptionsBottomSheet(
 private fun WritePostScreenContent(
     viewModel: CommunityViewModel, // [NEW] ViewModel 주입
     currentNickname: String, // [NEW] ViewModel에서 전달받은 닉네임 (2025-12-22)
+    postToEdit: Post? = null, // [NEW] 수정할 게시글 (2025-12-22)
     onPost: (String) -> Unit,
     onDismiss: () -> Unit,
     onOpenPhoto: () -> Unit // [NEW] 사진 선택 화면 열기 콜백 (네비게이션 호출)
 ) {
+    // [MODIFIED] 수정 모드인 경우 기존 내용으로 초기화 (2025-12-22)
+    val isEditMode = postToEdit != null
+
     // Use TextFieldValue to track cursor position and selection
-    var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
-    // initialize empty on entry
-    LaunchedEffect(Unit) { textFieldValue = TextFieldValue("") }
+    var textFieldValue by remember { mutableStateOf(
+        TextFieldValue(postToEdit?.content ?: "")
+    ) }
+
+    // [MODIFIED] 수정 모드가 아닐 때만 초기화 (2025-12-22)
+    LaunchedEffect(postToEdit) {
+        if (postToEdit == null) {
+            textFieldValue = TextFieldValue("")
+        } else {
+            textFieldValue = TextFieldValue(postToEdit.content)
+        }
+    }
 
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current // [NEW] FocusManager (2025-12-19)
@@ -501,9 +551,10 @@ private fun WritePostScreenContent(
     var showThirstSlider by remember { mutableStateOf(false) }
     // Note: showPhotoScreen handled via external navigation callback (onOpenPhoto)
 
-    // [FIX] 갈증 수치 상태를 nullable로 변경하여 초기에는 선택이 없음
-    // 초기값: null (아무 숫자도 선택되지 않은 상태)
-    var selectedLevel by remember { mutableStateOf<Int?>(null) }
+    // [MODIFIED] 수정 모드인 경우 기존 값으로 초기화 (2025-12-22)
+    var selectedLevel by remember(postToEdit) {
+        mutableStateOf<Int?>(postToEdit?.thirstLevel)
+    }
 
     // [NEW] 갈증 레벨에 따른 색상 계산 함수(Reused by top badge and bottom selector)
     fun thirstColor(level: Int): Color = when (level) {
@@ -587,9 +638,10 @@ private fun WritePostScreenContent(
         }
      }
 
-    // [FIX] 갈증 수치 상태를 nullable로 변경하여 초기에는 선택이 없음
-    // 초기값: null (아무 숫자도 선택되지 않은 상태)
-    var selectedTag by remember { mutableStateOf("diary") } // diary, thanks, reflect
+    // [MODIFIED] 수정 모드인 경우 기존 태그로 초기화 (2025-12-22)
+    var selectedTag by remember(postToEdit) {
+        mutableStateOf(postToEdit?.tagType?.takeIf { it.isNotBlank() } ?: "diary")
+    }
 
     val placeholderText = when (selectedTag) {
         "diary" -> "오늘 하루는 어땠나요? 솔직한 이야기를 들려주세요."
@@ -637,7 +689,7 @@ private fun WritePostScreenContent(
             TopAppBar(
                 title = {
                     Text(
-                        text = "새 게시글 작성",
+                        text = if (isEditMode) "게시글 수정" else "새 게시글 작성", // [MODIFIED] 수정 모드 표시 (2025-12-22)
                         style = MaterialTheme.typography.titleMedium,
                         color = Color(0xFF1F2937)
                     )
@@ -658,20 +710,32 @@ private fun WritePostScreenContent(
                             if ((textFieldValue.text.isNotBlank() || selectedImageUri != null) && !isLoading) {
                                 val payload = textFieldValue.text.trim()
                                 try {
-                                    // Do NOT clear local UI state here. ViewModel starts loading immediately and
-                                    // will call onSuccess when upload completes. Then we close the dialog.
-                                    viewModel.addPost(
-                                        content = payload,
-                                        context = context,
-                                        tagType = selectedTag,
-                                        thirstLevel = selectedLevel,
-                                        onSuccess = {
-                                            // Called from ViewModel after upload & DB save succeed
-                                            onPost(payload)
-                                        }
-                                    )
+                                    // [MODIFIED] 수정 모드와 신규 작성 모드 분기 (2025-12-22)
+                                    if (isEditMode && postToEdit != null) {
+                                        // 수정 모드: updatePost 호출
+                                        viewModel.updatePost(
+                                            postId = postToEdit.id,
+                                            newContent = payload,
+                                            newTagType = selectedTag,
+                                            newThirstLevel = selectedLevel,
+                                            onSuccess = {
+                                                onPost(payload)
+                                            }
+                                        )
+                                    } else {
+                                        // 신규 작성 모드: addPost 호출
+                                        viewModel.addPost(
+                                            content = payload,
+                                            context = context,
+                                            tagType = selectedTag,
+                                            thirstLevel = selectedLevel,
+                                            onSuccess = {
+                                                onPost(payload)
+                                            }
+                                        )
+                                    }
                                 } catch (e: Exception) {
-                                    android.util.Log.e("CommunityScreen", "addPost call failed", e)
+                                    android.util.Log.e("CommunityScreen", "Post operation failed", e)
                                 }
                             }
                         },
@@ -687,7 +751,7 @@ private fun WritePostScreenContent(
                             )
                         } else {
                             Text(
-                                text = "게시하기",
+                                text = if (isEditMode) "수정완료" else "게시하기", // [MODIFIED] 수정 모드 버튼 텍스트 (2025-12-22)
                                 color = if (isModified)
                                     kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
                                 else Color(0xFFD1D5DB),
