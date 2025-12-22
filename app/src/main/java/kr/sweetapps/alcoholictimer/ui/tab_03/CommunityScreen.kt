@@ -22,6 +22,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.Image
@@ -1080,59 +1081,42 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                     }
                 }
 
-                // [NEW] 주제 선택 칩 (작성자 정보 바로 아래, 입력창 위)
-                // 선택된 태그에 따라 placeholder가 바뀝니다.
+                // [MODIFIED] 주제 선택 칩 - 사진 스타일로 변경 (2025-12-23)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()) // [NEW] 가로 스크롤 허용
+                        .horizontalScroll(rememberScrollState()) // 가로 스크롤 허용
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    FilterChip(
-                        selected = selectedTag == "diary",
-                        onClick = { if (!isLoading) selectedTag = "diary" },
-                        label = { Text("오늘의 일기") },
-                        colors = FilterChipDefaults.filterChipColors(
-                            // 비선택(기본) 상태 색상
-                            containerColor = Color(0xFFF0F0F0),
-                            labelColor = Color(0xFF374151),
-                            // 선택 상태 색상
-                            selectedContainerColor = Color(0xFF7C3AED), // 보라
-                            selectedLabelColor = Color.White
-                         ),
-                         modifier = Modifier.defaultMinSize(minHeight = 36.dp)
-                     )
+                    // 태그 데이터 정의 (tagKey, tagName, selectedBgColor, selectedTextColor)
+                    data class TagInfo(val key: String, val name: String, val bgColor: Color, val textColor: Color)
+                    val tags = listOf(
+                        TagInfo("diary", "오늘의 일기", Color(0xFF6D4ADB), Color.White), // 보라색 + 흰색 텍스트
+                        TagInfo("thanks", "오늘 감사할 일", Color(0xFF4A90E2), Color.White), // 파란색 + 흰색 텍스트
+                        TagInfo("reflect", "오늘 반성할 일", Color(0xFFFF69B4), Color.White) // 핑크색 + 흰색 텍스트
+                    )
 
-                    FilterChip(
-                        selected = selectedTag == "thanks",
-                        onClick = { if (!isLoading) selectedTag = "thanks" },
-                        label = { Text("오늘 감사할 일") },
-                        colors = FilterChipDefaults.filterChipColors(
-                            // 비선택(기본) 상태 색상
-                            containerColor = Color(0xFFF0F0F0),
-                            labelColor = Color(0xFF374151),
-                            // 선택 상태 색상
-                            selectedContainerColor = Color(0xFFFFD54F), // 노랑
-                            selectedLabelColor = Color.Black
-                         ),
-                         modifier = Modifier.defaultMinSize(minHeight = 36.dp)
-                     )
+                    tags.forEach { tag ->
+                        val isSelected = selectedTag == tag.key
 
-                    FilterChip(
-                        selected = selectedTag == "reflect",
-                        onClick = { if (!isLoading) selectedTag = "reflect" },
-                        label = { Text("오늘 반성할 일") },
-                        colors = FilterChipDefaults.filterChipColors(
-                            // 비선택(기본) 상태 색상
-                            containerColor = Color(0xFFF0F0F0),
-                            labelColor = Color(0xFF374151),
-                            // 선택 상태 색상
-                            selectedContainerColor = Color(0xFF6B7280), // 회색
-                            selectedLabelColor = Color.White
-                         ),
-                         modifier = Modifier.defaultMinSize(minHeight = 36.dp)
-                     )
+                        Surface(
+                            modifier = Modifier.clickable { if (!isLoading) selectedTag = tag.key },
+                            shape = RoundedCornerShape(20.dp), // 둥근 모서리
+                            color = if (isSelected) tag.bgColor else Color(0xFFF5F5F5), // 선택: 해당 색상 배경, 미선택: 연한 회색
+                            border = null // 테두리 제거
+                        ) {
+                            Text(
+                                text = tag.name,
+                                color = if (isSelected) tag.textColor else Color(0xFF9E9E9E), // 선택: 각 태그별 색상, 미선택: 진한 회색
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                    fontSize = 13.sp // 텍스트 크기 축소
+                                ),
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+                            )
+                        }
+                    }
                 }
 
             // 텍스트 입력창
