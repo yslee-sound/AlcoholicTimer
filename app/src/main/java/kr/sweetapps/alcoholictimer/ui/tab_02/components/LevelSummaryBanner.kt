@@ -46,14 +46,14 @@ fun LevelSummaryBanner(
         modifier = modifier
             .fillMaxWidth()
             .height(130.dp), // [FIX] 높이 증가 (100dp → 130dp) - 텍스트 잘림 방지
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(16.dp), // [FIX] 24.dp → 16.dp (다른 카드들과 통일)
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .clip(RoundedCornerShape(24.dp))
+                .clip(RoundedCornerShape(16.dp)) // [FIX] 24.dp → 16.dp (다른 카드들과 통일)
                 .background(
                     Brush.horizontalGradient(
                         colors = listOf(
