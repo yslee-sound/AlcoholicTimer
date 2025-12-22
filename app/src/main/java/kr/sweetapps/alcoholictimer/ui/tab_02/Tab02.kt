@@ -1,14 +1,18 @@
-// [NEW] Tab02 리팩토링: 기록 화면을 tab_02 구조로 리팩토링
 package kr.sweetapps.alcoholictimer.ui.tab_02
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -18,6 +22,7 @@ import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.ui.common.BaseActivity
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions
 import kr.sweetapps.alcoholictimer.ui.tab_02.screens.RecordsScreen
+import kr.sweetapps.alcoholictimer.ui.tab_02.screens.DiaryDetailFeedScreen
 import kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.Tab02ViewModel
 import kr.sweetapps.alcoholictimer.ui.theme.AlcoholicTimerTheme
 
@@ -63,6 +68,9 @@ fun Tab02Screen(
         viewModelStoreOwner = androidx.activity.compose.LocalActivity.current as ComponentActivity
     )
 ) {
+    // [NEW] 일기 상세 피드 화면 표시 상태 (2025-12-22)
+    var selectedDetailDiaryId by remember { mutableStateOf<Long?>(null) }
+
     // [NEW] ViewModel 데이터 구독
     val records by viewModel.records.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -108,29 +116,59 @@ fun Tab02Screen(
         viewModel.getFilteredRecords(periodWeek, periodMonth, periodYear)
     }
 
-    RecordsScreen(
-        records = filteredRecords,
-        allRecords = records,
-        isLoading = isLoading,
-        selectedPeriod = selectedPeriod,
-        selectedDetailPeriod = selectedDetailPeriod,
-        selectedWeekRange = selectedWeekRange,
-        onPeriodSelected = { viewModel.updateSelectedPeriod(it) },
-        onDetailPeriodSelected = { viewModel.updateSelectedDetailPeriod(it) },
-        onWeekRangeSelected = { viewModel.updateSelectedWeekRange(it) },
-        recentDiaries = recentDiaries,
-        statsData = statsData,
-        currentLevel = currentLevel,
-        currentDays = currentDays,
-        levelProgress = levelProgress,
-        onNavigateToLevelDetail = onNavigateToLevelDetail,
-        onNavigateToDetail = onNavigateToDetail,
-        onNavigateToAllRecords = onNavigateToAllRecords,
-        onNavigateToAllDiaries = onNavigateToAllDiaries,
-        onNavigateToDiaryWrite = onNavigateToDiaryWrite, // [NEW] 일기 작성 콜백 전달
-        onAddRecord = onAddRecord,
-        onDiaryClick = onDiaryClick
-    )
+    // [NEW] Box로 감싸서 일기 상세 피드 화면을 덮어씌울 수 있도록 구성 (2025-12-22)
+    Box(modifier = Modifier.fillMaxSize()) {
+        // 1. 기본 기록 화면 (캘린더 포함)
+        RecordsScreen(
+            records = filteredRecords,
+            allRecords = records,
+            isLoading = isLoading,
+            selectedPeriod = selectedPeriod,
+            selectedDetailPeriod = selectedDetailPeriod,
+            selectedWeekRange = selectedWeekRange,
+            onPeriodSelected = { viewModel.updateSelectedPeriod(it) },
+            onDetailPeriodSelected = { viewModel.updateSelectedDetailPeriod(it) },
+            onWeekRangeSelected = { viewModel.updateSelectedWeekRange(it) },
+            recentDiaries = recentDiaries,
+            statsData = statsData,
+            currentLevel = currentLevel,
+            currentDays = currentDays,
+            levelProgress = levelProgress,
+            onNavigateToLevelDetail = onNavigateToLevelDetail,
+            onNavigateToDetail = onNavigateToDetail,
+            onNavigateToAllRecords = onNavigateToAllRecords,
+            onNavigateToAllDiaries = onNavigateToAllDiaries,
+            onNavigateToDiaryWrite = onNavigateToDiaryWrite, // [NEW] 일기 작성 콜백 전달
+            onAddRecord = onAddRecord,
+            onDiaryClick = onDiaryClick,
+            onNavigateToDiaryDetail = { id ->
+                // [NEW] 일기 상세 피드 화면 트리거 (2025-12-22)
+                selectedDetailDiaryId = id
+            }
+        )
+
+        // 2. [NEW] 일기 상세 피드 화면 (ID가 있을 때만 덮어씌움) (2025-12-22)
+        if (selectedDetailDiaryId != null) {
+            DiaryDetailFeedScreen(
+                targetDiaryId = selectedDetailDiaryId!!,
+                onBack = {
+                    // 뒤로가기 시 상세 화면 닫기
+                    selectedDetailDiaryId = null
+                },
+                onEditClick = { id ->
+                    // 수정 로직 연결
+                    selectedDetailDiaryId = null
+                    onNavigateToDiaryWrite(id)
+                },
+                onDeleteClick = { id ->
+                    // 삭제 로직 연결
+                    diaryViewModel.deleteDiary(id)
+                    selectedDetailDiaryId = null
+                },
+                diaryViewModel = diaryViewModel
+            )
+        }
+    }
 }
 
 /**
