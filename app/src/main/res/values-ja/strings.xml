@@ -227,6 +227,13 @@
     <string name="community_empty_title">まだ投稿がありません</string>
     <string name="community_empty_subtitle">最初にストーリーを共有してください！\n匿名で気軽に共有できます。</string>
     <string name="community_empty_button">投稿する</string>
+    <string name="community_tag_diary">今日の日記</string>
+    <string name="community_tag_thanks">感謝したこと</string>
+    <string name="community_tag_reflect">反省したこと</string>
+    <string name="community_thirst_level">渇きレベル</string>
+    <string name="community_thirst">渇き</string>
+    <string name="community_add_photo">写真を追加</string>
+    <string name="community_share_challenge">チャレンジに共有</string>
 
     <!-- Records Dashboard Header -->
     <string name="records_dashboard_title_health">私の健康 </string>

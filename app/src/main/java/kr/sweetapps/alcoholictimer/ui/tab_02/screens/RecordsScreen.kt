@@ -1635,11 +1635,15 @@ private fun NativeAdItem() {
         }
     }
 
-    // 2. [FIX] 광고 내용물에 맞게 높이 자동 조절 (2025-12-23)
+    // 2. [FIX] 광고 로딩 상태에 따른 높이 조절로 레이아웃 시프트 방지 (2025-12-23)
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .wrapContentHeight(), // [FIX] 고정 높이 대신 내용물 크기에 맞춤
+            // [핵심] 로딩 중(null)이면 고정 높이, 로딩 완료 후 wrapContentHeight
+            .then(
+                if (nativeAd == null) Modifier.height(250.dp)
+                else Modifier.wrapContentHeight()
+            ),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)

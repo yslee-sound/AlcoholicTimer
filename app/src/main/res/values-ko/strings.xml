@@ -227,6 +227,13 @@
     <string name="community_empty_title">아직 작성된 글이 없어요</string>
     <string name="community_empty_subtitle">가장 먼저 이야기를 들려주세요!\n익명으로 편하게 나눌 수 있어요.</string>
     <string name="community_empty_button">글 작성하기</string>
+    <string name="community_tag_diary">오늘의 일기</string>
+    <string name="community_tag_thanks">오늘 감사할 일</string>
+    <string name="community_tag_reflect">오늘 반성할 일</string>
+    <string name="community_thirst_level">갈증 수치</string>
+    <string name="community_thirst">갈증</string>
+    <string name="community_add_photo">사진 추가</string>
+    <string name="community_share_challenge">챌린지 공유</string>
 
     <!-- Records Dashboard Header -->
     <string name="records_dashboard_title_health">나의 건강 </string>

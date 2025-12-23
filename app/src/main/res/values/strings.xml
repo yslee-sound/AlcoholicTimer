@@ -227,6 +227,13 @@
     <string name="community_empty_title">No posts yet</string>
     <string name="community_empty_subtitle">Be the first to share your story!\nYou can share anonymously and comfortably.</string>
     <string name="community_empty_button">Write a Post</string>
+    <string name="community_tag_diary">Today\'s Diary</string>
+    <string name="community_tag_thanks">Grateful For</string>
+    <string name="community_tag_reflect">Reflections</string>
+    <string name="community_thirst_level">Thirst Level</string>
+    <string name="community_thirst">Thirst</string>
+    <string name="community_add_photo">Add Photo</string>
+    <string name="community_share_challenge">Share to Challenge</string>
 
     <!-- Records Dashboard Header -->
     <string name="records_dashboard_title_health">My Health </string>

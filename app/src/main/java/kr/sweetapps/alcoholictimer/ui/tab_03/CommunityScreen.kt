@@ -1085,9 +1085,9 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                         .padding(vertical = 12.dp, horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(imageVector = Icons.Filled.Restaurant, contentDescription = "갈증 수치", tint = Color(0xFF2196F3))
+                    Icon(imageVector = Icons.Filled.Restaurant, contentDescription = stringResource(R.string.community_thirst_level), tint = Color(0xFF2196F3))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "갈증 수치", color = Color(0xFF1F2937), style = MaterialTheme.typography.bodyMedium)
+                    Text(text = stringResource(R.string.community_thirst_level), color = Color(0xFF1F2937), style = MaterialTheme.typography.bodyMedium)
                 }
 
                 if (showThirstSlider) {
@@ -1129,9 +1129,9 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                         .padding(vertical = 12.dp, horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(imageVector = Icons.Filled.Image, contentDescription = "사진", tint = Color(0xFF4CAF50))
+                    Icon(imageVector = Icons.Filled.Image, contentDescription = stringResource(R.string.community_add_photo), tint = Color(0xFF4CAF50))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "사진 추가", color = Color(0xFF1F2937), style = MaterialTheme.typography.bodyMedium)
+                    Text(text = stringResource(R.string.community_add_photo), color = Color(0xFF1F2937), style = MaterialTheme.typography.bodyMedium)
                 }
 
                 HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
@@ -1309,7 +1309,7 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                                         )
                                         Spacer(modifier = Modifier.width(4.dp))
                                         Text(
-                                            text = "챌린지 공유",
+                                            text = stringResource(R.string.community_share_challenge),
                                             style = MaterialTheme.typography.labelMedium.copy(
                                                 color = if (isShareToCommunity)
                                                     Color.White
@@ -1334,11 +1334,11 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     // 태그 데이터 정의 (tagKey, tagName, selectedBgColor, selectedTextColor)
-                    data class TagInfo(val key: String, val name: String, val bgColor: Color, val textColor: Color)
+                    data class TagInfo(val key: String, val nameResId: Int, val bgColor: Color, val textColor: Color)
                     val tags = listOf(
-                        TagInfo("diary", "오늘의 일기", Color(0xFF7C4DFF), Color.White), // 밝은 보라 (Material Purple) + 흰색
-                        TagInfo("thanks", "오늘 감사할 일", Color(0xFF00BFA5), Color.White), // 민트 그린 (Material Teal) + 흰색
-                        TagInfo("reflect", "오늘 반성할 일", Color(0xFFFF6F00), Color.White) // 따뜻한 오렌지 (Material Orange) + 흰색
+                        TagInfo("diary", R.string.community_tag_diary, Color(0xFF7C4DFF), Color.White), // 밝은 보라 (Material Purple) + 흰색
+                        TagInfo("thanks", R.string.community_tag_thanks, Color(0xFF00BFA5), Color.White), // 민트 그린 (Material Teal) + 흰색
+                        TagInfo("reflect", R.string.community_tag_reflect, Color(0xFFFF6F00), Color.White) // 따뜻한 오렌지 (Material Orange) + 흰색
                     )
 
                     tags.forEach { tag ->
@@ -1351,7 +1351,7 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                             border = null // 테두리 제거
                         ) {
                             Text(
-                                text = tag.name,
+                                text = stringResource(tag.nameResId),
                                 color = if (isSelected) tag.textColor else Color(0xFF9E9E9E), // 선택: 각 태그별 색상, 미선택: 진한 회색
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,

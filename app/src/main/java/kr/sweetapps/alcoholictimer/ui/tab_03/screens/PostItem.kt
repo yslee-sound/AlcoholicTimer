@@ -25,10 +25,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kr.sweetapps.alcoholictimer.R
 import coil.compose.AsyncImage
 import kr.sweetapps.alcoholictimer.util.AvatarManager
 import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
@@ -87,9 +89,9 @@ fun PostItem(
 
             // [NEW] 태그 텍스트 변환 (2025-12-23)
             val tagLabel = when (tagType) {
-                "thanks" -> "#오늘 감사할 일"
-                "reflect" -> "#오늘 반성할 일"
-                else -> "#오늘의 일기"
+                "thanks" -> "#${stringResource(R.string.community_tag_thanks)}"
+                "reflect" -> "#${stringResource(R.string.community_tag_reflect)}"
+                else -> "#${stringResource(R.string.community_tag_diary)}"
             }
 
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
@@ -235,7 +237,7 @@ private fun PostHeader(
 
                     // 후행 텍스트
                     Text(
-                        text = " 갈증",
+                        text = " ${stringResource(R.string.community_thirst)}",
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                         color = Color(0xFF111111)
                     )
