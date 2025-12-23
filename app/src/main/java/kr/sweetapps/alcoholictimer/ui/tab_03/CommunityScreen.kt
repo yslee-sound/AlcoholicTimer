@@ -403,7 +403,12 @@ fun CommunityScreen(
                             }) { index ->
                                 val item = itemsWithAds[index]
                                 if (item == null) {
-                                    NativeAdItem()
+                                    // [Standard] 네이티브 광고 영역 여백 표준화 (2025-12-23)
+                                    Column {
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                        NativeAdItem()
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                    }
                                 } else {
                                     PostItem(
                                          nickname = item.nickname,

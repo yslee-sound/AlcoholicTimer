@@ -266,7 +266,8 @@ fun RecordsScreen(
 
                 // ==================== NEW: 네이티브 광고 아이템 (2025-12-22) ====================
                 item {
-                    Spacer(modifier = Modifier.height(RECORDS_SECTION_SPACING)) // 상단 간격 (20dp)
+                    // [Standard] 위쪽 여백 16dp (이전 콘텐츠와 분리) (2025-12-23)
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     // 광고 컨테이너 (좌우 여백 적용)
                     Box(modifier = Modifier
@@ -275,6 +276,9 @@ fun RecordsScreen(
                     ) {
                         NativeAdItem()
                     }
+
+                    // [Standard] 아래쪽 여백 16dp (다음 콘텐츠 오클릭 방지) (2025-12-23)
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
 
                 // ==================== Item 4: 최근 금주 일기 섹션 ====================
@@ -1631,12 +1635,11 @@ private fun NativeAdItem() {
         }
     }
 
-    // 2. [FIX] 광고 로드 여부와 관계없이 일정한 높이를 가진 카드 생성 (2025-12-22)
-    // [UPDATE] 높이를 240.dp로 최적화 - MediaView 없는 중형 템플릿에 맞춤 (2025-12-23)
+    // 2. [FIX] 광고 내용물에 맞게 높이 자동 조절 (2025-12-23)
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(240.dp), // [FIX] 320.dp -> 240.dp: 하단 여백 최적화
+            .wrapContentHeight(), // [FIX] 고정 높이 대신 내용물 크기에 맞춤
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -1647,14 +1650,14 @@ private fun NativeAdItem() {
                 factory = { ctx ->
                     val adView = com.google.android.gms.ads.nativead.NativeAdView(ctx)
 
-                    // 내부 레이아웃 - 가로/세로 꽉 채우기
+                    // 내부 레이아웃 - 내용물에 맞게 높이 조절
                     val container = android.widget.LinearLayout(ctx).apply {
                         orientation = android.widget.LinearLayout.VERTICAL
                         setBackgroundColor(android.graphics.Color.WHITE)
                         setPadding(40, 40, 40, 40)
                         layoutParams = android.widget.LinearLayout.LayoutParams(
                             android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                            android.widget.LinearLayout.LayoutParams.MATCH_PARENT // [FIX] 카드 크기에 맞춤
+                            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT // [FIX] 내용물 크기에 맞춤
                         )
                     }
 
