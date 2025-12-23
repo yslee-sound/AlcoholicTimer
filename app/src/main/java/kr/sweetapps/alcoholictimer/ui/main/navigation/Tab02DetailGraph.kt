@@ -153,7 +153,7 @@ fun NavGraphBuilder.addTab02DetailGraph(
                 android.util.Log.d("NavGraph", "[Result] 다시 시작하기 -> Start")
                 tab02ViewModel.consumePendingDetailRoute()
                 navController.navigate(Screen.Start.route) {
-                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                    popUpTo(0) { inclusive = true } // [FIX] 모든 백스택 제거하고 Start로 이동
                     launchSingleTop = true
                 }
             }
