@@ -898,7 +898,7 @@ private fun RecentDiarySection(
     val latestDiaryId = allDiaries.firstOrNull()?.id // 최신 일기 ID (timestamp 내림차순 정렬)
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        // [NEW] 헤더: 제목 + 동적 버튼 (작성/전체보기) (2025-12-22)
+        // [FIX] 헤더: 일기가 있을 때만 '전체 보기' 표시 (작성 버튼 제거) (2025-12-23)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -914,29 +914,22 @@ private fun RecentDiarySection(
                 fontSize = 18.sp
             )
 
-            // [UPDATE] 동적 버튼: 일기 없음 = "작성", 일기 있음 = "전체보기" (2025-12-22)
-            Text(
-                text = stringResource(
-                    if (hasAnyDiary) R.string.records_diary_view_all
-                    else R.string.records_diary_write_action
-                ),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color(0xFF6366F1),
-                modifier = Modifier.clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = {
-                        if (hasAnyDiary && latestDiaryId != null) {
-                            // [NEW] 일기가 있으면 DiaryDetailFeedScreen으로 이동 (최신 글부터)
-                            onNavigateToDiaryDetail(latestDiaryId)
-                        } else {
-                            // [NEW] 일기가 없으면 오늘 날짜 일기 작성
-                            onNavigateToDiaryWrite(null)
+            // [FIX] 일기가 있을 때만 '전체 보기' 표시 (2025-12-23)
+            if (hasAnyDiary) {
+                Text(
+                    text = stringResource(R.string.records_diary_view_all),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFF6366F1),
+                    modifier = Modifier.clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = {
+                            latestDiaryId?.let { onNavigateToDiaryDetail(it) }
                         }
-                    }
+                    )
                 )
-            )
+            }
         }
 
         Spacer(modifier = Modifier.height(10.dp))
