@@ -268,7 +268,7 @@ fun CommunityScreen(
                                         .height(400.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    EmptyState(onGenerateMock = { viewModel.generateMockData() })
+                                    EmptyState(onWriteClick = { isWritingScreenVisible = true })
                                 }
                             }
                         }
@@ -1727,25 +1727,52 @@ private fun NativeAdItem() {
  * 빈 상태 표시
  */
 @Composable
-private fun EmptyState(modifier: Modifier = Modifier, onGenerateMock: () -> Unit = {}) {
+private fun EmptyState(
+    modifier: Modifier = Modifier,
+    onWriteClick: () -> Unit // [변경] 모의 데이터 대신 글쓰기 클릭 콜백
+) {
     Column(
         modifier = modifier.padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        // 아이콘
         Text(
             text = "📝",
             style = MaterialTheme.typography.displayLarge
         )
+
         Spacer(modifier = Modifier.height(16.dp))
+
+        // 메인 텍스트
         Text(
-            text = "아직 게시글이 없습니다",
-            style = MaterialTheme.typography.titleMedium,
-            color = Color.Gray
+            text = "아직 작성된 글이 없어요",
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            color = Color(0xFF111111)
         )
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onGenerateMock) {
-            Text("모의 데이터 생성")
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 서브 텍스트
+        Text(
+            text = "가장 먼저 이야기를 들려주세요!\n익명으로 편하게 나눌 수 있어요.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color(0xFF666666),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // [핵심] 글쓰기 유도 버튼
+        Button(
+            onClick = onWriteClick,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF6366F1), // 포인트 컬러 (탭2 분석과 동일)
+                contentColor = Color.White
+            ),
+            shape = RoundedCornerShape(50) // 둥근 버튼
+        ) {
+            Text("글 작성하기", modifier = Modifier.padding(horizontal = 8.dp))
         }
     }
 }
