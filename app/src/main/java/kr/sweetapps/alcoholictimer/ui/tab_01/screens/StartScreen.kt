@@ -445,8 +445,8 @@ private fun DurationBadge(
 
             // 사전 계산: 텍스트 너비가 maxWidth에 들어올 때까지 폰트 축소
             val calculatedSize = remember(label, maxPixels) {
-                var currentSize = 14f // 시작 크기
-                val minSize = 10f // 최소 10sp
+                var currentSize = 12f // [수정] 시작 크기 14sp → 12sp (더 작게)
+                val minSize = 8f // [수정] 최소 크기 10sp → 8sp (더 작게)
 
                 while (currentSize > minSize) {
                     val result = textMeasurer.measure(
