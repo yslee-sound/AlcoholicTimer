@@ -29,6 +29,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -135,23 +138,27 @@ fun RecordsScreen(
     ) {
         val safePadding = LocalSafeContentPadding.current
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFFF7F8FA))
-        ) {
+        // [NEW] Scaffold 도입: Tab 3(CommunityScreen)와 동일한 구조 (2025-12-23)
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = Color(0xFFF7F8FA),
+            contentWindowInsets = WindowInsets(0.dp) // [핵심] 시스템 인셋 초기화로 TopAppBar 위치 통일
+        ) { innerPadding ->
 
             val layoutDirection = LocalLayoutDirection.current
+            // [MODIFIED] 상단 패딩 제거: top = 0.dp (2025-12-23)
             val recordsContentPadding = PaddingValues(
                 start = safePadding.calculateLeftPadding(layoutDirection),
-                top = safePadding.calculateTopPadding(),
+                top = 0.dp, // [핵심] 기존 safePadding.calculateTopPadding() 제거
                 end = safePadding.calculateRightPadding(layoutDirection),
                 bottom = RECORDS_LIST_BOTTOM_PADDING
             )
             Log.d("RecordsScreenDebug", "Records bottom padding replaced with CARD_VERTICAL_SPACING=${UiConstants.CARD_VERTICAL_SPACING}")
 
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding), // [NEW] Scaffold의 기본 패딩 적용
                 contentPadding = recordsContentPadding,
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
@@ -299,7 +306,7 @@ fun RecordsScreen(
                     CircularProgressIndicator()
                 }
             }
-        }
+        } // [NEW] Scaffold 닫는 괄호 (2025-12-23)
     }
 
     // 바텀 시트: 선택된 기간에 따라 각각 다른 피커를 보여줍니다.
@@ -1157,47 +1164,36 @@ private fun DiaryListItem(
 
 /**
  * [NEW] 모던 대시보드 스타일 헤더
- * "나의 건강 분석" 제목 + 인사말 + 알림 벨
+ * [MODIFIED] Tab 3와 동일한 TopAppBar로 교체하여 위치 통일 (2025-12-23)
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-// [MODIFIED] 종 버튼 제거 (2025-12-19)
 private fun ModernDashboardHeader() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // 좌측: 제목 + 인사말
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = stringResource(R.string.records_dashboard_title_health),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF111827),
-                    fontSize = 24.sp
-                )
-                Text(
-                    text = stringResource(R.string.records_dashboard_title_analysis),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF6366F1), // 보라색 강조
-                    fontSize = 24.sp
-                )
-            }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
+    TopAppBar(
+        title = {
+            // [핵심] buildAnnotatedString으로 2가지 색상(검정/파란색) 유지
             Text(
-                text = stringResource(R.string.records_dashboard_greeting),
-                style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF9CA3AF),
-                fontSize = 13.sp
+                text = androidx.compose.ui.text.buildAnnotatedString {
+                    withStyle(style = androidx.compose.ui.text.SpanStyle(color = Color(0xFF111111))) {
+                        append(stringResource(R.string.records_dashboard_title_health))
+                    }
+                    withStyle(style = androidx.compose.ui.text.SpanStyle(color = Color(0xFF6366F1))) {
+                        append(stringResource(R.string.records_dashboard_title_analysis))
+                    }
+                },
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontSize = 24.sp, // [수정] 응원 챌린지와 동일한 크기로 통일
+                    fontWeight = FontWeight.Bold
+                )
             )
-        }
-    }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.White,
+            titleContentColor = Color(0xFF111111)
+        ),
+        modifier = Modifier.height(48.dp), // [핵심] Tab 3와 동일한 높이
+        windowInsets = WindowInsets(0, 0, 0, 0) // 시스템 바 패딩 제거
+    )
 }
 
 /**
