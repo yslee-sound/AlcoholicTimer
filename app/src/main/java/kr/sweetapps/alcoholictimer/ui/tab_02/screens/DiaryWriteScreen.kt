@@ -121,11 +121,28 @@ fun DiaryWriteScreen(
 
     // 4. [FIX] 데이터가 로드된 후에만 화면을 그림 (2025-12-23)
     if (isDataLoaded) {
+        // [NEW] 일기가 오늘 날짜인지 확인 (API 21 호환) (2025-12-24)
+        val isTodayDiary = remember(selectedDate, existingDiary) {
+            val targetTimestamp = if (diaryId != null) {
+                existingDiary?.timestamp ?: System.currentTimeMillis()
+            } else {
+                selectedDate ?: System.currentTimeMillis()
+            }
+
+            // 오늘 날짜와 비교
+            val today = Calendar.getInstance()
+            val diaryDate = Calendar.getInstance().apply { timeInMillis = targetTimestamp }
+
+            today.get(Calendar.YEAR) == diaryDate.get(Calendar.YEAR) &&
+            today.get(Calendar.DAY_OF_YEAR) == diaryDate.get(Calendar.DAY_OF_YEAR)
+        }
+
         WritePostScreenContent(
             viewModel = communityViewModel,
             currentNickname = currentNickname,
             isDiaryMode = true, // [중요] 일기 모드 활성화
             postToEdit = postToEdit, // 수정 모드일 경우 기존 데이터 전달
+            isTodayDiary = isTodayDiary, // [NEW] 오늘 일기 여부 전달 (2025-12-24)
             onPost = {
                 // 저장/게시 완료 후 화면 닫기
                 onDismiss()

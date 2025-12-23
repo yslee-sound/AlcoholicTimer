@@ -737,6 +737,7 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
     currentNickname: String, // [NEW] ViewModel에서 전달받은 닉네임 (2025-12-22)
     isDiaryMode: Boolean = false, // [NEW] 일기 모드 여부 (2025-12-22)
     postToEdit: Post? = null, // [NEW] 수정할 게시글 (2025-12-22)
+    isTodayDiary: Boolean = true, // [NEW] 오늘 일기 여부 (기본값 true - 커뮤니티는 항상 오늘) (2025-12-24)
     onPost: (String) -> Unit,
     onSaveDiary: (Post) -> Unit = {}, // [NEW] 일기 저장 콜백 (2025-12-22)
     onDismiss: () -> Unit,
@@ -751,7 +752,9 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
     }
 
     // [NEW] 일기 모드에서 커뮤니티 공유 여부 (2025-12-22)
+    // [MODIFIED] 초기값 저장 (2025-12-24)
     var isShareToCommunity by remember { mutableStateOf(false) }
+    val originalIsShareToCommunity = remember { false } // 초기값은 항상 false
 
     // [FIX] postToEdit를 key로 사용하여 수정 모드 진입 시 자동으로 내용 채우기 (2025-12-23)
     var textFieldValue by remember(postToEdit) {
@@ -887,7 +890,8 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
     }
 
     // [FIX] 변경 사항 감지 로직 (Dirty Check) (2025-12-23)
-    val isModified = remember(textFieldValue, selectedLevel, selectedImageUri, selectedTag, postToEdit) {
+    // [MODIFIED] isShareToCommunity 변경도 감지 (2025-12-24)
+    val isModified = remember(textFieldValue, selectedLevel, selectedImageUri, selectedTag, isShareToCommunity, postToEdit) {
         if (postToEdit == null) {
             // [신규 작성 모드] 내용이 있거나 사진이 있으면 수정된 것으로 간주
             textFieldValue.text.isNotBlank() || selectedImageUri != null
@@ -896,13 +900,14 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
             val contentChanged = textFieldValue.text.trim() != postToEdit.content.trim()
             val levelChanged = selectedLevel != postToEdit.thirstLevel
             val tagChanged = selectedTag != postToEdit.tagType
+            val shareChanged = isShareToCommunity != originalIsShareToCommunity // [NEW] 체크박스 변경 감지 (2025-12-24)
 
             // 이미지 변경 여부 (URL 문자열 비교)
             val currentUriString = selectedImageUri?.toString() ?: ""
             val originalUrlString = postToEdit.imageUrl ?: ""
             val imageChanged = currentUriString != originalUrlString
 
-            contentChanged || levelChanged || tagChanged || imageChanged
+            contentChanged || levelChanged || tagChanged || imageChanged || shareChanged // [MODIFIED] shareChanged 추가
         }
     }
 
@@ -1278,7 +1283,8 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                             }
 
                             // --- 알약 2: 챌린지 공유 토글 (일기 모드일 때만) ---
-                            if (isDiaryMode) {
+                            // [MODIFIED] 오늘 일기일 때만 표시 (2025-12-24)
+                            if (isDiaryMode && isTodayDiary) {
                                 Spacer(modifier = Modifier.width(8.dp)) // 알약 사이 간격
 
                                 // 클릭 가능한 커스텀 칩 (스타일 통일을 위해 Surface 사용)
