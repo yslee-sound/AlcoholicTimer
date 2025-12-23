@@ -221,6 +221,8 @@
 
     <!-- Community Screen -->
     <string name="community_title">匿名応援チャレンジ</string>
+    <string name="community_title_support">応援</string>
+    <string name="community_title_challenge">チャレンジ</string>
 
     <!-- Records Dashboard Header -->
     <string name="records_dashboard_title_health">私の健康 </string>

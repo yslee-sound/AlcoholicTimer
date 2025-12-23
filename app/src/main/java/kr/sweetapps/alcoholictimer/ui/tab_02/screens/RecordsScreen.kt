@@ -55,6 +55,7 @@ import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager  // [NEW] 동적
 import kr.sweetapps.alcoholictimer.ui.common.rememberUserSettingsState  // [NEW] 실시간 설정 감지
 import kr.sweetapps.alcoholictimer.ui.components.AutoResizingText  // [NEW] 자동 크기 조절 텍스트
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions
+import kotlin.math.roundToInt
 
 val RECORDS_SCREEN_HORIZONTAL_PADDING: Dp = 20.dp // 전체 화면 좌우 여백
 val RECORDS_SECTION_SPACING: Dp = 20.dp // [NEW] 섹션 간 통일 간격 (기간 선택 ↔ 월 통계 ↔ 최근 일기)
@@ -1311,7 +1312,7 @@ private fun ModernStatisticsGrid(
             icon = R.drawable.wine,
             iconColor = Color(0xFF6B9DFF),
             label = "SOBER",
-            value = String.format("%.1f", statsData.totalBottles),
+            value = statsData.totalBottles.toInt().toString(),
             unit = "병",
             modifier = Modifier.weight(1f).fillMaxHeight() // [NEW]
         )

@@ -279,14 +279,25 @@ fun CommunityScreen(
                                     // 1-1. 제목줄 (TopAppBar)
                                     TopAppBar(
                                         title = {
-                                            Text(
-                                                text = stringResource(R.string.community_title),
-                                                style = MaterialTheme.typography.titleLarge.copy(
-                                                    fontSize = 18.sp,
-                                                    fontWeight = FontWeight.Bold
-                                                ),
-                                                color = Color(0xFF111111)
-                                            )
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Text(
+                                                    text = stringResource(R.string.community_title_support),
+                                                    style = MaterialTheme.typography.titleLarge.copy(
+                                                        fontSize = 24.sp,
+                                                        fontWeight = FontWeight.Bold
+                                                    ),
+                                                    color = Color(0xFF111111)
+                                                )
+                                                Spacer(modifier = Modifier.width(4.dp)) // [NEW] 한 칸 띄우기
+                                                Text(
+                                                    text = stringResource(R.string.community_title_challenge),
+                                                    style = MaterialTheme.typography.titleLarge.copy(
+                                                        fontSize = 24.sp,
+                                                        fontWeight = FontWeight.Bold
+                                                    ),
+                                                    color = Color(0xFF6366F1) // 보라색 (분석과 동일)
+                                                )
+                                            }
                                         },
                                         actions = {
                                             IconButton(onClick = onSettingsClick) {
