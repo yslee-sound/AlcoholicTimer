@@ -7,7 +7,7 @@
     <string name="start_screen_title">금주 시작</string>
     <string name="target_days_title_set">목표 기간 설정</string>
     <string name="target_days_unit">일</string>
-    <string name="target_days_hint">금주/절주 목표 기간을 선택해주세요</string>
+    <string name="target_days_hint">금주/절주할 목표 기간을 선택해주세요</string>
     <string name="badge_one_day">딱 하루만</string>
     <string name="badge_three_days">작심삼일</string>
     <string name="badge_one_week">1주 챌린지</string>
