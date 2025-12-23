@@ -235,7 +235,7 @@ private fun DiaryOptionsBottomSheet(
                     .padding(horizontal = 16.dp)
             ) {
                 Text(
-                    text = "수정하기",
+                    text = stringResource(R.string.diary_action_edit),
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color(0xFF111827),
                     modifier = Modifier.fillMaxWidth()
@@ -250,7 +250,7 @@ private fun DiaryOptionsBottomSheet(
                     .padding(horizontal = 16.dp)
             ) {
                 Text(
-                    text = "삭제하기",
+                    text = stringResource(R.string.diary_action_delete),
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color(0xFFEF4444),
                     modifier = Modifier.fillMaxWidth()

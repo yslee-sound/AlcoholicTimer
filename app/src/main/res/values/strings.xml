@@ -249,6 +249,21 @@
     <string name="cd_clear_text">Clear text</string>
     <string name="error_only_spaces">Cannot input only spaces</string>
     <string name="error_too_long">Maximum length exceeded</string>
+    <string name="community_write_hint">How was your day? (Anonymous)</string>
+    <string name="community_post_manage">Manage Post</string>
+    <string name="community_post_edit">Edit Post</string>
+    <string name="community_post_delete">Delete Post</string>
+    <string name="community_write_title">New Post</string>
+    <string name="community_write_publish">Publish</string>
+    <string name="photo_selection_title">Select Photo</string>
+    <string name="diary_action_edit">Edit</string>
+    <string name="diary_action_delete">Delete</string>
+    <string name="diary_save">Save</string>
+    <string name="diary_save_complete">Complete</string>
+    <string name="community_edit_title">Edit Post</string>
+    <string name="community_edit_complete">Complete</string>
+    <string name="level_format">LV.%1$d</string>
+    <string name="days_format">Day %1$d</string>
 
     <!-- Records Dashboard Header -->
     <string name="records_dashboard_title_health">My Health </string>

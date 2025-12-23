@@ -251,7 +251,7 @@ private fun PostHeader(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "LV.$userLevel",
+                    text = stringResource(R.string.level_format, userLevel),
                     style = MaterialTheme.typography.labelSmall,
                     color = MainPrimaryBlue,
                     fontWeight = FontWeight.Bold,
@@ -270,7 +270,7 @@ private fun PostHeader(
                 Spacer(modifier = Modifier.width(4.dp))
 
                 Text(
-                    text = "${currentDays}일차",
+                    text = stringResource(R.string.days_format, currentDays),
                     style = MaterialTheme.typography.labelSmall,
                     color = Color.Gray,
                     modifier = Modifier.alignByBaseline()

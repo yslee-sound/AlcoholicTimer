@@ -165,8 +165,6 @@
     <string name="diary_write_button_action">Write Diary Entry</string>
     <string name="diary_write_today_only">Diary can only be written on the same day</string>
     <string name="diary_all_empty">No diary entries.</string>
-    <string name="diary_write_title">Write Diary</string>
-    <string name="diary_edit_title">Edit Diary</string>
     <string name="diary_menu_edit">Edit</string>
     <string name="diary_menu_delete">Delete</string>
     <string name="diary_save_button">Save</string>
@@ -249,6 +247,23 @@
     <string name="cd_clear_text">Hapus teks</string>
     <string name="error_only_spaces">Tidak dapat memasukkan spasi saja</string>
     <string name="error_too_long">Panjang maksimum terlampaui</string>
+    <string name="community_write_hint">Bagaimana hari Anda? (Anonim)</string>
+    <string name="community_post_manage">Kelola Postingan</string>
+    <string name="community_post_edit">Edit Postingan</string>
+    <string name="community_post_delete">Hapus Postingan</string>
+    <string name="community_write_title">Postingan Baru</string>
+    <string name="community_write_publish">Posting</string>
+    <string name="photo_selection_title">Pilih Foto</string>
+    <string name="diary_action_edit">Edit</string>
+    <string name="diary_action_delete">Hapus</string>
+    <string name="diary_write_title">Tulis Diary</string>
+    <string name="diary_edit_title">Edit Diary</string>
+    <string name="diary_save">Simpan</string>
+    <string name="diary_save_complete">Selesai</string>
+    <string name="community_edit_title">Edit Postingan</string>
+    <string name="community_edit_complete">Selesai</string>
+    <string name="level_format">LV.%1$d</string>
+    <string name="days_format">Hari %1$d</string>
 
     <!-- Records Dashboard Header -->
     <string name="records_dashboard_title_health">My Health </string>

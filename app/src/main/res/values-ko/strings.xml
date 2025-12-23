@@ -165,8 +165,6 @@
     <string name="diary_write_button_action">일기 쓰기</string>
     <string name="diary_write_today_only">일기는 당일에만 작성할 수 있습니다</string>
     <string name="diary_all_empty">일기가 없습니다.</string>
-    <string name="diary_write_title">일기 쓰기</string>
-    <string name="diary_edit_title">일기 수정</string>
     <string name="diary_menu_edit">수정하기</string>
     <string name="diary_menu_delete">삭제하기</string>
     <string name="diary_save_button">저장</string>
@@ -249,6 +247,21 @@
     <string name="cd_clear_text">텍스트 지우기</string>
     <string name="error_only_spaces">공백만 입력할 수 없어요</string>
     <string name="error_too_long">입력 가능한 최대 길이를 초과했어요</string>
+    <string name="community_write_hint">오늘 하루는 어땠나요? (익명)</string>
+    <string name="community_post_manage">게시글 관리</string>
+    <string name="community_post_edit">게시글 수정</string>
+    <string name="community_post_delete">게시글 삭제</string>
+    <string name="community_write_title">새 게시글 작성</string>
+    <string name="community_write_publish">게시하기</string>
+    <string name="photo_selection_title">사진 선택</string>
+    <string name="diary_action_edit">수정하기</string>
+    <string name="diary_action_delete">삭제하기</string>
+    <string name="diary_save">저장</string>
+    <string name="diary_save_complete">수정 완료</string>
+    <string name="community_edit_title">게시글 수정</string>
+    <string name="community_edit_complete">수정완료</string>
+    <string name="level_format">LV.%1$d</string>
+    <string name="days_format">%1$d일차</string>
 
     <!-- Records Dashboard Header -->
     <string name="records_dashboard_title_health">나의 건강 </string>

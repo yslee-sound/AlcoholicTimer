@@ -249,6 +249,21 @@
     <string name="cd_clear_text">テキストをクリア</string>
     <string name="error_only_spaces">空白のみは入力できません</string>
     <string name="error_too_long">入力可能な最大長を超えました</string>
+    <string name="community_write_hint">今日はどうでしたか？（匿名）</string>
+    <string name="community_post_manage">投稿を管理</string>
+    <string name="community_post_edit">投稿を編集</string>
+    <string name="community_post_delete">投稿を削除</string>
+    <string name="community_write_title">新規投稿</string>
+    <string name="community_write_publish">投稿</string>
+    <string name="photo_selection_title">写真を選択</string>
+    <string name="diary_action_edit">編集</string>
+    <string name="diary_action_delete">削除</string>
+    <string name="diary_save">保存</string>
+    <string name="diary_save_complete">編集完了</string>
+    <string name="community_edit_title">投稿を編集</string>
+    <string name="community_edit_complete">完了</string>
+    <string name="level_format">LV.%1$d</string>
+    <string name="days_format">%1$d日目</string>
 
     <!-- Records Dashboard Header -->
     <string name="records_dashboard_title_health">私の健康 </string>

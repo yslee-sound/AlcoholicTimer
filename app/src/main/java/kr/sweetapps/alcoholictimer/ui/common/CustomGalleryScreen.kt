@@ -27,6 +27,8 @@ import coil.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.ui.res.stringResource
+import kr.sweetapps.alcoholictimer.R
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 /**
@@ -85,7 +87,7 @@ fun CustomGalleryScreen(
     androidx.compose.material3.Scaffold(
         topBar = {
             androidx.compose.material3.TopAppBar(
-                title = { androidx.compose.material3.Text(text = "사진 선택") },
+                title = { androidx.compose.material3.Text(text = stringResource(R.string.photo_selection_title)) },
                 navigationIcon = {
                     androidx.compose.material3.IconButton(onClick = onClose) { androidx.compose.material3.Icon(
                         Icons.Default.Close, contentDescription = "닫기") }

@@ -631,7 +631,7 @@ private fun PostOptionsBottomSheet(
     ) {
         // 타이틀
         Text(
-            text = if (isMyPost) "게시글 관리" else "게시글 옵션",
+            text = if (isMyPost) stringResource(R.string.community_post_manage) else stringResource(R.string.community_post_manage),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
@@ -654,7 +654,7 @@ private fun PostOptionsBottomSheet(
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
-                    text = "게시글 수정",
+                    text = stringResource(R.string.community_post_edit),
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color(0xFF1F2937)
                 )
@@ -675,7 +675,7 @@ private fun PostOptionsBottomSheet(
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
-                    text = "게시글 삭제",
+                    text = stringResource(R.string.community_post_delete),
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color(0xFF1F2937)
                 )
@@ -943,10 +943,10 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                 title = {
                     Text(
                         text = when {
-                            isDiaryMode && isEditMode -> "일기 수정" // [FIX] 일기 수정 모드 (2025-12-23)
-                            isDiaryMode -> "일기 작성" // [NEW] 일기 작성 모드 (2025-12-22)
-                            isEditMode -> "게시글 수정"
-                            else -> "새 게시글 작성"
+                            isDiaryMode && isEditMode -> stringResource(R.string.diary_edit_title) // [FIX] 일기 수정 모드
+                            isDiaryMode -> stringResource(R.string.diary_write_title) // [NEW] 일기 작성 모드
+                            isEditMode -> stringResource(R.string.community_edit_title)
+                            else -> stringResource(R.string.community_write_title)
                         },
                         style = MaterialTheme.typography.titleMedium,
                         color = Color(0xFF1F2937)
@@ -1046,10 +1046,10 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                         } else {
                             Text(
                                 text = when {
-                                    isDiaryMode && isEditMode -> "수정 완료" // [FIX] 일기 수정 모드 (2025-12-23)
-                                    isDiaryMode -> "저장" // [NEW] 일기 작성 모드 (2025-12-22)
-                                    isEditMode -> "수정완료"
-                                    else -> "게시하기"
+                                    isDiaryMode && isEditMode -> stringResource(R.string.diary_save_complete) // [FIX] 일기 수정 모드
+                                    isDiaryMode -> stringResource(R.string.diary_save) // [NEW] 일기 작성 모드
+                                    isEditMode -> stringResource(R.string.community_edit_complete)
+                                    else -> stringResource(R.string.community_write_publish)
                                 },
                                 color = if (isModified)
                                     kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
@@ -1577,7 +1577,7 @@ private fun WritePostTrigger(
                 color = Color(0xFFF0F2F5)
             ) {
                 Text(
-                    text = "오늘 하루는 어땠나요? (익명)",
+                    text = stringResource(R.string.community_write_hint),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color(0xFF65676B),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
