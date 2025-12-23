@@ -433,7 +433,7 @@ private fun DurationBadge(
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 8.dp, vertical = 4.dp), // [FIX] 14dp → 8dp (공간 확보)
+                .padding(horizontal = 20.dp, vertical = 8.dp), // [NEW] 날렵한 알약 모양 (좌우 넓게, 위아래 얇게)
             contentAlignment = Alignment.Center
         ) {
             val textMeasurer = androidx.compose.ui.text.rememberTextMeasurer()
