@@ -233,7 +233,7 @@
     <string name="records_period_filter_all">全体</string>
     <string name="records_total_sober_days">総禁酒日数</string>
     <string name="records_diary_write_action">記入</string>
-    <string name="records_diary_view_all">全ての記録を表示</string>
+    <string name="records_diary_view_all">全て表示</string>
 
     <!-- Navigation -->
     <string name="default_nickname">禁酒ヒーロー1</string>

@@ -35,3 +35,13 @@ Source: https://www.figma.com/community/file/903830135544202908/phosphor-icons
 Changes: 아이콘의 색상 및 모양 일부를 수정하여 사용함.
 
 ---
+
+**Phosphor Icons**
+
+Author: ByPeople
+
+Source: https://www.figma.com/community/file/1121184983481360049/free-animals-material-icons
+
+Changes: 아이콘의 색상 및 모양 일부를 수정하여 사용함.
+
+---

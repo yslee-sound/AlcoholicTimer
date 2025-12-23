@@ -241,9 +241,8 @@ fun RunScreenComposable(
                             .padding(top = RUN_TOP_GROUP_TOP_PADDING),
                         horizontalArrangement = Arrangement.spacedBy(RUN_TOP_GROUP_CHIP_SPACING)
                     ) {
-                        // [STRATEGY 1] 세련된 모노톤 적용 (Slate Blue Gray)
-                        // 너무 검정색(Black)은 딱딱해 보이므로, 약간 푸른끼가 도는 짙은 회색을 사용합니다.
-                        val commonIconColor = Color(0xFF455A64)
+                        // [NEW] 아이콘 색상을 검정색으로 변경
+                        val commonIconColor = Color.Black
 
                         // 1. Goal
                         RunStatChip(

@@ -233,7 +233,7 @@
     <string name="records_period_filter_all">All</string>
     <string name="records_total_sober_days">Total Sober Days</string>
     <string name="records_diary_write_action">Write</string>
-    <string name="records_diary_view_all">View All Entries</string>
+    <string name="records_diary_view_all">View All</string>
 
     <!-- Navigation -->
     <string name="default_nickname">SoberHero1</string>

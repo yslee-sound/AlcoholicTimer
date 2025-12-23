@@ -232,7 +232,7 @@
     <string name="records_period_filter_all">전체</string>
     <string name="records_total_sober_days">총 금주일</string>
     <string name="records_diary_write_action">작성</string>
-    <string name="records_diary_view_all">전체 내역 보기</string>
+    <string name="records_diary_view_all">전체 보기</string>
 
     <!-- Navigation -->
     <string name="default_nickname">알중이1</string>
