@@ -1243,8 +1243,9 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                                 Spacer(modifier = Modifier.width(4.dp))
 
                                 // "갈증" 텍스트 (검은색)
+                                // [MODIFIED] 하드코딩 제거 - 다국어 처리 (2025-12-24)
                                 Text(
-                                    text = " 갈증",
+                                    text = " ${stringResource(R.string.community_thirst)}",
                                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                                     color = Color(0xFF111111)
                                 )
