@@ -206,6 +206,7 @@
     <string name="settings_currency_auto">시스템 설정</string>
     <string name="settings_currency_current">현재: %1$s</string>
     <string name="settings_currency_current_auto">현재: %1$s (시스템 설정)</string>
+    <string name="settings_edit_profile">프로필 편집하기</string>
     <string name="currency_krw">한국 원 (₩)</string>
     <string name="currency_jpy">일본 엔 (¥)</string>
     <string name="currency_usd">미국 달러 ($)</string>

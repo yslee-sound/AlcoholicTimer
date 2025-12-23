@@ -206,6 +206,7 @@
     <string name="settings_currency_auto">システム設定</string>
     <string name="settings_currency_current">現在の選択: %1$s</string>
     <string name="settings_currency_current_auto">現在の選択: %1$s （システム設定）</string>
+    <string name="settings_edit_profile">プロフィールを編集</string>
     <string name="currency_krw">韓国ウォン (₩)</string>
     <string name="currency_jpy">日本円 (¥)</string>
     <string name="currency_usd">米ドル ($)</string>

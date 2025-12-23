@@ -206,6 +206,7 @@
     <string name="settings_currency_auto">System Default</string>
     <string name="settings_currency_current">Current: %1$s</string>
     <string name="settings_currency_current_auto">Current: %1$s (System Default)</string>
+    <string name="settings_edit_profile">Edit Profile</string>
     <string name="currency_krw">Korean Won (₩)</string>
     <string name="currency_jpy">Japanese Yen (¥)</string>
     <string name="currency_usd">US Dollar ($)</string>
