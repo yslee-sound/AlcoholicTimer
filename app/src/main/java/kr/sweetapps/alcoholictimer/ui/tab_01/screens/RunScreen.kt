@@ -516,16 +516,16 @@ fun RunScreenComposable(
                     // [NEW] 네이티브 광고 영역 (프로그레스 바와 명언 사이) (2025-12-24)
                     Spacer(modifier = Modifier.height(16.dp))
                     NativeAdItem()
-                    // [MODIFIED] QuoteDisplay 내부 vertical padding 10dp를 고려하여 6dp만 추가 (총 16dp) (2025-12-24)
-                    Spacer(modifier = Modifier.height(6.dp))
+                    // [MODIFIED] QuoteDisplay 내부 vertical padding 6dp를 고려하여 10dp 추가 (총 16dp) (2025-12-24)
+                    Spacer(modifier = Modifier.height(10.dp))
 
                     // [NEW] 공통 컴포넌트 사용 (StartScreen과 동일한 디자인 & 2줄 제한 로직 적용)
                     // [MODIFIED] 불필요한 bottom padding 제거 - QuoteDisplay 내부 패딩 사용 (2025-12-24)
                     kr.sweetapps.alcoholictimer.ui.tab_01.components.QuoteDisplay()
 
                     // [NEW] STOP 버튼을 스크롤 최하단으로 이동 (2025-12-24)
-                    // [MODIFIED] QuoteDisplay 내부 하단 패딩 10dp를 고려하여 22dp만 추가 (총 32dp) (2025-12-24)
-                    Spacer(modifier = Modifier.height(22.dp))
+                    // [MODIFIED] QuoteDisplay 내부 하단 패딩 6dp를 고려하여 26dp 추가 (총 32dp) (2025-12-24)
+                    Spacer(modifier = Modifier.height(26.dp))
 
                     // 중앙 정렬을 위한 Box
                     Box(

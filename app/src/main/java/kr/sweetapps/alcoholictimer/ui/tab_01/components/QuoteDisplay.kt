@@ -66,7 +66,7 @@ fun QuoteDisplay(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 10.dp),
+            .padding(horizontal = 24.dp, vertical = 6.dp), // [MODIFIED] 10dp → 6dp 여백 축소 (2025-12-24)
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // ... (나머지 코드는 그대로)
@@ -74,12 +74,16 @@ fun QuoteDisplay(
         Text(
             text = "❝",
             style = MaterialTheme.typography.displayMedium.copy(
-                fontSize = 40.sp,
-                lineHeight = 20.sp,
+                fontSize = 32.sp,
+                lineHeight = 24.sp, // [MODIFIED] 줄 높이를 fontSize보다 작게 설정 (2025-12-24)
                 fontFamily = FontFamily.Serif
             ),
-            color = QuoteTextStyle.quoteMarkColor
+            color = QuoteTextStyle.quoteMarkColor,
+            modifier = Modifier.offset(y = (-4).dp) // [NEW] 따옴표를 위로 약간 이동 (2025-12-24)
         )
+
+        // [NEW] 따옴표와 명언 사이 간격 조절 (2025-12-24)
+        Spacer(modifier = Modifier.height((-8).dp))
 
         // 2. 명언 텍스트 - [핵심 변경] 단순 Text 대신 자동 리사이징 적용
         AutoResizeMultiLineText(
