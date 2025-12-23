@@ -14,10 +14,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
+import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.ad.AdController
 import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
@@ -97,7 +99,7 @@ fun LevelScreen(
         contentWindowInsets = WindowInsets.systemBars, // [FIX] 시스템 바 영역 확보
         topBar = {
             BackTopBar(
-                title = "나의 레벨",
+                title = stringResource(R.string.level_screen_title),
                 onBack = onNavigateBack
             )
         }

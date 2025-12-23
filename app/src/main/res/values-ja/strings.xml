@@ -73,6 +73,7 @@
     <string name="records_add">禁酒記録を追加</string>
     <string name="records_day_unit">日</string>
     <string name="records_percent_unit">%</string>
+    <string name="level_screen_title">私のレベル</string>
 
     <!-- All Records Screen -->
     <string name="all_records_title">全ての記録</string>
@@ -234,6 +235,20 @@
     <string name="community_thirst">渇き</string>
     <string name="community_add_photo">写真を追加</string>
     <string name="community_share_challenge">チャレンジに共有</string>
+    <string name="settings_screen_title">設定</string>
+    <string name="profile_edit_title">プロフィール編集</string>
+    <string name="profile_avatar_change">アバター変更</string>
+    <string name="profile_nickname_label">ニックネーム</string>
+    <string name="profile_nickname_hint">* 最大10文字まで入力可能</string>
+    <string name="profile_save">完了</string>
+    <string name="nickname_edit_title">ニックネーム変更</string>
+    <string name="nickname_save_button">保存</string>
+    <string name="avatar_selection_title">アバター選択</string>
+    <string name="profile_edit_instruction">新しいニックネームを入力してください</string>
+    <string name="profile_nickname_placeholder">ニックネームを入力</string>
+    <string name="cd_clear_text">テキストをクリア</string>
+    <string name="error_only_spaces">空白のみは入力できません</string>
+    <string name="error_too_long">入力可能な最大長を超えました</string>
 
     <!-- Records Dashboard Header -->
     <string name="records_dashboard_title_health">私の健康 </string>
@@ -257,16 +272,6 @@
     <string name="drawer_menu_more">もっと見る</string>
     <string name="cd_menu">メニュー</string>
 
-    <!-- Profile Edit Screen -->
-    <string name="profile_edit_title">プロフィール編集</string>
-    <string name="profile_edit_instruction">新しいニックネームを入力してください</string>
-    <string name="profile_nickname_label">ニックネーム</string>
-    <string name="profile_nickname_placeholder">ニックネームを入力</string>
-    <string name="profile_save">保存</string>
-    <string name="profile_cancel">キャンセル</string>
-    <string name="cd_clear_text">テキストをクリア</string>
-    <string name="error_only_spaces">空白のみは入力できません</string>
-    <string name="error_too_long">入力可能な最大長を超えました</string>
 
     <!-- About Screen -->
     <string name="about_title">アプリについて</string>

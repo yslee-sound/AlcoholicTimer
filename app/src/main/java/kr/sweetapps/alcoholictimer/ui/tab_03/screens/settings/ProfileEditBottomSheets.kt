@@ -16,9 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.util.AvatarManager
 
 /**
@@ -41,7 +43,7 @@ fun AvatarEditBottomSheet(
                 .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
             Text(
-                text = "아바타 선택",
+                text = stringResource(R.string.avatar_selection_title),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF111827)
@@ -110,7 +112,7 @@ fun NicknameEditBottomSheet(
                 .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
             Text(
-                text = "닉네임 변경",
+                text = stringResource(R.string.nickname_edit_title),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF111827)
@@ -125,7 +127,7 @@ fun NicknameEditBottomSheet(
                         nicknameText = it
                     }
                 },
-                label = { Text("닉네임") },
+                label = { Text(stringResource(R.string.profile_nickname_label)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -157,7 +159,7 @@ fun NicknameEditBottomSheet(
                 ),
                 enabled = nicknameText.isNotBlank()
             ) {
-                Text("저장", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.nickname_save_button), fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(16.dp))

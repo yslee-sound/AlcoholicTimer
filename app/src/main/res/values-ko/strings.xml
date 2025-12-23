@@ -73,6 +73,7 @@
     <string name="records_add">금주 기록 추가</string>
     <string name="records_day_unit">일</string>
     <string name="records_percent_unit">%</string>
+    <string name="level_screen_title">나의 레벨</string>
 
     <!-- All Records Screen -->
     <string name="all_records_title">모든 기록</string>
@@ -234,6 +235,20 @@
     <string name="community_thirst">갈증</string>
     <string name="community_add_photo">사진 추가</string>
     <string name="community_share_challenge">챌린지 공유</string>
+    <string name="settings_screen_title">설정</string>
+    <string name="profile_edit_title">프로필 편집</string>
+    <string name="profile_avatar_change">아바타 변경</string>
+    <string name="profile_nickname_label">닉네임</string>
+    <string name="profile_nickname_hint">* 최대 10자까지 입력 가능합니다</string>
+    <string name="profile_save">완료</string>
+    <string name="nickname_edit_title">닉네임 변경</string>
+    <string name="nickname_save_button">저장</string>
+    <string name="avatar_selection_title">아바타 선택</string>
+    <string name="profile_edit_instruction">새로운 닉네임을 입력해주세요</string>
+    <string name="profile_nickname_placeholder">닉네임을 입력하세요</string>
+    <string name="cd_clear_text">텍스트 지우기</string>
+    <string name="error_only_spaces">공백만 입력할 수 없어요</string>
+    <string name="error_too_long">입력 가능한 최대 길이를 초과했어요</string>
 
     <!-- Records Dashboard Header -->
     <string name="records_dashboard_title_health">나의 건강 </string>
@@ -257,16 +272,6 @@
     <string name="drawer_menu_more">커뮤니티</string>
     <string name="cd_menu">메뉴</string>
 
-    <!-- Profile Edit Screen -->
-    <string name="profile_edit_title">프로필 편집</string>
-    <string name="profile_edit_instruction">새로운 별명을 입력해주세요</string>
-    <string name="profile_nickname_label">별명</string>
-    <string name="profile_nickname_placeholder">별명을 입력하세요</string>
-    <string name="profile_save">저장</string>
-    <string name="profile_cancel">취소</string>
-    <string name="cd_clear_text">텍스트 지우기</string>
-    <string name="error_only_spaces">공백만 입력할 수 없어요</string>
-    <string name="error_too_long">입력 가능한 최대 길이를 초과했어요</string>
 
     <!-- About Screen -->
     <string name="about_title">앱 정보</string>

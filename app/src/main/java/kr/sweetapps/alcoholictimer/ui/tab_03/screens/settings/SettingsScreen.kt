@@ -218,7 +218,7 @@ fun AboutScreen(
             contentWindowInsets = WindowInsets.systemBars, // [FIX] 시스템 바 영역 침범 방지
             topBar = {
                 BackTopBar(
-                    title = "설정",
+                    title = stringResource(R.string.settings_screen_title),
                     onBack = onBack
                 )
             }

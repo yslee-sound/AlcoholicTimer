@@ -73,6 +73,7 @@
     <string name="records_add">Add Sobriety Record</string>
     <string name="records_day_unit">d</string>
     <string name="records_percent_unit">%</string>
+    <string name="level_screen_title">Level Saya</string>
 
     <!-- All Records Screen -->
     <string name="all_records_title">All Records</string>
@@ -234,6 +235,20 @@
     <string name="community_thirst">Haus</string>
     <string name="community_add_photo">Tambah Foto</string>
     <string name="community_share_challenge">Bagikan ke Challenge</string>
+    <string name="settings_screen_title">Pengaturan</string>
+    <string name="profile_edit_title">Edit Profil</string>
+    <string name="profile_avatar_change">Ubah Avatar</string>
+    <string name="profile_nickname_label">Nama Panggilan</string>
+    <string name="profile_nickname_hint">* Maksimal 10 karakter</string>
+    <string name="profile_save">Selesai</string>
+    <string name="nickname_edit_title">Edit Nama Panggilan</string>
+    <string name="nickname_save_button">Simpan</string>
+    <string name="avatar_selection_title">Pilih Avatar</string>
+    <string name="profile_edit_instruction">Silakan masukkan nama panggilan baru</string>
+    <string name="profile_nickname_placeholder">Masukkan nama panggilan</string>
+    <string name="cd_clear_text">Hapus teks</string>
+    <string name="error_only_spaces">Tidak dapat memasukkan spasi saja</string>
+    <string name="error_too_long">Panjang maksimum terlampaui</string>
 
     <!-- Records Dashboard Header -->
     <string name="records_dashboard_title_health">My Health </string>
@@ -257,16 +272,6 @@
     <string name="drawer_menu_more">More</string>
     <string name="cd_menu">Menu</string>
 
-    <!-- Profile Edit Screen -->
-    <string name="profile_edit_title">Edit Profile</string>
-    <string name="profile_edit_instruction">Please enter your new nickname</string>
-    <string name="profile_nickname_label">Nickname</string>
-    <string name="profile_nickname_placeholder">Enter nickname</string>
-    <string name="profile_save">Save</string>
-    <string name="profile_cancel">Cancel</string>
-    <string name="cd_clear_text">Clear text</string>
-    <string name="error_only_spaces">Cannot input only spaces</string>
-    <string name="error_too_long">Maximum length exceeded</string>
 
     <!-- About Screen -->
     <string name="about_title">About</string>

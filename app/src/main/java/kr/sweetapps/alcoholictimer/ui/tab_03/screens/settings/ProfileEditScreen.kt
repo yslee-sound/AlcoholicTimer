@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,7 +50,7 @@ fun ProfileEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("프로필 편집") },
+                title = { Text(stringResource(R.string.profile_edit_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -70,7 +71,7 @@ fun ProfileEditScreen(
                             onBack()
                         }
                     ) {
-                        Text("완료", color = Color(0xFF6366F1))
+                        Text(stringResource(R.string.profile_save), color = Color(0xFF6366F1))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -126,7 +127,7 @@ fun ProfileEditScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "아바타 변경",
+                text = stringResource(R.string.profile_avatar_change),
                 fontSize = 14.sp,
                 color = Color(0xFF6B7280)
             )
@@ -140,7 +141,7 @@ fun ProfileEditScreen(
                         nicknameText = it
                     }
                 },
-                label = { Text("닉네임") },
+                label = { Text(stringResource(R.string.profile_nickname_label)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -159,7 +160,7 @@ fun ProfileEditScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "* 최대 10자까지 입력 가능합니다",
+                text = stringResource(R.string.profile_nickname_hint),
                 fontSize = 12.sp,
                 color = Color(0xFF9CA3AF),
                 modifier = Modifier.fillMaxWidth()

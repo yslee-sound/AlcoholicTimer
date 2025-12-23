@@ -1481,7 +1481,7 @@ private fun TotalDaysCard(
                     )
 
                     Text(
-                        text = "일",
+                        text = stringResource(R.string.unit_day),
                         fontSize = 14.sp,
                         color = Color(0xFF6B7280),
                         modifier = Modifier.padding(bottom = 2.dp)
