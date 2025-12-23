@@ -167,6 +167,7 @@ fun DiaryDetailFeedScreen(
                                     sdf.format(java.util.Date(item.timestamp))
                                 },
                                 tagType = item.tagType, // [FIX] DB에 저장된 tagType 사용 (2025-12-23)
+                                showTimer = false, // [NEW] 내 일기 화면에서는 타이머 숨김 (2025-12-24)
                                 onLikeClick = { },
                                 onCommentClick = { },
                                 onMoreClick = {

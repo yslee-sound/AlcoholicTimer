@@ -40,6 +40,7 @@ import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
  * 페이스북 스타일의 Full-width 디자인
  * (v2.0) 아바타 시스템: authorAvatarIndex로 프로필 표시
  * (v3.0) X 버튼: 남의 글에 빠른 숨기기 버튼 추가
+ * [MODIFIED] 타이머 표시 제어 파라미터 추가 (2025-12-24)
  */
 @Composable
 fun PostItem(
@@ -57,6 +58,7 @@ fun PostItem(
     isMine: Boolean = false, // [NEW] Phase 3: 내 글 여부
     createdDate: String? = null, // [NEW] 작성 날짜 "yyyy/MM/dd" (2025-12-22)
     tagType: String = "diary", // [NEW] 태그 타입 (2025-12-23)
+    showTimer: Boolean = true, // [NEW] 타이머 표시 여부 (기본값 true) (2025-12-24)
     onLikeClick: () -> Unit = {},
     onCommentClick: () -> Unit = {},
     onMoreClick: () -> Unit = {},
@@ -77,6 +79,8 @@ fun PostItem(
             thirstLevel = thirstLevel, // [NEW]
             isMine = isMine, // [NEW] Phase 3
             createdDate = createdDate, // [NEW] 날짜 전달 (2025-12-22)
+            remainingTime = remainingTime, // [NEW] 남은 시간 전달 (2025-12-24)
+            showTimer = showTimer, // [NEW] 타이머 표시 여부 전달 (2025-12-24)
             onMoreClick = onMoreClick,
             onHideClick = onHideClick // [NEW] Phase 3
         )
@@ -142,6 +146,7 @@ fun PostItem(
             likeCount = likeCount,
             isLiked = isLiked,
             remainingTime = remainingTime,
+            showTimer = showTimer, // [NEW] 타이머 표시 여부 전달 (2025-12-24)
             onLikeClick = onLikeClick,
             onCommentClick = onCommentClick
         )
@@ -155,6 +160,7 @@ fun PostItem(
 /**
  * 게시글 헤더: 프로필 + 닉네임 + 타이머 배지 + X 버튼 + 더보기
  * (v3.0) X 버튼: 남의 글에만 표시 (빠른 숨기기)
+ * [MODIFIED] 타이머 표시 제어 추가 (2025-12-24)
  */
 @Composable
 private fun PostHeader(
@@ -166,6 +172,8 @@ private fun PostHeader(
     thirstLevel: Int?,
     isMine: Boolean,
     createdDate: String?, // [NEW] 작성 날짜 (2025-12-22)
+    remainingTime: String, // [NEW] 남은 시간 (2025-12-24)
+    showTimer: Boolean, // [NEW] 타이머 표시 여부 (2025-12-24)
     onMoreClick: () -> Unit,
     onHideClick: () -> Unit
 ) {
@@ -337,12 +345,14 @@ private fun PostHeader(
 
 /**
  * 게시글 푸터: 좋아요(쓰담쓰담) + 댓글 + 남은 시간
+ * [MODIFIED] 타이머 표시 제어 추가 (2025-12-24)
  */
 @Composable
 private fun PostFooter(
     likeCount: Int,
     isLiked: Boolean,
     remainingTime: String,
+    showTimer: Boolean, // [NEW] 타이머 표시 여부 (2025-12-24)
     onLikeClick: () -> Unit,
     onCommentClick: () -> Unit
 ) {
@@ -392,20 +402,22 @@ private fun PostFooter(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // 남은 시간 (우측 끝)
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = "⏳",
-                fontSize = 14.sp
-            )
-            Text(
-                text = remainingTime,
-                style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF999999)
-            )
+        // [MODIFIED] 남은 시간 (showTimer가 true일 때만 표시) (2025-12-24)
+        if (showTimer && remainingTime.isNotBlank()) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "⏳",
+                    fontSize = 14.sp
+                )
+                Text(
+                    text = remainingTime,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF999999)
+                )
+            }
         }
     }
 }
