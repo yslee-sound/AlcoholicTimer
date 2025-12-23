@@ -168,7 +168,7 @@ fun CommunityScreen(
                                                 Text(
                                                     text = stringResource(R.string.community_title_support),
                                                     style = MaterialTheme.typography.titleLarge.copy(
-                                                        fontSize = 18.sp,
+                                                        fontSize = 24.sp, // [FIX] 탭2와 동일한 크기
                                                         fontWeight = FontWeight.Bold
                                                     ),
                                                     color = Color(0xFF111111)
@@ -177,7 +177,7 @@ fun CommunityScreen(
                                                 Text(
                                                     text = stringResource(R.string.community_title_challenge),
                                                     style = MaterialTheme.typography.titleLarge.copy(
-                                                        fontSize = 18.sp,
+                                                        fontSize = 24.sp, // [FIX] 탭2와 동일한 크기
                                                         fontWeight = FontWeight.Bold
                                                     ),
                                                     color = Color(0xFF6366F1) // [FIX] 탭2 '분석'과 동일한 색상
