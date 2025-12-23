@@ -1185,18 +1185,63 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                     Column(
                         modifier = Modifier.weight(1f) // 남은 공간 차지
                     ) {
-                        // [수정 1] 닉네임: 한 줄 제한 및 말줄임표(...) 처리
+                        // [FIX] 닉네임 + 갈증 수치 표시 Row (2025-12-23)
                         val displayNickname = if (currentNickname.isNotBlank()) currentNickname else "익명"
-                        Text(
-                            text = displayNickname,
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            ),
-                            color = Color(0xFF111827),
-                            maxLines = 1, // [핵심] 1줄 제한
-                            overflow = TextOverflow.Ellipsis // [핵심] 넘치면 ... 처리
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            // 1. 닉네임
+                            Text(
+                                text = displayNickname,
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp
+                                ),
+                                color = Color(0xFF111827),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false)
+                            )
+
+                            // 2. [복구] 갈증 수치 표시 (PostItem과 동일한 스타일)
+                            if (selectedLevel != null && selectedLevel!! > 0) {
+                                Spacer(modifier = Modifier.width(4.dp))
+
+                                // 구분자
+                                Text(
+                                    text = " - ",
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                    color = Color(0xFF111111)
+                                )
+
+                                Spacer(modifier = Modifier.width(4.dp))
+
+                                // 색상 박스 (숫자)
+                                val badgeColor = kr.sweetapps.alcoholictimer.util.ThirstColorUtil.getColor(selectedLevel!!)
+                                Box(
+                                    modifier = Modifier
+                                        .height(24.dp)
+                                        .wrapContentWidth()
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(badgeColor)
+                                        .padding(horizontal = 8.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = selectedLevel.toString(),
+                                        color = Color.White,
+                                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(4.dp))
+
+                                // "갈증" 텍스트 (검은색)
+                                Text(
+                                    text = " 갈증",
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                    color = Color(0xFF111111)
+                                )
+                            }
+                        }
 
                         Spacer(modifier = Modifier.height(6.dp))
 
