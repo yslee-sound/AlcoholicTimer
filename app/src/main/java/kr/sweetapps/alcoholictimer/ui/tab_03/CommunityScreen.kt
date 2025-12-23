@@ -696,7 +696,7 @@ private fun PostOptionsBottomSheet(
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
-                    text = "이 게시글 숨기기",
+                    text = stringResource(R.string.community_post_hide),
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color(0xFF1F2937)
                 )
@@ -716,7 +716,7 @@ private fun PostOptionsBottomSheet(
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
-                    text = "게시글 신고하기",
+                    text = stringResource(R.string.community_post_report),
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color(0xFF1F2937)
                 )
@@ -880,10 +880,10 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
     }
 
     val placeholderText = when (selectedTag) {
-        "diary" -> "오늘 하루는 어땠나요? 솔직한 이야기를 들려주세요."
-        "thanks" -> "오늘 웃게 된 일이나 고마운 순간이 있었나요? 사소한 것도 좋아요. ✨"
-        "reflect" -> "아쉬웠던 점이나 내일을 위한 다짐을 적어보세요. 🌙"
-        else -> "오늘 하루는 어땠나요? 솔직한 이야기를 들려주세요."
+        "diary" -> stringResource(R.string.diary_placeholder_diary)
+        "thanks" -> stringResource(R.string.diary_placeholder_thanks)
+        "reflect" -> stringResource(R.string.diary_placeholder_reflect)
+        else -> stringResource(R.string.diary_placeholder_diary)
     }
 
     // [FIX] 변경 사항 감지 로직 (Dirty Check) (2025-12-23)
@@ -1254,13 +1254,13 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                             // [FIX] 수정 모드일 때는 일기 작성 당시의 레벨/일차 정보 사용 (2025-12-23)
                             val levelInfoText = if (postToEdit != null) {
                                 // 수정 모드: 저장된 일기의 레벨/일차 사용
-                                "LV.${postToEdit.userLevel} · ${postToEdit.currentDays}일차"
+                                "${stringResource(R.string.level_format, postToEdit.userLevel)} · ${stringResource(R.string.days_format, postToEdit.currentDays)}"
                             } else {
                                 // 작성 모드: 현재 타이머 상태 사용
                                 val tab03Vm: kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab03ViewModel = viewModel()
                                 val levelDays by tab03Vm.levelDays.collectAsState()
                                 val levelNumber = if (levelDays == 0) 0 else kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions.getLevelNumber(levelDays) + 1
-                                "LV.$levelNumber · ${levelDays}일차"
+                                "${stringResource(R.string.level_format, levelNumber)} · ${stringResource(R.string.days_format, levelDays)}"
                             }
 
                             Surface(
@@ -1475,7 +1475,7 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                         )
 
                         // [FIX] 첫 번째 버튼 (취소/삭제) 분기 처리 (2025-12-23)
-                        val actionText = if (isEditMode) "변경사항 버리기" else "게시글 삭제"
+                        val actionText = if (isEditMode) stringResource(R.string.community_discard_changes) else stringResource(R.string.community_post_delete)
                         val actionIcon = if (isEditMode) Icons.AutoMirrored.Filled.ArrowBack else Icons.Filled.Delete
                         val actionColor = if (isEditMode) Color(0xFF1F2937) else Color(0xFFEF4444)
 
@@ -1505,7 +1505,7 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                         }
 
                         // [FIX] 두 번째 버튼 (계속 작성하기) 문구 분기 (2025-12-23)
-                        val continueText = if (isEditMode) "수정 계속하기" else "작성 계속하기"
+                        val continueText = if (isEditMode) stringResource(R.string.community_continue_editing) else stringResource(R.string.community_continue_writing)
 
                         // 수정/작성 계속하기 메뉴 (리스트 아이템 스타일)
                         Row(

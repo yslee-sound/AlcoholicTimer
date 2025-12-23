@@ -1,4 +1,4 @@
-﻿﻿<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App Name -->
     <string name="app_name">Alcoholic Timer</string>
@@ -245,14 +245,24 @@
     <string name="profile_edit_instruction">새로운 닉네임을 입력해주세요</string>
     <string name="profile_nickname_placeholder">닉네임을 입력하세요</string>
     <string name="cd_clear_text">텍스트 지우기</string>
-    <string name="error_only_spaces">공백만 입력할 수 없어요</string>
-    <string name="error_too_long">입력 가능한 최대 길이를 초과했어요</string>
+    <string name="error_only_spaces">공백만 입력할 수 없습니다</string>
+    <string name="error_too_long">입력 가능한 최대 길이를 초과했습니다</string>
     <string name="community_write_hint">오늘 하루는 어땠나요? (익명)</string>
+    <string name="diary_placeholder_diary">오늘 하루는 어땠나요? 솔직한 이야기를 들려주세요.</string>
+    <string name="diary_placeholder_thanks">오늘 웃게 된 일이나 고마운 순간이 있었나요? 사소한 것도 좋아요. ✨</string>
+    <string name="diary_placeholder_reflect">아쉬웠던 점이나 내일을 위한 다짐을 적어보세요. 🌙</string>
     <string name="community_post_manage">게시글 관리</string>
     <string name="community_post_edit">게시글 수정</string>
     <string name="community_post_delete">게시글 삭제</string>
+    <string name="community_post_hide">이 게시글 숨기기</string>
+    <string name="community_post_report">게시글 신고하기</string>
     <string name="community_write_title">새 게시글 작성</string>
     <string name="community_write_publish">게시하기</string>
+    <string name="community_more_options">더보기</string>
+    <string name="community_hide">숨기기</string>
+    <string name="community_discard_changes">변경사항 버리기</string>
+    <string name="community_continue_writing">작성 계속하기</string>
+    <string name="community_continue_editing">수정 계속하기</string>
     <string name="photo_selection_title">사진 선택</string>
     <string name="diary_action_edit">수정하기</string>
     <string name="diary_action_delete">삭제하기</string>

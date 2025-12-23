@@ -311,7 +311,7 @@ private fun PostHeader(
         ) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
-                contentDescription = "더보기",
+                contentDescription = stringResource(R.string.community_more_options),
                 tint = Color(0xFF666666),
                 modifier = Modifier.size(24.dp)
             )
@@ -326,7 +326,7 @@ private fun PostHeader(
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "숨기기",
+                    contentDescription = stringResource(R.string.community_hide),
                     tint = Color(0xFF999999),
                     modifier = Modifier.size(24.dp)
                 )
