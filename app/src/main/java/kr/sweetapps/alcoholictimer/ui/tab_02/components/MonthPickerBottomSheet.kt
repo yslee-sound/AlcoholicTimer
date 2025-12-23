@@ -29,7 +29,8 @@ fun MonthPickerBottomSheet(
     records: List<SobrietyRecord> = emptyList(),
     onYearPicked: (year: Int) -> Unit = {},
     initialYear: Int = Calendar.getInstance().get(Calendar.YEAR),
-    initialMonth: Int = Calendar.getInstance().get(Calendar.MONTH) + 1
+    initialMonth: Int = Calendar.getInstance().get(Calendar.MONTH) + 1,
+    useFixedYearRange: Boolean = false // [NEW] 고정 기간 모드 (작년~내년) (2025-12-24)
 ) {
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -54,7 +55,8 @@ fun MonthPickerBottomSheet(
                 onDismiss = onDismiss,
                 records = records,
                 initialYear = initialYear,
-                initialMonth = initialMonth
+                initialMonth = initialMonth,
+                useFixedYearRange = useFixedYearRange // [NEW] 고정 기간 모드 전달 (2025-12-24)
             )
         }
     }
@@ -67,14 +69,26 @@ internal fun MonthPickerContent(
     onDismiss: () -> Unit,
     records: List<SobrietyRecord>,
     initialYear: Int = Calendar.getInstance().get(Calendar.YEAR),
-    initialMonth: Int = Calendar.getInstance().get(Calendar.MONTH) + 1
+    initialMonth: Int = Calendar.getInstance().get(Calendar.MONTH) + 1,
+    useFixedYearRange: Boolean = false // [NEW] 고정 기간 모드 (2025-12-24)
 ) {
     // [NEW] 초기화 로그
-    android.util.Log.d("MonthPicker", "초기화: records.size=${records.size}, initialYear=$initialYear, initialMonth=$initialMonth")
+    android.util.Log.d("MonthPicker", "초기화: records.size=${records.size}, initialYear=$initialYear, initialMonth=$initialMonth, useFixedYearRange=$useFixedYearRange")
 
     // [FIX] 년도 옵션 및 활성화 상태 계산
-    val (yearOptions, yearEnabledStates) = remember(records) {
-        val result = generateYearOptionsFromRecordsWithStates(records)
+    // [NEW] 고정 기간 모드일 때는 데이터 유무와 관계없이 작년~내년(3년) 제공 (2025-12-24)
+    val (yearOptions, yearEnabledStates) = remember(records, useFixedYearRange) {
+        val result = if (useFixedYearRange) {
+            // [NEW] 캘린더 네비게이션용: 현재 연도 기준 ±1년 (총 3년)
+            val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+            val years = listOf(currentYear - 1, currentYear, currentYear + 1)
+            val enabledStates = years.map { true } // 모든 년도 활성화
+            android.util.Log.d("MonthPicker", "고정 기간 모드: ${years.joinToString(", ")}")
+            Pair(years, enabledStates)
+        } else {
+            // [기존] 데이터 기반 년도 필터링
+            generateYearOptionsFromRecordsWithStates(records)
+        }
         android.util.Log.d("MonthPicker", "년도 옵션: ${result.first.size}개, 활성화: ${result.second.count { it }}개")
         result
     }
@@ -86,11 +100,32 @@ internal fun MonthPickerContent(
     var selectedYearIndex by remember(yearOptions) { mutableIntStateOf(defaultYearIndex) }
 
     // [FIX] 선택된 년도의 월 목록 및 활성화 상태 계산
+    // [MODIFIED] 고정 기간 모드 지원 추가 (2025-12-24)
     fun monthsForWithStates(year: Int): Pair<List<Int>, List<Boolean>> {
         val now = Calendar.getInstance()
         val nowYear = now.get(Calendar.YEAR)
         val nowMonth = now.get(Calendar.MONTH) + 1
 
+        // [NEW] 고정 기간 모드: 데이터 유무와 관계없이 모든 월 제공 (2025-12-24)
+        if (useFixedYearRange) {
+            return when {
+                year < nowYear -> {
+                    // 과거 년도: 1~12월 모두 활성화
+                    Pair((1..12).toList(), List(12) { true })
+                }
+                year == nowYear -> {
+                    // 현재 년도: 1월 ~ 현재 월까지만 활성화
+                    Pair((1..nowMonth).toList(), List(nowMonth) { true })
+                }
+                year > nowYear -> {
+                    // 미래 년도: 모든 월 표시하되 비활성화
+                    Pair((1..12).toList(), List(12) { false })
+                }
+                else -> Pair(emptyList(), emptyList())
+            }
+        }
+
+        // [기존] 데이터 기반 필터링 로직
         // [FIX] 데이터가 없어도 현재 년/월은 표시
         if (records.isEmpty()) {
             return if (year == nowYear) {

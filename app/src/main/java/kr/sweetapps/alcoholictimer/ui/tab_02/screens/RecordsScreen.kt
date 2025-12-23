@@ -113,9 +113,12 @@ fun RecordsScreen(
     // [MOD] UI 전용 상태만 유지 (Bottom Sheet 표시 여부)
     var showBottomSheet by remember { mutableStateOf(false) }
 
+    // [NEW] 캘린더 헤더 클릭 시 고정 기간 모드 활성화 (2025-12-24)
+    var isCalendarNavigationMode by remember { mutableStateOf(false) }
+
     // [NEW] 바텀시트 상태 변경 로깅
     LaunchedEffect(showBottomSheet) {
-        Log.d("RecordsScreen", "showBottomSheet 상태 변경: $showBottomSheet, selectedPeriod=$selectedPeriod")
+        Log.d("RecordsScreen", "showBottomSheet 상태 변경: $showBottomSheet, selectedPeriod=$selectedPeriod, isCalendarNavigationMode=$isCalendarNavigationMode")
     }
 
     // [NEW] 월간 탭 선택 시 자동 초기화
@@ -293,7 +296,14 @@ fun RecordsScreen(
                             onNavigateToAllDiaries = onNavigateToAllDiaries,
                             onNavigateToDiaryWrite = onNavigateToDiaryWrite, // [NEW] 일기 작성 콜백 전달
                             onDiaryClick = onDiaryClick,
-                            onNavigateToDiaryDetail = onNavigateToDiaryDetail // [NEW] 상세 화면 네비게이션 (2025-12-22)
+                            onNavigateToDiaryDetail = onNavigateToDiaryDetail, // [NEW] 상세 화면 네비게이션 (2025-12-22)
+                            // [MODIFIED] 헤더 클릭 시 고정 기간 모드로 바텀시트 열기 (2025-12-24)
+                            onHeaderClick = {
+                                android.util.Log.d("RecordsScreen", "캘린더 헤더 클릭 - 네비게이션 모드로 월 선택기 오픈")
+                                isCalendarNavigationMode = true // [NEW] 고정 기간 모드 활성화
+                                onPeriodSelected(periodMonth) // 필터 상태를 월간으로 설정
+                                showBottomSheet = true // 바텀시트 표시
+                            }
                         )
                     }
                 }
@@ -338,19 +348,22 @@ fun RecordsScreen(
 
             // 2. 월간 (Month) - "월", "Month" 포함 또는 정확히 periodMonth
             selectedPeriod.contains("월") || selectedPeriod.contains("Month", ignoreCase = true) || selectedPeriod == periodMonth -> {
-                Log.d("RecordsScreen", "월 선택기 표시")
+                Log.d("RecordsScreen", "월 선택기 표시 (네비게이션 모드: $isCalendarNavigationMode)")
                 MonthPickerBottomSheet(
                     isVisible = true,
                     onDismiss = {
                         Log.d("RecordsScreen", "월 선택기 닫기")
                         showBottomSheet = false
+                        isCalendarNavigationMode = false // [NEW] 모드 리셋 (2025-12-24)
                     },
                     onMonthPicked = { year, month ->
                         Log.d("RecordsScreen", "월 선택 완료: $year-$month")
                         onDetailPeriodSelected(context.getString(R.string.date_format_year_month, year, month))
                         showBottomSheet = false
+                        isCalendarNavigationMode = false // [NEW] 모드 리셋 (2025-12-24)
                     },
-                    records = allRecords
+                    records = allRecords,
+                    useFixedYearRange = isCalendarNavigationMode // [NEW] 캘린더 네비게이션 모드 전달 (2025-12-24)
                 )
             }
 
@@ -890,6 +903,7 @@ private fun StatisticItem(
 
 /**
  * [NEW] 일기 섹션 - 캘린더 뷰로 변경 (2025-12-22)
+ * [MODIFIED] 헤더 클릭 기능 추가 (2025-12-24)
  */
 @Composable
 private fun RecentDiarySection(
@@ -898,7 +912,8 @@ private fun RecentDiarySection(
     onNavigateToAllDiaries: () -> Unit = {},
     onNavigateToDiaryWrite: (Long?) -> Unit = {}, // [FIX] 날짜 파라미터 추가 (2025-12-22)
     onDiaryClick: (kr.sweetapps.alcoholictimer.data.room.DiaryEntity) -> Unit = {},
-    onNavigateToDiaryDetail: (Long) -> Unit = {} // [NEW] 일기 상세 피드 화면으로 이동 (2025-12-22)
+    onNavigateToDiaryDetail: (Long) -> Unit = {}, // [NEW] 일기 상세 피드 화면으로 이동 (2025-12-22)
+    onHeaderClick: () -> Unit = {} // [NEW] 캘린더 헤더 클릭 이벤트 (2025-12-24)
 ) {
     val context = LocalContext.current // [NEW] Context 가져오기 (2025-12-22)
 
@@ -945,6 +960,7 @@ private fun RecentDiarySection(
 
         // [NEW] 캘린더 위젯 (2025-12-22)
         // [FIX] allDiaries 사용 - 모든 과거 일기 표시 (2025-12-22)
+        // [MODIFIED] 헤더 클릭 기능 추가 (2025-12-24)
         kr.sweetapps.alcoholictimer.ui.tab_02.components.CalendarWidget(
             diaries = allDiaries, // [FIX] recentDiaries -> allDiaries (2025-12-22)
             onDateClick = { selectedDate ->
@@ -978,7 +994,9 @@ private fun RecentDiarySection(
                     }
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            // [NEW] 헤더 클릭 시 상위로 이벤트 전달 (2025-12-24)
+            onHeaderClick = onHeaderClick
         )
     }
 }

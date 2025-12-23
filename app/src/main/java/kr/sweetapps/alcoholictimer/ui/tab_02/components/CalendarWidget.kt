@@ -31,12 +31,15 @@ import java.util.*
  * - Calendar 기반 (API 21+ 호환)
  * [MODIFIED] UI 디자인 고도화 (2025-12-22)
  * - 전체 너비 확장, 요일 색상 구분, 선택 시 solid circle 배경
+ * [MODIFIED] 헤더 클릭 기능 추가 (2025-12-24)
+ * - 년월 헤더 클릭 시 바텀시트 오픈 가능
  */
 @Composable
 fun CalendarWidget(
     diaries: List<DiaryEntity>,
     onDateClick: (Calendar) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onHeaderClick: () -> Unit = {} // [NEW] 헤더 클릭 이벤트 (2025-12-24)
 ) {
     // 현재 표시 중인 년월 (사용자가 이동 가능)
     var currentCalendar by remember { mutableStateOf(Calendar.getInstance()) }
@@ -79,7 +82,8 @@ fun CalendarWidget(
                         timeInMillis = currentCalendar.timeInMillis
                         add(Calendar.MONTH, 1)
                     }
-                }
+                },
+                onHeaderClick = onHeaderClick // [NEW] 헤더 클릭 이벤트 전달 (2025-12-24)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -105,12 +109,14 @@ fun CalendarWidget(
 
 /**
  * 캘린더 헤더 (년월 표시 + 이동 버튼)
+ * [MODIFIED] 헤더 클릭 기능 추가 (2025-12-24)
  */
 @Composable
 private fun CalendarHeader(
     calendar: Calendar,
     onPreviousMonth: () -> Unit,
-    onNextMonth: () -> Unit
+    onNextMonth: () -> Unit,
+    onHeaderClick: () -> Unit = {} // [NEW] 헤더 클릭 이벤트 (2025-12-24)
 ) {
     val locale = Locale.getDefault()
     val year = calendar.get(Calendar.YEAR)
@@ -136,13 +142,15 @@ private fun CalendarHeader(
             )
         }
 
+        // [MODIFIED] 년월 텍스트에 클릭 기능 추가 (2025-12-24)
         Text(
             text = yearMonthText,
             style = MaterialTheme.typography.titleLarge.copy(
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             ),
-            color = Color(0xFF111827)
+            color = Color(0xFF111827),
+            modifier = Modifier.clickable { onHeaderClick() } // [NEW] 클릭 가능하도록 수정 (2025-12-24)
         )
 
         IconButton(onClick = onNextMonth) {
