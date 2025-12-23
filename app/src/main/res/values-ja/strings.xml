@@ -258,6 +258,7 @@
     <string name="community_post_delete">投稿を削除</string>
     <string name="community_post_hide">この投稿を非表示</string>
     <string name="community_post_report">投稿を報告</string>
+    <string name="community_expiring_soon">まもなく終了</string>
     <string name="community_write_title">新規投稿</string>
     <string name="community_write_publish">投稿</string>
     <string name="community_more_options">もっと見る</string>

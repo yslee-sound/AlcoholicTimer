@@ -258,6 +258,7 @@
     <string name="community_post_delete">Delete Post</string>
     <string name="community_post_hide">Hide this post</string>
     <string name="community_post_report">Report post</string>
+    <string name="community_expiring_soon">Expiring Soon</string>
     <string name="community_write_title">New Post</string>
     <string name="community_write_publish">Publish</string>
     <string name="community_more_options">More options</string>

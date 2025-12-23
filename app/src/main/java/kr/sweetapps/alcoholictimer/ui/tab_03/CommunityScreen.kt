@@ -417,7 +417,7 @@ fun CommunityScreen(
                                          imageUrl = item.imageUrl,
                                          likeCount = item.likeCount,
                                          isLiked = viewModel.isLikedByMe(item),
-                                         remainingTime = calculateRemainingTime(item.deleteAt),
+                                         remainingTime = calculateRemainingTime(item.deleteAt, context), // [MODIFIED] context 전달 (2025-12-24)
                                          currentDays = item.currentDays,
                                          userLevel = item.userLevel,
                                          authorAvatarIndex = item.authorAvatarIndex, // 아바타 인덱스 전달
@@ -1595,8 +1595,9 @@ private fun WritePostTrigger(
 
 /**
  * 남은 시간 계산 (deleteAt - now)
+ * [MODIFIED] 다국어 지원 추가 (2025-12-24)
  */
-private fun calculateRemainingTime(deleteAt: com.google.firebase.Timestamp): String {
+private fun calculateRemainingTime(deleteAt: com.google.firebase.Timestamp, context: android.content.Context): String {
     val now = System.currentTimeMillis()
     val deleteAtMillis = deleteAt.seconds * 1000
     val diffMillis = deleteAtMillis - now
@@ -1609,7 +1610,7 @@ private fun calculateRemainingTime(deleteAt: com.google.firebase.Timestamp): Str
     return when {
         hours > 0 -> "${hours}h"
         minutes > 0 -> "${minutes}m"
-        else -> "곧 만료"
+        else -> context.getString(R.string.community_expiring_soon) // [MODIFIED] 다국어 처리 (2025-12-24)
     }
 }
 

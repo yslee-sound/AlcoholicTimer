@@ -256,6 +256,7 @@
     <string name="community_post_delete">게시글 삭제</string>
     <string name="community_post_hide">이 게시글 숨기기</string>
     <string name="community_post_report">게시글 신고하기</string>
+    <string name="community_expiring_soon">곧 만료</string>
     <string name="community_write_title">새 게시글 작성</string>
     <string name="community_write_publish">게시하기</string>
     <string name="community_more_options">더보기</string>
