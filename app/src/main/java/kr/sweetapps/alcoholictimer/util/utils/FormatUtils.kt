@@ -30,14 +30,15 @@ object FormatUtils {
     }
 
     // Context를 받는 다국어 버전
+    // [MODIFIED] 시간 부분 소수점 없이 정수로 표시 (2025-12-24)
     @JvmStatic
     fun daysToDayHourString(context: Context, days: Double, decimals: Int = 2): String {
         val safeDays = if (days.isNaN() || days.isInfinite()) 0.0 else days.coerceAtLeast(0.0)
         var dayInt = floor(safeDays).toInt()
         val frac = safeDays - dayInt
         val hoursRaw = frac * 24.0
-        val scale = 10.0.pow(decimals)
-        var hoursRounded = round(hoursRaw * scale) / scale
+        // [MODIFIED] 반올림하여 정수로 표시
+        var hoursRounded = round(hoursRaw)
         if (hoursRounded >= 24.0) {
             dayInt += 1
             hoursRounded = 0.0
@@ -45,12 +46,13 @@ object FormatUtils {
         // Format numeric part with requested decimals and append localized unit strings
         val hourUnit = context.getString(R.string.unit_hour)
         val dayUnit = context.getString(R.string.unit_day)
-        val formattedHours = String.Companion.format(Locale.getDefault(), "%.${decimals}f", hoursRounded)
+        // [MODIFIED] 소수점 제거
+        val formattedHours = String.Companion.format(Locale.getDefault(), "%.0f", hoursRounded)
         return if (dayInt == 0) {
-            // e.g., "1.2시간"
+            // e.g., "1시간"
             "$formattedHours$hourUnit"
         } else {
-            // e.g., "1일 1.2시간"
+            // e.g., "1일 1시간"
             "$dayInt$dayUnit $formattedHours$hourUnit"
         }
     }
@@ -71,12 +73,13 @@ object FormatUtils {
     /**
      * Format hours with adaptive decimals: if value < 1 -> 2 decimals, else -> 1 decimal.
      * Returns numeric string only (no unit).
+     * [MODIFIED] 소수점 없이 정수로 표시 (2025-12-24)
      */
     @JvmStatic
     fun formatHoursValue(hours: Double, locale: Locale = Locale.getDefault()): String {
         val safe = if (hours.isNaN() || hours.isInfinite()) 0.0 else hours.coerceAtLeast(0.0)
-        val decimals = if (safe < 1.0 && safe > 0.0) 2 else 1
-        return String.format(locale, "%.${decimals}f", safe)
+        // [MODIFIED] 소수점 제거 - 반올림하여 정수로 표시
+        return String.format(locale, "%.0f", round(safe))
     }
 
     /**
@@ -90,14 +93,15 @@ object FormatUtils {
 
     /**
      * Format hours and append localized unit with fixed decimals
+     * [MODIFIED] 소수점 없이 정수로 표시 (2025-12-24)
      */
     @JvmStatic
     fun formatHoursWithUnitFixed(context: Context, hours: Double, decimals: Int = 1): String {
         val safe = if (hours.isNaN() || hours.isInfinite()) 0.0 else hours.coerceAtLeast(0.0)
-        val scale = 10.0.pow(decimals)
-        val rounded = round(safe * scale) / scale
+        // [MODIFIED] 소수점 제거 - 반올림하여 정수로 표시
+        val rounded = round(safe)
         return String.Companion.format(
-            Locale.getDefault(), "%.${decimals}f%s", rounded, context.getString(
+            Locale.getDefault(), "%.0f%s", rounded, context.getString(
                 R.string.unit_hour))
     }
 

@@ -186,18 +186,22 @@ fun RunScreenComposable(
     }
 
     // Debug: compute life gain explicitly (days + hours) with 1 decimal and log values
+    // [MODIFIED] 소수점 없이 정수로 표시 (2025-12-24)
     val formattedLifeGain = remember(lifeGainDays) {
         val safe = if (lifeGainDays.isNaN() || lifeGainDays.isInfinite()) 0.0 else lifeGainDays.coerceAtLeast(0.0)
         val dayPart = kotlin.math.floor(safe).toInt()
         val frac = safe - dayPart
         val hoursRaw = frac * 24.0
-        val hoursRounded = (kotlin.math.round(hoursRaw * 10.0) / 10.0)
+        // [MODIFIED] 반올림하여 정수로 표시
+        val hoursRounded = kotlin.math.round(hoursRaw)
         val hourUnit = context.getString(R.string.unit_hour)
         val dayUnit = context.getString(R.string.unit_day)
         val out = if (dayPart == 0) {
-            String.format(Locale.getDefault(), "%.1f%s", hoursRounded, hourUnit)
+            // [MODIFIED] 소수점 제거
+            String.format(Locale.getDefault(), "%.0f%s", hoursRounded, hourUnit)
         } else {
-            String.format(Locale.getDefault(), "%d%s %.1f%s", dayPart, dayUnit, hoursRounded, hourUnit)
+            // [MODIFIED] 소수점 제거
+            String.format(Locale.getDefault(), "%d%s %.0f%s", dayPart, dayUnit, hoursRounded, hourUnit)
         }
         android.util.Log.d("LifeGainDebug", "elapsedDaysFloat=$elapsedDaysFloat lifeGainDays=$lifeGainDays hoursRaw=$hoursRaw hoursRounded=$hoursRounded formattedLifeGain=$out")
         out
@@ -311,7 +315,8 @@ fun RunScreenComposable(
                                     else -> stringResource(id = R.string.indicator_title_life_gain)
                                 }
                                 val valueText: String = when (currentIndicator) {
-                                    0 -> String.format(Locale.getDefault(), "%.1f", elapsedDaysFloat)
+                                    // [MODIFIED] Days 값 소수점 제거 (2025-12-24)
+                                    0 -> String.format(Locale.getDefault(), "%.0f", kotlin.math.round(elapsedDaysFloat))
                                     1 -> progressTimeTextHM
                                     2 -> CurrencyManager.formatMoneyNoDecimals(kotlin.math.round(savedMoney), context) // [FIX] 반올림 후 포맷팅
                                     3 -> FormatUtils.formatHoursValue(savedHours)
