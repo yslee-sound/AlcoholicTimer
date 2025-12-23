@@ -137,15 +137,15 @@
     <!-- Level System -->
     <string name="level_0">알코올 스톱</string>
     <string name="level_1">3일 컷 통과</string>
-    <string name="level_2">1주일 클리어</string>
-    <string name="level_3">피부의 변신</string>
+    <string name="level_2">1주 클리어</string>
+    <string name="level_3">피부의 변화</string>
     <string name="level_4">습관 형성(21일)</string>
     <string name="level_5">한 달의 기적</string>
-    <string name="level_6">달라진 핏</string>
+    <string name="level_6">달라진 핏(Fit)</string>
     <string name="level_7">100일, 프로 금주러</string>
     <string name="level_8">플러스 통장</string>
     <string name="level_9">금주 마스터</string>
-    <string name="level_10">전설 중의 전설</string>
+    <string name="level_10">전설의 레전드</string>
     <string name="level_title">금주 레벨</string>
     <string name="level_days_label">일차</string>
     <string name="level_until_next">다음 레벨까지</string>
