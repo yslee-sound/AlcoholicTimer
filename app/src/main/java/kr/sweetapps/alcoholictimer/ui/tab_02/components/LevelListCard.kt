@@ -68,6 +68,9 @@ fun LevelListCard(
                     )
                 }
             }
+
+            // [NEW] 하단 여백 추가 - 스크롤 시 여유 공간 확보
+            Spacer(modifier = Modifier.height(100.dp))
         }
     }
 }
