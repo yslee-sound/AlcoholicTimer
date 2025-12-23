@@ -1283,21 +1283,29 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                             }
 
                             // --- 알약 2: 챌린지 공유 토글 (일기 모드일 때만) ---
-                            // [MODIFIED] 오늘 일기일 때만 표시 (2025-12-24)
-                            if (isDiaryMode && isTodayDiary) {
+                            // [MODIFIED] 과거 일기는 비활성화 처리 (2025-12-24)
+                            if (isDiaryMode) {
                                 Spacer(modifier = Modifier.width(8.dp)) // 알약 사이 간격
+
+                                // [NEW] 과거 일기 여부에 따른 활성화 상태
+                                val isEnabled = isTodayDiary
 
                                 // 클릭 가능한 커스텀 칩 (스타일 통일을 위해 Surface 사용)
                                 Surface(
                                     shape = RoundedCornerShape(50),
-                                    // 체크 여부에 따라 배경색 변경 (진한 하늘색 vs 연한 하늘색)
-                                    color = if (isShareToCommunity)
+                                    // [MODIFIED] 비활성화 시 회색 배경 (2025-12-24)
+                                    color = if (!isEnabled) {
+                                        Color(0xFFE5E7EB) // 연한 회색 (비활성화)
+                                    } else if (isShareToCommunity) {
                                         kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
-                                    else
-                                        kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue.copy(alpha = 0.1f),
+                                    } else {
+                                        kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue.copy(alpha = 0.1f)
+                                    },
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(50))
-                                        .clickable { isShareToCommunity = !isShareToCommunity }
+                                        .clickable(enabled = isEnabled) {
+                                            isShareToCommunity = !isShareToCommunity
+                                        }
                                 ) {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
@@ -1306,21 +1314,28 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                                         Icon(
                                             imageVector = if (isShareToCommunity) Icons.Filled.CheckBox else Icons.Filled.CheckBoxOutlineBlank,
                                             contentDescription = null,
-                                            // 체크 여부에 따라 아이콘/글자색 변경 (흰색 vs 하늘색)
-                                            tint = if (isShareToCommunity)
+                                            // [MODIFIED] 비활성화 시 회색 아이콘 (2025-12-24)
+                                            tint = if (!isEnabled) {
+                                                Color(0xFF9CA3AF) // 중간 회색 (비활성화)
+                                            } else if (isShareToCommunity) {
                                                 Color.White
-                                            else
-                                                kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue,
+                                            } else {
+                                                kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
+                                            },
                                             modifier = Modifier.size(16.dp)
                                         )
                                         Spacer(modifier = Modifier.width(4.dp))
                                         Text(
                                             text = stringResource(R.string.community_share_challenge),
                                             style = MaterialTheme.typography.labelMedium.copy(
-                                                color = if (isShareToCommunity)
+                                                // [MODIFIED] 비활성화 시 회색 텍스트 (2025-12-24)
+                                                color = if (!isEnabled) {
+                                                    Color(0xFF9CA3AF) // 중간 회색 (비활성화)
+                                                } else if (isShareToCommunity) {
                                                     Color.White
-                                                else
-                                                    kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue,
+                                                } else {
+                                                    kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
+                                                },
                                                 fontWeight = FontWeight.SemiBold
                                             )
                                         )
