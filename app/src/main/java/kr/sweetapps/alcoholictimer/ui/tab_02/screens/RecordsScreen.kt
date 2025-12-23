@@ -311,58 +311,63 @@ fun RecordsScreen(
 
     // 바텀 시트: 선택된 기간에 따라 각각 다른 피커를 보여줍니다.
     if (showBottomSheet) {
-        Log.d("RecordsScreen", "바텀시트 렌더링: selectedPeriod=$selectedPeriod, allRecords.size=${allRecords.size}") // [NEW] 로그 추가
-        when (selectedPeriod) {
-            periodWeek -> {
-                Log.d("RecordsScreen", "주 선택기 표시") // [NEW] 로그 추가
+        Log.d("RecordsScreen", "바텀시트 렌더링: selectedPeriod=$selectedPeriod, allRecords.size=${allRecords.size}")
+        // [FIX] when (selectedPeriod) 대신 when { } 사용 - contains로 유연한 조건 체크 (2025-12-23)
+        when {
+            // 1. 주간 (Week) - "주", "Week" 포함 또는 정확히 periodWeek
+            selectedPeriod.contains("주") || selectedPeriod.contains("Week", ignoreCase = true) || selectedPeriod == periodWeek -> {
+                Log.d("RecordsScreen", "주 선택기 표시")
                 WeekPickerBottomSheet(
                     isVisible = true,
                     onDismiss = {
-                        Log.d("RecordsScreen", "주 선택기 닫기") // [NEW] 로그 추가
+                        Log.d("RecordsScreen", "주 선택기 닫기")
                         showBottomSheet = false
                     },
                     onWeekPicked = { weekStart, weekEnd, displayText ->
-                        Log.d("RecordsScreen", "주 선택 완료: $displayText") // [NEW] 로그 추가
+                        Log.d("RecordsScreen", "주 선택 완료: $displayText")
                         onDetailPeriodSelected(displayText)
                         onWeekRangeSelected(weekStart to weekEnd)
                         showBottomSheet = false
                     }
                 )
             }
-            periodMonth -> {
-                Log.d("RecordsScreen", "월 선택기 표시") // [NEW] 로그 추가
+
+            // 2. 월간 (Month) - "월", "Month" 포함 또는 정확히 periodMonth
+            selectedPeriod.contains("월") || selectedPeriod.contains("Month", ignoreCase = true) || selectedPeriod == periodMonth -> {
+                Log.d("RecordsScreen", "월 선택기 표시")
                 MonthPickerBottomSheet(
                     isVisible = true,
                     onDismiss = {
-                        Log.d("RecordsScreen", "월 선택기 닫기") // [NEW] 로그 추가
+                        Log.d("RecordsScreen", "월 선택기 닫기")
                         showBottomSheet = false
                     },
                     onMonthPicked = { year, month ->
-                        Log.d("RecordsScreen", "월 선택 완료: $year-$month") // [NEW] 로그 추가
+                        Log.d("RecordsScreen", "월 선택 완료: $year-$month")
                         onDetailPeriodSelected(context.getString(R.string.date_format_year_month, year, month))
                         showBottomSheet = false
                     },
-                    records = allRecords // [FIX] 전체 기록 사용
-                    // [FIX] onYearPicked 제거: 월 선택기에서 년도 스크롤은 월 필터링용이지 기간 변경용이 아님
+                    records = allRecords
                 )
             }
-            periodYear -> {
-                Log.d("RecordsScreen", "년 선택기 표시") // [NEW] 로그 추가
+
+            // 3. 연간 (Year) - "년", "Year" 포함 또는 정확히 periodYear
+            selectedPeriod.contains("년") || selectedPeriod.contains("Year", ignoreCase = true) || selectedPeriod == periodYear -> {
+                Log.d("RecordsScreen", "년 선택기 표시")
                 val initialYearForPicker = Regex("(\\d{4})").find(selectedDetailPeriod)?.groupValues?.getOrNull(1)?.toIntOrNull()
                     ?: Calendar.getInstance().get(Calendar.YEAR)
 
                 YearPickerBottomSheet(
                     isVisible = true,
                     onDismiss = {
-                        Log.d("RecordsScreen", "년 선택기 닫기") // [NEW] 로그 추가
+                        Log.d("RecordsScreen", "년 선택기 닫기")
                         showBottomSheet = false
                     },
                     onYearPicked = { year ->
-                        Log.d("RecordsScreen", "년 선택 완료: $year") // [NEW] 로그 추가
+                        Log.d("RecordsScreen", "년 선택 완료: $year")
                         onDetailPeriodSelected(context.getString(R.string.date_format_year, year))
                         showBottomSheet = false
                     },
-                    records = allRecords, // [FIX] 전체 기록 사용
+                    records = allRecords,
                     initialYear = initialYearForPicker
                 )
             }
@@ -1627,10 +1632,11 @@ private fun NativeAdItem() {
     }
 
     // 2. [FIX] 광고 로드 여부와 관계없이 일정한 높이를 가진 카드 생성 (2025-12-22)
+    // [UPDATE] 높이를 240.dp로 최적화 - MediaView 없는 중형 템플릿에 맞춤 (2025-12-23)
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(160.dp), // [FIX] 광고 영역 높이를 고정하여 UI 흔들림 방지
+            .height(240.dp), // [FIX] 320.dp -> 240.dp: 하단 여백 최적화
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
