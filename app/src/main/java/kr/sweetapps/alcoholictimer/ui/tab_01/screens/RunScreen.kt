@@ -176,10 +176,13 @@ fun RunScreenComposable(
     val savedHours = remember(weeks, freqVal, drinkHoursVal) { weeks * freqVal * drinkHoursVal }
     val lifeGainDays = remember(elapsedDaysFloat) { elapsedDaysFloat / 30.0 }
 
-    // [FIX] 환율 변환 포함 포맷팅 (CurrencyManager 사용)
+    // [FIX] 먼저 반올림 후 환율 변환 및 포맷팅 (정확한 정수 표시)
     val savedMoneyDisplay = remember(savedMoney, userSettings.currencySymbol) {
         if (isPreview) "2,097"
-        else CurrencyManager.formatMoneyNoDecimals(savedMoney, context)
+        else {
+            val roundedMoney = kotlin.math.round(savedMoney)
+            CurrencyManager.formatMoneyNoDecimals(roundedMoney, context)
+        }
     }
 
     // Debug: compute life gain explicitly (days + hours) with 1 decimal and log values
@@ -310,7 +313,7 @@ fun RunScreenComposable(
                                 val valueText: String = when (currentIndicator) {
                                     0 -> String.format(Locale.getDefault(), "%.1f", elapsedDaysFloat)
                                     1 -> progressTimeTextHM
-                                    2 -> CurrencyManager.formatMoneyNoDecimals(savedMoney, context) // [FIX] 소수점 제거 (환율 변환 포함)
+                                    2 -> CurrencyManager.formatMoneyNoDecimals(kotlin.math.round(savedMoney), context) // [FIX] 반올림 후 포맷팅
                                     3 -> FormatUtils.formatHoursValue(savedHours)
                                     else -> formattedLifeGain
                                 }

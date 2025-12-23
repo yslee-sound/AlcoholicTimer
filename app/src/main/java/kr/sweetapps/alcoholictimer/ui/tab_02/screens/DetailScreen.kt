@@ -181,13 +181,16 @@ fun DetailScreen(
     val drinkHoursVal: Double = if (!previewMode) Constants.DrinkingSettings.getDurationValue(selectedDuration) else 3.0
 
     val exactWeeks = totalHours / (24.0 * 7.0)
-    val savedMoney = (exactWeeks * freqVal * costVal.toDouble()).roundToInt()
+    val savedMoney = exactWeeks * freqVal * costVal.toDouble()  // [FIX] Double 유지 (Tab 1과 동일)
     val savedHoursExact = (exactWeeks * freqVal * drinkHoursVal)
     val achievementRate = ((totalDays / targetDays) * 100.0).coerceAtMost(100.0)
     val lifeExpectancyIncrease = totalDays / 30.0
 
     // Preview-safe display strings for values that normally require Context/FormatUtils
-    val savedMoneyStr = if (!previewMode) CurrencyManager.formatMoneyNoDecimals(savedMoney.toDouble(), context) else "₩${savedMoney}"
+    val savedMoneyStr = if (!previewMode) {
+        val roundedMoney = kotlin.math.round(savedMoney)
+        CurrencyManager.formatMoneyNoDecimals(roundedMoney, context)
+    } else "₩${savedMoney.toInt()}"
     val savedHoursStr = if (!previewMode) FormatUtils.formatHoursWithUnitFixed(context, savedHoursExact, 1) else String.format(Locale.getDefault(), "%.1f%s", savedHoursExact, stringResource(id = R.string.unit_hour))
     val lifeGainStr = if (!previewMode) FormatUtils.daysToDayHourStringFixed(context, lifeExpectancyIncrease, 1) else String.format(Locale.getDefault(), "%.1f %s", lifeExpectancyIncrease, stringResource(id = R.string.unit_day))
 
