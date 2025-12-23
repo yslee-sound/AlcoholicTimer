@@ -1170,6 +1170,8 @@ private fun ModernDashboardHeader() {
                     withStyle(style = androidx.compose.ui.text.SpanStyle(color = Color(0xFF111111))) {
                         append(stringResource(R.string.records_dashboard_title_health))
                     }
+                    // [FIX] 명시적 공백 추가 (2025-12-23)
+                    append(" ")
                     withStyle(style = androidx.compose.ui.text.SpanStyle(color = Color(0xFF6366F1))) {
                         append(stringResource(R.string.records_dashboard_title_analysis))
                     }
