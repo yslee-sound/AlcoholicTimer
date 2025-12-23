@@ -36,7 +36,7 @@ fun LevelListCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
+            // [FIX] 분홍색 배경 제거 - 투명하게 설정
     ) {
         Column(modifier = Modifier.padding(top = 0.dp)) {
             Text(
@@ -88,11 +88,7 @@ private fun LevelItem(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = when {
-                isCurrent -> level.color.copy(alpha = 0.1f)
-                isAchieved -> level.color.copy(alpha = 0.1f)
-                else -> MaterialTheme.colorScheme.surface
-            }
+            containerColor = Color.White // [FIX] 모든 카드를 흰색으로 통일
         ),
         border = when {
             isCurrent -> BorderStroke(1.5.dp, level.color)

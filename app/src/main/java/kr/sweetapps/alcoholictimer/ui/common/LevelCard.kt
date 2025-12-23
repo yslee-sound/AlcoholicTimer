@@ -192,7 +192,8 @@ fun LevelCard(
                 if (showDetailedInfo) {
                     LevelProgressSection(
                         progress = progress,
-                        currentLevel = currentLevel
+                        currentLevel = currentLevel,
+                        currentDays = currentDays // [FIX] 현재 일수 전달
                     )
                 } else {
                     // 간소화된 프로그레스 바만 표시
@@ -209,9 +210,18 @@ fun LevelCard(
 @Composable
 private fun LevelProgressSection(
     progress: Float,
-    currentLevel: LevelDefinitions.LevelInfo
+    currentLevel: LevelDefinitions.LevelInfo,
+    currentDays: Int // [FIX] 현재 일수 추가
 ) {
     val context = LocalContext.current
+
+    // [NEW] 다음 레벨 정보 가져오기
+    val currentLevelIndex = LevelDefinitions.levels.indexOf(currentLevel)
+    val nextLevel = if (currentLevelIndex in 0 until LevelDefinitions.levels.size - 1) {
+        LevelDefinitions.levels[currentLevelIndex + 1]
+    } else {
+        null
+    }
 
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -258,10 +268,11 @@ private fun LevelProgressSection(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Percentage
+        // [FIX] Percentage + 남은 일수 표시
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically // [FIX] 수직 중앙 정렬
         ) {
             Text(
                 text = String.format(Locale.getDefault(), "%.0f%%", progress * 100.0),
@@ -271,6 +282,29 @@ private fun LevelProgressSection(
                     fontWeight = FontWeight.Medium
                 )
             )
+
+            // [NEW] 남은 일수 표시
+            if (nextLevel != null) {
+                val remainingDaysFloat = (nextLevel.start - currentDays.toFloat()).coerceAtLeast(0f)
+                val remainingDaysInt = kotlin.math.floor(remainingDaysFloat.toDouble()).toInt()
+                val remainingHoursInt = kotlin.math.floor(((remainingDaysFloat - remainingDaysInt) * 24f).toDouble()).toInt()
+
+                val remainingText = when {
+                    remainingDaysInt > 0 && remainingHoursInt > 0 -> "$remainingDaysInt${context.getString(R.string.level_day_unit)} $remainingHoursInt${context.getString(R.string.level_hour_unit)} ${context.getString(R.string.level_days_remaining)}"
+                    remainingDaysInt > 0 -> "$remainingDaysInt${context.getString(R.string.level_day_unit)} ${context.getString(R.string.level_days_remaining)}"
+                    remainingHoursInt > 0 -> "$remainingHoursInt${context.getString(R.string.level_hour_unit)} ${context.getString(R.string.level_hours_remaining)}"
+                    else -> context.getString(R.string.level_soon_levelup)
+                }
+
+                Text(
+                    text = remainingText,
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                )
+            }
         }
     }
 }
