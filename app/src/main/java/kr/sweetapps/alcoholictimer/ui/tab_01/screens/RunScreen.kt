@@ -5,11 +5,15 @@ import android.app.Activity
 import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -25,7 +29,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.PlatformTextStyle
-import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.ColorFilter
@@ -39,13 +42,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.foundation.shape.RoundedCornerShape
 import java.util.Locale
 import kr.sweetapps.alcoholictimer.util.constants.Constants
-import kr.sweetapps.alcoholictimer.ui.tab_01.components.StandardScreenWithBottomButton
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions
 import kr.sweetapps.alcoholictimer.util.utils.FormatUtils
 import kr.sweetapps.alcoholictimer.R
+import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
@@ -227,60 +229,65 @@ fun RunScreenComposable(
     // 이제 TimerTimeManager와 Tab01ViewModel에서 자동으로 처리됨
     // 사용자가 어느 화면에 있든 타이머 완료 시 자동으로 DetailScreen으로 이동
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        StandardScreenWithBottomButton(
-            topPadding = 0.dp,
-            horizontalPadding = RUN_HORIZONTAL_PADDING,
-            forceFillMaxWidth = true,
-            // backgroundDecoration: no dark overlay to avoid dimming card contents
-            backgroundDecoration = {
-                Box(modifier = Modifier.matchParentSize().background(Brush.verticalGradient(0.0f to Color.Transparent, 1.0f to Color.Transparent)))
-            },
-            screenBackground = Color(0xFFEEEDE9),
-            // Ensure this screen uses the local card spacing
-            cardVerticalSpacing = RUN_CARDS_VERTICAL_SPACING_TOP,
-            topContent = {
-                Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(RUN_CARDS_VERTICAL_SPACING_TOP)) {
-                    // Remove top group card and place 3 chips outside Card
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = RUN_TOP_GROUP_TOP_PADDING),
-                        horizontalArrangement = Arrangement.spacedBy(RUN_TOP_GROUP_CHIP_SPACING)
-                    ) {
-                        // [NEW] 아이콘 색상을 검정색으로 변경
-                        val commonIconColor = Color.Black
+    // [MODIFIED] StandardScreenWithBottomButton 제거, 일반 스크롤 Column으로 변경 (2025-12-24)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFEEEDE9)) // screenBackground
+    ) {
+        // 배경 장식
+        Box(modifier = Modifier.matchParentSize().background(Brush.verticalGradient(0.0f to Color.Transparent, 1.0f to Color.Transparent)))
 
-                        // 1. Goal
-                        RunStatChip(
-                            title = stringResource(id = R.string.stat_goal_days),
-                            value = goalDaysText,
-                            color = commonIconColor, // ★ 공통 컬러 적용
-                            modifier = Modifier.weight(1f),
-                             iconRes = kr.sweetapps.alcoholictimer.R.drawable.calendar_blank,
-                            contentAlignment = runStatAlignments[0]
-                        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()) // [NEW] 전체 스크롤 적용
+                .padding(horizontal = RUN_HORIZONTAL_PADDING)
+            // [REMOVED] verticalArrangement 제거 - 각 요소 간격을 수동 제어 (2025-12-24)
+        ) {
+            // Remove top group card and place 3 chips outside Card
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = RUN_TOP_GROUP_TOP_PADDING),
+                horizontalArrangement = Arrangement.spacedBy(RUN_TOP_GROUP_CHIP_SPACING)
+            ) {
+                // [NEW] 아이콘 색상을 검정색으로 변경
+                val commonIconColor = Color.Black
 
-                        // 2. Level
-                        RunStatChip(
-                            title = stringResource(id = R.string.stat_level),
-                            value = levelDisplayText,
-                            color = commonIconColor, // ★ 공통 컬러 적용
-                            modifier = Modifier.weight(1f),
-                            iconRes = kr.sweetapps.alcoholictimer.R.drawable.trophy,
-                            contentAlignment = runStatAlignments[1]
-                        )
+                // 1. Goal
+                RunStatChip(
+                    title = stringResource(id = R.string.stat_goal_days),
+                    value = goalDaysText,
+                    color = commonIconColor, // ★ 공통 컬러 적용
+                    modifier = Modifier.weight(1f),
+                     iconRes = kr.sweetapps.alcoholictimer.R.drawable.calendar_blank,
+                    contentAlignment = runStatAlignments[0]
+                )
 
-                        // 3. Money Saved
-                        RunStatChip(
-                            title = stringResource(id = R.string.stat_saved_money_short),
-                            value = savedMoneyDisplay,
-                            color = commonIconColor, // ★ 공통 컬러 적용
-                            modifier = Modifier.weight(1f),
-                            iconRes = kr.sweetapps.alcoholictimer.R.drawable.chart_line_up,
+                // 2. Level
+                RunStatChip(
+                    title = stringResource(id = R.string.stat_level),
+                    value = levelDisplayText,
+                    color = commonIconColor, // ★ 공통 컬러 적용
+                    modifier = Modifier.weight(1f),
+                    iconRes = kr.sweetapps.alcoholictimer.R.drawable.trophy,
+                    contentAlignment = runStatAlignments[1]
+                )
+
+                // 3. Money Saved
+                RunStatChip(
+                    title = stringResource(id = R.string.stat_saved_money_short),
+                    value = savedMoneyDisplay,
+                    color = commonIconColor, // ★ 공통 컬러 적용
+                    modifier = Modifier.weight(1f),
+                    iconRes = kr.sweetapps.alcoholictimer.R.drawable.chart_line_up,
                             contentAlignment = runStatAlignments[2]
                         )
                     }
+
+                    // [NEW] 상단 칩과 메인 카드 사이 간격 (2025-12-24)
+                    Spacer(modifier = Modifier.height(16.dp)) // [MODIFIED] 15dp → 16dp 표준 간격 통일 (2025-12-24)
 
                     // [FIXED_SIZE] 중간 큰 카드 높이를 폰트 스케일 영향 받지 않도록 고정
                     val density = LocalDensity.current
@@ -478,6 +485,9 @@ fun RunScreenComposable(
                         }
                     }
 
+                    // [NEW] 메인 카드와 프로그레스 바 사이 간격 (2025-12-24)
+                    Spacer(modifier = Modifier.height(16.dp)) // [MODIFIED] 15dp → 16dp 표준 간격 통일 (2025-12-24)
+
                     // Replace transparent card + surface with a single elevated white Card matching top cards
                     // [FIX] 프로그레스 카드와 응원 문구를 하나의 Column으로 묶어서 spacing 제거
                     Column(
@@ -501,23 +511,37 @@ fun RunScreenComposable(
                                 ModernProgressIndicatorSimple(progress = progress, targetDays = targetDays)
                             }
                         }
-
-                        // [NEW] 공통 컴포넌트 사용 (StartScreen과 동일한 디자인 & 2줄 제한 로직 적용)
-                        kr.sweetapps.alcoholictimer.ui.tab_01.components.QuoteDisplay(
-                            modifier = Modifier.padding(bottom = 12.dp) // 하단 여백만 살짝 조정, 12.dp
-                        )
                     }
+
+                    // [NEW] 네이티브 광고 영역 (프로그레스 바와 명언 사이) (2025-12-24)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    NativeAdItem()
+                    // [MODIFIED] QuoteDisplay 내부 vertical padding 10dp를 고려하여 6dp만 추가 (총 16dp) (2025-12-24)
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    // [NEW] 공통 컴포넌트 사용 (StartScreen과 동일한 디자인 & 2줄 제한 로직 적용)
+                    // [MODIFIED] 불필요한 bottom padding 제거 - QuoteDisplay 내부 패딩 사용 (2025-12-24)
+                    kr.sweetapps.alcoholictimer.ui.tab_01.components.QuoteDisplay()
+
+                    // [NEW] STOP 버튼을 스크롤 최하단으로 이동 (2025-12-24)
+                    // [MODIFIED] QuoteDisplay 내부 하단 패딩 10dp를 고려하여 22dp만 추가 (총 32dp) (2025-12-24)
+                    Spacer(modifier = Modifier.height(22.dp))
+
+                    // 중앙 정렬을 위한 Box
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        ModernStopButtonSimple(onStop = {
+                            onRequestQuit?.invoke()
+                        })
+                    }
+
+                    // 바닥 여백
+                    Spacer(modifier = Modifier.height(100.dp)) // [MODIFIED] 24dp → 100dp로 변경 (2025-12-24)
                 }
-            },
-            bottomButton = {
-                ModernStopButtonSimple(onStop = {
-                    onRequestQuit?.invoke()
-                })
-            },
-            // bottomAd = { AdmobBanner() } // moved to MainActivity BaseScaffold during Phase-1
-        )
-    }
-}
+            } // Box 닫기
+    } // RunScreenComposable 닫기
 
 @Composable
 fun ModernProgressIndicatorSimple(progress: Float, targetDays: Float = 30f) {
@@ -717,6 +741,178 @@ private fun saveCompletedRecord(context: Context, startTime: Long, endTime: Long
         list.put(record)
         sharedPref.edit().putString(Constants.PREF_SOBRIETY_RECORDS, list.toString()).apply()
     } catch (_: Exception) { }
+}
+
+/**
+ * [NEW] 네이티브 광고 컴포넌트 (타이머 메인 화면용) (2025-12-24)
+ * - 프로그레스 바와 명언 사이에 배치
+ * - RecordsScreen의 NativeAdItem과 동일한 구조
+ */
+@Composable
+private fun NativeAdItem() {
+    val context = LocalContext.current
+
+    val adUnitId = try { BuildConfig.ADMOB_NATIVE_ID } catch (_: Throwable) { "ca-app-pub-3940256099942544/2247696110" }
+
+    var nativeAd by remember { mutableStateOf<com.google.android.gms.ads.nativead.NativeAd?>(null) }
+
+    // 광고 로드 로직
+    LaunchedEffect(Unit) {
+        try {
+            try {
+                com.google.android.gms.ads.MobileAds.initialize(context)
+            } catch (initEx: Exception) {
+                android.util.Log.w("NativeAd", "MobileAds.initialize failed: ${initEx.message}")
+            }
+            val adLoader = com.google.android.gms.ads.AdLoader.Builder(context, adUnitId)
+                .forNativeAd { ad: com.google.android.gms.ads.nativead.NativeAd ->
+                    nativeAd = ad
+                }
+                .withNativeAdOptions(com.google.android.gms.ads.nativead.NativeAdOptions.Builder().build())
+                .build()
+
+            try {
+                adLoader.loadAd(com.google.android.gms.ads.AdRequest.Builder().build())
+            } catch (se: SecurityException) {
+                android.util.Log.w("NativeAd", "Ad load blocked by SecurityException: ${se.message}")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("NativeAd", "Failed setting up ad loader", e)
+        }
+    }
+
+    // 광고 카드 (로딩 중에는 고정 높이, 로딩 완료 후 콘텐츠에 맞춤)
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (nativeAd == null) Modifier.height(250.dp)
+                else Modifier.wrapContentHeight()
+            ),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        if (nativeAd != null) {
+            // 광고 로드 완료 시
+            androidx.compose.ui.viewinterop.AndroidView(
+                factory = { ctx ->
+                    val adView = com.google.android.gms.ads.nativead.NativeAdView(ctx)
+
+                    val container = android.widget.LinearLayout(ctx).apply {
+                        orientation = android.widget.LinearLayout.VERTICAL
+                        setBackgroundColor(android.graphics.Color.WHITE)
+                        setPadding(40, 40, 40, 40)
+                        layoutParams = android.widget.LinearLayout.LayoutParams(
+                            android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                        )
+                    }
+
+                    // 상단: 아이콘 + 광고 배지 + 헤드라인
+                    val headerRow = android.widget.LinearLayout(ctx).apply {
+                        orientation = android.widget.LinearLayout.HORIZONTAL
+                        gravity = android.view.Gravity.CENTER_VERTICAL
+                    }
+
+                    val iconView = android.widget.ImageView(ctx).apply {
+                        layoutParams = android.widget.LinearLayout.LayoutParams(110, 110)
+                    }
+                    headerRow.addView(iconView)
+
+                    val textContainer = android.widget.LinearLayout(ctx).apply {
+                        orientation = android.widget.LinearLayout.VERTICAL
+                        layoutParams = android.widget.LinearLayout.LayoutParams(
+                            android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                        ).apply {
+                            marginStart = 24
+                        }
+                    }
+
+                    // 광고 배지
+                    val badgeView = android.widget.TextView(ctx).apply {
+                        text = "광고"
+                        textSize = 10f
+                        setTextColor(android.graphics.Color.WHITE)
+                        setBackgroundColor(android.graphics.Color.parseColor("#FBC02D"))
+                        setPadding(8, 2, 8, 2)
+                        layoutParams = android.widget.LinearLayout.LayoutParams(
+                            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                        ).apply {
+                            bottomMargin = 4
+                        }
+                    }
+                    textContainer.addView(badgeView)
+
+                    val headlineView = android.widget.TextView(ctx).apply {
+                        textSize = 15f
+                        setTypeface(null, android.graphics.Typeface.BOLD)
+                        setTextColor(android.graphics.Color.parseColor("#111827"))
+                        maxLines = 1
+                        ellipsize = android.text.TextUtils.TruncateAt.END
+                    }
+                    textContainer.addView(headlineView)
+
+                    headerRow.addView(textContainer)
+                    container.addView(headerRow)
+
+                    // 중간: Body
+                    val bodyView = android.widget.TextView(ctx).apply {
+                        textSize = 13f
+                        setPadding(0, 24, 0, 32)
+                        setTextColor(android.graphics.Color.parseColor("#6B7280"))
+                        maxLines = 2
+                        ellipsize = android.text.TextUtils.TruncateAt.END
+                    }
+                    container.addView(bodyView)
+
+                    // 하단: 버튼
+                    val callToActionView = android.widget.Button(ctx).apply {
+                        setBackgroundColor(android.graphics.Color.parseColor("#F3F4F6"))
+                        setTextColor(android.graphics.Color.parseColor("#4B5563"))
+                        textSize = 13f
+                        stateListAnimator = null
+                        layoutParams = android.widget.LinearLayout.LayoutParams(
+                            android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                        )
+                    }
+                    container.addView(callToActionView)
+
+                    adView.addView(container)
+                    adView.iconView = iconView
+                    adView.headlineView = headlineView
+                    adView.bodyView = bodyView
+                    adView.callToActionView = callToActionView
+                    adView
+                },
+                update = { adView ->
+                    val ad = nativeAd!!
+                    (adView.headlineView as android.widget.TextView).text = ad.headline
+                    (adView.bodyView as android.widget.TextView).text = ad.body
+                    (adView.callToActionView as android.widget.Button).text = ad.callToAction ?: "자세히 보기"
+                    ad.icon?.let { (adView.iconView as android.widget.ImageView).setImageDrawable(it.drawable) }
+                    adView.setNativeAd(ad)
+                },
+                modifier = Modifier.fillMaxWidth().wrapContentHeight()
+            )
+        } else {
+            // 로딩 중 플레이스홀더
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(250.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(40.dp),
+                    color = colorResource(id = R.color.color_progress_primary)
+                )
+            }
+        }
+    }
 }
 
 // Preview: show the real Run screen composable as-is
