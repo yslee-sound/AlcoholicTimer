@@ -1135,15 +1135,13 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
      ) { innerPadding ->
              // [NEW] 스크롤 상태: 화면 콘텐츠가 길어질 경우 위아래로 스크롤 가능하게 함
              val scrollState = rememberScrollState()
-             val localScope = rememberCoroutineScope()
 
-             // 자동 스크롤: 이미지가 추가되면 맨 아래로 스크롤하여 사용자가 바로 이미지를 보도록 함
-             LaunchedEffect(selectedImageUri) {
-                 if (selectedImageUri != null) {
-                     // animateScrollTo에 큰 값을 줘도 안전: ScrollState는 콘텐츠 크기에 맞게 clamp됨
-                     localScope.launch { scrollState.animateScrollTo(Int.MAX_VALUE) }
-                 }
-             }
+             // [REMOVED] 자동 스크롤 제거 - 사용자가 작성하던 위치 유지 (2025-12-23)
+             // LaunchedEffect(selectedImageUri) {
+             //     if (selectedImageUri != null) {
+             //         localScope.launch { scrollState.animateScrollTo(Int.MAX_VALUE) }
+             //     }
+             // }
 
              Column(
                  modifier = Modifier

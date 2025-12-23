@@ -133,10 +133,10 @@ fun NavGraphBuilder.addTab02DetailGraph(
             showTopBar = true,
             isResultMode = true,
             onBack = {
-                android.util.Log.d("NavGraph", "[Result] 뒤로 가기 -> Start 화면으로 이동")
+                android.util.Log.d("NavGraph", "[Result] 뒤로가기 -> home")
                 tab02ViewModel.consumePendingDetailRoute()
-                navController.navigate(Screen.Start.route) {
-                    popUpTo(Screen.Start.route) { inclusive = true } // [FIX] Start 화면으로 정리
+                navController.navigate("home") {
+                    popUpTo("home") { inclusive = true } // [FIX] home으로 이동하며 스택 초기화
                     launchSingleTop = true
                 }
             },
@@ -150,10 +150,10 @@ fun NavGraphBuilder.addTab02DetailGraph(
                 }
             },
             onNavigateToHome = {
-                android.util.Log.d("NavGraph", "[Result] 다시 시작하기 -> Start")
+                android.util.Log.d("NavGraph", "[Result] 다시 시작하기 -> home")
                 tab02ViewModel.consumePendingDetailRoute()
-                navController.navigate(Screen.Start.route) {
-                    popUpTo(Screen.Start.route) { inclusive = true } // [FIX] Start 화면으로 정리 (Start 포함하여 제거 후 새로 생성)
+                navController.navigate("home") {
+                    popUpTo("home") { inclusive = true } // [FIX] home으로 이동하며 스택 초기화
                     launchSingleTop = true
                 }
             }

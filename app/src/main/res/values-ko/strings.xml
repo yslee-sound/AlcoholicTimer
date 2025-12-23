@@ -202,10 +202,10 @@
     <string name="settings_duration_short_label">짧음 (2시간 이하)</string>
     <string name="settings_duration_medium_label">보통 (3~5시간)</string>
     <string name="settings_duration_long_label">긴 (6시간 이상)</string>
-    <string name="settings_currency">통화</string>
-    <string name="settings_currency_auto">자동 (지역 기반)</string>
+    <string name="settings_currency">통화 설정</string>
+    <string name="settings_currency_auto">시스템 설정</string>
     <string name="settings_currency_current">현재: %1$s</string>
-    <string name="settings_currency_current_auto">현재: %1$s (자동)</string>
+    <string name="settings_currency_current_auto">현재: %1$s (시스템 설정)</string>
     <string name="currency_krw">한국 원 (₩)</string>
     <string name="currency_jpy">일본 엔 (¥)</string>
     <string name="currency_usd">미국 달러 ($)</string>

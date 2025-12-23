@@ -203,9 +203,9 @@
     <string name="settings_duration_medium_label">Medium (3-5 hours)</string>
     <string name="settings_duration_long_label">Long (Over 6 hours)</string>
     <string name="settings_currency">Currency Settings</string>
-    <string name="settings_currency_auto">Auto (Region-based)</string>
+    <string name="settings_currency_auto">System Default</string>
     <string name="settings_currency_current">Current: %1$s</string>
-    <string name="settings_currency_current_auto">Current: %1$s (Auto)</string>
+    <string name="settings_currency_current_auto">Current: %1$s (System Default)</string>
     <string name="currency_krw">Korean Won (₩)</string>
     <string name="currency_jpy">Japanese Yen (¥)</string>
     <string name="currency_usd">US Dollar ($)</string>
