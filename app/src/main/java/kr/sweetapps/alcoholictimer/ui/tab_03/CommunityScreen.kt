@@ -137,7 +137,7 @@ fun CommunityScreen(
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            containerColor = Color(0xFFF5F5F5),
+            containerColor = Color.White, // [FIX] 배경색을 흰색으로 변경
             contentWindowInsets = WindowInsets(0.dp),
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { innerPadding ->

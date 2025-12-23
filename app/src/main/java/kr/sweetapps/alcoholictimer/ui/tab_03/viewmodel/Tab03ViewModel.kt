@@ -101,7 +101,7 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             var lastRealTime = System.currentTimeMillis()
             while (true) {
-                delay(100L) // 0.1초마다 갱신 (부드러운 애니메이션)
+                delay(1000L) // [OPTIMIZED] 1초마다 갱신 (성능 최적화)
 
                 val currentRealTime = System.currentTimeMillis()
                 val realDelta = currentRealTime - lastRealTime
@@ -160,10 +160,7 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
                     _levelDays.value = days
                     _currentLevel.value = LevelDefinitions.getLevelInfo(days)
 
-                    // [DEBUG] 레벨 업데이트 로그 출력
-                    Log.d("Tab03ViewModel", "레벨 업데이트: " +
-                            "total=${total}ms, days=$days, " +
-                            "level=${_currentLevel.value.nameResId}, daysFloat=${_totalElapsedDaysFloat.value}")
+                    // [REMOVED] 무한 반복 로그 제거 (성능 최적화)
                 }
             } catch (e: CancellationException) {
                 // 취소 예외는 정상 동작이므로 전파

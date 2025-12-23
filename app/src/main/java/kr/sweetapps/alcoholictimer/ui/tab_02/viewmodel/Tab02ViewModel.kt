@@ -122,7 +122,7 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
             }.collect { statsData ->
                 // 계산된 결과를 StateFlow에 반영
                 _statsState.value = statsData
-                Log.d("Tab02ViewModel", "Stats updated: totalDays=${statsData.totalDays}, savedMoney=${statsData.savedMoney}")
+                // [REMOVED] 무한 반복 로그 제거 (성능 최적화)
             }
         }
     }
