@@ -223,6 +223,9 @@
     <string name="community_title">匿名応援チャレンジ</string>
     <string name="community_title_support">応援</string>
     <string name="community_title_challenge">チャレンジ</string>
+    <string name="community_empty_title">まだ投稿がありません</string>
+    <string name="community_empty_subtitle">最初にストーリーを共有してください！\n匿名で気軽に共有できます。</string>
+    <string name="community_empty_button">投稿する</string>
 
     <!-- Records Dashboard Header -->
     <string name="records_dashboard_title_health">私の健康 </string>

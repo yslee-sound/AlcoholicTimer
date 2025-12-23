@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+﻿﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App Name -->
     <string name="app_name">Alcoholic Timer</string>
@@ -223,6 +223,9 @@
     <string name="community_title">응원 챌린지</string>
     <string name="community_title_support">응원</string>
     <string name="community_title_challenge">챌린지</string>
+    <string name="community_empty_title">아직 작성된 글이 없어요</string>
+    <string name="community_empty_subtitle">가장 먼저 이야기를 들려주세요!\n익명으로 편하게 나눌 수 있어요.</string>
+    <string name="community_empty_button">글 작성하기</string>
 
     <!-- Records Dashboard Header -->
     <string name="records_dashboard_title_health">나의 건강 </string>

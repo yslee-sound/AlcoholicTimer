@@ -1789,7 +1789,7 @@ private fun EmptyState(
 
         // 메인 텍스트
         Text(
-            text = "아직 작성된 글이 없어요",
+            text = stringResource(R.string.community_empty_title),
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = Color(0xFF111111)
         )
@@ -1798,7 +1798,7 @@ private fun EmptyState(
 
         // 서브 텍스트
         Text(
-            text = "가장 먼저 이야기를 들려주세요!\n익명으로 편하게 나눌 수 있어요.",
+            text = stringResource(R.string.community_empty_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF666666),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -1815,7 +1815,7 @@ private fun EmptyState(
             ),
             shape = RoundedCornerShape(50) // 둥근 버튼
         ) {
-            Text("글 작성하기", modifier = Modifier.padding(horizontal = 8.dp))
+            Text(stringResource(R.string.community_empty_button), modifier = Modifier.padding(horizontal = 8.dp))
         }
     }
 }

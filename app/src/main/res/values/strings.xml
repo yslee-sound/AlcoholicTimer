@@ -223,6 +223,9 @@
     <string name="community_title">Anonymous Support Challenge</string>
     <string name="community_title_support">Support</string>
     <string name="community_title_challenge">Challenge</string>
+    <string name="community_empty_title">No posts yet</string>
+    <string name="community_empty_subtitle">Be the first to share your story!\nYou can share anonymously and comfortably.</string>
+    <string name="community_empty_button">Write a Post</string>
 
     <!-- Records Dashboard Header -->
     <string name="records_dashboard_title_health">My Health </string>
