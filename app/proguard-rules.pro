@@ -48,3 +48,29 @@
 # BuildConfig 보존 (광고 유닛 ID 포함 가능)
 -keep class kr.sweetapps.alcoholictimer.BuildConfig { *; }
 
+# ===================================================
+# 데이터 모델 클래스 (Firebase/Supabase 연동)
+# [FIX] 릴리즈 빌드 난독화 방지 (2025-12-23)
+# ===================================================
+# Supabase 모델 클래스 보존
+-keep class kr.sweetapps.alcoholictimer.data.supabase.model.** { *; }
+
+# Firestore/Firebase 모델 클래스 보존
+-keep class kr.sweetapps.alcoholictimer.data.model.** { *; }
+
+# kotlinx.serialization 보존
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.AnnotationsKt
+-keepclassmembers class kotlinx.serialization.json.** {
+    *** Companion;
+}
+-keepclasseswithmembers class kotlinx.serialization.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keep,includedescriptorclasses class kr.sweetapps.alcoholictimer.**$$serializer { *; }
+-keepclassmembers class kr.sweetapps.alcoholictimer.** {
+    *** Companion;
+}
+-keepclasseswithmembers class kr.sweetapps.alcoholictimer.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}

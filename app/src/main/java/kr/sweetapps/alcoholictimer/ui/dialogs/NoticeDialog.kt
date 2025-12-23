@@ -274,8 +274,9 @@ fun AnnouncementDialog(
                         }
 
                         // 제목 (Supabase의 title 필드) - 스크롤 안 됨
+                        // [FIX] 다국어 지원 - displayTitle 사용 (2025-12-23)
                         Text(
-                            text = announcement.title ?: "",
+                            text = announcement.displayTitle,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1A1A1A),
@@ -286,6 +287,7 @@ fun AnnouncementDialog(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         // 내용 (Supabase의 content 필드) - 이 부분만 스크롤 ✅
+                        // [FIX] 다국어 지원 - displayContent 사용 (2025-12-23)
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -293,7 +295,7 @@ fun AnnouncementDialog(
                                 .heightIn(max = 300.dp)    // 최대 높이 제한
                         ) {
                             Text(
-                                text = announcement.content,
+                                text = announcement.displayContent,
                                 fontSize = 16.sp,
                                 color = Color(0xFF666666),
                                 textAlign = TextAlign.Start,

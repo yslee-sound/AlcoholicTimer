@@ -183,15 +183,17 @@ private fun NotificationCard(notification: NotificationItem) {
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
+                // [FIX] 다국어 지원 - displayTitle 사용 (2025-12-23)
                 Text(
-                    text = notification.title,
+                    text = notification.displayTitle,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF333333)
                 )
 
+                // [FIX] 다국어 지원 - displayContent 사용 (2025-12-23)
                 Text(
-                    text = notification.content,
+                    text = notification.displayContent,
                     fontSize = 14.sp,
                     color = Color(0xFF666666),
                     lineHeight = 20.sp
@@ -199,8 +201,9 @@ private fun NotificationCard(notification: NotificationItem) {
 
                 Spacer(modifier = Modifier.height(4.dp))
 
+                // [FIX] displayDate 사용 - 데이터 모델의 통합된 포맷 로직 활용 (2025-12-23)
                 Text(
-                    text = formatTimestamp(notification.timestamp), // [NEW] Date? 타입 처리
+                    text = notification.displayDate.ifBlank { formatTimestamp(notification.timestamp) },
                     fontSize = 12.sp,
                     color = Color(0xFF999999)
                 )
