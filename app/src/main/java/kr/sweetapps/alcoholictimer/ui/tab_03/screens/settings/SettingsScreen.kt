@@ -327,35 +327,53 @@ private fun AboutScreenContent(
     showPrivacyOptions: Boolean,
     showDebugMenu: Boolean
 ) {
+    // [NEW] 바텀시트 상태 관리 (2025-12-23)
+    val showAvatarSheet = remember { mutableStateOf(false) }
+    val showNicknameSheet = remember { mutableStateOf(false) }
+    val sp = remember { androidx.preference.PreferenceManager.getDefaultSharedPreferences(context) }
 
-        // [NEW] Profile Row with Avatar
+    Column {
+        // [NEW] Profile Row with Avatar (분리된 클릭 영역)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { viewModel.setShowAvatarDialog(true) } // 아바타 클릭 시 선택 다이얼로그
                 .padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 0.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // [NEW] 아바타 이미지 (동그라미)
-            Image(
-                painter = painterResource(id = AvatarManager.getAvatarResId(uiState.avatarIndex)),
-                contentDescription = "프로필 아바타",
+            // [NEW] 아바타 이미지 (동그라미) - 독립 클릭 영역
+            Box(
                 modifier = Modifier
                     .size(80.dp)
-                    .border(2.dp, Color(0xFFE0E0E0), CircleShape) // 회색 테두리
+                    .border(2.dp, Color(0xFFE0E0E0), CircleShape)
                     .clip(CircleShape)
                     .background(Color(0xFFF5F5F5))
-            )
+                    .clickable { showAvatarSheet.value = true } // [FIX] 아바타 터치 → 바텀시트
+            ) {
+                Image(
+                    painter = painterResource(id = AvatarManager.getAvatarResId(uiState.avatarIndex)),
+                    contentDescription = "프로필 아바타",
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
             Spacer(modifier = Modifier.width(dims.spacing.sm))
-            Text(text = nickname, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-            Spacer(modifier = Modifier.width(4.dp))
-            Icon(
-                painter = painterResource(id = R.drawable.ic_caret_right),
-                contentDescription = null,
-                tint = Color.Black,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.weight(1f))
+
+            // [NEW] 닉네임 영역 - 독립 클릭 영역
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { showNicknameSheet.value = true }, // [FIX] 닉네임 터치 → 바텀시트
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = nickname, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                Spacer(modifier = Modifier.width(4.dp))
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_caret_right),
+                    contentDescription = null,
+                    tint = Color.Black,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -699,6 +717,32 @@ private fun AboutScreenContent(
                 })
             }
         }
+    } // Column 닫기
+
+    // [NEW] 바텀시트 호출 (2025-12-23)
+    if (showAvatarSheet.value) {
+        AvatarEditBottomSheet(
+            currentAvatarIndex = uiState.avatarIndex,
+            onAvatarSelected = { index ->
+                viewModel.updateAvatar(index)
+            },
+            onDismiss = { showAvatarSheet.value = false }
+        )
+    }
+
+    if (showNicknameSheet.value) {
+        NicknameEditBottomSheet(
+            currentNickname = nickname,
+            onSave = { newNickname ->
+                sp.edit().putString("nickname", newNickname).apply()
+                val userRepository = kr.sweetapps.alcoholictimer.data.repository.UserRepository(context)
+                userRepository.saveNickname(newNickname)
+                // [FIX] ViewModel 상태 즉시 업데이트 (2025-12-23)
+                viewModel.refreshNickname(newNickname)
+            },
+            onDismiss = { showNicknameSheet.value = false }
+        )
+    }
 }
 
 

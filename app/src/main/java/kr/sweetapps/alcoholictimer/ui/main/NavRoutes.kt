@@ -94,6 +94,12 @@ sealed class Screen(val route: String) {
     data object NicknameEdit : Screen("nickname_edit")
 
     /**
+     * [NEW] Profile edit screen (프로필 전체 편집)
+     * 아바타와 닉네임을 한 번에 수정 (2025-12-23)
+     */
+    data object ProfileEdit : Screen("profile_edit")
+
+    /**
      * Currency settings screen
      */
     data object CurrencySettings : Screen("currency_settings")

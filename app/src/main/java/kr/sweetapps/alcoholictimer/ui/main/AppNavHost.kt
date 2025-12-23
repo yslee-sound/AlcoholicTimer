@@ -369,7 +369,7 @@ fun AppNavHost(
             AboutScreen(
                 onNavigateLicenses = { navController.navigate(Screen.AboutLicenses.route) },
                 onNavigatePrivacy = { navController.navigate(Screen.Privacy.route) },
-                onNavigateEditNickname = { navController.navigate(Screen.NicknameEdit.route) },
+                onNavigateEditNickname = { navController.navigate(Screen.ProfileEdit.route) }, // [FIX] ProfileEdit으로 변경 (2025-12-23)
                 onNavigateCurrencySettings = { navController.navigate(Screen.CurrencySettings.route) },
                 onNavigateHabitSettings = { navController.navigate(Screen.HabitSettings.route) },
                 onNavigateDebug = { navController.navigate(Screen.Debug.route) },
