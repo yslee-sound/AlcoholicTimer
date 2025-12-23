@@ -39,6 +39,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
@@ -352,6 +354,61 @@ fun DebugScreen(
                 color = Color.Gray,
                 modifier = Modifier.padding(start = 4.dp, top = 4.dp)
             )
+
+            // [NEW] 테스트 일기 전체 삭제 버튼 (2025-12-23)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 확인 다이얼로그 상태
+            val showDeleteDialog = remember { mutableStateOf(false) }
+
+            Button(
+                onClick = { showDeleteDialog.value = true },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFEF4444) // 빨간색 (위험한 작업 표시)
+                )
+            ) {
+                Text("테스트 일기 전체 삭제 (사진 포함)")
+            }
+            Text(
+                text = "⚠️ DB의 모든 일기와 이미지 파일을 삭제합니다",
+                fontSize = 12.sp,
+                color = Color(0xFFEF4444),
+                modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+            )
+
+            // 삭제 확인 다이얼로그
+            if (showDeleteDialog.value) {
+                AlertDialog(
+                    onDismissRequest = { showDeleteDialog.value = false },
+                    title = { Text("일기 데이터 전체 삭제") },
+                    text = {
+                        Text("모든 일기 데이터와 이미지 파일을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.")
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showDeleteDialog.value = false
+                                scope.launch {
+                                    try {
+                                        diaryViewModel.deleteAllTestDiaries()
+                                        Toast.makeText(context, "✅ 모든 일기가 삭제되었습니다.", Toast.LENGTH_LONG).show()
+                                    } catch (e: Exception) {
+                                        Toast.makeText(context, "❌ 삭제 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            }
+                        ) {
+                            Text("삭제", color = Color(0xFFEF4444))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDeleteDialog.value = false }) {
+                            Text("취소")
+                        }
+                    }
+                )
+            }
 
             // [NEW] 랜덤 데이터 생성 섹션
             Spacer(modifier = Modifier.height(24.dp))

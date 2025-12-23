@@ -235,6 +235,9 @@
     <string name="records_diary_write_action">작성</string>
     <string name="records_diary_view_all">전체 보기</string>
 
+    <!-- Diary Detail -->
+    <string name="diary_detail_title">나의 기록</string>
+
     <!-- Navigation -->
     <string name="default_nickname">알중이1</string>
     <string name="drawer_menu_sobriety">금주</string>

@@ -46,10 +46,17 @@ class DiaryRepository(private val diaryDao: DiaryDao) {
     }
 
     /**
+     * [NEW] 모든 일기 목록을 List로 가져옵니다 (Flow가 아닌 일회성 조회)
+     * 테스트 데이터 삭제 시 사용 (2025-12-23)
+     */
+    suspend fun getAllDiaries(): List<DiaryEntity> {
+        return diaryDao.getAllDiariesList()
+    }
+
+    /**
      * [테스트용] 모든 일기를 삭제합니다.
      */
     suspend fun deleteAllDiaries() {
         diaryDao.deleteAllDiaries()
     }
 }
-

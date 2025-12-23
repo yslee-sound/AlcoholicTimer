@@ -235,6 +235,9 @@
     <string name="records_diary_write_action">Write</string>
     <string name="records_diary_view_all">View All</string>
 
+    <!-- Diary Detail -->
+    <string name="diary_detail_title">Catatan Saya</string>
+
     <!-- Navigation -->
     <string name="default_nickname">SoberHero1</string>
     <string name="drawer_menu_sobriety">Sobriety</string>

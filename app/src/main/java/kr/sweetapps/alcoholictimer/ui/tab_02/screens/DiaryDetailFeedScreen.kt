@@ -13,8 +13,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.data.room.DiaryEntity
 import kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.DiaryViewModel
 import kr.sweetapps.alcoholictimer.ui.tab_03.screens.PostItem
@@ -79,12 +81,12 @@ fun DiaryDetailFeedScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0), // [FIX] 커뮤니티 화면과 동일 - 하단 여백 제거
         topBar = {
             TopAppBar(
-                title = { Text("일기 보기") },
+                title = { Text(stringResource(R.string.diary_detail_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "뒤로가기"
+                            contentDescription = stringResource(R.string.finished_back)
                         )
                     }
                 },

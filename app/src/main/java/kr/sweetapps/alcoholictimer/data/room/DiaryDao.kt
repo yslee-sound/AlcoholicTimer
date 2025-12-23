@@ -22,6 +22,13 @@ interface DiaryDao {
     fun getAllDiaries(): Flow<List<DiaryEntity>>
 
     /**
+     * [NEW] 모든 일기를 List로 가져옵니다 (Flow가 아닌 일회성 조회)
+     * 테스트 데이터 삭제 시 이미지 파일 정리를 위해 사용 (2025-12-23)
+     */
+    @Query("SELECT * FROM diary_table ORDER BY timestamp DESC")
+    suspend fun getAllDiariesList(): List<DiaryEntity>
+
+    /**
      * 일기를 추가하거나 수정합니다.
      * 같은 ID가 있으면 교체(REPLACE)합니다.
      */
@@ -46,4 +53,3 @@ interface DiaryDao {
     @Query("DELETE FROM diary_table")
     suspend fun deleteAllDiaries()
 }
-

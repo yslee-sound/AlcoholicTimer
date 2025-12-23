@@ -248,4 +248,44 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
             android.util.Log.d("DiaryViewModel", "✅ 테스트용 일기 10개 생성 완료 (사진 포함 비율: 40%)")
         }
     }
+
+    /**
+     * [NEW] 테스트용 모든 일기 데이터 삭제 (2025-12-23)
+     * - DB의 모든 일기 삭제
+     * - 로컬 이미지 파일도 함께 삭제하여 용량 절약
+     *
+     * ⚠️ 주의: 이 함수는 디버그 목적으로만 사용하세요!
+     */
+    fun deleteAllTestDiaries() {
+        viewModelScope.launch {
+            try {
+                // 1. 모든 일기 가져오기
+                val allDiaries = repository.getAllDiaries()
+
+                // 2. 이미지 파일이 있는 일기의 파일 삭제
+                allDiaries.forEach { diary ->
+                    if (diary.imageUrl.isNotBlank()) {
+                        try {
+                            // 파일 경로에서 실제 파일 삭제
+                            val file = java.io.File(diary.imageUrl)
+                            if (file.exists()) {
+                                file.delete()
+                                android.util.Log.d("DiaryViewModel", "이미지 파일 삭제: ${file.name}")
+                            }
+                        } catch (e: Exception) {
+                            android.util.Log.e("DiaryViewModel", "이미지 파일 삭제 실패: ${e.message}")
+                        }
+                    }
+                }
+
+                // 3. DB의 모든 일기 삭제
+                repository.deleteAllDiaries()
+
+                android.util.Log.d("DiaryViewModel", "✅ 모든 일기 삭제 완료 (총 ${allDiaries.size}개, 이미지 파일 포함)")
+            } catch (e: Exception) {
+                android.util.Log.e("DiaryViewModel", "일기 삭제 중 오류 발생: ${e.message}", e)
+                throw e
+            }
+        }
+    }
 }

@@ -165,9 +165,14 @@ fun Tab02Screen(
                     onNavigateToDiaryDetail(route)
                 },
                 onDeleteClick = { id ->
-                    // 삭제 로직 연결
+                    // [FIX] 삭제 로직 - 화면 유지, Toast만 표시 (2025-12-23)
                     diaryViewModel.deleteDiary(id)
-                    selectedDetailDiaryId = null
+                    android.widget.Toast.makeText(
+                        context,
+                        "일기가 삭제되었습니다",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                    // selectedDetailDiaryId는 유지하여 화면이 닫히지 않도록 함
                 },
                 diaryViewModel = diaryViewModel
             )

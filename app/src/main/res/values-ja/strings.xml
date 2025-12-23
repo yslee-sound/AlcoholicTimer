@@ -235,6 +235,9 @@
     <string name="records_diary_write_action">記入</string>
     <string name="records_diary_view_all">全て表示</string>
 
+    <!-- Diary Detail -->
+    <string name="diary_detail_title">私の記録</string>
+
     <!-- Navigation -->
     <string name="default_nickname">禁酒ヒーロー1</string>
     <string name="drawer_menu_sobriety">禁酒</string>
