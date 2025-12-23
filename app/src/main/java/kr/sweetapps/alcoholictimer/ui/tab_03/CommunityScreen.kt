@@ -164,14 +164,25 @@ fun CommunityScreen(
                                 Column(modifier = Modifier.background(Color.White)) {
                                     TopAppBar(
                                         title = {
-                                            Text(
-                                                text = stringResource(R.string.community_title),
-                                                style = MaterialTheme.typography.titleLarge.copy(
-                                                    fontSize = 18.sp,
-                                                    fontWeight = FontWeight.Bold
-                                                ),
-                                                color = Color(0xFF111111)
-                                            )
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Text(
+                                                    text = stringResource(R.string.community_title_support),
+                                                    style = MaterialTheme.typography.titleLarge.copy(
+                                                        fontSize = 18.sp,
+                                                        fontWeight = FontWeight.Bold
+                                                    ),
+                                                    color = Color(0xFF111111)
+                                                )
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                                Text(
+                                                    text = stringResource(R.string.community_title_challenge),
+                                                    style = MaterialTheme.typography.titleLarge.copy(
+                                                        fontSize = 18.sp,
+                                                        fontWeight = FontWeight.Bold
+                                                    ),
+                                                    color = Color(0xFF6366F1) // [FIX] 탭2 '분석'과 동일한 색상
+                                                )
+                                            }
                                         },
                                         actions = {
                                             IconButton(onClick = onSettingsClick) {

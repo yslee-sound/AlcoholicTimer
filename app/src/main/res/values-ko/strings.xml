@@ -220,6 +220,7 @@
     <string name="settings_privacy_update_failed">동의 정보 업데이트 실패: %1$s</string>
 
     <!-- Community Screen -->
+    <string name="community_title">응원 챌린지</string>
     <string name="community_title_support">응원</string>
     <string name="community_title_challenge">챌린지</string>
 
