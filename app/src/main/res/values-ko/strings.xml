@@ -232,6 +232,7 @@
     <string name="records_dashboard_title_analysis">분석</string>
     <string name="records_dashboard_greeting">오늘도 건강한 하루 되세요!</string>
     <string name="records_statistics_summary">통계</string>
+    <string name="records_unit_bottles">병</string>
     <string name="records_period_filter_monthly">월간</string>
     <string name="records_period_filter_all">전체</string>
     <string name="records_total_sober_days">총 금주일</string>

@@ -1304,7 +1304,7 @@ private fun ModernStatisticsGrid(
             iconColor = Color(0xFF6B9DFF),
             label = "SOBER",
             value = statsData.totalBottles.toInt().toString(),
-            unit = "병",
+            unit = stringResource(R.string.records_unit_bottles),
             modifier = Modifier.weight(1f).fillMaxHeight() // [NEW]
         )
 

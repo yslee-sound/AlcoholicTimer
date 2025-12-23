@@ -232,6 +232,7 @@
     <string name="records_dashboard_title_analysis">Analysis</string>
     <string name="records_dashboard_greeting">Have a healthy day today!</string>
     <string name="records_statistics_summary">Stats</string>
+    <string name="records_unit_bottles">bottles</string>
     <string name="records_period_filter_monthly">Monthly</string>
     <string name="records_period_filter_all">All</string>
     <string name="records_total_sober_days">Total Sober Days</string>
