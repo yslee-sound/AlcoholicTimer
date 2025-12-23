@@ -424,7 +424,7 @@ private fun DurationBadge(
         modifier = Modifier
             .requiredHeight(badgeHeight)
             .widthIn(min = 72.dp),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(percent = 50), // [NEW] 알약 모양으로 변경 (양 끝이 완벽한 반원)
         color = backgroundColor,
         border = BorderStroke(1.dp, borderColor),
         shadowElevation = if (isSelected) 2.dp else 0.dp
