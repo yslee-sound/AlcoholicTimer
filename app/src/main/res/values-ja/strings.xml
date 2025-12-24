@@ -282,7 +282,7 @@
     <string name="records_dashboard_title_health">私の健康 </string>
     <string name="records_dashboard_title_analysis">分析</string>
     <string name="records_dashboard_greeting">今日も健康な一日を！</string>
-    <string name="records_statistics_summary">統計要約</string>
+    <string name="records_statistics_summary">統計</string>
     <string name="records_unit_bottles">本</string>
     <string name="records_period_filter_monthly">月間</string>
     <string name="records_period_filter_all">全体</string>

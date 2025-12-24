@@ -282,7 +282,7 @@
     <string name="records_dashboard_title_health">Kesehatan Saya </string>
     <string name="records_dashboard_title_analysis">Analisis</string>
     <string name="records_dashboard_greeting">Semoga hari Anda sehat!</string>
-    <string name="records_statistics_summary">Ringkasan Statistik</string>
+    <string name="records_statistics_summary">Statistik</string>
     <string name="records_unit_bottles">botol</string>
     <string name="records_period_filter_monthly">Bulanan</string>
     <string name="records_period_filter_all">Semua</string>
