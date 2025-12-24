@@ -326,33 +326,34 @@ private fun AppBrandTitleBar(
 ) {
     // [FIXED_SIZE] 폰트 스케일의 영향을 받지 않는 고정 크기 적용
     val density = androidx.compose.ui.platform.LocalDensity.current
-    val logoHeightPx = with(density) { 54.dp.toPx() }
+    val logoHeightPx = with(density) { 27.dp.toPx() } // [CHANGED] 54dp → 27dp (50% 축소, 2025-12-24)
     val logoHeight = with(density) { (logoHeightPx / density.density).dp }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.Start // [CHANGED] CenterHorizontally → Start (왼쪽 정렬, 2025-12-24)
     ) {
-        // Logo
+        // Logo - [CHANGED] alcoholic_timer_logo → zero (2025-12-24)
+        // [CHANGED] 왼쪽 정렬 및 크기 50% 축소 (2025-12-24)
         Box(
             modifier = Modifier
-                .fillMaxWidth()
+                .wrapContentWidth() // [CHANGED] fillMaxWidth → wrapContentWidth (2025-12-24)
                 .requiredHeight(logoHeight)
-                .padding(horizontal = 30.dp),
-            contentAlignment = Alignment.Center
+                .padding(start = START_CARD_HORIZONTAL_PADDING), // [CHANGED] horizontal → start (왼쪽 여백만, 2025-12-24)
+            contentAlignment = Alignment.CenterStart // [CHANGED] Center → CenterStart (2025-12-24)
         ) {
             Image(
-                painter = painterResource(id = R.drawable.alcoholic_timer_logo),
+                painter = painterResource(id = R.drawable.zero),
                 contentDescription = stringResource(id = R.string.app_name),
                 contentScale = ContentScale.Fit,
-                alignment = Alignment.Center,
+                alignment = Alignment.CenterStart, // [CHANGED] Center → CenterStart (2025-12-24)
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .wrapContentWidth() // [CHANGED] fillMaxWidth → wrapContentWidth (2025-12-24)
                     .requiredHeight(logoHeight)
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp)) // [CHANGED] 16dp → 8dp (로고와 알약버튼 간격 축소, 2025-12-24)
 
         // [NEW] Duration selection badges
         DurationBadgeRow(
@@ -384,7 +385,7 @@ private fun DurationBadgeRow(
         modifier = Modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState())
-            .padding(horizontal = START_CARD_HORIZONTAL_PADDING, vertical = 4.dp),
+            .padding(horizontal = START_CARD_HORIZONTAL_PADDING), // [CHANGED] vertical = 4.dp 제거 (2중 여백 해소, 2025-12-24)
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         presets.forEach { item ->
