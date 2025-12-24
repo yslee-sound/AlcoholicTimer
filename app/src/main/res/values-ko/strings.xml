@@ -165,6 +165,8 @@
     <string name="diary_write_button_action">일기 쓰기</string>
     <string name="diary_write_today_only">일기는 당일에만 작성할 수 있습니다</string>
     <string name="diary_all_empty">일기가 없습니다.</string>
+    <string name="diary_write_title">일기 쓰기</string>
+    <string name="diary_edit_title">일기 수정</string>
     <string name="diary_menu_edit">수정하기</string>
     <string name="diary_menu_delete">삭제하기</string>
     <string name="diary_save_button">저장</string>
