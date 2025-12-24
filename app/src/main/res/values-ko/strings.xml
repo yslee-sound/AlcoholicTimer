@@ -304,7 +304,7 @@
     <!-- About Screen -->
     <string name="about_title">앱 정보</string>
     <string name="about_version_info">버전 정보</string>
-    <string name="about_open_license_notice">Open Source License</string>
+    <string name="about_open_license_notice">Open Source Licenses</string>
     <string name="about_section_app_icon">앱 아이콘</string>
     <string name="about_label_original_work">원본 저작물</string>
     <string name="about_label_author">원저작자</string>

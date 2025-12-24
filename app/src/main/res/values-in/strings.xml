@@ -304,7 +304,7 @@
     <!-- About Screen -->
     <string name="about_title">Tentang</string>
     <string name="about_version_info">Info Versi</string>
-    <string name="about_open_license_notice">Lisensi Open Source</string>
+    <string name="about_open_license_notice">Open Source Licenses</string>
     <string name="about_section_app_icon">Ikon Aplikasi</string>
     <string name="about_label_original_work">Karya Asli</string>
     <string name="about_label_author">Penulis</string>
