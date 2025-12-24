@@ -286,7 +286,7 @@
     <string name="records_unit_bottles">botol</string>
     <string name="records_period_filter_monthly">Bulanan</string>
     <string name="records_period_filter_all">Semua</string>
-    <string name="records_total_sober_days">Total Hari Bebas Alkohol</string>
+    <string name="records_total_sober_days">Total Hari</string>
     <string name="records_diary_write_action">Tulis</string>
     <string name="records_diary_view_all">Lihat Semua</string>
 

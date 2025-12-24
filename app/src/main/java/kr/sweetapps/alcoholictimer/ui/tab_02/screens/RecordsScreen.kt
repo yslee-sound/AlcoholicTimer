@@ -1273,6 +1273,7 @@ private fun StatisticsHeaderWithFilter(
 
 /**
  * [NEW] 토글 버튼 (캡슐 모양)
+ * [UPDATED] 인도네시아어 등 긴 텍스트 지원 (줄바꿈 방지) (2025-12-24)
  */
 @Composable
 private fun ToggleButton(
@@ -1285,6 +1286,7 @@ private fun ToggleButton(
             .clip(RoundedCornerShape(8.dp))
             .background(if (isSelected) Color.White else Color.Transparent)
             .clickable { onClick() }
+            .defaultMinSize(minWidth = 70.dp) // [NEW] 최소 너비 확보
             .padding(horizontal = 16.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -1292,7 +1294,10 @@ private fun ToggleButton(
             text = text,
             fontSize = 13.sp,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-            color = if (isSelected) Color(0xFF6366F1) else Color(0xFF6B7280)
+            color = if (isSelected) Color(0xFF6366F1) else Color(0xFF6B7280),
+            maxLines = 1, // [NEW] 줄바꿈 방지
+            softWrap = false, // [NEW] 강제 1줄 표시
+            overflow = TextOverflow.Visible // [NEW] 텍스트가 잘리지 않게
         )
     }
 }
@@ -1458,8 +1463,9 @@ private fun TotalDaysCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 좌측: 아이콘 + 제목
+            // 좌측: 아이콘 + 제목 (긴 텍스트 대응 - 인도네시아어 등)
             Row(
+                modifier = Modifier.weight(1f), // [FIX] 남은 공간만 사용 (2025-12-24)
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -1474,11 +1480,16 @@ private fun TotalDaysCard(
                     text = stringResource(R.string.records_total_sober_days),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color(0xFF111827)
+                    color = Color(0xFF111827),
+                    maxLines = 1, // [FIX] 1줄 제한 (2025-12-24)
+                    overflow = TextOverflow.Ellipsis // [FIX] 넘치면 ... 처리 (2025-12-24)
                 )
             }
 
-            // 우측: 값 + 화살표
+            // 중간 여백 (타이틀과 값 사이)
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // 우측: 값 + 화살표 (절대 잘리지 않게)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
