@@ -378,10 +378,10 @@
     <string name="date_format_month">%d</string>
 
     <!-- Units -->
-    <string name="unit_days_format">%.1f h</string>
+    <string name="unit_days_format">%.1f hari</string>
     <string name="unit_hours_format">%.1f jam</string>
     <string name="unit_won_format">Rp%,.0f</string>
-    <string name="unit_day">h</string>
+    <string name="unit_day">hari</string>
     <string name="unit_hour">jam</string>
 
     <!-- Update Dialog -->

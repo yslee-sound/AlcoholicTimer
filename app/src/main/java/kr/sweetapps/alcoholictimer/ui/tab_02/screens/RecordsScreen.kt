@@ -1443,9 +1443,12 @@ private fun StatCard(
 @Composable
 private fun TotalDaysCard(
     totalDays: Float,
-    onNavigateToAllRecords: () -> Unit = {} // [NEW] 전체 기록 화면 이동 콜백
+    onNavigateToAllRecords: () -> Unit = {}
 ) {
-    val decimalFormat = remember { java.text.DecimalFormat("#,###.#") }
+    // [FIX] 영어 로케일을 사용하여 소수점을 점(.)으로 고정 (인도네시아 쉼표 문제 해결)
+    val decimalFormat = remember {
+        java.text.DecimalFormat("#,###.#", java.text.DecimalFormatSymbols(java.util.Locale.US))
+    }
 
     Card(
         modifier = Modifier
@@ -1496,7 +1499,7 @@ private fun TotalDaysCard(
             ) {
                 // 날짜 값
                 Row(
-                    verticalAlignment = Alignment.Bottom,
+                    verticalAlignment = Alignment.CenterVertically, // [FIX] Bottom -> CenterVertically 변경
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     // [FIX] AutoResizingText로 자동 크기 조절 (깜빡임 없음)
@@ -1513,7 +1516,9 @@ private fun TotalDaysCard(
                         text = stringResource(R.string.unit_day),
                         fontSize = 14.sp,
                         color = Color(0xFF6B7280),
-                        modifier = Modifier.padding(bottom = 2.dp)
+                        style = TextStyle(
+                            platformStyle = PlatformTextStyle(includeFontPadding = false) // [FIX] 폰트 패딩 제거
+                        )
                     )
                 }
 
