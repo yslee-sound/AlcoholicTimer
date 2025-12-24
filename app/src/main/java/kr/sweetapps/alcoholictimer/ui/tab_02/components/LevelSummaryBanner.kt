@@ -22,15 +22,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.R
 
 /**
- * 레벨 요약 배너 (공간 절약형 + 시각적 진행 바)
- * Tab 2의 상단에 표시되는 현재 레벨 정보
- * 클릭 시 LevelDetail 화면으로 이동
- * [UPDATE] 하단에 밝은 민트색 진행 바 추가하여 직관성 향상
+ * Level Summary Banner Component
+ * Tab 2 upper banner with current level information
+ * Click to navigate to LevelDetail screen
+ * Progress bar added at bottom for better visibility
  */
 @Composable
 fun LevelSummaryBanner(
@@ -45,15 +46,15 @@ fun LevelSummaryBanner(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(130.dp), // [FIX] 높이 증가 (100dp → 130dp) - 텍스트 잘림 방지
-        shape = RoundedCornerShape(16.dp), // [FIX] 24.dp → 16.dp (다른 카드들과 통일)
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            .height(130.dp), // Height increased (100dp -> 130dp) to prevent text clipping
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .clip(RoundedCornerShape(16.dp)) // [FIX] 24.dp → 16.dp (다른 카드들과 통일)
+                .clip(RoundedCornerShape(16.dp))
                 .background(
                     Brush.horizontalGradient(
                         colors = listOf(
@@ -63,21 +64,21 @@ fun LevelSummaryBanner(
                     )
                 )
                 .clickable(onClick = onClick)
-                .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 16.dp) // [FIX] 하단 여백 추가
+                .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 16.dp)
         ) {
-            // 상단 영역: 레벨 정보 + 화살표
+            // Top area: Level info + Arrow
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 좌측: 레벨 정보
+                // Left: Level info
                 Row(
                     modifier = Modifier.weight(1f),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Start
                 ) {
-                    // [NEW] 레벨 마크 뱃지
+                    // Level mark badge
                     Box(modifier = Modifier.size(48.dp)) {
                         // Glassmorphism Badge
                         Box(
@@ -103,7 +104,7 @@ fun LevelSummaryBanner(
                             )
                         }
 
-                        // [NEW] 진행 중 상태 표시 (초록색 배지)
+                        // Active status indicator (green badge)
                         if (isActive) {
                             Box(
                                 modifier = Modifier
@@ -126,42 +127,53 @@ fun LevelSummaryBanner(
 
                     Spacer(modifier = Modifier.width(12.dp))
 
-                    // 레벨 정보 Column
-                    Column(verticalArrangement = Arrangement.Center) {
-                        // 레벨 타이틀
+                    // Level info Column
+                    // [FIX] Japanese text wrapping and clipping fixed with softWrap + lineHeight (2025-12-24)
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 0.dp),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        // Level title
                         Text(
                             text = stringResource(id = currentLevel.nameResId),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = Color.White,
+                            maxLines = 1,
+                            softWrap = false, // Prevent line breaking completely
+                            overflow = TextOverflow.Ellipsis,
+                            lineHeight = 20.sp // Explicit lineHeight to prevent clipping
                         )
 
                         Spacer(modifier = Modifier.height(4.dp))
 
-                        // 현재 일수
+                        // Current days
                         Text(
                             text = "${currentDays}일 달성",
                             fontSize = 13.sp,
-                            color = Color.White.copy(alpha = 0.9f)
+                            color = Color.White.copy(alpha = 0.9f),
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis,
+                            lineHeight = 16.sp
                         )
                     }
                 }
 
-                // 우측: 화살표 아이콘
+                // Right: Arrow icon
                 Icon(
                     painter = painterResource(id = R.drawable.ic_caret_right),
-                    contentDescription = "레벨 상세 보기",
+                    contentDescription = "Level detail",
                     tint = Color.White,
                     modifier = Modifier.size(24.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.weight(1f)) // [NEW] 남은 공간을 차지하여 프로그레스 바를 하단으로
+            Spacer(modifier = Modifier.weight(1f)) // Take remaining space to push progress bar to bottom
 
-            // [DEBUG] 프로그레스 값 로깅
-            android.util.Log.d("LevelSummaryBanner", "Progress value: $progress (${(progress * 100).toInt()}%)")
-
-            // [FIX] Box 기반 프로그레스 바 (레벨 화면과 동일한 스타일)
+            // Progress bar
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -1,4 +1,5 @@
 package kr.sweetapps.alcoholictimer.ui.tab_03.screens.settings
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,6 +27,7 @@ import kr.sweetapps.alcoholictimer.data.repository.UserRepository
 import kr.sweetapps.alcoholictimer.ui.tab_03.components.AvatarSelectionDialog
 import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab05ViewModel
 import kr.sweetapps.alcoholictimer.util.AvatarManager
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileEditScreen(
@@ -36,11 +38,13 @@ fun ProfileEditScreen(
     val userRepository = remember { UserRepository(context) }
     val sp = remember { PreferenceManager.getDefaultSharedPreferences(context) }
     val scope = rememberCoroutineScope()
+
     val uiState by viewModel.uiState.collectAsState()
     val currentNickname = remember {
         sp.getString("nickname", context.getString(R.string.default_nickname))
             ?: context.getString(R.string.default_nickname)
     }
+
     var nicknameText by remember { mutableStateOf(currentNickname) }
     var showAvatarDialog by remember { mutableStateOf(false) }
 
@@ -56,7 +60,7 @@ fun ProfileEditScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "�ڷΰ���"
+                            contentDescription = "Back"
                         )
                     }
                 },
@@ -64,20 +68,23 @@ fun ProfileEditScreen(
                     TextButton(
                         onClick = {
                             if (nicknameText.isNotBlank()) {
-                                // [FIX] selectedAvatarIndex�� ���� (2025-12-24)
+                                // [FIX] selectedAvatarIndex로 저장 (2025-12-24)
                                 scope.launch {
-                                    // (1) SharedPreferences ����
+                                    // (1) SharedPreferences 저장
                                     sp.edit().apply {
                                         putString("nickname", nicknameText)
-                                        putInt("avatar_index", selectedAvatarIndex) // [FIX] ���� ���� ���
+                                        putInt("avatar_index", selectedAvatarIndex)
                                     }.apply()
-                                    // (2) Repository ����
+
+                                    // (2) Repository 저장
                                     userRepository.saveNickname(nicknameText)
-                                    userRepository.updateAvatar(selectedAvatarIndex) // [FIX] ���� ���� ���
-                                    // (3) ViewModel ���� ����
+                                    userRepository.updateAvatar(selectedAvatarIndex)
+
+                                    // (3) ViewModel 상태 갱신
                                     viewModel.refreshNickname(nicknameText)
-                                    viewModel.updateAvatar(selectedAvatarIndex) // [FIX] ���� ���� ���
-                                    // (4) ���� �Ϸ� �� �ڷΰ���
+                                    viewModel.updateAvatar(selectedAvatarIndex)
+
+                                    // (4) 저장 완료 후 뒤로가기
                                     onBack()
                                 }
                             } else {
@@ -104,20 +111,22 @@ fun ProfileEditScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(32.dp))
+
             Box(
                 modifier = Modifier
                     .size(120.dp)
                     .clickable { showAvatarDialog = true }
             ) {
                 Image(
-                    painter = painterResource(id = AvatarManager.getAvatarResId(selectedAvatarIndex)), // [FIX] ���� ���� ��� - ��� preview (2025-12-24)
-                    contentDescription = "������ �ƹ�Ÿ",
+                    painter = painterResource(id = AvatarManager.getAvatarResId(selectedAvatarIndex)),
+                    contentDescription = "Profile Avatar",
                     modifier = Modifier
                         .fillMaxSize()
                         .border(3.dp, Color(0xFFE0E0E0), CircleShape)
                         .clip(CircleShape)
                         .background(Color(0xFFF5F5F5))
                 )
+
                 Box(
                     modifier = Modifier
                         .size(36.dp)
@@ -129,19 +138,23 @@ fun ProfileEditScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.CameraAlt,
-                        contentDescription = "�ƹ�Ÿ ����",
+                        contentDescription = "Change Avatar",
                         tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
                 }
             }
+
             Spacer(modifier = Modifier.height(12.dp))
+
             Text(
                 text = stringResource(R.string.profile_avatar_change),
                 fontSize = 14.sp,
                 color = Color(0xFF6B7280)
             )
+
             Spacer(modifier = Modifier.height(48.dp))
+
             OutlinedTextField(
                 value = nicknameText,
                 onValueChange = {
@@ -164,7 +177,9 @@ fun ProfileEditScreen(
                     )
                 }
             )
+
             Spacer(modifier = Modifier.height(8.dp))
+
             Text(
                 text = stringResource(R.string.profile_nickname_hint),
                 fontSize = 12.sp,
@@ -173,14 +188,16 @@ fun ProfileEditScreen(
             )
         }
     }
+
     if (showAvatarDialog) {
         AvatarSelectionDialog(
-            currentAvatarIndex = selectedAvatarIndex, // [FIX] ���� ���� ��� (2025-12-24)
+            currentAvatarIndex = selectedAvatarIndex,
             onAvatarSelected = { index ->
-                selectedAvatarIndex = index // [FIX] ���� ���¸� ������Ʈ - ��� preview (2025-12-24)
+                selectedAvatarIndex = index
                 showAvatarDialog = false
             },
             onDismiss = { showAvatarDialog = false }
         )
     }
 }
+

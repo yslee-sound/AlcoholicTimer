@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -141,7 +142,7 @@ fun LevelCard(
 
                     Spacer(modifier = Modifier.width(16.dp))
 
-                    // 레벨 이름 및 일수
+                    // Level name and days
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
@@ -150,8 +151,12 @@ fun LevelCard(
                             style = MaterialTheme.typography.titleMedium.copy(
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp
-                            )
+                                fontSize = 20.sp,
+                                lineHeight = 22.sp // Explicit lineHeight to prevent clipping
+                            ),
+                            maxLines = 1,
+                            softWrap = false, // Prevent line breaking
+                            overflow = TextOverflow.Ellipsis
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Row(verticalAlignment = Alignment.Bottom) {
