@@ -425,8 +425,9 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                 val now = System.currentTimeMillis()
                 val createdAt = com.google.firebase.Timestamp(now / 1000, 0)
 
-                // [TEST] 빠른 테스트를 위해 게시글 수명을 1분으로 단축 (배포 시 24 * 60 * 60으로 복구 필요)
-                val deleteAt = com.google.firebase.Timestamp((now / 1000) + 60, 0) // 1분 후
+                // [RELEASE] 게시글 수명을 24시간으로 설정 (릴리즈 사양)
+                val oneDaySeconds = 24 * 60 * 60 // 86400초
+                val deleteAt = com.google.firebase.Timestamp((now / 1000) + oneDaySeconds, 0)
 
                 // 6. 일차 및 레벨 계산: timer_prefs에서 실제 타이머 시작 시간 읽기
                 val timerPrefs = context.getSharedPreferences("timer_prefs", android.content.Context.MODE_PRIVATE)
