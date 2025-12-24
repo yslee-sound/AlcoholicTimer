@@ -1,15 +1,30 @@
 // [NEW] Tab01 Refactoring: RunScreen moved to tab_01/screens
 package kr.sweetapps.alcoholictimer.ui.tab_01.screens
 
+import android.R.attr.maxWidth
 import android.app.Activity
 import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,7 +60,6 @@ import androidx.compose.ui.text.font.FontWeight
 import java.util.Locale
 import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions
-import kr.sweetapps.alcoholictimer.util.utils.FormatUtils
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
@@ -214,16 +228,7 @@ fun RunScreenComposable(
         if (totalTargetMillis > 0) (displayElapsedMillis.toFloat() / totalTargetMillis).coerceIn(0f, 1f) else 0f
     }
 
-    val indicatorKey = remember(startTime) { Constants.keyCurrentIndicator(startTime) }
-    var currentIndicator by remember { mutableIntStateOf(if (isPreview) 0 else sp!!.getInt(indicatorKey, 0)) }
-
-    fun toggleIndicator() {
-        val next = (currentIndicator + 1) % 5
-        currentIndicator = next
-        if (!isPreview) {
-            sp!!.edit().putInt(indicatorKey, next).apply()
-        }
-    }
+    // [REMOVED] currentIndicator 및 toggleIndicator 제거 - 경과 일수와 시간을 동시에 표시 (2025-12-25)
 
     // [REMOVED] 타이머 완료 감지 로직을 UI에서 제거
     // 이제 TimerTimeManager와 Tab01ViewModel에서 자동으로 처리됨
@@ -282,266 +287,144 @@ fun RunScreenComposable(
                     color = commonIconColor, // ★ 공통 컬러 적용
                     modifier = Modifier.weight(1f),
                     iconRes = kr.sweetapps.alcoholictimer.R.drawable.chart_line_up,
-                            contentAlignment = runStatAlignments[2]
-                        )
-                    }
+                    contentAlignment = runStatAlignments[2]
+                )
+            }
 
-                    // [NEW] 상단 칩과 메인 카드 사이 간격 (2025-12-24)
-                    Spacer(modifier = Modifier.height(16.dp)) // [MODIFIED] 15dp → 16dp 표준 간격 통일 (2025-12-24)
+            // [NEW] 상단 칩과 메인 카드 사이 간격 (2025-12-24)
+            Spacer(modifier = Modifier.height(16.dp)) // [MODIFIED] 15dp → 16dp 표준 간격 통일 (2025-12-24)
 
-                    // [FIXED_SIZE] 중간 큰 카드 높이를 폰트 스케일 영향 받지 않도록 고정
-                    val density = LocalDensity.current
-                    val bigCardHeightPx = with(density) { 180.dp.toPx() }
-                    val bigCardHeight = with(density) { (bigCardHeightPx / density.density).dp }
+            // [FIXED_SIZE] 중간 큰 카드 높이를 폰트 스케일 영향 받지 않도록 고정
+            val density = LocalDensity.current
+            val bigCardHeightPx = with(density) { 180.dp.toPx() }
+            val bigCardHeight = with(density) { (bigCardHeightPx / density.density).dp }
 
-                    Card(
-                        modifier = Modifier.fillMaxWidth().requiredHeight(bigCardHeight).clickable { toggleIndicator() },
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                        border = BorderStroke(0.dp, Color.Transparent)
-                    ) {
-                        // background image fills the card
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            Image(
-                                painter = painterResource(id = R.drawable.bg9),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                            // Place composable content with the same padding as existing (no padding removal)
-                            Box(modifier = Modifier.fillMaxSize().padding(0.dp), contentAlignment = Alignment.Center) {
-                                // Reduce center card element spacing: adjust so level/percentage are closer together
-                                // Wrap the minimal Column containing level/percentage content and place Box in center
-                                // Ensure minimum height to fix label float issue
-                                val label: String = when (currentIndicator) {
-                                    0 -> stringResource(id = R.string.indicator_title_days)
-                                    1 -> stringResource(id = R.string.indicator_title_time)
-                                    2 -> stringResource(id = R.string.indicator_title_saved_money)
-                                    3 -> stringResource(id = R.string.indicator_title_saved_hours)
-                                    else -> stringResource(id = R.string.indicator_title_life_gain)
-                                }
-                                val valueText: String = when (currentIndicator) {
-                                    // [MODIFIED] Days 값 소수점 제거 (2025-12-24)
-                                    0 -> String.format(Locale.getDefault(), "%.0f", kotlin.math.round(elapsedDaysFloat))
-                                    1 -> progressTimeTextHM
-                                    2 -> CurrencyManager.formatMoneyNoDecimals(kotlin.math.round(savedMoney), context) // [FIX] 반올림 후 포맷팅
-                                    3 -> FormatUtils.formatHoursValue(savedHours)
-                                    else -> formattedLifeGain
-                                }
-
-                                // Layout: fill card height and center children so numeric value is visually centered
-                                Column(modifier = Modifier.fillMaxHeight().fillMaxWidth().padding(vertical = 0.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                                    // Top label: remove padding, use includeFontPadding=false to tighten and align text center
-                                    Box(modifier = Modifier.fillMaxWidth().padding(top = 0.dp), contentAlignment = Alignment.Center) {
-                                        val base = MaterialTheme.typography.titleMedium
-                                        Text(
-                                            text = label,
-                                            style = base.copy(
-                                                color = Color.White,
-                                                lineHeight = base.fontSize * 1.05f,
-                                                fontWeight = FontWeight.Bold,
-                                                platformStyle = PlatformTextStyle(includeFontPadding = false),
-                                                shadow = Shadow(color = Color.Black.copy(alpha = 0.5f), offset = Offset(0f, 1f), blurRadius = 2f)
-                                            ),
-                                            textAlign = TextAlign.Center,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    }
-
-                                    // Middle: center main value (no weight so it stays close to label/hint)
-                                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                        val baseStyle = MaterialTheme.typography.headlineMedium
-                                        // Auto-resize: calculate optimal font size based on available width
-                                        val textMeasurer = rememberTextMeasurer()
-                                        val density = LocalDensity.current
-                                        val baseFontSp = baseStyle.fontSize
-                                        val maxMultiplier = 2.5f
-                                        val minMultiplier = 0.6f
-
-                                        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-                                            val maxWpx = with(density) { maxWidth.toPx() }
-                                            // Initial font size (px)
-                                            val initialSizeSp = (baseFontSp.value * maxMultiplier)
-                                            // Measurement loop: decrease from initial size to minimum size until it fits available space
-                                            val chosenSizeSp = remember(valueText, maxWpx) {
-                                                var s = initialSizeSp
-                                                val minSize = baseFontSp.value * minMultiplier
-                                                while (s >= minSize) {
-                                                    val styleTry = baseStyle.copy(fontSize = s.sp, platformStyle = PlatformTextStyle(includeFontPadding = false))
-                                                    val result = try { textMeasurer.measure(AnnotatedString(valueText), style = styleTry) } catch (_: Throwable) { null }
-                                                    val textW = result?.size?.width ?: 0
-                                                    if (textW <= maxWpx * 0.92f) break
-                                                    s -= 2f // Decrease step (sp)
-                                                }
-                                                s.coerceAtLeast(minSize)
-                                            }
-
-                                            val bigStyle = baseStyle.copy(
-                                                fontWeight = FontWeight.ExtraBold,
-                                                color = Color.White,
-                                                fontSize = chosenSizeSp.sp,
-                                                lineHeight = chosenSizeSp.sp * 1.05f,
-                                                platformStyle = PlatformTextStyle(includeFontPadding = false),
-                                                fontFeatureSettings = "tnum",
-                                                shadow = Shadow(color = Color.Black.copy(alpha = 0.55f), offset = Offset(0f, 2f), blurRadius = 4f)
-                                            )
-
-                                            val unitStyle = baseStyle.copy(
-                                                color = Color.White,
-                                                fontWeight = FontWeight.SemiBold,
-                                                fontSize = (baseFontSp.value * 1.25f).sp,
-                                                lineHeight = baseFontSp * 1.15f,
-                                                platformStyle = PlatformTextStyle(includeFontPadding = false),
-                                                shadow = Shadow(color = Color.Black.copy(alpha = 0.45f), offset = Offset(0f, 1f), blurRadius = 2f)
-                                            )
-
-                                            // Render numeric/unit rendering using the same logic as before
-                                            val isMoney = currentIndicator == 2
-                                            val isLifeGain = currentIndicator == 4
-                                            if (isMoney) {
-                                                // Previous: code that branched by symbol using regex -> directly process selected currency
-                                                val selectedCurrency = CurrencyManager.getSelectedCurrency(context)
-                                                val symbol = selectedCurrency.symbol
-                                                if (selectedCurrency.code == "KRW") {
-                                                    // KRW: show number and append '원' unit
-                                                    val numeric = valueText.replace("₩", "").replace("원", "").trim()
-                                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                                                        Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
-                                                        Spacer(modifier = Modifier.width(2.dp))
-                                                        Text(text = "원", style = unitStyle)
-                                                    }
-                                                } else {
-                                                    // Other currencies: place currency symbol on left and show only numeric part
-                                                    // Remove targets: currency symbol, '원', '円' and other Asian units
-                                                    val numeric = valueText.replace(symbol, "")
-                                                        .replace("₩", "")
-                                                        .replace("원", "")
-                                                        .trim()
-                                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                                                        Text(text = symbol, style = unitStyle)
-                                                        Text(text = numeric, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
-                                                    }
-                                                }
-                                            } else if (isLifeGain) {
-                                                val twoPart = Regex("""(\d+)\s*(?:일|日|day\(s\))\s*([0-9]+(?:\.[0-9]+)?)\s*(?:시간|時間|hr\(s\))""")
-                                                val onePart = Regex("""([0-9]+(?:\.[0-9]+)?)\s*(?:시간|時間|hr\(s\))""")
-                                                val m1 = twoPart.find(valueText)
-                                                val m2 = if (m1 == null) onePart.find(valueText) else null
-                                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                                                    if (m1 != null) {
-                                                        val dStr = m1.groupValues[1]
-                                                        val hStr = m1.groupValues[2]
-                                                        Text(text = dStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
-                                                        Spacer(modifier = Modifier.width(2.dp))
-                                                        Text(text = stringResource(R.string.unit_day), style = unitStyle)
-                                                        Spacer(modifier = Modifier.width(6.dp))
-                                                        Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
-                                                        Spacer(modifier = Modifier.width(2.dp))
-                                                        Text(text = stringResource(R.string.unit_hour), style = unitStyle)
-                                                    } else if (m2 != null) {
-                                                        val hStr = m2.groupValues[1]
-                                                        Text(text = hStr, style = bigStyle, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
-                                                        Spacer(modifier = Modifier.width(2.dp))
-                                                        Text(text = stringResource(R.string.unit_hour), style = unitStyle)
-                                                    } else {
-                                                        Text(text = valueText, style = bigStyle, textAlign = TextAlign.Center, maxLines = 1, softWrap = false, overflow = TextOverflow.Clip)
-                                                    }
-                                                }
-                                            } else {
-                                                Text(
-                                                    text = valueText,
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    style = bigStyle,
-                                                    textAlign = TextAlign.Center,
-                                                    maxLines = 1,
-                                                    softWrap = false,
-                                                    overflow = TextOverflow.Clip
-                                                )
-                                            }
-                                         }
-                                     }
-
-                                    // Bottom hint (adjust minimal padding to bring closer to number)
-                                    Box(modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp), contentAlignment = Alignment.Center) {
-                                        val base = MaterialTheme.typography.labelMedium
-                                        Text(
-                                            text = stringResource(id = R.string.tap_to_switch_indicator),
-                                            style = base.copy(
-                                                color = Color.White,
-                                                fontSize = 13.sp,
-                                                lineHeight = 16.sp,
-                                                platformStyle = PlatformTextStyle(includeFontPadding = false),
-                                                shadow = Shadow(color = Color.Black.copy(alpha = 0.45f), offset = Offset(0f, 1f), blurRadius = 2f)
-                                            ),
-                                            textAlign = TextAlign.Center,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // [NEW] 메인 카드와 프로그레스 바 사이 간격 (2025-12-24)
-                    Spacer(modifier = Modifier.height(16.dp)) // [MODIFIED] 15dp → 16dp 표준 간격 통일 (2025-12-24)
-
-                    // Replace transparent card + surface with a single elevated white Card matching top cards
-                    // [FIX] 프로그레스 카드와 응원 문구를 하나의 Column으로 묶어서 spacing 제거
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(0.dp) // 간격 완전 제거
-                    ) {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                            border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
+            Card(
+                modifier = Modifier.fillMaxWidth().requiredHeight(bigCardHeight), // [REMOVED] clickable 제거 (2025-12-25)
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                border = BorderStroke(0.dp, Color.Transparent)
+            ) {
+                // background image fills the card
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Image(
+                        painter = painterResource(id = R.drawable.bg9),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    // [MODIFIED] 경과 일수와 시간을 동시에 표시 (2025-12-25)
+                    Box(modifier = Modifier.fillMaxSize().padding(0.dp), contentAlignment = Alignment.Center) {
+                        Column(
+                            modifier = Modifier.fillMaxHeight().fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
                         ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = RUN_CARD_CONTENT_HORIZONTAL_PADDING, vertical = RUN_CARD_CONTENT_VERTICAL_PADDING),
-                                horizontalAlignment = Alignment.Start
-                            ) {
-                                // Progress content
-                                ModernProgressIndicatorSimple(progress = progress, targetDays = targetDays)
-                            }
+                            // [NEW] 메인: 경과 일수 (아주 크게, Bold)
+                            val daysValue = String.format(Locale.getDefault(), "%.0f", kotlin.math.round(elapsedDaysFloat))
+                            val daysUnit = stringResource(R.string.unit_day)
+
+                            Text(
+                                text = "$daysValue$daysUnit",
+                                style = MaterialTheme.typography.displayLarge.copy(
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color.White,
+                                    fontSize = 72.sp, // 아주 큰 크기
+                                    platformStyle = PlatformTextStyle(includeFontPadding = false),
+                                    shadow = Shadow(
+                                        color = Color.Black.copy(alpha = 0.55f),
+                                        offset = Offset(0f, 2f),
+                                        blurRadius = 4f
+                                    )
+                                ),
+                                textAlign = TextAlign.Center,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // [NEW] 서브: 경과 시간 (초 포함, HH:MM:SS)
+                            Text(
+                                text = progressTimeText, // [CHANGED] HH:MM:SS 형식 사용 (2025-12-25)
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color.White.copy(alpha = 0.9f),
+                                    fontSize = 24.sp, // 작은 크기
+                                    platformStyle = PlatformTextStyle(includeFontPadding = false),
+                                    shadow = Shadow(
+                                        color = Color.Black.copy(alpha = 0.45f),
+                                        offset = Offset(0f, 1f),
+                                        blurRadius = 2f
+                                    )
+                                ),
+                                textAlign = TextAlign.Center,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
                         }
                     }
-
-                    // [NEW] 네이티브 광고 영역 (프로그레스 바와 명언 사이) (2025-12-24)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    NativeAdItem()
-                    // [MODIFIED] QuoteDisplay 내부 vertical padding 6dp를 고려하여 10dp 추가 (총 16dp) (2025-12-24)
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    // [NEW] 공통 컴포넌트 사용 (StartScreen과 동일한 디자인 & 2줄 제한 로직 적용)
-                    // [MODIFIED] 불필요한 bottom padding 제거 - QuoteDisplay 내부 패딩 사용 (2025-12-24)
-                    kr.sweetapps.alcoholictimer.ui.tab_01.components.QuoteDisplay()
-
-                    // [NEW] STOP 버튼을 스크롤 최하단으로 이동 (2025-12-24)
-                    // [MODIFIED] QuoteDisplay 내부 하단 패딩 6dp를 고려하여 26dp 추가 (총 32dp) (2025-12-24)
-                    Spacer(modifier = Modifier.height(26.dp))
-
-                    // 중앙 정렬을 위한 Box
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        ModernStopButtonSimple(onStop = {
-                            onRequestQuit?.invoke()
-                        })
-                    }
-
-                    // 바닥 여백
-                    Spacer(modifier = Modifier.height(100.dp)) // [MODIFIED] 24dp → 100dp로 변경 (2025-12-24)
                 }
-            } // Box 닫기
-    } // RunScreenComposable 닫기
+            }
+
+            // [NEW] 메인 카드와 프로그레스 바 사이 간격 (2025-12-24)
+            Spacer(modifier = Modifier.height(16.dp)) // [MODIFIED] 15dp → 16dp 표준 간격 통일 (2025-12-24)
+
+            // Replace transparent card + surface with a single elevated white Card matching top cards
+            // [FIX] 프로그레스 카드와 응원 문구를 하나의 Column으로 묶어서 spacing 제거
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(0.dp) // 간격 완전 제거
+            ) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = RUN_CARD_CONTENT_HORIZONTAL_PADDING, vertical = RUN_CARD_CONTENT_VERTICAL_PADDING),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        // Progress content
+                        ModernProgressIndicatorSimple(progress = progress, targetDays = targetDays)
+                    }
+                }
+            }
+
+            // [NEW] 네이티브 광고 영역 (프로그레스 바와 명언 사이) (2025-12-24)
+            Spacer(modifier = Modifier.height(16.dp))
+            NativeAdItem()
+            // [MODIFIED] QuoteDisplay 내부 vertical padding 6dp를 고려하여 10dp 추가 (총 16dp) (2025-12-24)
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // [NEW] 공통 컴포넌트 사용 (StartScreen과 동일한 디자인 & 2줄 제한 로직 적용)
+            // [MODIFIED] 불필요한 bottom padding 제거 - QuoteDisplay 내부 패딩 사용 (2025-12-24)
+            kr.sweetapps.alcoholictimer.ui.tab_01.components.QuoteDisplay()
+
+            // [NEW] STOP 버튼을 스크롤 최하단으로 이동 (2025-12-24)
+            // [MODIFIED] QuoteDisplay 내부 하단 패딩 6dp를 고려하여 26dp 추가 (총 32dp) (2025-12-24)
+            Spacer(modifier = Modifier.height(26.dp))
+
+            // 중앙 정렬을 위한 Box
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                ModernStopButtonSimple(onStop = {
+                    onRequestQuit?.invoke()
+                })
+            }
+
+            // 바닥 여백
+            Spacer(modifier = Modifier.height(100.dp)) // [MODIFIED] 24dp → 100dp로 변경 (2025-12-24)
+        }
+    } // Box 닫기
+} // RunScreenComposable 닫기
 
 @Composable
 fun ModernProgressIndicatorSimple(progress: Float, targetDays: Float = 30f) {

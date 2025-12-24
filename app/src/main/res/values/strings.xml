@@ -6,7 +6,7 @@
     <!-- Start Screen -->
     <string name="start_screen_title">Sobriety Start</string>
     <string name="target_days_title_set">Set Target Period</string>
-    <string name="target_days_unit">d</string>
+    <string name="target_days_unit">Day</string>
     <string name="target_days_hint">Please select your sobriety goal period</string>
     <string name="badge_one_day">Just 1 Day</string>
     <string name="badge_three_days">3 Days Trial</string>
