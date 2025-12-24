@@ -9,6 +9,7 @@ plugins {
     id("com.google.gms.google-services") // Google Services
     // [FIX] KSP를 먼저 선언하여 태스크 의존성 순서 제어
     id("com.google.devtools.ksp") version "2.0.21-1.0.28" // Room Database용 KSP 플러그인
+    id("androidx.room") version "2.6.1" // [NEW] Room Gradle 플러그인 (2025-12-25)
     alias(libs.plugins.firebase.crashlytics) // Firebase Crashlytics (카탈로그에서 버전 관리)
     id("com.google.firebase.firebase-perf")
 }
@@ -66,7 +67,7 @@ android {
 
     // 버전 코드 전략: yyyymmdd + 2자리 시퀀스 (NN)
     // 이전 사용: 2025100800 -> 신규: 2025100801
-    val releaseVersionCode = 2025122401
+    val releaseVersionCode = 2025122404
     val releaseVersionName = "1.1.7"
     defaultConfig {
         applicationId = "kr.sweetapps.alcoholictimer"
@@ -248,6 +249,11 @@ kotlin {
     compilerOptions { jvmTarget.set(JvmTarget.JVM_11) }
 }
 
+// [NEW] Room Database 스키마 export 경로 설정 (2025-12-25)
+// Room Gradle 플러그인을 사용한 권장 방식
+room {
+    schemaDirectory("$projectDir/schemas")
+}
 
 dependencies {
     implementation(libs.androidx.core.ktx)

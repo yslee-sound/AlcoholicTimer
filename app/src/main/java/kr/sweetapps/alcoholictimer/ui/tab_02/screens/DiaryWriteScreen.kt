@@ -27,6 +27,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kr.sweetapps.alcoholictimer.data.model.Post
 import kr.sweetapps.alcoholictimer.data.room.DiaryEntity
 import kr.sweetapps.alcoholictimer.ui.common.CustomGalleryScreen
@@ -65,6 +66,8 @@ fun DiaryWriteScreen(
     // 3. 기존 일기 데이터 로드 (수정 모드)
     var existingDiary by remember { mutableStateOf<DiaryEntity?>(null) }
     var postToEdit by remember(diaryId) { mutableStateOf<Post?>(null) } // [FIX] diaryId를 key로 추가 (2025-12-23)
+    // [NEW] 이미 공유된 일기인지 여부 (2025-12-25)
+    var isAlreadyShared by remember(diaryId) { mutableStateOf(false) }
 
     // [NEW] 데이터 로딩 상태 추가 (2025-12-23)
     var isDataLoaded by remember(diaryId) { mutableStateOf(diaryId == null) } // ID가 없으면 즉시 표시
@@ -75,6 +78,9 @@ fun DiaryWriteScreen(
                 // Room DB에서 기존 일기 불러오기
                 val diary = diaryViewModel.getDiaryById(diaryId)
                 existingDiary = diary
+
+                // [NEW] 공유 상태 확인 (2025-12-25)
+                isAlreadyShared = !diary?.sharedPostId.isNullOrBlank()
 
                 // Post 객체로 변환하여 WritePostScreenContent에 전달
                 if (diary != null) {
@@ -143,43 +149,135 @@ fun DiaryWriteScreen(
             isDiaryMode = true, // [중요] 일기 모드 활성화
             postToEdit = postToEdit, // 수정 모드일 경우 기존 데이터 전달
             isTodayDiary = isTodayDiary, // [NEW] 오늘 일기 여부 전달 (2025-12-24)
+            isAlreadyShared = isAlreadyShared, // [NEW] 이미 공유된 일기인지 전달 (2025-12-25)
             onPost = {
                 // 저장/게시 완료 후 화면 닫기
                 onDismiss()
             },
-        onSaveDiary = { postData ->
-            // [핵심] 로컬 일기장(Room DB) 저장 로직
+        onSaveDiary = { postData, isSharing ->
+            // [핵심] 로컬 일기장(Room DB) 저장 로직 + Firestore 연동 (2025-12-25)
             scope.launch {
                 try {
+                    val currentSharedPostId = existingDiary?.sharedPostId
+                    var newSharedPostId: String? = currentSharedPostId
+
+                    // === Firestore 처리 (3가지 케이스) ===
+                    when {
+                        // Case 1: 체크박스 ON & sharedPostId == null (새로 공유)
+                        isSharing && currentSharedPostId.isNullOrBlank() -> {
+                            android.util.Log.d("DiaryWriteScreen", "[Case 1] 새로 공유 - Firestore에 게시글 생성")
+
+                            // Firestore에 새 글 생성 및 Document ID 받기
+                            val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                            val deviceLang = java.util.Locale.getDefault().language.let {
+                                if (it.lowercase() == "in") "id" else it.lowercase()
+                            }
+
+                            // 타이머 정보 가져오기
+                            val timerPrefs = context.getSharedPreferences("timer_prefs", android.content.Context.MODE_PRIVATE)
+                            val startTime = timerPrefs.getLong("start_time", 0L)
+                            val now = System.currentTimeMillis()
+                            val diffMillis = if (startTime == 0L) 0L else now - startTime
+                            val days = if (startTime == 0L) 1 else (diffMillis / (1000L * 60L * 60L * 24L)).toInt() + 1
+                            val level = (days / 10) + 1
+
+                            // 닉네임 및 아바타 가져오기
+                            val userRepo = kr.sweetapps.alcoholictimer.data.repository.UserRepository(context)
+                            val nickname = userRepo.getNickname() ?: "익명"
+                            val avatarIndex = try { userRepo.getAvatarIndex() } catch (_: Exception) { 0 }
+                            val deviceUserId = android.provider.Settings.Secure.getString(
+                                context.contentResolver,
+                                android.provider.Settings.Secure.ANDROID_ID
+                            )
+
+                            val post = hashMapOf(
+                                "nickname" to nickname,
+                                "content" to postData.content,
+                                "tagType" to postData.tagType,
+                                "thirstLevel" to (postData.thirstLevel ?: 0),
+                                "imageUrl" to (postData.imageUrl ?: ""),
+                                "likeCount" to 0,
+                                "likedBy" to emptyList<String>(),
+                                "currentDays" to days,
+                                "userLevel" to level,
+                                "createdAt" to com.google.firebase.Timestamp.now(),
+                                "deleteAt" to com.google.firebase.Timestamp((now / 1000) + 86400, 0), // 24시간 후
+                                "authorAvatarIndex" to avatarIndex,
+                                "authorId" to deviceUserId,
+                                "languageCode" to deviceLang,
+                                "timerDuration" to "0"
+                            )
+
+                            val docRef = firestore.collection("posts").add(post).await()
+                            newSharedPostId = docRef.id
+                            android.util.Log.d("DiaryWriteScreen", "Firestore 게시글 생성 완료: $newSharedPostId")
+                        }
+
+                        // Case 2: 체크박스 ON & sharedPostId != null (기존 글 수정)
+                        isSharing && !currentSharedPostId.isNullOrBlank() -> {
+                            android.util.Log.d("DiaryWriteScreen", "[Case 2] 기존 공유 글 수정 - Firestore 업데이트: $currentSharedPostId")
+
+                            val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                            firestore.collection("posts").document(currentSharedPostId)
+                                .update(
+                                    mapOf(
+                                        "content" to postData.content,
+                                        "tagType" to postData.tagType,
+                                        "thirstLevel" to (postData.thirstLevel ?: 0),
+                                        "imageUrl" to (postData.imageUrl ?: "")
+                                    )
+                                ).await()
+                            android.util.Log.d("DiaryWriteScreen", "Firestore 게시글 수정 완료")
+                        }
+
+                        // Case 3: 체크박스 OFF & sharedPostId != null (공유 취소 - 삭제)
+                        !isSharing && !currentSharedPostId.isNullOrBlank() -> {
+                            android.util.Log.d("DiaryWriteScreen", "[Case 3] 공유 취소 - Firestore에서 삭제: $currentSharedPostId")
+
+                            val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                            firestore.collection("posts").document(currentSharedPostId).delete().await()
+                            newSharedPostId = null
+                            android.util.Log.d("DiaryWriteScreen", "Firestore 게시글 삭제 완료")
+                        }
+
+                        // Case 4: 체크박스 OFF & sharedPostId == null (아무 작업 없음)
+                        else -> {
+                            android.util.Log.d("DiaryWriteScreen", "[Case 4] 공유하지 않음 - Firestore 작업 없음")
+                        }
+                    }
+
+                    // === Room DB 저장 ===
                     if (diaryId != null) {
                         // [수정 모드] 날짜 변경 금지 (기존 타임스탬프 유지)
                         val originalTimestamp = existingDiary?.timestamp ?: System.currentTimeMillis()
                         val updatedDiary = existingDiary?.copy(
                             content = postData.content,
                             cravingLevel = postData.thirstLevel ?: 0,
-                            imageUrl = postData.imageUrl ?: "", // [FIX] 이미지 URL 업데이트 (2025-12-23)
-                            tagType = postData.tagType, // [NEW] 태그 타입 저장 (2025-12-23)
-                            timestamp = originalTimestamp, // [FIX] 기존 시간 유지 (2025-12-22)
-                            date = formatDate(originalTimestamp)
+                            imageUrl = postData.imageUrl ?: "",
+                            tagType = postData.tagType,
+                            timestamp = originalTimestamp,
+                            date = formatDate(originalTimestamp),
+                            sharedPostId = newSharedPostId // [NEW] Firestore ID 저장 (2025-12-25)
                         )
                         if (updatedDiary != null) {
                             diaryViewModel.updateDiary(updatedDiary)
-                            android.util.Log.d("DiaryWriteScreen", "일기 수정 성공: 태그=${postData.tagType}")
+                            android.util.Log.d("DiaryWriteScreen", "일기 수정 성공: 태그=${postData.tagType}, sharedPostId=$newSharedPostId")
                         }
                     } else {
                         // [신규 모드] 선택된 날짜 사용
-                        val targetTimestamp = selectedDate ?: System.currentTimeMillis() // [FIX] 선택된 날짜 우선 사용 (2025-12-22)
+                        val targetTimestamp = selectedDate ?: System.currentTimeMillis()
                         val newDiary = DiaryEntity(
-                            emoji = "📝", // 기본 이모지 (추후 선택 기능 추가 가능)
+                            emoji = "📝",
                             content = postData.content,
                             cravingLevel = postData.thirstLevel ?: 0,
-                            timestamp = targetTimestamp, // [FIX] 선택된 날짜로 저장 (2025-12-22)
+                            timestamp = targetTimestamp,
                             date = formatDate(targetTimestamp),
-                            imageUrl = postData.imageUrl ?: "", // [NEW] 이미지 URL 저장 (2025-12-23)
-                            tagType = postData.tagType // [NEW] 태그 타입 저장 (2025-12-23)
+                            imageUrl = postData.imageUrl ?: "",
+                            tagType = postData.tagType,
+                            sharedPostId = newSharedPostId // [NEW] Firestore ID 저장 (2025-12-25)
                         )
                         diaryViewModel.insertDiary(newDiary)
-                        android.util.Log.d("DiaryWriteScreen", "일기 생성 성공: 태그=${postData.tagType}, 날짜=${formatDate(targetTimestamp)}")
+                        android.util.Log.d("DiaryWriteScreen", "일기 생성 성공: 태그=${postData.tagType}, 날짜=${formatDate(targetTimestamp)}, sharedPostId=$newSharedPostId")
                     }
                 } catch (e: Exception) {
                     android.util.Log.e("DiaryWriteScreen", "일기 저장 실패", e)

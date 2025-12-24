@@ -104,6 +104,8 @@ fun CommunityScreen(
 
     // Phase 3: 게시글 옵션 바텀 시트
     var selectedPost by remember { mutableStateOf<kr.sweetapps.alcoholictimer.data.model.Post?>(null) }
+    // [NEW] 삭제 확인 다이얼로그 상태 (2025-12-25)
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     // [중요] 글쓰기 화면이 열려있을 때 뒤로가기 버튼 누르면 앱 종료 대신 글쓰기 창 닫기
     BackHandler(enabled = isWritingScreenVisible) {
@@ -539,8 +541,8 @@ fun CommunityScreen(
                          isWritingScreenVisible = true
                      },
                      onDelete = {
-                         viewModel.deletePost(post.id)
-                         selectedPost = null
+                         // [NEW] 삭제 확인 다이얼로그 표시 (2025-12-25)
+                         showDeleteDialog = true
                      },
                      onHide = {
                          viewModel.hidePost(post.id)
@@ -552,6 +554,60 @@ fun CommunityScreen(
                      }
                  )
              }
+        }
+
+        // === 4. 삭제 확인 다이얼로그 (2025-12-25) ===
+        if (showDeleteDialog && selectedPost != null) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                containerColor = Color.White,
+                title = {
+                    Text(
+                        text = stringResource(R.string.community_post_delete_dialog_title),
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = Color(0xFF111111)
+                    )
+                },
+                text = {
+                    Text(
+                        text = stringResource(R.string.community_post_delete_dialog_message),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color(0xFF6B7280)
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            selectedPost?.let { post ->
+                                viewModel.deletePost(post.id)
+                            }
+                            showDeleteDialog = false
+                            selectedPost = null
+                        }
+                    ) {
+                        Text(
+                            text = stringResource(R.string.community_post_delete_confirm),
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold
+                            ),
+                            color = Color(0xFFEF4444) // 빨간색 강조
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showDeleteDialog = false }
+                    ) {
+                        Text(
+                            text = stringResource(R.string.community_post_delete_cancel),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = Color(0xFF6B7280)
+                        )
+                    }
+                }
+            )
         }
 
         // === 전체 화면 사진 선택: Dialog로 변경하여 하단 네비게이션을 덮도록 함 ===
@@ -738,8 +794,9 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
     isDiaryMode: Boolean = false, // [NEW] 일기 모드 여부 (2025-12-22)
     postToEdit: Post? = null, // [NEW] 수정할 게시글 (2025-12-22)
     isTodayDiary: Boolean = true, // [NEW] 오늘 일기 여부 (기본값 true - 커뮤니티는 항상 오늘) (2025-12-24)
+    isAlreadyShared: Boolean = false, // [NEW] 이미 공유된 일기인지 (2025-12-25)
     onPost: (String) -> Unit,
-    onSaveDiary: (Post) -> Unit = {}, // [NEW] 일기 저장 콜백 (2025-12-22)
+    onSaveDiary: (Post, Boolean) -> Unit = { _, _ -> }, // [MODIFIED] isSharing 파라미터 추가 (2025-12-25)
     onDismiss: () -> Unit,
     onOpenPhoto: () -> Unit // [NEW] 사진 선택 화면 열기 콜백 (네비게이션 호출)
 ) {
@@ -752,9 +809,9 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
     }
 
     // [NEW] 일기 모드에서 커뮤니티 공유 여부 (2025-12-22)
-    // [MODIFIED] 초기값 저장 (2025-12-24)
-    var isShareToCommunity by remember { mutableStateOf(false) }
-    val originalIsShareToCommunity = remember { false } // 초기값은 항상 false
+    // [MODIFIED] 이미 공유된 일기면 체크박스 초기값 true (2025-12-25)
+    var isShareToCommunity by remember(isAlreadyShared) { mutableStateOf(isAlreadyShared) }
+    val originalIsShareToCommunity = remember(isAlreadyShared) { isAlreadyShared } // 초기값 저장
 
     // [FIX] postToEdit를 key로 사용하여 수정 모드 진입 시 자동으로 내용 채우기 (2025-12-23)
     var textFieldValue by remember(postToEdit) {
@@ -994,22 +1051,12 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                                             languageCode = ""
                                         )
 
-                                        // 로컬 일기 저장
-                                        onSaveDiary(diaryEntry)
+                                        // [MODIFIED] 로컬 일기 저장 (공유 상태도 함께 전달) (2025-12-25)
+                                        onSaveDiary(diaryEntry, isShareToCommunity)
 
-                                        // 커뮤니티 공유가 체크되었으면 업로드 수행
-                                        if (isShareToCommunity) {
-                                            viewModel.addPost(
-                                                content = payload,
-                                                context = context,
-                                                tagType = selectedTag,
-                                                thirstLevel = selectedLevel,
-                                                onSuccess = { onPost(payload) }
-                                            )
-                                        } else {
-                                            // 공유 안 함 -> 바로 닫기
-                                            onPost(payload)
-                                        }
+                                        // [REMOVED] Firestore 업로드는 onSaveDiary 내부에서 처리 (2025-12-25)
+                                        // 화면 닫기
+                                        onPost(payload)
                                     } else if (isEditMode && postToEdit != null) {
                                         // 수정 모드: updatePost 호출
                                         viewModel.updatePost(

@@ -261,6 +261,10 @@
     <string name="community_post_manage">投稿を管理</string>
     <string name="community_post_edit">投稿を編集</string>
     <string name="community_post_delete">投稿を削除</string>
+    <string name="community_post_delete_dialog_title">投稿を削除</string>
+    <string name="community_post_delete_dialog_message">本当にこの投稿を削除しますか?\n削除された投稿は復元できません。</string>
+    <string name="community_post_delete_confirm">削除</string>
+    <string name="community_post_delete_cancel">キャンセル</string>
     <string name="community_post_hide">この投稿を非表示</string>
     <string name="community_post_report">投稿を報告</string>
     <string name="community_expiring_soon">まもなく終了</string>

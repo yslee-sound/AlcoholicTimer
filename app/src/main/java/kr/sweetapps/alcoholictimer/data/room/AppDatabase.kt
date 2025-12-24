@@ -13,11 +13,12 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  *
  * [NEW] Version 2: imageUrl 필드 추가 (2025-12-22)
  * [NEW] Version 3: tagType 필드 추가 (2025-12-23)
+ * [NEW] Version 4: sharedPostId 필드 추가 (2025-12-25)
  */
 @Database(
     entities = [DiaryEntity::class],
-    version = 3, // [UPDATED] 2 -> 3 (tagType 필드 추가)
-    exportSchema = false
+    version = 4, // [UPDATED] 3 -> 4 (sharedPostId 필드 추가)
+    exportSchema = true // [CHANGED] false -> true (스키마 이력 추적) (2025-12-25)
 )
 abstract class AppDatabase : RoomDatabase() {
 
@@ -52,6 +53,16 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
+         * [NEW] Migration 3 -> 4: sharedPostId 컬럼 추가 (2025-12-25)
+         */
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // sharedPostId 컬럼 추가 (nullable, 기본값 null)
+                database.execSQL("ALTER TABLE diary_table ADD COLUMN sharedPostId TEXT")
+            }
+        }
+
+        /**
          * Database 인스턴스를 가져옵니다.
          * 없으면 새로 생성하고, 있으면 기존 인스턴스를 반환합니다.
          */
@@ -64,8 +75,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "alcoholic_timer_database"
                 )
-                    // [NEW] Migration 추가 (2025-12-22, 2025-12-23)
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    // [NEW] Migration 추가 (2025-12-22, 2025-12-23, 2025-12-25)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
 
                     // [옵션] 메인 스레드에서 쿼리 허용 (개발 중에만 사용, 프로덕션에서는 제거 권장)
                     // .allowMainThreadQueries()

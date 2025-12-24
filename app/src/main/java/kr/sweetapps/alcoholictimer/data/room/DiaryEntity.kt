@@ -34,6 +34,9 @@ data class DiaryEntity(
     val imageUrl: String = "",
 
     /** [NEW] 태그 타입 (diary, thanks, reflect 등) (2025-12-23) */
-    val tagType: String = "diary"
+    val tagType: String = "diary",
+
+    /** [NEW] 공유된 게시글 Firestore Document ID (2025-12-25) */
+    val sharedPostId: String? = null
 )
 

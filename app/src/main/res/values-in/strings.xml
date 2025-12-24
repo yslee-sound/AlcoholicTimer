@@ -259,6 +259,10 @@
     <string name="community_post_manage">Kelola Postingan</string>
     <string name="community_post_edit">Edit Postingan</string>
     <string name="community_post_delete">Hapus Postingan</string>
+    <string name="community_post_delete_dialog_title">Hapus Postingan</string>
+    <string name="community_post_delete_dialog_message">Apakah Anda yakin ingin menghapus postingan ini?\nPostingan yang dihapus tidak dapat dipulihkan.</string>
+    <string name="community_post_delete_confirm">Hapus</string>
+    <string name="community_post_delete_cancel">Batal</string>
     <string name="community_post_hide">Sembunyikan postingan ini</string>
     <string name="community_post_report">Laporkan postingan</string>
     <string name="community_expiring_soon">Segera Berakhir</string>

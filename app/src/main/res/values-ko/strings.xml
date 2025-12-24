@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+﻿﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App Name -->
     <string name="app_name">ZERO</string>
@@ -261,6 +261,10 @@
     <string name="community_post_manage">게시글 관리</string>
     <string name="community_post_edit">게시글 수정</string>
     <string name="community_post_delete">게시글 삭제</string>
+    <string name="community_post_delete_dialog_title">게시글 삭제</string>
+    <string name="community_post_delete_dialog_message">정말 이 게시글을 삭제하시겠습니까?\n삭제된 글은 복구할 수 없습니다.</string>
+    <string name="community_post_delete_confirm">삭제</string>
+    <string name="community_post_delete_cancel">취소</string>
     <string name="community_post_hide">이 게시글 숨기기</string>
     <string name="community_post_report">게시글 신고하기</string>
     <string name="community_expiring_soon">곧 만료</string>
