@@ -384,13 +384,7 @@ private fun AboutScreenContent(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(text = nickname, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_caret_right),
-                    contentDescription = null,
-                    tint = Color.Black,
-                    modifier = Modifier.size(20.dp)
-                )
+                // [REMOVED] '>' 아이콘 제거 - 표시 전용이므로 불필요 (2025-12-24)
             }
         }
 
