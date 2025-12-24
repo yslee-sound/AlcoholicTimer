@@ -15,6 +15,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -251,26 +253,26 @@ fun RecordsScreen(
 
                 // ==================== Item 3: 분리된 통계 카드 그리드 ====================
                 item {
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(8.dp)) // [FIX] 12dp → 8dp (33% 감소)
 
                     // 3개의 독립 카드 (칼로리, 절주, 저축)
                     ModernStatisticsGrid(
                         statsData = statsData
                     )
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(8.dp)) // [FIX] 12dp → 8dp (33% 감소)
 
                     // 총 금주일 독립 카드 (전체 기록 화면으로 이동)
                     TotalDaysCard(
                         totalDays = statsData.totalDays,
-                        onNavigateToAllRecords = onNavigateToAllRecords // [NEW] 전체 기록 화면 이동
+                        onNavigateToAllRecords = onNavigateToAllRecords
                     )
                 }
 
                 // ==================== NEW: 네이티브 광고 아이템 (2025-12-22) ====================
                 item {
-                    // [Standard] 위쪽 여백 16dp (이전 콘텐츠와 분리) (2025-12-23)
-                    Spacer(modifier = Modifier.height(16.dp))
+                    // [FIX] 위쪽 여백 축소: 16dp → 8dp (50% 감소) (2025-12-24)
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     // 광고 컨테이너 (좌우 여백 적용)
                     Box(modifier = Modifier
@@ -280,14 +282,40 @@ fun RecordsScreen(
                         NativeAdItem()
                     }
 
-                    // [Standard] 아래쪽 여백 16dp (다음 콘텐츠 오클릭 방지) (2025-12-23)
-                    Spacer(modifier = Modifier.height(16.dp))
+                    // [NEW] 스크롤 유도 힌트 (False Floor 해결) (2025-12-24)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.KeyboardArrowDown,
+                                contentDescription = "Scroll down for more",
+                                tint = Color.Gray.copy(alpha = 0.5f),
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                text = stringResource(R.string.scroll_hint_more),
+                                fontSize = 11.sp,
+                                color = Color.Gray.copy(alpha = 0.6f),
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+
+                    // [FIX] 아래쪽 여백 축소: 16dp → 8dp (50% 감소) (2025-12-24)
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
 
                 // ==================== Item 4: 최근 금주 일기 섹션 ====================
                 item {
-                    // [FIX] 섹션 간격 통일 (20dp)
-                    Spacer(modifier = Modifier.height(RECORDS_SECTION_SPACING))
+                    // [FIX] 섹션 간격 축소: 20dp → 12dp (40% 감소) (2025-12-24)
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)) {
                         RecentDiarySection(

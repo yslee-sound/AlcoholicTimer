@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+﻿﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App Name -->
     <string name="app_name">Alcoholic Timer</string>
@@ -159,7 +159,7 @@
     <string name="level_hour_unit">시간</string>
 
     <!-- Diary -->
-    <string name="diary_recent_title">기록</string>
+    <string name="diary_recent_title">일기</string>
     <string name="diary_no_entries">아직 일기가 없습니다</string>
     <string name="diary_write_prompt">아래 + 버튼을 눌러\n첫 일기를 작성해보세요</string>
     <string name="diary_write_button_action">일기 쓰기</string>
@@ -453,6 +453,9 @@
         <item>흔들리는 술잔 속에 내 미래를 담지 마세요.</item>
         <item>금주는 끝이 없는 참음이 아니라, 새로운 삶의 시작입니다.</item>
     </string-array>
+
+    <!-- Scroll Hint -->
+    <string name="scroll_hint_more">더 보기</string>
 
 </resources>
 

@@ -159,7 +159,7 @@
     <string name="level_hour_unit">jam</string>
 
     <!-- Diary -->
-    <string name="diary_recent_title">Diary Terbaru</string>
+    <string name="diary_recent_title">Diary</string>
     <string name="diary_no_entries">Belum ada entri diary</string>
     <string name="diary_write_prompt">Ketuk tombol + di bawah\nuntuk menulis entri pertama Anda</string>
     <string name="diary_write_button_action">Tulis Entri Diary</string>
@@ -453,6 +453,9 @@
         <item>Jangan taruh masa depan Anda di gelas yang goyah.</item>
         <item>Pantang alkohol bukan ketahanan tanpa akhir; ini awal kehidupan baru.</item>
     </string-array>
+
+    <!-- Scroll Hint -->
+    <string name="scroll_hint_more">Lihat Lainnya</string>
 
 </resources>
 
