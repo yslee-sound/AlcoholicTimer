@@ -105,3 +105,19 @@
     public void print(...);
 }
 
+# --- AdMob Native Ads 지킴이 ---
+-keep class com.google.android.gms.ads.** { *; }
+-keep class com.google.android.ads.** { *; }
+-keep class com.google.android.gms.ads.nativead.** { *; }
+-keep public class com.google.android.gms.ads.nativead.** {
+   public *;
+}
+
+# (ViewBinding 사용 시 안전장치)
+-keepclassmembers class * implements androidx.viewbinding.ViewBinding {
+    public static ** bind(android.view.View);
+    public static ** inflate(android.view.LayoutInflater);
+}
+
+# --- App Open Ad (앱 오프닝 광고) 지킴이 ---
+-keep class com.google.android.gms.ads.appopen.** { *; }

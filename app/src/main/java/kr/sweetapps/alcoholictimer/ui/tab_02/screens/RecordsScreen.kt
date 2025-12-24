@@ -1746,6 +1746,8 @@ private fun NativeAdItem() {
     val adUnitId = try { kr.sweetapps.alcoholictimer.BuildConfig.ADMOB_NATIVE_ID } catch (_: Throwable) { "ca-app-pub-3940256099942544/2247696110" }
 
     var nativeAd by remember { mutableStateOf<com.google.android.gms.ads.nativead.NativeAd?>(null) }
+    // [NEW] 광고 로드 실패 플래그 (No Fill 대응, 2025-12-24)
+    var adLoadFailed by remember { mutableStateOf(false) }
 
     // 1. 광고 로드 로직
     LaunchedEffect(Unit) {
@@ -1759,6 +1761,13 @@ private fun NativeAdItem() {
                 .forNativeAd { ad: com.google.android.gms.ads.nativead.NativeAd ->
                     nativeAd = ad
                 }
+                // [NEW] 광고 로드 실패 리스너 추가 (No Fill 대응, 2025-12-24)
+                .withAdListener(object : com.google.android.gms.ads.AdListener() {
+                    override fun onAdFailedToLoad(error: com.google.android.gms.ads.LoadAdError) {
+                        android.util.Log.w("NativeAd", "Ad load failed (No Fill): ${error.message}")
+                        adLoadFailed = true // [핵심] UI 숨김 플래그
+                    }
+                })
                 .withNativeAdOptions(com.google.android.gms.ads.nativead.NativeAdOptions.Builder().build())
                 .build()
 
@@ -1766,10 +1775,17 @@ private fun NativeAdItem() {
                 adLoader.loadAd(com.google.android.gms.ads.AdRequest.Builder().build())
             } catch (se: SecurityException) {
                 android.util.Log.w("NativeAd", "Ad load blocked by SecurityException: ${se.message}")
+                adLoadFailed = true // [추가] SecurityException도 실패로 처리
             }
         } catch (e: Exception) {
             android.util.Log.e("NativeAd", "Failed setting up ad loader", e)
+            adLoadFailed = true // [추가] 예외 발생 시 실패로 처리
         }
+    }
+
+    // [NEW] 광고 로드 실패 시 UI 아예 숨김 (Graceful Degradation, 2025-12-24)
+    if (adLoadFailed) {
+        return // 광고 영역 렌더링하지 않음
     }
 
     // 2. [FIX] 광고 로딩 상태에 따른 높이 조절로 레이아웃 시프트 방지 (2025-12-23)
