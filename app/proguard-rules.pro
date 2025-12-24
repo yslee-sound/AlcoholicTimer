@@ -30,6 +30,19 @@
 -keep class com.google.android.ump.** { *; }
 -dontwarn com.google.android.ump.**
 
+# ===================================================
+# [FIX] 광고 렌더링 누락 방지 (WebView & JS) (2025-12-24)
+# ===================================================
+# 광고 콘텐츠(HTML/JS)를 렌더링하는 WebView 보호
+-keep class android.webkit.** { *; }
+-keep class com.google.android.gms.ads.internal.** { *; }
+
+# 자바스크립트 인터페이스 메서드 보호 (광고 클릭/로드 트리거용)
+-keepattributes JavascriptInterface
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+
 # Compose (runtime/ui 핵심 public API만)
 -keep class androidx.compose.runtime.* { *; }
 -keep class androidx.compose.ui.* { *; }
