@@ -159,7 +159,7 @@
     <string name="level_hour_unit">時間</string>
 
     <!-- Diary -->
-    <string name="diary_recent_title">日記</string>
+    <string name="diary_recent_title">断酒日記</string>
     <string name="diary_section_hint">日付をタップして一日を記録しましょう</string>
     <string name="diary_cta_empty">今日の物語が空っぽです 📝</string>
     <string name="diary_cta_empty_action">タップして書く</string>
@@ -219,6 +219,7 @@
     <string name="currency_mxn">メキシコペソ (MX$)</string>
     <string name="currency_cny">中国元 (¥)</string>
     <string name="currency_brl">ブラジルレアル (R$)</string>
+    <string name="currency_idr">インドネシアルピア (Rp)</string>
     <string name="settings_privacy_unavailable">アクティビティを利用できないため広告設定を表示できません。</string>
     <string name="settings_privacy_checking">広告同意を確認中&#8230;</string>
     <string name="settings_privacy_load_failed">同意フォームの読み込みに失敗しました: %1$s</string>

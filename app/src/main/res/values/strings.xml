@@ -159,7 +159,7 @@
     <string name="level_hour_unit">hour(s)</string>
 
     <!-- Diary -->
-    <string name="diary_recent_title">Diary</string>
+    <string name="diary_recent_title">Sobriety Diary</string>
     <string name="diary_section_hint">Tap a date to record your day</string>
     <string name="diary_cta_empty">Your story is empty today 📝</string>
     <string name="diary_cta_empty_action">Tap to write</string>
@@ -219,6 +219,7 @@
     <string name="currency_mxn">Mexican Peso (MX$)</string>
     <string name="currency_cny">Chinese Yuan (¥)</string>
     <string name="currency_brl">Brazilian Real (R$)</string>
+    <string name="currency_idr">Indonesian Rupiah (Rp)</string>
     <string name="settings_privacy_unavailable">Cannot show ad settings because activity is unavailable.</string>
     <string name="settings_privacy_checking">Checking ad consent&#8230;</string>
     <string name="settings_privacy_load_failed">Failed to load consent form: %1$s</string>
