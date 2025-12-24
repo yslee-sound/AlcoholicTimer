@@ -4,220 +4,220 @@
     <string name="app_name">Alcoholic Timer</string>
 
     <!-- Start Screen -->
-    <string name="start_screen_title">Sobriety Start</string>
-    <string name="target_days_title_set">Set Target Period</string>
-    <string name="target_days_unit">d</string>
-    <string name="target_days_hint">Please select your sobriety goal period</string>
-    <string name="badge_one_day">Just 1 Day</string>
-    <string name="badge_three_days">3 Days Trial</string>
-    <string name="badge_one_week">1 Week Challenge</string>
-    <string name="badge_21_days">21-Day Habit</string>
-    <string name="badge_one_month">One-Month Miracle</string>
-    <string name="badge_100_days">100-Day Promise</string>
-    <string name="target_days_picker_title">Select Target Days</string>
-    <string name="target_days_picker_unit">d</string>
-    <string name="target_days_picker_cancel">Cancel</string>
+    <string name="start_screen_title">Mulai Pantang Alkohol</string>
+    <string name="target_days_title_set">Tetapkan Target Periode</string>
+    <string name="target_days_unit">h</string>
+    <string name="target_days_hint">Pilih periode target pantang alkohol Anda</string>
+    <string name="badge_one_day">Hanya 1 Hari</string>
+    <string name="badge_three_days">Percobaan 3 Hari</string>
+    <string name="badge_one_week">Tantangan 1 Minggu</string>
+    <string name="badge_21_days">Kebiasaan 21 Hari</string>
+    <string name="badge_one_month">Keajaiban Satu Bulan</string>
+    <string name="badge_100_days">Janji 100 Hari</string>
+    <string name="target_days_picker_title">Pilih Target Hari</string>
+    <string name="target_days_picker_unit">h</string>
+    <string name="target_days_picker_cancel">Batal</string>
     <string name="target_days_picker_confirm">OK</string>
 
     <!-- Run Screen -->
-    <string name="run_title">Sobriety Progress</string>
-    <string name="run_progress_title">Progress</string>
-    <string name="stat_goal_days">Goal</string>
+    <string name="run_title">Kemajuan Pantang Alkohol</string>
+    <string name="run_progress_title">Kemajuan</string>
+    <string name="stat_goal_days">Target</string>
     <string name="stat_level">Level</string>
-    <string name="stat_goal_days_format">%d d</string>
-    <string name="indicator_title_days">Days Sober</string>
-    <string name="indicator_title_time">Time</string>
-    <string name="indicator_title_saved_money">Money Saved</string>
-    <string name="indicator_title_saved_hours">Hours Saved</string>
-    <string name="indicator_title_life_gain">Life Gain +</string>
-    <string name="tap_to_switch_indicator">Tap to view other metrics</string>
-    <string name="cd_stop">Stop</string>
-    <string name="cd_continue">Continue</string>
-    <string name="toast_goal_completed">You\'ve achieved your sobriety goal!</string>
+    <string name="stat_goal_days_format">%d h</string>
+    <string name="indicator_title_days">Hari Bebas Alkohol</string>
+    <string name="indicator_title_time">Waktu</string>
+    <string name="indicator_title_saved_money">Uang Tersimpan</string>
+    <string name="indicator_title_saved_hours">Jam Tersimpan</string>
+    <string name="indicator_title_life_gain">Kehidupan +</string>
+    <string name="tap_to_switch_indicator">Ketuk untuk melihat metrik lain</string>
+    <string name="cd_stop">Berhenti</string>
+    <string name="cd_continue">Lanjutkan</string>
+    <string name="toast_goal_completed">Anda telah mencapai target pantang alkohol!</string>
 
     <!-- Quit Screen -->
-    <string name="quit_title">End Sobriety</string>
-    <string name="quit_confirm_title">Are you sure you want to stop?</string>
-    <string name="quit_confirm_subtitle">You\'ve been doing so well&#8230;</string>
-    <string name="stat_total_days">Sober Days</string>
-    <string name="stat_saved_money_short">Savings</string>
-    <string name="stat_saved_hours_short">Time Saved</string>
+    <string name="quit_title">Akhiri Pantang Alkohol</string>
+    <string name="quit_confirm_title">Apakah Anda yakin ingin berhenti?</string>
+    <string name="quit_confirm_subtitle">Anda sudah melakukannya dengan baik&#8230;</string>
+    <string name="stat_total_days">Hari Bebas Alkohol</string>
+    <string name="stat_saved_money_short">Tabungan</string>
+    <string name="stat_saved_hours_short">Waktu Tersimpan</string>
 
     <!-- Finished Screen (Timer Completion) -->
-    <string name="finished_back">Back</string>
-    <string name="finished_success_title">🎉 Goal Achieved!</string>
-    <string name="finished_success_description">Congratulations!\nYou have successfully completed your sobriety goal.</string>
-    <string name="finished_result_check">Check Result</string>
-    <string name="finished_new_timer">Start New Timer</string>
-    <string name="finished_giveup_title">🍃 It\'s Okay to Take a Break</string>
-    <string name="finished_giveup_description">This challenge ends here, but your efforts won\'t disappear.\nTake a moment to regroup and come back anytime.</string>
+    <string name="finished_back">Kembali</string>
+    <string name="finished_success_title">🎉 Target Tercapai!</string>
+    <string name="finished_success_description">Selamat!\nAnda telah berhasil menyelesaikan target pantang alkohol.</string>
+    <string name="finished_result_check">Lihat Hasil</string>
+    <string name="finished_new_timer">Mulai Timer Baru</string>
+    <string name="finished_giveup_title">🍃 Tidak Apa-apa Istirahat Sejenak</string>
+    <string name="finished_giveup_description">Tantangan ini berakhir di sini, tetapi usaha Anda tidak akan hilang.\nBeristirahatlah sejenak dan kembali kapan saja.</string>
 
     <!-- Records Screen -->
-    <string name="records_title">Sobriety Records</string>
-    <string name="records_period_week">Week</string>
-    <string name="records_period_month">Month</string>
-    <string name="records_period_year">Year</string>
-    <string name="records_period_all">All</string>
-    <string name="records_this_week">This Week</string>
-    <string name="records_weekly_stats">Weekly Stats</string>
-    <string name="records_monthly_stats">Monthly Stats</string>
-    <string name="records_yearly_stats">Yearly Stats</string>
-    <string name="records_all_stats">All Stats</string>
-    <string name="records_success_rate">Success Rate</string>
-    <string name="records_avg_duration">Avg. Duration</string>
-    <string name="records_max_duration">Max Duration</string>
-    <string name="records_total_days">Total Sober Days</string>
-    <string name="records_no_records">No sobriety records yet</string>
-    <string name="records_view_all">View All Records (%d)</string>
-    <string name="records_view_all_icon_cd">View all records</string>
-    <string name="records_add">Add Sobriety Record</string>
-    <string name="records_day_unit">d</string>
+    <string name="records_title">Catatan Pantang Alkohol</string>
+    <string name="records_period_week">Minggu</string>
+    <string name="records_period_month">Bulan</string>
+    <string name="records_period_year">Tahun</string>
+    <string name="records_period_all">Semua</string>
+    <string name="records_this_week">Minggu Ini</string>
+    <string name="records_weekly_stats">Statistik Mingguan</string>
+    <string name="records_monthly_stats">Statistik Bulanan</string>
+    <string name="records_yearly_stats">Statistik Tahunan</string>
+    <string name="records_all_stats">Semua Statistik</string>
+    <string name="records_success_rate">Tingkat Keberhasilan</string>
+    <string name="records_avg_duration">Durasi Rata-rata</string>
+    <string name="records_max_duration">Durasi Maksimum</string>
+    <string name="records_total_days">Total Hari Bebas Alkohol</string>
+    <string name="records_no_records">Belum ada catatan pantang alkohol</string>
+    <string name="records_view_all">Lihat Semua Catatan (%d)</string>
+    <string name="records_view_all_icon_cd">Lihat semua catatan</string>
+    <string name="records_add">Tambah Catatan Pantang Alkohol</string>
+    <string name="records_day_unit">h</string>
     <string name="records_percent_unit">%</string>
     <string name="level_screen_title">Level Saya</string>
 
     <!-- All Records Screen -->
-    <string name="all_records_title">All Records</string>
-    <string name="cd_navigate_back">Navigate back</string>
-    <string name="error_loading_records">Failed to load records</string>
-    <string name="retry">Retry</string>
-    <string name="empty_records_title">No records yet</string>
-    <string name="empty_records_subtitle">Start your first sobriety journey!</string>
-    <string name="empty_records_cd">No records to display</string>
-    <string name="cd_more_options">More options</string>
-    <string name="menu_delete_all_records">Delete all records</string>
-    <string name="all_records_delete_title">Delete All Records</string>
-    <string name="all_records_delete_message">Are you sure you want to delete all sobriety records?&#10;This action cannot be undone.</string>
-    <string name="all_records_delete_confirm">Delete All</string>
-    <string name="all_records_delete_failed">Delete failed</string>
-    <string name="record_completed">Completed</string>
-    <string name="record_incomplete">Incomplete</string>
-    <string name="record_actual_days">Actual Days</string>
-    <string name="record_target_days">Target Days</string>
-    <string name="record_success_rate">Success Rate</string>
-    <string name="record_start_time">Start</string>
-    <string name="record_end_time">End</string>
-    <string name="record_days_format">%.1f d</string>
-    <string name="record_target_days_format">%d d</string>
+    <string name="all_records_title">Semua Catatan</string>
+    <string name="cd_navigate_back">Kembali</string>
+    <string name="error_loading_records">Gagal memuat catatan</string>
+    <string name="retry">Coba Lagi</string>
+    <string name="empty_records_title">Belum ada catatan</string>
+    <string name="empty_records_subtitle">Mulai perjalanan pantang alkohol pertama Anda!</string>
+    <string name="empty_records_cd">Tidak ada catatan untuk ditampilkan</string>
+    <string name="cd_more_options">Opsi lainnya</string>
+    <string name="menu_delete_all_records">Hapus semua catatan</string>
+    <string name="all_records_delete_title">Hapus Semua Catatan</string>
+    <string name="all_records_delete_message">Apakah Anda yakin ingin menghapus semua catatan pantang alkohol?&#10;Tindakan ini tidak dapat dibatalkan.</string>
+    <string name="all_records_delete_confirm">Hapus Semua</string>
+    <string name="all_records_delete_failed">Gagal menghapus</string>
+    <string name="record_completed">Selesai</string>
+    <string name="record_incomplete">Belum Selesai</string>
+    <string name="record_actual_days">Hari Aktual</string>
+    <string name="record_target_days">Target Hari</string>
+    <string name="record_success_rate">Tingkat Keberhasilan</string>
+    <string name="record_start_time">Mulai</string>
+    <string name="record_end_time">Akhir</string>
+    <string name="record_days_format">%.1f h</string>
+    <string name="record_target_days_format">%d h</string>
     <string name="record_rate_format">%.1f%%</string>
 
     <!-- Detail Screen -->
-    <string name="detail_title">Record Details</string>
-    <string name="detail_result_title">Goal Achievement Result</string>
-    <string name="detail_restart_button">Start Again</string>
-    <string name="detail_menu_delete">Delete Record</string>
-    <string name="detail_start_label">Started:</string>
-    <string name="detail_end_label">Ended:</string>
-    <string name="detail_progress_rate">Goal Achievement</string>
-    <string name="detail_progress_current">Progress: %1$s d</string>
-    <string name="detail_progress_target">Goal: %1$d d</string>
-    <string name="detail_today_time">Today - %1$s</string>
+    <string name="detail_title">Detail Catatan</string>
+    <string name="detail_result_title">Hasil Pencapaian Target</string>
+    <string name="detail_restart_button">Mulai Lagi</string>
+    <string name="detail_menu_delete">Hapus Catatan</string>
+    <string name="detail_start_label">Dimulai:</string>
+    <string name="detail_end_label">Berakhir:</string>
+    <string name="detail_progress_rate">Pencapaian Target</string>
+    <string name="detail_progress_current">Kemajuan: %1$s h</string>
+    <string name="detail_progress_target">Target: %1$d h</string>
+    <string name="detail_today_time">Hari ini - %1$s</string>
 
     <!-- Add Record Screen -->
-    <string name="add_record_title">Add Sobriety Record</string>
-    <string name="add_record_button">Add Record</string>
-    <string name="add_record_start_date_time">Start Date &amp; Time</string>
-    <string name="add_record_end_date_time">End Date &amp; Time</string>
-    <string name="add_record_target_days">Target Days</string>
-    <string name="add_record_error_invalid_range">End time must be after start time</string>
-    <string name="add_record_error_set_target">Please enter valid target days</string>
-    <string name="add_record_cancel">Cancel</string>
-    <string name="add_record_save">Save</string>
-    <string name="add_record_toast_success">Sobriety record added successfully</string>
-    <string name="add_record_toast_conflict">Selected time conflicts with existing records</string>
-    <string name="add_record_days_unit">d</string>
-    <string name="add_record_saving">Saving&#8230;</string>
+    <string name="add_record_title">Tambah Catatan Pantang Alkohol</string>
+    <string name="add_record_button">Tambah Catatan</string>
+    <string name="add_record_start_date_time">Tanggal &amp; Waktu Mulai</string>
+    <string name="add_record_end_date_time">Tanggal &amp; Waktu Akhir</string>
+    <string name="add_record_target_days">Target Hari</string>
+    <string name="add_record_error_invalid_range">Waktu akhir harus setelah waktu mulai</string>
+    <string name="add_record_error_set_target">Masukkan target hari yang valid</string>
+    <string name="add_record_cancel">Batal</string>
+    <string name="add_record_save">Simpan</string>
+    <string name="add_record_toast_success">Catatan pantang alkohol berhasil ditambahkan</string>
+    <string name="add_record_toast_conflict">Waktu yang dipilih bertabrakan dengan catatan yang ada</string>
+    <string name="add_record_days_unit">h</string>
+    <string name="add_record_saving">Menyimpan&#8230;</string>
 
     <!-- Statistics -->
-    <string name="stats_calories_reduced">Calories Cut</string>
-    <string name="stats_drinks_resisted">Drinks Passed</string>
-    <string name="stats_money_saved">Money Saved</string>
-    <string name="stats_total_days">Total Days</string>
-    <string name="stats_unit_kcal">kcal</string>
-    <string name="stats_unit_bottles">bottle(s)</string>
+    <string name="stats_calories_reduced">Kalori Dikurangi</string>
+    <string name="stats_drinks_resisted">Minuman Ditolak</string>
+    <string name="stats_money_saved">Uang Tersimpan</string>
+    <string name="stats_total_days">Total Hari</string>
+    <string name="stats_unit_kcal">kkal</string>
+    <string name="stats_unit_bottles">botol</string>
 
     <!-- Level System -->
-    <string name="level_0">Alcohol Stop</string>
-    <string name="level_1">3-Day Cut Passed</string>
-    <string name="level_2">1-Week Clear</string>
-    <string name="level_3">Skin\'s Transformation</string>
-    <string name="level_4">Habit Formed (21 Days)</string>
-    <string name="level_5">One-Month Miracle</string>
-    <string name="level_6">Changed Fit</string>
-    <string name="level_7">100 Days, Pro Soberer</string>
-    <string name="level_8">Plus Balance</string>
-    <string name="level_9">Sobriety Master</string>
-    <string name="level_10">Legendary Legend</string>
-    <string name="level_title">Sobriety Levels</string>
-    <string name="level_days_label">Days</string>
-    <string name="level_until_next">Until Next Level</string>
-    <string name="level_days_remaining">left</string>
-    <string name="level_hours_remaining">left</string>
-    <string name="level_days_hours_remaining">%d d %d hour(s) left</string>
-    <string name="level_soon_levelup">Level Up Soon!</string>
-    <string name="level_all_levels">All Levels</string>
-    <string name="level_day_unit">d</string>
-    <string name="level_hour_unit">hour(s)</string>
+    <string name="level_0">Berhenti Alkohol</string>
+    <string name="level_1">Lewati 3 Hari</string>
+    <string name="level_2">1 Minggu Bersih</string>
+    <string name="level_3">Transformasi Kulit</string>
+    <string name="level_4">Kebiasaan Terbentuk (21 Hari)</string>
+    <string name="level_5">Keajaiban Satu Bulan</string>
+    <string name="level_6">Tubuh Berubah</string>
+    <string name="level_7">100 Hari, Ahli Pantang</string>
+    <string name="level_8">Keseimbangan Plus</string>
+    <string name="level_9">Master Pantang Alkohol</string>
+    <string name="level_10">Legenda Sejati</string>
+    <string name="level_title">Level Pantang Alkohol</string>
+    <string name="level_days_label">Hari</string>
+    <string name="level_until_next">Sampai Level Berikutnya</string>
+    <string name="level_days_remaining">tersisa</string>
+    <string name="level_hours_remaining">tersisa</string>
+    <string name="level_days_hours_remaining">%d h %d jam tersisa</string>
+    <string name="level_soon_levelup">Segera Naik Level!</string>
+    <string name="level_all_levels">Semua Level</string>
+    <string name="level_day_unit">h</string>
+    <string name="level_hour_unit">jam</string>
 
     <!-- Diary -->
-    <string name="diary_recent_title">Recent Diary</string>
-    <string name="diary_no_entries">No diary entries yet</string>
-    <string name="diary_write_prompt">Tap the + button below\nto write your first entry</string>
-    <string name="diary_write_button_action">Write Diary Entry</string>
-    <string name="diary_write_today_only">Diary can only be written on the same day</string>
-    <string name="diary_all_empty">No diary entries.</string>
+    <string name="diary_recent_title">Diary Terbaru</string>
+    <string name="diary_no_entries">Belum ada entri diary</string>
+    <string name="diary_write_prompt">Ketuk tombol + di bawah\nuntuk menulis entri pertama Anda</string>
+    <string name="diary_write_button_action">Tulis Entri Diary</string>
+    <string name="diary_write_today_only">Diary hanya dapat ditulis pada hari yang sama</string>
+    <string name="diary_all_empty">Tidak ada entri diary.</string>
     <string name="diary_menu_edit">Edit</string>
-    <string name="diary_menu_delete">Delete</string>
-    <string name="diary_save_button">Save</string>
-    <string name="diary_question_title">Did you think about drinking today?</string>
-    <string name="diary_question_required">Required</string>
-    <string name="diary_craving_weak">Not at all</string>
-    <string name="diary_craving_strong">Very much</string>
-    <string name="diary_craving_label">Craving Level: %d/10</string>
-    <string name="diary_mood_title">Today\'s Note</string>
-    <string name="diary_mood_optional">Optional</string>
-    <string name="diary_content_placeholder">Write about the hardest moment today,\nor give yourself a compliment.</string>
-    <string name="diary_content_empty">No content</string>
-    <string name="diary_delete_confirm_title">Delete Diary</string>
-    <string name="diary_delete_confirm_message">Are you sure you want to delete this diary entry?</string>
-    <string name="diary_delete_confirm_button">Delete</string>
+    <string name="diary_menu_delete">Hapus</string>
+    <string name="diary_save_button">Simpan</string>
+    <string name="diary_question_title">Apakah Anda memikirkan alkohol hari ini?</string>
+    <string name="diary_question_required">Wajib diisi</string>
+    <string name="diary_craving_weak">Tidak sama sekali</string>
+    <string name="diary_craving_strong">Sangat</string>
+    <string name="diary_craving_label">Tingkat Hasrat: %d/10</string>
+    <string name="diary_mood_title">Catatan Hari Ini</string>
+    <string name="diary_mood_optional">Opsional</string>
+    <string name="diary_content_placeholder">Tulis tentang momen tersulit hari ini,\natau beri diri Anda pujian.</string>
+    <string name="diary_content_empty">Tidak ada konten</string>
+    <string name="diary_delete_confirm_title">Hapus Diary</string>
+    <string name="diary_delete_confirm_message">Apakah Anda yakin ingin menghapus entri diary ini?</string>
+    <string name="diary_delete_confirm_button">Hapus</string>
 
     <!-- Settings Screen -->
-    <string name="settings_title">Habit Settings</string>
-    <string name="settings_drinking_cost">Drinking Cost</string>
-    <string name="settings_drinking_frequency">Drinking Frequency</string>
-    <string name="settings_drinking_duration">Drinking Duration</string>
-    <string name="settings_cost_low">Low</string>
-    <string name="settings_cost_medium">Medium</string>
-    <string name="settings_cost_high">High</string>
-    <string name="settings_cost_low_label">Low (Under $10)</string>
-    <string name="settings_cost_medium_label">Medium ($10~50)</string>
-    <string name="settings_cost_high_label">High (Over $50)</string>
-    <string name="settings_frequency_low">Once a week or less</string>
-    <string name="settings_frequency_medium">2-3 times a week</string>
-    <string name="settings_frequency_high">4+ times a week</string>
-    <string name="settings_duration_short">Short</string>
-    <string name="settings_duration_medium">Medium</string>
-    <string name="settings_duration_long">Long</string>
-    <string name="settings_duration_short_label">Short (Under 2 hours)</string>
-    <string name="settings_duration_medium_label">Medium (3-5 hours)</string>
-    <string name="settings_duration_long_label">Long (Over 6 hours)</string>
-    <string name="settings_currency">Currency Settings</string>
-    <string name="settings_currency_auto">System Default</string>
-    <string name="settings_currency_current">Current: %1$s</string>
-    <string name="settings_currency_current_auto">Current: %1$s (System Default)</string>
+    <string name="settings_title">Pengaturan Kebiasaan</string>
+    <string name="settings_drinking_cost">Biaya Minum</string>
+    <string name="settings_drinking_frequency">Frekuensi Minum</string>
+    <string name="settings_drinking_duration">Durasi Minum</string>
+    <string name="settings_cost_low">Rendah</string>
+    <string name="settings_cost_medium">Sedang</string>
+    <string name="settings_cost_high">Tinggi</string>
+    <string name="settings_cost_low_label">Rendah (Di bawah Rp150.000)</string>
+    <string name="settings_cost_medium_label">Sedang (Rp150.000~750.000)</string>
+    <string name="settings_cost_high_label">Tinggi (Di atas Rp750.000)</string>
+    <string name="settings_frequency_low">Sekali seminggu atau kurang</string>
+    <string name="settings_frequency_medium">2-3 kali seminggu</string>
+    <string name="settings_frequency_high">4+ kali seminggu</string>
+    <string name="settings_duration_short">Pendek</string>
+    <string name="settings_duration_medium">Sedang</string>
+    <string name="settings_duration_long">Panjang</string>
+    <string name="settings_duration_short_label">Pendek (Di bawah 2 jam)</string>
+    <string name="settings_duration_medium_label">Sedang (3-5 jam)</string>
+    <string name="settings_duration_long_label">Panjang (Lebih dari 6 jam)</string>
+    <string name="settings_currency">Pengaturan Mata Uang</string>
+    <string name="settings_currency_auto">Default Sistem</string>
+    <string name="settings_currency_current">Saat ini: %1$s</string>
+    <string name="settings_currency_current_auto">Saat ini: %1$s (Default Sistem)</string>
     <string name="settings_edit_profile">Edit Profil</string>
-    <string name="currency_krw">Korean Won (₩)</string>
-    <string name="currency_jpy">Japanese Yen (¥)</string>
-    <string name="currency_usd">US Dollar ($)</string>
+    <string name="currency_krw">Won Korea (₩)</string>
+    <string name="currency_jpy">Yen Jepang (¥)</string>
+    <string name="currency_usd">Dolar AS ($)</string>
     <string name="currency_eur">Euro (€)</string>
-    <string name="currency_mxn">Mexican Peso (MX$)</string>
-    <string name="currency_cny">Chinese Yuan (¥)</string>
-    <string name="currency_brl">Brazilian Real (R$)</string>
-    <string name="settings_privacy_unavailable">Cannot show ad settings because activity is unavailable.</string>
-    <string name="settings_privacy_checking">Checking ad consent&#8230;</string>
-    <string name="settings_privacy_load_failed">Failed to load consent form: %1$s</string>
-    <string name="settings_privacy_not_required">Consent form not required or already handled.</string>
-    <string name="settings_privacy_update_failed">Failed to update consent info: %1$s</string>
+    <string name="currency_mxn">Peso Meksiko (MX$)</string>
+    <string name="currency_cny">Yuan China (¥)</string>
+    <string name="currency_brl">Real Brasil (R$)</string>
+    <string name="settings_privacy_unavailable">Tidak dapat menampilkan pengaturan iklan karena aktivitas tidak tersedia.</string>
+    <string name="settings_privacy_checking">Memeriksa persetujuan iklan&#8230;</string>
+    <string name="settings_privacy_load_failed">Gagal memuat formulir persetujuan: %1$s</string>
+    <string name="settings_privacy_not_required">Formulir persetujuan tidak diperlukan atau sudah ditangani.</string>
+    <string name="settings_privacy_update_failed">Gagal memperbarui info persetujuan: %1$s</string>
 
     <!-- Community Screen -->
     <string name="community_title">Anonymous Support Challenge</string>
@@ -279,98 +279,98 @@
     <string name="days_format">Hari %1$d</string>
 
     <!-- Records Dashboard Header -->
-    <string name="records_dashboard_title_health">My Health </string>
-    <string name="records_dashboard_title_analysis">Analysis</string>
-    <string name="records_dashboard_greeting">Have a healthy day today!</string>
-    <string name="records_statistics_summary">Statistics Summary</string>
+    <string name="records_dashboard_title_health">Kesehatan Saya </string>
+    <string name="records_dashboard_title_analysis">Analisis</string>
+    <string name="records_dashboard_greeting">Semoga hari Anda sehat!</string>
+    <string name="records_statistics_summary">Ringkasan Statistik</string>
     <string name="records_unit_bottles">botol</string>
-    <string name="records_period_filter_monthly">Monthly</string>
-    <string name="records_period_filter_all">All</string>
-    <string name="records_total_sober_days">Total Sober Days</string>
-    <string name="records_diary_write_action">Write</string>
-    <string name="records_diary_view_all">View All</string>
+    <string name="records_period_filter_monthly">Bulanan</string>
+    <string name="records_period_filter_all">Semua</string>
+    <string name="records_total_sober_days">Total Hari Bebas Alkohol</string>
+    <string name="records_diary_write_action">Tulis</string>
+    <string name="records_diary_view_all">Lihat Semua</string>
 
     <!-- Diary Detail -->
     <string name="diary_detail_title">Catatan Saya</string>
 
     <!-- Navigation -->
-    <string name="default_nickname">SoberHero1</string>
-    <string name="drawer_menu_sobriety">Sobriety</string>
-    <string name="drawer_menu_records">Records</string>
-    <string name="drawer_menu_more">More</string>
+    <string name="default_nickname">Pahlawan1</string>
+    <string name="drawer_menu_sobriety">Pantang Alkohol</string>
+    <string name="drawer_menu_records">Catatan</string>
+    <string name="drawer_menu_more">Lainnya</string>
     <string name="cd_menu">Menu</string>
 
 
     <!-- About Screen -->
-    <string name="about_title">About</string>
-    <string name="about_version_info">Version Info</string>
-    <string name="about_open_license_notice">Open Source Licenses</string>
-    <string name="about_section_app_icon">App Icon</string>
-    <string name="about_label_original_work">Original Work</string>
-    <string name="about_label_author">Author</string>
-    <string name="about_label_source">Source</string>
-    <string name="about_label_source_link">Source Link</string>
-    <string name="about_label_license">License</string>
-    <string name="about_label_changes">Changes Made</string>
-    <string name="about_ad_consent_settings">Privacy Settings</string>
-    <string name="document_title_open_source">Open Source License</string>
-    <string name="document_title_privacy">Privacy Policy</string>
-    <string name="action_copy">Copy</string>
-    <string name="toast_copied">Address copied.</string>
+    <string name="about_title">Tentang</string>
+    <string name="about_version_info">Info Versi</string>
+    <string name="about_open_license_notice">Lisensi Open Source</string>
+    <string name="about_section_app_icon">Ikon Aplikasi</string>
+    <string name="about_label_original_work">Karya Asli</string>
+    <string name="about_label_author">Penulis</string>
+    <string name="about_label_source">Sumber</string>
+    <string name="about_label_source_link">Tautan Sumber</string>
+    <string name="about_label_license">Lisensi</string>
+    <string name="about_label_changes">Perubahan yang Dibuat</string>
+    <string name="about_ad_consent_settings">Pengaturan Privasi</string>
+    <string name="document_title_open_source">Lisensi Open Source</string>
+    <string name="document_title_privacy">Kebijakan Privasi</string>
+    <string name="action_copy">Salin</string>
+    <string name="toast_copied">Alamat disalin.</string>
 
     <!-- More Menu -->
-    <string name="tab05_rate_app">Rate App</string>
-    <string name="tab05_notifications">Notifications</string>
-    <string name="tab05_customer_support">Support</string>
-    <string name="tab05_recommended_apps">Apps</string>
+    <string name="tab05_rate_app">Beri Rating Aplikasi</string>
+    <string name="tab05_notifications">Notifikasi</string>
+    <string name="tab05_customer_support">Dukungan</string>
+    <string name="tab05_recommended_apps">Aplikasi</string>
 
     <!-- Notification Center -->
-    <string name="notification_center_title">Notification Center</string>
-    <string name="notification_empty_message">No new notifications.</string>
+    <string name="notification_center_title">Pusat Notifikasi</string>
+    <string name="notification_empty_message">Tidak ada notifikasi baru.</string>
 
     <!-- Feedback -->
-    <string name="feedback_title">Contact Us</string>
-    <string name="feedback_category_label">Inquiry Type</string>
-    <string name="feedback_category_feature">Feature Request</string>
-    <string name="feedback_category_bug">Bug Report</string>
-    <string name="feedback_category_other">Other</string>
-    <string name="feedback_content_label">Message</string>
-    <string name="feedback_content_placeholder">e.g.) The app crashes on startup.</string>
-    <string name="feedback_email_label">Email Address (Optional)</string>
-    <string name="feedback_email_placeholder">example@email.com</string>
-    <string name="feedback_email_note">Please provide your email if you\'d like a response.\nYour email will only be used for replies.</string>
-    <string name="feedback_submit_button">Submit</string>
-    <string name="feedback_email_error">Invalid email format.</string>
-    <string name="feedback_submitting">Submitting&#8230;</string>
-    <string name="feedback_success_message">Thank you for your feedback 🙏</string>
-    <string name="feedback_error_message">Submission failed\n%1$s</string>
+    <string name="feedback_title">Hubungi Kami</string>
+    <string name="feedback_category_label">Jenis Pertanyaan</string>
+    <string name="feedback_category_feature">Permintaan Fitur</string>
+    <string name="feedback_category_bug">Laporan Bug</string>
+    <string name="feedback_category_other">Lainnya</string>
+    <string name="feedback_content_label">Pesan</string>
+    <string name="feedback_content_placeholder">Contoh: Aplikasi crash saat startup.</string>
+    <string name="feedback_email_label">Alamat Email (Opsional)</string>
+    <string name="feedback_email_placeholder">contoh@email.com</string>
+    <string name="feedback_email_note">Berikan email Anda jika ingin mendapat balasan.\nEmail Anda hanya akan digunakan untuk balasan.</string>
+    <string name="feedback_submit_button">Kirim</string>
+    <string name="feedback_email_error">Format email tidak valid.</string>
+    <string name="feedback_submitting">Mengirim&#8230;</string>
+    <string name="feedback_success_message">Terima kasih atas masukan Anda 🙏</string>
+    <string name="feedback_error_message">Pengiriman gagal\n%1$s</string>
 
     <!-- Dialogs -->
-    <string name="dialog_delete_title">Delete Record</string>
-    <string name="dialog_delete_message">Are you sure you want to delete this sobriety record?&#10;This action cannot be undone.</string>
-    <string name="dialog_delete_confirm">Delete</string>
+    <string name="dialog_delete_title">Hapus Catatan</string>
+    <string name="dialog_delete_message">Apakah Anda yakin ingin menghapus catatan pantang alkohol ini?&#10;Tindakan ini tidak dapat dibatalkan.</string>
+    <string name="dialog_delete_confirm">Hapus</string>
     <string name="dialog_ok">OK</string>
-    <string name="dialog_cancel">Cancel</string>
-    <string name="dialog_confirm">Confirm</string>
-    <string name="dialog_view_details">View details</string>
-    <string name="dialog_close">Close</string>
-    <string name="emergency_title_default">Emergency Notice</string>
-    <string name="debug_menu_title">Debug Menu</string>
+    <string name="dialog_cancel">Batal</string>
+    <string name="dialog_confirm">Konfirmasi</string>
+    <string name="dialog_view_details">Lihat detail</string>
+    <string name="dialog_close">Tutup</string>
+    <string name="emergency_title_default">Pemberitahuan Darurat</string>
+    <string name="debug_menu_title">Menu Debug</string>
 
     <!-- Pickers -->
-    <string name="month_picker_title">Select Month</string>
+    <string name="month_picker_title">Pilih Bulan</string>
     <string name="month_picker_year_format">%d</string>
     <string name="month_picker_month_format">%d</string>
-    <string name="month_picker_no_data">No data available</string>
-    <string name="month_picker_select">Select</string>
-    <string name="week_picker_title">Select Week</string>
-    <string name="week_picker_this_week">This Week</string>
-    <string name="week_picker_last_week">Last Week</string>
-    <string name="week_picker_select">Select</string>
-    <string name="year_picker_title">Select Year</string>
+    <string name="month_picker_no_data">Tidak ada data tersedia</string>
+    <string name="month_picker_select">Pilih</string>
+    <string name="week_picker_title">Pilih Minggu</string>
+    <string name="week_picker_this_week">Minggu Ini</string>
+    <string name="week_picker_last_week">Minggu Lalu</string>
+    <string name="week_picker_select">Pilih</string>
+    <string name="year_picker_title">Pilih Tahun</string>
     <string name="year_picker_year_format">%d</string>
-    <string name="year_picker_no_data">No data available</string>
-    <string name="year_picker_select">Select</string>
+    <string name="year_picker_no_data">Tidak ada data tersedia</string>
+    <string name="year_picker_select">Pilih</string>
 
     <!-- Date Format -->
     <string name="date_format_year_month">%2$d/%1$d</string>
@@ -378,80 +378,80 @@
     <string name="date_format_month">%d</string>
 
     <!-- Units -->
-    <string name="unit_days_format">%.1f d</string>
-    <string name="unit_hours_format">%.1f hr(s)</string>
-    <string name="unit_won_format">₩%,.0f</string>
-    <string name="unit_day">d</string>
-    <string name="unit_hour">hr(s)</string>
+    <string name="unit_days_format">%.1f h</string>
+    <string name="unit_hours_format">%.1f jam</string>
+    <string name="unit_won_format">Rp%,.0f</string>
+    <string name="unit_day">h</string>
+    <string name="unit_hour">jam</string>
 
     <!-- Update Dialog -->
-    <string name="update_dialog_title">New version available! 🎉</string>
-    <string name="update_dialog_version_format">Version %1$s</string>
-    <string name="update_dialog_default_message">Contains new features and improvements.</string>
-    <string name="update_dialog_later">Later</string>
-    <string name="update_dialog_update">Update</string>
-    <string name="update_dialog_icon_description">Update icon</string>
-    <string name="update_downloaded_restart_prompt">Update downloaded. Restart to install.</string>
+    <string name="update_dialog_title">Versi baru tersedia! 🎉</string>
+    <string name="update_dialog_version_format">Versi %1$s</string>
+    <string name="update_dialog_default_message">Berisi fitur dan perbaikan baru.</string>
+    <string name="update_dialog_later">Nanti</string>
+    <string name="update_dialog_update">Perbarui</string>
+    <string name="update_dialog_icon_description">Ikon perbarui</string>
+    <string name="update_downloaded_restart_prompt">Update diunduh. Restart untuk menginstal.</string>
     <string name="action_restart">Restart</string>
 
     <!-- Motivational Quotes -->
     <string-array name="motivational_quotes">
-        <item>Patience weighs a few grams, but regret weighs tons.</item>
-        <item>Habits start as spider webs but become iron chains.</item>
-        <item>The surest way to love yourself is through self-control.</item>
-        <item>Today\'s restraint creates tomorrow\'s healthy, clear mind.</item>
-        <item>When you want to give up, remember why you started.</item>
-        <item>Give today as a gift to your future self without regret.</item>
-        <item>Remember the feeling of a clear morning.</item>
-        <item>Tomorrow morning\'s you will thank tonight\'s you.</item>
-        <item>Empty the glass, fill your wallet and health.</item>
-        <item>If you need alcohol to live, change your life first.</item>
-        <item>True freedom isn\'t found inside a bottle.</item>
-        <item>Today\'s drink is tomorrow\'s energy traded away.</item>
-        <item>Drunk courage is fake, sober patience is real.</item>
-        <item>One mistake can topple a tower built with care. Stay vigilant.</item>
-        <item>Sobriety isn\'t endurance; it\'s letting go of bad habits.</item>
-        <item>One drink resisted today creates a miracle in a year.</item>
-        <item>Morning sunlight with a clear mind is sweeter than anything.</item>
-        <item>Only those who control themselves become masters of their lives.</item>
-        <item>Current pain is the cocoon stage before becoming a butterfly.</item>
-        <item>Resist one glass of temptation, prevent a thousand regrets.</item>
-        <item>Don\'t cover problems with alcohol. They\'ll be bigger when you sober up.</item>
-        <item>Every time you refuse a drink, your self-esteem goes up one point.</item>
-        <item>If you can\'t drink moderately, not drinking at all is the answer.</item>
-        <item>Choose a vivid today over a blacked-out yesterday.</item>
-        <item>Not drinking today makes you stronger tomorrow.</item>
-        <item>Sobriety isn\'t giving up. It\'s a wise choice for a better life.</item>
-        <item>Drinking to blame the past only ruins your future.</item>
-        <item>Change starts not "later" but "right now" when you put the glass down.</item>
-        <item>The best gift for your family is a healthy you.</item>
-        <item>True rest isn\'t passing out drunk, but sleeping with a clear mind.</item>
-        <item>Your potential is too valuable to be soaked in alcohol.</item>
-        <item>Successful people\'s mornings don\'t start with hangovers.</item>
-        <item>You\'re charming and fun enough without alcohol.</item>
-        <item>Tonight\'s restraint returns as tomorrow morning\'s self-respect.</item>
-        <item>Instead of filling glasses, fill your dreams and goals.</item>
-        <item>Welcome vivid, bright mornings over unmemorable nights.</item>
-        <item>Alcohol temporarily forgets worries but offers no solutions.</item>
-        <item>Not drinking isn\'t losing; it\'s gaining clear time.</item>
-        <item>Stopping now is the fastest recovery.</item>
-        <item>Enjoy the leisure an alcohol-free evening brings.</item>
-        <item>You become stronger with each temptation you overcome.</item>
-        <item>You\'re already strong without leaning on alcohol.</item>
-        <item>Invest in yourself instead of drinking time away.</item>
-        <item>Facing reality clearly grows you more than blurry escapism.</item>
-        <item>Your children will remember your warm presence, not alcohol smell.</item>
-        <item>Without alcohol, days feel longer than 24 hours.</item>
-        <item>Don\'t sacrifice tomorrow\'s condition for momentary pleasure.</item>
-        <item>Keeping promises to yourself is the greatest success.</item>
-        <item>With clear eyes, opportunities become more visible.</item>
-        <item>Refusing alcohol isn\'t rudeness; it\'s confident self-protection.</item>
-        <item>True rest starts only without alcohol.</item>
-        <item>You who endured today are already better than yesterday.</item>
-        <item>Create gem-like memories instead of shattered glass fragments.</item>
-        <item>Money wasted on drinks becomes your future assets.</item>
-        <item>Don\'t put your future in a wobbling glass.</item>
-        <item>Sobriety isn\'t endless endurance; it\'s the start of a new life.</item>
+        <item>Kesabaran beratnya hanya beberapa gram, tetapi penyesalan beratnya berton-ton.</item>
+        <item>Kebiasaan dimulai seperti jaring laba-laba tetapi menjadi rantai besi.</item>
+        <item>Cara paling pasti untuk mencintai diri sendiri adalah melalui pengendalian diri.</item>
+        <item>Pengendalian hari ini menciptakan pikiran yang sehat dan jernih di hari esok.</item>
+        <item>Ketika Anda ingin menyerah, ingatlah mengapa Anda memulai.</item>
+        <item>Berikan hari ini sebagai hadiah untuk diri Anda di masa depan tanpa penyesalan.</item>
+        <item>Ingatlah perasaan pagi yang jernih.</item>
+        <item>Diri Anda besok pagi akan berterima kasih pada diri Anda malam ini.</item>
+        <item>Kosongkan gelas, isi dompet dan kesehatan Anda.</item>
+        <item>Jika Anda membutuhkan alkohol untuk hidup, ubah hidup Anda terlebih dahulu.</item>
+        <item>Kebebasan sejati tidak ditemukan di dalam botol.</item>
+        <item>Minuman hari ini adalah energi besok yang diperdagangkan.</item>
+        <item>Keberanian mabuk itu palsu, kesabaran sadar itu nyata.</item>
+        <item>Satu kesalahan dapat meruntuhkan menara yang dibangun dengan hati-hati. Tetaplah waspada.</item>
+        <item>Pantang alkohol bukan ketahanan; ini melepaskan kebiasaan buruk.</item>
+        <item>Satu minuman yang ditolak hari ini menciptakan keajaiban dalam setahun.</item>
+        <item>Sinar matahari pagi dengan pikiran jernih lebih manis dari apapun.</item>
+        <item>Hanya mereka yang mengendalikan diri menjadi tuan hidup mereka.</item>
+        <item>Rasa sakit saat ini adalah tahap kepompong sebelum menjadi kupu-kupu.</item>
+        <item>Tolak satu gelas godaan, cegah seribu penyesalan.</item>
+        <item>Jangan tutupi masalah dengan alkohol. Mereka akan lebih besar saat Anda sadar.</item>
+        <item>Setiap kali Anda menolak minuman, harga diri Anda naik satu poin.</item>
+        <item>Jika Anda tidak bisa minum dengan moderat, tidak minum sama sekali adalah jawabannya.</item>
+        <item>Pilih hari ini yang jelas daripada kemarin yang gelap.</item>
+        <item>Tidak minum hari ini membuat Anda lebih kuat besok.</item>
+        <item>Pantang alkohol bukan menyerah. Ini pilihan bijak untuk kehidupan yang lebih baik.</item>
+        <item>Minum untuk menyalahkan masa lalu hanya merusak masa depan Anda.</item>
+        <item>Perubahan dimulai bukan "nanti" tetapi "sekarang" saat Anda meletakkan gelas.</item>
+        <item>Hadiah terbaik untuk keluarga Anda adalah diri Anda yang sehat.</item>
+        <item>Istirahat sejati bukan pingsan mabuk, tetapi tidur dengan pikiran jernih.</item>
+        <item>Potensi Anda terlalu berharga untuk direndam dalam alkohol.</item>
+        <item>Pagi orang sukses tidak dimulai dengan mabuk.</item>
+        <item>Anda cukup menarik dan menyenangkan tanpa alkohol.</item>
+        <item>Pengendalian malam ini kembali sebagai harga diri besok pagi.</item>
+        <item>Alih-alih mengisi gelas, isi impian dan tujuan Anda.</item>
+        <item>Sambut pagi yang cerah dan jelas daripada malam yang tidak berkesan.</item>
+        <item>Alkohol sementara melupakan kekhawatiran tetapi tidak menawarkan solusi.</item>
+        <item>Tidak minum bukan kehilangan; ini mendapatkan waktu yang jernih.</item>
+        <item>Berhenti sekarang adalah pemulihan tercepat.</item>
+        <item>Nikmati waktu luang yang dibawa malam tanpa alkohol.</item>
+        <item>Anda menjadi lebih kuat dengan setiap godaan yang Anda atasi.</item>
+        <item>Anda sudah kuat tanpa bersandar pada alkohol.</item>
+        <item>Investasikan pada diri sendiri daripada menghabiskan waktu minum.</item>
+        <item>Menghadapi realitas dengan jelas menumbuhkan Anda lebih dari pelarian yang kabur.</item>
+        <item>Anak-anak Anda akan mengingat kehadiran hangat Anda, bukan bau alkohol.</item>
+        <item>Tanpa alkohol, hari terasa lebih panjang dari 24 jam.</item>
+        <item>Jangan korbankan kondisi besok untuk kesenangan sesaat.</item>
+        <item>Menjaga janji kepada diri sendiri adalah kesuksesan terbesar.</item>
+        <item>Dengan mata yang jernih, peluang menjadi lebih terlihat.</item>
+        <item>Menolak alkohol bukan kekasaran; ini perlindungan diri yang percaya diri.</item>
+        <item>Istirahat sejati dimulai hanya tanpa alkohol.</item>
+        <item>Anda yang bertahan hari ini sudah lebih baik dari kemarin.</item>
+        <item>Ciptakan kenangan seperti permata daripada pecahan kaca.</item>
+        <item>Uang yang terbuang untuk minuman menjadi aset masa depan Anda.</item>
+        <item>Jangan taruh masa depan Anda di gelas yang goyah.</item>
+        <item>Pantang alkohol bukan ketahanan tanpa akhir; ini awal kehidupan baru.</item>
     </string-array>
 
 </resources>

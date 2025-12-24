@@ -30,6 +30,13 @@ object InterstitialAdManager {
 
 
     fun preload(context: Context) {
+        // [DISABLED] 전면 광고 기능 완전 비활성화 (2025-12-24)
+        // AdMob 정책상 전면 광고를 사용하지 않기로 결정
+        // 무효 트래픽 방지를 위해 요청 자체를 차단
+        Log.d(TAG, "⚠️ preload: 전면 광고 기능이 비활성화되어 요청을 건너뜁니다.")
+        return
+
+        /* [DISABLED CODE - DO NOT UNCOMMENT WITHOUT REVIEW]
         firebaseAnalytics = FirebaseAnalytics.getInstance(context)
         try {
             MobileAds.initialize(context) { Log.d(TAG, "MobileAds initialized: $it") }
@@ -37,9 +44,15 @@ object InterstitialAdManager {
         } catch (t: Throwable) {
             Log.e(TAG, "preload failed", t)
         }
+        */
     }
 
     private fun loadInterstitial(context: Context) {
+        // [DISABLED] 전면 광고 로드 기능 비활성화 (2025-12-24)
+        Log.d(TAG, "⚠️ loadInterstitial: 전면 광고 기능이 비활성화되어 로드를 건너뜁니다.")
+        return
+
+        /* [DISABLED CODE - DO NOT UNCOMMENT WITHOUT REVIEW]
         if (interstitial != null || isLoading) return
         try {
             isLoading = true
@@ -50,7 +63,6 @@ object InterstitialAdManager {
                     interstitial = ad
                     isLoading = false
                     ad.onPaidEventListener = com.google.android.gms.ads.OnPaidEventListener { adValue ->
-                        // Use AnalyticsManager wrapper so parameter names match our tracking guide
                         try {
                             val value = adValue.valueMicros / 1000000.0
                             val currency = adValue.currencyCode
@@ -63,12 +75,14 @@ object InterstitialAdManager {
                     Log.w(TAG, "onAdFailedToLoad: ${loadAdError.message}")
                     interstitial = null
                     isLoading = false
+                    // [SAFE] No retry logic here - complies with AdMob policy
                 }
             })
         } catch (t: Throwable) {
             Log.e(TAG, "loadInterstitial failed", t)
             isLoading = false
         }
+        */
     }
 
     fun isLoaded(): Boolean = interstitial != null
