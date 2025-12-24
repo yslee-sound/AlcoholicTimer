@@ -246,6 +246,12 @@ class MainActivity : BaseActivity() {
         // 광고 로드 완료 리스너 설정
         kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.setOnAdLoadedListener {
             runOnUiThread {
+                // [FIX] Late Show Prevention - 이미 메인으로 진입했다면 늦게 온 광고는 무시 (2025-12-24)
+                if (hasProceededToMain) {
+                    android.util.Log.w("MainActivity", "⚠️ 광고 로드 완료 (Late Load) -> 이미 메인 진입 상태이므로 표시 차단")
+                    return@runOnUiThread
+                }
+
                 android.util.Log.d("MainActivity", "✅ 광고 로드 완료 -> 광고 표시 시도")
 
                 // 광고 표시 시도

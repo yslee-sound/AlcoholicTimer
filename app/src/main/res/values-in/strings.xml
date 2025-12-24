@@ -256,6 +256,7 @@
     <string name="community_post_delete">Hapus Postingan</string>
     <string name="community_post_hide">Sembunyikan postingan ini</string>
     <string name="community_post_report">Laporkan postingan</string>
+    <string name="community_expiring_soon">Segera Berakhir</string>
     <string name="community_write_title">Postingan Baru</string>
     <string name="community_write_publish">Posting</string>
     <string name="community_more_options">Opsi lainnya</string>
