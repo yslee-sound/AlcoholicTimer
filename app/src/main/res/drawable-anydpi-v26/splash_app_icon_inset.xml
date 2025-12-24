@@ -1,6 +1,6 @@
-<!-- [CHANGED] ic_splash_logo → zero (2025-12-24) -->
+<!-- [CHANGED] zero → zero_splash (스플래시 전용, 2025-12-24) -->
 <inset xmlns:android="http://schemas.android.com/apk/res/android"
-    android:drawable="@drawable/zero"
+    android:drawable="@drawable/zero_splash"
     android:insetLeft="0dp"
     android:insetTop="0dp"
     android:insetRight="0dp"

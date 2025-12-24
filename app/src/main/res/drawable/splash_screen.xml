@@ -4,10 +4,10 @@
     <item>
         <color android:color="#FFFFFF" />
     </item>
-    <!-- Centered logo - [CHANGED] ic_splash_logo → zero (2025-12-24) -->
+    <!-- Centered logo - [CHANGED] zero → zero_splash (스플래시 전용, 2025-12-24) -->
     <item
         android:gravity="center"
         android:width="280dp"
         android:height="280dp"
-        android:drawable="@drawable/zero" />
+        android:drawable="@drawable/zero_splash" />
 </layer-list>
