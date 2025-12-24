@@ -53,6 +53,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -124,6 +125,22 @@ fun AboutScreen(
     LaunchedEffect(Unit) {
         viewModel.initialize(context, defaultNickname)
         viewModel.refreshNickname(defaultNickname)
+    }
+
+    // [NEW] ON_RESUME 이벤트 감지 - 화면 복귀 시 데이터 새로고침 (2025-12-24)
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                // ProfileEditScreen에서 돌아올 때 최신 데이터(아바타, 닉네임) 강제 로드
+                viewModel.reloadUserData(defaultNickname)
+                Log.d("AboutScreen", "ON_RESUME: 유저 데이터 새로고침 완료")
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 
     // [NEW] ViewModel 상태 구독
@@ -327,10 +344,9 @@ private fun AboutScreenContent(
     showPrivacyOptions: Boolean,
     showDebugMenu: Boolean
 ) {
-    // [NEW] 바텀시트 상태 관리 (2025-12-23)
-    val showAvatarSheet = remember { mutableStateOf(false) }
-    val showNicknameSheet = remember { mutableStateOf(false) }
-    val sp = remember { androidx.preference.PreferenceManager.getDefaultSharedPreferences(context) }
+    // [REMOVED] 바텀시트 상태 관리 제거 - ProfileEditScreen에서만 수정 가능 (2025-12-24)
+    // val showAvatarSheet = remember { mutableStateOf(false) }
+    // val showNicknameSheet = remember { mutableStateOf(false) }
 
     Column {
         // [NEW] Profile Row with Avatar (분리된 클릭 영역)
@@ -340,14 +356,15 @@ private fun AboutScreenContent(
                 .padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 0.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // [NEW] 아바타 이미지 (동그라미) - 독립 클릭 영역
+            // [NEW] 아바타 이미지 (동그라미) - 표시 전용 (클릭 불가)
+            // [MODIFIED] 클릭 기능 제거 - ProfileEditScreen에서만 변경 가능 (2025-12-24)
             Box(
                 modifier = Modifier
                     .size(80.dp)
                     .border(2.dp, Color(0xFFE0E0E0), CircleShape)
                     .clip(CircleShape)
                     .background(Color(0xFFF5F5F5))
-                    .clickable { showAvatarSheet.value = true } // [FIX] 아바타 터치 → 바텀시트
+                    // [REMOVED] .clickable { showAvatarSheet.value = true }
             ) {
                 Image(
                     painter = painterResource(id = AvatarManager.getAvatarResId(uiState.avatarIndex)),
@@ -358,11 +375,12 @@ private fun AboutScreenContent(
 
             Spacer(modifier = Modifier.width(dims.spacing.sm))
 
-            // [NEW] 닉네임 영역 - 독립 클릭 영역
+            // [NEW] 닉네임 영역 - 표시 전용 (클릭 불가)
+            // [MODIFIED] 클릭 기능 제거 - ProfileEditScreen에서만 수정 가능 (2025-12-24)
             Row(
                 modifier = Modifier
-                    .weight(1f)
-                    .clickable { showNicknameSheet.value = true }, // [FIX] 닉네임 터치 → 바텀시트
+                    .weight(1f),
+                    // [REMOVED] .clickable { showNicknameSheet.value = true }
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(text = nickname, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
@@ -724,30 +742,8 @@ private fun AboutScreenContent(
         }
     } // Column 닫기
 
-    // [NEW] 바텀시트 호출 (2025-12-23)
-    if (showAvatarSheet.value) {
-        AvatarEditBottomSheet(
-            currentAvatarIndex = uiState.avatarIndex,
-            onAvatarSelected = { index ->
-                viewModel.updateAvatar(index)
-            },
-            onDismiss = { showAvatarSheet.value = false }
-        )
-    }
-
-    if (showNicknameSheet.value) {
-        NicknameEditBottomSheet(
-            currentNickname = nickname,
-            onSave = { newNickname ->
-                sp.edit().putString("nickname", newNickname).apply()
-                val userRepository = kr.sweetapps.alcoholictimer.data.repository.UserRepository(context)
-                userRepository.saveNickname(newNickname)
-                // [FIX] ViewModel 상태 즉시 업데이트 (2025-12-23)
-                viewModel.refreshNickname(newNickname)
-            },
-            onDismiss = { showNicknameSheet.value = false }
-        )
-    }
+    // [REMOVED] 바텀시트 호출 제거 - ProfileEditScreen에서만 수정 가능 (2025-12-24)
+    // showAvatarSheet, showNicknameSheet 관련 코드 제거됨
 }
 
 

@@ -1,5 +1,4 @@
 package kr.sweetapps.alcoholictimer.ui.tab_03.screens.settings
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,16 +17,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.preference.PreferenceManager
+import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.data.repository.UserRepository
 import kr.sweetapps.alcoholictimer.ui.tab_03.components.AvatarSelectionDialog
 import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab05ViewModel
 import kr.sweetapps.alcoholictimer.util.AvatarManager
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileEditScreen(
@@ -37,16 +35,16 @@ fun ProfileEditScreen(
     val context = LocalContext.current
     val userRepository = remember { UserRepository(context) }
     val sp = remember { PreferenceManager.getDefaultSharedPreferences(context) }
-
+    val scope = rememberCoroutineScope()
     val uiState by viewModel.uiState.collectAsState()
     val currentNickname = remember {
         sp.getString("nickname", context.getString(R.string.default_nickname))
             ?: context.getString(R.string.default_nickname)
     }
-
     var nicknameText by remember { mutableStateOf(currentNickname) }
     var showAvatarDialog by remember { mutableStateOf(false) }
-
+    // [NEW] ·ÎÄÃ »óÅÂ·Î ¾Æ¹ÙÅ¸ °ü¸® - Áï½Ã preview °¡´É (2025-12-24)
+    var selectedAvatarIndex by remember { mutableIntStateOf(uiState.avatarIndex) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -55,7 +53,7 @@ fun ProfileEditScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "ë’¤ë¡œê°€ê¸°"
+                            contentDescription = "µÚ·Î°¡±â"
                         )
                     }
                 },
@@ -63,12 +61,25 @@ fun ProfileEditScreen(
                     TextButton(
                         onClick = {
                             if (nicknameText.isNotBlank()) {
-                                sp.edit().putString("nickname", nicknameText).apply()
-                                userRepository.saveNickname(nicknameText)
-                                // [FIX] ViewModel ìƒíƒœ ì¦‰ì‹œ ì—…ë°ì´íŠ¸ (2025-12-23)
-                                viewModel.refreshNickname(nicknameText)
+                                // [FIX] selectedAvatarIndex·Î ÀúÀå (2025-12-24)
+                                scope.launch {
+                                    // (1) SharedPreferences ÀúÀå
+                                    sp.edit().apply {
+                                        putString("nickname", nicknameText)
+                                        putInt("avatar_index", selectedAvatarIndex) // [FIX] ·ÎÄÃ »óÅÂ »ç¿ë
+                                    }.apply()
+                                    // (2) Repository ÀúÀå
+                                    userRepository.saveNickname(nicknameText)
+                                    userRepository.updateAvatar(selectedAvatarIndex) // [FIX] ·ÎÄÃ »óÅÂ »ç¿ë
+                                    // (3) ViewModel »óÅÂ °»½Å
+                                    viewModel.refreshNickname(nicknameText)
+                                    viewModel.updateAvatar(selectedAvatarIndex) // [FIX] ·ÎÄÃ »óÅÂ »ç¿ë
+                                    // (4) ÀúÀå ¿Ï·á ÈÄ µÚ·Î°¡±â
+                                    onBack()
+                                }
+                            } else {
+                                onBack()
                             }
-                            onBack()
                         }
                     ) {
                         Text(stringResource(R.string.profile_save), color = Color(0xFF6366F1))
@@ -90,22 +101,20 @@ fun ProfileEditScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(32.dp))
-
             Box(
                 modifier = Modifier
                     .size(120.dp)
                     .clickable { showAvatarDialog = true }
             ) {
                 Image(
-                    painter = painterResource(id = AvatarManager.getAvatarResId(uiState.avatarIndex)),
-                    contentDescription = "í”„ë¡œí•„ ì•„ë°”íƒ€",
+                    painter = painterResource(id = AvatarManager.getAvatarResId(selectedAvatarIndex)), // [FIX] ·ÎÄÃ »óÅÂ »ç¿ë - Áï½Ã preview (2025-12-24)
+                    contentDescription = "ÇÁ·ÎÇÊ ¾Æ¹ÙÅ¸",
                     modifier = Modifier
                         .fillMaxSize()
                         .border(3.dp, Color(0xFFE0E0E0), CircleShape)
                         .clip(CircleShape)
                         .background(Color(0xFFF5F5F5))
                 )
-
                 Box(
                     modifier = Modifier
                         .size(36.dp)
@@ -117,23 +126,19 @@ fun ProfileEditScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.CameraAlt,
-                        contentDescription = "ì•„ë°”íƒ€ ë³€ê²½",
+                        contentDescription = "¾Æ¹ÙÅ¸ º¯°æ",
                         tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
                 }
             }
-
             Spacer(modifier = Modifier.height(12.dp))
-
             Text(
                 text = stringResource(R.string.profile_avatar_change),
                 fontSize = 14.sp,
                 color = Color(0xFF6B7280)
             )
-
             Spacer(modifier = Modifier.height(48.dp))
-
             OutlinedTextField(
                 value = nicknameText,
                 onValueChange = {
@@ -156,9 +161,7 @@ fun ProfileEditScreen(
                     )
                 }
             )
-
             Spacer(modifier = Modifier.height(8.dp))
-
             Text(
                 text = stringResource(R.string.profile_nickname_hint),
                 fontSize = 12.sp,
@@ -167,15 +170,14 @@ fun ProfileEditScreen(
             )
         }
     }
-
     if (showAvatarDialog) {
         AvatarSelectionDialog(
-            currentAvatarIndex = uiState.avatarIndex,
+            currentAvatarIndex = selectedAvatarIndex, // [FIX] ·ÎÄÃ »óÅÂ »ç¿ë (2025-12-24)
             onAvatarSelected = { index ->
-                viewModel.updateAvatar(index)
+                selectedAvatarIndex = index // [FIX] ·ÎÄÃ »óÅÂ¸¸ ¾÷µ¥ÀÌÆ® - Áï½Ã preview (2025-12-24)
+                showAvatarDialog = false
             },
             onDismiss = { showAvatarDialog = false }
         )
     }
 }
-

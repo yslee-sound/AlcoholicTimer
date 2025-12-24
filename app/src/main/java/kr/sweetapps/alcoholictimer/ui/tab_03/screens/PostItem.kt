@@ -408,9 +408,12 @@ private fun PostFooter(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
-                    text = "⏳",
-                    fontSize = 14.sp
+                // [MODIFIED] 이모지 → drawable 아이콘으로 변경 (2025-12-24)
+                Icon(
+                    painter = painterResource(id = R.drawable.hourglasssimplemedium),
+                    contentDescription = "남은 시간",
+                    tint = Color(0xFF999999),
+                    modifier = Modifier.size(16.dp)
                 )
                 Text(
                     text = remainingTime,

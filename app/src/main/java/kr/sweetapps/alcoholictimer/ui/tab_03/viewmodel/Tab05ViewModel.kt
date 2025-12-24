@@ -74,9 +74,22 @@ class Tab05ViewModel : ViewModel() {
 
     /**
      * 닉네임 새로고침 (화면이 다시 보일 때 호출)
+     * @param nickname 새로운 닉네임 또는 기본 닉네임
      */
-    fun refreshNickname(defaultNickname: String) {
+    fun refreshNickname(nickname: String) {
+        // 인자가 전달되면 직접 업데이트, 아니면 Repository에서 로드
+        if (nickname.isNotBlank()) {
+            _uiState.update { it.copy(nickname = nickname) }
+            Log.d("Tab05ViewModel", "닉네임 갱신: $nickname")
+        } else {
+            loadNickname(nickname)
+        }
+    }
+
+    // [NEW] 닉네임과 아바타를 강제로 새로고침 (ON_RESUME 시 사용) (2025-12-24)
+    fun reloadUserData(defaultNickname: String) {
         loadNickname(defaultNickname)
+        loadAvatarIndex()
     }
 
     /**
