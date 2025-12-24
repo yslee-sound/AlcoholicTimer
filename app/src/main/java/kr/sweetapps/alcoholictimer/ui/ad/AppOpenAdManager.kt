@@ -301,16 +301,13 @@ object AppOpenAdManager {
                     isLoading = false
                     loaded = false
                     appOpenAd = null
+
+                    // Notify listeners of failure
                     try { onLoadFailedListener?.invoke() } catch (_: Throwable) {}
                     for (l in loadFailedListeners) runCatching { l.invoke() }
-                    // schedule a short retry to handle transient network/no-fill situations
-                    try {
-                        applicationRef?.applicationContext?.let { ctx ->
-                            val retryMs = 1000L
-                            Log.d(TAG, "onAdFailedToLoad -> scheduling retry preload in ${retryMs}ms")
-                            mainHandler.postDelayed({ try { preload(ctx) } catch (_: Throwable) {} }, retryMs)
-                        }
-                    } catch (_: Throwable) {}
+
+                    // [FIX] Retry logic removed to comply with AdMob policy and prevent rate limiting (2025-12-24)
+                    // Let the ad load naturally on next app launch instead of aggressive retry
                 }
             })
         } catch (t: Throwable) {
