@@ -14,7 +14,7 @@
 
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+-keepattributes SourceFile,LineNumberTable
 
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
@@ -43,7 +43,7 @@
 # ===================================================
 # 앱 커스텀 광고 관련 클래스
 # ===================================================
--keep class kr.sweetapps.alcoholictimer.core.ads.** { *; }
+-keep class kr.sweetapps.alcoholictimer.ui.ad.** { *; }
 
 # BuildConfig 보존 (광고 유닛 ID 포함 가능)
 -keep class kr.sweetapps.alcoholictimer.BuildConfig { *; }
@@ -74,3 +74,21 @@
 -keepclasseswithmembers class kr.sweetapps.alcoholictimer.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
+
+# ===================================================
+# 릴리즈 빌드: 디버그 로그 자동 제거 (2025-12-24)
+# ===================================================
+# Android Log 클래스의 디버그/정보 로그 제거
+-assumenosideeffects class android.util.Log {
+    public static boolean isLoggable(java.lang.String, int);
+    public static int d(...);
+    public static int v(...);
+    public static int i(...);
+}
+
+# System.out.println 제거
+-assumenosideeffects class java.io.PrintStream {
+    public void println(...);
+    public void print(...);
+}
+
