@@ -1,14 +1,14 @@
 <!-- [NEW] 스플래시 스크린 전용 로고 - 원형 마스크 대응 (2025-12-24) -->
-<!-- viewport 확장 및 중앙 정렬로 Android 12+ 스플래시 스크린 잘림 방지 -->
+<!-- [UPDATED] viewport 추가 확장 (299 → 350) 및 중앙 정렬 재조정으로 미세 잘림 방지 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="199dp"
     android:height="43dp"
-    android:viewportWidth="299"
-    android:viewportHeight="299">
-  <!-- 로고를 캔버스 중앙에 배치 (translateX: 50, translateY: 128) -->
+    android:viewportWidth="350"
+    android:viewportHeight="350">
+  <!-- 로고를 캔버스 중앙에 배치 (translateX: 76, translateY: 154) -->
   <group
-      android:translateX="50"
-      android:translateY="128">
+      android:translateX="76"
+      android:translateY="154">
   <path
       android:pathData="M63.79,37.21V31.04L84.6,5.9L84.68,8.4H63.93V0.98H93.41V7.15L72.35,32.52L72.2,29.79H94.2V37.21H63.79Z"
       android:fillColor="#1B1B1B"/>
