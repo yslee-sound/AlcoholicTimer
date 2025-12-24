@@ -1,5 +1,6 @@
+<!-- [CHANGED] ic_splash_logo → zero (2025-12-24) -->
 <inset xmlns:android="http://schemas.android.com/apk/res/android"
-    android:drawable="@drawable/ic_splash_logo"
+    android:drawable="@drawable/zero"
     android:insetLeft="0dp"
     android:insetTop="0dp"
     android:insetRight="0dp"

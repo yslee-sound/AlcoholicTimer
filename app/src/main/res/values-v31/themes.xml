@@ -18,8 +18,8 @@
 
     <!-- [FIX] Android 12+ 스플래시 테마: AppCompat DayNight로 변경 -->
     <style name="Theme.AlcoholicTimer.Splash" parent="Theme.AppCompat.DayNight.NoActionBar">
-        <!-- 배경색 -->
-        <item name="android:windowSplashScreenBackground">#f28090</item>
+        <!-- 배경색 - [CHANGED] #f28090 → #FFFFFF (흰색, 2025-12-24) -->
+        <item name="android:windowSplashScreenBackground">#FFFFFF</item>
 
         <!-- 애니메이티드 아이콘 (240dp 권장, 시스템이 자동 조정) -->
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_app_icon_inset</item>
