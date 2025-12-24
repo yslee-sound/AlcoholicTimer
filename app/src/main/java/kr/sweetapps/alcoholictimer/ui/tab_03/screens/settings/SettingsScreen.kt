@@ -120,11 +120,17 @@ fun AboutScreen(
     val isInPreview = LocalInspectionMode.current
     val scrollState = rememberScrollState()
 
-    // [NEW] ViewModel 초기화
-    val defaultNickname = stringResource(R.string.default_nickname)
+    // [FIX] SharedPreferences에서 저장된 닉네임을 먼저 동기적으로 읽어서 깜빡임 방지 (2025-12-24)
+    val sp = remember { androidx.preference.PreferenceManager.getDefaultSharedPreferences(context) }
+    val savedNickname = remember {
+        sp.getString("nickname", context.getString(R.string.default_nickname))
+            ?: context.getString(R.string.default_nickname)
+    }
+
+    // [NEW] ViewModel 초기화 - 저장된 닉네임을 초기값으로 사용
     LaunchedEffect(Unit) {
-        viewModel.initialize(context, defaultNickname)
-        viewModel.refreshNickname(defaultNickname)
+        viewModel.initialize(context, savedNickname)
+        viewModel.refreshNickname(savedNickname)
     }
 
     // [NEW] ON_RESUME 이벤트 감지 - 화면 복귀 시 데이터 새로고침 (2025-12-24)
@@ -132,8 +138,9 @@ fun AboutScreen(
     DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
             if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
-                // ProfileEditScreen에서 돌아올 때 최신 데이터(아바타, 닉네임) 강제 로드
-                viewModel.reloadUserData(defaultNickname)
+                // ProfileEditScreen에서 돌아올 때 최신 닉네임을 다시 읽어서 전달
+                val currentNickname = sp.getString("nickname", savedNickname) ?: savedNickname
+                viewModel.reloadUserData(currentNickname)
                 Log.d("AboutScreen", "ON_RESUME: 유저 데이터 새로고침 완료")
             }
         }

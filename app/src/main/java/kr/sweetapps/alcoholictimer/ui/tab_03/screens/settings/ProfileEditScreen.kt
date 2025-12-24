@@ -43,8 +43,11 @@ fun ProfileEditScreen(
     }
     var nicknameText by remember { mutableStateOf(currentNickname) }
     var showAvatarDialog by remember { mutableStateOf(false) }
-    // [NEW] ·ÎÄÃ »óÅÂ·Î ¾Æ¹ÙÅ¸ °ü¸® - Áï½Ã preview °¡´É (2025-12-24)
-    var selectedAvatarIndex by remember { mutableIntStateOf(uiState.avatarIndex) }
+
+    // [FIX] SharedPreferencesì—ì„œ ì €ìž¥ëœ ì•„ë°”íƒ€ ì¸ë±ìŠ¤ë¥¼ ì§ì ‘ ì½ì–´ì„œ ì´ˆê¸°ê°’ìœ¼ë¡œ ì‚¬ìš© (2025-12-24)
+    val savedAvatarIndex = remember { sp.getInt("avatar_index", 0) }
+    var selectedAvatarIndex by remember { mutableIntStateOf(savedAvatarIndex) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -53,7 +56,7 @@ fun ProfileEditScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "µÚ·Î°¡±â"
+                            contentDescription = "ï¿½Ú·Î°ï¿½ï¿½ï¿½"
                         )
                     }
                 },
@@ -61,20 +64,20 @@ fun ProfileEditScreen(
                     TextButton(
                         onClick = {
                             if (nicknameText.isNotBlank()) {
-                                // [FIX] selectedAvatarIndex·Î ÀúÀå (2025-12-24)
+                                // [FIX] selectedAvatarIndexï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (2025-12-24)
                                 scope.launch {
-                                    // (1) SharedPreferences ÀúÀå
+                                    // (1) SharedPreferences ï¿½ï¿½ï¿½ï¿½
                                     sp.edit().apply {
                                         putString("nickname", nicknameText)
-                                        putInt("avatar_index", selectedAvatarIndex) // [FIX] ·ÎÄÃ »óÅÂ »ç¿ë
+                                        putInt("avatar_index", selectedAvatarIndex) // [FIX] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
                                     }.apply()
-                                    // (2) Repository ÀúÀå
+                                    // (2) Repository ï¿½ï¿½ï¿½ï¿½
                                     userRepository.saveNickname(nicknameText)
-                                    userRepository.updateAvatar(selectedAvatarIndex) // [FIX] ·ÎÄÃ »óÅÂ »ç¿ë
-                                    // (3) ViewModel »óÅÂ °»½Å
+                                    userRepository.updateAvatar(selectedAvatarIndex) // [FIX] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+                                    // (3) ViewModel ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
                                     viewModel.refreshNickname(nicknameText)
-                                    viewModel.updateAvatar(selectedAvatarIndex) // [FIX] ·ÎÄÃ »óÅÂ »ç¿ë
-                                    // (4) ÀúÀå ¿Ï·á ÈÄ µÚ·Î°¡±â
+                                    viewModel.updateAvatar(selectedAvatarIndex) // [FIX] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+                                    // (4) ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ ï¿½ï¿½ ï¿½Ú·Î°ï¿½ï¿½ï¿½
                                     onBack()
                                 }
                             } else {
@@ -107,8 +110,8 @@ fun ProfileEditScreen(
                     .clickable { showAvatarDialog = true }
             ) {
                 Image(
-                    painter = painterResource(id = AvatarManager.getAvatarResId(selectedAvatarIndex)), // [FIX] ·ÎÄÃ »óÅÂ »ç¿ë - Áï½Ã preview (2025-12-24)
-                    contentDescription = "ÇÁ·ÎÇÊ ¾Æ¹ÙÅ¸",
+                    painter = painterResource(id = AvatarManager.getAvatarResId(selectedAvatarIndex)), // [FIX] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ preview (2025-12-24)
+                    contentDescription = "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ¹ï¿½Å¸",
                     modifier = Modifier
                         .fillMaxSize()
                         .border(3.dp, Color(0xFFE0E0E0), CircleShape)
@@ -126,7 +129,7 @@ fun ProfileEditScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.CameraAlt,
-                        contentDescription = "¾Æ¹ÙÅ¸ º¯°æ",
+                        contentDescription = "ï¿½Æ¹ï¿½Å¸ ï¿½ï¿½ï¿½ï¿½",
                         tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
@@ -172,9 +175,9 @@ fun ProfileEditScreen(
     }
     if (showAvatarDialog) {
         AvatarSelectionDialog(
-            currentAvatarIndex = selectedAvatarIndex, // [FIX] ·ÎÄÃ »óÅÂ »ç¿ë (2025-12-24)
+            currentAvatarIndex = selectedAvatarIndex, // [FIX] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ (2025-12-24)
             onAvatarSelected = { index ->
-                selectedAvatarIndex = index // [FIX] ·ÎÄÃ »óÅÂ¸¸ ¾÷µ¥ÀÌÆ® - Áï½Ã preview (2025-12-24)
+                selectedAvatarIndex = index // [FIX] ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® - ï¿½ï¿½ï¿½ preview (2025-12-24)
                 showAvatarDialog = false
             },
             onDismiss = { showAvatarDialog = false }
