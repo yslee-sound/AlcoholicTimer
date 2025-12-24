@@ -160,6 +160,10 @@
 
     <!-- Diary -->
     <string name="diary_recent_title">일기</string>
+    <string name="diary_section_hint">날짜를 눌러 하루를 기록해보세요</string>
+    <string name="diary_cta_empty">오늘의 이야기가 비어있어요 📝</string>
+    <string name="diary_cta_empty_action">터치하여 작성하기</string>
+    <string name="diary_cta_completed">오늘의 기록 완료! ✅</string>
     <string name="diary_no_entries">아직 일기가 없습니다</string>
     <string name="diary_write_prompt">아래 + 버튼을 눌러\n첫 일기를 작성해보세요</string>
     <string name="diary_write_button_action">일기 쓰기</string>

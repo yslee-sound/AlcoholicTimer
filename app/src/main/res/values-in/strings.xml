@@ -160,6 +160,10 @@
 
     <!-- Diary -->
     <string name="diary_recent_title">Diary</string>
+    <string name="diary_section_hint">Ketuk tanggal untuk mencatat hari Anda</string>
+    <string name="diary_cta_empty">Cerita Anda kosong hari ini 📝</string>
+    <string name="diary_cta_empty_action">Ketuk untuk menulis</string>
+    <string name="diary_cta_completed">Catatan hari ini selesai! ✅</string>
     <string name="diary_no_entries">Belum ada entri diary</string>
     <string name="diary_write_prompt">Ketuk tombol + di bawah\nuntuk menulis entri pertama Anda</string>
     <string name="diary_write_button_action">Tulis Entri Diary</string>

@@ -943,45 +943,63 @@ private fun RecentDiarySection(
     onNavigateToDiaryDetail: (Long) -> Unit = {}, // [NEW] 일기 상세 피드 화면으로 이동 (2025-12-22)
     onHeaderClick: () -> Unit = {} // [NEW] 캘린더 헤더 클릭 이벤트 (2025-12-24)
 ) {
-    val context = LocalContext.current // [NEW] Context 가져오기 (2025-12-22)
-
-    // [NEW] 일기 존재 여부에 따른 버튼 동작 분기 (2025-12-22)
+    val context = LocalContext.current
     val hasAnyDiary = allDiaries.isNotEmpty()
-    val latestDiaryId = allDiaries.firstOrNull()?.id // 최신 일기 ID (timestamp 내림차순 정렬)
+    val latestDiaryId = allDiaries.firstOrNull()?.id
+
+    // [NEW] 오늘 날짜의 일기 존재 여부 확인 (2025-12-24)
+    val today = remember { java.util.Calendar.getInstance() }
+    val todayDiary = remember(allDiaries) {
+        allDiaries.firstOrNull { diary ->
+            val diaryCal = java.util.Calendar.getInstance().apply { timeInMillis = diary.timestamp }
+            diaryCal.get(java.util.Calendar.YEAR) == today.get(java.util.Calendar.YEAR) &&
+            diaryCal.get(java.util.Calendar.DAY_OF_YEAR) == today.get(java.util.Calendar.DAY_OF_YEAR)
+        }
+    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        // [FIX] 헤더: 일기가 있을 때만 '전체 보기' 표시 (작성 버튼 제거) (2025-12-23)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(32.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(R.string.diary_recent_title),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF111827),
-                fontSize = 18.sp
-            )
-
-            // [FIX] 일기가 있을 때만 '전체 보기' 표시 (2025-12-23)
-            if (hasAnyDiary) {
+        // [NEW] 헤더: 제목 + 안내 문구 (2025-12-24)
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(32.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
-                    text = stringResource(R.string.records_diary_view_all),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color(0xFF6366F1),
-                    modifier = Modifier.clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = {
-                            latestDiaryId?.let { onNavigateToDiaryDetail(it) }
-                        }
-                    )
+                    text = stringResource(R.string.diary_recent_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF111827),
+                    fontSize = 18.sp
                 )
+
+                if (hasAnyDiary) {
+                    Text(
+                        text = stringResource(R.string.records_diary_view_all),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF6366F1),
+                        modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = {
+                                latestDiaryId?.let { onNavigateToDiaryDetail(it) }
+                            }
+                        )
+                    )
+                }
             }
+
+            // [NEW] 안내 문구 추가 (2025-12-24)
+            Text(
+                text = stringResource(R.string.diary_section_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF9CA3AF),
+                fontSize = 13.sp,
+                modifier = Modifier.padding(top = 4.dp)
+            )
         }
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -1023,9 +1041,66 @@ private fun RecentDiarySection(
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            // [NEW] 헤더 클릭 시 상위로 이벤트 전달 (2025-12-24)
             onHeaderClick = onHeaderClick
         )
+
+        // [NEW] 작성 유도 카드 (CTA Box) (2025-12-24)
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    if (todayDiary == null) {
+                        onNavigateToDiaryWrite(null)
+                    } else {
+                        onNavigateToDiaryDetail(todayDiary.id)
+                    }
+                },
+            colors = CardDefaults.cardColors(
+                containerColor = if (todayDiary != null) Color(0xFFF0F9FF) else Color(0xFFFFFBEB)
+            ),
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(
+                            if (todayDiary != null) R.string.diary_cta_completed
+                            else R.string.diary_cta_empty
+                        ),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (todayDiary != null) Color(0xFF1E40AF) else Color(0xFF92400E)
+                    )
+                    if (todayDiary == null) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.diary_cta_empty_action),
+                            fontSize = 13.sp,
+                            color = Color(0xFFA16207)
+                        )
+                    }
+                }
+
+                Icon(
+                    painter = painterResource(
+                        id = if (todayDiary != null) R.drawable.notebook
+                        else R.drawable.ic_plus
+                    ),
+                    contentDescription = null,
+                    tint = if (todayDiary != null) Color(0xFF3B82F6) else Color(0xFFF59E0B),
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+        }
     }
 }
 
