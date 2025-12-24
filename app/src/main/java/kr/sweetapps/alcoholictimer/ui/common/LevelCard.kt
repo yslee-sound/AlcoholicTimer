@@ -151,12 +151,12 @@ fun LevelCard(
                             style = MaterialTheme.typography.titleMedium.copy(
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp,
-                                lineHeight = 22.sp // Explicit lineHeight to prevent clipping
+                                fontSize = 18.sp, // Reduced from 20sp to fit Japanese text
+                                lineHeight = 20.sp
                             ),
                             maxLines = 1,
-                            softWrap = false, // Prevent line breaking
-                            overflow = TextOverflow.Ellipsis
+                            softWrap = false,
+                            overflow = TextOverflow.Visible // Show all text even if it overflows slightly
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Row(verticalAlignment = Alignment.Bottom) {
