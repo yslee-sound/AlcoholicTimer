@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App Name -->
-    <string name="app_name">Alcoholic Timer</string>
+    <string name="app_name">ZERO</string>
 
     <!-- Start Screen -->
     <string name="start_screen_title">Sobriety Start</string>
