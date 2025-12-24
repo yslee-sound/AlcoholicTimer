@@ -266,6 +266,8 @@
     <string name="community_discard_changes">Discard changes</string>
     <string name="community_continue_writing">Continue writing</string>
     <string name="community_continue_editing">Continue editing</string>
+    <string name="community_discard_post_title">Delete post in progress?</string>
+    <string name="community_cancel_edit_title">Cancel editing?</string>
     <string name="photo_selection_title">Select Photo</string>
     <string name="diary_action_edit">Edit</string>
     <string name="diary_action_delete">Delete</string>

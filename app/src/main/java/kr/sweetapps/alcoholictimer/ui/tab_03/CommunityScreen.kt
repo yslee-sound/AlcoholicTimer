@@ -1482,10 +1482,14 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                     dragHandle = { BottomSheetDefaults.DragHandle() }
                 ) {
                     Column(modifier = Modifier.padding(bottom = 24.dp)) {
-                        // [FIX] 타이틀 문구 분기 처리 (2025-12-23)
-                        val titleText = if (isEditMode) "수정을 취소하시겠습니까?" else "작성 중인 글을 삭제하시겠습니까?"
+                        // [FIX] Title text with i18n support (2025-12-24)
+                        val titleText = if (isEditMode) {
+                            stringResource(R.string.community_cancel_edit_title)
+                        } else {
+                            stringResource(R.string.community_discard_post_title)
+                        }
 
-                        // 타이틀 (왼쪽 정렬, 한 줄 제한)
+                        // Title (left aligned, single line)
                         Text(
                             text = titleText,
                             style = MaterialTheme.typography.titleMedium,

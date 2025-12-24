@@ -266,6 +266,8 @@
     <string name="community_discard_changes">変更を破棄</string>
     <string name="community_continue_writing">作成を続ける</string>
     <string name="community_continue_editing">編集を続ける</string>
+    <string name="community_discard_post_title">作成中の投稿を削除しますか？</string>
+    <string name="community_cancel_edit_title">編集をキャンセルしますか？</string>
     <string name="photo_selection_title">写真を選択</string>
     <string name="diary_action_edit">編集</string>
     <string name="diary_action_delete">削除</string>

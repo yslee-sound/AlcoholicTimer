@@ -263,6 +263,8 @@
     <string name="community_discard_changes">Buang perubahan</string>
     <string name="community_continue_writing">Lanjutkan menulis</string>
     <string name="community_continue_editing">Lanjutkan mengedit</string>
+    <string name="community_discard_post_title">Hapus postingan yang sedang ditulis?</string>
+    <string name="community_cancel_edit_title">Batalkan pengeditan?</string>
     <string name="photo_selection_title">Pilih Foto</string>
     <string name="diary_action_edit">Edit</string>
     <string name="diary_action_delete">Hapus</string>
