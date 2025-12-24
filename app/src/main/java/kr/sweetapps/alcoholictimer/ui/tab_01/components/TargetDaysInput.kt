@@ -30,6 +30,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -249,12 +250,15 @@ fun TargetDaysInput(
 
         Spacer(modifier = Modifier.height(4.dp)) // [OPTIMIZED] 8dp → 4dp (50% 축소)
 
-        // Bottom hint
+        // Bottom hint - [IMPROVED] 작은 폰트, 연한 색상으로 배경처럼 처리 (2025-12-24)
         Text(
             text = stringResource(R.string.target_days_hint),
-            style = MaterialTheme.typography.bodyMedium,
-            color = colorResource(id = R.color.color_hint_gray),
-            textAlign = TextAlign.Center
+            style = MaterialTheme.typography.bodySmall, // [변경] bodyMedium → bodySmall
+            fontSize = 12.sp, // [변경] 명시적 크기 지정
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), // [변경] 연한 색상 (60% 투명도)
+            textAlign = TextAlign.Center,
+            maxLines = 1, // [추가] 한 줄 제한
+            overflow = TextOverflow.Ellipsis // [추가] 넘칠 경우 ... 처리
         )
     }
 }
