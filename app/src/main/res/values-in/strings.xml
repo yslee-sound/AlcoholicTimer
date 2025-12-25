@@ -28,7 +28,7 @@
 
     <!-- Plurals for Day/Days (Bahasa Indonesia tidak membedakan tunggal/jamak) -->
     <plurals name="days_count">
-        <item quantity="other">%d Hari</item>
+        <item quantity="other">Hari</item>
     </plurals>
 
     <string name="indicator_title_days">Hari Bebas Alkohol</string>
@@ -249,7 +249,7 @@
     <string name="profile_edit_title">Edit Profil</string>
     <string name="profile_avatar_change">Ubah Avatar</string>
     <string name="profile_nickname_label">Nama Panggilan</string>
-    <string name="profile_nickname_hint">* Maksimal 10 karakter</string>
+    <string name="profile_nickname_hint">* Maksimal 20 karakter</string>
     <string name="profile_save">Selesai</string>
     <string name="nickname_edit_title">Edit Nama Panggilan</string>
     <string name="nickname_save_button">Simpan</string>

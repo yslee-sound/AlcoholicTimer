@@ -158,7 +158,7 @@ fun ProfileEditScreen(
             OutlinedTextField(
                 value = nicknameText,
                 onValueChange = {
-                    if (it.length <= 10) {
+                    if (it.length <= 20) {
                         nicknameText = it
                     }
                 },
@@ -171,7 +171,7 @@ fun ProfileEditScreen(
                 ),
                 supportingText = {
                     Text(
-                        text = "${nicknameText.length}/10",
+                        text = "${nicknameText.length}/20",
                         fontSize = 12.sp,
                         color = Color(0xFF9CA3AF)
                     )

@@ -28,8 +28,8 @@
 
     <!-- Plurals for Day/Days -->
     <plurals name="days_count">
-        <item quantity="one">%d Day</item>
-        <item quantity="other">%d Days</item>
+        <item quantity="one">Day</item>
+        <item quantity="other">Days</item>
     </plurals>
 
     <string name="indicator_title_days">Days Sober</string>
@@ -252,7 +252,7 @@
     <string name="profile_edit_title">Edit Profile</string>
     <string name="profile_avatar_change">Change Avatar</string>
     <string name="profile_nickname_label">Nickname</string>
-    <string name="profile_nickname_hint">* Maximum 10 characters</string>
+    <string name="profile_nickname_hint">* Maximum 20 characters</string>
     <string name="profile_save">Done</string>
     <string name="nickname_edit_title">Edit Nickname</string>
     <string name="nickname_save_button">Save</string>

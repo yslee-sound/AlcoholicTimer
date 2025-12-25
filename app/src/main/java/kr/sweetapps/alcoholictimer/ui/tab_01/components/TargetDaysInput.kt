@@ -241,10 +241,11 @@ fun TargetDaysInput(
             Spacer(modifier = Modifier.width(8.dp))
 
             // Unit text - [IMPROVED] padding(bottom) 추가로 시각적 베이스라인 맞춤
-            // [CHANGED] plurals 사용하여 단수/복수 구분 (2025-12-25)
+            // Unit text - [IMPROVED] padding(bottom) 추가로 시각적 베이스라인 맞춤
+            // [FIX] plurals가 단위만 반환하므로 value 파라미터와 substringAfter 제거 (2025-12-26)
             val context = androidx.compose.ui.platform.LocalContext.current
             val unitText = remember(value) {
-                context.resources.getQuantityString(R.plurals.days_count, value, value).substringAfter(" ")
+                context.resources.getQuantityString(R.plurals.days_count, value)
             }
             Text(
                 text = unitText,

@@ -28,7 +28,7 @@
 
     <!-- Plurals for Day/Days (한국어는 단수/복수 구분 없음) -->
     <plurals name="days_count">
-        <item quantity="other">%d일</item>
+        <item quantity="other">일</item>
     </plurals>
 
     <string name="indicator_title_days">금주 일수</string>
@@ -251,7 +251,7 @@
     <string name="profile_edit_title">프로필 편집</string>
     <string name="profile_avatar_change">아바타 변경</string>
     <string name="profile_nickname_label">닉네임</string>
-    <string name="profile_nickname_hint">* 최대 10자까지 입력 가능합니다</string>
+    <string name="profile_nickname_hint">* 최대 20자까지 입력 가능합니다</string>
     <string name="profile_save">완료</string>
     <string name="nickname_edit_title">닉네임 변경</string>
     <string name="nickname_save_button">저장</string>

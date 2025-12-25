@@ -28,7 +28,7 @@
 
     <!-- Plurals for Day/Days (日本語は単数/複数の区別なし) -->
     <plurals name="days_count">
-        <item quantity="other">%d日</item>
+        <item quantity="other">日</item>
     </plurals>
 
     <string name="indicator_title_days">禁酒日数</string>
@@ -251,7 +251,7 @@
     <string name="profile_edit_title">プロフィール編集</string>
     <string name="profile_avatar_change">アバター変更</string>
     <string name="profile_nickname_label">ニックネーム</string>
-    <string name="profile_nickname_hint">* 最大10文字まで入力可能</string>
+    <string name="profile_nickname_hint">* 最大20文字まで入力可能</string>
     <string name="profile_save">完了</string>
     <string name="nickname_edit_title">ニックネーム変更</string>
     <string name="nickname_save_button">保存</string>
