@@ -174,11 +174,11 @@ class Tab04ViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             try {
                 sharedPref.edit {
-                    remove(Constants.PREF_SOBRIETY_RECORDS)
-                    remove(Constants.PREF_START_TIME)
+                    putString(Constants.PREF_SOBRIETY_RECORDS, "[]")
+                    putLong(Constants.PREF_START_TIME, 0L)
                     putBoolean(Constants.PREF_TIMER_COMPLETED, false)
                 }
-                Log.d("Tab04ViewModel", "모든 기록 삭제 완료")
+                Log.d("Tab04ViewModel", "모든 기록 삭제 완료 (user_settings)")
             } catch (e: Exception) {
                 Log.e("Tab04ViewModel", "기록 삭제 실패", e)
             }

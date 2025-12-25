@@ -226,15 +226,15 @@ class Tab05ViewModel : ViewModel() {
      */
     fun clearAllRecords(context: Context) {
         try {
-            // [FIX] 표준 저장소 사용
-            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+            // [FIX] "user_settings" 파일 사용 (RecordsDataLoader와 동일한 파일)
+            val prefs = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
             prefs.edit().apply {
-                remove("sobriety_records")
-                remove("start_time")
+                putString("sobriety_records", "[]")
+                putLong("start_time", 0L)
                 putBoolean("timer_completed", false)
                 apply()
             }
-            Log.d("Tab05ViewModel", "모든 기록 삭제 완료")
+            Log.d("Tab05ViewModel", "모든 기록 삭제 완료 (user_settings)")
         } catch (e: Exception) {
             Log.e("Tab05ViewModel", "기록 삭제 실패", e)
         }
