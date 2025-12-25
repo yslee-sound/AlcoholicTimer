@@ -20,6 +20,7 @@ import kotlinx.coroutines.withContext
 import kr.sweetapps.alcoholictimer.data.model.Post
 import kr.sweetapps.alcoholictimer.data.repository.CommunityRepository
 import kr.sweetapps.alcoholictimer.data.repository.UserRepository
+import kr.sweetapps.alcoholictimer.util.manager.UserStatusManager // [NEW] 중앙 관리자 추가 (2025-12-25)
 import java.util.Locale
 import java.util.UUID
 
@@ -34,6 +35,9 @@ import java.util.UUID
  * (v3.0) 게시글 관리 기능 추가 (2025-12-20):
  * - authorId를 통한 소유권 식별
  * - 삭제, 숨기기, 신고 기능
+ * [UPDATED] UserStatusManager 통합 (2025-12-25):
+ * - 레벨/일수 계산 로직 제거
+ * - UserStatusManager.userStatus를 직접 노출
  */
 class CommunityViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = CommunityRepository(application.applicationContext) // [FIX] Context 전달
@@ -61,6 +65,17 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     // [NEW] 현재 사용자의 닉네임 (2025-12-22)
     private val _currentNickname = MutableStateFlow("")
     val currentNickname: StateFlow<String> = _currentNickname.asStateFlow()
+
+    /**
+     * [NEW] 사용자 상태 (레벨/일수) - 중앙 관리자에서 제공 (2025-12-25)
+     *
+     * **사용 예시:**
+     * ```kotlin
+     * val userStatus by viewModel.userStatus.collectAsState()
+     * Text("Lv.${userStatus.level} · Day ${userStatus.days}")
+     * ```
+     */
+    val userStatus: StateFlow<UserStatusManager.UserStatus> = UserStatusManager.userStatus
 
     // [NEW] 선택된 이미지 URI (미리보기용) (2025-12-19)
     private val _selectedImageUri = MutableStateFlow<Uri?>(null)
@@ -429,14 +444,10 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                 val oneDaySeconds = 24 * 60 * 60 // 86400초
                 val deleteAt = com.google.firebase.Timestamp((now / 1000) + oneDaySeconds, 0)
 
-                // 6. 일차 및 레벨 계산: timer_prefs에서 실제 타이머 시작 시간 읽기
-                val timerPrefs = context.getSharedPreferences("timer_prefs", android.content.Context.MODE_PRIVATE)
-                val startTime = timerPrefs.getLong("start_time", 0L) // 저장된 시작 시간이 없으면 0
-                val diffMillis = if (startTime == 0L) 0L else now - startTime
-                val days = if (startTime == 0L) 1 else (diffMillis / (1000L * 60L * 60L * 24L)).toInt() + 1
-
-                // 레벨 공식: (일수 / 10) + 1  (예: 64일 -> 6 + 1 = Lv.7)
-                val level = (days / 10) + 1
+                // 6. [UPDATED] UserStatusManager에서 통합 관리되는 레벨/일수 사용 (2025-12-25)
+                val currentStatus = userStatus.value
+                val days = currentStatus.days
+                val level = currentStatus.level
 
                 // 7. Post 객체 생성 (이미지 URL 포함, 일차/레벨 포함)
                 val deviceLang = normalizeLanguage(Locale.getDefault().language)

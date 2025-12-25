@@ -25,8 +25,8 @@ import kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager
 import kr.sweetapps.alcoholictimer.data.repository.CommunityRepository
 
 data class DebugScreenUiState(
-    val switch1: Boolean = false,
-    val demoMode: Boolean = false,
+    // [REMOVED] switch1 - 사용하지 않음 (2025-12-25)
+    // [REMOVED] demoMode - RunScreen 로직 변경으로 더 이상 작동하지 않음 (2025-12-25)
     val umpForceEea: Boolean = false,
     val switch3: Boolean = false,
     val switch4: Boolean = false,
@@ -41,7 +41,7 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
     init {
         _uiState.update {
             it.copy(
-                demoMode = DebugSettings.isDemoModeEnabled(application),
+                // [REMOVED] demoMode 초기화 제거 (2025-12-25)
                 umpForceEea = DebugSettings.isUmpForceEeaEnabled(application)
             )
         }
@@ -50,11 +50,8 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
     fun setSwitch(switchIndex: Int, value: Boolean) {
         _uiState.update { currentState ->
             when (switchIndex) {
-                1 -> currentState.copy(switch1 = value)
-                2 -> {
-                    DebugSettings.setDemoModeEnabled(getApplication(), value)
-                    currentState.copy(demoMode = value)
-                }
+                // [REMOVED] case 1 (switch1) - 사용하지 않음 (2025-12-25)
+                // [REMOVED] case 2 (demoMode) - 더 이상 작동하지 않음 (2025-12-25)
                 3 -> currentState.copy(switch3 = value)
                 4 -> currentState.copy(switch4 = value)
                 5 -> currentState.copy(switch5 = value)

@@ -67,7 +67,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.rememberTextMeasurer
 import kr.sweetapps.alcoholictimer.util.debug.DebugSettings
-import kr.sweetapps.alcoholictimer.ui.tab_03.screens.debug.DemoData
 import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager
 import kr.sweetapps.alcoholictimer.ui.common.rememberUserSettingsState
 
@@ -163,7 +162,8 @@ fun RunScreenComposable(
         (displayElapsedMillis / Constants.DAY_IN_MILLIS).toInt() // floor 연산
     }
     val levelInfo = remember(levelDays) { LevelDefinitions.getLevelInfo(levelDays) }
-    val levelNumber = if (isDemoMode) DemoData.DEMO_LEVEL else remember(levelDays) {
+    // [CHANGED] Demo Mode 체크 제거 - 항상 실제 계산된 레벨 사용 (2025-12-25)
+    val levelNumber = remember(levelDays) {
         val num = LevelDefinitions.getLevelNumber(levelDays)
         if (num >= 0) num + 1 else 1 // [CHANGED] 0일차(기록 없음) → Lv.1로 표시
     }

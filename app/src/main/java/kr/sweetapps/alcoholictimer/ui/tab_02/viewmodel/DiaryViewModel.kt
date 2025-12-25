@@ -10,12 +10,17 @@ import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.data.repository.DiaryRepository
 import kr.sweetapps.alcoholictimer.data.room.AppDatabase
 import kr.sweetapps.alcoholictimer.data.room.DiaryEntity
+import kr.sweetapps.alcoholictimer.util.manager.UserStatusManager // [NEW] 중앙 관리자 추가 (2025-12-25)
 import java.text.SimpleDateFormat
 import java.util.*
 
 /**
  * 일기 화면 ViewModel
  * Room Database와 UI를 연결하는 비즈니스 로직을 담당합니다.
+ *
+ * [UPDATED] UserStatusManager 통합 (2025-12-25)
+ * - 레벨/일수 계산 로직 제거
+ * - UserStatusManager.userStatus를 직접 노출
  */
 class DiaryViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -33,6 +38,17 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    /**
+     * [NEW] 사용자 상태 (레벨/일수) - 중앙 관리자에서 제공 (2025-12-25)
+     *
+     * **사용 예시:**
+     * ```kotlin
+     * val userStatus by viewModel.userStatus.collectAsState()
+     * Text("Lv.${userStatus.level} · Day ${userStatus.days}")
+     * ```
+     */
+    val userStatus: StateFlow<UserStatusManager.UserStatus> = UserStatusManager.userStatus
 
     /**
      * 새로운 일기를 저장합니다.

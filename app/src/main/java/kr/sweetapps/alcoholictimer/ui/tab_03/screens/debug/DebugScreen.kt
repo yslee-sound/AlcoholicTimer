@@ -99,9 +99,8 @@ fun DebugScreen(
                 .padding(bottom = 100.dp) // [NEW] 하단 스크롤 여유 공간 추가 (2025-12-19)
         ) {
             // [REMOVED] 맞춤형 광고 재설정 - 유럽 지역 배포 제외로 인해 불필요
-
-            DebugSwitch(title = "기능 1", checked = uiState.switch1, onCheckedChange = { viewModel.setSwitch(1, it) })
-            DebugSwitch(title = "데모 모드", checked = uiState.demoMode, onCheckedChange = { viewModel.setSwitch(2, it) })
+            // [REMOVED] 기능 1 스위치 - 사용하지 않음 (2025-12-25)
+            // [REMOVED] 데모 모드 스위치 - RunScreen 로직 변경으로 더 이상 작동하지 않음 (2025-12-25)
 
             // [NEW] Time acceleration settings (1x ~ 10,000x) - Linear scale
             Spacer(modifier = Modifier.height(16.dp))

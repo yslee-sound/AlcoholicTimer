@@ -1304,16 +1304,14 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                         // [수정 2, 3] 알약 2개를 담는 Row
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             // --- 알약 1: 레벨 및 일차 정보 ---
-                            // [FIX] 수정 모드일 때는 일기 작성 당시의 레벨/일차 정보 사용 (2025-12-23)
+                            // [UPDATED] UserStatusManager 사용으로 통합 (2025-12-25)
+                            val userStatus by viewModel.userStatus.collectAsState(initial = kr.sweetapps.alcoholictimer.util.manager.UserStatusManager.UserStatus.DEFAULT)
                             val levelInfoText = if (postToEdit != null) {
                                 // 수정 모드: 저장된 일기의 레벨/일차 사용
                                 "${stringResource(R.string.level_format, postToEdit.userLevel)} · ${stringResource(R.string.days_format, postToEdit.currentDays)}"
                             } else {
-                                // 작성 모드: 현재 타이머 상태 사용
-                                val tab03Vm: kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab03ViewModel = viewModel()
-                                val levelDays by tab03Vm.levelDays.collectAsState()
-                                val levelNumber = if (levelDays == 0) 0 else kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions.getLevelNumber(levelDays) + 1
-                                "${stringResource(R.string.level_format, levelNumber)} · ${stringResource(R.string.days_format, levelDays)}"
+                                // 작성 모드: UserStatusManager에서 통합 관리되는 상태 사용
+                                "${stringResource(R.string.level_format, userStatus.level)} · ${stringResource(R.string.days_format, userStatus.days)}"
                             }
 
                             Surface(
