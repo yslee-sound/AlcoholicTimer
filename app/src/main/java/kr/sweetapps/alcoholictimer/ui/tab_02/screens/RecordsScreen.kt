@@ -579,8 +579,11 @@ private fun PeriodStatisticsSection(
         currency.code  // "KRW", "USD", "JPY" 등
     }
 
+    // [CHANGED] Floor(내림) 방식으로 소수점 계산 - 레벨 카드와 동기화 (2025-12-25)
+    // 예: 1.96일 -> "1.9" (반올림 2.0 아님), 2.00일 -> "2.0"
     val daysText = remember(totalDays) {
-        String.format(java.util.Locale.getDefault(), "%.1f", totalDays)
+        val displayValue = kotlin.math.floor(totalDays * 10.0) / 10.0
+        String.format(java.util.Locale.getDefault(), "%.1f", displayValue)
     }
 
     val kcalText = remember(totalKcal) {
@@ -1548,6 +1551,10 @@ private fun TotalDaysCard(
     totalDays: Float,
     onNavigateToAllRecords: () -> Unit = {}
 ) {
+    // [CHANGED] Floor(내림) 방식으로 소수점 계산 - 레벨 카드와 동기화 (2025-12-25)
+    // 예: 1.96일 -> "1.9" (반올림 2.0 아님), 2.00일 -> "2.0"
+    val displayValue = kotlin.math.floor(totalDays * 10.0) / 10.0
+
     // [FIX] 영어 로케일을 사용하여 소수점을 점(.)으로 고정 (인도네시아 쉼표 문제 해결)
     val decimalFormat = remember {
         java.text.DecimalFormat("#,###.#", java.text.DecimalFormatSymbols(java.util.Locale.US))
@@ -1601,9 +1608,10 @@ private fun TotalDaysCard(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // 날짜 값 (단위 제거, 2025-12-25)
+                // [CHANGED] displayValue(내림 처리된 값) 사용 (2025-12-25)
                 // [FIX] AutoResizingText로 자동 크기 조절 (깜빡임 없음)
                 AutoResizingText(
-                    text = decimalFormat.format(totalDays),
+                    text = decimalFormat.format(displayValue),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF111827),

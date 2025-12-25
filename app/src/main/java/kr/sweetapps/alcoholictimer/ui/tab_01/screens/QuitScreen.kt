@@ -204,10 +204,12 @@ fun QuitScreenComposable(
 
             Column(modifier = Modifier.fillMaxWidth()) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(QuitUiConstants.STAT_CARD_GAP)) {
-                    // 총 금주 일수: 소수점 1자리 (단위 포함, DetailScreen과 동일 포맷)
+                    // [CHANGED] 총 금주 일수: Floor(내림) 방식으로 변경 - 레벨 카드와 동기화 (2025-12-25)
+                    // 예: 1.96일 -> "1.9일", 2.00일 -> "2.0일"
+                    val displayDays = kotlin.math.floor(elapsedDaysFloat * 10.0) / 10.0
                     SmallStatCard(
                         title = stringResource(id = R.string.stat_total_days),
-                        value = String.format(Locale.getDefault(), "%.1f%s", elapsedDaysFloat, context.getString(R.string.unit_day)),
+                        value = String.format(Locale.getDefault(), "%.1f%s", displayDays, context.getString(R.string.unit_day)),
                         accentColor = colorResource(id = R.color.color_indicator_days),
                         iconRes = R.drawable.calendar_blank,
                         iconBg = Color(0xFFD6E8FF),

@@ -22,10 +22,10 @@ object LevelDefinitions {
         LevelInfo(R.string.level_4, 21, 29, Color(0xFF9CCC65)),       // Lv.5: 습관 형성 (21~29일, 연두)
         LevelInfo(R.string.level_5, 30, 59, Color(0xFF66BB6A)),       // Lv.6: 한달의 기적 (30~59일, 초록)
         LevelInfo(R.string.level_6, 60, 98, Color(0xFF42A5F5)),       // Lv.7: 달라진 핏(Fit) (60~98일, 하늘)
-        LevelInfo(R.string.level_7, 99, 178, Color(0xFF1E88E5)),     // Lv.8: 100일, 프로 금주러 (99~178일, 파랑)
-        LevelInfo(R.string.level_8, 179, 298, Color(0xFF5E35B1)),     // Lv.9: 플러스 통장 (179~298일, 보라)
-        LevelInfo(R.string.level_9, 299, 363, Color(0xFF8E24AA)),     // Lv.10: 금주 마스터 (299~363일, 진한 보라)
-        LevelInfo(R.string.level_10, 364, Int.MAX_VALUE, Color(0xFFFFD700)) // Legend: 전설의 레전드 (364일~, 금색)
+        LevelInfo(R.string.level_7, 100, 179, Color(0xFF1E88E5)),     // Lv.8: 100일, 프로 금주러 (99~178일, 파랑)
+        LevelInfo(R.string.level_8, 180, 299, Color(0xFF5E35B1)),     // Lv.9: 플러스 통장 (179~298일, 보라)
+        LevelInfo(R.string.level_9, 300, 363, Color(0xFF8E24AA)),     // Lv.10: 금주 마스터 (299~363일, 진한 보라)
+        LevelInfo(R.string.level_10, 365, Int.MAX_VALUE, Color(0xFFFFD700)) // Legend: 전설의 레전드 (364일~, 금색)
     )
 
     /**
