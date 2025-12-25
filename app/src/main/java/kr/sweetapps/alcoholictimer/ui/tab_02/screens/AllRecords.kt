@@ -32,7 +32,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.RecordSummaryCard
-import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,7 +39,7 @@ fun AllRecordsScreen(
     externalRefreshTrigger: Int = 0,
     onNavigateBack: () -> Unit = {},
     onNavigateToDetail: (SobrietyRecord) -> Unit = {},
-    onAddRecord: () -> Unit = {}, // [NEW] 기록 추가 콜백 추가
+    // [REMOVED] onAddRecord 파라미터 제거 (2025-12-25)
     fontScale: Float = 1.0f,
     externalDeleteDialog: MutableState<Boolean>? = null
 ) {
@@ -75,7 +74,7 @@ fun AllRecordsScreen(
     // 백탑바의 뒤로가기 버튼과 동일한 동작을 하도록 onNavigateBack 호출
     BackHandler(onBack = onNavigateBack)
 
-    // Use Scaffold with bottomBar so content is inset automatically
+    // Use Scaffold without bottomBar
     Scaffold(
         topBar = {
             BackTopBar(
@@ -96,33 +95,7 @@ fun AllRecordsScreen(
                 } else null
             )
         },
-        bottomBar = {
-            // [NEW] 하단 고정 버튼 - 기록 추가하기 (Scaffold bottomBar)
-            // [UPDATED] Surface로 감싸서 흰색 배경 + 상단 그림자 적용
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = Color.White,
-                shadowElevation = 12.dp
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(16.dp)
-                ) {
-                    Button(
-                        onClick = { onAddRecord() },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MainPrimaryBlue, contentColor = Color.White),
-                        shape = MaterialTheme.shapes.medium
-                    ) {
-                        Text(text = stringResource(R.string.add_record_button), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                    }
-                }
-            }
-        },
+        // [REMOVED] bottomBar 제거 - Add Record 버튼 삭제 (2025-12-25)
         containerColor = Color.White // [FIX] surfaceVariant(회색) → Color.White(흰색)
     ) { innerPadding ->
         // Apply fontScale only to the body content below the TopBar
@@ -156,15 +129,17 @@ fun AllRecordsScreen(
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { AllRecordsEmptyState() }
                 }
                 else -> {
-                    // Apply innerPadding to modifier and set bottom extra to fixed 100.dp
+                    // Apply innerPadding to modifier and set bottom extra
                     val topPad = innerPadding.calculateTopPadding()
                     val startPad = innerPadding.calculateLeftPadding(layoutDirection = LayoutDirection.Ltr)
                     val endPad = innerPadding.calculateRightPadding(layoutDirection = LayoutDirection.Ltr)
-                    val bottomExtra = innerPadding.calculateBottomPadding() + 70.dp    // 24.dp
+                    // [CHANGED] 시스템 네비게이션 바 포함 총 100dp (navigationBarsPadding ~48dp + 52dp) (2025-12-25)
+                    val bottomExtra = innerPadding.calculateBottomPadding() + 52.dp
 
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
+                            .navigationBarsPadding() // [NEW] 시스템 네비게이션 바 패딩 추가 (2025-12-25)
                             .padding(start = startPad, top = topPad, end = endPad)
                             .padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING),
                         verticalArrangement = Arrangement.spacedBy(UiConstants.CARD_VERTICAL_SPACING),

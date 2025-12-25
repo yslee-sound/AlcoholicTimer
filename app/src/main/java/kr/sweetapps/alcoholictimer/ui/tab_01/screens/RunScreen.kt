@@ -321,27 +321,54 @@ fun RunScreenComposable(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            // [NEW] 메인: 경과 일수 (아주 크게, Bold)
+                            // [NEW] 메인: 경과 일수 (숫자와 단위 분리) (2025-12-25)
                             val daysValue = String.format(Locale.getDefault(), "%.0f", kotlin.math.round(elapsedDaysFloat))
                             val daysUnit = stringResource(R.string.unit_day)
 
-                            Text(
-                                text = "$daysValue$daysUnit",
-                                style = MaterialTheme.typography.displayLarge.copy(
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = Color.White,
-                                    fontSize = 72.sp, // 아주 큰 크기
-                                    platformStyle = PlatformTextStyle(includeFontPadding = false),
-                                    shadow = Shadow(
-                                        color = Color.Black.copy(alpha = 0.55f),
-                                        offset = Offset(0f, 2f),
-                                        blurRadius = 4f
-                                    )
-                                ),
-                                textAlign = TextAlign.Center,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                            // [CHANGED] Row로 숫자와 단위 분리 (Start 화면 스타일) (2025-12-25)
+                            Row(
+                                verticalAlignment = Alignment.Bottom,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                // 숫자 부분 (크게)
+                                Text(
+                                    text = daysValue,
+                                    style = MaterialTheme.typography.displayLarge.copy(
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = Color.White,
+                                        fontSize = 72.sp,
+                                        platformStyle = PlatformTextStyle(includeFontPadding = false),
+                                        shadow = Shadow(
+                                            color = Color.Black.copy(alpha = 0.55f),
+                                            offset = Offset(0f, 2f),
+                                            blurRadius = 4f
+                                        )
+                                    ),
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+
+                                Spacer(modifier = Modifier.width(4.dp))
+
+                                // 단위 부분 (작고 흰색, 하단 정렬)
+                                Text(
+                                    text = daysUnit,
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.Normal,
+                                        color = Color.White, // [CHANGED] 회색 -> 흰색 (2025-12-25)
+                                        fontSize = 24.sp,
+                                        platformStyle = PlatformTextStyle(includeFontPadding = false),
+                                        shadow = Shadow(
+                                            color = Color.Black.copy(alpha = 0.45f),
+                                            offset = Offset(0f, 1f),
+                                            blurRadius = 2f
+                                        )
+                                    ),
+                                    modifier = Modifier.padding(bottom = 12.dp) // [CHANGED] 8dp -> 12dp 하단 정렬 개선 (2025-12-25)
+                                )
+                            }
 
                             Spacer(modifier = Modifier.height(8.dp))
 

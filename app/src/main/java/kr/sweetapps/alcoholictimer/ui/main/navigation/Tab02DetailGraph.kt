@@ -239,8 +239,8 @@ fun NavGraphBuilder.addTab02DetailGraph(
                     isCompleted = record.isCompleted
                 )
                 navController.navigate(route)
-            },
-            onAddRecord = { navController.navigate(Screen.AddRecord.route) }
+            }
+            // [REMOVED] onAddRecord 콜백 제거 - Add Record 기능 삭제 (2025-12-25)
         )
     }
 

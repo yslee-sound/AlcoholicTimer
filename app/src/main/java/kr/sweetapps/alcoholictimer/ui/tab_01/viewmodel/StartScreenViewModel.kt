@@ -428,7 +428,7 @@ class StartScreenViewModel(application: Application) : AndroidViewModel(applicat
  * [NEW] StartScreen UI 상태
  */
 data class StartScreenUiState(
-    val targetDays: Int = 21,
+    val targetDays: Int = 1, // [CHANGED] 기본값 21 -> 1 (2025-12-25)
     val startTime: Long = 0L,
     val timerCompleted: Boolean = false,
     val showCountdown: Boolean = false,
