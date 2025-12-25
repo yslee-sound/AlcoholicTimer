@@ -148,7 +148,7 @@ fun LevelScreenContent(
     ) {
         // [REMOVED] 상단 Spacer 제거 - innerPadding이 이미 처리함
 
-        Spacer(modifier = Modifier.height(4.dp)) // [UPDATED] 16dp → 4dp로 축소하여 Tab 2와 정렬 (2025-12-25)
+        Spacer(modifier = Modifier.height(7.dp)) // [UPDATED] BackTopBar(56dp) vs ModernDashboardHeader(48dp) 8dp 차이 고려 (15dp - 8dp = 7dp)
 
         // [MODIFIED] 공통 LevelCard 컴포넌트 사용 (2025-12-23)
         // [FIX] 정확한 구간 진행률 계산 (2025-12-25)
