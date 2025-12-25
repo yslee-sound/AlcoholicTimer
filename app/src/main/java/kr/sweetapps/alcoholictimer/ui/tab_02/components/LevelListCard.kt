@@ -131,7 +131,7 @@ private fun LevelItem(
                 )
 
                 val dayUnit = context.getString(R.string.level_day_unit)
-                val rangeText = if (level.end == Int.MAX_VALUE) "${level.start}$dayUnit+" else "${level.start}~${level.end}$dayUnit"
+                val rangeText = if (level.end == Int.MAX_VALUE) "${level.start} $dayUnit+" else "${level.start}~${level.end} $dayUnit"
                 Text(
                     text = rangeText,
                     style = MaterialTheme.typography.labelMedium.copy(color = Color(0xFF666666))

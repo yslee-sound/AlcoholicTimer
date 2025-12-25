@@ -162,7 +162,7 @@
     <string name="level_days_hours_remaining">%1$d d %2$d hour(s) left</string>
     <string name="level_soon_levelup">Level Up Soon!</string>
     <string name="level_all_levels">All Levels</string>
-    <string name="level_day_unit">d</string>
+    <string name="level_day_unit">Days</string>
     <string name="level_hour_unit">hour(s)</string>
 
     <!-- Diary -->

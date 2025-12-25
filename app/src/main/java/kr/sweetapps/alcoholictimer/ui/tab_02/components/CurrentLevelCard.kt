@@ -204,9 +204,9 @@ fun CurrentLevelCard(
                         val remainingDaysInt = floor(remainingDaysFloat.toDouble()).toInt()
                         val remainingHoursInt = floor(((remainingDaysFloat - remainingDaysInt) * 24f).toDouble()).toInt()
                         val remainingText = when {
-                            remainingDaysInt > 0 && remainingHoursInt > 0 -> "$remainingDaysInt${context.getString(R.string.level_day_unit)} $remainingHoursInt${context.getString(R.string.level_hour_unit)} ${context.getString(R.string.level_days_remaining)}"
-                            remainingDaysInt > 0 -> "$remainingDaysInt${context.getString(R.string.level_day_unit)} ${context.getString(R.string.level_days_remaining)}"
-                            remainingHoursInt > 0 -> "$remainingHoursInt${context.getString(R.string.level_hour_unit)} ${context.getString(R.string.level_hours_remaining)}"
+                            remainingDaysInt > 0 && remainingHoursInt > 0 -> "$remainingDaysInt ${context.getString(R.string.level_day_unit)} $remainingHoursInt ${context.getString(R.string.level_hour_unit)} ${context.getString(R.string.level_days_remaining)}"
+                            remainingDaysInt > 0 -> "$remainingDaysInt ${context.getString(R.string.level_day_unit)} ${context.getString(R.string.level_days_remaining)}"
+                            remainingHoursInt > 0 -> "$remainingHoursInt ${context.getString(R.string.level_hour_unit)} ${context.getString(R.string.level_hours_remaining)}"
                             else -> context.getString(R.string.level_soon_levelup)
                         }
 

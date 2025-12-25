@@ -161,7 +161,7 @@
     <string name="level_days_hours_remaining">%1$d h %2$d jam tersisa</string>
     <string name="level_soon_levelup">Segera Naik Level!</string>
     <string name="level_all_levels">Semua Level</string>
-    <string name="level_day_unit">h</string>
+    <string name="level_day_unit">Hari</string>
     <string name="level_hour_unit">jam</string>
 
     <!-- Diary -->

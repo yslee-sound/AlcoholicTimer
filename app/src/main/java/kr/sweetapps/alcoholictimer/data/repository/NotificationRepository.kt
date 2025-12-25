@@ -10,7 +10,7 @@ import kr.sweetapps.alcoholictimer.data.model.NotificationItem
  */
 class NotificationRepository {
     private val firestore = FirebaseFirestore.getInstance()
-    private val collection = firestore.collection("app_notices")
+    private val collection = firestore.collection("app_notices_v2")
 
     /**
      * Firestore에서 알림 목록 가져오기 (최신순 정렬)
