@@ -129,6 +129,21 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
         sharedPref.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
         Log.d("Tab02ViewModel", "Preference change listener registered")
 
+        // [NEW] 과거 기록을 UserStatusManager에 주입 (2025-12-25)
+        viewModelScope.launch {
+            _records.collect { allRecords ->
+                // 필터 없이 모든 기록의 '총 금주 일수' 합산
+                val totalHistoryDays = allRecords.sumOf { record ->
+                    // overlapDays에 null을 넣으면 전체 기간(startTime ~ endTime) 계산됨
+                    DateOverlapUtils.overlapDays(record.startTime, record.endTime, null, null)
+                }
+                // 매니저에게 과거 기록 업데이트 (소수점은 내림)
+                kr.sweetapps.alcoholictimer.util.manager.UserStatusManager.updateHistoryDays(totalHistoryDays.toInt())
+
+                Log.d("Tab02ViewModel", "Updated History to Manager: ${totalHistoryDays.toInt()} days (from ${allRecords.size} records)")
+            }
+        }
+
         // [CHANGED] combine을 사용하여 통계 재계산 및 레벨 상태 업데이트 (2025-12-25)
         viewModelScope.launch {
             combine(

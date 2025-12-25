@@ -3,10 +3,11 @@ package kr.sweetapps.alcoholictimer.util.manager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions
 import kr.sweetapps.alcoholictimer.util.constants.Constants
@@ -16,8 +17,12 @@ import kr.sweetapps.alcoholictimer.util.constants.Constants
  *
  * **목적:**
  * - 앱 전체에서 사용자의 레벨/일수를 일관되게 제공
- * - TimerTimeManager의 경과 시간을 구독하여 자동으로 UserStatus 계산
+ * - TimerTimeManager의 경과 시간 + 과거 기록(DB)을 합산하여 Total Days 계산
  * - 모든 화면(Run, Diary, Community 등)에서 동일한 데이터 사용 보장
+ *
+ * **[UPDATED] 과거 기록 통합 (2025-12-25):**
+ * - 과거 기록(DB) + 현재 타이머를 합산하여 정확한 누적 일수 제공
+ * - Tab02ViewModel에서 DB 기록을 로드하여 updateHistoryDays()로 주입
  *
  * **사용 예시:**
  * ```kotlin
@@ -30,7 +35,7 @@ object UserStatusManager {
     /**
      * 사용자 상태 데이터 클래스
      * @param level 레벨 번호 (1부터 시작, 1-indexed)
-     * @param days 경과 일수 (0부터 시작, floor 연산)
+     * @param days 경과 일수 (누적, 과거 기록 + 현재 타이머)
      */
     data class UserStatus(
         val level: Int,
@@ -48,23 +53,41 @@ object UserStatusManager {
     private val managerScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     /**
+     * [NEW] 과거 기록 일수 저장용 (2025-12-25)
+     * Tab02ViewModel에서 DB 로드 후 updateHistoryDays()로 업데이트
+     */
+    private val _historyDays = MutableStateFlow(0)
+
+    /**
+     * [NEW] 외부에서 과거 기록 업데이트 (2025-12-25)
+     * @param days 과거 기록의 총 금주 일수
+     */
+    fun updateHistoryDays(days: Int) {
+        _historyDays.value = days
+        android.util.Log.d("UserStatusManager", "History updated: $days days")
+    }
+
+    /**
      * 사용자 상태 StateFlow (읽기 전용)
      *
-     * **계산 로직:**
-     * 1. TimerTimeManager.elapsedMillis 구독
-     * 2. millis → days 변환 (floor 연산)
-     * 3. days → level 계산 (LevelDefinitions 사용)
-     * 4. 값이 변경될 때만 방출 (distinctUntilChanged)
+     * **[UPDATED] 계산 로직 (2025-12-25):**
+     * 1. TimerTimeManager.elapsedMillis + _historyDays를 combine
+     * 2. currentTimerDays: millis → days 변환 (floor 연산)
+     * 3. totalDays: historyDays + currentTimerDays (★핵심: 과거 + 현재 합산)
+     * 4. level: LevelDefinitions 기준 계산
+     * 5. 값이 변경될 때만 방출 (distinctUntilChanged)
      *
      * **특징:**
      * - Eagerly 시작: 앱 시작 즉시 구독 시작
-     * - 자동 업데이트: 타이머 변경 시 자동 반영
+     * - 자동 업데이트: 타이머 또는 DB 기록 변경 시 자동 반영
      * - 성능 최적화: 동일한 값은 재방출하지 않음
      */
-    val userStatus: StateFlow<UserStatus> = TimerTimeManager.elapsedMillis
-        .map { millis ->
-            calculateUserStatus(millis)
-        }
+    val userStatus: StateFlow<UserStatus> = combine(
+        TimerTimeManager.elapsedMillis,
+        _historyDays
+    ) { millis, historyDays ->
+        calculateUserStatus(millis, historyDays)
+    }
         .distinctUntilChanged()
         .stateIn(
             scope = managerScope,
@@ -73,26 +96,28 @@ object UserStatusManager {
         )
 
     /**
-     * 경과 시간(밀리초)을 UserStatus로 변환
+     * 경과 시간(밀리초) + 과거 기록(일수)을 UserStatus로 변환
      *
-     * @param millis 경과 시간 (밀리초)
+     * @param millis 현재 타이머 경과 시간 (밀리초)
+     * @param historyDays 과거 기록의 총 금주 일수
      * @return UserStatus 객체
      */
-    private fun calculateUserStatus(millis: Long): UserStatus {
-        // [CASE 1] 타이머가 시작되지 않았거나 음수일 때
-        if (millis <= 0L) {
-            return UserStatus(level = 1, days = 0)
+    private fun calculateUserStatus(millis: Long, historyDays: Int): UserStatus {
+        // 1. 현재 타이머의 경과 일수 계산 (floor 연산)
+        val currentTimerDays = if (millis > 0L) {
+            (millis / Constants.DAY_IN_MILLIS).toInt()
+        } else {
+            0
         }
 
-        // [CASE 2] 정상 경과 시간
-        // days: floor 연산 (꽉 채운 일수만 카운트)
-        val days = (millis / Constants.DAY_IN_MILLIS).toInt()
+        // 2. ★핵심: 과거 기록 + 현재 타이머 합산
+        val totalDays = historyDays + currentTimerDays
 
-        // level: LevelDefinitions 기준 계산 (0-indexed → 1-indexed 변환)
-        val levelNumber = LevelDefinitions.getLevelNumber(days)
+        // 3. 레벨 계산 (0-indexed → 1-indexed 변환)
+        val levelNumber = LevelDefinitions.getLevelNumber(totalDays)
         val level = if (levelNumber >= 0) levelNumber + 1 else 1
 
-        return UserStatus(level = level, days = days)
+        return UserStatus(level = level, days = totalDays)
     }
 }
 
