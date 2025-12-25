@@ -115,26 +115,7 @@ fun LevelCard(
                             )
                         }
 
-                        // Status Indicator (우측 상단)
-                        Box(
-                            modifier = Modifier
-                                .size(16.dp)
-                                .align(Alignment.TopEnd)
-                                .offset(x = 4.dp, y = (-4).dp)
-                                .clip(CircleShape)
-                                .background(Color.White)
-                                .padding(2.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(CircleShape)
-                                    .background(
-                                        if (isActive) Color(0xFF10B981) // Green
-                                        else Color(0xFF6B7280) // Gray
-                                    )
-                            )
-                        }
+                        // [REMOVED] Status Indicator 제거 (2025-12-26)
                     }
 
                     Spacer(modifier = Modifier.width(16.dp))
