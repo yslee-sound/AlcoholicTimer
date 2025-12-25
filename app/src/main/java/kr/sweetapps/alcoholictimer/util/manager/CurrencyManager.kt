@@ -34,11 +34,21 @@ object CurrencyManager {
      * 금액을 사용자 선택 통화로 포맷팅
      * 통화별로 정의된 decimalPlaces를 사용합니다.
      *
+     * [UPDATED] 인도네시아 로케일 자동 감지 및 축약형 포맷 적용 (2025-12-26)
+     * - 인도네시아 로케일(ID/in)인 경우: FormatUtils.formatCompactRupiah() 사용
+     * - 그 외 국가: 기존 방식 유지
+     *
      * @param amountInKRW 원화 기준 금액
      * @param context Context
-     * @return 포맷팅된 문자열 (예: "¥1,000.00", "$10.00")
+     * @return 포맷팅된 문자열 (예: "¥1,000.00", "$10.00", "Rp1,5jt")
      */
     fun formatMoney(amountInKRW: Double, context: Context): String {
+        // [NEW] 인도네시아 로케일 감지 및 축약형 포맷 사용 (2025-12-26)
+        val locale = Locale.getDefault()
+        if (locale.country.equals("ID", ignoreCase = true) || locale.language.equals("in", ignoreCase = true)) {
+            return kr.sweetapps.alcoholictimer.util.utils.FormatUtils.formatCompactRupiah(amountInKRW)
+        }
+
         val currency = getSelectedCurrency(context)
         val converted = amountInKRW / currency.rate
         val decimals = currency.decimalPlaces
@@ -58,8 +68,19 @@ object CurrencyManager {
     /**
      * 금액을 소수점 없이 포맷합니다(예: 2206원 또는 $2,206).
      * 화면 요구사항으로 소수점 표기가 없어야 할 때 사용합니다.
+     *
+     * [UPDATED] 인도네시아 로케일 자동 감지 및 축약형 포맷 적용 (2025-12-26)
+     * - 인도네시아 로케일(ID/in)인 경우: FormatUtils.formatCompactRupiah() 사용
+     * - 그 외 국가: 기존 방식 유지
      */
     fun formatMoneyNoDecimals(amountInKRW: Double, context: Context): String {
+        // [NEW] 인도네시아 로케일 감지 및 축약형 포맷 사용 (2025-12-26)
+        val locale = Locale.getDefault()
+        if (locale.country.equals("ID", ignoreCase = true) || locale.language.equals("in", ignoreCase = true)) {
+            // FormatUtils.formatCompactRupiah를 사용하려면 import 필요
+            return kr.sweetapps.alcoholictimer.util.utils.FormatUtils.formatCompactRupiah(amountInKRW)
+        }
+
         val currency = getSelectedCurrency(context)
         val converted = amountInKRW / currency.rate
 

@@ -133,15 +133,16 @@ fun LevelSummaryBanner(
                         verticalArrangement = Arrangement.Center
                     ) {
                         // Level title
+                        // [UPDATED] 긴 텍스트(인도네시아어 등)를 위해 두 줄까지 허용 (2025-12-26)
                         Text(
                             text = stringResource(id = currentLevel.nameResId),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
-                            maxLines = 1,
-                            softWrap = false, // Prevent line breaking completely
+                            maxLines = 2, // [CHANGED] 1 -> 2 (두 줄까지 허용)
+                            softWrap = true, // [CHANGED] false -> true (자동 줄바꿈 허용)
                             overflow = TextOverflow.Ellipsis,
-                            lineHeight = 20.sp // Explicit lineHeight to prevent clipping
+                            lineHeight = 20.sp // 줄 간격 유지
                         )
 
                         Spacer(modifier = Modifier.height(4.dp))

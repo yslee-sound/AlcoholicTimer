@@ -61,12 +61,22 @@ object FormatUtils {
      * 금액을 로케일에 따라 포맷팅
      * 사용자가 선택한 통화로 표시합니다.
      *
+     * [UPDATED] 인도네시아 로케일 자동 감지 및 축약형 포맷 적용 (2025-12-26)
+     * - 인도네시아 로케일(ID/in)인 경우: formatCompactRupiah() 사용 (예: Rp1,5jt)
+     * - 그 외 국가: 기존 CurrencyManager 사용 (예: ¥10,000)
+     *
      * @param context Context
      * @param amountInWon 원화 기준 금액
      * @return 포맷팅된 통화 문자열
      */
     @JvmStatic
     fun formatMoney(context: Context, amountInWon: Double): String {
+        val locale = Locale.getDefault()
+        // 인도네시아 로케일 감지 (국가 코드 ID 또는 언어 코드 in)
+        if (locale.country.equals("ID", ignoreCase = true) || locale.language.equals("in", ignoreCase = true)) {
+            return formatCompactRupiah(amountInWon)
+        }
+        // 그 외 국가는 기존 방식 유지
         return CurrencyManager.formatMoney(amountInWon, context)
     }
 
@@ -108,5 +118,55 @@ object FormatUtils {
     @JvmStatic
     fun daysToDayHourStringFixed(context: Context, days: Double, decimals: Int = 1): String {
         return daysToDayHourString(context, days, decimals)
+    }
+
+    /**
+     * 인도네시아 루피아(IDR) 축약 포맷터
+     *
+     * 큰 금액을 간결하게 표시하기 위한 포맷터입니다.
+     *
+     * **예시:**
+     * - 494035 -> "Rp494rb" (rb = ribu = 천)
+     * - 1500000 -> "Rp1,5jt" (jt = juta = 백만)
+     * - 2340000000 -> "Rp2,3M" (M = miliar = 십억)
+     *
+     * @param amount 루피아 금액
+     * @return 축약된 루피아 문자열
+     *
+     * [NEW] 인도네시아 로케일 전용 축약 포맷 (2025-12-26)
+     */
+    @JvmStatic
+    fun formatCompactRupiah(amount: Double): String {
+        // 1. 음수 처리
+        if (amount < 0) return "-" + formatCompactRupiah(-amount)
+
+        // 2. 단위 기준 설정
+        val thousand = 1000.0
+        val million = 1000000.0
+        val billion = 1000000000.0
+
+        // [FIX] deprecated Locale 생성자 대신 forLanguageTag 사용
+        val indonesiaLocale = Locale.forLanguageTag("in-ID")
+
+        // 3. 포맷팅 (소수점 1자리까지, 끝에 0이면 제거)
+        return when {
+            amount >= billion -> {
+                val value = amount / billion
+                String.format(indonesiaLocale, "Rp%.1fM", value).replace(",0M", "M")
+            }
+            amount >= million -> {
+                val value = amount / million
+                String.format(indonesiaLocale, "Rp%.1fjt", value).replace(",0jt", "jt")
+            }
+            amount >= thousand -> {
+                val value = amount / thousand
+                // 천 단위는 보통 소수점을 잘 안 씁니다 (선택 사항)
+                String.format(indonesiaLocale, "Rp%.0frb", value)
+            }
+            else -> {
+                // 작은 숫자는 그대로 표시 (천 단위 구분 기호 포함)
+                String.format(indonesiaLocale, "Rp%,.0f", amount)
+            }
+        }
     }
 }

@@ -573,17 +573,15 @@ private fun PeriodStatisticsSection(
     val totalKcal = statsData.totalKcal
     val totalBottles = statsData.totalBottles
 
-    // [NEW] 저축 금액: 숫자와 통화 기호 분리 (다른 카드들과 동일한 형태)
-    val savedMoneyValue = remember(savedMoney, userSettings.currencySymbol) {
-        val currency = CurrencyManager.getSelectedCurrency(context)
-        val converted = savedMoney / currency.rate
-        // 숫자만 포맷팅 (통화 기호 제외)
-        String.format(java.util.Locale.getDefault(), "%,.0f", converted)
-    }
-
-    val savedMoneyUnit = remember(userSettings.currencySymbol) {
-        val currency = CurrencyManager.getSelectedCurrency(context)
-        currency.code  // "KRW", "USD", "JPY" 등
+    // [UPDATED] value와 unit 완전 분리 (2025-12-26)
+    val savedMoneyFormatted = remember(savedMoney) {
+        val formatted = CurrencyManager.formatMoneyNoDecimals(savedMoney, context)  // "Rp1,4jt"
+        val locale = java.util.Locale.getDefault()
+        if (locale.country.equals("ID", ignoreCase = true) || locale.language.equals("in", ignoreCase = true)) {
+            "$formatted IDR"  // 인도네시아: "Rp1,4jt IDR"
+        } else {
+            formatted  // 다른 국가: "₩10,000" 등
+        }
     }
 
     // [CHANGED] Floor(내림) 방식으로 소수점 계산 - 레벨 카드와 동기화 (2025-12-25)
@@ -670,7 +668,7 @@ private fun PeriodStatisticsSection(
                     // [NEW] 우측: 지켜낸 돈 → 저축 (piggybank 아이콘)
                     StatisticItem(
                         title = "SAVED",
-                        value = "$savedMoneyValue $savedMoneyUnit",
+                        value = savedMoneyFormatted,  // [UPDATED] 인도네시아 축약형 자동 적용 (2025-12-26)
                         color = MaterialTheme.colorScheme.error,
                         valueColor = Color(0xFF111111), // [UPDATE] 진한 검은색
                         icon = R.drawable.piggybank,
@@ -822,7 +820,9 @@ private fun StatisticItem(
                 platformStyle = PlatformTextStyle(includeFontPadding = false)
             )
 
-            val regex = Regex("^\\s*([0-9,]+(?:\\.[0-9]+)?)\\s*(.*)")
+            // [UPDATED] 인도네시아 축약형 지원 - Rp로 시작하는 통화 포함 (2025-12-26)
+            // 예: "Rp1,4jt IDR" → 숫자: "Rp1,4jt", 단위: "IDR"
+            val regex = Regex("^\\s*([Rp$€¥₩£]*[0-9,]+(?:\\.[0-9]+)?[a-zA-Z]*)\\s*(.*)")
             val m = regex.find(value)
 
             if (m != null) {
@@ -1460,13 +1460,18 @@ private fun ModernStatisticsGrid(
         )
 
         // 저축 카드
+        // [UPDATED] value와 unit 분리하여 전달 (2025-12-26)
+        val savedMoneyValue = CurrencyManager.formatMoneyNoDecimals(statsData.savedMoney, context)
+        val locale = java.util.Locale.getDefault()
+        val isIndonesia = locale.country.equals("ID", ignoreCase = true) || locale.language.equals("in", ignoreCase = true)
+
         StatCard(
             icon = R.drawable.piggybank,
             iconColor = Color(0xFF5CD88A),
             label = "SAVED",
-            value = decimalFormat.format((statsData.savedMoney / currency.rate).toLong()),
-            unit = currency.code,
-            modifier = Modifier.weight(1f).fillMaxHeight() // [NEW]
+            value = savedMoneyValue,  // "Rp1,4jt" (큰 글씨)
+            unit = if (isIndonesia) "IDR" else "",  // "IDR" (작은 회색 글씨)
+            modifier = Modifier.weight(1f).fillMaxHeight()
         )
     }
 }
