@@ -152,7 +152,7 @@
     <string name="level_until_next">다음 레벨까지</string>
     <string name="level_days_remaining">남음</string>
     <string name="level_hours_remaining">남음</string>
-    <string name="level_days_hours_remaining" formatted="false">%d일 %d시간 남음</string>
+    <string name="level_days_hours_remaining">%1$d일 %2$d시간 남음</string>
     <string name="level_soon_levelup">곧 레벨업!</string>
     <string name="level_all_levels">모든 레벨</string>
     <string name="level_day_unit">일</string>

@@ -152,7 +152,7 @@
     <string name="level_until_next">次のレベルまで</string>
     <string name="level_days_remaining">残り</string>
     <string name="level_hours_remaining">残り</string>
-    <string name="level_days_hours_remaining" formatted="false">あと%d日 %d時間</string>
+    <string name="level_days_hours_remaining">あと%1$d日 %2$d時間</string>
     <string name="level_soon_levelup">もうすぐレベルアップ！</string>
     <string name="level_all_levels">全てのレベル</string>
     <string name="level_day_unit">日</string>
