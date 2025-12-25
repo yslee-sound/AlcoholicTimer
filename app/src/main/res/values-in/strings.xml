@@ -44,7 +44,7 @@
     <!-- Quit Screen -->
     <string name="quit_title">Akhiri Pantang Alkohol</string>
     <string name="quit_confirm_title">Apakah Anda yakin ingin berhenti?</string>
-    <string name="quit_confirm_subtitle">Anda sudah melakukannya dengan baik&#8230;</string>
+    <string name="quit_confirm_subtitle">Anda sudah hebat sejauh ini!</string>
     <string name="stat_total_days">Hari Bebas Alkohol</string>
     <string name="stat_saved_money_short">Tabungan</string>
     <string name="stat_saved_hours_short">Waktu Tersimpan</string>
@@ -55,7 +55,7 @@
     <string name="finished_success_description">Selamat!\nAnda telah berhasil menyelesaikan target pantang alkohol.</string>
     <string name="finished_result_check">Lihat Hasil</string>
     <string name="finished_new_timer">Mulai Timer Baru</string>
-    <string name="finished_giveup_title">🍃 Tidak Apa-apa Istirahat Sejenak</string>
+    <string name="finished_giveup_title">Tidak Apa-apa Istirahat Sejenak</string>
     <string name="finished_giveup_description">Tantangan ini berakhir di sini, tetapi usaha Anda tidak akan hilang.\nBeristirahatlah sejenak dan kembali kapan saja.</string>
 
     <!-- Records Screen -->

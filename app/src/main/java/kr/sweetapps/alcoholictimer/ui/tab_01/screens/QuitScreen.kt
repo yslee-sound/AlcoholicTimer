@@ -167,7 +167,11 @@ fun QuitScreenComposable(
                         text = stringResource(id = R.string.quit_confirm_subtitle),
                         fontSize = 14.sp,
                         color = Color(0xFF666666),
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        lineHeight = 20.sp, // [NEW] 줄 간격 추가 - 두 줄 이상일 때 겹치지 않게 (2025-12-26)
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp) // [NEW] 좌우 여백 추가 - 카드 테두리에 붙지 않게 (2025-12-26)
+                            .padding(top = 4.dp) // 상단 여백 미세 조정
                     )
                 }
             }
