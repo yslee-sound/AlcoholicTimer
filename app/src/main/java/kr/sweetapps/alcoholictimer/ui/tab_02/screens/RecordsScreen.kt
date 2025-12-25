@@ -57,6 +57,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.draw.clip
 import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager  // [NEW] 동적 통화 표시
+import kr.sweetapps.alcoholictimer.util.utils.FormatUtils  // [NEW] 칼로리 축약 포맷터 (2025-12-26)
 import kr.sweetapps.alcoholictimer.ui.common.rememberUserSettingsState  // [NEW] 실시간 설정 감지
 import kr.sweetapps.alcoholictimer.ui.components.AutoResizingText  // [NEW] 자동 크기 조절 텍스트
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions
@@ -591,8 +592,9 @@ private fun PeriodStatisticsSection(
         String.format(java.util.Locale.getDefault(), "%.1f", displayValue)
     }
 
+    // [UPDATED] formatCompactNumber 사용 (2025-12-26)
     val kcalText = remember(totalKcal) {
-        String.format(java.util.Locale.getDefault(), "%.0f", totalKcal)
+        FormatUtils.formatCompactNumber(context, totalKcal)
     }
 
     val bottlesText = remember(totalBottles) {
@@ -605,9 +607,8 @@ private fun PeriodStatisticsSection(
         if (count == 1) "bottle" else "bottles"
     }
 
-    // [NEW] 천 단위 콤마 포맷터
-    val decimalFormat = java.text.DecimalFormat("#,###")
-    val kcalFormatted = decimalFormat.format(totalKcal.toLong())
+    // [UPDATED] formatCompactNumber 사용 (2025-12-26)
+    val kcalFormatted = FormatUtils.formatCompactNumber(context, totalKcal)
 
 
     Card(
@@ -1440,11 +1441,12 @@ private fun ModernStatisticsGrid(
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // 칼로리 카드
+        // [UPDATED] formatCompactNumber 사용하여 큰 숫자 축약 표시 (2025-12-26)
         StatCard(
             icon = R.drawable.personsimplerun,
             iconColor = Color(0xFFFF9F66),
             label = "CALORIES",
-            value = decimalFormat.format(statsData.totalKcal.toLong()),
+            value = FormatUtils.formatCompactNumber(context, statsData.totalKcal),
             unit = "kcal",
             modifier = Modifier.weight(1f).fillMaxHeight() // [NEW] 자식이 부모 높이에 맞게 fillMaxHeight
         )
@@ -1590,7 +1592,7 @@ private fun TotalDaysCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp),
+                .padding(start = 20.dp, top = 20.dp, bottom = 20.dp, end = 12.dp), // [CHANGED] 우측 패딩만 12dp로 조정 (2025-12-26)
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {

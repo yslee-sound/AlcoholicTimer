@@ -78,10 +78,12 @@ fun LevelCard(
                         )
                     )
                 )
-                .padding(20.dp)
+                // [CHANGED] padding을 Box에서 제거하고 내부 Column으로 이동 (2025-12-26)
         ) {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(20.dp), // [CHANGED] Column에 padding 적용 (2025-12-26)
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 // [상단] 뱃지 + 텍스트
@@ -122,7 +124,9 @@ fun LevelCard(
 
                     // Level name and days
                     Column(
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 24.dp) // [NEW] 화살표 공간 확보 (2025-12-26)
                     ) {
                         Text(
                             text = context.getString(currentLevel.nameResId),
@@ -159,17 +163,7 @@ fun LevelCard(
                         }
                     }
 
-                    // [NEW] 우측 화살표 아이콘 (클릭 가능할 때만 표시)
-                    if (onClick != null) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = "자세히 보기",
-                            tint = Color.White.copy(alpha = 0.7f),
-                            modifier = Modifier
-                                .size(32.dp)
-                                .align(Alignment.CenterVertically)
-                        )
-                    }
+                    // [REMOVED] 화살표 아이콘을 Row에서 제거 - 아래 Box의 직계 자식으로 이동 (2025-12-26)
                 }
 
                 // [하단] 프로그레스 영역
@@ -183,6 +177,19 @@ fun LevelCard(
                     // 간소화된 프로그레스 바만 표시
                     SimpleLevelProgress(progress = progress)
                 }
+            }
+
+            // [NEW] 화살표 아이콘을 Box의 직계 자식으로 추가 - 우측 끝에 고정 (2025-12-26)
+            if (onClick != null) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = "자세히 보기",
+                    tint = Color.White.copy(alpha = 0.7f),
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 40.dp, end = 12.dp) // 뱃지 높이의 중앙에 정렬
+                        .size(32.dp)
+                )
             }
         }
     }

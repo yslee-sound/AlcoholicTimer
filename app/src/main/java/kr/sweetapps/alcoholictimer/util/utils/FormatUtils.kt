@@ -169,4 +169,58 @@ object FormatUtils {
             }
         }
     }
+
+    /**
+     * 큰 숫자(칼로리 등)를 간결하게 표시하기 위한 범용 포맷터
+     *
+     * 레이아웃이 깨지는 것을 방지하기 위해 100만 이상은 축약 표시합니다.
+     *
+     * **인도네시아 로케일:**
+     * - 1,000,000 미만: "11.521" (천 단위 구분)
+     * - 1,000,000 이상: "1,2jt" (백만), "2,3M" (십억)
+     *
+     * **기타 로케일:**
+     * - 천 단위 구분 기호만 적용: "11,521"
+     *
+     * @param context Context
+     * @param amount 숫자 값
+     * @return 포맷된 문자열
+     *
+     * [NEW] 전역 숫자 축약 포맷터 (2025-12-26)
+     */
+    @JvmStatic
+    fun formatCompactNumber(context: Context, amount: Double): String {
+        // 음수 처리
+        if (amount < 0) return "-" + formatCompactNumber(context, -amount)
+
+        val locale = Locale.getDefault()
+        val isIndonesia = locale.country.equals("ID", ignoreCase = true) ||
+                         locale.language.equals("in", ignoreCase = true)
+
+        if (isIndonesia) {
+            val million = 1000000.0
+            val billion = 1000000000.0
+            val indonesiaLocale = Locale.forLanguageTag("in-ID")
+
+            return when {
+                amount >= billion -> {
+                    // 십억 단위: "2,3M"
+                    val value = amount / billion
+                    String.format(indonesiaLocale, "%.1fM", value).replace(",0M", "M")
+                }
+                amount >= million -> {
+                    // 백만 단위: "1,2jt"
+                    val value = amount / million
+                    String.format(indonesiaLocale, "%.1fjt", value).replace(",0jt", "jt")
+                }
+                else -> {
+                    // 100만 미만: "11.521" (천 단위 구분 기호)
+                    String.format(indonesiaLocale, "%,.0f", amount)
+                }
+            }
+        } else {
+            // 기타 로케일: 천 단위 구분 기호만 적용
+            return String.format(locale, "%,.0f", amount)
+        }
+    }
 }
