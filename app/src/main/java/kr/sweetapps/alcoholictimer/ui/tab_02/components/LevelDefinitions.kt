@@ -19,8 +19,8 @@ object LevelDefinitions {
         LevelInfo(R.string.level_1, 3, 6, Color(0xFFFF6F00)),         // Lv.2: 3일 컷 통과 (3~6일, 진한 주황)
         LevelInfo(R.string.level_2, 7, 13, Color(0xFFFFA726)),        // Lv.3: 1주 클리어 (7~13일, 주황)
         LevelInfo(R.string.level_3, 14, 20, Color(0xFFFFCA28)),       // Lv.4: 피부의 변화 (14~20일, 노랑)
-        LevelInfo(R.string.level_4, 21, 29, Color(0xFF9CCC65)),       // Lv.5: 습관 형성 (21~29일, 연두)
-        LevelInfo(R.string.level_5, 30, 59, Color(0xFF66BB6A)),       // Lv.6: 한달의 기적 (30~59일, 초록)
+        LevelInfo(R.string.level_4, 21, 30, Color(0xFF9CCC65)),       // Lv.5: 습관 형성 (21~29일, 연두)
+        LevelInfo(R.string.level_5, 31, 59, Color(0xFF66BB6A)),       // Lv.6: 한달의 기적 (30~59일, 초록)
         LevelInfo(R.string.level_6, 60, 98, Color(0xFF42A5F5)),       // Lv.7: 달라진 핏(Fit) (60~98일, 하늘)
         LevelInfo(R.string.level_7, 100, 179, Color(0xFF1E88E5)),     // Lv.8: 100일, 프로 금주러 (99~178일, 파랑)
         LevelInfo(R.string.level_8, 180, 299, Color(0xFF5E35B1)),     // Lv.9: 플러스 통장 (179~298일, 보라)
@@ -52,5 +52,40 @@ object LevelDefinitions {
      */
     fun getLevelNumber(days: Int): Int {
         return levels.indexOfFirst { days in it.start..it.end }.takeIf { it >= 0 } ?: 0
+    }
+
+    /**
+     * [NEW] 현재 레벨 구간 내 진행률 계산 (2025-12-25)
+     *
+     * @param currentDays 금주 후 경과한 완전한 일수 (0일부터 시작, floor 기준)
+     * @return 0.0f ~ 1.0f (0% ~ 100%)
+     *
+     * **계산 공식:**
+     * - (현재일수 - 현재레벨시작일) / (다음레벨시작일 - 현재레벨시작일)
+     *
+     * **예시:**
+     * - Lv.2 (3~6일), 현재 4일 → (4-3) / (7-3) = 1/4 = 0.25 (25%)
+     * - Lv.2 (3~6일), 현재 6일 → (6-3) / (7-3) = 3/4 = 0.75 (75%)
+     * - Legend (365일~) → 항상 1.0 (100%)
+     */
+    fun getLevelProgress(currentDays: Int): Float {
+        // 1. 현재 레벨 찾기
+        val currentLevelIndex = getLevelNumber(currentDays)
+        val currentLevel = levels[currentLevelIndex]
+
+        // 2. Legend (최고 레벨)이면 항상 100%
+        if (currentLevelIndex == levels.size - 1) {
+            return 1.0f
+        }
+
+        // 3. 다음 레벨 찾기
+        val nextLevel = levels[currentLevelIndex + 1]
+
+        // 4. 구간 내 진행률 계산
+        val progressInLevel = currentDays - currentLevel.start
+        val levelRange = nextLevel.start - currentLevel.start
+
+        // 5. 0~1 사이로 클램핑 (안전장치)
+        return (progressInLevel.toFloat() / levelRange.toFloat()).coerceIn(0f, 1f)
     }
 }

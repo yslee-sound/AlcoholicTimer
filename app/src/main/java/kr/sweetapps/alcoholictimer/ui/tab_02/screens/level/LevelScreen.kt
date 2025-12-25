@@ -27,11 +27,16 @@ import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab03ViewModel
 import kr.sweetapps.alcoholictimer.ui.common.LevelCard
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelListCard
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions
+import kr.sweetapps.alcoholictimer.util.manager.UserStatusManager // [NEW] 중앙 관리자 추가 (2025-12-25)
 
 /**
  * Tab03 - 레벨 화면
  * 사용자의 금주 레벨 진행 상황을 보여주는 메인 화면
  * ViewModel을 Activity Scope로 변경하여 탭 전환 시에도 동일한 인스턴스 유지
+ *
+ * [UPDATED] UserStatusManager 통합 (2025-12-25)
+ * - 누적(Total) 일수/레벨 기준으로 표시
+ * - 메인 화면(Tab 2)과 데이터 일치 보장
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,12 +49,17 @@ fun LevelScreen(
     val context = LocalContext.current
     val activity = context as? Activity
 
-    // ViewModel에서 상태 구독
+    // [UPDATED] UserStatusManager에서 누적 레벨/일수 가져오기 (2025-12-25)
+    val userStatus by UserStatusManager.userStatus.collectAsState()
+    val currentDays = userStatus.days
+    val currentLevel = LevelDefinitions.getLevelInfo(currentDays)
+
+    // ViewModel에서 상태 구독 (광고 정책용)
     val startTime by viewModel.startTime.collectAsState()
     val levelVisits by viewModel.levelVisits.collectAsState()
     val totalElapsedDaysFloat by viewModel.totalElapsedDaysFloat.collectAsState()
-    val levelDays by viewModel.levelDays.collectAsState()
-    val currentLevel by viewModel.currentLevel.collectAsState()
+
+    // ...existing code (BackHandler)...
 
     // 뒤로가기 처리: 광고 정책 확인 (수익화 핵심 로직)
     val coroutineScope = rememberCoroutineScope()
@@ -104,11 +114,11 @@ fun LevelScreen(
             )
         }
     ) { innerPadding ->
-        // [FIX] 기존 LevelScreen Content를 innerPadding 적용하여 배치
+        // [UPDATED] UserStatusManager 기반 데이터 전달 (2025-12-25)
         LevelScreenContent(
             innerPadding = innerPadding,
             currentLevel = currentLevel,
-            levelDays = levelDays,
+            levelDays = currentDays, // [CHANGED] userStatus.days 사용
             totalElapsedDaysFloat = totalElapsedDaysFloat,
             startTime = startTime,
             viewModel = viewModel
@@ -141,10 +151,11 @@ fun LevelScreenContent(
         Spacer(modifier = Modifier.height(16.dp)) // [NEW] 콘텐츠 상단 여백
 
         // [MODIFIED] 공통 LevelCard 컴포넌트 사용 (2025-12-23)
+        // [FIX] 정확한 구간 진행률 계산 (2025-12-25)
         LevelCard(
             currentLevel = currentLevel,
             currentDays = levelDays,
-            progress = viewModel.calculateProgress(),
+            progress = LevelDefinitions.getLevelProgress(levelDays), // [CHANGED] viewModel → LevelDefinitions
             containerColor = Color(0xFF1E40AF), // Deep Blue
             cardHeight = 200.dp,
             showDetailedInfo = true,
