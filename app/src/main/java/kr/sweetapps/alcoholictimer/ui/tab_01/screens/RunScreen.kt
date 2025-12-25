@@ -141,13 +141,12 @@ fun RunScreenComposable(
     // [FIX] dayInMillis는 고정 상수 사용
     val dayInMillis = Constants.DAY_IN_MILLIS
 
-    // [FIX] Use elapsed time from ViewModel (survives tab switches)
-    val elapsedMillis = if (isDemoMode) {
-        (DemoData.DEMO_ELAPSED_DAYS * dayInMillis).toLong()
-    } else if (isPreview) {
+    // [CHANGED] Demo Mode 체크 제거 - 항상 실제 시간 사용 (2025-12-25)
+    // 테스트 모드에서 시간 가속 시 Run 화면도 실시간으로 반영됨
+    val elapsedMillis = if (isPreview) {
         2 * dayInMillis // Preview: 2 days
     } else {
-        elapsedMillisFromVM
+        elapsedMillisFromVM // 항상 ViewModel의 실제 시간 사용
     }
 
     // [FIX] displayElapsedMillis는 elapsedMillis와 동일 (이미 가속됨)
@@ -158,13 +157,16 @@ fun RunScreenComposable(
         displayElapsedMillis / Constants.DAY_IN_MILLIS.toFloat()
     }
 
-    // [FIX] 레벨 계산: 가상 시간 기준, 1일 차부터 시작
+    // [CHANGED] 레벨 계산: '꽉 채운 일수' 기준 (floor 방식, +1 제거) (2025-12-25)
+    // 예: 2.7일 → floor(2.7) = 2일, 0.5일 → floor(0.5) = 0일
     val levelDays = remember(displayElapsedMillis) {
-        val days = (displayElapsedMillis / Constants.DAY_IN_MILLIS).toInt()
-        if (days == 0) 1 else days + 1
+        (displayElapsedMillis / Constants.DAY_IN_MILLIS).toInt() // floor 연산
     }
     val levelInfo = remember(levelDays) { LevelDefinitions.getLevelInfo(levelDays) }
-    val levelNumber = if (isDemoMode) DemoData.DEMO_LEVEL else remember(levelDays) { LevelDefinitions.getLevelNumber(levelDays) + 1 } // +1 for display (1-indexed)
+    val levelNumber = if (isDemoMode) DemoData.DEMO_LEVEL else remember(levelDays) {
+        val num = LevelDefinitions.getLevelNumber(levelDays)
+        if (num >= 0) num + 1 else 1 // [CHANGED] 0일차(기록 없음) → Lv.1로 표시
+    }
     // [FIX] Legend 레벨(11)은 "L"로 표시
     val levelDisplayText = if (levelNumber == 11) "Lv.L" else "Lv.$levelNumber"
 
@@ -322,9 +324,9 @@ fun RunScreenComposable(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            // [NEW] 메인: 경과 일수 (숫자와 단위 분리) (2025-12-25)
-                            val daysValue = String.format(Locale.getDefault(), "%.0f", kotlin.math.round(elapsedDaysFloat))
-                            val daysCount = kotlin.math.round(elapsedDaysFloat).toInt()
+                            // [CHANGED] 메인: 경과 일수 - floor(내림) 방식으로 '꽉 채운 시간'만 표시 (2025-12-25)
+                            val daysValue = String.format(Locale.getDefault(), "%.0f", kotlin.math.floor(elapsedDaysFloat.toDouble()))
+                            val daysCount = kotlin.math.floor(elapsedDaysFloat.toDouble()).toInt()
                             // [CHANGED] plurals 사용하여 단수/복수 구분 (2025-12-25)
                             val daysUnit = remember(daysCount) {
                                 context.resources.getQuantityString(R.plurals.days_count, daysCount, daysCount).substringAfter(" ")

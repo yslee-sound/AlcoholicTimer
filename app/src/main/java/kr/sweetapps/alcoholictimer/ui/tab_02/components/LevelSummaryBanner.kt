@@ -88,11 +88,8 @@ fun LevelSummaryBanner(
                                 .background(Color.White.copy(alpha = 0.2f)),
                             contentAlignment = Alignment.Center
                         ) {
-                            val levelNumber = if (currentDays < 1) {
-                                0
-                            } else {
-                                LevelDefinitions.getLevelNumber(currentDays) + 1
-                            }
+                            // [CHANGED] 0일차도 Lv.1로 표시 (2025-12-25)
+                            val levelNumber = LevelDefinitions.getLevelNumber(currentDays) + 1
                             val levelText = if (levelNumber == 11) "L" else "$levelNumber"
                             Text(
                                 text = "LV.$levelText",

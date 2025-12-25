@@ -50,14 +50,11 @@ fun LevelListCard(
 
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 LevelDefinitions.levels.forEachIndexed { index, level ->
-                    // [FIX] 0일차(기록 없음) = 모든 레벨 잠김, 1일차부터 Lv.1 활성화
-                    val isCurrentLevel = if (currentDays < 1) {
-                        false // 0일차에는 현재 레벨 없음 (기록 없음)
-                    } else {
-                        level == currentLevel
-                    }
+                    // [CHANGED] 현재 레벨 확인 (2025-12-25)
+                    val isCurrentLevel = (level == currentLevel)
 
-                    // [FIX] 1일차부터 Lv.1 활성화 (0일차는 모두 잠김)
+                    // [CHANGED] 달성 조건: currentDays가 레벨 시작일 이상이면 달성 (2025-12-25)
+                    // 예: 0일 → Lv.1 달성, 3일 → Lv.2 달성
                     val isAchieved = currentDays >= level.start
 
                     LevelItem(

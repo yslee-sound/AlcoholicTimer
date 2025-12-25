@@ -30,6 +30,17 @@ data class StatsData(
 )
 
 /**
+ * [CHANGED] 레벨 상태 데이터 클래스 (2025-12-25)
+ * - 전체 누적 금주 일수(Lifetime Total)를 기준으로 레벨 관리
+ * - 과거 기록 + 현재 타이머 합산 (= statsData.totalDays)
+ */
+data class LevelState(
+    val currentLevel: kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions.LevelInfo,
+    val currentDays: Int,
+    val progress: Float
+)
+
+/**
  * [NEW] Tab02(기록 화면) 상태 관리 ViewModel
  * - 기록 데이터 로딩 및 필터링 관리
  * - 기간 선택 상태 관리 (주/월/년)
@@ -81,6 +92,16 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
     private val _statsState = MutableStateFlow(StatsData())
     val statsState: StateFlow<StatsData> = _statsState.asStateFlow()
 
+    // [CHANGED] 레벨 상태 데이터 (전체 누적 일수 기준) (2025-12-25)
+    private val _levelState = MutableStateFlow(
+        LevelState(
+            currentLevel = kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions.levels.first(),
+            currentDays = 0,
+            progress = 0f
+        )
+    )
+    val levelState: StateFlow<LevelState> = _levelState.asStateFlow()
+
     // [NEW] 상세 화면 이동을 위한 일회성 이벤트 (Route 저장)
     // 이 값이 null이 아니면 목록 화면이 해당 route로 즉시 이동함
     private val _pendingDetailRoute = MutableStateFlow<String?>(null)
@@ -108,7 +129,7 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
         sharedPref.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
         Log.d("Tab02ViewModel", "Preference change listener registered")
 
-        // [FIX] combine을 사용하여 5가지 상태 중 하나라도 변하면 즉시 통계 재계산
+        // [CHANGED] combine을 사용하여 통계 재계산 및 레벨 상태 업데이트 (2025-12-25)
         viewModelScope.launch {
             combine(
                 _records,
@@ -117,12 +138,14 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
                 _selectedWeekRange,
                 TimerTimeManager.elapsedMillis
             ) { records, period, detailPeriod, weekRange, elapsedMillis ->
-                // [FIX] 모든 상태를 파라미터로 받아 통계 계산
+                // 통계 계산 (과거 기록 + 현재 타이머 합산)
                 calculateStatsFromAllStates(records, period, detailPeriod, weekRange, elapsedMillis)
             }.collect { statsData ->
-                // 계산된 결과를 StateFlow에 반영
+                // 계산된 통계를 StateFlow에 반영
                 _statsState.value = statsData
-                // [REMOVED] 무한 반복 로그 제거 (성능 최적화)
+
+                // [CHANGED] 레벨 상태도 statsData.totalDays를 기준으로 계산 (누적 기준) (2025-12-25)
+                updateLevelStateFromTotalDays(statsData.totalDays)
             }
         }
     }
@@ -249,6 +272,62 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
         } catch (e: Exception) {
             Log.e("Tab02ViewModel", "통계 계산 실패", e)
             StatsData() // 오류 발생 시 빈 데이터 반환
+        }
+    }
+
+    /**
+     * [CHANGED] 레벨 상태 계산 (누적 일수 기준) (2025-12-25)
+     * - statsData.totalDays를 기준으로 레벨 계산 (과거 기록 + 현재 타이머 합산)
+     * - 이전 로직과 달리, '전체 누적 금주 일수'를 반영하여 레벨 유지/하락이 가능
+     * @param totalDays 전체 누적 금주 일수 (Float)
+     */
+    private fun updateLevelStateFromTotalDays(totalDays: Float) {
+        try {
+            // 1. 누적 일수가 0 이하면 초기 상태 (0일, Lv.1)
+            if (totalDays <= 0f) {
+                _levelState.value = LevelState(
+                    currentLevel = kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions.levels.first(),
+                    currentDays = 0,
+                    progress = 0f
+                )
+                Log.d("Tab02ViewModel", "Level: No days - reset to 0 days, Lv.1")
+                return
+            }
+
+            // 2. 현재 일수 계산 (floor 방식, '꽉 채운 일수')
+            val currentDays = totalDays.toInt()
+
+            // 3. 현재 레벨 정보 가져오기
+            val currentLevel = kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions.getLevelInfo(currentDays)
+
+            // 4. 다음 레벨까지의 진행률 계산
+            val currentIndex = kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions.levels.indexOf(currentLevel)
+            val nextLevel = if (currentIndex in 0 until kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions.levels.size - 1) {
+                kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions.levels[currentIndex + 1]
+            } else {
+                null // Legend 레벨은 다음 레벨 없음
+            }
+
+            val progress = if (nextLevel != null && nextLevel.start > currentLevel.start) {
+                val progressInLevel = currentDays - currentLevel.start
+                val totalNeeded = nextLevel.start - currentLevel.start
+                (progressInLevel.toFloat() / totalNeeded.toFloat()).coerceIn(0f, 1f)
+            } else {
+                1f // Legend 레벨은 100%
+            }
+
+            // 5. 상태 업데이트
+            _levelState.value = LevelState(
+                currentLevel = currentLevel,
+                currentDays = currentDays,
+                progress = progress
+            )
+
+            Log.d("Tab02ViewModel", "Level: $currentDays days (from totalDays=$totalDays), Lv.${currentIndex + 1}, progress=${(progress * 100).toInt()}%")
+
+        } catch (e: Exception) {
+            Log.e("Tab02ViewModel", "레벨 계산 실패", e)
+            // 오류 발생 시 초기 상태 유지
         }
     }
 

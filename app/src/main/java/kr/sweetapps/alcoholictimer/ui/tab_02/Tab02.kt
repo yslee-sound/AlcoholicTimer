@@ -80,6 +80,7 @@ fun Tab02Screen(
     val selectedDetailPeriod by viewModel.selectedDetailPeriod.collectAsState()
     val selectedWeekRange by viewModel.selectedWeekRange.collectAsState()
     val statsData by viewModel.statsState.collectAsState() // [NEW] 실시간 통계 데이터
+    val realTimeLevelState by viewModel.levelState.collectAsState() // [CHANGED] 누적 일수 기준 레벨 상태 (과거 기록 + 현재 타이머) (2025-12-25)
 
     // [NEW] DiaryViewModel을 통해 Room DB의 일기 데이터를 실시간으로 관찰
     // Activity Scope로 변경하여 탭 전환 시에도 동일한 인스턴스 유지
@@ -134,9 +135,10 @@ fun Tab02Screen(
             recentDiaries = recentDiaries,
             allDiaries = allDiaries, // [NEW] 전체 일기 전달 (캘린더용) (2025-12-22)
             statsData = statsData,
-            currentLevel = currentLevel,
-            currentDays = currentDays,
-            levelProgress = levelProgress,
+            // [CHANGED] 레벨 데이터는 realTimeLevelState에서 가져옴 (전체 누적 일수 기준) (2025-12-25)
+            currentLevel = realTimeLevelState.currentLevel,
+            currentDays = realTimeLevelState.currentDays,
+            levelProgress = realTimeLevelState.progress,
             onNavigateToLevelDetail = onNavigateToLevelDetail,
             onNavigateToDetail = onNavigateToDetail,
             onNavigateToAllRecords = onNavigateToAllRecords,

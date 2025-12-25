@@ -77,12 +77,8 @@ fun CurrentLevelCard(
                                 .background(Color.White.copy(alpha = 0.2f)),
                             contentAlignment = Alignment.Center
                         ) {
-                            // [FIX] 0일차(기록 없음) = LV.0, 1일차부터 = LV.1 (타이머 시작 = 1일차)
-                            val levelNumber = if (currentDays < 1) {
-                                0 // 0일차는 레벨 0 (기록 없음)
-                            } else {
-                                LevelDefinitions.getLevelNumber(currentDays) + 1
-                            }
+                            // [CHANGED] 0일차도 Lv.1로 표시 (2025-12-25)
+                            val levelNumber = LevelDefinitions.getLevelNumber(currentDays) + 1
                             val levelText = if (levelNumber == 11) "L" else "$levelNumber"
                             Text(
                                 text = "LV.$levelText",
