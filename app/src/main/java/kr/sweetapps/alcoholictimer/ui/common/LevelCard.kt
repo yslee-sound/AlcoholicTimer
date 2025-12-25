@@ -240,6 +240,14 @@ private fun LevelProgressSection(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // [NEW] animatedProgress를 Box 밖으로 이동 (2025-12-25)
+        // [FIX] 애니메이션 시간을 50ms로 단축하여 부드럽게 실시간 반영 (2025-12-25)
+        val animatedProgress = animateFloatAsState(
+            targetValue = progress.coerceIn(0f, 1f),
+            animationSpec = tween(durationMillis = 50),
+            label = "progress"
+        ).value
+
         // Progress Bar
         Box(
             modifier = Modifier
@@ -248,12 +256,6 @@ private fun LevelProgressSection(
                 .clip(RoundedCornerShape(4.dp))
                 .background(Color.White.copy(alpha = 0.3f))
         ) {
-            val animatedProgress by animateFloatAsState(
-                targetValue = progress.coerceIn(0f, 1f),
-                animationSpec = tween(durationMillis = 1000),
-                label = "progress"
-            )
-
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -278,7 +280,7 @@ private fun LevelProgressSection(
             verticalAlignment = Alignment.CenterVertically // [FIX] 수직 중앙 정렬
         ) {
             Text(
-                text = String.format(Locale.getDefault(), "%.0f%%", progress * 100.0),
+                text = String.format(Locale.getDefault(), "%.1f%%", animatedProgress * 100.0),
                 style = MaterialTheme.typography.labelMedium.copy(
                     color = Color.White,
                     fontSize = 14.sp,
@@ -326,7 +328,7 @@ private fun SimpleLevelProgress(progress: Float) {
     ) {
         val animatedProgress by animateFloatAsState(
             targetValue = progress.coerceIn(0f, 1f),
-            animationSpec = tween(durationMillis = 800),
+            animationSpec = tween(durationMillis = 50),
             label = "simple_progress"
         )
 
@@ -345,4 +347,3 @@ private fun SimpleLevelProgress(progress: Float) {
         )
     }
 }
-

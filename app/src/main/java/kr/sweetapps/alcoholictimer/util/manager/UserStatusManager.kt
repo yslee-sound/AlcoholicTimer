@@ -34,15 +34,18 @@ object UserStatusManager {
 
     /**
      * 사용자 상태 데이터 클래스
+     *
      * @param level 레벨 번호 (1부터 시작, 1-indexed)
-     * @param days 경과 일수 (누적, 과거 기록 + 현재 타이머)
+     * @param days 경과 일수 (누적, 정수, 과거 기록 + 현재 타이머)
+     * @param totalDaysPrecise 정밀한 경과 일수 (누적, 소수점 포함, Float)
      */
     data class UserStatus(
         val level: Int,
-        val days: Int
+        val days: Int,
+        val totalDaysPrecise: Float
     ) {
         companion object {
-            val DEFAULT = UserStatus(level = 1, days = 0)
+            val DEFAULT = UserStatus(level = 1, days = 0, totalDaysPrecise = 0f)
         }
     }
 
@@ -53,18 +56,18 @@ object UserStatusManager {
     private val managerScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     /**
-     * [NEW] 과거 기록 일수 저장용 (2025-12-25)
+     * [NEW] 과거 기록 일수 저장용 (Float 정밀도) (2025-12-26)
      * Tab02ViewModel에서 DB 로드 후 updateHistoryDays()로 업데이트
      */
-    private val _historyDays = MutableStateFlow(0)
+    private val _historyDays = MutableStateFlow(0f)
 
     /**
-     * [NEW] 외부에서 과거 기록 업데이트 (2025-12-25)
-     * @param days 과거 기록의 총 금주 일수
+     * [UPDATED] 외부에서 과거 기록 업데이트 (Float 지원) (2025-12-26)
+     * @param days 과거 기록의 총 금주 일수 (Float, 소수점 포함)
      */
-    fun updateHistoryDays(days: Int) {
+    fun updateHistoryDays(days: Float) {
         _historyDays.value = days
-        android.util.Log.d("UserStatusManager", "History updated: $days days")
+        android.util.Log.d("UserStatusManager", "History updated: $days days (precise)")
     }
 
     /**
@@ -99,25 +102,32 @@ object UserStatusManager {
      * 경과 시간(밀리초) + 과거 기록(일수)을 UserStatus로 변환
      *
      * @param millis 현재 타이머 경과 시간 (밀리초)
-     * @param historyDays 과거 기록의 총 금주 일수
+     * @param historyDays 과거 기록의 총 금주 일수 (Float)
      * @return UserStatus 객체
      */
-    private fun calculateUserStatus(millis: Long, historyDays: Int): UserStatus {
-        // 1. 현재 타이머의 경과 일수 계산 (floor 연산)
-        val currentTimerDays = if (millis > 0L) {
-            (millis / Constants.DAY_IN_MILLIS).toInt()
+    private fun calculateUserStatus(millis: Long, historyDays: Float): UserStatus {
+        // 1. 현재 타이머의 경과 일수 계산 (Float 정밀도)
+        val currentTimerDaysFloat = if (millis > 0L) {
+            (millis.toDouble() / Constants.DAY_IN_MILLIS.toDouble()).toFloat()
         } else {
-            0
+            0f
         }
 
         // 2. ★핵심: 과거 기록 + 현재 타이머 합산
-        val totalDays = historyDays + currentTimerDays
+        val totalDaysPrecise = historyDays + currentTimerDaysFloat
 
-        // 3. 레벨 계산 (0-indexed → 1-indexed 변환)
+        // 3. 정수형 일수 (기존 호환성 유지)
+        val totalDays = totalDaysPrecise.toInt()
+
+        // 4. 레벨 계산 (0-indexed → 1-indexed 변환)
         val levelNumber = LevelDefinitions.getLevelNumber(totalDays)
         val level = if (levelNumber >= 0) levelNumber + 1 else 1
 
-        return UserStatus(level = level, days = totalDays)
+        return UserStatus(
+            level = level,
+            days = totalDays,
+            totalDaysPrecise = totalDaysPrecise
+        )
     }
 }
 

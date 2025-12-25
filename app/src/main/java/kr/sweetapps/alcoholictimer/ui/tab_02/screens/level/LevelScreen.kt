@@ -34,9 +34,10 @@ import kr.sweetapps.alcoholictimer.util.manager.UserStatusManager // [NEW] 중�
  * 사용자의 금주 레벨 진행 상황을 보여주는 메인 화면
  * ViewModel을 Activity Scope로 변경하여 탭 전환 시에도 동일한 인스턴스 유지
  *
- * [UPDATED] UserStatusManager 통합 (2025-12-25)
+ * [UPDATED] UserStatusManager 완전 통합 (2025-12-25)
  * - 누적(Total) 일수/레벨 기준으로 표시
- * - 메인 화면(Tab 2)과 데이터 일치 보장
+ * - totalDaysPrecise(Float) 사용으로 부드러운 프로그레스 진행
+ * - Single Source of Truth로 완벽한 동기화 보장
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,15 +50,15 @@ fun LevelScreen(
     val context = LocalContext.current
     val activity = context as? Activity
 
-    // [UPDATED] UserStatusManager에서 누적 레벨/일수 가져오기 (2025-12-25)
+    // [UPDATED] UserStatusManager에서 정밀한 데이터 가져오기 (2025-12-25)
     val userStatus by UserStatusManager.userStatus.collectAsState()
     val currentDays = userStatus.days
     val currentLevel = LevelDefinitions.getLevelInfo(currentDays)
+    val totalDaysPrecise = userStatus.totalDaysPrecise // ★ 핵심: Float 정밀값
 
-    // ViewModel에서 상태 구독 (광고 정책용)
+    // ViewModel에서 상태 구독 (광고 정책용만)
     val startTime by viewModel.startTime.collectAsState()
     val levelVisits by viewModel.levelVisits.collectAsState()
-    val totalElapsedDaysFloat by viewModel.totalElapsedDaysFloat.collectAsState()
 
     // ...existing code (BackHandler)...
 
@@ -114,12 +115,12 @@ fun LevelScreen(
             )
         }
     ) { innerPadding ->
-        // [UPDATED] UserStatusManager 기반 데이터 전달 (2025-12-25)
+        // [UPDATED] UserStatusManager의 정밀값 전달 (2025-12-25)
         LevelScreenContent(
             innerPadding = innerPadding,
             currentLevel = currentLevel,
-            levelDays = currentDays, // [CHANGED] userStatus.days 사용
-            totalElapsedDaysFloat = totalElapsedDaysFloat,
+            levelDays = currentDays,
+            totalDaysPrecise = totalDaysPrecise, // ★ Float 정밀값 전달
             startTime = startTime,
             viewModel = viewModel
         )
@@ -132,7 +133,7 @@ fun LevelScreenContent(
     innerPadding: PaddingValues,
     currentLevel: LevelDefinitions.LevelInfo,
     levelDays: Int,
-    totalElapsedDaysFloat: Float,
+    totalDaysPrecise: Float, // [CHANGED] totalElapsedDaysFloat → totalDaysPrecise
     startTime: Long?,
     viewModel: Tab03ViewModel
 ) {
@@ -152,10 +153,11 @@ fun LevelScreenContent(
 
         // [MODIFIED] 공통 LevelCard 컴포넌트 사용 (2025-12-23)
         // [FIX] 정확한 구간 진행률 계산 (2025-12-25)
+        // [UPDATED] UserStatusManager의 totalDaysPrecise 사용으로 완벽한 동기화 (2025-12-25)
         LevelCard(
             currentLevel = currentLevel,
             currentDays = levelDays,
-            progress = LevelDefinitions.getLevelProgress(levelDays), // [CHANGED] viewModel → LevelDefinitions
+            progress = LevelDefinitions.getLevelProgress(totalDaysPrecise), // ★ totalDaysPrecise 사용
             containerColor = Color(0xFF1E40AF), // Deep Blue
             cardHeight = 200.dp,
             showDetailedInfo = true,

@@ -88,4 +88,44 @@ object LevelDefinitions {
         // 5. 0~1 사이로 클램핑 (안전장치)
         return (progressInLevel.toFloat() / levelRange.toFloat()).coerceIn(0f, 1f)
     }
+
+    /**
+     * [NEW] 현재 레벨 구간 내 진행률 계산 (Float 오버로딩) (2025-12-25)
+     *
+     * **시간 단위까지 반영하여 부드러운 진행률 제공**
+     * - 5.5일 (5일 12시간) → 정확히 중간값 반환
+     * - 프로그레스 바가 끊기지 않고 연속적으로 진행됨
+     *
+     * @param currentDaysFloat 금주 후 경과한 일수 (소수점 포함, 시간 단위까지 반영)
+     * @return 0.0f ~ 1.0f (0% ~ 100%)
+     *
+     * **계산 공식:**
+     * - (현재일수Float - 현재레벨시작일) / (다음레벨시작일 - 현재레벨시작일)
+     *
+     * **예시:**
+     * - Lv.2 (3~6일), 현재 4.5일 → (4.5-3) / (7-3) = 1.5/4 = 0.375 (37.5%)
+     * - Lv.2 (3~6일), 현재 5.25일 → (5.25-3) / (7-3) = 2.25/4 = 0.5625 (56.25%)
+     * - Legend (365일~) → 항상 1.0 (100%)
+     */
+    fun getLevelProgress(currentDaysFloat: Float): Float {
+        // 1. 현재 레벨 찾기 (정수 부분으로)
+        val currentDaysInt = currentDaysFloat.toInt()
+        val currentLevelIndex = getLevelNumber(currentDaysInt)
+        val currentLevel = levels[currentLevelIndex]
+
+        // 2. Legend (최고 레벨)이면 항상 100%
+        if (currentLevelIndex == levels.size - 1) {
+            return 1.0f
+        }
+
+        // 3. 다음 레벨 찾기
+        val nextLevel = levels[currentLevelIndex + 1]
+
+        // 4. 구간 내 진행률 계산 (Float 정밀도)
+        val progressInLevel = currentDaysFloat - currentLevel.start
+        val levelRange = (nextLevel.start - currentLevel.start).toFloat()
+
+        // 5. 0~1 사이로 클램핑 (안전장치)
+        return (progressInLevel / levelRange).coerceIn(0f, 1f)
+    }
 }

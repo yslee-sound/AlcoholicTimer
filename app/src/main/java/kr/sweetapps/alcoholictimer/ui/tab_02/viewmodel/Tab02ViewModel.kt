@@ -137,14 +137,39 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
                     // overlapDays에 null을 넣으면 전체 기간(startTime ~ endTime) 계산됨
                     DateOverlapUtils.overlapDays(record.startTime, record.endTime, null, null)
                 }
-                // 매니저에게 과거 기록 업데이트 (소수점은 내림)
-                kr.sweetapps.alcoholictimer.util.manager.UserStatusManager.updateHistoryDays(totalHistoryDays.toInt())
+                // ★핵심: Float로 전달 (소수점 유지)
+                kr.sweetapps.alcoholictimer.util.manager.UserStatusManager.updateHistoryDays(totalHistoryDays.toFloat())
 
-                Log.d("Tab02ViewModel", "Updated History to Manager: ${totalHistoryDays.toInt()} days (from ${allRecords.size} records)")
+                Log.d("Tab02ViewModel", "Updated History to Manager: $totalHistoryDays days (precise, from ${allRecords.size} records)")
             }
         }
 
-        // [CHANGED] combine을 사용하여 통계 재계산 및 레벨 상태 업데이트 (2025-12-25)
+        // [NEW] UserStatusManager 구독하여 레벨 상태 동기화 (2025-12-26)
+        viewModelScope.launch {
+            kr.sweetapps.alcoholictimer.util.manager.UserStatusManager.userStatus.collect { userStatus ->
+                // ★핵심: UserStatusManager의 정밀한 데이터 사용
+                val currentLevel = kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions.getLevelInfo(userStatus.days)
+
+                // 다음 레벨 찾기
+                val currentIndex = kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions.levels.indexOf(currentLevel)
+                val progress = if (currentIndex == kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions.levels.size - 1) {
+                    1.0f // Legend (최고 레벨)
+                } else {
+                    // ★핵심: Float 오버로딩 버전 사용 (소수점 정밀도)
+                    kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions.getLevelProgress(userStatus.totalDaysPrecise)
+                }
+
+                _levelState.value = LevelState(
+                    currentLevel = currentLevel,
+                    currentDays = userStatus.days,
+                    progress = progress
+                )
+
+                Log.d("Tab02ViewModel", "Level synced from Manager: Lv.${userStatus.level}, ${userStatus.totalDaysPrecise} days, ${(progress * 100).toInt()}% progress")
+            }
+        }
+
+        // [CHANGED] combine을 사용하여 통계 재계산 (레벨 계산은 제거) (2025-12-26)
         viewModelScope.launch {
             combine(
                 _records,
@@ -159,8 +184,8 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
                 // 계산된 통계를 StateFlow에 반영
                 _statsState.value = statsData
 
-                // [CHANGED] 레벨 상태도 statsData.totalDays를 기준으로 계산 (누적 기준) (2025-12-25)
-                updateLevelStateFromTotalDays(statsData.totalDays)
+                // [REMOVED] updateLevelStateFromTotalDays 호출 제거 (2025-12-26)
+                // 레벨 상태는 위의 UserStatusManager 구독 블록에서 자동으로 업데이트됨
             }
         }
     }

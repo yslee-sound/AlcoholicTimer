@@ -171,6 +171,14 @@ fun CurrentLevelCard(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    // [NEW] animatedProgress를 Box 밖 Column 내부로 이동 (2025-12-25)
+                    // [FIX] 애니메이션 시간을 50ms로 단축하여 부드럽게 실시간 반영 (2025-12-25)
+                    val animatedProgress = animateFloatAsState(
+                        targetValue = progress,
+                        animationSpec = tween(durationMillis = 50),
+                        label = "gradient_progress"
+                    ).value
+
                     // Progress Bar
                     Box(
                         modifier = Modifier
@@ -179,11 +187,6 @@ fun CurrentLevelCard(
                             .clip(RoundedCornerShape(4.dp))
                             .background(Color.White.copy(alpha = 0.3f))
                     ) {
-                        val animatedProgress by animateFloatAsState(
-                            targetValue = progress,
-                            animationSpec = tween(durationMillis = 1000),
-                            label = "gradient_progress"
-                        )
                         Box(
                             modifier = Modifier
                                 .fillMaxHeight()
@@ -212,7 +215,7 @@ fun CurrentLevelCard(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = String.format(Locale.getDefault(), "%.0f%%", progress * 100.0),
+                                text = String.format(Locale.getDefault(), "%.1f%%", animatedProgress * 100.0),
                                 style = MaterialTheme.typography.labelMedium.copy(
                                     color = Color.White,
                                     fontSize = 14.sp,
@@ -379,4 +382,3 @@ private fun ProgressToNextLevel(
         Row(verticalAlignment = Alignment.CenterVertically) { }
     }
 }
-
