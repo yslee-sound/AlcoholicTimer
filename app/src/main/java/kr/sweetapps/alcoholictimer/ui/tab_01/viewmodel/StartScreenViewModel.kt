@@ -75,7 +75,7 @@ class StartScreenViewModel(application: Application) : AndroidViewModel(applicat
             try {
                 val startTime = sharedPref.getLong("start_time", 0L)
                 val timerCompleted = sharedPref.getBoolean("timer_completed", false)
-                val targetDays = sharedPref.getFloat("target_days", 21f).toInt()
+                val targetDays = sharedPref.getFloat("target_days", 1f).toInt() // [CHANGED] 기본값 21 -> 1 (2025-12-25)
 
                 _uiState.update {
                     it.copy(

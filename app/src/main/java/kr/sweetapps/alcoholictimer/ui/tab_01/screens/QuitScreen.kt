@@ -92,7 +92,7 @@ fun QuitScreenComposable(
 ) {
     val context = LocalContext.current
     val sharedPref = context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
-    val targetDays = previewTargetDays ?: sharedPref.getFloat(Constants.PREF_TARGET_DAYS, 30f)
+    val targetDays = previewTargetDays ?: sharedPref.getFloat(Constants.PREF_TARGET_DAYS, 1f) // [CHANGED] 기본값 30 -> 1 (2025-12-25)
 
     var isPressed by remember { mutableStateOf(false) }
     var progress by remember { mutableFloatStateOf(0f) }

@@ -37,6 +37,30 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
     // [NEW] 계산 작업 Job (이전 작업 취소용)
     private var calculationJob: Job? = null
 
+    // [NEW] 기록 삭제 시 캐시 초기화 콜백
+    private val clearRecordsCallback: () -> Unit = {
+        Log.d("Tab03ViewModel", "Records cleared - forcing cache reset")
+
+        // [FIX] SharedPreferences도 함께 업데이트 (다른 ViewModel과 동기화)
+        // RecordsDataLoader에서 이미 초기화했지만, 혹시 모를 상황을 대비해 재확인
+        sharedPref.edit()
+            .putLong(Constants.PREF_START_TIME, 0L)
+            .putBoolean(Constants.PREF_TIMER_COMPLETED, false)
+            .apply()
+
+        // [FIX] 로컬 캐시도 즉시 초기화
+        _startTime.value = 0L
+
+        // 캐시된 데이터 즉시 초기화
+        _totalElapsedTime.value = 0L
+        _totalElapsedDaysFloat.value = 0f
+        _levelDays.value = 0
+        _currentLevel.value = LevelDefinitions.levels.first()
+
+        // 재계산 트리거
+        loadRecordsAndCalculateTotalTime()
+    }
+
     // [NEW] SharedPreferences 변경 감지 리스너
     private val preferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         when (key) {
@@ -129,6 +153,10 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
         // [NEW] SharedPreferences 변경 감지 시작
         sharedPref.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
         Log.d("Tab03ViewModel", "Preference change listener registered")
+
+        // [NEW] RecordsDataLoader 기록 삭제 리스너 등록
+        RecordsDataLoader.registerClearRecordsListener(clearRecordsCallback)
+        Log.d("Tab03ViewModel", "Clear records callback registered")
     }
 
     /**
@@ -244,6 +272,7 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
     override fun onCleared() {
         super.onCleared()
         sharedPref.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
-        Log.d("Tab03ViewModel", "Preference change listener unregistered")
+        RecordsDataLoader.unregisterClearRecordsListener(clearRecordsCallback)
+        Log.d("Tab03ViewModel", "Preference change listener and clear records callback unregistered")
     }
 }

@@ -165,7 +165,7 @@ fun AppNavHost(
                             val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
                             val completedStartTime = sharedPref.getLong("completed_start_time", 0L)
                             val completedEndTime = sharedPref.getLong("completed_end_time", 0L)
-                            val completedTargetDays = sharedPref.getFloat("completed_target_days", 21f)
+                            val completedTargetDays = sharedPref.getFloat("completed_target_days", 1f) // [CHANGED] 기본값 21 -> 1 (2025-12-25)
                             val completedActualDays = sharedPref.getFloat("completed_actual_days", 0f).toInt()
 
                             if (completedStartTime > 0 && completedEndTime > 0) {
@@ -246,7 +246,7 @@ fun AppNavHost(
                         val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
                         val completedStartTime = sharedPref.getLong("completed_start_time", 0L)
                         val completedEndTime = sharedPref.getLong("completed_end_time", 0L)
-                        val completedTargetDays = sharedPref.getFloat("completed_target_days", 21f)
+                        val completedTargetDays = sharedPref.getFloat("completed_target_days", 1f) // [CHANGED] 기본값 21 -> 1 (2025-12-25)
                         val completedActualDays = sharedPref.getFloat("completed_actual_days", 0f).toInt()
 
                         if (completedStartTime > 0 && completedEndTime > 0) {

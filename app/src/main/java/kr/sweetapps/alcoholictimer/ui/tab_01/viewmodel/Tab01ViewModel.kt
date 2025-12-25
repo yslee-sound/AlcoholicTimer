@@ -244,7 +244,7 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun loadTimerState() {
         _startTime.value = sharedPref.getLong(Constants.PREF_START_TIME, 0L)
-        _targetDays.value = sharedPref.getFloat(Constants.PREF_TARGET_DAYS, 30f)
+        _targetDays.value = sharedPref.getFloat(Constants.PREF_TARGET_DAYS, 1f) // [CHANGED] 기본값 30 -> 1 (2025-12-25)
         _timerCompleted.value = sharedPref.getBoolean(Constants.PREF_TIMER_COMPLETED, false)
 
         Log.d("Tab01ViewModel", "Timer state loaded: startTime=${_startTime.value}, targetDays=${_targetDays.value}, completed=${_timerCompleted.value}")

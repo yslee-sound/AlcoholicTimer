@@ -18,21 +18,51 @@ object RecordsDataLoader {
         emptyList()
     }
 
+    // [NEW] 캐시 무효화를 위한 콜백 리스너들
+    private val clearRecordsListeners = mutableListOf<() -> Unit>()
+
+    fun registerClearRecordsListener(listener: () -> Unit) {
+        clearRecordsListeners.add(listener)
+        Log.d(TAG, "Clear records listener registered, total=${clearRecordsListeners.size}")
+    }
+
+    fun unregisterClearRecordsListener(listener: () -> Unit) {
+        clearRecordsListeners.remove(listener)
+        Log.d(TAG, "Clear records listener unregistered, total=${clearRecordsListeners.size}")
+    }
+
     fun clearAllRecords(context: Context): Boolean = try {
         val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
 
         // Log before deletion
         val beforeJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
+        val beforeStartTime = sharedPref.getLong("start_time", 0L)
         Log.d(TAG, "Records before deletion: $beforeJson")
+        Log.d(TAG, "Start time before deletion: $beforeStartTime")
 
-        // Use commit() for synchronous save (apply() is asynchronous)
-        val success = sharedPref.edit().putString("sobriety_records", "[]").commit()
+        // [FIX] 기록 삭제 + 현재 타이머 상태 초기화 (commit으로 동기 처리)
+        val success = sharedPref.edit()
+            .putString("sobriety_records", "[]")
+            .putLong("start_time", 0L)  // [NEW] 현재 타이머 시작 시간 초기화
+            .putBoolean("timer_completed", false)  // [NEW] 타이머 완료 상태 초기화
+            .commit()
 
         if (success) {
             // Verify after deletion
             val afterJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
+            val afterStartTime = sharedPref.getLong("start_time", 0L)
             Log.d(TAG, "Records after deletion: $afterJson")
-            Log.d(TAG, "All records deleted successfully")
+            Log.d(TAG, "Start time after deletion: $afterStartTime")
+            Log.d(TAG, "All records and timer state deleted successfully")
+
+            // [NEW] 모든 리스너에게 캐시 무효화 알림
+            clearRecordsListeners.forEach { listener ->
+                try {
+                    listener()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error notifying clear records listener", e)
+                }
+            }
         } else {
             Log.e(TAG, "SharedPreferences commit failed")
         }

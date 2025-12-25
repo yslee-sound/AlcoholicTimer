@@ -202,11 +202,11 @@ fun TargetDaysInput(
                 ),
                 keyboardActions = KeyboardActions(
                     onDone = {
-                        // If empty, set default value 21
+                        // [CHANGED] If empty, set default value 1 (2025-12-25)
                         val finalDays = if (targetText.text.isEmpty()) {
-                            21
+                            1
                         } else {
-                            val parsed = targetText.text.toIntOrNull() ?: 21
+                            val parsed = targetText.text.toIntOrNull() ?: 1
                             parsed.coerceIn(1, 9999)
                         }
 
@@ -304,16 +304,16 @@ private fun TargetDaysInputComparisonPreview() {
 
             HorizontalDivider()
 
-            // "21일" 입력 상태 (기본값)
+            // "1일" 입력 상태 (기본값)
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    "21일 입력 (기본값)",
+                    "1일 입력 (기본값)",
                     style = MaterialTheme.typography.labelMedium,
                     color = Color.Gray
                 )
                 Spacer(Modifier.height(8.dp))
                 TargetDaysInput(
-                    value = 21,
+                    value = 1,
                     onValueChange = {},
                     onDone = {}
                 )

@@ -84,7 +84,7 @@ data class SobrietyRecord(
                     id = json.optString("id", UUID.randomUUID().toString()),
                     startTime = json.optLong("startTime", 0L),
                     endTime = json.optLong("endTime", 0L),
-                    targetDays = json.optInt("targetDays", 21),
+                    targetDays = json.optInt("targetDays", 1), // [CHANGED] 기본값 21 -> 1 (2025-12-25)
 
                     // [ROBUST] actualDays: Int/Double 호환 처리
                     actualDays = when {
