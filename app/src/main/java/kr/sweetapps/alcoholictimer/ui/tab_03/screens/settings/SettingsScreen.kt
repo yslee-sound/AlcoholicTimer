@@ -715,7 +715,7 @@ private fun AboutScreenContent(
             // [FIX] Privacy Options - EU 사용자 OR 개발자(DEBUG 빌드)에서만 표시
             if (showPrivacyOptions) {
                 SimpleAboutRow(
-                    title = "Privacy Options",
+                    title = stringResource(id = R.string.settings_ad_settings),
                     onClick = onAdsClick,
                     trailing = {
                         Icon(

@@ -102,8 +102,8 @@
     <string name="record_success_rate">성공률</string>
     <string name="record_start_time">시작</string>
     <string name="record_end_time">종료</string>
-    <string name="record_days_format">%.1f일</string>
-    <string name="record_target_days_format">%d일</string>
+    <string name="record_days_format">%.1f</string>
+    <string name="record_target_days_format">%d</string>
     <string name="record_rate_format">%.1f%%</string>
 
     <!-- Detail Screen -->
@@ -217,6 +217,7 @@
     <string name="settings_currency_auto">시스템 설정</string>
     <string name="settings_currency_current">현재: %1$s</string>
     <string name="settings_currency_current_auto">현재: %1$s (시스템 설정)</string>
+    <string name="settings_ad_settings">광고 설정</string>
     <string name="settings_edit_profile">프로필 편집하기</string>
     <string name="currency_krw">한국 원 (₩)</string>
     <string name="currency_jpy">일본 엔 (¥)</string>

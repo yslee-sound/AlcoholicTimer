@@ -229,17 +229,23 @@ fun RecordsScreen(
                             MonthNavigator(
                                 selectedDetailPeriod = selectedDetailPeriod,
                                 onPreviousMonth = {
-                                    // 이전 달로 이동
+                                    // [FIX] Calendar 객체로 정확한 이전 달 계산 (2025-12-25)
                                     val (year, month) = parseYearMonth(selectedDetailPeriod)
-                                    val newMonth = if (month == 1) 12 else month - 1
-                                    val newYear = if (month == 1) year - 1 else year
+                                    val cal = Calendar.getInstance()
+                                    cal.set(year, month - 1, 1) // month는 1-based, Calendar는 0-based
+                                    cal.add(Calendar.MONTH, -1)
+                                    val newYear = cal.get(Calendar.YEAR)
+                                    val newMonth = cal.get(Calendar.MONTH) + 1 // 0-based → 1-based
                                     onDetailPeriodSelected(context.getString(R.string.date_format_year_month, newYear, newMonth))
                                 },
                                 onNextMonth = {
-                                    // 다음 달로 이동
+                                    // [FIX] Calendar 객체로 정확한 다음 달 계산 (2025-12-25)
                                     val (year, month) = parseYearMonth(selectedDetailPeriod)
-                                    val newMonth = if (month == 12) 1 else month + 1
-                                    val newYear = if (month == 12) year + 1 else year
+                                    val cal = Calendar.getInstance()
+                                    cal.set(year, month - 1, 1) // month는 1-based, Calendar는 0-based
+                                    cal.add(Calendar.MONTH, 1)
+                                    val newYear = cal.get(Calendar.YEAR)
+                                    val newMonth = cal.get(Calendar.MONTH) + 1 // 0-based → 1-based
                                     onDetailPeriodSelected(context.getString(R.string.date_format_year_month, newYear, newMonth))
                                 },
                                 onDateClick = {
@@ -594,6 +600,12 @@ private fun PeriodStatisticsSection(
         String.format(java.util.Locale.getDefault(), "%.1f", totalBottles)
     }
 
+    // [NEW] bottle/bottles 단수/복수 구분 (2025-12-25)
+    val bottlesUnit = remember(totalBottles) {
+        val count = totalBottles.toInt()
+        if (count == 1) "bottle" else "bottles"
+    }
+
     // [NEW] 천 단위 콤마 포맷터
     val decimalFormat = java.text.DecimalFormat("#,###")
     val kcalFormatted = decimalFormat.format(totalKcal.toLong())
@@ -642,7 +654,7 @@ private fun PeriodStatisticsSection(
                     // [NEW] 중앙: 참아낸 술 → 절주 (wine 아이콘)
                     StatisticItem(
                         title = "SOBER",
-                        value = "$bottlesText ${stringResource(R.string.stats_unit_bottles)}",
+                        value = "$bottlesText $bottlesUnit", // [CHANGED] 단수/복수 구분 (2025-12-25)
                         color = MaterialTheme.colorScheme.primary,
                         valueColor = Color(0xFF111111), // [UPDATE] 진한 검은색
                         icon = R.drawable.wine,
@@ -1650,8 +1662,8 @@ private fun MonthNavigator(
     }
     val selectedYearMonth = year * 12 + month
 
-    // 미래 날짜 선택 방지
-    val isFutureMonth = selectedYearMonth >= currentYearMonth
+    // [FIX] 미래 날짜 선택 방지 - 선택된 달이 현재 달보다 큰 경우만 비활성화 (2025-12-25)
+    val isFutureMonth = selectedYearMonth > currentYearMonth
 
     Row(
         modifier = Modifier
@@ -1708,21 +1720,30 @@ private fun MonthNavigator(
 }
 
 /**
- * [NEW] 날짜 문자열 파싱 헬퍼 함수
- * "2025년 12월" → Pair(2025, 12)
+ * [FIXED] 날짜 문자열 파싱 헬퍼 함수 (2025-12-25)
+ * - "2025년 12월", "12/2025", "2025.12" 등 다양한 형식 지원
+ * - 큰 숫자(100 이상)를 연도로, 작은 숫자를 월로 자동 판별
  */
 private fun parseYearMonth(dateString: String): Pair<Int, Int> {
     return try {
-        // "2025년 12월" 형식 파싱
-        val yearRegex = Regex("(\\d{4})년")
-        val monthRegex = Regex("(\\d{1,2})월")
+        // 모든 숫자 추출
+        val numbers = Regex("(\\d+)").findAll(dateString).map { it.value.toInt() }.toList()
 
-        val year = yearRegex.find(dateString)?.groupValues?.getOrNull(1)?.toInt() ?: Calendar.getInstance().get(Calendar.YEAR)
-        val month = monthRegex.find(dateString)?.groupValues?.getOrNull(1)?.toInt() ?: Calendar.getInstance().get(Calendar.MONTH) + 1
+        if (numbers.size >= 2) {
+            // [FIX] 큰 숫자를 연도로, 작은 숫자를 월로 자동 판별 (ViewModel과 동일)
+            val num1 = numbers[0]
+            val num2 = numbers[1]
+            val year = if (num1 > 100) num1 else num2
+            val month = if (num1 > 100) num2 else num1
 
-        Pair(year, month)
+            Pair(year, month)
+        } else {
+            // 파싱 실패 시 현재 날짜 반환
+            val now = Calendar.getInstance()
+            Pair(now.get(Calendar.YEAR), now.get(Calendar.MONTH) + 1)
+        }
     } catch (e: Exception) {
-        // 파싱 실패 시 현재 날짜 반환
+        // 예외 발생 시 현재 날짜 반환
         val now = Calendar.getInstance()
         Pair(now.get(Calendar.YEAR), now.get(Calendar.MONTH) + 1)
     }

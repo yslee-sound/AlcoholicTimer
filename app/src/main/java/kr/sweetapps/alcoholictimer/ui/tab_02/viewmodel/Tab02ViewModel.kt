@@ -355,8 +355,13 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
     private fun parseMonthRange(detailPeriod: String): Pair<Long, Long> {
         val numbers = Regex("(\\d+)").findAll(detailPeriod).map { it.value.toInt() }.toList()
         return if (numbers.size >= 2) {
-            val year = numbers[0]
-            val month = numbers[1] - 1
+            // [FIX] 큰 숫자(1000 이상)를 연도로, 작은 숫자를 월로 자동 판별 (2025-12-25)
+            // 예: "12/2025" → year=2025, month=12 또는 "2025/12" → year=2025, month=12
+            val num1 = numbers[0]
+            val num2 = numbers[1]
+            val year = if (num1 > 100) num1 else num2
+            val month = (if (num1 > 100) num2 else num1) - 1 // 월은 0-indexed (Calendar.JANUARY = 0)
+
             val cal = Calendar.getInstance()
             cal.set(year, month, 1, 0, 0, 0)
             cal.set(Calendar.MILLISECOND, 0)
@@ -364,6 +369,8 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
             cal.add(Calendar.MONTH, 1)
             cal.add(Calendar.MILLISECOND, -1)
             val monthEnd = cal.timeInMillis
+
+            Log.d("Tab02ViewModel", "parseMonthRange: input='$detailPeriod' → year=$year, month=${month+1}, range=$monthStart~$monthEnd")
             monthStart to monthEnd
         } else {
             getCurrentMonthRange()

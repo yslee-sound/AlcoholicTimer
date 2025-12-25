@@ -102,8 +102,8 @@
     <string name="record_success_rate">Tingkat Keberhasilan</string>
     <string name="record_start_time">Mulai</string>
     <string name="record_end_time">Akhir</string>
-    <string name="record_days_format">%.1f h</string>
-    <string name="record_target_days_format">%d h</string>
+    <string name="record_days_format">%.1f</string>
+    <string name="record_target_days_format">%d</string>
     <string name="record_rate_format">%.1f%%</string>
 
     <!-- Detail Screen -->
@@ -215,6 +215,7 @@
     <string name="settings_currency_auto">Default Sistem</string>
     <string name="settings_currency_current">Saat ini: %1$s</string>
     <string name="settings_currency_current_auto">Saat ini: %1$s (Default Sistem)</string>
+    <string name="settings_ad_settings">Pengaturan Iklan</string>
     <string name="settings_edit_profile">Edit Profil</string>
     <string name="currency_krw">Won Korea (₩)</string>
     <string name="currency_jpy">Yen Jepang (¥)</string>

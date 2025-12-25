@@ -102,8 +102,8 @@
     <string name="record_success_rate">成功率</string>
     <string name="record_start_time">開始</string>
     <string name="record_end_time">終了</string>
-    <string name="record_days_format">%.1f日</string>
-    <string name="record_target_days_format">%d日</string>
+    <string name="record_days_format">%.1f</string>
+    <string name="record_target_days_format">%d</string>
     <string name="record_rate_format">%.1f%%</string>
 
     <!-- Detail Screen -->
@@ -217,6 +217,7 @@
     <string name="settings_currency_auto">システム設定</string>
     <string name="settings_currency_current">現在の選択: %1$s</string>
     <string name="settings_currency_current_auto">現在の選択: %1$s （システム設定）</string>
+    <string name="settings_ad_settings">広告設定</string>
     <string name="settings_edit_profile">プロフィールを編集</string>
     <string name="currency_krw">韓国ウォン (₩)</string>
     <string name="currency_jpy">日本円 (¥)</string>

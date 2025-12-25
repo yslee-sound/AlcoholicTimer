@@ -103,8 +103,8 @@
     <string name="record_success_rate">Success Rate</string>
     <string name="record_start_time">Start</string>
     <string name="record_end_time">End</string>
-    <string name="record_days_format">%.1f d</string>
-    <string name="record_target_days_format">%d d</string>
+    <string name="record_days_format">%.1f</string>
+    <string name="record_target_days_format">%d</string>
     <string name="record_rate_format">%.1f%%</string>
 
     <!-- Detail Screen -->
@@ -218,6 +218,7 @@
     <string name="settings_currency_auto">System Default</string>
     <string name="settings_currency_current">Current: %1$s</string>
     <string name="settings_currency_current_auto">Current: %1$s (System Default)</string>
+    <string name="settings_ad_settings">Ad Settings</string>
     <string name="settings_edit_profile">Edit Profile</string>
     <string name="currency_krw">Korean Won (₩)</string>
     <string name="currency_jpy">Japanese Yen (¥)</string>
