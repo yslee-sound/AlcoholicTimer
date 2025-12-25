@@ -1600,30 +1600,17 @@ private fun TotalDaysCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // 날짜 값
-                Row(
-                    verticalAlignment = Alignment.CenterVertically, // [FIX] Bottom -> CenterVertically 변경
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    // [FIX] AutoResizingText로 자동 크기 조절 (깜빡임 없음)
-                    AutoResizingText(
-                        text = decimalFormat.format(totalDays),
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF111827),
-                        textAlign = TextAlign.End,
-                        minFontSize = 16.sp
-                    )
+                // 날짜 값 (단위 제거, 2025-12-25)
+                // [FIX] AutoResizingText로 자동 크기 조절 (깜빡임 없음)
+                AutoResizingText(
+                    text = decimalFormat.format(totalDays),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF111827),
+                    textAlign = TextAlign.End,
+                    minFontSize = 16.sp
+                )
 
-                    Text(
-                        text = stringResource(R.string.unit_day),
-                        fontSize = 14.sp,
-                        color = Color(0xFF6B7280),
-                        style = TextStyle(
-                            platformStyle = PlatformTextStyle(includeFontPadding = false) // [FIX] 폰트 패딩 제거
-                        )
-                    )
-                }
 
                 // [NEW] 화살표 아이콘
                 Icon(

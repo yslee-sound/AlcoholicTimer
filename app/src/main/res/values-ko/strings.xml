@@ -25,6 +25,12 @@
     <string name="stat_goal_days">목표일</string>
     <string name="stat_level">레벨</string>
     <string name="stat_goal_days_format">%d일</string>
+
+    <!-- Plurals for Day/Days (한국어는 단수/복수 구분 없음) -->
+    <plurals name="days_count">
+        <item quantity="other">%d일</item>
+    </plurals>
+
     <string name="indicator_title_days">금주 일수</string>
     <string name="indicator_title_time">시간</string>
     <string name="indicator_title_saved_money">절약한 금액</string>
@@ -265,6 +271,11 @@
     <string name="community_post_delete_dialog_message">정말 이 게시글을 삭제하시겠습니까?\n삭제된 글은 복구할 수 없습니다.</string>
     <string name="community_post_delete_confirm">삭제</string>
     <string name="community_post_delete_cancel">취소</string>
+    <!-- Diary Delete Dialog -->
+    <string name="diary_delete_dialog_title">일기 삭제</string>
+    <string name="diary_delete_dialog_message">정말 이 일기를 삭제하시겠습니까?\n삭제된 일기는 복구할 수 없습니다.</string>
+    <string name="diary_delete_confirm">삭제</string>
+    <string name="diary_delete_cancel">취소</string>
     <string name="community_post_hide">이 게시글 숨기기</string>
     <string name="community_post_report">게시글 신고하기</string>
     <string name="community_expiring_soon">곧 만료</string>

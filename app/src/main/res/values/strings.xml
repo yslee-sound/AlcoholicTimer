@@ -24,7 +24,14 @@
     <string name="run_progress_title">Progress</string>
     <string name="stat_goal_days">Goal</string>
     <string name="stat_level">Level</string>
-    <string name="stat_goal_days_format">%d d</string>
+    <string name="stat_goal_days_format">%d Day</string>
+
+    <!-- Plurals for Day/Days -->
+    <plurals name="days_count">
+        <item quantity="one">%d Day</item>
+        <item quantity="other">%d Days</item>
+    </plurals>
+
     <string name="indicator_title_days">Days Sober</string>
     <string name="indicator_title_time">Time</string>
     <string name="indicator_title_saved_money">Money Saved</string>
@@ -265,6 +272,11 @@
     <string name="community_post_delete_dialog_message">Are you sure you want to delete this post?\nDeleted posts cannot be recovered.</string>
     <string name="community_post_delete_confirm">Delete</string>
     <string name="community_post_delete_cancel">Cancel</string>
+    <!-- Diary Delete Dialog -->
+    <string name="diary_delete_dialog_title">Delete Diary</string>
+    <string name="diary_delete_dialog_message">Are you sure you want to delete this diary?\nDeleted diaries cannot be recovered.</string>
+    <string name="diary_delete_confirm">Delete</string>
+    <string name="diary_delete_cancel">Cancel</string>
     <string name="community_post_hide">Hide this post</string>
     <string name="community_post_report">Report post</string>
     <string name="community_expiring_soon">Expiring Soon</string>

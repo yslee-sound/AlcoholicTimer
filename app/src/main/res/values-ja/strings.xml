@@ -25,6 +25,12 @@
     <string name="stat_goal_days">目標</string>
     <string name="stat_level">レベル</string>
     <string name="stat_goal_days_format">%d日</string>
+
+    <!-- Plurals for Day/Days (日本語は単数/複数の区別なし) -->
+    <plurals name="days_count">
+        <item quantity="other">%d日</item>
+    </plurals>
+
     <string name="indicator_title_days">禁酒日数</string>
     <string name="indicator_title_time">時間</string>
     <string name="indicator_title_saved_money">節約金額</string>
@@ -265,6 +271,11 @@
     <string name="community_post_delete_dialog_message">本当にこの投稿を削除しますか?\n削除された投稿は復元できません。</string>
     <string name="community_post_delete_confirm">削除</string>
     <string name="community_post_delete_cancel">キャンセル</string>
+    <!-- Diary Delete Dialog -->
+    <string name="diary_delete_dialog_title">日記を削除</string>
+    <string name="diary_delete_dialog_message">本当にこの日記を削除しますか?\n削除された日記は復元できません。</string>
+    <string name="diary_delete_confirm">削除</string>
+    <string name="diary_delete_cancel">キャンセル</string>
     <string name="community_post_hide">この投稿を非表示</string>
     <string name="community_post_report">投稿を報告</string>
     <string name="community_expiring_soon">まもなく終了</string>

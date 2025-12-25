@@ -170,7 +170,8 @@ fun LevelCard(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = context.getString(R.string.level_days_label),
+                                // [CHANGED] plurals 사용하여 단수/복수 구분 (2025-12-25)
+                                text = context.resources.getQuantityString(R.plurals.days_count, currentDays, currentDays).substringAfter(" "),
                                 style = MaterialTheme.typography.bodyLarge.copy(
                                     color = Color.White.copy(alpha = 0.9f),
                                     fontSize = 16.sp

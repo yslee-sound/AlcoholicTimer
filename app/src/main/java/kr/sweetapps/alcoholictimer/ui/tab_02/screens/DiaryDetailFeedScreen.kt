@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kr.sweetapps.alcoholictimer.R
@@ -74,6 +75,10 @@ fun DiaryDetailFeedScreen(
 
     // 선택된 일기 ID 추적 (옵션 바텀시트용)
     var selectedDiaryForOptions by remember { mutableStateOf<DiaryEntity?>(null) }
+
+    // [NEW] 삭제 확인 다이얼로그 상태 (2025-12-25)
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var diaryToDelete by remember { mutableStateOf<DiaryEntity?>(null) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -201,8 +206,63 @@ fun DiaryDetailFeedScreen(
                 onEditClick(diary.id)
             },
             onDelete = {
+                // [CHANGED] 바로 삭제하지 않고 다이얼로그 표시 (2025-12-25)
+                diaryToDelete = diary
+                showDeleteDialog = true
                 selectedDiaryForOptions = null
-                onDeleteClick(diary.id)
+            }
+        )
+    }
+
+    // [NEW] 삭제 확인 다이얼로그 (2025-12-25)
+    if (showDeleteDialog && diaryToDelete != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteDialog = false
+                diaryToDelete = null
+            },
+            title = {
+                Text(
+                    text = stringResource(R.string.diary_delete_dialog_title),
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF111827)
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.diary_delete_dialog_message),
+                    color = Color(0xFF4A5568)
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        diaryToDelete?.let { diary ->
+                            onDeleteClick(diary.id)
+                        }
+                        showDeleteDialog = false
+                        diaryToDelete = null
+                    }
+                ) {
+                    Text(
+                        text = stringResource(R.string.diary_delete_confirm),
+                        color = Color(0xFFEF4444), // 빨간색으로 강조
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        diaryToDelete = null
+                    }
+                ) {
+                    Text(
+                        text = stringResource(R.string.diary_delete_cancel),
+                        color = Color(0xFF6B7280)
+                    )
+                }
             }
         )
     }

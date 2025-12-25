@@ -168,9 +168,10 @@ fun RunScreenComposable(
     // [FIX] Legend 레벨(11)은 "L"로 표시
     val levelDisplayText = if (levelNumber == 11) "Lv.L" else "Lv.$levelNumber"
 
-    // Goal days format based on locale
+    // Goal days format based on locale with proper plural handling
     val goalDaysText = remember(targetDays) {
-        context.getString(R.string.stat_goal_days_format, targetDays.toInt())
+        val daysCount = targetDays.toInt()
+        context.resources.getQuantityString(R.plurals.days_count, daysCount, daysCount)
     }
 
     // [FIX] 중앙 타이머 표시: displayElapsedMillis 사용 (배속 반영)
@@ -323,7 +324,11 @@ fun RunScreenComposable(
                         ) {
                             // [NEW] 메인: 경과 일수 (숫자와 단위 분리) (2025-12-25)
                             val daysValue = String.format(Locale.getDefault(), "%.0f", kotlin.math.round(elapsedDaysFloat))
-                            val daysUnit = stringResource(R.string.unit_day)
+                            val daysCount = kotlin.math.round(elapsedDaysFloat).toInt()
+                            // [CHANGED] plurals 사용하여 단수/복수 구분 (2025-12-25)
+                            val daysUnit = remember(daysCount) {
+                                context.resources.getQuantityString(R.plurals.days_count, daysCount, daysCount).substringAfter(" ")
+                            }
 
                             // [CHANGED] Row로 숫자와 단위 분리 (Start 화면 스타일) (2025-12-25)
                             Row(
