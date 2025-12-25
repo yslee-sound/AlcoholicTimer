@@ -49,11 +49,11 @@ object FormatUtils {
         // [MODIFIED] 소수점 제거
         val formattedHours = String.Companion.format(Locale.getDefault(), "%.0f", hoursRounded)
         return if (dayInt == 0) {
-            // e.g., "1시간"
-            "$formattedHours$hourUnit"
+            // e.g., "1 시간" (공백 추가, 2025-12-26)
+            "$formattedHours $hourUnit"
         } else {
-            // e.g., "1일 1시간"
-            "$dayInt$dayUnit $formattedHours$hourUnit"
+            // e.g., "1 일 1 시간" (모든 숫자와 단위 사이 공백, 2025-12-26)
+            "$dayInt $dayUnit $formattedHours $hourUnit"
         }
     }
 
@@ -98,7 +98,7 @@ object FormatUtils {
     @JvmStatic
     fun formatHoursWithUnit(context: Context, hours: Double): String {
         val num = formatHoursValue(hours, Locale.getDefault())
-        return "$num${context.getString(R.string.unit_hour)}"
+        return "$num ${context.getString(R.string.unit_hour)}" // [FIX] 공백 추가 (2025-12-26)
     }
 
     /**
@@ -111,13 +111,35 @@ object FormatUtils {
         // [MODIFIED] 소수점 제거 - 반올림하여 정수로 표시
         val rounded = round(safe)
         return String.Companion.format(
-            Locale.getDefault(), "%.0f%s", rounded, context.getString(
-                R.string.unit_hour))
+            Locale.getDefault(), "%.0f %s", rounded, context.getString(
+                R.string.unit_hour)) // [FIX] 공백 추가 (2025-12-26)
     }
 
     @JvmStatic
     fun daysToDayHourStringFixed(context: Context, days: Double, decimals: Int = 1): String {
         return daysToDayHourString(context, days, decimals)
+    }
+
+    /**
+     * 일수를 소수점 1자리로 포맷하고 단위를 붙여서 반환
+     *
+     * 숫자와 단위 사이에 공백이 자동으로 포함됩니다.
+     *
+     * @param context Context
+     * @param days 일수
+     * @return 포맷된 문자열 (예: "42.7 Hari", "3.5 Days")
+     *
+     * [NEW] 일수 포맷팅 중앙화 (2025-12-26)
+     */
+    @JvmStatic
+    fun formatDaysWithUnit(context: Context, days: Double): String {
+        val safe = if (days.isNaN() || days.isInfinite()) 0.0 else days.coerceAtLeast(0.0)
+        return String.format(
+            Locale.getDefault(),
+            "%.1f %s",
+            safe,
+            context.getString(R.string.unit_day)
+        )
     }
 
     /**
@@ -149,19 +171,20 @@ object FormatUtils {
         val indonesiaLocale = Locale.forLanguageTag("in-ID")
 
         // 3. 포맷팅 (소수점 1자리까지, 끝에 0이면 제거)
+        // [UPDATED] 숫자와 단위 사이 공백 추가 (2025-12-26)
         return when {
             amount >= billion -> {
                 val value = amount / billion
-                String.format(indonesiaLocale, "Rp%.1fM", value).replace(",0M", "M")
+                String.format(indonesiaLocale, "Rp%.1f M", value).replace(",0 M", " M")
             }
             amount >= million -> {
                 val value = amount / million
-                String.format(indonesiaLocale, "Rp%.1fjt", value).replace(",0jt", "jt")
+                String.format(indonesiaLocale, "Rp%.1f jt", value).replace(",0 jt", " jt")
             }
             amount >= thousand -> {
                 val value = amount / thousand
                 // 천 단위는 보통 소수점을 잘 안 씁니다 (선택 사항)
-                String.format(indonesiaLocale, "Rp%.0frb", value)
+                String.format(indonesiaLocale, "Rp%.0f rb", value)
             }
             else -> {
                 // 작은 숫자는 그대로 표시 (천 단위 구분 기호 포함)
@@ -202,16 +225,17 @@ object FormatUtils {
             val billion = 1000000000.0
             val indonesiaLocale = Locale.forLanguageTag("in-ID")
 
+            // [UPDATED] 숫자와 단위 사이 공백 추가 (2025-12-26)
             return when {
                 amount >= billion -> {
-                    // 십억 단위: "2,3M"
+                    // 십억 단위: "2,3 M"
                     val value = amount / billion
-                    String.format(indonesiaLocale, "%.1fM", value).replace(",0M", "M")
+                    String.format(indonesiaLocale, "%.1f M", value).replace(",0 M", " M")
                 }
                 amount >= million -> {
-                    // 백만 단위: "1,2jt"
+                    // 백만 단위: "1,2 jt"
                     val value = amount / million
-                    String.format(indonesiaLocale, "%.1fjt", value).replace(",0jt", "jt")
+                    String.format(indonesiaLocale, "%.1f jt", value).replace(",0 jt", " jt")
                 }
                 else -> {
                     // 100만 미만: "11.521" (천 단위 구분 기호)

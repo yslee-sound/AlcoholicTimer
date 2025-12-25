@@ -313,15 +313,15 @@ class StartScreenViewModel(application: Application) : AndroidViewModel(applicat
                 _uiState.update { it.copy(showCountdown = true, countdownNumber = 3) }
 
                 // 3 - 펄스 애니메이션 완료 대기
-                delay(1200L)
+                delay(1500L)
                 _uiState.update { it.copy(countdownNumber = 2) }
 
                 // 2 - 펄스 애니메이션 완료 대기
-                delay(1200L)
+                delay(1000L)
                 _uiState.update { it.copy(countdownNumber = 1) }
 
                 // 1 - 펄스 애니메이션 완료 대기
-                delay(1200L)
+                delay(1000L)
 
                 // [FIX] 화면 이동 전에 카운트다운 오버레이를 강제로 닫음 (Ghost Effect 완전 해결)
                 // 이렇게 하면 뒤에서 숫자가 3으로 변하더라도 오버레이가 꺼져있어 사용자 눈에 보이지 않음

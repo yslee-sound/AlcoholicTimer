@@ -140,7 +140,7 @@ fun DetailScreen(
             when (Locale.getDefault().language) {
                 "ko" -> "yyyy-MM-dd - a h:mm"
                 "ja" -> "yyyy年MM月dd日 - H:mm"
-                else -> "yyyy-MM-dd - h:mm a"
+                else -> "yyyy-MM-dd - HH:mm" // [FIX] 24시간 표기법 적용 (인도네시아어 등, 2025-12-26)
             }, Locale.getDefault()
         ).apply { timeZone = TimeZone.getDefault() }
     }
@@ -150,7 +150,7 @@ fun DetailScreen(
                 when (Locale.getDefault().language) {
                     "ko" -> "a h:mm"
                     "ja" -> "H:mm"
-                    else -> "h:mm a"
+                    else -> "HH:mm" // [FIX] 24시간 표기법 적용 (2025-12-26)
                 }, Locale.getDefault()
             ).apply { timeZone = TimeZone.getDefault() }.format(Date())
             context.getString(R.string.detail_today_time, nowFmt)

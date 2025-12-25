@@ -35,7 +35,7 @@
     <string name="indicator_title_time">Waktu</string>
     <string name="indicator_title_saved_money">Uang Tersimpan</string>
     <string name="indicator_title_saved_hours">Jam Tersimpan</string>
-    <string name="indicator_title_life_gain">Kehidupan +</string>
+    <string name="indicator_title_life_gain">Umur +</string>
     <string name="tap_to_switch_indicator">Ketuk untuk melihat metrik lain</string>
     <string name="cd_stop">Berhenti</string>
     <string name="cd_continue">Lanjutkan</string>
@@ -399,11 +399,11 @@
     <string name="date_format_month">%d</string>
 
     <!-- Units -->
-    <string name="unit_days_format">%.1f hari</string>
-    <string name="unit_hours_format">%.1f jam</string>
+    <string name="unit_days_format">%.1f Hari</string>
+    <string name="unit_hours_format">%.1f Jam</string>
     <string name="unit_won_format">Rp%,.0f</string>
-    <string name="unit_day">hari</string>
-    <string name="unit_hour">jam</string>
+    <string name="unit_day">Hari</string>
+    <string name="unit_hour">Jam</string>
 
     <!-- Update Dialog -->
     <string name="update_dialog_title">Versi baru tersedia! 🎉</string>
