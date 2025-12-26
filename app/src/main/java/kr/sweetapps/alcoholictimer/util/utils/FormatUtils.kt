@@ -31,6 +31,7 @@ object FormatUtils {
 
     // Context를 받는 다국어 버전
     // [MODIFIED] 시간 부분 소수점 없이 정수로 표시 (2025-12-24)
+    // [MODIFIED] 한국어 로케일 공백 제거 (2025-12-26)
     @JvmStatic
     fun daysToDayHourString(context: Context, days: Double, decimals: Int = 2): String {
         val safeDays = if (days.isNaN() || days.isInfinite()) 0.0 else days.coerceAtLeast(0.0)
@@ -48,12 +49,20 @@ object FormatUtils {
         val dayUnit = context.getString(R.string.unit_day)
         // [MODIFIED] 소수점 제거
         val formattedHours = String.Companion.format(Locale.getDefault(), "%.0f", hoursRounded)
+
+        // [NEW] 한국어 로케일 체크 (2025-12-26)
+        val isKorean = Locale.getDefault().language == "ko"
+
         return if (dayInt == 0) {
-            // e.g., "1 시간" (공백 추가, 2025-12-26)
-            "$formattedHours $hourUnit"
+            // 한국어: "1시간" / 그 외: "1 시간"
+            if (isKorean) "$formattedHours$hourUnit" else "$formattedHours $hourUnit"
         } else {
-            // e.g., "1 일 1 시간" (모든 숫자와 단위 사이 공백, 2025-12-26)
-            "$dayInt $dayUnit $formattedHours $hourUnit"
+            // 한국어: "1일 8시간" (일/시간 사이는 띄움) / 그 외: "1 일 8 시간"
+            if (isKorean) {
+                "$dayInt$dayUnit $formattedHours$hourUnit"
+            } else {
+                "$dayInt $dayUnit $formattedHours $hourUnit"
+            }
         }
     }
 
@@ -94,25 +103,31 @@ object FormatUtils {
 
     /**
      * Format hours and append localized unit (e.g., "시간"). Uses R.string.unit_hour for unit.
+     * [MODIFIED] 한국어 로케일 공백 제거 (2025-12-26)
      */
     @JvmStatic
     fun formatHoursWithUnit(context: Context, hours: Double): String {
         val num = formatHoursValue(hours, Locale.getDefault())
-        return "$num ${context.getString(R.string.unit_hour)}" // [FIX] 공백 추가 (2025-12-26)
+        val isKorean = Locale.getDefault().language == "ko"
+        // 한국어: "8시간" / 그 외: "8 시간"
+        return if (isKorean) "$num${context.getString(R.string.unit_hour)}" else "$num ${context.getString(R.string.unit_hour)}"
     }
 
     /**
      * Format hours and append localized unit with fixed decimals
      * [MODIFIED] 소수점 없이 정수로 표시 (2025-12-24)
+     * [MODIFIED] 한국어 로케일 공백 제거 (2025-12-26)
      */
     @JvmStatic
     fun formatHoursWithUnitFixed(context: Context, hours: Double, decimals: Int = 1): String {
         val safe = if (hours.isNaN() || hours.isInfinite()) 0.0 else hours.coerceAtLeast(0.0)
         // [MODIFIED] 소수점 제거 - 반올림하여 정수로 표시
         val rounded = round(safe)
+        val isKorean = Locale.getDefault().language == "ko"
+        // 한국어: "429시간" / 그 외: "429 시간"
+        val format = if (isKorean) "%.0f%s" else "%.0f %s"
         return String.Companion.format(
-            Locale.getDefault(), "%.0f %s", rounded, context.getString(
-                R.string.unit_hour)) // [FIX] 공백 추가 (2025-12-26)
+            Locale.getDefault(), format, rounded, context.getString(R.string.unit_hour))
     }
 
     @JvmStatic
@@ -127,16 +142,20 @@ object FormatUtils {
      *
      * @param context Context
      * @param days 일수
-     * @return 포맷된 문자열 (예: "42.7 Hari", "3.5 Days")
+     * @return 포맷된 문자열 (예: "42.7 Hari", "3.5 Days", "100.1일")
      *
      * [NEW] 일수 포맷팅 중앙화 (2025-12-26)
+     * [MODIFIED] 한국어 로케일 공백 제거 (2025-12-26)
      */
     @JvmStatic
     fun formatDaysWithUnit(context: Context, days: Double): String {
         val safe = if (days.isNaN() || days.isInfinite()) 0.0 else days.coerceAtLeast(0.0)
+        val isKorean = Locale.getDefault().language == "ko"
+        // 한국어: "100.1일" / 그 외: "100.1 Days"
+        val format = if (isKorean) "%.1f%s" else "%.1f %s"
         return String.format(
             Locale.getDefault(),
-            "%.1f %s",
+            format,
             safe,
             context.getString(R.string.unit_day)
         )
