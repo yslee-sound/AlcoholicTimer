@@ -53,7 +53,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.DebugScreenViewModel
-import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab05ViewModel
 import kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.DiaryViewModel
 import kr.sweetapps.alcoholictimer.util.constants.Constants
 
@@ -70,7 +69,6 @@ private fun ContextToActivity(context: Context): Activity? {
 @Composable
 fun DebugScreen(
     viewModel: DebugScreenViewModel = viewModel(),
-    tab05ViewModel: Tab05ViewModel = viewModel(), // [NEW] Tab05ViewModel 추가
     diaryViewModel: DiaryViewModel = viewModel(), // [NEW] DiaryViewModel 추가 (2025-12-22)
     onBack: () -> Unit
 ) {
@@ -409,67 +407,6 @@ fun DebugScreen(
                 )
             }
 
-            // [NEW] 랜덤 데이터 생성 섹션
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                text = "🎲 테스트 데이터 생성",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-
-            // 랜덤 데이터 생성 버튼
-            Button(
-                onClick = {
-                    tab05ViewModel.generateRandomMockData(context)
-                    Toast.makeText(
-                        context,
-                        "4년치 랜덤 데이터 생성 완료!\n(기록 화면에서 확인)",
-                        Toast.LENGTH_LONG
-                    ).show()
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF4CAF50)
-                )
-            ) {
-                Text("🎲 랜덤 과거 데이터 생성 (4년치)", color = Color.White)
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // 모든 기록 삭제 버튼
-            Button(
-                onClick = {
-                    tab05ViewModel.clearAllRecords(context)
-                    Toast.makeText(
-                        context,
-                        "모든 기록 삭제 완료!",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFF44336)
-                )
-            ) {
-                Text("🗑️ 모든 기록 삭제", color = Color.White)
-            }
-
-            Text(
-                text = """
-                    ※ 생성 데이터: 4년 전 ~ 1년 전까지 무작위 기록
-                    ※ 연도당 2~3개, 지속 기간 3~50일 랜덤
-                    ※ 성공률 70%, 완료/실패 상태 포함
-                    
-                    ⚠️ 데이터는 완전 랜덤으로 생성됩니다.
-                    아래 예상 통계는 어디까지나 "대략적인 참고값"이며,
-                    실제 생성된 값과는 크게 다를 수 있습니다.
-                """.trimIndent(),
-                fontSize = 11.sp,
-                color = Color.Gray,
-                modifier = Modifier.padding(top = 8.dp)
-            )
 
             // [NEW] Phase 2: 커뮤니티 테스트 섹션
             Spacer(modifier = Modifier.height(32.dp))

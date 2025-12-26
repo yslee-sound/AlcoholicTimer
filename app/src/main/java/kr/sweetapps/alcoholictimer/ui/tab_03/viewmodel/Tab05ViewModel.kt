@@ -4,17 +4,12 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.preference.PreferenceManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.data.repository.UserRepository
-import org.json.JSONArray
-import org.json.JSONObject
-import java.util.Calendar
-import java.util.Random
 
 /**
  * Tab05 설정 화면 UI 상태
@@ -144,100 +139,7 @@ class Tab05ViewModel : ViewModel() {
         }
     }
 
-    /**
-     * [DEBUG] 4년치 랜덤 과거 데이터 생성 (테스트용)
-     * - 4년 전 ~ 1년 전까지의 무작위 금주 기록 생성
-     * - 각 연도당 2~3개의 기록 생성
-     * - 지속 기간: 3~50일 랜덤
-     * - 성공/실패 여부: 랜덤
-     */
-    fun generateRandomMockData(context: Context) {
-        try {
-            // [FIX] 표준 저장소 사용
-            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-            val records = JSONArray()
-            val calendar = Calendar.getInstance()
-            val currentYear = calendar.get(Calendar.YEAR)
-            val random = Random()
-
-            Log.d("Tab05ViewModel", "랜덤 데이터 생성 시작: ${currentYear - 4} ~ ${currentYear - 1}")
-
-            // 1. 4년 전 ~ 1년 전까지 루프
-            for (yearOffset in 4 downTo 1) {
-                val targetYear = currentYear - yearOffset
-
-                // 2. 연간 2~3개 기록 생성
-                val recordCount = 2 + random.nextInt(2) // 2 or 3
-
-                for (i in 0 until recordCount) {
-                    // 날짜 랜덤 설정
-                    calendar.set(Calendar.YEAR, targetYear)
-                    calendar.set(Calendar.MONTH, random.nextInt(12)) // 0~11월
-                    calendar.set(Calendar.DAY_OF_MONTH, 1 + random.nextInt(25)) // 1~25일
-
-                    // 시간 랜덤 (오전/오후)
-                    calendar.set(Calendar.HOUR_OF_DAY, random.nextInt(24))
-                    calendar.set(Calendar.MINUTE, random.nextInt(60))
-                    calendar.set(Calendar.SECOND, 0)
-                    calendar.set(Calendar.MILLISECOND, 0)
-
-                    val startTime = calendar.timeInMillis
-
-                    // 지속 기간 (3일 ~ 50일 랜덤)
-                    val durationDays = 3 + random.nextInt(48)
-                    val durationMillis = durationDays * 24L * 60 * 60 * 1000
-                    val endTime = startTime + durationMillis
-
-                    // 목표 일수 (실제 기간과 비슷하거나 조금 더 길게)
-                    val targetDays = (durationDays + random.nextInt(5)).toFloat()
-                    val isCompleted = random.nextFloat() > 0.3f // 70% 성공률
-
-                    // JSON 생성
-                    val obj = JSONObject().apply {
-                        put("id", "${startTime}_mock")
-                        put("startTime", startTime)
-                        put("endTime", endTime)
-                        put("targetDays", targetDays)
-                        put("actualDays", if (isCompleted) durationDays else durationDays / 2) // 실패 시 절반만
-                        put("isCompleted", isCompleted)
-                        put("status", if (isCompleted) "completed" else "failed")
-                    }
-                    records.put(obj)
-
-                    Log.d("Tab05ViewModel",
-                        "생성: ${targetYear}년 ${calendar.get(Calendar.MONTH) + 1}월 - ${durationDays}일 (${if (isCompleted) "성공" else "실패"})")
-                }
-            }
-
-            // 3. 저장
-            prefs.edit().apply {
-                putString("sobriety_records", records.toString())
-                apply()
-            }
-
-            Log.d("Tab05ViewModel", "랜덤 데이터 생성 완료: 총 ${records.length()}개 기록")
-        } catch (e: Exception) {
-            Log.e("Tab05ViewModel", "랜덤 데이터 생성 실패", e)
-        }
-    }
-
-    /**
-     * [DEBUG] 모든 기록 삭제 (테스트용)
-     */
-    fun clearAllRecords(context: Context) {
-        try {
-            // [FIX] "user_settings" 파일 사용 (RecordsDataLoader와 동일한 파일)
-            val prefs = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
-            prefs.edit().apply {
-                putString("sobriety_records", "[]")
-                putLong("start_time", 0L)
-                putBoolean("timer_completed", false)
-                apply()
-            }
-            Log.d("Tab05ViewModel", "모든 기록 삭제 완료 (user_settings)")
-        } catch (e: Exception) {
-            Log.e("Tab05ViewModel", "기록 삭제 실패", e)
-        }
-    }
+    // [REMOVED] generateRandomMockData() - 디버그 메뉴에서 제거됨 (2025-12-26)
+    // [REMOVED] clearAllRecords() - 앱 설정에 이미 존재하는 초기화 기능과 중복 (2025-12-26)
 }
 
