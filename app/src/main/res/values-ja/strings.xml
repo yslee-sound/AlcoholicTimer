@@ -55,7 +55,7 @@
     <string name="finished_success_description">おめでとうございます！\n断酒目標を成功的に達成しました。</string>
     <string name="finished_result_check">結果確認</string>
     <string name="finished_new_timer">新しいタイマーを開始</string>
-    <string name="finished_giveup_title">🍃 少し休んでも大丈夫です</string>
+    <string name="finished_giveup_title">少し休んでも大丈夫です</string>
     <string name="finished_giveup_description">今回の挑戦はここで止まりますが、これまでの努力は消えません。\n心を落ち着かせて、いつでも戻ってきてください。</string>
 
     <!-- Records Screen -->

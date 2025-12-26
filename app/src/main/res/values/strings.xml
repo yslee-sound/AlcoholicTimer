@@ -56,7 +56,7 @@
     <string name="finished_success_description">Congratulations!\nYou have successfully completed your sobriety goal.</string>
     <string name="finished_result_check">Check Result</string>
     <string name="finished_new_timer">Start New Timer</string>
-    <string name="finished_giveup_title">🍃 It\'s Okay to Take a Break</string>
+    <string name="finished_giveup_title">It\'s Okay to Take a Break</string>
     <string name="finished_giveup_description">This challenge ends here, but your efforts won\'t disappear.\nTake a moment to regroup and come back anytime.</string>
 
     <!-- Records Screen -->
