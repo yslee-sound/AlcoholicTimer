@@ -23,6 +23,9 @@ import kr.sweetapps.alcoholictimer.util.debug.DebugSettings
 import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager
 import kr.sweetapps.alcoholictimer.data.repository.CommunityRepository
+import kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 data class DebugScreenUiState(
     // [REMOVED] switch1 - 사용하지 않음 (2025-12-25)
@@ -211,5 +214,78 @@ class DebugScreenViewModel(application: Application) : AndroidViewModel(applicat
             }
         }
     }
-}
 
+    // [NEW] 타임머신: 현재 저장된 startTime 가져오기 (2025-12-26)
+    fun getCurrentStartTime(context: Context): Long {
+        return try {
+            TimerStateRepository.initialize(context)
+            TimerStateRepository.getStartTime()
+        } catch (e: Exception) {
+            Log.e("DebugScreenVM", "startTime 가져오기 실패", e)
+            0L
+        }
+    }
+
+    // [NEW] 타임머신: startTime을 특정 날짜로 변경 (2025-12-26)
+    fun updateStartTime(context: Context, newTimestamp: Long) {
+        if (!BuildConfig.DEBUG) {
+            Log.w("DebugScreenVM", "릴리즈 빌드에서는 타임머신 사용 불가")
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                TimerStateRepository.initialize(context)
+                TimerStateRepository.setStartTime(newTimestamp)
+
+                val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                val dateStr = sdf.format(newTimestamp)
+
+                Handler(Looper.getMainLooper()).post {
+                    Toast.makeText(
+                        context,
+                        "⏰ 시작 시간이 변경되었습니다:\n$dateStr",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+                Log.d("DebugScreenVM", "타임머신: startTime = $newTimestamp ($dateStr)")
+            } catch (e: Exception) {
+                Log.e("DebugScreenVM", "타임머신 설정 실패", e)
+                Handler(Looper.getMainLooper()).post {
+                    Toast.makeText(context, "❌ 타임머신 설정 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    // [NEW] 타임머신: startTime을 0으로 초기화 (오늘로 복귀) (2025-12-26)
+    fun resetStartTime(context: Context) {
+        if (!BuildConfig.DEBUG) {
+            Log.w("DebugScreenVM", "릴리즈 빌드에서는 타임머신 사용 불가")
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                TimerStateRepository.initialize(context)
+                TimerStateRepository.setStartTime(0L)
+
+                Handler(Looper.getMainLooper()).post {
+                    Toast.makeText(
+                        context,
+                        "✅ 타임머신 해제됨 (startTime = 0)",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+                Log.d("DebugScreenVM", "타임머신 해제: startTime = 0")
+            } catch (e: Exception) {
+                Log.e("DebugScreenVM", "타임머신 해제 실패", e)
+                Handler(Looper.getMainLooper()).post {
+                    Toast.makeText(context, "❌ 타임머신 해제 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+}

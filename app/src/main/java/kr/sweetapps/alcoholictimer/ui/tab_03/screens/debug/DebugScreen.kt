@@ -230,6 +230,96 @@ fun DebugScreen(
                 }
             })
 
+            // [NEW] 타임머신 섹션 (2025-12-26)
+            if (BuildConfig.DEBUG) {
+                Spacer(modifier = Modifier.height(32.dp))
+                Text(
+                    text = "⏰ 타임머신 (시작 시간 조작)",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                // 현재 startTime 표시
+                val currentStartTime = remember { mutableStateOf(viewModel.getCurrentStartTime(context)) }
+                val sdf = remember { java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()) }
+                val startTimeStr = if (currentStartTime.value > 0) {
+                    sdf.format(currentStartTime.value)
+                } else {
+                    "미설정 (타이머 시작 전)"
+                }
+
+                Text(
+                    text = "현재 시작 시간: $startTimeStr",
+                    fontSize = 13.sp,
+                    color = Color(0xFF333333),
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // [날짜 선택] 버튼
+                    Button(
+                        onClick = {
+                            // DatePickerDialog 표시
+                            val calendar = java.util.Calendar.getInstance()
+                            val year = calendar.get(java.util.Calendar.YEAR)
+                            val month = calendar.get(java.util.Calendar.MONTH)
+                            val day = calendar.get(java.util.Calendar.DAY_OF_MONTH)
+
+                            android.app.DatePickerDialog(
+                                context,
+                                { _, selectedYear, selectedMonth, selectedDay ->
+                                    // 선택된 날짜의 00:00:00으로 설정
+                                    calendar.set(selectedYear, selectedMonth, selectedDay, 0, 0, 0)
+                                    calendar.set(java.util.Calendar.MILLISECOND, 0)
+                                    val newTimestamp = calendar.timeInMillis
+
+                                    viewModel.updateStartTime(context, newTimestamp)
+                                    currentStartTime.value = newTimestamp
+                                },
+                                year,
+                                month,
+                                day
+                            ).show()
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF6366F1)
+                        )
+                    ) {
+                        Text("📅 날짜 선택", color = Color.White)
+                    }
+
+                    // [오늘로 복귀] 버튼
+                    Button(
+                        onClick = {
+                            viewModel.resetStartTime(context)
+                            currentStartTime.value = 0L
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF9CA3AF)
+                        )
+                    ) {
+                        Text("🔄 초기화", color = Color.White)
+                    }
+                }
+
+                Text(
+                    text = """
+                        ※ 날짜 선택: 과거 날짜를 선택하면 그 날짜 00:00:00부터 타이머가 시작된 것처럼 동작합니다.
+                        ※ 초기화: startTime을 0으로 되돌려 타이머 시작 전 상태로 복귀합니다.
+                        ※ 앱을 재시작하거나 다른 화면으로 이동하면 변경사항이 반영됩니다.
+                    """.trimIndent(),
+                    fontSize = 11.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+
             // [NEW] 테스트 일기 10개 생성 버튼 (2025-12-22)
             Spacer(modifier = Modifier.height(16.dp))
             Button(
