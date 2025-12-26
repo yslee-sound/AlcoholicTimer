@@ -33,6 +33,7 @@ import kr.sweetapps.alcoholictimer.data.room.DiaryEntity
 import kr.sweetapps.alcoholictimer.ui.common.CustomGalleryScreen
 import kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.DiaryViewModel
 import kr.sweetapps.alcoholictimer.ui.tab_03.WritePostScreenContent
+import kr.sweetapps.alcoholictimer.util.manager.UserStatusManager
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToInt
@@ -158,6 +159,12 @@ fun DiaryWriteScreen(
             // [핵심] 로컬 일기장(Room DB) 저장 로직 + Firestore 연동 (2025-12-25)
             scope.launch {
                 try {
+                    // [CRITICAL] 상태값 우선 참조: onSaveDiary 시작 시 현재 레벨/일수 확정 (2025-12-26)
+                    val currentStatus = UserStatusManager.userStatus.value
+                    val currentDays = currentStatus.totalDaysPrecise.toInt()
+                    val currentLevel = currentStatus.level
+                    android.util.Log.d("DiaryWriteScreen", "[UserStatus] 현재 상태: Lv.$currentLevel, Day $currentDays (타임머신 보정 포함)")
+
                     val currentSharedPostId = existingDiary?.sharedPostId
                     var newSharedPostId: String? = currentSharedPostId
 
@@ -173,14 +180,6 @@ fun DiaryWriteScreen(
                                 if (it.lowercase() == "in") "id" else it.lowercase()
                             }
 
-                            // 타이머 정보 가져오기
-                            val timerPrefs = context.getSharedPreferences("timer_prefs", android.content.Context.MODE_PRIVATE)
-                            val startTime = timerPrefs.getLong("start_time", 0L)
-                            val now = System.currentTimeMillis()
-                            val diffMillis = if (startTime == 0L) 0L else now - startTime
-                            val days = if (startTime == 0L) 1 else (diffMillis / (1000L * 60L * 60L * 24L)).toInt() + 1
-                            val level = (days / 10) + 1
-
                             // 닉네임 및 아바타 가져오기
                             val userRepo = kr.sweetapps.alcoholictimer.data.repository.UserRepository(context)
                             val nickname = userRepo.getNickname() ?: "익명"
@@ -190,6 +189,7 @@ fun DiaryWriteScreen(
                                 android.provider.Settings.Secure.ANDROID_ID
                             )
 
+                            val now = System.currentTimeMillis()
                             val post = hashMapOf(
                                 "nickname" to nickname,
                                 "content" to postData.content,
@@ -198,8 +198,8 @@ fun DiaryWriteScreen(
                                 "imageUrl" to (postData.imageUrl ?: ""),
                                 "likeCount" to 0,
                                 "likedBy" to emptyList<String>(),
-                                "currentDays" to days,
-                                "userLevel" to level,
+                                "currentDays" to currentDays, // [FIXED] 상단에서 가져온 검증된 값 사용 (2025-12-26)
+                                "userLevel" to currentLevel, // [FIXED] 상단에서 가져온 검증된 값 사용 (2025-12-26)
                                 "createdAt" to com.google.firebase.Timestamp.now(),
                                 "deleteAt" to com.google.firebase.Timestamp((now / 1000) + 86400, 0), // 24시간 후
                                 "authorAvatarIndex" to avatarIndex,
@@ -210,7 +210,7 @@ fun DiaryWriteScreen(
 
                             val docRef = firestore.collection("posts").add(post).await()
                             newSharedPostId = docRef.id
-                            android.util.Log.d("DiaryWriteScreen", "Firestore 게시글 생성 완료: $newSharedPostId")
+                            android.util.Log.d("DiaryWriteScreen", "Firestore 게시글 생성 완료: $newSharedPostId (Lv.$currentLevel, Day $currentDays)")
                         }
 
                         // Case 2: 체크박스 ON & sharedPostId != null (기존 글 수정)
@@ -257,11 +257,13 @@ fun DiaryWriteScreen(
                             tagType = postData.tagType,
                             timestamp = originalTimestamp,
                             date = formatDate(originalTimestamp),
-                            sharedPostId = newSharedPostId // [NEW] Firestore ID 저장 (2025-12-25)
+                            sharedPostId = newSharedPostId, // [NEW] Firestore ID 저장 (2025-12-25)
+                            userLevel = currentLevel, // [NEW] 현재 레벨 저장 (2025-12-26)
+                            currentDays = currentDays // [NEW] 현재 일수 저장 (2025-12-26)
                         )
                         if (updatedDiary != null) {
                             diaryViewModel.updateDiary(updatedDiary)
-                            android.util.Log.d("DiaryWriteScreen", "일기 수정 성공: 태그=${postData.tagType}, sharedPostId=$newSharedPostId")
+                            android.util.Log.d("DiaryWriteScreen", "일기 수정 성공: 태그=${postData.tagType}, Lv.$currentLevel, Day $currentDays, sharedPostId=$newSharedPostId")
                         }
                     } else {
                         // [신규 모드] 선택된 날짜 사용
@@ -274,10 +276,12 @@ fun DiaryWriteScreen(
                             date = formatDate(targetTimestamp),
                             imageUrl = postData.imageUrl ?: "",
                             tagType = postData.tagType,
-                            sharedPostId = newSharedPostId // [NEW] Firestore ID 저장 (2025-12-25)
+                            sharedPostId = newSharedPostId, // [NEW] Firestore ID 저장 (2025-12-25)
+                            userLevel = currentLevel, // [NEW] 현재 레벨 저장 (2025-12-26)
+                            currentDays = currentDays // [NEW] 현재 일수 저장 (2025-12-26)
                         )
                         diaryViewModel.insertDiary(newDiary)
-                        android.util.Log.d("DiaryWriteScreen", "일기 생성 성공: 태그=${postData.tagType}, 날짜=${formatDate(targetTimestamp)}, sharedPostId=$newSharedPostId")
+                        android.util.Log.d("DiaryWriteScreen", "일기 생성 성공: 태그=${postData.tagType}, 날짜=${formatDate(targetTimestamp)}, Lv.$currentLevel, Day $currentDays, sharedPostId=$newSharedPostId")
                     }
                 } catch (e: Exception) {
                     android.util.Log.e("DiaryWriteScreen", "일기 저장 실패", e)

@@ -162,8 +162,8 @@ fun DiaryDetailFeedScreen(
                                 likeCount = 0,
                                 isLiked = false,
                                 remainingTime = "",
-                                currentDays = calculateDaysSince(item.timestamp),
-                                userLevel = 1,
+                                currentDays = item.currentDays, // [FIXED] DB에 저장된 값 사용 (2025-12-26)
+                                userLevel = item.userLevel, // [FIXED] DB에 저장된 값 사용 (2025-12-26)
                                 authorAvatarIndex = myAvatarIndex,
                                 thirstLevel = if (item.cravingLevel > 0) item.cravingLevel else null,
                                 isMine = true,

@@ -263,10 +263,5 @@ val daysText = resources.getQuantityString(
 **버전**: 1.0  
 **상태**: ✅ 준비 완료!
 
-**문서 링크**:
-- [영어 시작 가이드](I18N_ENGLISH_START.md)
-- [전체 기획안](INTERNATIONALIZATION_PLAN.md)
-- [구현 가이드](I18N_IMPLEMENTATION_GUIDE.md)
-
 **다음 액션**: `I18N_ENGLISH_START.md` 참조하여 테스트 시작! 🎯
 

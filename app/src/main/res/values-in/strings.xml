@@ -15,7 +15,7 @@
     <string name="badge_one_month">Keajaiban Satu Bulan</string>
     <string name="badge_100_days">Janji 100 Hari</string>
     <string name="target_days_picker_title">Pilih Target Hari</string>
-    <string name="target_days_picker_unit">h</string>
+    <string name="target_days_picker_unit">Hari</string>
     <string name="target_days_picker_cancel">Batal</string>
     <string name="target_days_picker_confirm">OK</string>
 
@@ -31,11 +31,11 @@
         <item quantity="other">Hari</item>
     </plurals>
 
-    <string name="indicator_title_days">Hari Bebas Alkohol</string>
+    <string name="indicator_title_days">Hari Bebas</string>
     <string name="indicator_title_time">Waktu</string>
-    <string name="indicator_title_saved_money">Uang Tersimpan</string>
+    <string name="indicator_title_saved_money">Tabungan</string>
     <string name="indicator_title_saved_hours">Jam Tersimpan</string>
-    <string name="indicator_title_life_gain">Umur +</string>
+    <string name="indicator_title_life_gain">Bonus Umur</string>
     <string name="tap_to_switch_indicator">Ketuk untuk melihat metrik lain</string>
     <string name="cd_stop">Berhenti</string>
     <string name="cd_continue">Lanjutkan</string>
@@ -45,7 +45,7 @@
     <string name="quit_title">Akhiri Pantang Alkohol</string>
     <string name="quit_confirm_title">Apakah Anda yakin ingin berhenti?</string>
     <string name="quit_confirm_subtitle">Anda sudah hebat sejauh ini!</string>
-    <string name="stat_total_days">Hari Bebas Alkohol</string>
+    <string name="stat_total_days">Total Hari</string>
     <string name="stat_saved_money_short">Tabungan</string>
     <string name="stat_saved_hours_short">Waktu Tersimpan</string>
 
@@ -55,7 +55,7 @@
     <string name="finished_success_description">Selamat!\nAnda telah berhasil menyelesaikan target pantang alkohol.</string>
     <string name="finished_result_check">Lihat Hasil</string>
     <string name="finished_new_timer">Mulai Timer Baru</string>
-    <string name="finished_giveup_title">Tidak Apa-apa Istirahat Sejenak</string>
+    <string name="finished_giveup_title">Jangan Menyerah!</string>
     <string name="finished_giveup_description">Tantangan ini berakhir di sini, tetapi usaha Anda tidak akan hilang.\nBeristirahatlah sejenak dan kembali kapan saja.</string>
 
     <!-- Records Screen -->
@@ -143,13 +143,13 @@
 
     <!-- Level System -->
     <string name="level_0">Berhenti Alkohol</string>
-    <string name="level_1">Lewati 3 Hari</string>
-    <string name="level_2">1 Minggu Bersih</string>
+    <string name="level_1">3 Hari Pertama</string>
+    <string name="level_2">1 Minggu Berhasil</string>
     <string name="level_3">Transformasi Kulit</string>
     <string name="level_4">Kebiasaan Terbentuk (21 Hari)</string>
     <string name="level_5">Keajaiban Satu Bulan</string>
     <string name="level_6">Tubuh Berubah</string>
-    <string name="level_7">100 Hari, Ahli Pantang</string>
+    <string name="level_7">Master 100 Hari</string>
     <string name="level_8">Keseimbangan Plus</string>
     <string name="level_9">Master Pantang Alkohol</string>
     <string name="level_10">Legenda Sejati</string>
@@ -186,7 +186,7 @@
     <string name="diary_question_required">Wajib diisi</string>
     <string name="diary_craving_weak">Tidak sama sekali</string>
     <string name="diary_craving_strong">Sangat</string>
-    <string name="diary_craving_label">Tingkat Hasrat: %d/10</string>
+    <string name="diary_craving_label">Tingkat Keinginan: %d/10</string>
     <string name="diary_mood_title">Catatan Hari Ini</string>
     <string name="diary_mood_optional">Opsional</string>
     <string name="diary_content_placeholder">Tulis tentang momen tersulit hari ini,\natau beri diri Anda pujian.</string>
@@ -242,11 +242,11 @@
     <string name="community_empty_title">Belum ada postingan</string>
     <string name="community_empty_subtitle">Jadilah yang pertama membagikan cerita!\nAnda dapat berbagi secara anonim dengan nyaman.</string>
     <string name="community_empty_button">Tulis Postingan</string>
-    <string name="community_tag_diary">Diary Hari Ini</string>
+    <string name="community_tag_diary">Jurnal Hari Ini</string>
     <string name="community_tag_thanks">Bersyukur Untuk</string>
     <string name="community_tag_reflect">Refleksi</string>
-    <string name="community_thirst_level">Tingkat Haus</string>
-    <string name="community_thirst">Haus</string>
+    <string name="community_thirst_level">Tingkat Hasrat</string>
+    <string name="community_thirst">Hasrat</string>
     <string name="community_add_photo">Tambah Foto</string>
     <string name="community_share_challenge">Ke Challenge</string>
     <string name="settings_screen_title">Pengaturan</string>
@@ -464,7 +464,7 @@
         <item>Anda menjadi lebih kuat dengan setiap godaan yang Anda atasi.</item>
         <item>Anda sudah kuat tanpa bersandar pada alkohol.</item>
         <item>Investasikan pada diri sendiri daripada menghabiskan waktu minum.</item>
-        <item>Menghadapi realitas dengan jelas menumbuhkan Anda lebih dari pelarian yang kabur.</item>
+        <item>Hadapi kenyataan dengan jernih, itu akan membuatmu tumbuh.</item>
         <item>Anak-anak Anda akan mengingat kehadiran hangat Anda, bukan bau alkohol.</item>
         <item>Tanpa alkohol, hari terasa lebih panjang dari 24 jam.</item>
         <item>Jangan korbankan kondisi besok untuk kesenangan sesaat.</item>

@@ -14,10 +14,11 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  * [NEW] Version 2: imageUrl 필드 추가 (2025-12-22)
  * [NEW] Version 3: tagType 필드 추가 (2025-12-23)
  * [NEW] Version 4: sharedPostId 필드 추가 (2025-12-25)
+ * [NEW] Version 5: userLevel, currentDays 필드 추가 (2025-12-26)
  */
 @Database(
     entities = [DiaryEntity::class],
-    version = 4, // [UPDATED] 3 -> 4 (sharedPostId 필드 추가)
+    version = 5, // [UPDATED] 4 -> 5 (userLevel, currentDays 필드 추가)
     exportSchema = true // [CHANGED] false -> true (스키마 이력 추적) (2025-12-25)
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -63,6 +64,18 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
+         * [NEW] Migration 4 -> 5: userLevel, currentDays 컬럼 추가 (2025-12-26)
+         */
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // userLevel 컬럼 추가 (기본값 1)
+                database.execSQL("ALTER TABLE diary_table ADD COLUMN userLevel INTEGER NOT NULL DEFAULT 1")
+                // currentDays 컬럼 추가 (기본값 0)
+                database.execSQL("ALTER TABLE diary_table ADD COLUMN currentDays INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        /**
          * Database 인스턴스를 가져옵니다.
          * 없으면 새로 생성하고, 있으면 기존 인스턴스를 반환합니다.
          */
@@ -75,8 +88,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "alcoholic_timer_database"
                 )
-                    // [NEW] Migration 추가 (2025-12-22, 2025-12-23, 2025-12-25)
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                    // [NEW] Migration 추가 (2025-12-22, 2025-12-23, 2025-12-25, 2025-12-26)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
 
                     // [옵션] 메인 스레드에서 쿼리 허용 (개발 중에만 사용, 프로덕션에서는 제거 권장)
                     // .allowMainThreadQueries()

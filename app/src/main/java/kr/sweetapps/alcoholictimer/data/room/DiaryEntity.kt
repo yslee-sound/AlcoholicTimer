@@ -37,6 +37,12 @@ data class DiaryEntity(
     val tagType: String = "diary",
 
     /** [NEW] 공유된 게시글 Firestore Document ID (2025-12-25) */
-    val sharedPostId: String? = null
+    val sharedPostId: String? = null,
+
+    /** [NEW] 일기 작성 시점의 사용자 레벨 (2025-12-26) */
+    val userLevel: Int = 1,
+
+    /** [NEW] 일기 작성 시점의 경과 일수 (2025-12-26) */
+    val currentDays: Int = 0
 )
 
