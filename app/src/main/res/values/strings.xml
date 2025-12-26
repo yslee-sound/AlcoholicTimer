@@ -401,10 +401,10 @@
 
     <!-- Units -->
     <string name="unit_days_format">%.1f d</string>
-    <string name="unit_hours_format">%.1f hr(s)</string>
+    <string name="unit_hours_format">%.1f hrs</string>
     <string name="unit_won_format">₩%,.0f</string>
-    <string name="unit_day">d</string>
-    <string name="unit_hour">hr(s)</string>
+    <string name="unit_day">Days</string>
+    <string name="unit_hour">hrs</string>
 
     <!-- Update Dialog -->
     <string name="update_dialog_title">New version available! 🎉</string>
