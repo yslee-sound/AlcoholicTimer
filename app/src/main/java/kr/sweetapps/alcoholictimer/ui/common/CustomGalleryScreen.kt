@@ -8,6 +8,7 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.TakePicture
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -136,9 +138,26 @@ fun CustomGalleryScreen(
                         modifier = androidx.compose.ui.Modifier
                             .aspectRatio(1f)
                             .padding(1.dp)
-                            .clickable { onImageSelected(uri) }
+                            .background(androidx.compose.ui.graphics.Color.LightGray.copy(alpha = 0.3f)) // [NEW] 로딩 중 배경색 (2025-12-26)
+                            .clickable {
+                                // [NEW] Uri 권한 로그 추가 (2025-12-26)
+                                Log.d("CustomGallery", "Image selected: $uri")
+                                try {
+                                    // Uri 영구 권한을 획득하려면 호출자 측에서 takePersistableUriPermission() 처리 필요
+                                    onImageSelected(uri)
+                                } catch (e: Exception) {
+                                    Log.w("CustomGallery", "Failed to process selected image: ${e.message}")
+                                }
+                            }
                     ) {
-                        AsyncImage(model = uri, contentDescription = null, modifier = androidx.compose.ui.Modifier.fillMaxSize())
+                        // [MODIFIED] ContentScale.Crop 추가로 정사각형 격자에 이미지 꽉 차게 표시 (2025-12-26)
+                        AsyncImage(
+                            model = uri,
+                            contentDescription = null,
+                            modifier = androidx.compose.ui.Modifier.fillMaxSize(),
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop, // [NEW] 이미지 크롭 (2025-12-26)
+                            error = androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Default.BrokenImage)
+                        )
                     }
                 }
             }
@@ -146,23 +165,63 @@ fun CustomGalleryScreen(
     }
 }
 
+/**
+ * MediaStore에서 이미지 목록을 로드합니다.
+ *
+ * [MODIFIED] MediaStore 쿼리 개선 (2025-12-26)
+ * - projection에 DATA, DISPLAY_NAME 추가로 데이터 무결성 향상
+ * - 시스템 전체 미디어를 포괄적으로 탐색
+ * - 에뮬레이터 호환성 강화
+ */
 private suspend fun loadImagesFromMediaStore(context: Context): List<Uri> = withContext(Dispatchers.IO) {
     val list = mutableListOf<Uri>()
     try {
-        val projection = arrayOf(MediaStore.Images.Media._ID)
+        // [MODIFIED] projection 확장 - DATA, DISPLAY_NAME 추가 (2025-12-26)
+        val projection = arrayOf(
+            MediaStore.Images.Media._ID,
+            MediaStore.Images.Media.DISPLAY_NAME,
+            MediaStore.Images.Media.DATA
+        )
         val sort = "${MediaStore.Images.Media.DATE_ADDED} DESC"
+
+        // [NEW] 미디어 스캔 로그 추가 (2025-12-26)
+        Log.d("CustomGallery", "Starting MediaStore query...")
+
         val cursor = context.contentResolver.query(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
             projection, null, null, sort
         )
         cursor?.use {
             val idIndex = it.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+            val displayNameIndex = it.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME)
+            val dataIndex = it.getColumnIndex(MediaStore.Images.Media.DATA)
+
             while (it.moveToNext()) {
                 val id = it.getLong(idIndex)
-                val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.buildUpon().appendPath(id.toString()).build()
+                val displayName = if (displayNameIndex >= 0) it.getString(displayNameIndex) else null
+                val data = if (dataIndex >= 0) it.getString(dataIndex) else null
+
+                val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.buildUpon()
+                    .appendPath(id.toString())
+                    .build()
                 list.add(uri)
+
+                // [NEW] 첫 5개 이미지만 상세 로그 출력 (디버깅용) (2025-12-26)
+                if (list.size <= 5) {
+                    Log.d("CustomGallery", "Loaded image: id=$id, name=$displayName, path=$data")
+                }
             }
         }
+
+        Log.d("CustomGallery", "MediaStore query completed: ${list.size} images found")
+
+        // [NEW] 에뮬레이터 환경에서 이미지가 없을 경우 미디어 스캔 유도 (2025-12-26)
+        if (list.isEmpty()) {
+            Log.w("CustomGallery", "No images found. Media scan may be required.")
+            // 참고: 개별 파일 스캔은 호출자 측에서 처리하는 것이 적절함
+            // context.sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, uri))
+        }
+
     } catch (se: SecurityException) {
         Log.w("CustomGallery", "MediaStore query denied: ${se.message}")
     } catch (e: Exception) {

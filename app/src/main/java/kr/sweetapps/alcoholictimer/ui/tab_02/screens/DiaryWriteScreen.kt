@@ -350,9 +350,16 @@ fun DiaryWriteScreen(
                     CustomGalleryScreen(
                         onImageSelected = { uri ->
                             try {
+                                // [핵심 추가] 선택한 사진에 대한 읽기 권한을 '영구적으로' 확보합니다.
+                                // 이 코드가 있어야 앱을 껐다 켜도 사진이 사라지지 않습니다.
+                                val contentResolver = context.contentResolver
+                                val takeFlags: Int = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                contentResolver.takePersistableUriPermission(uri, takeFlags)
+
                                 communityViewModel.onImageSelected(uri)
                             } catch (e: Exception) {
                                 android.util.Log.e("DiaryWriteScreen", "Photo select failed", e)
+                                communityViewModel.onImageSelected(uri)
                             }
                             triggerClosePhoto()
                         },
