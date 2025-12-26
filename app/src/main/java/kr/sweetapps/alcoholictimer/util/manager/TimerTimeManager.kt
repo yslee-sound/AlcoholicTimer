@@ -127,8 +127,6 @@ object TimerTimeManager {
         Log.d(TAG, "Starting timer loop with targetMillis=$targetMillis")
 
         scope.launch {
-            var lastRealTime = System.currentTimeMillis()
-
             while (true) {
                 delay(100L) // 0.1초마다 갱신
 
@@ -139,33 +137,20 @@ object TimerTimeManager {
                 }
 
                 val currentRealTime = System.currentTimeMillis()
-                val realDelta = currentRealTime - lastRealTime
-                lastRealTime = currentRealTime
 
-                // 배속 계수 가져오기 (Debug 모드일 때만)
-                val accelerationFactor = if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
-                    try {
-                        Constants.getTimeAcceleration(context)
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Failed to get acceleration factor", e)
-                        1
-                    }
-                } else {
-                    1
-                }
+                // [REMOVED] 배속 계수 제거 - 항상 실제 시간만 사용 (2025-12-26)
 
-                // [핵심] 실제 경과 시간 계산 (배속 적용)
+                // [핵심] 실제 경과 시간 계산 (실제 시간만 사용)
                 val realElapsed = currentRealTime - startTime
-                val virtualElapsed = realElapsed * accelerationFactor
 
                 // [FIX] 목표 시간 도달 확인
-                if (targetMillis > 0 && virtualElapsed >= targetMillis) {
+                if (targetMillis > 0 && realElapsed >= targetMillis) {
                     // [중요] 시간을 목표 시간에 고정 (Clamp)
                     _elapsedMillis.value = targetMillis
                     isCompleted = true
                     _isTimerActive.value = false
 
-                    Log.d(TAG, "⏰ Timer finished! virtualElapsed=$virtualElapsed, targetMillis=$targetMillis")
+                    Log.d(TAG, "⏰ Timer finished! realElapsed=$realElapsed, targetMillis=$targetMillis")
 
                     // [NEW] 타이머 완료 이벤트 발행
                     _timerFinishEvent.tryEmit(Unit)
@@ -174,7 +159,7 @@ object TimerTimeManager {
                     continue
                 }
 
-                _elapsedMillis.value = virtualElapsed
+                _elapsedMillis.value = realElapsed
             }
         }
     }

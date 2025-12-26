@@ -131,16 +131,10 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
                 val realDelta = currentRealTime - lastRealTime
                 lastRealTime = currentRealTime
 
-                // [NEW] 배속 계수 적용 (디버그 모드에서만)
-                val factor = if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
-                    Constants.getTimeAcceleration(getApplication())
-                } else {
-                    1
-                }
+                // [REMOVED] 배속 계수 제거 - 항상 실제 시간만 사용 (2025-12-26)
 
-                // [FIX] 가상 시간 누적 (핵심: += 사용)
-                val virtualDelta = (realDelta * factor).toLong()
-                _currentTime.value += virtualDelta
+                // [FIX] 실제 시간 누적 (핵심: += 사용)
+                _currentTime.value += realDelta
             }
         }
 
