@@ -173,6 +173,7 @@ fun DiaryDetailFeedScreen(
                                 },
                                 tagType = item.tagType, // [FIX] DB에 저장된 tagType 사용 (2025-12-23)
                                 showTimer = false, // [NEW] 내 일기 화면에서는 타이머 숨김 (2025-12-24)
+                                isDiaryMode = true, // [NEW] 일기 모드 활성화 - 하단 좋아요 영역 숨김 (2025-12-26)
                                 onLikeClick = { },
                                 onCommentClick = { },
                                 onMoreClick = {

@@ -41,6 +41,7 @@ import kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
  * (v2.0) 아바타 시스템: authorAvatarIndex로 프로필 표시
  * (v3.0) X 버튼: 남의 글에 빠른 숨기기 버튼 추가
  * [MODIFIED] 타이머 표시 제어 파라미터 추가 (2025-12-24)
+ * [MODIFIED] 일기 모드 파라미터 추가 - 하단 좋아요 영역 숨김 (2025-12-26)
  */
 @Composable
 fun PostItem(
@@ -59,6 +60,7 @@ fun PostItem(
     createdDate: String? = null, // [NEW] 작성 날짜 "yyyy/MM/dd" (2025-12-22)
     tagType: String = "diary", // [NEW] 태그 타입 (2025-12-23)
     showTimer: Boolean = true, // [NEW] 타이머 표시 여부 (기본값 true) (2025-12-24)
+    isDiaryMode: Boolean = false, // [NEW] 일기 모드 여부 - 하단 좋아요 영역 숨김 (2025-12-26)
     onLikeClick: () -> Unit = {},
     onCommentClick: () -> Unit = {},
     onMoreClick: () -> Unit = {},
@@ -141,15 +143,21 @@ fun PostItem(
             )
         }
 
-        // Footer: 좋아요 + 댓글 + 남은 시간
-        PostFooter(
-            likeCount = likeCount,
-            isLiked = isLiked,
-            remainingTime = remainingTime,
-            showTimer = showTimer, // [NEW] 타이머 표시 여부 전달 (2025-12-24)
-            onLikeClick = onLikeClick,
-            onCommentClick = onCommentClick
-        )
+        // [MODIFIED] Footer: 일기 모드가 아닐 때만 좋아요 영역 표시 (2025-12-26)
+        if (!isDiaryMode) {
+            PostFooter(
+                likeCount = likeCount,
+                isLiked = isLiked,
+                remainingTime = remainingTime,
+                showTimer = showTimer, // [NEW] 타이머 표시 여부 전달 (2025-12-24)
+                onLikeClick = onLikeClick,
+                onCommentClick = onCommentClick
+            )
+        } else {
+            // [NEW] 일기 모드일 때는 PostFooter와 동일한 높이의 여백 추가 (2025-12-26)
+            // PostFooter 실제 높이 = top(12dp) + 아이콘(24dp) + bottom(8dp) = 44dp
+            Spacer(modifier = Modifier.height(44.dp))
+        }
     }
 }
 
