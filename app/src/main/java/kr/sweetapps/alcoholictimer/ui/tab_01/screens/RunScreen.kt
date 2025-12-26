@@ -170,10 +170,9 @@ fun RunScreenComposable(
     // [FIX] Legend 레벨(11)은 "L"로 표시
     val levelDisplayText = if (levelNumber == 11) "Lv.L" else "Lv.$levelNumber"
 
-    // Goal days format based on locale with proper plural handling
+    // [FIX] 복잡한 리소스 대신 '숫자'만 깔끔하게 문자열로 변환하여 표시
     val goalDaysText = remember(targetDays) {
-        val daysCount = targetDays.toInt()
-        context.resources.getQuantityString(R.plurals.days_count, daysCount, daysCount)
+        targetDays.toInt().toString()
     }
 
     // [FIX] 중앙 타이머 표시: displayElapsedMillis 사용 (배속 반영)
