@@ -1462,17 +1462,16 @@ private fun ModernStatisticsGrid(
         )
 
         // 저축 카드
-        // [UPDATED] value와 unit 분리하여 전달 (2025-12-26)
+        // [UPDATED] 모든 통화의 코드를 표시하도록 수정 (2025-12-26)
         val savedMoneyValue = CurrencyManager.formatMoneyNoDecimals(statsData.savedMoney, context)
-        val locale = java.util.Locale.getDefault()
-        val isIndonesia = locale.country.equals("ID", ignoreCase = true) || locale.language.equals("in", ignoreCase = true)
+        val currencyUnit = currency.code  // 항상 통화 코드 표시 (KRW, IDR, USD, JPY 등)
 
         StatCard(
             icon = R.drawable.piggybank,
             iconColor = Color(0xFF5CD88A),
             label = "SAVED",
             value = savedMoneyValue,  // "Rp1,4jt" (큰 글씨)
-            unit = if (isIndonesia) "IDR" else "",  // "IDR" (작은 회색 글씨)
+            unit = currencyUnit,  // "IDR", "KRW", "USD" 등 (작은 회색 글씨)
             modifier = Modifier.weight(1f).fillMaxHeight()
         )
     }

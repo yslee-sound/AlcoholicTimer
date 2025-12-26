@@ -198,15 +198,15 @@ fun CurrentLevelCard(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Footer Info
+                    // Footer Info - Formatted String 사용 (2025-12-26)
                     if (nextLevel != null) {
                         val remainingDaysFloat = (nextLevel.start - currentDays.toFloat()).coerceAtLeast(0f)
                         val remainingDaysInt = floor(remainingDaysFloat.toDouble()).toInt()
                         val remainingHoursInt = floor(((remainingDaysFloat - remainingDaysInt) * 24f).toDouble()).toInt()
                         val remainingText = when {
-                            remainingDaysInt > 0 && remainingHoursInt > 0 -> "$remainingDaysInt ${context.getString(R.string.level_day_unit)} $remainingHoursInt ${context.getString(R.string.level_hour_unit)} ${context.getString(R.string.level_days_remaining)}"
-                            remainingDaysInt > 0 -> "$remainingDaysInt ${context.getString(R.string.level_day_unit)} ${context.getString(R.string.level_days_remaining)}"
-                            remainingHoursInt > 0 -> "$remainingHoursInt ${context.getString(R.string.level_hour_unit)} ${context.getString(R.string.level_hours_remaining)}"
+                            remainingDaysInt > 0 && remainingHoursInt > 0 -> context.getString(R.string.level_days_hours_left_format, remainingDaysInt, remainingHoursInt)
+                            remainingDaysInt > 0 -> context.getString(R.string.level_days_left_format, remainingDaysInt)
+                            remainingHoursInt > 0 -> context.getString(R.string.level_hours_left_format, remainingHoursInt)
                             else -> context.getString(R.string.level_soon_levelup)
                         }
 

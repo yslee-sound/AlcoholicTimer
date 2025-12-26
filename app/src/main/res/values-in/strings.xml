@@ -160,6 +160,10 @@
     <string name="level_hours_remaining">tersisa</string>
     <string name="level_days_hours_remaining">%1$d h %2$d jam tersisa</string>
     <string name="level_soon_levelup">Segera Naik Level!</string>
+    <!-- [NEW] Formatted string for "X days left" (2025-12-26) -->
+    <string name="level_days_left_format">%d Hari lagi</string>
+    <string name="level_hours_left_format">%d Jam lagi</string>
+    <string name="level_days_hours_left_format">%1$d h %2$d jam tersisa</string>
     <string name="level_all_levels">Semua Level</string>
     <string name="level_day_unit">Hari</string>
     <string name="level_hour_unit">jam</string>
@@ -215,7 +219,7 @@
     <string name="settings_currency_auto">Default Sistem</string>
     <string name="settings_currency_current">Saat ini: %1$s</string>
     <string name="settings_currency_current_auto">Saat ini: %1$s (Default Sistem)</string>
-    <string name="settings_ad_settings">Pengaturan Iklan</string>
+    <string name="settings_ad_settings">Ad Settings</string>
     <string name="settings_edit_profile">Edit Profil</string>
     <string name="currency_krw">Won Korea (₩)</string>
     <string name="currency_jpy">Yen Jepang (¥)</string>

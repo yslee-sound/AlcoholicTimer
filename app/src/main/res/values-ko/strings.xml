@@ -1,4 +1,4 @@
-﻿﻿<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App Name -->
     <string name="app_name">ZERO</string>
@@ -160,6 +160,10 @@
     <string name="level_hours_remaining">남음</string>
     <string name="level_days_hours_remaining">%1$d일 %2$d시간 남음</string>
     <string name="level_soon_levelup">곧 레벨업!</string>
+    <!-- [NEW] Formatted string for "X days left" (2025-12-26) -->
+    <string name="level_days_left_format">%d일 남음</string>
+    <string name="level_hours_left_format">%d시간 남음</string>
+    <string name="level_days_hours_left_format">%1$d일 %2$d시간 남음</string>
     <string name="level_all_levels">모든 레벨</string>
     <string name="level_day_unit">일</string>
     <string name="level_hour_unit">시간</string>
@@ -217,7 +221,7 @@
     <string name="settings_currency_auto">시스템 설정</string>
     <string name="settings_currency_current">현재: %1$s</string>
     <string name="settings_currency_current_auto">현재: %1$s (시스템 설정)</string>
-    <string name="settings_ad_settings">광고 설정</string>
+    <string name="settings_ad_settings">Ad Settings</string>
     <string name="settings_edit_profile">프로필 편집하기</string>
     <string name="currency_krw">한국 원 (₩)</string>
     <string name="currency_jpy">일본 엔 (¥)</string>
