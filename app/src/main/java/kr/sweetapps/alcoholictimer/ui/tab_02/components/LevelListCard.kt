@@ -88,11 +88,12 @@ private fun LevelItem(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White // [FIX] 모든 카드를 흰색으로 통일
+            // [RESTORED] 달성한 레벨은 해당 색상의 연한 배경, 미달성은 흰색 (2025-12-26)
+            containerColor = if (isAchieved) level.color.copy(alpha = 0.1f) else Color.White // [MODIFIED] 0.15f → 0.1f (2025-12-26)
         ),
         border = when {
             isCurrent -> BorderStroke(1.5.dp, level.color)
-            isAchieved -> BorderStroke(1.dp, level.color.copy(alpha = 0.6f))
+            isAchieved -> BorderStroke(1.dp, level.color) // [MODIFIED] alpha 0.6f → 1.0f (2025-12-26)
             else -> BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
         },
         elevation = CardDefaults.cardElevation(defaultElevation = itemElevation)
