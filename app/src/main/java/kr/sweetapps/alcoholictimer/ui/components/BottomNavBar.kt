@@ -48,16 +48,16 @@ private val bottomItems: List<BottomItem> = listOf(
         R.string.drawer_menu_records,
         R.string.drawer_menu_records,
         // [UPDATED] 2번째 버튼 그룹: 금주 기록(Records), 모든 기록(AllRecords), 기록 상세(Detail), 일기 관련
-        // 포함: 기록 추가(add_record), 일기 쓰기(diary_write), 일기 상세(diary_detail/), 모든 일기(all_diaries)도 같은 그룹으로 처리
+        // [FIXED] "all_diaries"(피드 화면) 포함 - 일기 저장 후 피드로 이동하도록 복원 (2025-12-27)
         associatedRoutes = setOf(
             Screen.Records.route,
             Screen.AllRecords.route,
             Screen.AddRecord.route,
             "detail/",
-            "diary_write",      // [NEW] 일기 작성 화면
-            "diary_detail/",    // [NEW] 일기 상세/수정 화면
-            "all_diaries",      // [NEW] 모든 일기 목록 화면
-            Screen.LevelDetail.route  // [NEW] 레벨 상세 화면 (요약 배너에서 진입)
+            "diary_write",      // 일기 작성 화면
+            "diary_detail/",    // 일기 상세/수정 화면
+            "all_diaries",      // [RESTORED] 피드 화면 (일기 저장 후 이동 목적지)
+            Screen.LevelDetail.route  // 레벨 상세 화면 (요약 배너에서 진입)
         )
     ),
     // [REMOVED] Tab 3 (Level) - 이제 레벨은 상세 페이지로만 접근
@@ -156,8 +156,16 @@ fun BottomNavBar(
                                     // 기록 보기(두 번째 버튼) 클릭 시 이벤트 전송
                                     if (index == 1) {
                                         try { AnalyticsManager.logViewRecords() } catch (_: Throwable) {}
-                                    }
-                                    if (!selected) {
+
+                                        // [NEW] 탭 2 클릭 시 항상 통계 화면(Records)으로 이동 (2025-12-27)
+                                        if (currentRoute != Screen.Records.route) {
+                                            navController.navigate(Screen.Records.route) {
+                                                launchSingleTop = true
+                                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                            }
+                                        }
+                                    } else if (!selected) {
+                                        // 다른 탭들은 기존 로직 유지
                                         navController.navigate(item.screen.route) {
                                             launchSingleTop = true
                                             restoreState = true
@@ -165,7 +173,7 @@ fun BottomNavBar(
                                         }
                                     }
                                 }
-                            }
+                            } // [FIX] onClick 람다의 닫는 중괄호 추가
                         )
                     }
                 }

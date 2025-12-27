@@ -244,7 +244,7 @@ fun NavGraphBuilder.addTab02DetailGraph(
         )
     }
 
-    // 모든 일기 보기 화면
+    // 모든 일기 보기 화면 (피드 스타일로 교체 - 2025-12-27)
     composable(
         route = Screen.AllDiary.route,
         enterTransition = {
@@ -272,13 +272,20 @@ fun NavGraphBuilder.addTab02DetailGraph(
             ) + fadeOut(animationSpec = tween(300))
         }
     ) {
-        kr.sweetapps.alcoholictimer.ui.tab_02.screens.AllDiaryScreen(
-            onNavigateBack = {
-                // [NEW] 전면광고 표시 후 뒤로가기
+        // [CHANGED] AllDiaryScreen(리스트) → DiaryDetailFeedScreen(피드)로 교체 (2025-12-27)
+        val diaryViewModel: kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.DiaryViewModel =
+            (activity as? androidx.lifecycle.ViewModelStoreOwner)?.let { owner ->
+                androidx.lifecycle.viewmodel.compose.viewModel(viewModelStoreOwner = owner)
+            } ?: androidx.lifecycle.viewmodel.compose.viewModel()
+
+        kr.sweetapps.alcoholictimer.ui.tab_02.screens.DiaryDetailFeedScreen(
+            targetDiaryId = -1L, // 최신글(최상단)부터 표시
+            onBack = {
+                // [NEW] 전면광고 표시 후 뒤로가기 (기존 로직 유지)
                 val shouldShowAd = kr.sweetapps.alcoholictimer.data.repository.AdPolicyManager.shouldShowInterstitialAd(context)
 
                 val proceedBack: () -> Unit = {
-                    // [FIX] popBackStack 실패 시 Screen.Start로 이동 (탭2의 records_list로 돌아감)
+                    // popBackStack 실패 시 Screen.Start로 이동
                     if (!navController.popBackStack()) {
                         navController.navigate(Screen.Start.route) {
                             popUpTo(Screen.Start.route) { inclusive = true }
@@ -288,25 +295,35 @@ fun NavGraphBuilder.addTab02DetailGraph(
                 }
 
                 if (shouldShowAd && activity != null) {
-                    android.util.Log.d("NavGraph", "[AllDiary] 광고 정책 통과 -> 전면 광고 노출")
+                    android.util.Log.d("NavGraph", "[AllDiary/Feed] 광고 정책 통과 -> 전면 광고 노출")
                     if (kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.isLoaded()) {
                         kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager.show(activity) { _ ->
                             proceedBack()
                         }
                     } else {
-                        android.util.Log.d("NavGraph", "[AllDiary] 광고 로드 안됨 -> 즉시 뒤로 이동")
+                        android.util.Log.d("NavGraph", "[AllDiary/Feed] 광고 로드 안됨 -> 즉시 뒤로 이동")
                         proceedBack()
                     }
                 } else {
-                    android.util.Log.d("NavGraph", "[AllDiary] 광고 정책 불통과 -> 즉시 뒤로 이동")
+                    android.util.Log.d("NavGraph", "[AllDiary/Feed] 광고 정책 불통과 -> 즉시 뒤로 이동")
                     proceedBack()
                 }
             },
-            onOpenDiaryDetail = { diaryId ->
+            onEditClick = { diaryId ->
+                // 일기 수정 화면으로 이동
                 val route = Screen.DiaryDetail.createRoute(diaryId.toString())
                 navController.navigate(route)
             },
-            onAddDiary = { navController.navigate(Screen.DiaryWrite.route) }
+            onDeleteClick = { diaryId ->
+                // 일기 삭제 및 토스트 표시
+                diaryViewModel.deleteDiary(diaryId)
+                android.widget.Toast.makeText(
+                    context,
+                    "일기가 삭제되었습니다",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+            },
+            diaryViewModel = diaryViewModel
         )
     }
 
@@ -351,8 +368,14 @@ fun NavGraphBuilder.addTab02DetailGraph(
         kr.sweetapps.alcoholictimer.ui.tab_02.screens.DiaryWriteScreen(
             selectedDate = selectedDate, // [FIX] 선택된 날짜 전달 (2025-12-22)
             onDismiss = {
+                // [CRITICAL] 신규 작성 후 피드 화면(AllDiary)으로 이동 (2025-12-27)
                 onRefreshCounterIncrement()
-                navController.popBackStack()
+                navController.popBackStack() // 작성 화면 닫기
+
+                // [NEW] 피드 목록 화면으로 강제 이동하여 저장된 일기를 최신순으로 확인
+                navController.navigate(Screen.AllDiary.route) {
+                    launchSingleTop = true
+                }
             }
         )
     }
@@ -392,15 +415,13 @@ fun NavGraphBuilder.addTab02DetailGraph(
         kr.sweetapps.alcoholictimer.ui.tab_02.screens.DiaryWriteScreen(
             diaryId = diaryIdLong,
             onDismiss = {
-                // [FIX] 수정 모드일 때는 상세 화면으로 복귀, 새 작성일 때는 탭2로 복귀 (2025-12-23)
+                // [CRITICAL] 수정 후에도 피드 화면(AllDiary)으로 이동 (2025-12-27)
                 onRefreshCounterIncrement()
+                navController.popBackStack() // 수정 화면 닫기
 
-                if (diaryIdLong != null) {
-                    // 수정 모드: 현재 화면을 pop하고 Tab02로 돌아감 (상세 화면이 다시 표시됨)
-                    navController.popBackStack()
-                } else {
-                    // 새 작성 모드: 그냥 뒤로가기
-                    navController.popBackStack()
+                // [NEW] 피드 목록 화면으로 강제 이동하여 수정된 일기를 최신순으로 확인
+                navController.navigate(Screen.AllDiary.route) {
+                    launchSingleTop = true
                 }
             }
         )

@@ -11,7 +11,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -70,8 +69,10 @@ fun Tab02Screen(
         viewModelStoreOwner = androidx.activity.compose.LocalActivity.current as ComponentActivity
     )
 ) {
-    // [FIX] 일기 상세 피드 화면 표시 상태 - rememberSaveable로 네비게이션 후에도 유지 (2025-12-23)
-    var selectedDetailDiaryId by rememberSaveable { mutableStateOf<Long?>(null) }
+    // [CRITICAL] 일기 상세 피드 화면 표시 상태 - remember로 변경하여 탭 이동 시 자동 초기화 (2025-12-27)
+    var selectedDetailDiaryId by remember { mutableStateOf<Long?>(null) }
+
+    // [REMOVED] LaunchedEffect 제거 - BottomNavBar의 restoreState 제어로 충분 (2025-12-27)
 
     // [NEW] ViewModel 데이터 구독
     val records by viewModel.records.collectAsState()
