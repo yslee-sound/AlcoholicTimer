@@ -67,7 +67,7 @@ android {
 
     // 버전 코드 전략: yyyymmdd + 2자리 시퀀스 (NN)
     // 이전 사용: 2025100800 -> 신규: 2025100801
-    val releaseVersionCode = 2025122602
+    val releaseVersionCode = 2025122700
     val releaseVersionName = "1.1.7"
     defaultConfig {
         applicationId = "kr.sweetapps.alcoholictimer"
