@@ -85,39 +85,56 @@ fun DiaryWriteScreen(
 
                 // Post 객체로 변환하여 WritePostScreenContent에 전달
                 if (diary != null) {
-                    // [FIX] 타이머 시작 시간 가져오기 (2025-12-23)
+                    // [CRITICAL] 수정 모드: DB에 저장된 레벨/일수 우선 사용 (2025-12-27)
+                    // 타이머 시작 시간 가져오기 (fallback용)
                     val prefs = context.getSharedPreferences("timer_prefs", android.content.Context.MODE_PRIVATE)
                     val startTime = prefs.getLong("start_time", 0L)
 
-                    // [FIX] 일기 작성 당시의 경과 일수 및 레벨 계산 (2025-12-23)
-                    val elapsedDays = if (startTime > 0) {
-                        kotlin.math.max(1, ((diary.timestamp - startTime) / (1000 * 60 * 60 * 24)).toInt() + 1)
+                    // [CHANGED] DB에 저장된 userLevel/currentDays가 있으면 우선 사용, 없으면 계산 (2025-12-27)
+                    val savedLevel = diary.userLevel
+                    val savedDays = diary.currentDays
+
+                    val displayLevel: Int
+                    val displayDays: Int
+
+                    if (savedLevel > 0 && savedDays > 0) {
+                        // DB에 저장된 값이 유효하면 그대로 사용
+                        displayLevel = savedLevel
+                        displayDays = savedDays
+                        android.util.Log.d("DiaryWriteScreen", "[수정 모드] DB 저장값 사용: Lv.$displayLevel, Day $displayDays")
                     } else {
-                        1 // 타이머 없으면 기본값
+                        // 저장값이 없으면 타임스탬프 기준으로 계산 (레거시 일기 호환)
+                        val elapsedDays = if (startTime > 0) {
+                            kotlin.math.max(1, ((diary.timestamp - startTime) / (1000 * 60 * 60 * 24)).toInt() + 1)
+                        } else {
+                            1
+                        }
+                        val levelNumber = kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions.getLevelNumber(elapsedDays)
+                        displayLevel = levelNumber + 1
+                        displayDays = elapsedDays
+                        android.util.Log.d("DiaryWriteScreen", "[수정 모드] 계산값 사용: Lv.$displayLevel, Day $displayDays")
                     }
-                    val levelNumber = kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions.getLevelNumber(elapsedDays)
 
                     postToEdit = Post(
                         id = diary.id.toString(),
                         content = diary.content,
-                        tagType = diary.tagType, // [FIX] DB에 저장된 실제 태그 값 사용 (2025-12-23)
-                        thirstLevel = diary.cravingLevel, // [FIX] cravingLevel -> thirstLevel 매핑
-                        imageUrl = diary.imageUrl, // [FIX] 기존 이미지 URL 매핑 (2025-12-23)
+                        tagType = diary.tagType,
+                        thirstLevel = diary.cravingLevel,
+                        imageUrl = diary.imageUrl,
                         nickname = "",
-                        timerDuration = "", // 사용하지 않음
+                        timerDuration = "",
                         likeCount = 0,
                         likedBy = emptyList(),
-                        currentDays = elapsedDays, // [FIX] 일기 작성 당시 경과 일수 (2025-12-23)
-                        userLevel = levelNumber + 1, // [FIX] 레벨 번호 (1-indexed) (2025-12-23)
-                        createdAt = com.google.firebase.Timestamp(diary.timestamp / 1000, 0), // [FIX] 일기 작성 시간 (2025-12-23)
+                        currentDays = displayDays, // [CHANGED] DB 저장값 또는 계산값
+                        userLevel = displayLevel,   // [CHANGED] DB 저장값 또는 계산값
+                        createdAt = com.google.firebase.Timestamp(diary.timestamp / 1000, 0),
                         deleteAt = com.google.firebase.Timestamp.now(),
                         authorAvatarIndex = 0,
                         authorId = "",
                         languageCode = ""
                     )
 
-                    // [DEBUG] postToEdit 설정 확인 (2025-12-23)
-                    android.util.Log.d("DiaryWriteScreen", "postToEdit 설정됨: id=${diary.id}, content=${diary.content.take(20)}, days=$elapsedDays, level=${levelNumber + 1}")
+                    android.util.Log.d("DiaryWriteScreen", "postToEdit 설정 완료: id=${diary.id}, Lv.$displayLevel, Day $displayDays")
                 }
 
                 // [NEW] 데이터 로드 완료 (2025-12-23)
@@ -250,6 +267,11 @@ fun DiaryWriteScreen(
                     if (diaryId != null) {
                         // [수정 모드] 날짜 변경 금지 (기존 타임스탬프 유지)
                         val originalTimestamp = existingDiary?.timestamp ?: System.currentTimeMillis()
+
+                        // [CRITICAL] 수정 모드: 작성 당시의 레벨/일수 유지 (2025-12-27)
+                        val originalLevel = existingDiary?.userLevel ?: currentLevel
+                        val originalDays = existingDiary?.currentDays ?: currentDays
+
                         val updatedDiary = existingDiary?.copy(
                             content = postData.content,
                             cravingLevel = postData.thirstLevel ?: 0,
@@ -258,12 +280,12 @@ fun DiaryWriteScreen(
                             timestamp = originalTimestamp,
                             date = formatDate(originalTimestamp),
                             sharedPostId = newSharedPostId, // [NEW] Firestore ID 저장 (2025-12-25)
-                            userLevel = currentLevel, // [NEW] 현재 레벨 저장 (2025-12-26)
-                            currentDays = currentDays // [NEW] 현재 일수 저장 (2025-12-26)
+                            userLevel = originalLevel,   // [CHANGED] 원본 레벨 유지 (현재 레벨로 덮어쓰지 않음)
+                            currentDays = originalDays   // [CHANGED] 원본 일수 유지 (현재 일수로 덮어쓰지 않음)
                         )
                         if (updatedDiary != null) {
                             diaryViewModel.updateDiary(updatedDiary)
-                            android.util.Log.d("DiaryWriteScreen", "일기 수정 성공: 태그=${postData.tagType}, Lv.$currentLevel, Day $currentDays, sharedPostId=$newSharedPostId")
+                            android.util.Log.d("DiaryWriteScreen", "일기 수정 성공: 태그=${postData.tagType}, 원본 Lv.$originalLevel 유지, Day $originalDays 유지, sharedPostId=$newSharedPostId")
                         }
                     } else {
                         // [신규 모드] 선택된 날짜 사용

@@ -1134,7 +1134,7 @@ private fun DiaryEmptyState() {
             .padding(vertical = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // [FIX] notebook 아이콘으로 변경 (AllDiaryScreen과 동일)
+        // [FIX] notebook 아이콘 사용
         Icon(
             painter = painterResource(id = R.drawable.notebook),
             contentDescription = null,

@@ -272,7 +272,7 @@ fun NavGraphBuilder.addTab02DetailGraph(
             ) + fadeOut(animationSpec = tween(300))
         }
     ) {
-        // [CHANGED] AllDiaryScreen(리스트) → DiaryDetailFeedScreen(피드)로 교체 (2025-12-27)
+        // [CHANGED] 피드 스타일 화면으로 통합 (2025-12-27)
         val diaryViewModel: kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.DiaryViewModel =
             (activity as? androidx.lifecycle.ViewModelStoreOwner)?.let { owner ->
                 androidx.lifecycle.viewmodel.compose.viewModel(viewModelStoreOwner = owner)
