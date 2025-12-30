@@ -313,6 +313,26 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
 
                 Log.d("Tab01ViewModel", "[GiveUp STEP 1] 데이터 스냅샷: startTime=$startTime, endTime=$endTime, targetDays=$targetDays, actualDays=$actualDays")
 
+                // [NEW] Analytics 이벤트 전송 (2025-12-31)
+                try {
+                    val progressPercent = if (targetDays > 0) {
+                        ((actualDays / targetDays.toDouble()) * 100).toFloat()
+                    } else {
+                        0f
+                    }
+                    AnalyticsManager.logTimerGiveUp(
+                        targetDays = targetDays.toInt(),
+                        actualDays = actualDays.toInt(),
+                        quitReason = "user_quit",
+                        startTs = startTime,
+                        quitTs = endTime,
+                        progressPercent = progressPercent
+                    )
+                    Log.d("Tab01ViewModel", "[GiveUp Analytics] timer_give_up event sent (progress=${progressPercent}%)")
+                } catch (e: Exception) {
+                    Log.e("Tab01ViewModel", "[GiveUp Analytics] Failed to log analytics", e)
+                }
+
                 // [STEP 2] "user_settings" 파일에 포기 기록 저장 (AppNavHost와 동일한 파일)
                 val editor = sharedPref.edit()
                 editor.putLong("completed_start_time", startTime)

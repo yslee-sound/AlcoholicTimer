@@ -47,12 +47,39 @@ fun AppNavHost(
     // [REMOVED] firebaseAnalytics 변수 제거
     // AnalyticsManager 싱글톤을 통해 통합 관리되므로 직접 사용 불필요
 
+    // [NEW] 화면 전환 추적 (2025-12-31)
+    var previousScreen by remember { mutableStateOf<String?>(null) }
+
     LaunchedEffect(Unit) {
         var wasHome = false
         var firstEmissionSkipped = false
         navController.currentBackStackEntryFlow.collect { entry ->
             val route = entry.destination.route
             val isHome = isHomeRoute(route)
+
+            // [NEW] 화면 전환 Analytics (2025-12-31)
+            if (route != null && route != previousScreen) {
+                try {
+                    val sharedPref = context.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+                    val timerStatus = when {
+                        sharedPref.getBoolean("timer_completed", false) -> "completed"
+                        sharedPref.getLong("start_time", 0L) > 0L -> "active"
+                        else -> "idle"
+                    }
+
+                    kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.logScreenView(
+                        screenName = route,
+                        screenClass = "AppNavHost",
+                        previousScreen = previousScreen,
+                        timerStatus = timerStatus
+                    )
+                    android.util.Log.d("AppNavHost", "Analytics: screen_view event sent (${previousScreen} → ${route})")
+                } catch (e: Exception) {
+                    android.util.Log.e("AppNavHost", "Failed to log screen_view", e)
+                }
+                previousScreen = route
+            }
+
             if (!firstEmissionSkipped) {
                 firstEmissionSkipped = true
                 wasHome = isHome

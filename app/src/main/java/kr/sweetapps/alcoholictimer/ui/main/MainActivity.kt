@@ -159,6 +159,37 @@ class MainActivity : BaseActivity() {
         // 강제 라이트 모드 설정
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
+        // [NEW] Session Start 이벤트 전송 (2025-12-31)
+        try {
+            val installTime = sharedPref.getLong("install_time", 0L)
+
+            // 첫 실행이면 설치 시각 저장
+            if (installTime == 0L) {
+                sharedPref.edit().putLong("install_time", System.currentTimeMillis()).apply()
+            }
+
+            val daysSinceInstall = if (installTime > 0) {
+                ((System.currentTimeMillis() - installTime) / (24 * 60 * 60 * 1000)).toInt()
+            } else {
+                0
+            }
+
+            val timerStatus = when {
+                timerCompleted -> "completed"
+                startTime > 0L -> "active"
+                else -> "idle"
+            }
+
+            kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.logSessionStart(
+                isFirstSession = daysSinceInstall == 0,
+                daysSinceInstall = daysSinceInstall,
+                timerStatus = timerStatus
+            )
+            android.util.Log.d("MainActivity", "Analytics: session_start event sent (days=$daysSinceInstall, status=$timerStatus)")
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Failed to log session_start", e)
+        }
+
         // 타이머 상태 확인 및 UI 전환 로직
         checkTimerStateAndSwitchUI()
 

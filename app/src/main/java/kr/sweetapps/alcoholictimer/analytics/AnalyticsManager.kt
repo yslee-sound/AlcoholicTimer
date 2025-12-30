@@ -92,4 +92,88 @@ object AnalyticsManager {
     fun logViewRecordDetail(recordId: String) = log(AnalyticsEvents.VIEW_RECORD_DETAIL) {
         putString(AnalyticsParams.RECORD_ID, recordId)
     }
+
+    // [NEW] TimerGiveUp: 타이머 포기 (2025-12-31)
+    fun logTimerGiveUp(
+        targetDays: Int,
+        actualDays: Int,
+        quitReason: String,
+        startTs: Long,
+        quitTs: Long,
+        progressPercent: Float
+    ) = log(AnalyticsEvents.TIMER_GIVE_UP) {
+        putInt(AnalyticsParams.TARGET_DAYS, targetDays)
+        putInt(AnalyticsParams.ACTUAL_DAYS, actualDays)
+        putString(AnalyticsParams.QUIT_REASON, quitReason)
+        putLong(AnalyticsParams.START_TS, startTs)
+        putLong(AnalyticsParams.QUIT_TS, quitTs)
+        putFloat(AnalyticsParams.PROGRESS_PERCENT, progressPercent)
+    }
+
+    // [NEW] SessionStart: 세션 시작 (2025-12-31)
+    fun logSessionStart(
+        isFirstSession: Boolean,
+        daysSinceInstall: Int,
+        timerStatus: String
+    ) = log(AnalyticsEvents.SESSION_START) {
+        putBoolean(AnalyticsParams.IS_FIRST_SESSION, isFirstSession)
+        putInt(AnalyticsParams.DAYS_SINCE_INSTALL, daysSinceInstall)
+        putString(AnalyticsParams.TIMER_STATUS, timerStatus)
+    }
+
+    // [NEW] LevelUp: 레벨 업 달성 (2025-12-31)
+    fun logLevelUp(
+        oldLevel: Int,
+        newLevel: Int,
+        totalDays: Int,
+        levelName: String,
+        achievementTs: Long
+    ) = log(AnalyticsEvents.LEVEL_UP) {
+        putInt(AnalyticsParams.OLD_LEVEL, oldLevel)
+        putInt(AnalyticsParams.NEW_LEVEL, newLevel)
+        putInt(AnalyticsParams.TOTAL_DAYS, totalDays)
+        putString(AnalyticsParams.LEVEL_NAME, levelName)
+        putLong(AnalyticsParams.ACHIEVEMENT_TS, achievementTs)
+    }
+
+    // [NEW] ScreenView: 화면 전환 (2025-12-31)
+    fun logScreenView(
+        screenName: String,
+        screenClass: String,
+        previousScreen: String? = null,
+        timerStatus: String
+    ) = log(AnalyticsEvents.SCREEN_VIEW) {
+        putString(AnalyticsParams.SCREEN_NAME, screenName)
+        putString(AnalyticsParams.SCREEN_CLASS, screenClass)
+        previousScreen?.let { putString(AnalyticsParams.PREVIOUS_SCREEN, it) }
+        putString(AnalyticsParams.TIMER_STATUS, timerStatus)
+    }
+
+    // [NEW] CommunityPost: 커뮤니티 글 작성 (2025-12-31)
+    fun logCommunityPost(
+        postType: String,
+        hasImage: Boolean,
+        contentLength: Int,
+        tagType: String?,
+        userLevel: Int,
+        days: Int
+    ) = log(AnalyticsEvents.COMMUNITY_POST) {
+        putString(AnalyticsParams.POST_TYPE, postType)
+        putBoolean(AnalyticsParams.HAS_IMAGE, hasImage)
+        putInt(AnalyticsParams.CONTENT_LENGTH, contentLength)
+        tagType?.let { putString(AnalyticsParams.TAG_TYPE, it) }
+        putInt(AnalyticsParams.USER_LEVEL, userLevel)
+        putInt(AnalyticsParams.DAYS, days)
+    }
+
+    // [NEW] SettingsChange: 설정 변경 (2025-12-31)
+    fun logSettingsChange(
+        settingType: String,
+        oldValue: String?,
+        newValue: String
+    ) = log(AnalyticsEvents.SETTINGS_CHANGE) {
+        putString(AnalyticsParams.SETTING_TYPE, settingType)
+        oldValue?.let { putString(AnalyticsParams.OLD_VALUE, it) }
+        putString(AnalyticsParams.NEW_VALUE, newValue)
+    }
 }

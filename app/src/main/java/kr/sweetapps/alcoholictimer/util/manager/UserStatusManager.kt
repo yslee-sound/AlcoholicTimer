@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions
 import kr.sweetapps.alcoholictimer.util.constants.Constants
+import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager // [NEW] Analytics 이벤트 전송용 (2025-12-31)
 
 /**
  * [NEW] 사용자 상태 중앙 관리자 (2025-12-25)
@@ -60,6 +61,11 @@ object UserStatusManager {
      * Tab02ViewModel에서 DB 로드 후 updateHistoryDays()로 업데이트
      */
     private val _historyDays = MutableStateFlow(0f)
+
+    /**
+     * [NEW] 이전 레벨 추적 (레벨업 감지용) (2025-12-31)
+     */
+    private var previousLevel: Int = 1
 
     /**
      * [UPDATED] 외부에서 과거 기록 업데이트 (Float 지원) (2025-12-26)
@@ -122,6 +128,24 @@ object UserStatusManager {
         // 4. 레벨 계산 (0-indexed → 1-indexed 변환)
         val levelNumber = LevelDefinitions.getLevelNumber(totalDays)
         val level = if (levelNumber >= 0) levelNumber + 1 else 1
+
+        // [NEW] 레벨업 감지 및 Analytics 전송 (2025-12-31)
+        if (level > previousLevel && previousLevel > 0) {
+            try {
+                val levelInfo = LevelDefinitions.getLevelInfo(totalDays)
+                AnalyticsManager.logLevelUp(
+                    oldLevel = previousLevel,
+                    newLevel = level,
+                    totalDays = totalDays,
+                    levelName = levelInfo.toString(),
+                    achievementTs = System.currentTimeMillis()
+                )
+                android.util.Log.d("UserStatusManager", "Analytics: level_up event sent (${previousLevel} → ${level})")
+            } catch (e: Exception) {
+                android.util.Log.e("UserStatusManager", "Failed to log level_up", e)
+            }
+        }
+        previousLevel = level
 
         return UserStatus(
             level = level,

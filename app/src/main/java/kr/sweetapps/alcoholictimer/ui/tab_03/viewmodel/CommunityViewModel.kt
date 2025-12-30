@@ -472,6 +472,7 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
                 // 8. Firestore에 게시글 추가
                 repository.addPost(post)
 
+
                 // 9. 성공 콜백 호출 (UI 쪽에서 창 닫기 등 후속 처리 담당)
                 try {
                     onSuccess()
