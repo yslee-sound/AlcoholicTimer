@@ -64,13 +64,29 @@ fun CurrencyScreen(onBack: () -> Unit = {}) {
                 item {
                     val label = stringResource(R.string.settings_currency_auto)
                     val isSelected = selectedKeyState.value == "AUTO"
-                    val onSelect = {
+                    val onSelect: () -> Unit = {
+                        // [NEW] Analytics: 설정 변경 추적 (2025-12-31)
+                        val oldValue = selectedKeyState.value
+
                         // 저장: AUTO 모드로 변경
                         CurrencyManager.saveCurrency(context, "AUTO")
                         prefs.edit { putBoolean("currency_explicit", false) }
                         selectedKeyState.value = "AUTO"
                         // 업데이트: 현재 해석된 통화 코드도 갱신
                         selectedCodeState.value = CurrencyManager.getSelectedCurrency(context).code
+
+                        // [NEW] Analytics 전송 (2025-12-31)
+                        try {
+                            kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.logSettingsChange(
+                                settingType = "currency",
+                                oldValue = oldValue,
+                                newValue = "AUTO"
+                            )
+                            android.util.Log.d("CurrencyScreen", "Analytics: settings_change sent (currency: $oldValue → AUTO)")
+                        } catch (e: Exception) {
+                            android.util.Log.e("CurrencyScreen", "Failed to log settings_change", e)
+                        }
+                        Unit
                     }
                     CurrencyOptionRow(isSelected = isSelected, label = label, onSelected = onSelect)
                 }
@@ -81,11 +97,26 @@ fun CurrencyScreen(onBack: () -> Unit = {}) {
                         isSelected = isSelected,
                         label = context.getString(currency.nameResId),
                         onSelected = {
+                            // [NEW] Analytics: 설정 변경 추적 (2025-12-31)
+                            val oldValue = selectedKeyState.value
+
                             CurrencyManager.saveCurrency(context, currency.code)
                             // mark explicit selection
                             prefs.edit { putBoolean("currency_explicit", true) }
                             selectedKeyState.value = currency.code
                             selectedCodeState.value = currency.code
+
+                            // [NEW] Analytics 전송 (2025-12-31)
+                            try {
+                                kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.logSettingsChange(
+                                    settingType = "currency",
+                                    oldValue = oldValue,
+                                    newValue = currency.code
+                                )
+                                android.util.Log.d("CurrencyScreen", "Analytics: settings_change sent (currency: $oldValue → ${currency.code})")
+                            } catch (e: Exception) {
+                                android.util.Log.e("CurrencyScreen", "Failed to log settings_change", e)
+                            }
                         }
                     )
                 }
