@@ -21,7 +21,7 @@ import kr.sweetapps.alcoholictimer.ui.tab_01.screens.QuitScreenComposable
  * Tab 01: 금주 타이머 관련 네비게이션 그래프
  * - Start: 타이머 시작 화면
  * - Run: 타이머 진행 화면
- * - Quit: 포기 확인 화면
+ * - Quit: 포기 확인 화면_
  */
 fun NavGraphBuilder.addTab01Graph(
     navController: NavHostController,
