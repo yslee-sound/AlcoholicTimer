@@ -2,13 +2,11 @@ package kr.sweetapps.alcoholictimer.ui.main.navigation
 
 import android.app.Activity
 import android.content.Context
-import android.os.Bundle
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import com.google.firebase.analytics.FirebaseAnalytics
 import kr.sweetapps.alcoholictimer.ui.main.Screen
 // [FIX] 기존 Screen 직접 import 제거 (또는 안 쓰게 됨)
 // import kr.sweetapps.alcoholictimer.ui.tab_01.screens.StartScreen (제거 대상)
@@ -28,8 +26,7 @@ import kr.sweetapps.alcoholictimer.ui.tab_01.screens.QuitScreenComposable
 fun NavGraphBuilder.addTab01Graph(
     navController: NavHostController,
     activity: Activity?,
-    context: Context,
-    firebaseAnalytics: FirebaseAnalytics?
+    context: Context
 ) {
     // Start Screen
     composable(Screen.Start.route) {
@@ -38,9 +35,10 @@ fun NavGraphBuilder.addTab01Graph(
         Tab01StartScreen(
             gateNavigation = false,
             onStart = { targetDays ->
-                val bundle = Bundle()
-                bundle.putInt("target_days", targetDays)
-                firebaseAnalytics?.logEvent("start_timer", bundle)
+                // [REMOVED] 중복 Analytics 이벤트 제거
+                // StartScreenViewModel.startCountdown()에서 AnalyticsManager.logTimerStart()로 이미 전송됨
+                // 이벤트명: "timer_start" (표준화된 이름)
+                // 구 이벤트: "start_timer" (비표준, 제거됨)
 
                 // [REMOVED] 전면광고 로직 제거 - StartScreenViewModel이 이미 처리함
                 // ViewModel에서 카운트다운 → 타이머 시작 → NavigationEvent 발행

@@ -1686,12 +1686,19 @@ private fun calculateRemainingTime(deleteAt: com.google.firebase.Timestamp, cont
 }
 
 /**
- * REAL 구글 애드몹 네이티브 광고
- * 기존의 노란색 Placeholder를 대체합니다.
+ * [REFACTORED] 네이티브 광고 아이템 - 스크롤 시 재로드 방지 (2025-12-31)
+ *
+ * 개선사항:
+ * - NativeAdManager를 통한 광고 캐싱
+ * - 스크롤로 화면에서 사라져도 광고 객체 유지
+ * - 재진입 시 기존 광고 즉시 표시 (재로드 없음)
  */
 @Composable
 private fun NativeAdItem() {
     val context = LocalContext.current
+
+    // [NEW] NativeAdManager의 캐시 키 (커뮤니티 화면 전용)
+    val screenKey = "community_feed"
 
     val adUnitId = try { BuildConfig.ADMOB_NATIVE_ID } catch (_: Throwable) { "ca-app-pub-3940256099942544/2247696110" }
 
@@ -1699,39 +1706,36 @@ private fun NativeAdItem() {
     // [NEW] 광고 로드 실패 플래그 (No Fill 대응, 2025-12-24)
     var adLoadFailed by remember { mutableStateOf(false) }
 
-    // 1. 광고 로드 (최초 1회)
+    // [REFACTORED] 광고 로드 로직 - 캐시 우선 사용 (2025-12-31)
     LaunchedEffect(Unit) {
         try {
             try {
                 com.google.android.gms.ads.MobileAds.initialize(context)
             } catch (initEx: Exception) {
-                android.util.Log.w("NativeAd", "MobileAds.initialize failed: ${initEx.message}")
+                android.util.Log.w("NativeAdItem", "MobileAds.initialize failed: ${initEx.message}")
             }
-            val adLoader = com.google.android.gms.ads.AdLoader.Builder(context, adUnitId)
-                .forNativeAd { ad: com.google.android.gms.ads.nativead.NativeAd ->
-                    nativeAd = ad
-                }
-                // [NEW] 광고 로드 실패 리스너 추가 (No Fill 대응, 2025-12-24)
-                .withAdListener(object : com.google.android.gms.ads.AdListener() {
-                    override fun onAdFailedToLoad(error: com.google.android.gms.ads.LoadAdError) {
-                        android.util.Log.w("NativeAd", "Ad load failed (No Fill): ${error.message}")
-                        adLoadFailed = true // [핵심] UI 숨김 플래그
-                    }
-                })
-                .withNativeAdOptions(com.google.android.gms.ads.nativead.NativeAdOptions.Builder().build())
-                .build()
 
-            try {
-                adLoader.loadAd(com.google.android.gms.ads.AdRequest.Builder().build())
-            } catch (se: SecurityException) {
-                android.util.Log.w("NativeAd", "Ad load blocked by SecurityException: ${se.message}")
-                adLoadFailed = true // [추가] SecurityException도 실패로 처리
-            }
+            // [핵심] NativeAdManager를 통한 캐싱된 광고 가져오기 또는 새로 로드
+            kr.sweetapps.alcoholictimer.ui.ad.NativeAdManager.getOrLoadAd(
+                context = context,
+                screenKey = screenKey,
+                onAdReady = { ad ->
+                    android.util.Log.d("NativeAdItem", "Ad ready (cached or loaded)")
+                    nativeAd = ad
+                },
+                onAdFailed = {
+                    android.util.Log.w("NativeAdItem", "Ad load failed (No Fill)")
+                    adLoadFailed = true
+                }
+            )
         } catch (e: Exception) {
-            android.util.Log.e("NativeAd", "Failed setting up ad loader", e)
-            adLoadFailed = true // [추가] 예외 발생 시 실패로 처리
+            android.util.Log.e("NativeAdItem", "Failed setting up ad", e)
+            adLoadFailed = true
         }
     }
+
+    // [NEW] Composable 종료 시 리소스 정리는 하지 않음 (캐시 유지)
+    // Activity 레벨에서 NativeAdManager.destroyAd(screenKey) 호출 필요
 
     // [NEW] 광고 로드 실패 시 UI 아예 숨김 (Graceful Degradation, 2025-12-24)
     if (adLoadFailed) {

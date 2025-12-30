@@ -363,6 +363,14 @@ class MainActivity : BaseActivity() {
     override fun onDestroy() {
         super.onDestroy()
 
+        // [NEW] 네이티브 광고 캐시 정리 - 메모리 누수 방지 (2025-12-31)
+        try {
+            kr.sweetapps.alcoholictimer.ui.ad.NativeAdManager.destroyAllAds()
+            android.util.Log.d("MainActivity", "Native ad cache cleared")
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Failed to clear native ad cache", e)
+        }
+
         // 앱 타이밍 진단: 최종 리포트 출력
         kr.sweetapps.alcoholictimer.ui.ad.AdTimingLogger.printTimingReport()
 

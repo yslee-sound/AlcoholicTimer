@@ -17,8 +17,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.ktx.Firebase
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.ad.HomeAdTrigger
 import kr.sweetapps.alcoholictimer.ui.common.BaseScaffold
@@ -46,7 +44,8 @@ fun AppNavHost(
     var recordsRefreshCounter by remember { mutableStateOf(0) }
     val activity = (LocalView.current.context as? Activity)
     val context = LocalContext.current
-    val firebaseAnalytics = runCatching { Firebase.analytics }.getOrNull()
+    // [REMOVED] firebaseAnalytics 변수 제거
+    // AnalyticsManager 싱글톤을 통해 통합 관리되므로 직접 사용 불필요
 
     LaunchedEffect(Unit) {
         var wasHome = false
@@ -90,7 +89,7 @@ fun AppNavHost(
                     popEnterTransition = { EnterTransition.None },
                     popExitTransition = { ExitTransition.None }
                 ) {
-                    addTab01Graph(tabNavController, activity, context, firebaseAnalytics)
+                    addTab01Graph(tabNavController, activity, context)
 
                     addTab02ListGraph(
                         navController = tabNavController,
