@@ -15,10 +15,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.background
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import com.google.android.gms.ads.MobileAds
 import androidx.compose.ui.res.stringResource
@@ -966,6 +975,44 @@ private fun MainActivityContent(
                     activity.handlePermissionDialogDismiss()
                 }
             )
+        }
+
+        // [NEW] 알림 테스트 버튼 - 초기화 완료 후에만 표시 (2025-12-31)
+        if (isInitComplete) {
+            Box(
+                modifier = androidx.compose.ui.Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                contentAlignment = androidx.compose.ui.Alignment.BottomCenter
+            ) {
+                androidx.compose.material3.Button(
+                    onClick = {
+                        android.util.Log.d("MainActivity", "🧪 TEST: Notification test button clicked")
+
+                        // 즉시 알림 표시
+                        kr.sweetapps.alcoholictimer.util.notification.RetentionNotificationManager.showImmediateTestNotification(
+                            context = activity,
+                            title = "🔔 테스트 알림입니다",
+                            message = "아이콘과 배너가 잘 보이나요?"
+                        )
+
+                        android.util.Log.d("MainActivity", "✅ TEST: Immediate notification triggered")
+                    },
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = androidx.compose.ui.graphics.Color(0xFFFF5722)
+                    ),
+                    modifier = androidx.compose.ui.Modifier
+                        .fillMaxWidth(0.8f)
+                        .height(56.dp)
+                ) {
+                    androidx.compose.material3.Text(
+                        text = "🔔 알림 즉시 테스트",
+                        fontSize = 16.sp,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                        color = androidx.compose.ui.graphics.Color.White
+                    )
+                }
+            }
         }
     }
 }

@@ -15,6 +15,22 @@ import java.util.concurrent.TimeUnit
  */
 object RetentionNotificationManager {
 
+    // ============================================================
+    // [TEST MODE] 알림 발송 테스트용 시간 단축 (2025-12-31)
+    // ============================================================
+    private const val TEST_MODE = true  // ⚠️ 배포 시 false로 변경 필수!
+
+    // 실제 지연 시간 (시간 단위)
+    private const val DELAY_24H = 24L   // 1일
+    private const val DELAY_72H = 72L   // 3일
+    private const val DELAY_168H = 168L // 7일
+    private const val DELAY_720H = 720L // 30일
+
+    // 테스트 지연 시간 (초 단위)
+    private const val TEST_DELAY_24H = 10L   // 10초
+    private const val TEST_DELAY_72H = 20L   // 20초
+    private const val TEST_DELAY_168H = 30L  // 30초
+
     // Work Request Tags (취소 시 사용)
     private const val TAG_GROUP_A = "notification_group_a"
     private const val TAG_GROUP_B = "notification_group_b"
@@ -45,10 +61,11 @@ object RetentionNotificationManager {
         // 기존 그룹 A 알림 취소
         cancelGroupANotifications(context)
 
-        // 1차: 24시간 후
-        scheduleNotification(
+        // 1차: 24시간 후 (TEST: 10초)
+        scheduleNotificationWithTestMode(
             context = context,
-            delayHours = 24,
+            delayHours = DELAY_24H,
+            testDelaySeconds = TEST_DELAY_24H,
             group = NotificationWorker.GROUP_NEW_USER,
             title = RetentionMessages.GroupA.TITLE_1,
             message = RetentionMessages.GroupA.MESSAGE_1,
@@ -56,10 +73,11 @@ object RetentionNotificationManager {
             tag = TAG_GROUP_A
         )
 
-        // 2차: 72시간 후 (3일차) - 1차 발송 2일 후
-        scheduleNotification(
+        // 2차: 72시간 후 (TEST: 20초)
+        scheduleNotificationWithTestMode(
             context = context,
-            delayHours = 72,
+            delayHours = DELAY_72H,
+            testDelaySeconds = TEST_DELAY_72H,
             group = NotificationWorker.GROUP_NEW_USER,
             title = RetentionMessages.GroupA.TITLE_2,
             message = RetentionMessages.GroupA.MESSAGE_2,
@@ -67,10 +85,11 @@ object RetentionNotificationManager {
             tag = TAG_GROUP_A
         )
 
-        // 3차: 168시간 후 (7일차) - 2차 발송 4일 후
-        scheduleNotification(
+        // 3차: 168시간 후 (TEST: 30초)
+        scheduleNotificationWithTestMode(
             context = context,
-            delayHours = 168,
+            delayHours = DELAY_168H,
+            testDelaySeconds = TEST_DELAY_168H,
             group = NotificationWorker.GROUP_NEW_USER,
             title = RetentionMessages.GroupA.TITLE_3,
             message = RetentionMessages.GroupA.MESSAGE_3,
@@ -81,7 +100,8 @@ object RetentionNotificationManager {
         // [NEW] User Property 설정 (2025-12-31)
         kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.setUserProperty("retention_group", "group_a_new_user")
 
-        android.util.Log.d("RetentionNotification", "✅ Group A notifications scheduled (24h, 72h, 168h)")
+        val mode = if (TEST_MODE) "TEST MODE (10s, 20s, 30s)" else "24h, 72h, 168h"
+        android.util.Log.d("RetentionNotification", "✅ Group A notifications scheduled - $mode")
     }
 
     /**
@@ -161,10 +181,11 @@ object RetentionNotificationManager {
         // 기존 그룹 C 알림 취소
         cancelGroupCNotifications(context)
 
-        // D+1: 24시간 후 재도전 알림
-        scheduleNotification(
+        // D+1: 24시간 후 (TEST: 10초)
+        scheduleNotificationWithTestMode(
             context = context,
-            delayHours = 24,
+            delayHours = DELAY_24H,
+            testDelaySeconds = TEST_DELAY_24H,
             group = NotificationWorker.GROUP_RESTING_USER,
             title = RetentionMessages.GroupC.TITLE_D1,
             message = RetentionMessages.GroupC.MESSAGE_D1,
@@ -172,21 +193,23 @@ object RetentionNotificationManager {
             tag = TAG_GROUP_C
         )
 
-        // D+3: 72시간 후 간 회복 메시지
-        scheduleNotification(
+        // D+3: 72시간 후 (TEST: 20초)
+        scheduleNotificationWithTestMode(
             context = context,
-            delayHours = 72,
+            delayHours = DELAY_72H,
+            testDelaySeconds = TEST_DELAY_72H,
             group = NotificationWorker.GROUP_RESTING_USER,
             title = RetentionMessages.GroupC.TITLE_D3,
             message = RetentionMessages.GroupC.MESSAGE_D3,
-            notificationId = NOTIFICATION_ID_GROUP_C + 1,  // 1008
+            notificationId = NOTIFICATION_ID_GROUP_C + 1,
             tag = TAG_GROUP_C
         )
 
         // [NEW] User Property 설정 (2025-12-31)
         kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.setUserProperty("retention_group", "group_c_resting_user")
 
-        android.util.Log.d("RetentionNotification", "✅ Group C notifications scheduled (24h, 72h)")
+        val mode = if (TEST_MODE) "TEST MODE (10s, 20s)" else "24h, 72h"
+        android.util.Log.d("RetentionNotification", "✅ Group C notifications scheduled - $mode")
     }
 
     /**
@@ -221,6 +244,113 @@ object RetentionNotificationManager {
         cancelGroupBNotifications(context)
         cancelGroupCNotifications(context)
         android.util.Log.d("RetentionNotification", "🗑️ All notifications cancelled")
+    }
+
+    /**
+     * [NEW] 즉시 알림 표시 (테스트용) (2025-12-31)
+     *
+     * WorkManager 예약 없이 즉시 알림을 표시
+     * 알림 UI 및 채널 설정 테스트용
+     *
+     * @param context Context
+     * @param title 알림 제목
+     * @param message 알림 메시지
+     */
+    fun showImmediateTestNotification(context: Context, title: String, message: String) {
+        android.util.Log.d("RetentionNotification", "🧪 TEST: Showing immediate notification")
+
+        // 1. 채널 생성 확인
+        NotificationChannelManager.createNotificationChannels(context)
+        android.util.Log.d("RetentionNotification", "✅ Notification channel verified")
+
+        // 2. 알림 표시
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+
+        // 앱 실행 Intent
+        val intent = android.content.Intent(context, kr.sweetapps.alcoholictimer.ui.main.MainActivity::class.java).apply {
+            flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+
+        val pendingIntent = android.app.PendingIntent.getActivity(
+            context,
+            9999, // 테스트용 고유 ID
+            intent,
+            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // 알림 빌드
+        val notification = androidx.core.app.NotificationCompat.Builder(context, NotificationChannelManager.CHANNEL_ID_RETENTION)
+            .setSmallIcon(kr.sweetapps.alcoholictimer.R.drawable.ic_launcher_foreground)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setStyle(androidx.core.app.NotificationCompat.BigTextStyle().bigText(message))
+            .setPriority(androidx.core.app.NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .build()
+
+        // 알림 표시
+        notificationManager.notify(9999, notification)
+
+        android.util.Log.d("RetentionNotification", "✅ TEST: Notification displayed - Title: $title")
+    }
+
+    /**
+     * [NEW] 테스트 모드를 고려한 알림 예약 (2025-12-31)
+     *
+     * TEST_MODE가 true면 초 단위로, false면 시간 단위로 예약
+     *
+     * @param context Context
+     * @param delayHours 실제 지연 시간 (시간 단위)
+     * @param testDelaySeconds 테스트 지연 시간 (초 단위)
+     * @param group 알림 그룹
+     * @param title 알림 제목
+     * @param message 알림 메시지
+     * @param notificationId 알림 ID
+     * @param tag WorkRequest 태그
+     */
+    private fun scheduleNotificationWithTestMode(
+        context: Context,
+        delayHours: Long,
+        testDelaySeconds: Long,
+        group: String,
+        title: String,
+        message: String,
+        notificationId: Int,
+        tag: String
+    ) {
+        val inputData = Data.Builder()
+            .putString(NotificationWorker.KEY_NOTIFICATION_GROUP, group)
+            .putString(NotificationWorker.KEY_NOTIFICATION_TITLE, title)
+            .putString(NotificationWorker.KEY_NOTIFICATION_MESSAGE, message)
+            .putInt(NotificationWorker.KEY_NOTIFICATION_ID, notificationId)
+            .build()
+
+        val workRequest = if (TEST_MODE) {
+            // 테스트 모드: 초 단위로 예약
+            OneTimeWorkRequestBuilder<NotificationWorker>()
+                .setInitialDelay(testDelaySeconds, TimeUnit.SECONDS)
+                .setInputData(inputData)
+                .addTag(tag)
+                .build()
+        } else {
+            // 실제 모드: 시간 단위로 예약
+            OneTimeWorkRequestBuilder<NotificationWorker>()
+                .setInitialDelay(delayHours, TimeUnit.HOURS)
+                .setInputData(inputData)
+                .addTag(tag)
+                .build()
+        }
+
+        WorkManager.getInstance(context).enqueue(workRequest)
+
+        val delayInfo = if (TEST_MODE) {
+            "Delay: ${testDelaySeconds}s (TEST MODE)"
+        } else {
+            "Delay: ${delayHours}h"
+        }
+
+        android.util.Log.d("RetentionNotification", "📅 Notification scheduled - Group: $group, $delayInfo, ID: $notificationId")
     }
 
     /**
