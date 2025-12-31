@@ -342,6 +342,17 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
                     Log.e("Tab01ViewModel", "[GiveUp Retention] Failed to update RetentionPreferenceManager", e)
                 }
 
+                // [NEW] 리텐션 알림 예약 (2025-12-31)
+                try {
+                    // 그룹 B (활성 유저) 알림 취소
+                    kr.sweetapps.alcoholictimer.util.notification.RetentionNotificationManager.cancelGroupBNotifications(getApplication())
+                    // 그룹 C (휴식 유저) 알림 예약 - 24시간 후 재도전 유도
+                    kr.sweetapps.alcoholictimer.util.notification.RetentionNotificationManager.scheduleGroupCNotifications(getApplication())
+                    Log.d("Tab01ViewModel", "✅ Retention notification scheduled - Group C (resting user)")
+                } catch (e: Exception) {
+                    Log.e("Tab01ViewModel", "Failed to schedule retention notification", e)
+                }
+
                 // [STEP 2] "user_settings" 파일에 포기 기록 저장 (AppNavHost와 동일한 파일)
                 val editor = sharedPref.edit()
                 editor.putLong("completed_start_time", startTime)

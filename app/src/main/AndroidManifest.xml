@@ -25,6 +25,12 @@
     -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
+    <!-- [NEW] 기기 재부팅 감지 권한 (2025-12-31)
+         - 목적: 재부팅 후 예약된 알림 재등록
+         - 사용처: BootCompletedReceiver
+    -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+
     <!-- [REQUIRED] 광고 ID 권한 (Android 13+ 필수)
          - 목적: 개인화된 광고 게재 및 광고 성과 측정
          - 사용처: Google AdMob (전면 광고, 오픈 광고)
@@ -77,6 +83,15 @@
             android:name="firebase_crashlytics_collection_enabled"
             android:value="${crashlyticsCollectionEnabled}" />
 
+        <!-- [NEW] BootCompletedReceiver for re-scheduling notifications (2025-12-31) -->
+        <receiver
+            android:name=".util.notification.BootCompletedReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
         <property
             android:name="android.adservices.AD_SERVICES_CONFIG"

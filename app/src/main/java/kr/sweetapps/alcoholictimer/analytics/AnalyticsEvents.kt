@@ -14,6 +14,7 @@ object AnalyticsEvents {
     const val SCREEN_VIEW = "screen_view" // [NEW] 화면 전환 (2025-12-31)
     const val COMMUNITY_POST = "community_post" // [NEW] 커뮤니티 글 작성 (2025-12-31)
     const val SETTINGS_CHANGE = "settings_change" // [NEW] 설정 변경 (2025-12-31)
+    const val NOTIFICATION_OPEN = "notification_open" // [NEW] 알림 클릭 (2025-12-31)
     const val AD_IMPRESSION = "ad_impression"
     const val AD_CLICK = "ad_click"
     const val VIEW_RECORDS = "view_records"
@@ -63,4 +64,9 @@ object AnalyticsParams {
     const val SETTING_TYPE = "setting_type"
     const val OLD_VALUE = "old_value"
     const val NEW_VALUE = "new_value"
+    // [NEW] notification_open용 파라미터 (2025-12-31)
+    const val NOTIFICATION_ID = "notification_id"
+    const val GROUP_TYPE = "group_type"
+    const val TARGET_SCREEN = "target_screen"
+    const val OPEN_TS = "open_ts"
 }

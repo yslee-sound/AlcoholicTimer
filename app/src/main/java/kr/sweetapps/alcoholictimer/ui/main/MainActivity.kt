@@ -49,6 +49,12 @@ class MainActivity : BaseActivity() {
     @Volatile
     private var hasHandledInitialAdLoad: Boolean = false
 
+    // [NEW] 딥링크 처리를 위한 변수 (2025-12-31)
+    private var deepLinkScreenRoute: String? = null
+    private var deepLinkNotificationId: Int = 0
+    private var deepLinkGroupType: String? = null
+    private var deepLinkShowBadgeAnimation: Boolean = false
+
     // [NEW] 알림 권한 요청 ActivityResultLauncher (2025-12-31)
     // onCreate() 이전에 초기화되어야 하므로 lazy 사용
     // internal로 선언하여 Composable 함수에서 접근 가능하도록 함
@@ -67,7 +73,6 @@ class MainActivity : BaseActivity() {
                     oldValue = "denied",
                     newValue = "granted"
                 )
-                android.util.Log.d("MainActivity", "Analytics: settings_change sent (notification_permission: denied → granted)")
             } catch (e: Exception) {
                 android.util.Log.e("MainActivity", "Failed to log settings_change", e)
             }
@@ -82,22 +87,30 @@ class MainActivity : BaseActivity() {
                     oldValue = null,
                     newValue = "denied"
                 )
-                android.util.Log.d("MainActivity", "Analytics: settings_change sent (notification_permission: → denied)")
             } catch (e: Exception) {
                 android.util.Log.e("MainActivity", "Failed to log settings_change", e)
             }
-
-            // shouldShowRequestPermissionRationale 체크
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                val shouldShow = shouldShowRequestPermissionRationale(android.Manifest.permission.POST_NOTIFICATIONS)
-                if (!shouldShow) {
-                    // "다시 묻지 않음" 선택됨 - 설정 화면으로 유도할 수 있음
-                    android.util.Log.w("MainActivity", "⚠️ User selected 'Don't ask again' - permission permanently denied")
-                } else {
-                    android.util.Log.d("MainActivity", "ℹ️ User can be asked again later")
-                }
-            }
         }
+    }
+
+    /**
+     * [NEW] 앱이 이미 실행 중일 때 알림 클릭 처리 (2025-12-31)
+     *
+     * 백그라운드나 포그라운드 상태에서 알림을 클릭하면 이 메서드가 호출됨
+     * 딥링크가 정상 작동하도록 Intent를 다시 처리
+     */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        android.util.Log.d("MainActivity", "📥 onNewIntent called - App already running")
+
+        // 새 Intent를 Activity의 Intent로 설정
+        setIntent(intent)
+
+        // 딥링크 처리
+        handleDeepLinkIntent(intent)
+
+        // NavController가 이미 초기화되어 있다면 즉시 네비게이션 실행
+        // (AppContentWithStart의 LaunchedEffect에서도 처리되지만 중복 방지 로직 있음)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -210,6 +223,12 @@ class MainActivity : BaseActivity() {
 
         // 강제 라이트 모드 설정
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+
+        // [NEW] 알림 채널 생성 (2025-12-31)
+        kr.sweetapps.alcoholictimer.util.notification.NotificationChannelManager.createNotificationChannels(this)
+
+        // [NEW] 딥링크 Intent 처리 (2025-12-31)
+        handleDeepLinkIntent(intent)
 
         // [REMOVED] 알림 권한 체크를 UMP 완료 후로 이동 (2025-12-31)
         // 이유: UMP Consent 팝업과 겹치지 않도록 순차 실행
@@ -678,10 +697,93 @@ class MainActivity : BaseActivity() {
                 daysSinceInstall = daysSinceInstall,
                 timerStatus = timerStatus
             )
-            android.util.Log.d("MainActivity", "✅ Analytics: session_start event sent (days=$daysSinceInstall, status=$timerStatus)")
+            android.util.Log.d("MainActivity", "✅ session_start: days=$daysSinceInstall, status=$timerStatus")
+
+            // [NEW] 그룹 A 알림 자동 예약 (2025-12-31)
+            // 조건: 타이머 미실행 상태 && retry_count == 0
+            try {
+                val retentionPrefs = kr.sweetapps.alcoholictimer.util.manager.RetentionPreferenceManager
+                val isTimerRunning = retentionPrefs.isTimerRunning(this)
+                val retryCount = retentionPrefs.getRetryCount(this)
+
+                if (!isTimerRunning && retryCount == 0) {
+                    kr.sweetapps.alcoholictimer.util.notification.RetentionNotificationManager.scheduleGroupANotifications(this)
+                    android.util.Log.d("MainActivity", "✅ Group A scheduled")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "Failed to schedule Group A", e)
+            }
         } catch (e: Exception) {
             android.util.Log.e("MainActivity", "❌ Failed to log session_start", e)
         }
+    }
+
+    /**
+     * [NEW] 딥링크 Intent 처리 (2025-12-31)
+     * 알림 클릭 시 전달된 화면 경로 및 정보 저장
+     *
+     * @param intent Intent
+     */
+    private fun handleDeepLinkIntent(intent: Intent?) {
+        intent?.let {
+            deepLinkScreenRoute = it.getStringExtra(kr.sweetapps.alcoholictimer.util.notification.DeepLinkConstants.EXTRA_SCREEN_ROUTE)
+            deepLinkNotificationId = it.getIntExtra(kr.sweetapps.alcoholictimer.util.notification.DeepLinkConstants.EXTRA_NOTIFICATION_ID, 0)
+            deepLinkGroupType = it.getStringExtra(kr.sweetapps.alcoholictimer.util.notification.DeepLinkConstants.EXTRA_GROUP_TYPE)
+            deepLinkShowBadgeAnimation = it.getBooleanExtra(kr.sweetapps.alcoholictimer.util.notification.DeepLinkConstants.EXTRA_SHOW_BADGE_ANIMATION, false)
+
+            if (deepLinkScreenRoute != null) {
+                android.util.Log.d("MainActivity", "🔗 Deep link: $deepLinkScreenRoute (Group: $deepLinkGroupType, ID: $deepLinkNotificationId)")
+
+                // [NEW] Analytics 이벤트 전송 (2025-12-31)
+                try {
+                    kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.logNotificationOpen(
+                        notificationId = deepLinkNotificationId,
+                        groupType = deepLinkGroupType ?: "unknown",
+                        targetScreen = deepLinkScreenRoute ?: "unknown"
+                    )
+                } catch (e: Exception) {
+                    android.util.Log.e("MainActivity", "Failed to log notification_open", e)
+                }
+            }
+        }
+    }
+
+    /**
+     * [NEW] 딥링크 네비게이션 실행 (2025-12-31)
+     * NavController가 준비된 후 호출
+     *
+     * @param navController NavHostController
+     */
+    internal fun executeDeepLinkNavigation(navController: androidx.navigation.NavHostController) {
+        deepLinkScreenRoute?.let { route ->
+            android.util.Log.d("MainActivity", "🚀 Navigating to: $route")
+
+            try {
+                navController.navigate(route) {
+                    popUpTo(navController.graph.startDestinationId) {
+                        inclusive = false
+                    }
+                    launchSingleTop = true
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "Navigation failed", e)
+            }
+
+            // 한 번 사용 후 초기화
+            deepLinkScreenRoute = null
+        }
+    }
+
+    /**
+     * [NEW] 배지 애니메이션 표시 여부 반환 (2025-12-31)
+     *
+     * @return true: 배지 애니메이션 표시
+     */
+    internal fun shouldShowBadgeAnimation(): Boolean {
+        val shouldShow = deepLinkShowBadgeAnimation
+        // 한 번 사용 후 초기화
+        deepLinkShowBadgeAnimation = false
+        return shouldShow
     }
 }
 
@@ -696,6 +798,12 @@ private fun AppContentWithStart(
 
     // [REMOVED] 알림 권한 요청 로직을 MainActivity.onCreate()로 이동 (2025-12-31)
     // 이유: 앱 시작 시 즉시 권한을 확인하고 다이얼로그를 표시하기 위함
+
+    // [NEW] 딥링크 네비게이션 실행 (2025-12-31)
+    LaunchedEffect(navController) {
+        val activity = context as? MainActivity
+        activity?.executeDeepLinkNavigation(navController)
+    }
 
     // [NEW] 공유 버튼 클릭 시 커뮤니티 글쓰기 화면으로 이동
     fun navigateToCommunityWithDraft(draftContent: String) {

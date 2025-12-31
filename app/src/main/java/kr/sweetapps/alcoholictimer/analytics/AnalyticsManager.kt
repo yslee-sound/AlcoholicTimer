@@ -38,6 +38,23 @@ object AnalyticsManager {
         return sb.toString()
     }
 
+    /**
+     * [NEW] User Property 설정 (2025-12-31)
+     *
+     * Firebase에 사용자 속성을 저장하여 대시보드에서 세분화된 분석 가능
+     *
+     * @param propertyName 속성 이름
+     * @param value 속성 값
+     */
+    fun setUserProperty(propertyName: String, value: String) {
+        try {
+            firebaseAnalytics.setUserProperty(propertyName, value)
+            Log.d("AnalyticsManager", "✅ User Property Set: $propertyName = $value")
+        } catch (e: Exception) {
+            Log.e("AnalyticsManager", "❌ Failed to set user property: $propertyName", e)
+        }
+    }
+
     // AdRevenue: 광고 수익 발생
     fun logAdRevenue(value: Double, currency: String, adType: String) = log(AnalyticsEvents.AD_REVENUE) {
         putDouble(AnalyticsParams.VALUE, value)
@@ -175,5 +192,17 @@ object AnalyticsManager {
         putString(AnalyticsParams.SETTING_TYPE, settingType)
         oldValue?.let { putString(AnalyticsParams.OLD_VALUE, it) }
         putString(AnalyticsParams.NEW_VALUE, newValue)
+    }
+
+    // [NEW] NotificationOpen: 알림 클릭 (2025-12-31)
+    fun logNotificationOpen(
+        notificationId: Int,
+        groupType: String,
+        targetScreen: String
+    ) = log(AnalyticsEvents.NOTIFICATION_OPEN) {
+        putInt(AnalyticsParams.NOTIFICATION_ID, notificationId)
+        putString(AnalyticsParams.GROUP_TYPE, groupType)
+        putString(AnalyticsParams.TARGET_SCREEN, targetScreen)
+        putLong(AnalyticsParams.OPEN_TS, System.currentTimeMillis())
     }
 }

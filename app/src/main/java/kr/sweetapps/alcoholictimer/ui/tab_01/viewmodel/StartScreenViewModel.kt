@@ -376,6 +376,19 @@ class StartScreenViewModel(application: Application) : AndroidViewModel(applicat
                     Log.e(TAG, "Failed to update RetentionPreferenceManager", e)
                 }
 
+                // [NEW] 리텐션 알림 예약 (2025-12-31)
+                try {
+                    // 그룹 A (신규 유저) 알림 취소
+                    kr.sweetapps.alcoholictimer.util.notification.RetentionNotificationManager.cancelGroupANotifications(getApplication())
+                    // 그룹 C (휴식 유저) 알림 취소
+                    kr.sweetapps.alcoholictimer.util.notification.RetentionNotificationManager.cancelGroupCNotifications(getApplication())
+                    // 그룹 B (활성 유저) 알림 예약
+                    kr.sweetapps.alcoholictimer.util.notification.RetentionNotificationManager.scheduleGroupBNotifications(getApplication(), now)
+                    Log.d(TAG, "✅ Retention notifications scheduled - Group B (active user)")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to schedule retention notifications", e)
+                }
+
                 // [FIX] TimerTimeManager 초기화 (중요: 이전 타이머 데이터 완전히 초기화)
                 try {
                     kr.sweetapps.alcoholictimer.util.manager.TimerTimeManager.stopTimer() // 기존 타이머 정리

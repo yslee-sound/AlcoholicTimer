@@ -276,6 +276,9 @@ dependencies {
     implementation(libs.app.update.ktx)
     implementation(libs.kotlinx.coroutines.play.services)
 
+    // [NEW] WorkManager for retention notifications (2025-12-31)
+    implementation(libs.androidx.work.runtime.ktx)
+
     // Markwon: 완전한 Markdown 렌더링(이미지/테이블/확장 지원)
     implementation("io.noties.markwon:core:4.6.2")
     implementation("io.noties.markwon:image:4.6.2")
