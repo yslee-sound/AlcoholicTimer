@@ -29,6 +29,11 @@ class MainApplication : Application() {
         var currentActivity: Activity?
             get() = currentActivityRef?.get()
             set(value) { currentActivityRef = value?.let { WeakReference(it) } }
+
+        // [NEW] MainActivity 초기화 완료 상태 (2025-12-31)
+        // 권한 팝업 및 UMP Consent 완료 전까지 App Open Ad 차단
+        @Volatile
+        var isMainActivityInitComplete: Boolean = false
     }
 
     override fun onCreate() {

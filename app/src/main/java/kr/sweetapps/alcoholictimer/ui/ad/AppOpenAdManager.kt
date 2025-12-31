@@ -355,6 +355,19 @@ object AppOpenAdManager {
     fun showIfAvailable(activity: Activity, bypassRecentFullscreenSuppression: Boolean = false): Boolean {
         Log.d(TAG, "showIfAvailable called - loaded=$loaded isShowing=$isShowing activity=${activity.javaClass.simpleName}")
 
+        // [NEW] 초기화 완료 가드 - 권한 팝업 및 UMP Consent 완료 전까지 광고 차단 (2025-12-31)
+        try {
+            val isInitComplete = kr.sweetapps.alcoholictimer.MainApplication.isMainActivityInitComplete
+            if (!isInitComplete) {
+                Log.d(TAG, "showIfAvailable: MainActivity initialization NOT complete - blocking App Open Ad")
+                Log.d(TAG, "showIfAvailable: 권한 팝업 및 UMP Consent 완료 전까지 광고 차단 중")
+                return false
+            }
+            Log.d(TAG, "showIfAvailable: MainActivity initialization complete - App Open Ad allowed")
+        } catch (e: Exception) {
+            Log.w(TAG, "showIfAvailable: Failed to check init state - allowing ad as fallback: ${e.message}")
+        }
+
         // [핵심 1] Boolean 플래그 체크 - 카메라/갤러리 복귀 시 광고 차단 (2025-12-22)
         if (isAdSuppressed) {
             Log.d(TAG, "showIfAvailable: Ad suppressed by boolean flag - resetting")

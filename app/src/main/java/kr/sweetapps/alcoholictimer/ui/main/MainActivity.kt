@@ -12,6 +12,13 @@ import androidx.navigation.compose.rememberNavController
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.background
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.google.android.gms.ads.MobileAds
 import androidx.compose.ui.res.stringResource
@@ -55,6 +62,15 @@ class MainActivity : BaseActivity() {
     private var deepLinkGroupType: String? = null
     private var deepLinkShowBadgeAnimation: Boolean = false
 
+    // [NEW] 초기화 완료 상태 (2025-12-31)
+    // UMP Consent + 알림 권한 + Session Start 완료 시 true로 변경
+    // internal로 선언하여 Composable 함수에서 접근 가능하도록 함
+    internal val isInitializationComplete = androidx.compose.runtime.mutableStateOf(false)
+
+    // [NEW] Pre-Permission 다이얼로그 표시 상태 (2025-12-31)
+    internal val showPermissionDialog = androidx.compose.runtime.mutableStateOf(false)
+    private var permissionDialogOnComplete: (() -> Unit)? = null
+
     // [NEW] 알림 권한 요청 ActivityResultLauncher (2025-12-31)
     // onCreate() 이전에 초기화되어야 하므로 lazy 사용
     // internal로 선언하여 Composable 함수에서 접근 가능하도록 함
@@ -95,6 +111,7 @@ class MainActivity : BaseActivity() {
 
     /**
      * [NEW] 앱이 이미 실행 중일 때 알림 클릭 처리 (2025-12-31)
+     * [UPDATED] 초기화 완료 상태에 따라 대기/즉시 실행 분기 (2025-12-31)
      *
      * 백그라운드나 포그라운드 상태에서 알림을 클릭하면 이 메서드가 호출됨
      * 딥링크가 정상 작동하도록 Intent를 다시 처리
@@ -106,16 +123,33 @@ class MainActivity : BaseActivity() {
         // 새 Intent를 Activity의 Intent로 설정
         setIntent(intent)
 
-        // 딥링크 처리
+        // 딥링크 처리 (정보 저장 + Analytics)
         handleDeepLinkIntent(intent)
 
-        // NavController가 이미 초기화되어 있다면 즉시 네비게이션 실행
-        // (AppContentWithStart의 LaunchedEffect에서도 처리되지만 중복 방지 로직 있음)
+        // [NEW] 초기화 완료 상태에 따른 분기 처리 (2025-12-31)
+        val isInitComplete = isInitializationComplete.value
+        android.util.Log.d("MainActivity", "🔍 onNewIntent - isInitializationComplete=$isInitComplete")
+
+        if (isInitComplete) {
+            // 초기화가 이미 완료된 상태 - NavController도 준비되어 있으므로 안전
+            android.util.Log.d("MainActivity", "✅ Initialization already complete - deep link will execute via LaunchedEffect")
+            // LaunchedEffect가 deepLinkScreenRoute 변경을 감지하여 자동 실행됨
+        } else {
+            // 초기화가 아직 진행 중 - 대기 필요
+            android.util.Log.d("MainActivity", "⏳ Initialization in progress - deep link will wait")
+            android.util.Log.d("MainActivity", "⏳ Navigation will execute after user completes permission dialog")
+            // sendSessionStartEvent()에서 isInitializationComplete = true로 변경되면
+            // LaunchedEffect가 감지하여 자동으로 딥링크 실행됨
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // [NEW] 앱 시작 시각 기록 (최소 브랜딩 시간 계산용)
         val appStartTimeMs = System.currentTimeMillis()
+
+        // [DEBUG] 초기화 상태 초기값 확인 (2025-12-31)
+        android.util.Log.d("MainActivity", "🔵 onCreate START - isInitializationComplete initial value: ${isInitializationComplete.value}")
+        android.util.Log.d("MainActivity", "🔵 Deep link navigation is currently BLOCKED until initialization completes")
 
         // [DEBUG] 로케일 진단 로그 추가 (한국어 리소스 로드 문제 디버깅용)
         try {
@@ -203,12 +237,21 @@ class MainActivity : BaseActivity() {
 
         // ============================================================
         // 스플래시 화면 설정 (AndroidX SplashScreen)
+        // [UPDATED] 초기화 완료까지 Splash 유지 (2025-12-31)
         // ============================================================
         val holdSplashState = androidx.compose.runtime.mutableStateOf(true)
         val splash = installSplashScreen()
-        splash.setKeepOnScreenCondition { holdSplashState.value }
+        splash.setKeepOnScreenCondition {
+            // Splash 유지 조건: holdSplashState OR 초기화 미완료
+            val shouldKeep = holdSplashState.value || !isInitializationComplete.value
+            if (!shouldKeep && holdSplashState.value) {
+                android.util.Log.d("MainActivity", "🎯 Splash can be released - both conditions met")
+            }
+            shouldKeep
+        }
         android.util.Log.d("MainActivity", "========================================")
-        android.util.Log.d("MainActivity", "SplashScreen installed - holdSplashState=true")
+        android.util.Log.d("MainActivity", "SplashScreen installed - holdSplash=true, initComplete=false")
+        android.util.Log.d("MainActivity", "Splash will stay until BOTH conditions are met")
         android.util.Log.d("MainActivity", "========================================")
 
         // 타이머 상태 확인 (초기 라우트 결정용)
@@ -282,7 +325,15 @@ class MainActivity : BaseActivity() {
                     } catch (_: Throwable) {}
                 }, 2000)
 
-                setContent { AppContentWithStart(startDestinationRoute, holdSplashState) }
+                // [UPDATED] 조건부 렌더링 setContent (2025-12-31)
+                // isInitializationComplete가 true일 때만 AppNavHost 렌더링
+                setContent {
+                    MainActivityContent(
+                        startDestinationRoute = startDestinationRoute,
+                        holdSplashState = holdSplashState,
+                        activity = this@MainActivity
+                    )
+                }
             }
         }
 
@@ -325,6 +376,15 @@ class MainActivity : BaseActivity() {
                 // [FIX] Late Show Prevention - 이미 메인으로 진입했다면 늦게 온 광고는 무시 (2025-12-24)
                 if (hasProceededToMain) {
                     android.util.Log.w("MainActivity", "⚠️ 광고 로드 완료 (Late Load) -> 이미 메인 진입 상태이므로 표시 차단")
+                    return@runOnUiThread
+                }
+
+                // [NEW] 초기화 완료 가드 - 권한 팝업 중 광고 차단 (2025-12-31)
+                if (!isInitializationComplete.value) {
+                    android.util.Log.d("AdGuard", "🛑 초기화 중이라 광고 표시 차단됨 (onAdLoaded)")
+                    android.util.Log.d("AdGuard", "🛑 권한 팝업이 완료되기 전까지 광고를 보여주지 않습니다")
+                    android.util.Log.d("MainActivity", "⚠️ 초기화 미완료 -> 메인 진입")
+                    proceedToMainActivity()
                     return@runOnUiThread
                 }
 
@@ -553,6 +613,13 @@ class MainActivity : BaseActivity() {
             android.util.Log.d("MainActivity", "onResume: pendingShowOnResume=true -> attempting show")
             pendingShowOnResume = false
             runCatching {
+                // [NEW] 초기화 완료 가드 - 권한 팝업 중 광고 차단 (2025-12-31)
+                if (!isInitializationComplete.value) {
+                    android.util.Log.d("AdGuard", "🛑 초기화 중이라 광고 표시 차단됨 (onResume)")
+                    android.util.Log.d("AdGuard", "🛑 권한 팝업이 완료되기 전까지 광고를 보여주지 않습니다")
+                    return@runCatching
+                }
+
                 if (kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.isLoaded()) {
                     android.util.Log.d("MainActivity", "onResume: ad loaded -> attempting show while keeping splash")
                     val shown = kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.showIfAvailable(this)
@@ -590,7 +657,7 @@ class MainActivity : BaseActivity() {
 
     /**
      * [NEW] 알림 권한 체크 및 Pre-Permission 다이얼로그 표시 (2025-12-31)
-     * [UPDATED] UMP 완료 후 호출되도록 수정 (2025-12-31)
+     * [UPDATED] 상태 기반으로 변경 - setContent 덮어쓰지 않음 (2025-12-31)
      *
      * @param onComplete 권한 처리 완료 후 호출될 콜백 (Session Start 전송 등)
      */
@@ -602,34 +669,12 @@ class MainActivity : BaseActivity() {
         if (permissionManager.shouldRequestPermission(this) &&
             !retentionPrefs.isNotificationPermissionShown(this)) {
 
-            android.util.Log.d("MainActivity", "🔔 Notification permission needed - showing Pre-Permission dialog")
+            android.util.Log.d("MainActivity", "🔔 Notification permission needed - will show Pre-Permission dialog")
 
-            // Compose Dialog를 표시하기 위해 setContent 사용
-            setContent {
-                kr.sweetapps.alcoholictimer.ui.components.NotificationPermissionDialog(
-                    onConfirm = {
-                        android.util.Log.d("MainActivity", "User confirmed - requesting system permission")
+            // [UPDATED] 다이얼로그 표시 상태 변경 (2025-12-31)
+            permissionDialogOnComplete = onComplete
+            showPermissionDialog.value = true
 
-                        // 시스템 권한 팝업 요청
-                        permissionManager.requestPermission(requestPermissionLauncher)
-
-                        // 다이얼로그를 닫고 정상 앱 플로우로 복귀
-                        continueAppInitialization()
-
-                        // [NEW] 완료 콜백 호출 (2025-12-31)
-                        onComplete()
-                    },
-                    onDismiss = {
-                        android.util.Log.d("MainActivity", "User dismissed permission dialog")
-
-                        // 다이얼로그를 닫고 정상 앱 플로우로 복귀
-                        continueAppInitialization()
-
-                        // [NEW] 완료 콜백 호출 (2025-12-31)
-                        onComplete()
-                    }
-                )
-            }
         } else {
             android.util.Log.d("MainActivity", "Notification permission already granted or shown - skipping dialog")
 
@@ -639,33 +684,40 @@ class MainActivity : BaseActivity() {
     }
 
     /**
-     * [NEW] 권한 다이얼로그 이후 정상 앱 초기화 플로우 계속 진행 (2025-12-31)
+     * [NEW] Pre-Permission 다이얼로그 확인 버튼 처리 (2025-12-31)
      */
-    private fun continueAppInitialization() {
-        android.util.Log.d("MainActivity", "Continuing app initialization after permission dialog")
+    internal fun handlePermissionDialogConfirm() {
+        android.util.Log.d("MainActivity", "✅ User confirmed - requesting system permission")
 
-        // 타이머 상태에 따른 초기 라우트 결정
-        val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
-        val startTime = sharedPref.getLong("start_time", 0L)
-        val timerCompleted = sharedPref.getBoolean("timer_completed", false)
-        val startDestination = when {
-            timerCompleted -> Screen.Success.route
-            startTime > 0L -> Screen.Run.route
-            else -> Screen.Start.route
-        }
+        // 시스템 권한 팝업 요청
+        val permissionManager = kr.sweetapps.alcoholictimer.util.manager.NotificationPermissionManager
+        permissionManager.requestPermission(requestPermissionLauncher)
 
-        // 정상 앱 UI 표시 (holdSplashState는 false로 시작)
-        setTheme(R.style.Theme_AlcoholicTimer)
-        setContent {
-            val holdSplashState = androidx.compose.runtime.remember {
-                androidx.compose.runtime.mutableStateOf(false)
-            }
-            AppContentWithStart(startDestination, holdSplashState)
-        }
+        // 다이얼로그 닫기
+        showPermissionDialog.value = false
+
+        // [NEW] 완료 콜백 호출 (2025-12-31)
+        permissionDialogOnComplete?.invoke()
+        permissionDialogOnComplete = null
+    }
+
+    /**
+     * [NEW] Pre-Permission 다이얼로그 닫기/나중에 버튼 처리 (2025-12-31)
+     */
+    internal fun handlePermissionDialogDismiss() {
+        android.util.Log.d("MainActivity", "⏭️ User dismissed permission dialog")
+
+        // 다이얼로그 닫기
+        showPermissionDialog.value = false
+
+        // [NEW] 완료 콜백 호출 (2025-12-31)
+        permissionDialogOnComplete?.invoke()
+        permissionDialogOnComplete = null
     }
 
     /**
      * [NEW] Session Start Analytics 이벤트 전송 (2025-12-31)
+     * [UPDATED] User Property 설정을 session_start보다 먼저 실행 (2025-12-31)
      * UMP → 알림 권한 처리 완료 후 마지막에 호출
      */
     private fun sendSessionStartEvent() {
@@ -692,6 +744,31 @@ class MainActivity : BaseActivity() {
                 else -> "idle"
             }
 
+            // ============================================================
+            // STEP 1: 사용자 그룹 확인 (retention_group 결정)
+            // ============================================================
+            val retentionPrefs = kr.sweetapps.alcoholictimer.util.manager.RetentionPreferenceManager
+            val isTimerRunning = retentionPrefs.isTimerRunning(this)
+            val retryCount = retentionPrefs.getRetryCount(this)
+
+            val groupName = when {
+                !isTimerRunning && retryCount == 0 -> "group_a_new_user"
+                isTimerRunning -> "group_b_active_user"
+                !isTimerRunning && retryCount > 0 -> "group_c_resting_user"
+                else -> "group_unknown"
+            }
+
+            // ============================================================
+            // STEP 2: User Property 설정 (session_start보다 먼저!)
+            // ============================================================
+            android.util.Log.d("MainActivity", "📊 STEP 2: Setting User Property BEFORE session_start")
+            kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.setUserProperty("retention_group", groupName)
+            android.util.Log.d("AnalyticsCheck", "👤 User Property SET: retention_group = $groupName")
+
+            // ============================================================
+            // STEP 3: session_start 이벤트 전송
+            // ============================================================
+            android.util.Log.d("MainActivity", "📊 STEP 3: Sending session_start event")
             kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.logSessionStart(
                 isFirstSession = daysSinceInstall == 0,
                 daysSinceInstall = daysSinceInstall,
@@ -702,9 +779,6 @@ class MainActivity : BaseActivity() {
             // [NEW] 그룹 A 알림 자동 예약 (2025-12-31)
             // 조건: 타이머 미실행 상태 && retry_count == 0
             try {
-                val retentionPrefs = kr.sweetapps.alcoholictimer.util.manager.RetentionPreferenceManager
-                val isTimerRunning = retentionPrefs.isTimerRunning(this)
-                val retryCount = retentionPrefs.getRetryCount(this)
 
                 if (!isTimerRunning && retryCount == 0) {
                     kr.sweetapps.alcoholictimer.util.notification.RetentionNotificationManager.scheduleGroupANotifications(this)
@@ -713,8 +787,28 @@ class MainActivity : BaseActivity() {
             } catch (e: Exception) {
                 android.util.Log.e("MainActivity", "Failed to schedule Group A", e)
             }
+
+            // [NEW] 초기화 완료 플래그 설정 (2025-12-31)
+            // UMP Consent → 알림 권한 다이얼로그 사용자 응답 → Session Start 모두 완료
+            android.util.Log.d("MainActivity", "🚨 DEBUG: Setting isInitializationComplete = TRUE")
+            android.util.Log.d("MainActivity", "🚨 DEBUG: Deep link navigation is NOW ENABLED")
+            isInitializationComplete.value = true
+
+            // [NEW] MainApplication 플래그도 설정 - App Open Ad 차단 해제 (2025-12-31)
+            try {
+                kr.sweetapps.alcoholictimer.MainApplication.isMainActivityInitComplete = true
+                android.util.Log.d("MainActivity", "🚨 DEBUG: MainApplication.isMainActivityInitComplete = TRUE (App Open Ad allowed)")
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "Failed to set MainApplication init flag", e)
+            }
+
+            android.util.Log.d("MainActivity", "✅ Initialization complete (value=${isInitializationComplete.value})")
         } catch (e: Exception) {
             android.util.Log.e("MainActivity", "❌ Failed to log session_start", e)
+            // 오류 발생 시에도 초기화 완료로 처리 (앱 진행 가능하도록)
+            android.util.Log.d("MainActivity", "🚨 DEBUG: Exception occurred - setting isInitializationComplete = TRUE anyway")
+            isInitializationComplete.value = true
+            kr.sweetapps.alcoholictimer.MainApplication.isMainActivityInitComplete = true
         }
     }
 
@@ -750,13 +844,24 @@ class MainActivity : BaseActivity() {
 
     /**
      * [NEW] 딥링크 네비게이션 실행 (2025-12-31)
+     * [UPDATED] 초기화 완료 체크 추가 (2025-12-31)
      * NavController가 준비된 후 호출
      *
      * @param navController NavHostController
      */
     internal fun executeDeepLinkNavigation(navController: androidx.navigation.NavHostController) {
+        // [NEW] 초기화 완료 체크 (2025-12-31)
+        android.util.Log.d("MainActivity", "🔍 executeDeepLinkNavigation called - isInitComplete=${isInitializationComplete.value}")
+
+        if (!isInitializationComplete.value) {
+            android.util.Log.d("MainActivity", "⏳ Deep link navigation BLOCKED - initialization not complete")
+            return
+        }
+
+        android.util.Log.d("MainActivity", "✅ Initialization verified - checking for deep link route")
+
         deepLinkScreenRoute?.let { route ->
-            android.util.Log.d("MainActivity", "🚀 Navigating to: $route")
+            android.util.Log.d("MainActivity", "🚀 Deep link route found: $route - executing navigation")
 
             try {
                 navController.navigate(route) {
@@ -765,12 +870,15 @@ class MainActivity : BaseActivity() {
                     }
                     launchSingleTop = true
                 }
+                android.util.Log.d("MainActivity", "✅ Navigation to $route completed successfully")
             } catch (e: Exception) {
-                android.util.Log.e("MainActivity", "Navigation failed", e)
+                android.util.Log.e("MainActivity", "❌ Navigation to $route failed", e)
             }
 
             // 한 번 사용 후 초기화
             deepLinkScreenRoute = null
+        } ?: run {
+            android.util.Log.d("MainActivity", "ℹ️ No deep link route to execute")
         }
     }
 
@@ -787,6 +895,81 @@ class MainActivity : BaseActivity() {
     }
 }
 
+/**
+ * [NEW] MainActivity의 최상위 Content (2025-12-31)
+ *
+ * 초기화 완료 전까지 AppNavHost 렌더링을 완전히 차단
+ *
+ * @param startDestinationRoute 초기 화면 경로
+ * @param holdSplashState Splash 상태
+ * @param activity MainActivity 인스턴스
+ */
+@Composable
+private fun MainActivityContent(
+    startDestinationRoute: String,
+    holdSplashState: androidx.compose.runtime.MutableState<Boolean>,
+    activity: MainActivity
+) {
+    // 초기화 완료 상태 관찰
+    val isInitComplete by activity.isInitializationComplete
+    val showDialog by activity.showPermissionDialog
+
+    android.util.Log.d("MainActivity", "🔄 MainActivityContent recompose - isInitComplete=$isInitComplete, showDialog=$showDialog")
+
+    // [NEW] Box로 감싸서 다이얼로그가 최상위에 오도록 (2025-12-31)
+    Box(modifier = androidx.compose.ui.Modifier.fillMaxSize()) {
+        // [NEW] 조건부 렌더링 (2025-12-31)
+        when {
+            !isInitComplete -> {
+                // 초기화 미완료 - 대기 화면 표시
+                android.util.Log.d("MainActivity", "⏳ Rendering waiting screen - AppNavHost BLOCKED")
+
+                Box(
+                    modifier = androidx.compose.ui.Modifier
+                        .fillMaxSize()
+                        .background(androidx.compose.ui.graphics.Color.White),
+                    contentAlignment = androidx.compose.ui.Alignment.Center
+                ) {
+                    // 빈 화면 또는 로딩 인디케이터
+                    androidx.compose.material3.CircularProgressIndicator(
+                        color = androidx.compose.ui.graphics.Color(0xFF6200EE)
+                    )
+                }
+            }
+
+            else -> {
+                // 초기화 완료 - 메인 UI 렌더링
+                android.util.Log.d("MainActivity", "✅ Rendering AppNavHost - initialization complete")
+
+                // 타이머 상태에 따른 실제 시작 화면 결정
+                val sharedPref = activity.getSharedPreferences("user_settings", android.content.Context.MODE_PRIVATE)
+                val startTime = sharedPref.getLong("start_time", 0L)
+                val timerCompleted = sharedPref.getBoolean("timer_completed", false)
+                val actualStartDestination = when {
+                    timerCompleted -> kr.sweetapps.alcoholictimer.ui.main.Screen.Success.route
+                    startTime > 0L -> kr.sweetapps.alcoholictimer.ui.main.Screen.Run.route
+                    else -> kr.sweetapps.alcoholictimer.ui.main.Screen.Start.route
+                }
+
+                AppContentWithStart(actualStartDestination, holdSplashState)
+            }
+        }
+
+        // [NEW] Pre-Permission 다이얼로그 - 최상위 레벨에서 표시 (2025-12-31)
+        if (showDialog) {
+            android.util.Log.d("MainActivity", "🔔 Showing Pre-Permission dialog on top of waiting screen")
+            kr.sweetapps.alcoholictimer.ui.components.NotificationPermissionDialog(
+                onConfirm = {
+                    activity.handlePermissionDialogConfirm()
+                },
+                onDismiss = {
+                    activity.handlePermissionDialogDismiss()
+                }
+            )
+        }
+    }
+}
+
 @Composable
 private fun AppContentWithStart(
     startDestination: String,
@@ -798,12 +981,6 @@ private fun AppContentWithStart(
 
     // [REMOVED] 알림 권한 요청 로직을 MainActivity.onCreate()로 이동 (2025-12-31)
     // 이유: 앱 시작 시 즉시 권한을 확인하고 다이얼로그를 표시하기 위함
-
-    // [NEW] 딥링크 네비게이션 실행 (2025-12-31)
-    LaunchedEffect(navController) {
-        val activity = context as? MainActivity
-        activity?.executeDeepLinkNavigation(navController)
-    }
 
     // [NEW] 공유 버튼 클릭 시 커뮤니티 글쓰기 화면으로 이동
     fun navigateToCommunityWithDraft(draftContent: String) {
@@ -817,6 +994,22 @@ private fun AppContentWithStart(
     val activity = context as? MainActivity
     val tab01ViewModel: Tab01ViewModel? = activity?.let {
         viewModel<Tab01ViewModel>(viewModelStoreOwner = it)
+    }
+
+    // [NEW] 딥링크 네비게이션 실행 (2025-12-31)
+    // [UPDATED] 초기화 완료 상태만 감지하도록 수정 (2025-12-31)
+    // isInitializationComplete가 false → true로 변할 때만 실행됨
+    LaunchedEffect(activity?.isInitializationComplete?.value) {
+        val isInitComplete = activity?.isInitializationComplete?.value ?: false
+
+        android.util.Log.d("MainActivity", "🔍 LaunchedEffect triggered - isInitComplete=$isInitComplete")
+
+        if (isInitComplete) {
+            android.util.Log.d("MainActivity", "✅ Initialization complete detected - checking for deep link")
+            activity?.executeDeepLinkNavigation(navController)
+        } else {
+            android.util.Log.d("MainActivity", "⏳ Initialization not complete yet - navigation blocked")
+        }
     }
 
     // [REFACTORED] 타이머 완료/중단 시 전역 네비게이션 처리
