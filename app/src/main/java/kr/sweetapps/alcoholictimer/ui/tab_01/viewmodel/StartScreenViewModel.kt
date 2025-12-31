@@ -366,6 +366,16 @@ class StartScreenViewModel(application: Application) : AndroidViewModel(applicat
                     putBoolean("timer_completed", false)
                 }
 
+                // [NEW] RetentionPreferenceManager에 타이머 상태 저장 (2025-12-31)
+                try {
+                    kr.sweetapps.alcoholictimer.util.manager.RetentionPreferenceManager.setTimerState(getApplication(), true)
+                    kr.sweetapps.alcoholictimer.util.manager.RetentionPreferenceManager.setStartTime(getApplication(), now)
+                    kr.sweetapps.alcoholictimer.util.manager.RetentionPreferenceManager.resetRetryCount(getApplication())
+                    Log.d(TAG, "RetentionPreferenceManager updated: timer=active, startTime=$now")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to update RetentionPreferenceManager", e)
+                }
+
                 // [FIX] TimerTimeManager 초기화 (중요: 이전 타이머 데이터 완전히 초기화)
                 try {
                     kr.sweetapps.alcoholictimer.util.manager.TimerTimeManager.stopTimer() // 기존 타이머 정리

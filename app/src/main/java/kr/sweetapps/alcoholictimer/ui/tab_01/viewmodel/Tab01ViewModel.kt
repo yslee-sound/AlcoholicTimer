@@ -333,6 +333,15 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
                     Log.e("Tab01ViewModel", "[GiveUp Analytics] Failed to log analytics", e)
                 }
 
+                // [NEW] RetentionPreferenceManager에 타이머 종료 저장 (2025-12-31)
+                try {
+                    kr.sweetapps.alcoholictimer.util.manager.RetentionPreferenceManager.setTimerState(getApplication(), false)
+                    kr.sweetapps.alcoholictimer.util.manager.RetentionPreferenceManager.setLastEndTime(getApplication(), endTime)
+                    Log.d("Tab01ViewModel", "[GiveUp Retention] RetentionPreferenceManager updated: timer=inactive, endTime=$endTime")
+                } catch (e: Exception) {
+                    Log.e("Tab01ViewModel", "[GiveUp Retention] Failed to update RetentionPreferenceManager", e)
+                }
+
                 // [STEP 2] "user_settings" 파일에 포기 기록 저장 (AppNavHost와 동일한 파일)
                 val editor = sharedPref.edit()
                 editor.putLong("completed_start_time", startTime)

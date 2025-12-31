@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -47,6 +48,57 @@ class MainActivity : BaseActivity() {
     // [NEW] 광고 로드 리스너 실행 플래그 - 무한 중첩 방지
     @Volatile
     private var hasHandledInitialAdLoad: Boolean = false
+
+    // [NEW] 알림 권한 요청 ActivityResultLauncher (2025-12-31)
+    // onCreate() 이전에 초기화되어야 하므로 lazy 사용
+    // internal로 선언하여 Composable 함수에서 접근 가능하도록 함
+    internal val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // 권한 허용됨
+            android.util.Log.d("MainActivity", "✅ Notification permission GRANTED")
+            kr.sweetapps.alcoholictimer.util.manager.RetentionPreferenceManager.setNotificationPermissionShown(this, true)
+
+            // [NEW] Firebase Analytics 이벤트 전송 (2025-12-31)
+            try {
+                kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.logSettingsChange(
+                    settingType = "notification_permission",
+                    oldValue = "denied",
+                    newValue = "granted"
+                )
+                android.util.Log.d("MainActivity", "Analytics: settings_change sent (notification_permission: denied → granted)")
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "Failed to log settings_change", e)
+            }
+        } else {
+            // 권한 거부됨
+            android.util.Log.d("MainActivity", "❌ Notification permission DENIED")
+
+            // [NEW] Firebase Analytics 이벤트 전송 (2025-12-31)
+            try {
+                kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.logSettingsChange(
+                    settingType = "notification_permission",
+                    oldValue = null,
+                    newValue = "denied"
+                )
+                android.util.Log.d("MainActivity", "Analytics: settings_change sent (notification_permission: → denied)")
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "Failed to log settings_change", e)
+            }
+
+            // shouldShowRequestPermissionRationale 체크
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                val shouldShow = shouldShowRequestPermissionRationale(android.Manifest.permission.POST_NOTIFICATIONS)
+                if (!shouldShow) {
+                    // "다시 묻지 않음" 선택됨 - 설정 화면으로 유도할 수 있음
+                    android.util.Log.w("MainActivity", "⚠️ User selected 'Don't ask again' - permission permanently denied")
+                } else {
+                    android.util.Log.d("MainActivity", "ℹ️ User can be asked again later")
+                }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // [NEW] 앱 시작 시각 기록 (최소 브랜딩 시간 계산용)
@@ -159,36 +211,10 @@ class MainActivity : BaseActivity() {
         // 강제 라이트 모드 설정
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
-        // [NEW] Session Start 이벤트 전송 (2025-12-31)
-        try {
-            val installTime = sharedPref.getLong("install_time", 0L)
+        // [REMOVED] 알림 권한 체크를 UMP 완료 후로 이동 (2025-12-31)
+        // 이유: UMP Consent 팝업과 겹치지 않도록 순차 실행
 
-            // 첫 실행이면 설치 시각 저장
-            if (installTime == 0L) {
-                sharedPref.edit().putLong("install_time", System.currentTimeMillis()).apply()
-            }
-
-            val daysSinceInstall = if (installTime > 0) {
-                ((System.currentTimeMillis() - installTime) / (24 * 60 * 60 * 1000)).toInt()
-            } else {
-                0
-            }
-
-            val timerStatus = when {
-                timerCompleted -> "completed"
-                startTime > 0L -> "active"
-                else -> "idle"
-            }
-
-            kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.logSessionStart(
-                isFirstSession = daysSinceInstall == 0,
-                daysSinceInstall = daysSinceInstall,
-                timerStatus = timerStatus
-            )
-            android.util.Log.d("MainActivity", "Analytics: session_start event sent (days=$daysSinceInstall, status=$timerStatus)")
-        } catch (e: Exception) {
-            android.util.Log.e("MainActivity", "Failed to log session_start", e)
-        }
+        // [REMOVED] Session Start 이벤트도 모든 초기화 완료 후로 이동 (2025-12-31)
 
         // 타이머 상태 확인 및 UI 전환 로직
         checkTimerStateAndSwitchUI()
@@ -338,6 +364,14 @@ class MainActivity : BaseActivity() {
             // [중요] UMP 동의 확인 완료 표시
             isUmpConsentCompleted = true
             android.util.Log.d("MainActivity", "단계 1 완료: UMP 동의 확인 결과 = $canInitializeAds")
+
+            // [NEW] UMP 완료 후 알림 권한 체크 (2025-12-31)
+            // 순서: UMP → 알림 권한 → Session Start
+            checkAndRequestNotificationPermission {
+                // 알림 권한 처리 완료 후 Session Start 이벤트 전송
+                android.util.Log.d("MainActivity", "🎯 모든 초기화 완료 - Session Start 이벤트 전송")
+                sendSessionStartEvent()
+            }
 
             if (!canInitializeAds) {
                 // 동의 없음 - 즉시 메인으로 이동
@@ -534,6 +568,121 @@ class MainActivity : BaseActivity() {
     // BaseActivity??추상 ?�수 구현
     @Deprecated("Overrides deprecated API from BaseActivity")
     override fun getScreenTitle(): String = getString(R.string.app_name)
+
+    /**
+     * [NEW] 알림 권한 체크 및 Pre-Permission 다이얼로그 표시 (2025-12-31)
+     * [UPDATED] UMP 완료 후 호출되도록 수정 (2025-12-31)
+     *
+     * @param onComplete 권한 처리 완료 후 호출될 콜백 (Session Start 전송 등)
+     */
+    private fun checkAndRequestNotificationPermission(onComplete: () -> Unit = {}) {
+        val permissionManager = kr.sweetapps.alcoholictimer.util.manager.NotificationPermissionManager
+        val retentionPrefs = kr.sweetapps.alcoholictimer.util.manager.RetentionPreferenceManager
+
+        // 권한이 필요하고, 아직 요청하지 않았다면
+        if (permissionManager.shouldRequestPermission(this) &&
+            !retentionPrefs.isNotificationPermissionShown(this)) {
+
+            android.util.Log.d("MainActivity", "🔔 Notification permission needed - showing Pre-Permission dialog")
+
+            // Compose Dialog를 표시하기 위해 setContent 사용
+            setContent {
+                kr.sweetapps.alcoholictimer.ui.components.NotificationPermissionDialog(
+                    onConfirm = {
+                        android.util.Log.d("MainActivity", "User confirmed - requesting system permission")
+
+                        // 시스템 권한 팝업 요청
+                        permissionManager.requestPermission(requestPermissionLauncher)
+
+                        // 다이얼로그를 닫고 정상 앱 플로우로 복귀
+                        continueAppInitialization()
+
+                        // [NEW] 완료 콜백 호출 (2025-12-31)
+                        onComplete()
+                    },
+                    onDismiss = {
+                        android.util.Log.d("MainActivity", "User dismissed permission dialog")
+
+                        // 다이얼로그를 닫고 정상 앱 플로우로 복귀
+                        continueAppInitialization()
+
+                        // [NEW] 완료 콜백 호출 (2025-12-31)
+                        onComplete()
+                    }
+                )
+            }
+        } else {
+            android.util.Log.d("MainActivity", "Notification permission already granted or shown - skipping dialog")
+
+            // [NEW] 다이얼로그가 표시되지 않는 경우에도 즉시 완료 콜백 호출 (2025-12-31)
+            onComplete()
+        }
+    }
+
+    /**
+     * [NEW] 권한 다이얼로그 이후 정상 앱 초기화 플로우 계속 진행 (2025-12-31)
+     */
+    private fun continueAppInitialization() {
+        android.util.Log.d("MainActivity", "Continuing app initialization after permission dialog")
+
+        // 타이머 상태에 따른 초기 라우트 결정
+        val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+        val startTime = sharedPref.getLong("start_time", 0L)
+        val timerCompleted = sharedPref.getBoolean("timer_completed", false)
+        val startDestination = when {
+            timerCompleted -> Screen.Success.route
+            startTime > 0L -> Screen.Run.route
+            else -> Screen.Start.route
+        }
+
+        // 정상 앱 UI 표시 (holdSplashState는 false로 시작)
+        setTheme(R.style.Theme_AlcoholicTimer)
+        setContent {
+            val holdSplashState = androidx.compose.runtime.remember {
+                androidx.compose.runtime.mutableStateOf(false)
+            }
+            AppContentWithStart(startDestination, holdSplashState)
+        }
+    }
+
+    /**
+     * [NEW] Session Start Analytics 이벤트 전송 (2025-12-31)
+     * UMP → 알림 권한 처리 완료 후 마지막에 호출
+     */
+    private fun sendSessionStartEvent() {
+        try {
+            val sharedPref = getSharedPreferences("user_settings", MODE_PRIVATE)
+            val installTime = sharedPref.getLong("install_time", 0L)
+
+            // 첫 실행이면 설치 시각 저장
+            if (installTime == 0L) {
+                sharedPref.edit().putLong("install_time", System.currentTimeMillis()).apply()
+            }
+
+            val daysSinceInstall = if (installTime > 0) {
+                ((System.currentTimeMillis() - installTime) / (24 * 60 * 60 * 1000)).toInt()
+            } else {
+                0
+            }
+
+            val startTime = sharedPref.getLong("start_time", 0L)
+            val timerCompleted = sharedPref.getBoolean("timer_completed", false)
+            val timerStatus = when {
+                timerCompleted -> "completed"
+                startTime > 0L -> "active"
+                else -> "idle"
+            }
+
+            kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.logSessionStart(
+                isFirstSession = daysSinceInstall == 0,
+                daysSinceInstall = daysSinceInstall,
+                timerStatus = timerStatus
+            )
+            android.util.Log.d("MainActivity", "✅ Analytics: session_start event sent (days=$daysSinceInstall, status=$timerStatus)")
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "❌ Failed to log session_start", e)
+        }
+    }
 }
 
 @Composable
@@ -544,6 +693,9 @@ private fun AppContentWithStart(
     val navController = rememberNavController()
     val context = LocalContext.current
     val communityViewModel = viewModel<CommunityViewModel>()
+
+    // [REMOVED] 알림 권한 요청 로직을 MainActivity.onCreate()로 이동 (2025-12-31)
+    // 이유: 앱 시작 시 즉시 권한을 확인하고 다이얼로그를 표시하기 위함
 
     // [NEW] 공유 버튼 클릭 시 커뮤니티 글쓰기 화면으로 이동
     fun navigateToCommunityWithDraft(draftContent: String) {

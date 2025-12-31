@@ -17,6 +17,14 @@
     <!-- Android 13(API>=33): READ_MEDIA_IMAGES 권한 사용 -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
+    <!-- [NEW] Android 13(API>=33): 알림 권한 (2025-12-31)
+         - 목적: 리텐션 시스템 - 사용자 재방문 유도 알림 전송
+         - 사용처: 로컬 푸시 알림 (타이머 리마인더, 목표 달성 축하 등)
+         - 사용자 선택권: Pre-Permission 다이얼로그로 사용자에게 가치를 설명한 후 권한 요청
+         - Android 12 이하에서는 권한 요청 불필요 (자동 허용)
+    -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
     <!-- [REQUIRED] 광고 ID 권한 (Android 13+ 필수)
          - 목적: 개인화된 광고 게재 및 광고 성과 측정
          - 사용처: Google AdMob (전면 광고, 오픈 광고)
