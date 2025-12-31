@@ -1058,10 +1058,11 @@ fun WritePostScreenContent( // [MODIFIED] private 제거 -> public (2025-12-22)
                                         // 화면 닫기
                                         onPost(payload)
                                     } else if (isEditMode && postToEdit != null) {
-                                        // 수정 모드: updatePost 호출
+                                        // [UPDATED] 수정 모드: updatePost 호출 (context 파라미터 추가 - 이미지 업로드 지원) (2025-12-31)
                                         viewModel.updatePost(
                                             postId = postToEdit.id,
                                             newContent = payload,
+                                            context = context,
                                             newTagType = selectedTag,
                                             newThirstLevel = selectedLevel,
                                             onSuccess = {

@@ -505,8 +505,10 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
 
     /**
      * [NEW] 게시글 수정 (2025-12-22)
+     * [UPDATED] 이미지 업로드 기능 추가 (2025-12-31)
      * @param postId 수정할 게시글 ID
      * @param newContent 새로운 내용
+     * @param context Context (이미지 압축에 필요)
      * @param newTagType 새로운 태그 타입
      * @param newThirstLevel 새로운 갈증 수치
      * @param onSuccess 성공 콜백
@@ -514,20 +516,54 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
     fun updatePost(
         postId: String,
         newContent: String,
+        context: Context,
         newTagType: String = "",
         newThirstLevel: Int? = null,
         onSuccess: () -> Unit = {}
     ) {
         _isLoading.value = true
 
+        // [NEW] 현재 선택된 이미지 URI를 캡처 (2025-12-31)
+        val uriToUpload = _selectedImageUri.value
+
         viewModelScope.launch {
             try {
-                // Firestore 업데이트
+                var newImageUrl: String? = null
+
+                // [NEW] 1. 이미지가 선택되어 있다면 Firebase Storage에 업로드 (2025-12-31)
+                if (uriToUpload != null) {
+                    android.util.Log.d("CommunityViewModel", "게시글 수정: 새 이미지 업로드 시작")
+
+                    // 압축 작업 (IO 스레드)
+                    val imageBytes = withContext(Dispatchers.IO) {
+                        kr.sweetapps.alcoholictimer.util.ImageUtils.compressImage(context, uriToUpload)
+                    }
+
+                    if (imageBytes != null) {
+                        // Firebase Storage 업로드
+                        val storageRef = com.google.firebase.Firebase.storage.reference
+                            .child("community_images/${java.util.UUID.randomUUID()}.jpg")
+
+                        // 업로드
+                        storageRef.putBytes(imageBytes).await()
+                        // 다운로드 URL 획득
+                        newImageUrl = storageRef.downloadUrl.await().toString()
+                        android.util.Log.d("CommunityViewModel", "게시글 수정: 이미지 업로드 완료 - $newImageUrl")
+                    }
+                }
+
+                // 2. Firestore 업데이트
                 val updates = mutableMapOf<String, Any?>(
                     "content" to newContent,
                     "tagType" to newTagType,
                     "thirstLevel" to newThirstLevel
                 )
+
+                // [NEW] 이미지가 업로드되었다면 imageUrl도 업데이트 (2025-12-31)
+                if (newImageUrl != null) {
+                    updates["imageUrl"] = newImageUrl
+                    android.util.Log.d("CommunityViewModel", "게시글 수정: imageUrl 필드 업데이트 포함")
+                }
 
                 repository.updatePost(postId, updates)
 
@@ -542,6 +578,8 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
             } catch (e: Exception) {
                 android.util.Log.e("CommunityViewModel", "게시글 수정 실패", e)
             } finally {
+                // [NEW] 이미지 초기화 (2025-12-31)
+                _selectedImageUri.value = null
                 _isLoading.value = false
             }
         }
