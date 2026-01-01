@@ -229,6 +229,7 @@
     <string name="currency_cny">Yuan China (¥)</string>
     <string name="currency_brl">Real Brasil (R$)</string>
     <string name="currency_idr">Rupiah Indonesia (Rp)</string>
+    <string name="currency_php">Peso Filipina (₱)</string>
     <string name="settings_privacy_unavailable">Tidak dapat menampilkan pengaturan iklan karena aktivitas tidak tersedia.</string>
     <string name="settings_privacy_checking">Memeriksa persetujuan iklan&#8230;</string>
     <string name="settings_privacy_load_failed">Gagal memuat formulir persetujuan: %1$s</string>

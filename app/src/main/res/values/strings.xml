@@ -232,6 +232,7 @@
     <string name="currency_cny">Chinese Yuan (¥)</string>
     <string name="currency_brl">Brazilian Real (R$)</string>
     <string name="currency_idr">Indonesian Rupiah (Rp)</string>
+    <string name="currency_php">Philippine Peso (₱)</string>
     <string name="settings_privacy_unavailable">Cannot show ad settings because activity is unavailable.</string>
     <string name="settings_privacy_checking">Checking ad consent&#8230;</string>
     <string name="settings_privacy_load_failed">Failed to load consent form: %1$s</string>

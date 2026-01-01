@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+﻿﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App Name -->
     <string name="app_name">ZERO</string>
@@ -231,6 +231,7 @@
     <string name="currency_cny">중국 위안 (¥)</string>
     <string name="currency_brl">브라질 헤알 (R$)</string>
     <string name="currency_idr">인도네시아 루피아 (Rp)</string>
+    <string name="currency_php">필리핀 페소 (₱)</string>
     <string name="settings_privacy_unavailable">액티비티를 사용할 수 없어 광고 설정을 표시할 수 없습니다.</string>
     <string name="settings_privacy_checking">광고 동의 확인 중&#8230;</string>
     <string name="settings_privacy_load_failed">동의 양식 로드 실패: %1$s</string>

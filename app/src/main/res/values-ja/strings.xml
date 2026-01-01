@@ -231,6 +231,7 @@
     <string name="currency_cny">中国元 (¥)</string>
     <string name="currency_brl">ブラジルレアル (R$)</string>
     <string name="currency_idr">インドネシアルピア (Rp)</string>
+    <string name="currency_php">フィリピンペソ (₱)</string>
     <string name="settings_privacy_unavailable">アクティビティを利用できないため広告設定を表示できません。</string>
     <string name="settings_privacy_checking">広告同意を確認中&#8230;</string>
     <string name="settings_privacy_load_failed">同意フォームの読み込みに失敗しました: %1$s</string>

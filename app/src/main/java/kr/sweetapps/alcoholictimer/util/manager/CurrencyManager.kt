@@ -15,7 +15,7 @@ object CurrencyManager {
 
     /**
      * 지원하는 통화 목록
-     * Phase 1-3에서 지원하는 8개 통화 (IDR 추가)
+     * Phase 1-3에서 지원하는 9개 통화 (PHP 추가)
      */
     val supportedCurrencies = listOf(
         CurrencyOption("KRW", "₩", R.string.currency_krw, 1.0, 2),
@@ -27,7 +27,9 @@ object CurrencyManager {
         CurrencyOption("CNY", "¥", R.string.currency_cny, 180.0, 2),
         CurrencyOption("BRL", "R$", R.string.currency_brl, 250.0, 2),
         // IDR: 1 KRW = 11.8 IDR (2025-12-24 기준)
-        CurrencyOption("IDR", "Rp", R.string.currency_idr, 0.085, 2)
+        CurrencyOption("IDR", "Rp", R.string.currency_idr, 0.085, 2),
+        // PHP: 1 PHP = 23 KRW (2026-01-02 기준)
+        CurrencyOption("PHP", "₱", R.string.currency_php, 23.0, 2)
     )
 
     /**
@@ -137,6 +139,7 @@ object CurrencyManager {
             "MX" -> "MXN"
             "BR" -> "BRL"
             "ID" -> "IDR"  // 인도네시아
+            "PH" -> "PHP"  // 필리핀
             else -> {
                 when (languageCode) {
                     "ko" -> "KRW"
@@ -145,6 +148,7 @@ object CurrencyManager {
                     "es" -> "EUR"
                     "pt" -> "BRL"
                     "in", "id" -> "IDR"  // 인도네시아어
+                    "tl", "fil" -> "PHP"  // 타갈로그어, 필리핀어
                     "de", "fr" -> "EUR"
                     else -> "USD"
                 }
