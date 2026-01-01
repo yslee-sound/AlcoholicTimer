@@ -976,43 +976,6 @@ private fun MainActivityContent(
                 }
             )
         }
-
-        // [NEW] 알림 테스트 버튼 - 초기화 완료 후에만 표시 (2025-12-31)
-        if (isInitComplete) {
-            Box(
-                modifier = androidx.compose.ui.Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                contentAlignment = androidx.compose.ui.Alignment.BottomCenter
-            ) {
-                androidx.compose.material3.Button(
-                    onClick = {
-                        android.util.Log.d("MainActivity", "🧪 TEST: Notification test button clicked")
-
-                        // [UPDATED] Group B 7day 알림 즉시 표시 (배지 획득 - 이모지와 긴 텍스트 확인용)
-                        kr.sweetapps.alcoholictimer.util.notification.RetentionNotificationManager.showImmediateTestNotification(
-                            context = activity
-                            // title, message는 기본값 사용 (Group B 7day)
-                        )
-
-                        android.util.Log.d("MainActivity", "✅ TEST: Immediate notification triggered (Group B 7day - Badge)")
-                    },
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = androidx.compose.ui.graphics.Color(0xFFFF5722)
-                    ),
-                    modifier = androidx.compose.ui.Modifier
-                        .fillMaxWidth(0.8f)
-                        .height(56.dp)
-                ) {
-                    androidx.compose.material3.Text(
-                        text = "🔔 알림 즉시 테스트",
-                        fontSize = 16.sp,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                        color = androidx.compose.ui.graphics.Color.White
-                    )
-                }
-            }
-        }
     }
 }
 
