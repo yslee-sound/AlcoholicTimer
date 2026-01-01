@@ -1,4 +1,4 @@
-﻿﻿<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App Name -->
     <string name="app_name">ZERO</string>
@@ -26,7 +26,8 @@
     <string name="stat_level">레벨</string>
     <string name="stat_goal_days_format">%d일</string>
 
-    <!-- Plurals for Day/Days (한국어는 단수/복수 구분 없음) -->
+    <!-- Plurals for Day/Days
+    (한국어는 단수/복수 구분 없음) -->
     <plurals name="days_count">
         <item quantity="other">일</item>
     </plurals>
@@ -237,6 +238,29 @@
     <string name="settings_privacy_load_failed">동의 양식 로드 실패: %1$s</string>
     <string name="settings_privacy_not_required">동의 양식이 필요하지 않거나 이미 처리되었습니다.</string>
     <string name="settings_privacy_update_failed">동의 정보 업데이트 실패: %1$s</string>
+
+    <!-- Retention Notifications -->
+    <!-- Group A: New User -->
+    <string name="notif_group_a_1_title">잊으신 건 아니죠? 👀</string>
+    <string name="notif_group_a_1_body">어제 설치한 ZERO 앱, 잊으신 건 아니죠? 딱 하루만 도전해봐요!</string>
+    <string name="notif_group_a_2_title">오늘이 바로 그날! 🔥</string>
+    <string name="notif_group_a_2_body">작심삼일도 시작을 해야 할 수 있어요! 오늘이 그날입니다.</string>
+    <string name="notif_group_a_3_title">벌써 일주일... 🍺</string>
+    <string name="notif_group_a_3_body">벌써 일주일이 지났어요. 술값 아껴서 사고 싶은 게 있지 않으신가요?</string>
+
+    <!-- Group B: Active User -->
+    <string name="notif_group_b_3day_title">작심삼일 돌파! 🎉</string>
+    <string name="notif_group_b_3day_body">첫 번째 고비를 넘기셨군요. 정말 대단합니다!</string>
+    <string name="notif_group_b_7day_title">일주일 달성! 🏆</string>
+    <string name="notif_group_b_7day_body">몸이 가벼워진 게 느껴지시나요? 계속 도전하세요.</string>
+    <string name="notif_group_b_30day_title">한 달 달성! 💸</string>
+    <string name="notif_group_b_30day_body">이제 습관이 되셨군요. 당신은 의지의 한국인!</string>
+
+    <!-- Group C: Resting User -->
+    <string name="notif_group_c_1_title">괜찮아요, 다시 시작해요 💪</string>
+    <string name="notif_group_c_1_body">잠시 쉬어가도 괜찮아요. 타이머는 언제나 기다리고 있습니다.</string>
+    <string name="notif_group_c_2_title">간이 휴식을 원해요 🏥</string>
+    <string name="notif_group_c_2_body">다시 달릴 준비 되셨나요? 건강을 위해 다시 돌아오세요.</string>
 
     <!-- Community Screen -->
     <string name="community_title">응원 챌린지</string>

@@ -26,7 +26,8 @@
     <string name="stat_level">Level</string>
     <string name="stat_goal_days_format">%d Hari</string>
 
-    <!-- Plurals for Day/Days (Bahasa Indonesia tidak membedakan tunggal/jamak) -->
+    <!-- Plurals for Day/Days
+    (Bahasa Indonesia tidak membedakan tunggal/jamak) -->
     <plurals name="days_count">
         <item quantity="other">Hari</item>
     </plurals>
@@ -179,6 +180,8 @@
     <string name="diary_write_button_action">Tulis Entri Diary</string>
     <string name="diary_write_today_only">Diary hanya dapat ditulis pada hari yang sama</string>
     <string name="diary_all_empty">Tidak ada entri diary.</string>
+    <string name="diary_write_title">Tulis Diary</string>
+    <string name="diary_edit_title">Edit Diary</string>
     <string name="diary_menu_edit">Edit</string>
     <string name="diary_menu_delete">Hapus</string>
     <string name="diary_save_button">Simpan</string>
@@ -235,6 +238,29 @@
     <string name="settings_privacy_load_failed">Gagal memuat formulir persetujuan: %1$s</string>
     <string name="settings_privacy_not_required">Formulir persetujuan tidak diperlukan atau sudah ditangani.</string>
     <string name="settings_privacy_update_failed">Gagal memperbarui info persetujuan: %1$s</string>
+
+    <!-- Retention Notifications -->
+    <!-- Group A: New User -->
+    <string name="notif_group_a_1_title">Lupa ya? 👀</string>
+    <string name="notif_group_a_1_body">Lupa sama aplikasi ZERO? Coba tantang dirimu satu hari saja!</string>
+    <string name="notif_group_a_2_title">Hari ini saatnya! 🔥</string>
+    <string name="notif_group_a_2_body">Kamu harus mulai untuk bisa berhenti! Hari ini saatnya.</string>
+    <string name="notif_group_a_3_title">Sudah seminggu... 🍺</string>
+    <string name="notif_group_a_3_body">Sudah seminggu berlalu. Mau beli sesuatu dari uang jajan yang dihemat?</string>
+
+    <!-- Group B: Active User -->
+    <string name="notif_group_b_3day_title">3 Hari Beruntun! 🎉</string>
+    <string name="notif_group_b_3day_body">Kamu melewati rintangan pertama. Keren banget!</string>
+    <string name="notif_group_b_7day_title">Target 1 Minggu! 🏆</string>
+    <string name="notif_group_b_7day_body">Apa badan terasa lebih ringan? Lanjutkan.</string>
+    <string name="notif_group_b_30day_title">Target 1 Bulan! 💸</string>
+    <string name="notif_group_b_30day_body">Ini sudah jadi kebiasaan. Salut buat kamu!</string>
+
+    <!-- Group C: Resting User -->
+    <string name="notif_group_c_1_title">Jangan menyerah 💪</string>
+    <string name="notif_group_c_1_body">Istirahat itu wajar. Timer selalu menunggumu.</string>
+    <string name="notif_group_c_2_title">Liver butuh istirahat 🏥</string>
+    <string name="notif_group_c_2_body">Siap mulai lagi? Kembalilah demi kesehatanmu.</string>
 
     <!-- Community Screen -->
     <string name="community_title">Anonymous Support Challenge</string>
@@ -295,8 +321,6 @@
     <string name="photo_selection_title">Pilih Foto</string>
     <string name="diary_action_edit">Edit</string>
     <string name="diary_action_delete">Hapus</string>
-    <string name="diary_write_title">Tulis Diary</string>
-    <string name="diary_edit_title">Edit Diary</string>
     <string name="diary_save">Simpan</string>
     <string name="diary_save_complete">Selesai</string>
     <string name="community_edit_title">Edit Postingan</string>

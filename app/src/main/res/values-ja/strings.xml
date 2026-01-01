@@ -26,7 +26,8 @@
     <string name="stat_level">レベル</string>
     <string name="stat_goal_days_format">%d日</string>
 
-    <!-- Plurals for Day/Days (日本語は単数/複数の区別なし) -->
+    <!-- Plurals for Day/Days
+    (日本語は単数/複数の区別なし) -->
     <plurals name="days_count">
         <item quantity="other">日</item>
     </plurals>
@@ -237,6 +238,29 @@
     <string name="settings_privacy_load_failed">同意フォームの読み込みに失敗しました: %1$s</string>
     <string name="settings_privacy_not_required">同意フォームは不要、または既に処理されています。</string>
     <string name="settings_privacy_update_failed">同意情報の更新に失敗しました: %1$s</string>
+
+    <!-- Retention Notifications -->
+    <!-- Group A: New User -->
+    <string name="notif_group_a_1_title">忘れていませんか？👀</string>
+    <string name="notif_group_a_1_body">昨日入れたZEROアプリ、忘れていませんか？1日だけ挑戦してみましょう！</string>
+    <string name="notif_group_a_2_title">今日がその日です！🔥</string>
+    <string name="notif_group_a_2_body">三日坊主も始めなければ克服できません！今日こそ始めましょう。</string>
+    <string name="notif_group_a_3_title">もう1週間… 🍺</string>
+    <string name="notif_group_a_3_body">もう1週間経ちました。お酒代を節約して、欲しいものを買いませんか？</string>
+
+    <!-- Group B: Active User -->
+    <string name="notif_group_b_3day_title">三日坊主を突破！🎉</string>
+    <string name="notif_group_b_3day_body">最初の山場を越えましたね。すごいです！</string>
+    <string name="notif_group_b_7day_title">1週間達成！🏆</string>
+    <string name="notif_group_b_7day_body">体が軽くなったのを感じますか？続けましょう。</string>
+    <string name="notif_group_b_30day_title">1ヶ月達成！💸</string>
+    <string name="notif_group_b_30day_body">もう習慣になりましたね。尊敬します！</string>
+
+    <!-- Group C: Resting User -->
+    <string name="notif_group_c_1_title">大丈夫、また始めましょう 💪</string>
+    <string name="notif_group_c_1_body">休んでも大丈夫です。タイマーはいつでも待っています。</string>
+    <string name="notif_group_c_2_title">肝臓が休みたいそうです 🏥</string>
+    <string name="notif_group_c_2_body">準備はいいですか？健康のために戻ってきてください。</string>
 
     <!-- Community Screen -->
     <string name="community_title">匿名応援チャレンジ</string>

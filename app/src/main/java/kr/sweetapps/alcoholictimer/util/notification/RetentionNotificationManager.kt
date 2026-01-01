@@ -67,8 +67,8 @@ object RetentionNotificationManager {
             delayHours = DELAY_24H,
             testDelaySeconds = TEST_DELAY_24H,
             group = NotificationWorker.GROUP_NEW_USER,
-            title = RetentionMessages.GroupA.TITLE_1,
-            message = RetentionMessages.GroupA.MESSAGE_1,
+            title = RetentionMessages.GroupA.getTitle1(context),
+            message = RetentionMessages.GroupA.getMessage1(context),
             notificationId = NOTIFICATION_ID_GROUP_A_1,
             tag = TAG_GROUP_A
         )
@@ -79,8 +79,8 @@ object RetentionNotificationManager {
             delayHours = DELAY_72H,
             testDelaySeconds = TEST_DELAY_72H,
             group = NotificationWorker.GROUP_NEW_USER,
-            title = RetentionMessages.GroupA.TITLE_2,
-            message = RetentionMessages.GroupA.MESSAGE_2,
+            title = RetentionMessages.GroupA.getTitle2(context),
+            message = RetentionMessages.GroupA.getMessage2(context),
             notificationId = NOTIFICATION_ID_GROUP_A_2,
             tag = TAG_GROUP_A
         )
@@ -91,8 +91,8 @@ object RetentionNotificationManager {
             delayHours = DELAY_168H,
             testDelaySeconds = TEST_DELAY_168H,
             group = NotificationWorker.GROUP_NEW_USER,
-            title = RetentionMessages.GroupA.TITLE_3,
-            message = RetentionMessages.GroupA.MESSAGE_3,
+            title = RetentionMessages.GroupA.getTitle3(context),
+            message = RetentionMessages.GroupA.getMessage3(context),
             notificationId = NOTIFICATION_ID_GROUP_A_3,
             tag = TAG_GROUP_A
         )
@@ -127,8 +127,8 @@ object RetentionNotificationManager {
                 context = context,
                 delayHours = 72 - elapsedHours,
                 group = NotificationWorker.GROUP_ACTIVE_USER,
-                title = RetentionMessages.GroupB.TITLE_3D,
-                message = RetentionMessages.GroupB.MESSAGE_3D,
+                title = RetentionMessages.GroupB.getTitle3D(context),
+                message = RetentionMessages.GroupB.getMessage3D(context),
                 notificationId = NOTIFICATION_ID_GROUP_B_3D,
                 tag = TAG_GROUP_B
             )
@@ -140,8 +140,8 @@ object RetentionNotificationManager {
                 context = context,
                 delayHours = 168 - elapsedHours,
                 group = NotificationWorker.GROUP_ACTIVE_USER,
-                title = RetentionMessages.GroupB.TITLE_7D,
-                message = RetentionMessages.GroupB.MESSAGE_7D,
+                title = RetentionMessages.GroupB.getTitle7D(context),
+                message = RetentionMessages.GroupB.getMessage7D(context),
                 notificationId = NOTIFICATION_ID_GROUP_B_7D,
                 tag = TAG_GROUP_B
             )
@@ -153,8 +153,8 @@ object RetentionNotificationManager {
                 context = context,
                 delayHours = 720 - elapsedHours,
                 group = NotificationWorker.GROUP_ACTIVE_USER,
-                title = RetentionMessages.GroupB.TITLE_30D,
-                message = RetentionMessages.GroupB.MESSAGE_30D,
+                title = RetentionMessages.GroupB.getTitle30D(context),
+                message = RetentionMessages.GroupB.getMessage30D(context),
                 notificationId = NOTIFICATION_ID_GROUP_B_30D,
                 tag = TAG_GROUP_B
             )
@@ -187,8 +187,8 @@ object RetentionNotificationManager {
             delayHours = DELAY_24H,
             testDelaySeconds = TEST_DELAY_24H,
             group = NotificationWorker.GROUP_RESTING_USER,
-            title = RetentionMessages.GroupC.TITLE_D1,
-            message = RetentionMessages.GroupC.MESSAGE_D1,
+            title = RetentionMessages.GroupC.getTitleD1(context),
+            message = RetentionMessages.GroupC.getMessageD1(context),
             notificationId = NOTIFICATION_ID_GROUP_C,
             tag = TAG_GROUP_C
         )
@@ -199,8 +199,8 @@ object RetentionNotificationManager {
             delayHours = DELAY_72H,
             testDelaySeconds = TEST_DELAY_72H,
             group = NotificationWorker.GROUP_RESTING_USER,
-            title = RetentionMessages.GroupC.TITLE_D3,
-            message = RetentionMessages.GroupC.MESSAGE_D3,
+            title = RetentionMessages.GroupC.getTitleD3(context),
+            message = RetentionMessages.GroupC.getMessageD3(context),
             notificationId = NOTIFICATION_ID_GROUP_C + 1,
             tag = TAG_GROUP_C
         )
@@ -248,16 +248,22 @@ object RetentionNotificationManager {
 
     /**
      * [NEW] 즉시 알림 표시 (테스트용) (2025-12-31)
+     * [UPDATED] Group B 7day 알림(배지 획득)으로 변경 - 이모지와 긴 텍스트 UI 확인용 (2026-01-02)
      *
      * WorkManager 예약 없이 즉시 알림을 표시
      * 알림 UI 및 채널 설정 테스트용
      *
      * @param context Context
-     * @param title 알림 제목
-     * @param message 알림 메시지
+     * @param title 알림 제목 (기본값: Group B 7day)
+     * @param message 알림 메시지 (기본값: Group B 7day)
      */
-    fun showImmediateTestNotification(context: Context, title: String, message: String) {
+    fun showImmediateTestNotification(
+        context: Context,
+        title: String = RetentionMessages.GroupB.getTitle7D(context),
+        message: String = RetentionMessages.GroupB.getMessage7D(context)
+    ) {
         android.util.Log.d("RetentionNotification", "🧪 TEST: Showing immediate notification")
+        android.util.Log.d("RetentionNotification", "🧪 TEST: Using Group B 7day notification (Badge Acquired)")
 
         // 1. 채널 생성 확인
         NotificationChannelManager.createNotificationChannels(context)

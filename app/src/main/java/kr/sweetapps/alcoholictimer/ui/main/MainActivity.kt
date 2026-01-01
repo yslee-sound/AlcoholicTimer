@@ -989,14 +989,13 @@ private fun MainActivityContent(
                     onClick = {
                         android.util.Log.d("MainActivity", "🧪 TEST: Notification test button clicked")
 
-                        // 즉시 알림 표시
+                        // [UPDATED] Group B 7day 알림 즉시 표시 (배지 획득 - 이모지와 긴 텍스트 확인용)
                         kr.sweetapps.alcoholictimer.util.notification.RetentionNotificationManager.showImmediateTestNotification(
-                            context = activity,
-                            title = "🔔 테스트 알림입니다",
-                            message = "아이콘과 배너가 잘 보이나요?"
+                            context = activity
+                            // title, message는 기본값 사용 (Group B 7day)
                         )
 
-                        android.util.Log.d("MainActivity", "✅ TEST: Immediate notification triggered")
+                        android.util.Log.d("MainActivity", "✅ TEST: Immediate notification triggered (Group B 7day - Badge)")
                     },
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                         containerColor = androidx.compose.ui.graphics.Color(0xFFFF5722)

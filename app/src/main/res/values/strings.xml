@@ -239,6 +239,29 @@
     <string name="settings_privacy_not_required">Consent form not required or already handled.</string>
     <string name="settings_privacy_update_failed">Failed to update consent info: %1$s</string>
 
+    <!-- Retention Notifications -->
+    <!-- Group A: New User -->
+    <string name="notif_group_a_1_title">Did you forget? 👀</string>
+    <string name="notif_group_a_1_body">Did you forget the ZERO app? Challenge yourself for just one day!</string>
+    <string name="notif_group_a_2_title">Today is the day! 🔥</string>
+    <string name="notif_group_a_2_body">You have to start to quit! Today is the day to begin.</string>
+    <string name="notif_group_a_3_title">Already a week... 🍺</string>
+    <string name="notif_group_a_3_body">It\'s been a week. Want to buy something with the money saved on drinks?</string>
+
+    <!-- Group B: Active User -->
+    <string name="notif_group_b_3day_title">3-Day Streak! 🎉</string>
+    <string name="notif_group_b_3day_body">You passed the first hurdle. You are doing great!</string>
+    <string name="notif_group_b_7day_title">1 Week Goal! 🏆</string>
+    <string name="notif_group_b_7day_body">Do you feel lighter? Keep going.</string>
+    <string name="notif_group_b_30day_title">1 Month Goal! 💸</string>
+    <string name="notif_group_b_30day_body">It\'s now a habit. I respect your will!</string>
+
+    <!-- Group C: Resting User -->
+    <string name="notif_group_c_1_title">Don\'t give up 💪</string>
+    <string name="notif_group_c_1_body">It\'s okay to rest. The timer is always waiting for you.</string>
+    <string name="notif_group_c_2_title">Your liver needs rest 🏥</string>
+    <string name="notif_group_c_2_body">Ready to start again? Come back for your health.</string>
+
     <!-- Community Screen -->
     <string name="community_title">Anonymous Support Challenge</string>
     <string name="community_title_support">Support</string>
