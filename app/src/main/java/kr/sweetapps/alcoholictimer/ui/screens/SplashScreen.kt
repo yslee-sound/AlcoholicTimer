@@ -13,6 +13,7 @@ import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.ui.main.MainActivity
 import android.graphics.Color as AndroidColor
 import androidx.compose.runtime.mutableStateOf
+import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.ui.tab_01.screens.StartScreen
 
 // Added: AdMob AppOpen load/callback (for debug direct loading)
@@ -148,20 +149,26 @@ class SplashScreen : BaseActivity() {
             }
 
             // STEP 2: MobileAds 초기화 (동의 완료 후에만)
+            // [FIX] 백그라운드 스레드에서 실행하여 ANR 방지 (v1.1.9)
             android.util.Log.d("SplashScreen", "========================================")
-            android.util.Log.d("SplashScreen", "[STEP 2] Initializing MobileAds SDK")
+            android.util.Log.d("SplashScreen", "[STEP 2] Initializing MobileAds SDK (background)")
             android.util.Log.d("SplashScreen", "========================================")
 
             try {
-                com.google.android.gms.ads.MobileAds.initialize(this@SplashScreen) {
-                    android.util.Log.d("SplashScreen", "✅ MobileAds initialized")
+                // [FIX] Dispatchers.IO에서 초기화하여 메인 스레드 블로킹 방지
+                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                    com.google.android.gms.ads.MobileAds.initialize(this@SplashScreen) {
+                        android.util.Log.d("SplashScreen", "✅ MobileAds initialized (background)")
 
-                    // STEP 3: 광고 로드 및 표시
-                    android.util.Log.d("SplashScreen", "========================================")
-                    android.util.Log.d("SplashScreen", "[STEP 3] Loading and showing ad")
-                    android.util.Log.d("SplashScreen", "========================================")
+                        // STEP 3: 광고 로드 및 표시 (메인 스레드에서 실행)
+                        runOnUiThread {
+                            android.util.Log.d("SplashScreen", "========================================")
+                            android.util.Log.d("SplashScreen", "[STEP 3] Loading and showing ad")
+                            android.util.Log.d("SplashScreen", "========================================")
 
-                    loadAndShowAd(launchContent)
+                            loadAndShowAd(launchContent)
+                        }
+                    }
                 }
             } catch (t: Throwable) {
                 android.util.Log.e("SplashScreen", "❌ MobileAds init failed", t)

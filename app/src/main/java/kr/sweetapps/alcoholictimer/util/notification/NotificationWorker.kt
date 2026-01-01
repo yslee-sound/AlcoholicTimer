@@ -38,6 +38,13 @@ class NotificationWorker(
 
     override fun doWork(): Result {
         return try {
+            // [NEW] 1. 알림 ON/OFF 설정 체크 (2026-01-02)
+            // 사용자가 알림을 끄면 조용히 종료
+            if (!RetentionPreferenceManager.isRetentionNotificationEnabled(applicationContext)) {
+                android.util.Log.d("NotificationWorker", "🔕 Retention notification is disabled by user - skipping")
+                return Result.success()
+            }
+
             val group = inputData.getString(KEY_NOTIFICATION_GROUP) ?: return Result.failure()
             val title = inputData.getString(KEY_NOTIFICATION_TITLE) ?: "ZERO"
             val message = inputData.getString(KEY_NOTIFICATION_MESSAGE) ?: "금주를 시작해보세요!"

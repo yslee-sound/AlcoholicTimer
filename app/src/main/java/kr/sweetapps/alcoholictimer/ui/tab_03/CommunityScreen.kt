@@ -1709,13 +1709,16 @@ private fun NativeAdItem() {
 
     // [REFACTORED] 광고 로드 로직 - 캐시 우선 사용 (2025-12-31)
     LaunchedEffect(Unit) {
-        try {
+        // [FIX] 백그라운드에서 MobileAds 초기화 (ANR 방지, v1.1.9)
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             try {
                 com.google.android.gms.ads.MobileAds.initialize(context)
             } catch (initEx: Exception) {
                 android.util.Log.w("NativeAdItem", "MobileAds.initialize failed: ${initEx.message}")
             }
+        }
 
+        try {
             // [핵심] NativeAdManager를 통한 캐싱된 광고 가져오기 또는 새로 로드
             kr.sweetapps.alcoholictimer.ui.ad.NativeAdManager.getOrLoadAd(
                 context = context,

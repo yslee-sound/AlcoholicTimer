@@ -20,6 +20,7 @@ object RetentionPreferenceManager {
     private const val KEY_LAST_END_TIME = "last_end_time"
     private const val KEY_RETRY_COUNT = "retry_count"
     private const val KEY_NOTIFICATION_PERMISSION_SHOWN = "notification_permission_shown"
+    private const val KEY_RETENTION_NOTIFICATION_ENABLED = "retention_notification_enabled"
 
     /**
      * SharedPreferences 인스턴스 획득
@@ -116,6 +117,25 @@ object RetentionPreferenceManager {
         setRetryCount(context, 0)
     }
 
+    // ==================== 알림 ON/OFF 설정 관리 ====================
+
+    /**
+     * 리텐션 알림 ON/OFF 설정 저장
+     * @param enabled true: 알림 받기, false: 알림 끄기
+     */
+    fun setRetentionNotificationEnabled(context: Context, enabled: Boolean) {
+        getPrefs(context).edit().putBoolean(KEY_RETENTION_NOTIFICATION_ENABLED, enabled).apply()
+        android.util.Log.d("RetentionPreference", "✅ Retention notification enabled set to: $enabled")
+    }
+
+    /**
+     * 리텐션 알림 ON/OFF 설정 조회
+     * @return true: 알림 받기 (기본값), false: 알림 끄기
+     */
+    fun isRetentionNotificationEnabled(context: Context): Boolean {
+        return getPrefs(context).getBoolean(KEY_RETENTION_NOTIFICATION_ENABLED, true)
+    }
+
     // ==================== 권한 요청 상태 관리 ====================
 
     /**
@@ -161,4 +181,3 @@ object RetentionPreferenceManager {
         }
     }
 }
-

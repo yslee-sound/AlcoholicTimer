@@ -660,6 +660,10 @@ private fun AboutScreenContent(
             )
             Box(modifier = Modifier.fillMaxWidth().height(dims.divider.thin).background(dims.divider.lightColor))
 
+            // [NEW] 응원 알림 ON/OFF 설정 (2026-01-02)
+            RetentionNotificationSettingRow()
+            Box(modifier = Modifier.fillMaxWidth().height(dims.divider.thin).background(dims.divider.lightColor))
+
             // [NEW] 습관 설정 - 기존 Tab04의 습관 설정 기능을 여기로 이동
             SimpleAboutRow(
                 title = stringResource(id = R.string.settings_title),
@@ -838,3 +842,50 @@ private fun SimpleAboutRow(
     }
 }
 
+/**
+ * [NEW] 응원 알림 ON/OFF 설정 Row (2026-01-02)
+ *
+ * 리텐션 알림을 받을지 여부를 토글할 수 있는 스위치
+ */
+@Composable
+private fun RetentionNotificationSettingRow() {
+    val context = LocalContext.current
+    val preferenceManager = kr.sweetapps.alcoholictimer.util.manager.RetentionPreferenceManager
+
+    // 현재 설정 상태 읽기
+    val isEnabled = remember { mutableStateOf(preferenceManager.isRetentionNotificationEnabled(context)) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                // 전체 Row를 클릭해도 스위치 토글
+                val newValue = !isEnabled.value
+                val oldValue = isEnabled.value
+                isEnabled.value = newValue
+                preferenceManager.setRetentionNotificationEnabled(context, newValue)
+
+                // Firebase Analytics 이벤트 전송
+                kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.logSettingsChange(
+                    settingType = "retention_notification",
+                    oldValue = if (oldValue) "enabled" else "disabled",
+                    newValue = if (newValue) "enabled" else "disabled"
+                )
+
+                Log.d("SettingsScreen", "✅ Retention notification setting changed: $oldValue → $newValue")
+            }
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = stringResource(id = R.string.settings_retention_notification),
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color.Black,
+            modifier = Modifier.weight(1f)
+        )
+        androidx.compose.material3.Switch(
+            checked = isEnabled.value,
+            onCheckedChange = null // Row의 clickable로 처리하므로 null
+        )
+    }
+}

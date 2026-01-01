@@ -1790,12 +1790,16 @@ private fun NativeAdItem() {
 
     // 1. 광고 로드 로직
     LaunchedEffect(Unit) {
-        try {
+        // [FIX] 백그라운드에서 MobileAds 초기화 (ANR 방지, v1.1.9)
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             try {
                 com.google.android.gms.ads.MobileAds.initialize(context)
             } catch (initEx: Exception) {
                 android.util.Log.w("NativeAd", "MobileAds.initialize failed: ${initEx.message}")
             }
+        }
+
+        try {
             val adLoader = com.google.android.gms.ads.AdLoader.Builder(context, adUnitId)
                 .forNativeAd { ad: com.google.android.gms.ads.nativead.NativeAd ->
                     nativeAd = ad

@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.NonCancellable.isCompleted
 import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager
 import kr.sweetapps.alcoholictimer.ui.common.rememberUserSettingsState
@@ -95,23 +96,21 @@ fun DetailScreen(
                 }
             }
             if (removed > 0) {
-                val committed = sharedPref.edit().putString("sobriety_records", newArray.toString()).commit()
-                Log.d("DetailScreen", "removed=${removed} committed=${committed} remainingLen=${newArray.length()}")
-                if (!committed) {
-                    Log.e("DetailScreen", "SharedPreferences.commit() failed")
-                    Toast.makeText(context, "기록 삭제 실패(저장 오류)", Toast.LENGTH_SHORT).show()
-                } else {
-                    // [FIX] 타이머 상태 초기화 (기록 삭제 시 타이머 완료 상태도 리셋)
-                    sharedPref.edit().apply {
-                        putBoolean(Constants.PREF_TIMER_COMPLETED, false)
-                        putLong(Constants.PREF_START_TIME, 0L)
-                        commit()
-                    }
-                    Log.d("DetailScreen", "타이머 상태 초기화 완료")
+                // [FIX] apply()로 변경하여 ANR 방지 (비동기 처리)
+                sharedPref.edit().putString("sobriety_records", newArray.toString()).apply()
+                Log.d("DetailScreen", "removed=${removed} remainingLen=${newArray.length()}")
 
-                    try { onDeleted?.invoke() } catch (_: Exception) {}
-                    Toast.makeText(context, "기록이 삭제되었습니다", Toast.LENGTH_SHORT).show()
+                // [FIX] 타이머 상태 초기화 (기록 삭제 시 타이머 완료 상태도 리셋)
+                sharedPref.edit().apply {
+                    putBoolean(Constants.PREF_TIMER_COMPLETED, false)
+                    putLong(Constants.PREF_START_TIME, 0L)
+                    apply() // commit() → apply()로 변경
                 }
+                Log.d("DetailScreen", "타이머 상태 초기화 완료")
+
+                try { onDeleted?.invoke() } catch (_: Exception) {}
+                Toast.makeText(context, "기록이 삭제되었습니다", Toast.LENGTH_SHORT).show()
+
                 val afterJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
                 Log.d("DetailScreen", "afterRecordsJson=${afterJson}")
             } else {

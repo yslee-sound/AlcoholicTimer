@@ -238,6 +238,8 @@
     <string name="settings_privacy_load_failed">Failed to load consent form: %1$s</string>
     <string name="settings_privacy_not_required">Consent form not required or already handled.</string>
     <string name="settings_privacy_update_failed">Failed to update consent info: %1$s</string>
+    <string name="settings_retention_notification">Receive Cheering Notifications</string>
+    <string name="settings_retention_notification_desc">Get encouragement notifications during your sobriety journey</string>
 
     <!-- Retention Notifications -->
     <!-- Group A: New User -->
