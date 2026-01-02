@@ -102,6 +102,14 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
     )
     val levelState: StateFlow<LevelState> = _levelState.asStateFlow()
 
+    // [NEW] 타이머 시작 시각 (인디케이터 표시용) (2026-01-02)
+    private val _startTime = MutableStateFlow(0L)
+    val startTime: StateFlow<Long> = _startTime.asStateFlow()
+
+    // [NEW] 타이머 완료 여부 (인디케이터 색상 제어용) (2026-01-02)
+    private val _isTimerCompleted = MutableStateFlow(false)
+    val isTimerCompleted: StateFlow<Boolean> = _isTimerCompleted.asStateFlow()
+
     // [NEW] 상세 화면 이동을 위한 일회성 이벤트 (Route 저장)
     // 이 값이 null이 아니면 목록 화면이 해당 route로 즉시 이동함
     private val _pendingDetailRoute = MutableStateFlow<String?>(null)
@@ -253,6 +261,11 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
             // 4. [REFACTORED] 진행 중인 타이머 - TimerTimeManager에서 받은 값 사용
             val startTime = sharedPref.getLong(Constants.PREF_START_TIME, 0L)
             val timerCompleted = sharedPref.getBoolean(Constants.PREF_TIMER_COMPLETED, false)
+
+            // [NEW] startTime StateFlow 업데이트 (인디케이터 표시용) (2026-01-02)
+            _startTime.value = startTime
+            // [NEW] isTimerCompleted StateFlow 업데이트 (인디케이터 색상 제어용) (2026-01-02)
+            _isTimerCompleted.value = timerCompleted
 
             var totalDaysFromCurrentTimer = 0.0
             if (startTime > 0 && !timerCompleted && currentTimerElapsed > 0) {

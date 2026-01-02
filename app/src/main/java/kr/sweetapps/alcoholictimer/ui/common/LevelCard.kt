@@ -33,6 +33,8 @@ import java.util.Locale
  * @param currentLevel 현재 레벨 정보
  * @param currentDays 현재 금주 일수
  * @param progress 다음 레벨까지의 진행률 (0.0 ~ 1.0)
+ * @param startTime 타이머 시작 시각 (활성 상태 확인용) (2026-01-02)
+ * @param isTimerCompleted 타이머 완료 여부 (중지/완료 상태 확인용) (2026-01-02)
  * @param containerColor 카드 배경색 (기본: Deep Blue)
  * @param cardHeight 카드 높이
  * @param showDetailedInfo 상세 정보 표시 여부 (남은 시간 등)
@@ -44,6 +46,8 @@ fun LevelCard(
     currentLevel: LevelDefinitions.LevelInfo,
     currentDays: Int,
     progress: Float,
+    startTime: Long = 0L, // [NEW] 타이머 상태 확인용 파라미터 추가 (2026-01-02)
+    isTimerCompleted: Boolean = false, // [NEW] 타이머 완료 여부 (2026-01-02)
     containerColor: Color = Color(0xFF1E40AF), // Deep Blue
     cardHeight: Dp = 200.dp,
     showDetailedInfo: Boolean = true,
@@ -51,7 +55,8 @@ fun LevelCard(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val isActive = currentDays > 0
+    // [FIX] 타이머 진행 중 여부 - 초록색/회색 색상 결정 (2026-01-02)
+    val isActive = startTime > 0 && !isTimerCompleted
 
     Card(
         modifier = modifier
@@ -117,7 +122,27 @@ fun LevelCard(
                             )
                         }
 
-                        // [REMOVED] Status Indicator 제거 (2025-12-26)
+                        // [RESTORED] 활성 상태 인디케이터 (2026-01-02)
+                        // [CHANGED] 항상 표시, 타이머 작동 여부에 따라 색상만 변경 (초록색/회색) (2026-01-02)
+                        Box(
+                            modifier = Modifier
+                                .size(16.dp)
+                                .align(Alignment.TopEnd)
+                                .offset(x = 4.dp, y = (-4).dp)
+                                .clip(CircleShape)
+                                .background(Color.White)
+                                .padding(3.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape)
+                                    .background(
+                                        if (isActive) Color(0xFF22C55E) // 초록색 (진행 중)
+                                        else Color(0xFF9CA3AF) // 회색 (중지됨)
+                                    )
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.width(16.dp))

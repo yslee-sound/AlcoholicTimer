@@ -95,6 +95,8 @@ fun RecordsScreen(
     currentLevel: LevelDefinitions.LevelInfo? = null,
     currentDays: Int = 0,
     levelProgress: Float = 0f,
+    startTime: Long = 0L, // [NEW] 타이머 상태 확인용 (인디케이터 표시) (2026-01-02)
+    isTimerCompleted: Boolean = false, // [NEW] 타이머 완료 여부 (인디케이터 색상 제어) (2026-01-02)
     onNavigateToLevelDetail: () -> Unit = {},
     statsData: kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.StatsData = kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.StatsData(), // [NEW] 실시간 통계 데이터
     onNavigateToDetail: (SobrietyRecord) -> Unit = {},
@@ -185,6 +187,8 @@ fun RecordsScreen(
                                 currentLevel = currentLevel,
                                 currentDays = currentDays,
                                 progress = levelProgress,
+                                startTime = startTime, // [NEW] 인디케이터 표시용 (2026-01-02)
+                                isTimerCompleted = isTimerCompleted, // [NEW] 인디케이터 색상 제어용 (2026-01-02)
                                 containerColor = Color(0xFF6366F1), // 단색 보라색
                                 cardHeight = 130.dp,
                                 showDetailedInfo = false, // 간소화된 프로그레스만 표시

@@ -38,10 +38,11 @@ fun LevelSummaryBanner(
     currentLevel: LevelDefinitions.LevelInfo,
     currentDays: Int,
     progress: Float,
+    startTime: Long, // [NEW] 타이머 상태 확인용 파라미터 추가
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isActive = currentDays > 0
+    val isActive = startTime > 0 // [FIX] currentDays -> startTime 기반으로 변경 (2026-01-02)
 
     Card(
         modifier = modifier
