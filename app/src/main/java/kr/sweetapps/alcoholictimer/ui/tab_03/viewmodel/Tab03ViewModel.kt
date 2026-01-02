@@ -38,27 +38,20 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
     private var calculationJob: Job? = null
 
     // [NEW] 기록 삭제 시 캐시 초기화 콜백
+    // [FIX] "모든 기록 삭제" 시 진행 중인 타이머는 유지 (2026-01-02)
     private val clearRecordsCallback: () -> Unit = {
-        Log.d("Tab03ViewModel", "Records cleared - forcing cache reset")
+        Log.d("Tab03ViewModel", "Records cleared - refreshing stats (timer preserved)")
 
-        // [FIX] SharedPreferences도 함께 업데이트 (다른 ViewModel과 동기화)
-        // RecordsDataLoader에서 이미 초기화했지만, 혹시 모를 상황을 대비해 재확인
-        sharedPref.edit()
-            .putLong(Constants.PREF_START_TIME, 0L)
-            .putBoolean(Constants.PREF_TIMER_COMPLETED, false)
-            .apply()
+        // [REMOVED] start_time과 timer_completed 초기화 제거 (진행 중인 타이머 유지)
+        // 완료된 기록만 삭제되었으므로, 타이머는 건드리지 않음
 
-        // [FIX] 로컬 캐시도 즉시 초기화
-        _startTime.value = 0L
+        // [FIX] 로컬 캐시는 현재 SharedPreferences 값으로 동기화
+        _startTime.value = sharedPref.getLong(Constants.PREF_START_TIME, 0L)
 
-        // 캐시된 데이터 즉시 초기화
-        _totalElapsedTime.value = 0L
-        _totalElapsedDaysFloat.value = 0f
-        _levelDays.value = 0
-        _currentLevel.value = LevelDefinitions.levels.first()
-
-        // 재계산 트리거
+        // 재계산 트리거 (과거 기록이 사라졌으므로 통계 재계산)
         loadRecordsAndCalculateTotalTime()
+
+        Log.d("Tab03ViewModel", "Stats recalculated with preserved timer: startTime=${_startTime.value}")
     }
 
     // [NEW] SharedPreferences 변경 감지 리스너

@@ -2,7 +2,7 @@
 
 **작업일**: 2026-01-02  
 **문제**: 탭2의 "모든 기록 삭제" 버튼을 누르면 진행 중인 타이머까지 종료됨  
-**상태**: ✅ 수정 완료
+**상태**: ✅ 수정 완료 (최종 수정: 2026-01-02)
 
 ---
 
@@ -15,9 +15,53 @@
 3. 결과: ❌ 완료된 과거 기록뿐만 아니라 진행 중인 타이머까지 종료됨!
 ```
 
-### 원인: RecordsDataLoader.kt의 clearAllRecords()
+### 원인: Tab03ViewModel.kt의 clearRecordsCallback
 
-**문제 코드 (수정 전)**:
+**실제 문제 코드 (수정 전)**:
+```kotlin
+// Tab03ViewModel.kt
+private val clearRecordsCallback: () -> Unit = {
+    Log.d("Tab03ViewModel", "Records cleared - forcing cache reset")
+
+    // ❌ 문제: SharedPreferences에서 타이머를 강제로 초기화!
+    sharedPref.edit()
+        .putLong(Constants.PREF_START_TIME, 0L)  // ← 진행 중인 타이머까지 초기화!
+        .putBoolean(Constants.PREF_TIMER_COMPLETED, false)  // ← 타이머 상태까지 초기화!
+        .apply()
+
+    // ❌ 로컬 캐시도 초기화
+    _startTime.value = 0L
+    _totalElapsedTime.value = 0L
+    _totalElapsedDaysFloat.value = 0f
+    _levelDays.value = 0
+    _currentLevel.value = LevelDefinitions.levels.first()
+
+    // 재계산 트리거
+    loadRecordsAndCalculateTotalTime()
+}
+```
+
+**호출 체인**:
+```
+1. UI: AllRecords.kt → "모든 기록 삭제" 버튼 클릭
+2. Data: RecordsDataLoader.clearAllRecords() 호출
+3. Callback: clearRecordsListeners.forEach { listener() } 실행
+4. Tab03ViewModel: clearRecordsCallback 트리거
+5. ❌ 결과: start_time = 0L로 강제 초기화 → 진행 중인 타이머 종료!
+```
+
+**문제점**:
+1. ❌ `RecordsDataLoader.clearAllRecords()`는 이미 수정되어 타이머를 건드리지 않음
+2. ❌ 하지만 `Tab03ViewModel`의 리스너 콜백이 타이머를 다시 초기화함
+3. ❌ "완료된 기록 삭제"와 "타이머 초기화"가 혼재됨
+
+---
+
+## ✅ 수정 내용
+
+### 1. RecordsDataLoader.kt - clearAllRecords() 수정
+
+**수정 후 코드**:
 ```kotlin
 fun clearAllRecords(context: Context): Boolean = try {
     val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
@@ -41,10 +85,11 @@ fun clearAllRecords(context: Context): Boolean = try {
 
 ## ✅ 수정 내용
 
-### RecordsDataLoader.kt - clearAllRecords() 수정
+### 1. RecordsDataLoader.kt - clearAllRecords() 수정
 
 **수정 후 코드**:
 ```kotlin
+// RecordsDataLoader.kt
 fun clearAllRecords(context: Context): Boolean = try {
     val sharedPref = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE)
 
@@ -75,6 +120,33 @@ fun clearAllRecords(context: Context): Boolean = try {
 - ✅ `.putLong("start_time", 0L)` 삭제
 - ✅ `.putBoolean("timer_completed", false)` 삭제
 - ✅ 로그 메시지 명확화: "timer preserved"
+
+### 2. Tab03ViewModel.kt - clearRecordsCallback 수정 (핵심!)
+
+**수정 후 코드**:
+```kotlin
+// Tab03ViewModel.kt
+private val clearRecordsCallback: () -> Unit = {
+    Log.d("Tab03ViewModel", "Records cleared - refreshing stats (timer preserved)")
+
+    // [REMOVED] start_time과 timer_completed 초기화 제거 (진행 중인 타이머 유지)
+    // 완료된 기록만 삭제되었으므로, 타이머는 건드리지 않음
+
+    // [FIX] 로컬 캐시는 현재 SharedPreferences 값으로 동기화
+    _startTime.value = sharedPref.getLong(Constants.PREF_START_TIME, 0L)
+
+    // 재계산 트리거 (과거 기록이 사라졌으므로 통계 재계산)
+    loadRecordsAndCalculateTotalTime()
+    
+    Log.d("Tab03ViewModel", "Stats recalculated with preserved timer: startTime=${_startTime.value}")
+}
+```
+
+**변경 사항**:
+- ✅ `sharedPref.edit().putLong("start_time", 0L)` 삭제
+- ✅ `sharedPref.edit().putBoolean("timer_completed", false)` 삭제
+- ✅ `_startTime.value = 0L` 대신 현재 SharedPreferences 값으로 동기화
+- ✅ 기타 캐시 초기화 코드 삭제 (통계는 `loadRecordsAndCalculateTotalTime()`에서 자동 재계산됨)
 
 ---
 
@@ -196,11 +268,11 @@ After:
 | 파일 | 변경 내용 |
 |-----|----------|
 | `RecordsDataLoader.kt` | `clearAllRecords()`에서 `start_time`과 `timer_completed` 초기화 제거 |
+| `Tab03ViewModel.kt` | `clearRecordsCallback`에서 타이머 관련 초기화 코드 제거 (핵심 수정) |
 
 **수정 줄 수**:
-- 삭제: 2줄 (`.putLong("start_time", 0L)`, `.putBoolean("timer_completed", false)`)
-- 추가: 1줄 (주석 설명)
-- 수정: 2줄 (로그 메시지)
+- **RecordsDataLoader.kt**: 삭제 2줄, 주석 추가 1줄
+- **Tab03ViewModel.kt**: 삭제 10줄, 수정 3줄, 주석 추가 2줄
 
 ---
 
@@ -256,5 +328,9 @@ After:
 
 **작성일**: 2026-01-02  
 **상태**: ✅ 수정 완료  
-**테스트**: 빌드 진행 중
+**테스트**: ✅ 빌드 성공 (BUILD SUCCESSFUL in 6s)
 
+**최종 결론**:
+- ✅ `RecordsDataLoader.kt`: 타이머 관련 코드 삭제 완료
+- ✅ `Tab03ViewModel.kt`: `clearRecordsCallback`에서 타이머 초기화 제거 완료
+- ✅ "모든 기록 삭제" → 완료된 기록만 삭제, 진행 중인 타이머는 유지됨
