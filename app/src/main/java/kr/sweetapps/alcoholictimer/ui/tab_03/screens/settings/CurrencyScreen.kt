@@ -68,9 +68,8 @@ fun CurrencyScreen(onBack: () -> Unit = {}) {
                         // [NEW] Analytics: 설정 변경 추적 (2025-12-31)
                         val oldValue = selectedKeyState.value
 
-                        // 저장: AUTO 모드로 변경
-                        CurrencyManager.saveCurrency(context, "AUTO")
-                        prefs.edit { putBoolean("currency_explicit", false) }
+                        // [FIX] 시스템 설정 모드로 저장 (explicit: false) (2026-01-02)
+                        CurrencyManager.saveCurrency(context, "AUTO", explicit = false)
                         selectedKeyState.value = "AUTO"
                         // 업데이트: 현재 해석된 통화 코드도 갱신
                         selectedCodeState.value = CurrencyManager.getSelectedCurrency(context).code
@@ -100,9 +99,8 @@ fun CurrencyScreen(onBack: () -> Unit = {}) {
                             // [NEW] Analytics: 설정 변경 추적 (2025-12-31)
                             val oldValue = selectedKeyState.value
 
-                            CurrencyManager.saveCurrency(context, currency.code)
-                            // mark explicit selection
-                            prefs.edit { putBoolean("currency_explicit", true) }
+                            // [FIX] 명시적 통화 선택 (explicit: true) (2026-01-02)
+                            CurrencyManager.saveCurrency(context, currency.code, explicit = true)
                             selectedKeyState.value = currency.code
                             selectedCodeState.value = currency.code
 

@@ -574,15 +574,11 @@ private fun PeriodStatisticsSection(
     val totalKcal = statsData.totalKcal
     val totalBottles = statsData.totalBottles
 
-    // [UPDATED] value와 unit 완전 분리 (2025-12-26)
-    val savedMoneyFormatted = remember(savedMoney) {
-        val formatted = CurrencyManager.formatMoneyNoDecimals(savedMoney, context)  // "Rp1,4jt"
-        val locale = java.util.Locale.getDefault()
-        if (locale.country.equals("ID", ignoreCase = true) || locale.language.equals("in", ignoreCase = true)) {
-            "$formatted IDR"  // 인도네시아: "Rp1,4jt IDR"
-        } else {
-            formatted  // 다른 국가: "₩10,000" 등
-        }
+    // [REFACTORED] 모든 통화에서 통화 코드 표시 (2026-01-02)
+    val savedMoneyFormatted = remember(savedMoney, userSettings.currencyCode) {
+        val formatted = CurrencyManager.formatMoneyNoDecimals(savedMoney, context)  // 순수 숫자 (예: "1,000")
+        val currencyCode = CurrencyManager.getSelectedCurrency(context).code
+        "$formatted $currencyCode"  // 모든 통화: "1,000 KRW", "135 IDR", "7 USD" 등
     }
 
     // [CHANGED] Floor(내림) 방식으로 소수점 계산 - 레벨 카드와 동기화 (2025-12-25)

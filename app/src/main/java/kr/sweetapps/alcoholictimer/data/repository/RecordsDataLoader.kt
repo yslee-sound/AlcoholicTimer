@@ -40,19 +40,18 @@ object RecordsDataLoader {
         Log.d(TAG, "Records before deletion: $beforeJson")
         Log.d(TAG, "Start time before deletion: $beforeStartTime")
 
-        // [FIX] 기록 삭제 + 현재 타이머 상태 초기화 (apply로 비동기 처리하여 ANR 방지)
+        // [FIX] 완료된 기록만 삭제, 진행 중인 타이머는 유지 (2026-01-02)
         sharedPref.edit()
             .putString("sobriety_records", "[]")
-            .putLong("start_time", 0L)  // [NEW] 현재 타이머 시작 시간 초기화
-            .putBoolean("timer_completed", false)  // [NEW] 타이머 완료 상태 초기화
+            // start_time과 timer_completed는 건드리지 않음 (진행 중인 타이머 유지)
             .apply()
 
         // Verify after deletion
         val afterJson = sharedPref.getString("sobriety_records", "[]") ?: "[]"
         val afterStartTime = sharedPref.getLong("start_time", 0L)
         Log.d(TAG, "Records after deletion: $afterJson")
-        Log.d(TAG, "Start time after deletion: $afterStartTime")
-        Log.d(TAG, "All records and timer state deleted successfully (async)")
+        Log.d(TAG, "Start time after deletion: $afterStartTime (should be preserved)")
+        Log.d(TAG, "All completed records deleted successfully (timer preserved)")
 
         // [NEW] 모든 리스너에게 캐시 무효화 알림
         clearRecordsListeners.forEach { listener ->

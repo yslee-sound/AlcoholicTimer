@@ -213,6 +213,48 @@ object FormatUtils {
     }
 
     /**
+     * 인도네시아 금액 축약 포맷 (Rp 기호 없음)
+     *
+     * 통화 기호를 별도로 표시하는 UI에서 사용
+     * 예: "1,5jt IDR" 형태로 표시할 때
+     *
+     * [NEW] 기호 없는 버전 추가 (2026-01-02)
+     */
+    @JvmStatic
+    fun formatCompactRupiahNoSymbol(amount: Double): String {
+        // 1. 음수 처리
+        if (amount < 0) return "-" + formatCompactRupiahNoSymbol(-amount)
+
+        // 2. 단위 기준 설정
+        val thousand = 1000.0
+        val million = 1000000.0
+        val billion = 1000000000.0
+
+        // [FIX] deprecated Locale 생성자 대신 forLanguageTag 사용
+        val indonesiaLocale = Locale.forLanguageTag("in-ID")
+
+        // 3. 포맷팅 (Rp 기호 제거)
+        return when {
+            amount >= billion -> {
+                val value = amount / billion
+                String.format(indonesiaLocale, "%.1f M", value).replace(",0 M", " M")
+            }
+            amount >= million -> {
+                val value = amount / million
+                String.format(indonesiaLocale, "%.1f jt", value).replace(",0 jt", " jt")
+            }
+            amount >= thousand -> {
+                val value = amount / thousand
+                String.format(indonesiaLocale, "%.0f rb", value)
+            }
+            else -> {
+                // 작은 숫자는 그대로 표시 (천 단위 구분 기호 포함, Rp 제거)
+                String.format(indonesiaLocale, "%,.0f", amount)
+            }
+        }
+    }
+
+    /**
      * 큰 숫자(칼로리 등)를 간결하게 표시하기 위한 범용 포맷터
      *
      * 레이아웃이 깨지는 것을 방지하기 위해 100만 이상은 축약 표시합니다.
