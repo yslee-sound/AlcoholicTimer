@@ -81,7 +81,12 @@ fun CurrencyScreen(onBack: () -> Unit = {}) {
                                 oldValue = oldValue,
                                 newValue = "AUTO"
                             )
-                            android.util.Log.d("CurrencyScreen", "Analytics: settings_change sent (currency: $oldValue → AUTO)")
+                            // [NEW] User Property 설정 (2026-01-02)
+                            kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.setUserProperty(
+                                "preferred_currency",
+                                selectedCodeState.value // AUTO의 경우 해석된 실제 통화 코드
+                            )
+                            android.util.Log.d("CurrencyScreen", "Analytics: settings_change sent (currency: $oldValue → AUTO), User Property: ${selectedCodeState.value}")
                         } catch (e: Exception) {
                             android.util.Log.e("CurrencyScreen", "Failed to log settings_change", e)
                         }
@@ -111,7 +116,12 @@ fun CurrencyScreen(onBack: () -> Unit = {}) {
                                     oldValue = oldValue,
                                     newValue = currency.code
                                 )
-                                android.util.Log.d("CurrencyScreen", "Analytics: settings_change sent (currency: $oldValue → ${currency.code})")
+                                // [NEW] User Property 설정 (2026-01-02)
+                                kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.setUserProperty(
+                                    "preferred_currency",
+                                    currency.code
+                                )
+                                android.util.Log.d("CurrencyScreen", "Analytics: settings_change sent (currency: $oldValue → ${currency.code}), User Property: ${currency.code}")
                             } catch (e: Exception) {
                                 android.util.Log.e("CurrencyScreen", "Failed to log settings_change", e)
                             }

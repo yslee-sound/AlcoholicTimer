@@ -208,14 +208,6 @@ fun RecordsScreen(
                         onPeriodSelected = { period: String ->
                             Log.d("RecordsScreen", "onPeriodSelected 호출: $period")
                             onPeriodSelected(period)
-                            try {
-                                val viewType = when (period) {
-                                    periodMonth -> "Month"
-                                    else -> "All"
-                                }
-                                val currentLevel = records.maxOfOrNull { it.achievedLevel } ?: 0
-                                AnalyticsManager.logChangeRecordView(viewType, currentLevel)
-                            } catch (_: Throwable) {}
                         }
                     )
                 }

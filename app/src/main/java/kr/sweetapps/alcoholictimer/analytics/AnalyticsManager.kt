@@ -96,19 +96,44 @@ object AnalyticsManager {
         putString(AnalyticsParams.AD_TYPE, adType)
     }
 
-    // ViewRecords: 과거 금주 기록 조회
-    fun logViewRecords() = log(AnalyticsEvents.VIEW_RECORDS) {}
+    // [REMOVED] ViewRecords, ChangeRecordView, ViewRecordDetail 삭제 (2026-01-02)
+    // - 너무 세분화되어 데이터 노이즈만 발생
+    // - screen_view로 충분히 대체 가능
 
-    // ChangeRecordView: 기록 보기 화면에서 주/월/년 기준 변경
-    fun logChangeRecordView(viewType: String, currentLevel: Int) = log(AnalyticsEvents.CHANGE_RECORD_VIEW) {
-        putString(AnalyticsParams.VIEW_TYPE, viewType)
-        putInt(AnalyticsParams.CURRENT_LEVEL, currentLevel)
+    // [NEW] DiarySave: 일기 저장 (2026-01-02)
+    fun logDiarySave(
+        mood: String,
+        contentLength: Int,
+        hasImage: Boolean,
+        dayCount: Int
+    ) = log(AnalyticsEvents.DIARY_SAVE) {
+        putString(AnalyticsParams.MOOD, mood)
+        putInt(AnalyticsParams.CONTENT_LENGTH, contentLength)
+        putBoolean(AnalyticsParams.HAS_IMAGE, hasImage)
+        putInt(AnalyticsParams.DAY_COUNT, dayCount)
     }
 
-    // ViewRecordDetail: 특정 기록 상세 조회
-    fun logViewRecordDetail(recordId: String) = log(AnalyticsEvents.VIEW_RECORD_DETAIL) {
-        putString(AnalyticsParams.RECORD_ID, recordId)
+
+    // [MODIFIED] CommunityPost: 커뮤니티 글 작성 (일기 제외) (2026-01-02)
+    fun logCommunityPost(
+        postType: String, // "challenge" only
+        hasImage: Boolean,
+        contentLength: Int,
+        tagType: String?,
+        userLevel: Int,
+        days: Int
+    ) = log(AnalyticsEvents.COMMUNITY_POST) {
+        putString(AnalyticsParams.POST_TYPE, postType)
+        putBoolean(AnalyticsParams.HAS_IMAGE, hasImage)
+        putInt(AnalyticsParams.CONTENT_LENGTH, contentLength)
+        tagType?.let { putString(AnalyticsParams.TAG_TYPE, it) }
+        putInt(AnalyticsParams.USER_LEVEL, userLevel)
+        putInt(AnalyticsParams.DAYS, days)
     }
+
+    // [REMOVED] ScreenView 삭제 (2026-01-02)
+    // - 모든 화면 전환을 추적하면 데이터가 너무 많아짐
+    // - 핵심 화면만 선별적으로 추적하는 것이 효율적
 
     // [NEW] TimerGiveUp: 타이머 포기 (2025-12-31)
     fun logTimerGiveUp(
@@ -138,50 +163,21 @@ object AnalyticsManager {
         putString(AnalyticsParams.TIMER_STATUS, timerStatus)
     }
 
-    // [NEW] LevelUp: 레벨 업 달성 (2025-12-31)
+    // [NEW] LevelUp: 레벨 업 달성 (2026-01-02)
     fun logLevelUp(
         oldLevel: Int,
         newLevel: Int,
         totalDays: Int,
-        levelName: String,
-        achievementTs: Long
+        levelName: String
     ) = log(AnalyticsEvents.LEVEL_UP) {
         putInt(AnalyticsParams.OLD_LEVEL, oldLevel)
         putInt(AnalyticsParams.NEW_LEVEL, newLevel)
         putInt(AnalyticsParams.TOTAL_DAYS, totalDays)
         putString(AnalyticsParams.LEVEL_NAME, levelName)
-        putLong(AnalyticsParams.ACHIEVEMENT_TS, achievementTs)
+        putLong(AnalyticsParams.ACHIEVEMENT_TS, System.currentTimeMillis())
     }
 
-    // [NEW] ScreenView: 화면 전환 (2025-12-31)
-    fun logScreenView(
-        screenName: String,
-        screenClass: String,
-        previousScreen: String? = null,
-        timerStatus: String
-    ) = log(AnalyticsEvents.SCREEN_VIEW) {
-        putString(AnalyticsParams.SCREEN_NAME, screenName)
-        putString(AnalyticsParams.SCREEN_CLASS, screenClass)
-        previousScreen?.let { putString(AnalyticsParams.PREVIOUS_SCREEN, it) }
-        putString(AnalyticsParams.TIMER_STATUS, timerStatus)
-    }
-
-    // [NEW] CommunityPost: 커뮤니티 글 작성 (2025-12-31)
-    fun logCommunityPost(
-        postType: String,
-        hasImage: Boolean,
-        contentLength: Int,
-        tagType: String?,
-        userLevel: Int,
-        days: Int
-    ) = log(AnalyticsEvents.COMMUNITY_POST) {
-        putString(AnalyticsParams.POST_TYPE, postType)
-        putBoolean(AnalyticsParams.HAS_IMAGE, hasImage)
-        putInt(AnalyticsParams.CONTENT_LENGTH, contentLength)
-        tagType?.let { putString(AnalyticsParams.TAG_TYPE, it) }
-        putInt(AnalyticsParams.USER_LEVEL, userLevel)
-        putInt(AnalyticsParams.DAYS, days)
-    }
+    // [REMOVED] ScreenView 삭제 (2026-01-02)
 
     // [NEW] SettingsChange: 설정 변경 (2025-12-31)
     fun logSettingsChange(

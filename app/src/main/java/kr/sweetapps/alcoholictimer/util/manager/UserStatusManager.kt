@@ -129,16 +129,16 @@ object UserStatusManager {
         val levelNumber = LevelDefinitions.getLevelNumber(totalDays)
         val level = if (levelNumber >= 0) levelNumber + 1 else 1
 
-        // [NEW] 레벨업 감지 및 Analytics 전송 (2025-12-31)
+        // [NEW] 레벨업 감지 및 Analytics 전송 (2026-01-02)
         if (level > previousLevel && previousLevel > 0) {
             try {
                 val levelInfo = LevelDefinitions.getLevelInfo(totalDays)
+                // [FIX] levelName은 Context 필요하므로 toString() 대신 레벨 번호 사용 (2026-01-02)
                 AnalyticsManager.logLevelUp(
                     oldLevel = previousLevel,
                     newLevel = level,
                     totalDays = totalDays,
-                    levelName = levelInfo.toString(),
-                    achievementTs = System.currentTimeMillis()
+                    levelName = "Level $level" // Context 없이도 사용 가능한 기본 이름
                 )
                 android.util.Log.d("UserStatusManager", "Analytics: level_up event sent (${previousLevel} → ${level})")
             } catch (e: Exception) {

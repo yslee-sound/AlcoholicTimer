@@ -10,7 +10,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
-import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.ui.main.Screen
 
@@ -67,7 +66,6 @@ fun NavGraphBuilder.addTab02ListGraph(
 
             kr.sweetapps.alcoholictimer.ui.tab_02.Tab02Screen(
                 onNavigateToDetail = { record: SobrietyRecord ->
-                    try { AnalyticsManager.logViewRecordDetail(record.id) } catch (_: Throwable) {}
                     val route = Screen.Detail.createRoute(
                         startTime = record.startTime,
                         endTime = record.endTime,

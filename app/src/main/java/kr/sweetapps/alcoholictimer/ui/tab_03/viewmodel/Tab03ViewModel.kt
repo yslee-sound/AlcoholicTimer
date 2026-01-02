@@ -47,6 +47,8 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
 
         // [FIX] 로컬 캐시는 현재 SharedPreferences 값으로 동기화
         _startTime.value = sharedPref.getLong(Constants.PREF_START_TIME, 0L)
+        // [NEW] 타이머 완료 여부도 동기화 (2026-01-02)
+        _isTimerCompleted.value = sharedPref.getBoolean(Constants.PREF_TIMER_COMPLETED, false)
 
         // 재계산 트리거 (과거 기록이 사라졌으므로 통계 재계산)
         loadRecordsAndCalculateTotalTime()
@@ -65,6 +67,8 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
 
                 // 1. 시작 시간 상태 최신화 (중요: 이걸 해야 UI가 즉시 '진행 중'으로 바뀜)
                 _startTime.value = sharedPref.getLong(Constants.PREF_START_TIME, 0L)
+                // [NEW] 타이머 완료 여부 상태 최신화 (인디케이터 색상 제어) (2026-01-02)
+                _isTimerCompleted.value = sharedPref.getBoolean(Constants.PREF_TIMER_COMPLETED, false)
 
                 // 2. 전체 통계 재계산
                 loadRecordsAndCalculateTotalTime()
@@ -79,6 +83,10 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
     // [NEW] 시작 시간 상태
     private val _startTime = MutableStateFlow(sharedPref.getLong("start_time", 0L))
     val startTime: StateFlow<Long> = _startTime.asStateFlow()
+
+    // [NEW] 타이머 완료 여부 (인디케이터 색상 제어용) (2026-01-02)
+    private val _isTimerCompleted = MutableStateFlow(sharedPref.getBoolean(Constants.PREF_TIMER_COMPLETED, false))
+    val isTimerCompleted: StateFlow<Boolean> = _isTimerCompleted.asStateFlow()
 
     // [NEW] 레벨 방문 횟수 상태
     private val _levelVisits = MutableStateFlow(sharedPref.getInt(LEVEL_VISITS_KEY, 0))

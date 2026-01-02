@@ -21,7 +21,6 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 import kr.sweetapps.alcoholictimer.ui.theme.UiConstants
 import kr.sweetapps.alcoholictimer.ui.main.Screen
 
@@ -150,20 +149,17 @@ fun BottomNavBar(
                                                 restoreState = true
                                                 popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                                             }
+                                    }
+                                }
+                            } else {
+                                // [NEW] 탭 2 클릭 시 항상 통계 화면(Records)으로 이동 (2025-12-27)
+                                if (index == 1) {
+                                    if (currentRoute != Screen.Records.route) {
+                                        navController.navigate(Screen.Records.route) {
+                                            launchSingleTop = true
+                                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                                         }
                                     }
-                                } else {
-                                    // 기록 보기(두 번째 버튼) 클릭 시 이벤트 전송
-                                    if (index == 1) {
-                                        try { AnalyticsManager.logViewRecords() } catch (_: Throwable) {}
-
-                                        // [NEW] 탭 2 클릭 시 항상 통계 화면(Records)으로 이동 (2025-12-27)
-                                        if (currentRoute != Screen.Records.route) {
-                                            navController.navigate(Screen.Records.route) {
-                                                launchSingleTop = true
-                                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                            }
-                                        }
                                     } else if (!selected) {
                                         // 다른 탭들은 기존 로직 유지
                                         navController.navigate(item.screen.route) {

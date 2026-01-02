@@ -293,6 +293,12 @@ object AppOpenAdManager {
                             try { Log.d(TAG, "onAdDismissed -> AdController.debugSnapshot=${AdController.debugSnapshot()}") } catch (_: Throwable) {}
                             performFinishFlow()
                         }
+
+                        // [NEW] 앱 오프닝 광고 클릭 추적 (2026-01-02)
+                        override fun onAdClicked() {
+                            Log.d(TAG, "AppOpen onAdClicked")
+                            try { AnalyticsManager.logAdClick("app_open") } catch (_: Throwable) {}
+                        }
                     }
                 }
 

@@ -304,6 +304,19 @@ fun DiaryWriteScreen(
                         )
                         diaryViewModel.insertDiary(newDiary)
                         android.util.Log.d("DiaryWriteScreen", "일기 생성 성공: 태그=${postData.tagType}, 날짜=${formatDate(targetTimestamp)}, Lv.$currentLevel, Day $currentDays, sharedPostId=$newSharedPostId")
+
+                        // [NEW] Firebase Analytics: 일기 저장 이벤트 전송 (2026-01-02)
+                        try {
+                            kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.logDiarySave(
+                                mood = postData.tagType ?: "none",
+                                contentLength = postData.content.length,
+                                hasImage = !postData.imageUrl.isNullOrEmpty(),
+                                dayCount = currentDays
+                            )
+                            android.util.Log.d("DiaryWriteScreen", "✅ diary_save 이벤트 전송 완료")
+                        } catch (e: Exception) {
+                            android.util.Log.e("DiaryWriteScreen", "❌ diary_save 이벤트 전송 실패", e)
+                        }
                     }
                 } catch (e: Exception) {
                     android.util.Log.e("DiaryWriteScreen", "일기 저장 실패", e)

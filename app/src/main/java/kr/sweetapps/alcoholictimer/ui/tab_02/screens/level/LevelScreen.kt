@@ -58,6 +58,7 @@ fun LevelScreen(
 
     // ViewModel에서 상태 구독 (광고 정책용만)
     val startTime by viewModel.startTime.collectAsState()
+    val isTimerCompleted by viewModel.isTimerCompleted.collectAsState() // [NEW] 타이머 완료 여부 구독 (2026-01-02)
     val levelVisits by viewModel.levelVisits.collectAsState()
 
     // ...existing code (BackHandler)...
@@ -122,6 +123,7 @@ fun LevelScreen(
             levelDays = currentDays,
             totalDaysPrecise = totalDaysPrecise, // ★ Float 정밀값 전달
             startTime = startTime,
+            isTimerCompleted = isTimerCompleted, // [NEW] 타이머 완료 여부 전달 (2026-01-02)
             viewModel = viewModel
         )
     }
@@ -135,6 +137,7 @@ fun LevelScreenContent(
     levelDays: Int,
     totalDaysPrecise: Float, // [CHANGED] totalElapsedDaysFloat → totalDaysPrecise
     startTime: Long?,
+    isTimerCompleted: Boolean, // [NEW] 타이머 완료 여부 (인디케이터 색상 제어) (2026-01-02)
     viewModel: Tab03ViewModel
 ) {
     // [FIX] innerPadding을 제대로 적용하고 배경색을 White로 고정
@@ -158,6 +161,8 @@ fun LevelScreenContent(
             currentLevel = currentLevel,
             currentDays = levelDays,
             progress = LevelDefinitions.getLevelProgress(totalDaysPrecise), // ★ totalDaysPrecise 사용
+            startTime = startTime ?: 0L, // [NEW] 인디케이터 표시용 (2026-01-02)
+            isTimerCompleted = isTimerCompleted, // [NEW] 인디케이터 색상 제어용 (2026-01-02)
             containerColor = Color(0xFF1E40AF), // Deep Blue
             cardHeight = 200.dp,
             showDetailedInfo = true,
