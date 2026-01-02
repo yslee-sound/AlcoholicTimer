@@ -927,22 +927,19 @@ private fun MainActivityContent(
 
     // [NEW] Box로 감싸서 다이얼로그가 최상위에 오도록 (2025-12-31)
     Box(modifier = androidx.compose.ui.Modifier.fillMaxSize()) {
-        // [NEW] 조건부 렌더링 (2025-12-31)
+        // [UPDATED] 초기화 중에도 빈 화면(흰색)만 보여주고 로딩 인디케이터 제거 (2026-01-03)
+        // 이유: Release 빌드에서 로딩 화면이 다이얼로그를 가리는 문제 해결
         when {
             !isInitComplete -> {
-                // 초기화 미완료 - 대기 화면 표시
-                android.util.Log.d("MainActivity", "⏳ Rendering waiting screen - AppNavHost BLOCKED")
+                // 초기화 미완료 - 빈 화면만 표시 (다이얼로그가 보이도록)
+                android.util.Log.d("MainActivity", "⏳ Rendering blank screen - waiting for dialog interaction")
 
                 Box(
                     modifier = androidx.compose.ui.Modifier
                         .fillMaxSize()
-                        .background(androidx.compose.ui.graphics.Color.White),
-                    contentAlignment = androidx.compose.ui.Alignment.Center
+                        .background(androidx.compose.ui.graphics.Color.White)
                 ) {
-                    // 빈 화면 또는 로딩 인디케이터
-                    androidx.compose.material3.CircularProgressIndicator(
-                        color = androidx.compose.ui.graphics.Color(0xFF6200EE)
-                    )
+                    // 빈 화면만 유지 - 로딩 인디케이터 제거
                 }
             }
 

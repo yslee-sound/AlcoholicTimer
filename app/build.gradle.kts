@@ -67,8 +67,8 @@ android {
 
     // 버전 코드 전략: yyyymmdd + 2자리 시퀀스 (NN)
     // 이전 사용: 2025100800 -> 신규: 2025100801
-    val releaseVersionCode = 2026010202
-    val releaseVersionName = "1.2.0"
+    val releaseVersionCode = 2026010203 // [HOTFIX] UMP 5초 타임아웃 적용
+    val releaseVersionName = "1.2.0-hotfix"
     defaultConfig {
         applicationId = "kr.sweetapps.alcoholictimer"
         minSdk = 21
