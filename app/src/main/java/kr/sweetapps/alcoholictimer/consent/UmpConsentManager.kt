@@ -3,6 +3,8 @@ package kr.sweetapps.alcoholictimer.consent
 
 import android.app.Activity
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import com.google.android.ump.ConsentDebugSettings
 import com.google.android.ump.ConsentInformation
@@ -33,6 +35,7 @@ class UmpConsentManager(private val context: Context) {
     /**
      * 표준 UMP 플로우 (RequestInfoUpdate -> loadAndShowConsentFormIfRequired)
      * - 중복 호출 시 무시
+     * - [NEW] 5초 타임아웃 안전장치 추가 (2026-01-02)
      */
     fun gatherConsent(activity: Activity, onComplete: (Boolean) -> Unit) {
         if (isGathering.getAndSet(true)) {
@@ -42,6 +45,22 @@ class UmpConsentManager(private val context: Context) {
 
         Log.d(TAG, "gatherConsent() start")
 
+        // [NEW] Race Condition: UMP 응답 vs 타임아웃 중 먼저 완료되는 쪽이 실행 (2026-01-02)
+        val isCompleted = AtomicBoolean(false)
+        val handler = Handler(Looper.getMainLooper())
+
+        // [안전장치] 5초 타임아웃 - UMP 서버 응답 없을 시 강제 진행
+        val timeoutRunnable = Runnable {
+            if (isCompleted.compareAndSet(false, true)) {
+                Log.w(TAG, "⏱️ TIMEOUT (5s): UMP 서버 응답 없음 - 강제 진행")
+                formShowing = false
+                isGathering.set(false)
+                canRequestAds = false
+                onComplete(false) // 동의 없이 진행 (광고 없음)
+            }
+        }
+        handler.postDelayed(timeoutRunnable, 5000L) // 5초
+
         val params = createConsentRequestParameters(activity)
         val consentInfo = UserMessagingPlatform.getConsentInformation(activity)
 
@@ -49,36 +68,54 @@ class UmpConsentManager(private val context: Context) {
             activity,
             params,
             {
+                // UMP 요청 성공 - 타임아웃보다 먼저 완료됨
+                if (isCompleted.get()) {
+                    Log.d(TAG, "requestConsentInfoUpdate success but already timed out - ignoring")
+                    return@requestConsentInfoUpdate
+                }
+
                 Log.d(TAG, "requestConsentInfoUpdate success: status=${consentInfo.consentStatus}")
 
                 // SDK에게 폼 표시 여부를 전적으로 위임
                 formShowing = true
                 UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) { formError: FormError? ->
-                    formShowing = false
-                    isGathering.set(false)
+                    handler.removeCallbacks(timeoutRunnable) // 타임아웃 취소
 
-                    if (formError != null) {
-                        Log.e(TAG, "Consent form error: ${formError.message}")
-                        canRequestAds = false
-                        onComplete(false)
-                        return@loadAndShowConsentFormIfRequired
+                    if (isCompleted.compareAndSet(false, true)) {
+                        formShowing = false
+                        isGathering.set(false)
+
+                        if (formError != null) {
+                            Log.e(TAG, "Consent form error: ${formError.message}")
+                            canRequestAds = false
+                            onComplete(false)
+                            return@loadAndShowConsentFormIfRequired
+                        }
+
+                        val finalStatus = consentInfo.consentStatus
+                        val allowed = finalStatus == ConsentInformation.ConsentStatus.OBTAINED ||
+                                      finalStatus == ConsentInformation.ConsentStatus.NOT_REQUIRED
+
+                        Log.d(TAG, "Consent finished: status=$finalStatus canRequestAds=$allowed")
+                        canRequestAds = allowed
+                        onComplete(allowed)
+                    } else {
+                        Log.d(TAG, "Form completed but already handled by timeout")
                     }
-
-                    val finalStatus = consentInfo.consentStatus
-                    val allowed = finalStatus == ConsentInformation.ConsentStatus.OBTAINED ||
-                                  finalStatus == ConsentInformation.ConsentStatus.NOT_REQUIRED
-
-                    Log.d(TAG, "Consent finished: status=$finalStatus canRequestAds=$allowed")
-                    canRequestAds = allowed
-                    onComplete(allowed)
                 }
             },
             { error: FormError? ->
-                Log.e(TAG, "requestConsentInfoUpdate failed: ${error?.message}")
-                formShowing = false
-                isGathering.set(false)
-                canRequestAds = false
-                onComplete(false)
+                handler.removeCallbacks(timeoutRunnable) // 타임아웃 취소
+
+                if (isCompleted.compareAndSet(false, true)) {
+                    Log.e(TAG, "requestConsentInfoUpdate failed: ${error?.message}")
+                    formShowing = false
+                    isGathering.set(false)
+                    canRequestAds = false
+                    onComplete(false)
+                } else {
+                    Log.d(TAG, "Request failed but already handled by timeout")
+                }
             }
         )
     }
