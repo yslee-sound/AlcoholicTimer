@@ -241,6 +241,10 @@
     <string name="settings_retention_notification">응원 알림 받기</string>
     <string name="settings_retention_notification_desc">금주 여정 중 응원 알림을 받습니다</string>
 
+    <!-- In-App Update -->
+    <string name="update_downloaded">업데이트 다운로드 완료</string>
+    <string name="restart_to_install">재실행</string>
+
     <!-- Retention Notifications -->
     <!-- Group A: New User -->
     <string name="notif_group_a_1_title">잊으신 건 아니죠? 👀</string>

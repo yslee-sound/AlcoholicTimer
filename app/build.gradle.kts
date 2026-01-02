@@ -265,6 +265,8 @@ dependencies {
     implementation(libs.androidx.fragment.ktx)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.material3)
+    // [NEW] Material Components for Snackbar (인앱 업데이트용, 2026-01-02)
+    implementation("com.google.android.material:material:1.11.0")
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)

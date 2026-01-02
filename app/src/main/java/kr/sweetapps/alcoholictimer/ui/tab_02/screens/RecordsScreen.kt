@@ -1782,13 +1782,16 @@ private fun parseYearMonth(dateString: String): Pair<Int, Int> {
 private fun NativeAdItem() {
     val context = LocalContext.current
 
+    // [NEW] NativeAdManager의 캐시 키 (기록 화면 전용)
+    val screenKey = "records_screen"
+
     val adUnitId = try { kr.sweetapps.alcoholictimer.BuildConfig.ADMOB_NATIVE_ID } catch (_: Throwable) { "ca-app-pub-3940256099942544/2247696110" }
 
     var nativeAd by remember { mutableStateOf<com.google.android.gms.ads.nativead.NativeAd?>(null) }
     // [NEW] 광고 로드 실패 플래그 (No Fill 대응, 2025-12-24)
     var adLoadFailed by remember { mutableStateOf(false) }
 
-    // 1. 광고 로드 로직
+    // [REFACTORED] 광고 로드 로직 - 캐시 우선 사용 (2026-01-02)
     LaunchedEffect(Unit) {
         // [FIX] 백그라운드에서 MobileAds 초기화 (ANR 방지, v1.1.9)
         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
@@ -1800,31 +1803,24 @@ private fun NativeAdItem() {
         }
 
         try {
-            val adLoader = com.google.android.gms.ads.AdLoader.Builder(context, adUnitId)
-                .forNativeAd { ad: com.google.android.gms.ads.nativead.NativeAd ->
+            // [핵심] NativeAdManager를 통한 캐싱된 광고 가져오기 또는 새로 로드
+            kr.sweetapps.alcoholictimer.ui.ad.NativeAdManager.getOrLoadAd(
+                context = context,
+                screenKey = screenKey,
+                onAdReady = { ad ->
+                    android.util.Log.d("NativeAd", "[$screenKey] Ad ready (cached or loaded)")
                     nativeAd = ad
+                },
+                onAdFailed = {
+                    android.util.Log.w("NativeAd", "[$screenKey] Ad load failed")
+                    adLoadFailed = true
                 }
-                // [NEW] 광고 로드 실패 리스너 추가 (No Fill 대응, 2025-12-24)
-                .withAdListener(object : com.google.android.gms.ads.AdListener() {
-                    override fun onAdFailedToLoad(error: com.google.android.gms.ads.LoadAdError) {
-                        android.util.Log.w("NativeAd", "Ad load failed (No Fill): ${error.message}")
-                        adLoadFailed = true // [핵심] UI 숨김 플래그
-                    }
-                })
-                .withNativeAdOptions(com.google.android.gms.ads.nativead.NativeAdOptions.Builder().build())
-                .build()
-
-            try {
-                adLoader.loadAd(com.google.android.gms.ads.AdRequest.Builder().build())
-            } catch (se: SecurityException) {
-                android.util.Log.w("NativeAd", "Ad load blocked by SecurityException: ${se.message}")
-                adLoadFailed = true // [추가] SecurityException도 실패로 처리
-            }
+            )
         } catch (e: Exception) {
-            android.util.Log.e("NativeAd", "Failed setting up ad loader", e)
-            adLoadFailed = true // [추가] 예외 발생 시 실패로 처리
+            android.util.Log.e("NativeAd", "[$screenKey] Failed setting up ad", e)
+            adLoadFailed = true
         }
-    }
+    } // LaunchedEffect 블록 닫기
 
     // [NEW] 광고 로드 실패 시 UI 아예 숨김 (Graceful Degradation, 2025-12-24)
     if (adLoadFailed) {
@@ -1971,5 +1967,5 @@ private fun NativeAdItem() {
                 )
             }
         }
-    }
-}
+    } // Card 블록 닫기
+} // NativeAdItem 함수 닫기

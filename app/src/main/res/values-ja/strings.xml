@@ -241,6 +241,10 @@
     <string name="settings_retention_notification">応援通知を受け取る</string>
     <string name="settings_retention_notification_desc">禁酒の旅中に応援通知を受け取ります</string>
 
+    <!-- In-App Update -->
+    <string name="update_downloaded">アップデートのダウンロード完了</string>
+    <string name="restart_to_install">再起動</string>
+
     <!-- Retention Notifications -->
     <!-- Group A: New User -->
     <string name="notif_group_a_1_title">忘れていませんか？👀</string>

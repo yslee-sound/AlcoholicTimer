@@ -241,6 +241,10 @@
     <string name="settings_retention_notification">Terima Notifikasi Dukungan</string>
     <string name="settings_retention_notification_desc">Dapatkan notifikasi dukungan selama perjalanan Anda</string>
 
+    <!-- In-App Update -->
+    <string name="update_downloaded">Pembaruan berhasil diunduh</string>
+    <string name="restart_to_install">Mulai Ulang</string>
+
     <!-- Retention Notifications -->
     <!-- Group A: New User -->
     <string name="notif_group_a_1_title">Lupa ya? 👀</string>

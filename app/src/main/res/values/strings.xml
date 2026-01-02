@@ -241,6 +241,10 @@
     <string name="settings_retention_notification">Receive Cheering Notifications</string>
     <string name="settings_retention_notification_desc">Get encouragement notifications during your sobriety journey</string>
 
+    <!-- In-App Update -->
+    <string name="update_downloaded">Update downloaded</string>
+    <string name="restart_to_install">Restart</string>
+
     <!-- Retention Notifications -->
     <!-- Group A: New User -->
     <string name="notif_group_a_1_title">Did you forget? 👀</string>
