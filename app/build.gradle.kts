@@ -67,8 +67,8 @@ android {
 
     // 버전 코드 전략: yyyymmdd + 2자리 시퀀스 (NN)
     // 이전 사용: 2025100800 -> 신규: 2025100801
-    val releaseVersionCode = 2026010307 // [FIX v7] Splash 화면 Deadlock 해결 (isInitComplete 조건 제거)
-    val releaseVersionName = "1.2.4"
+    val releaseVersionCode = 2026010309 // [FIX v9] Debug 빌드에서 무조건 EEA 지역 설정 (UMP 테스트 강화)
+    val releaseVersionName = "1.2.6"
     defaultConfig {
         applicationId = "kr.sweetapps.alcoholictimer"
         minSdk = 21
@@ -151,7 +151,7 @@ android {
                 if (!hasKeystore) {
                     throw GradleException("""
                         ❌ Release 빌드를 위한 서명 설정이 필요합니다!
-                        
+
                         local.properties 파일에 다음 항목을 추가하세요:
                         ─────────────────────────────────────────
                         STORE_FILE=path/to/your/keystore.jks

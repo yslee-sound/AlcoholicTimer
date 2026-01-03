@@ -81,19 +81,29 @@ class UmpConsentManager(private val context: Context) {
             { // [성공 시]
                 Log.d(TAG, "📋 Consent Info Available")
 
-                // 타이머 해제
-                mainHandler.removeCallbacks(timeoutRunnable)
+                // [FIX v8] UMP 동의 폼을 정상적으로 표시 (2026-01-03)
+                // loadAndShowConsentFormIfRequired를 호출하여 필요 시 동의 창 표시
+                formShowing = true
+                UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) { loadAdError: FormError? ->
+                    formShowing = false
 
-                // [FIX v6] loadAndShowConsentFormIfRequired는 폼이 필요 없을 때 콜백을 호출하지 않음!
-                // 해결: 수동으로 상태를 체크하고 처리
-                val finalStatus = consentInfo.consentStatus
-                canRequestAds = finalStatus == ConsentInformation.ConsentStatus.OBTAINED ||
-                               finalStatus == ConsentInformation.ConsentStatus.NOT_REQUIRED
+                    // 타이머 해제
+                    mainHandler.removeCallbacks(timeoutRunnable)
 
-                Log.d(TAG, "✅ Consent status: $finalStatus, canRequestAds=$canRequestAds")
+                    if (loadAdError != null) {
+                        Log.w(TAG, "⚠️ Form load error: ${loadAdError.message}")
+                    }
 
-                // 무조건 진행 (폼 표시 여부와 무관)
-                proceedToApp()
+                    // 동의 상태 확인하여 canRequestAds 갱신
+                    val finalStatus = consentInfo.consentStatus
+                    canRequestAds = finalStatus == ConsentInformation.ConsentStatus.OBTAINED ||
+                                   finalStatus == ConsentInformation.ConsentStatus.NOT_REQUIRED
+
+                    Log.d(TAG, "✅ Consent status: $finalStatus, canRequestAds=$canRequestAds")
+
+                    // 모든 처리 완료 후 메인으로 진행
+                    proceedToApp()
+                }
             },
             { error: FormError? -> // [실패 시]
                 Log.w(TAG, "❌ Consent Info Update Failed: ${error?.message}")
@@ -107,19 +117,37 @@ class UmpConsentManager(private val context: Context) {
     private fun createConsentRequestParameters(activity: Activity): ConsentRequestParameters {
         val builder = ConsentRequestParameters.Builder().setTagForUnderAgeOfConsent(false)
 
+        // [FIX v9] Debug 모드면 무조건 EEA 지역 설정 (2026-01-03)
         if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
-            val testHash = kr.sweetapps.alcoholictimer.BuildConfig.UMP_TEST_DEVICE_HASH
-            if (testHash.isNotBlank()) {
-                val debugSettingsBuilder = ConsentDebugSettings.Builder(activity)
-                    .setDebugGeography(ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA)
+            Log.d(TAG, "🇪🇺 Debug 모드 - 강제 EEA 지역 설정")
 
+            val debugSettingsBuilder = ConsentDebugSettings.Builder(activity)
+                .setDebugGeography(ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA) // 🇪🇺 강제 유럽
+
+            // BuildConfig에 등록된 테스트 기기 해시가 있으면 추가
+            val testHash = try {
+                kr.sweetapps.alcoholictimer.BuildConfig.UMP_TEST_DEVICE_HASH
+            } catch (_: Exception) {
+                ""
+            }
+
+            if (testHash.isNotBlank()) {
                 val testDeviceHashes = testHash.split(',').map { it.trim() }.filter { it.isNotEmpty() }
                 testDeviceHashes.forEach { hash ->
                     debugSettingsBuilder.addTestDeviceHashedId(hash)
+                    Log.d(TAG, "   ✓ 테스트 기기 해시 추가: $hash")
                 }
-                builder.setConsentDebugSettings(debugSettingsBuilder.build())
+            } else {
+                Log.d(TAG, "   ℹ️ UMP_TEST_DEVICE_HASH 없음 - EEA 설정만 적용")
             }
+
+            // ★ 중요: 실제 기기에서 테스트 중이라면, Logcat에 뜨는 본인의 기기 ID를 여기에 추가하세요
+            // 예: debugSettingsBuilder.addTestDeviceHashedId("YOUR_DEVICE_HASH_FROM_LOGCAT")
+
+            builder.setConsentDebugSettings(debugSettingsBuilder.build())
+            Log.d(TAG, "   ✅ Debug 설정 완료: EEA 지역 강제 적용")
         }
+
         return builder.build()
     }
 
