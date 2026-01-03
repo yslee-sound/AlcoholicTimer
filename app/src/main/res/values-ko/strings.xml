@@ -513,5 +513,11 @@
     <!-- Scroll Hint -->
     <string name="scroll_hint_more">더 보기</string>
 
+    <!-- Notification Permission Dialog -->
+    <string name="notification_permission_title">알림 허용</string>
+    <string name="notification_permission_message">작심삼일로 끝나지 않게 도와드릴게요.\n\n• 흔들리는 순간마다, 딱 필요한 응원과\n• 기분 좋은 성취 알림을 보내드립니다.</string>
+    <string name="notification_permission_later">나중에</string>
+    <string name="notification_permission_confirm">확인</string>
+
 </resources>
 

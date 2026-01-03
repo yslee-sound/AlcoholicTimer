@@ -513,5 +513,11 @@
     <!-- Scroll Hint -->
     <string name="scroll_hint_more">Lihat Lainnya</string>
 
+    <!-- Notification Permission Dialog -->
+    <string name="notification_permission_title">Izinkan Notifikasi</string>
+    <string name="notification_permission_message">Kami akan membantu Anda tetap di jalur yang benar.\n\n• Dukungan tepat waktu saat Anda membutuhkannya\n• Notifikasi pencapaian untuk merayakan kemajuan Anda</string>
+    <string name="notification_permission_later">Nanti</string>
+    <string name="notification_permission_confirm">OK</string>
+
 </resources>
 

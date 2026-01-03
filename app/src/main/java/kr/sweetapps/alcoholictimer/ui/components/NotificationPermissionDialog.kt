@@ -53,7 +53,7 @@ fun NotificationPermissionDialog(
             ) {
                 // 제목
                 Text(
-                    text = "🔔 알림 허용",
+                    text = stringResource(R.string.notification_permission_title),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF2196F3),
@@ -64,10 +64,7 @@ fun NotificationPermissionDialog(
 
                 // 설명 문구
                 Text(
-                    text = "금주 성공 배지와 아낀 돈 알림을 보내드리기 위해 알림 권한이 필요합니다.\n\n" +
-                           "• 목표 달성 시 축하 메시지\n" +
-                           "• 레벨 업 알림\n" +
-                           "• 아낀 돈 정산 알림",
+                    text = stringResource(R.string.notification_permission_message),
                     fontSize = 14.sp,
                     color = Color(0xFF424242),
                     textAlign = TextAlign.Start, // 좌측 정렬
@@ -93,7 +90,7 @@ fun NotificationPermissionDialog(
                         )
                     ) {
                         Text(
-                            text = "나중에",
+                            text = stringResource(R.string.notification_permission_later),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -112,7 +109,7 @@ fun NotificationPermissionDialog(
                         )
                     ) {
                         Text(
-                            text = "확인",
+                            text = stringResource(R.string.notification_permission_confirm),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold
                         )
