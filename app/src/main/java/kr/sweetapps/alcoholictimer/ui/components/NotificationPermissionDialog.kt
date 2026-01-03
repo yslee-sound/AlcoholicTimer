@@ -14,6 +14,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.tooling.preview.Preview
 import kr.sweetapps.alcoholictimer.R
 
 /**
@@ -122,3 +123,14 @@ fun NotificationPermissionDialog(
     }
 }
 
+/**
+ * NotificationPermissionDialog Preview
+ */
+@Preview(showBackground = true, backgroundColor = 0xFF000000)
+@Composable
+fun NotificationPermissionDialogPreview() {
+    NotificationPermissionDialog(
+        onConfirm = { /* Preview - do nothing */ },
+        onDismiss = { /* Preview - do nothing */ }
+    )
+}
