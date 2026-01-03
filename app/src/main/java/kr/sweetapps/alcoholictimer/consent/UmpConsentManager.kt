@@ -34,8 +34,16 @@ class UmpConsentManager(private val context: Context) {
     fun isFormShowing(): Boolean = formShowing
 
     /**
-     * UMP 동의 수집
-     * [FIX] Handler 대신 decorView.post 사용으로 '터치해야 넘어가는 문제' 해결
+     * [FIX v11] UMP 동의 수집 - 안전한 이어달리기 패턴 (2026-01-03)
+     *
+     * 문제:
+     * - UMP 폼과 알림 팝업이 화면에 겹쳐 보임
+     * - UMP 응답 없을 때 앱이 멈춤
+     *
+     * 해결:
+     * - 엄격한 콜백 중첩으로 순차 실행 보장
+     * - AtomicBoolean으로 중복 실행 완전 차단
+     * - 4초 타임아웃으로 앱 멈춤 방지
      */
     fun gatherConsent(activity: Activity, onComplete: (Boolean) -> Unit) {
         if (isGathering.getAndSet(true)) {
@@ -43,73 +51,83 @@ class UmpConsentManager(private val context: Context) {
             return
         }
 
-        Log.d(TAG, "🚀 gatherConsent() start")
+        Log.d(TAG, "🚀 gatherConsent() start - Safe Sequential Pattern")
 
+        // [1] 중복 실행 완전 차단 플래그
         val isFinished = AtomicBoolean(false)
         val mainHandler = Handler(Looper.getMainLooper())
 
-        // [FIX v5] 딜레이 제거 - runOnUiThread로 UI 스레드 확실히 보장
-        val proceedToApp = {
+        // [2] 타임아웃 Runnable (4초 안전장치)
+        var timeoutRunnable: Runnable? = null
+
+        // [3] 앱 진입 함수 (딱 한 번만 실행됨)
+        fun proceed() {
             if (isFinished.compareAndSet(false, true)) {
                 Log.d(TAG, "✅ Consent flow finished. Proceeding to app...")
+
+                // 타이머 해제 (중요: proceed가 호출될 때마다 확실히 제거)
+                timeoutRunnable?.let { mainHandler.removeCallbacks(it) }
+
+                // 상태 정리
                 formShowing = false
                 isGathering.set(false)
 
-                // [핵심] runOnUiThread로 UI 스레드에서 즉시 실행
+                // UI 스레드에서 콜백 실행
                 activity.runOnUiThread {
-                    Log.d(TAG, "🎯 Calling onComplete (UI Thread)")
+                    Log.d(TAG, "🎯 Calling onComplete (UI Thread, canRequestAds=$canRequestAds)")
                     onComplete(canRequestAds)
                 }
             }
         }
 
-        // 1. [안전장치] 4초 타임아웃
-        val timeoutRunnable = Runnable {
-            Log.e(TAG, "⏰ FORCE TIMEOUT (4s)! Skipping to app.")
+        // [4] 4초 타임아웃 설치 (앱 멈춤 방지)
+        timeoutRunnable = Runnable {
+            Log.e(TAG, "⏰ FORCE TIMEOUT (4s)! UMP too slow. Proceeding without consent.")
             canRequestAds = false
-            proceedToApp()
+            proceed()
         }
-        mainHandler.postDelayed(timeoutRunnable, 4000L)
+        mainHandler.postDelayed(timeoutRunnable!!, 4000L)
 
-        // 2. UMP 파라미터 생성
+        // [5] UMP 파라미터 생성
         val params = createConsentRequestParameters(activity)
         val consentInfo = UserMessagingPlatform.getConsentInformation(activity)
 
+        // [6] UMP 로직 시작 (엄격한 중첩 구조)
         consentInfo.requestConsentInfoUpdate(
             activity,
             params,
-            { // [성공 시]
+            { // ===== 성공 시 =====
                 Log.d(TAG, "📋 Consent Info Available")
 
-                // [FIX v8] UMP 동의 폼을 정상적으로 표시 (2026-01-03)
-                // loadAndShowConsentFormIfRequired를 호출하여 필요 시 동의 창 표시
+                // ★ 핵심: 여기서 proceed() 호출 금지!
+                // ★ 반드시 loadAndShowConsentFormIfRequired의 콜백 내부에서만 호출
+
                 formShowing = true
                 UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) { loadAdError: FormError? ->
+                    // ===== UMP 폼이 완전히 닫힌 후 실행되는 콜백 =====
                     formShowing = false
-
-                    // 타이머 해제
-                    mainHandler.removeCallbacks(timeoutRunnable)
 
                     if (loadAdError != null) {
                         Log.w(TAG, "⚠️ Form load error: ${loadAdError.message}")
                     }
 
-                    // 동의 상태 확인하여 canRequestAds 갱신
+                    // 동의 상태 최종 확인
                     val finalStatus = consentInfo.consentStatus
                     canRequestAds = finalStatus == ConsentInformation.ConsentStatus.OBTAINED ||
                                    finalStatus == ConsentInformation.ConsentStatus.NOT_REQUIRED
 
                     Log.d(TAG, "✅ Consent status: $finalStatus, canRequestAds=$canRequestAds")
 
-                    // 모든 처리 완료 후 메인으로 진행
-                    proceedToApp()
+                    // ★ 여기서만 proceed() 호출! (폼이 완전히 닫힌 후)
+                    proceed()
                 }
             },
-            { error: FormError? -> // [실패 시]
+            { error: FormError? -> // ===== 실패 시 =====
                 Log.w(TAG, "❌ Consent Info Update Failed: ${error?.message}")
-                mainHandler.removeCallbacks(timeoutRunnable)
                 canRequestAds = false
-                proceedToApp()
+
+                // 실패 시 즉시 진행
+                proceed()
             }
         )
     }
