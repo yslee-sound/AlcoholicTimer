@@ -67,8 +67,8 @@ android {
 
     // 버전 코드 전략: yyyymmdd + 2자리 시퀀스 (NN)
     // 이전 사용: 2025100800 -> 신규: 2025100801
-    val releaseVersionCode = 2026010311 // [FIX v11] UMP 안전한 이어달리기 패턴 (화면 겹침 + 앱 멈춤 동시 해결)
-    val releaseVersionName = "1.2.8"
+    val releaseVersionCode = 2026010312 // [FIX v12] UMP 방어적 패턴 (타임아웃 즉시 해제 + 좀비 폼 방지)
+    val releaseVersionName = "1.2.9"
     defaultConfig {
         applicationId = "kr.sweetapps.alcoholictimer"
         minSdk = 21

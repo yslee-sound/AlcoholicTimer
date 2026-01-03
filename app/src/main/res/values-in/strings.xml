@@ -238,7 +238,7 @@
     <string name="settings_privacy_load_failed">Gagal memuat formulir persetujuan: %1$s</string>
     <string name="settings_privacy_not_required">Formulir persetujuan tidak diperlukan atau sudah ditangani.</string>
     <string name="settings_privacy_update_failed">Gagal memperbarui info persetujuan: %1$s</string>
-    <string name="settings_retention_notification">Terima Notifikasi Dukungan</string>
+    <string name="settings_retention_notification">Terima Notifikasi</string>
     <string name="settings_retention_notification_desc">Dapatkan notifikasi dukungan selama perjalanan Anda</string>
 
     <!-- In-App Update -->

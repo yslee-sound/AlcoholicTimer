@@ -36,7 +36,7 @@ Changes: 아이콘의 색상 및 모양 일부를 수정하여 사용함.
 
 ---
 
-**Phosphor Icons**
+**Free Animals Material Icons**
 
 Author: ByPeople
 

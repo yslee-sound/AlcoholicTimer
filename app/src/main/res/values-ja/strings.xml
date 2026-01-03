@@ -238,7 +238,7 @@
     <string name="settings_privacy_load_failed">同意フォームの読み込みに失敗しました: %1$s</string>
     <string name="settings_privacy_not_required">同意フォームは不要、または既に処理されています。</string>
     <string name="settings_privacy_update_failed">同意情報の更新に失敗しました: %1$s</string>
-    <string name="settings_retention_notification">応援通知を受け取る</string>
+    <string name="settings_retention_notification">通知を受け取る</string>
     <string name="settings_retention_notification_desc">禁酒の旅中に応援通知を受け取ります</string>
 
     <!-- In-App Update -->

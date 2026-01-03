@@ -238,7 +238,7 @@
     <string name="settings_privacy_load_failed">동의 양식 로드 실패: %1$s</string>
     <string name="settings_privacy_not_required">동의 양식이 필요하지 않거나 이미 처리되었습니다.</string>
     <string name="settings_privacy_update_failed">동의 정보 업데이트 실패: %1$s</string>
-    <string name="settings_retention_notification">응원 알림 받기</string>
+    <string name="settings_retention_notification">알림 받기</string>
     <string name="settings_retention_notification_desc">금주 여정 중 응원 알림을 받습니다</string>
 
     <!-- In-App Update -->

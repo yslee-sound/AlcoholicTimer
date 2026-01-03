@@ -34,16 +34,20 @@ class UmpConsentManager(private val context: Context) {
     fun isFormShowing(): Boolean = formShowing
 
     /**
-     * [FIX v11] UMP 동의 수집 - 안전한 이어달리기 패턴 (2026-01-03)
+     * [FIX v12] UMP 동의 수집 - 방어적 패턴 (2026-01-03)
      *
-     * 문제:
-     * - UMP 폼과 알림 팝업이 화면에 겹쳐 보임
-     * - UMP 응답 없을 때 앱이 멈춤
+     * 해결한 문제:
+     * 1. 화면 겹침: UMP 폼과 알림 팝업 동시 표시
+     *    → 해결: requestConsentInfoUpdate 성공 시 타임아웃 즉시 해제
+     * 2. 좀비 폼: 타임아웃 후 뒤늦게 UMP 폼 표시
+     *    → 해결: isFinished 체크로 Late Show 완전 차단
+     * 3. 앱 멈춤: UMP 응답 없을 때 무한 대기
+     *    → 해결: 4초 타임아웃 유지
      *
-     * 해결:
-     * - 엄격한 콜백 중첩으로 순차 실행 보장
-     * - AtomicBoolean으로 중복 실행 완전 차단
-     * - 4초 타임아웃으로 앱 멈춤 방지
+     * 핵심 전략:
+     * - AtomicBoolean으로 중복 실행 차단
+     * - 타임아웃은 '정보 업데이트'만 대상 (폼 표시는 대상 아님)
+     * - 좀비 폼 방지 체크 추가
      */
     fun gatherConsent(activity: Activity, onComplete: (Boolean) -> Unit) {
         if (isGathering.getAndSet(true)) {
@@ -92,16 +96,25 @@ class UmpConsentManager(private val context: Context) {
         val params = createConsentRequestParameters(activity)
         val consentInfo = UserMessagingPlatform.getConsentInformation(activity)
 
-        // [6] UMP 로직 시작 (엄격한 중첩 구조)
+        // [6] UMP 로직 시작 (방어적 패턴)
         consentInfo.requestConsentInfoUpdate(
             activity,
             params,
             { // ===== 성공 시 =====
                 Log.d(TAG, "📋 Consent Info Available")
 
-                // ★ 핵심: 여기서 proceed() 호출 금지!
-                // ★ 반드시 loadAndShowConsentFormIfRequired의 콜백 내부에서만 호출
+                // [방어 1] 성공했으므로 타임아웃 즉시 해제 (화면 겹침 방지)
+                // 이유: 정보 업데이트 성공 후 폼 표시 시간은 타임아웃 대상이 아님
+                timeoutRunnable?.let { mainHandler.removeCallbacks(it) }
+                Log.d(TAG, "   ⏰ Timeout cancelled - consent info update succeeded")
 
+                // [방어 2] 이미 타임아웃으로 진행되었다면 폼을 띄우지 말고 중단 (좀비 폼 방지)
+                if (isFinished.get()) {
+                    Log.w(TAG, "⚠️ Consent info updated too late (timeout already fired). Skipping form.")
+                    return@requestConsentInfoUpdate
+                }
+
+                // [방어 3] 안전하므로 폼 표시 시도
                 formShowing = true
                 UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) { loadAdError: FormError? ->
                     // ===== UMP 폼이 완전히 닫힌 후 실행되는 콜백 =====
