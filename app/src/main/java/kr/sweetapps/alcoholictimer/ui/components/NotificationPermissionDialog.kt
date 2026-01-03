@@ -49,7 +49,7 @@ fun NotificationPermissionDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.Start // 좌측 정렬로 변경
             ) {
                 // 제목
                 Text(
@@ -57,7 +57,7 @@ fun NotificationPermissionDialog(
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF2196F3),
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Start // 좌측 정렬
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -70,7 +70,7 @@ fun NotificationPermissionDialog(
                            "• 아낀 돈 정산 알림",
                     fontSize = 14.sp,
                     color = Color(0xFF424242),
-                    textAlign = TextAlign.Center,
+                    textAlign = TextAlign.Start, // 좌측 정렬
                     lineHeight = 20.sp
                 )
 
