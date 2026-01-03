@@ -313,13 +313,16 @@ fun NavGraphBuilder.addTab02DetailGraph(
                 navController.navigate(route)
             },
             onDeleteClick = { diaryId ->
-                // 일기 삭제 및 토스트 표시
+                // [FIX] 일기 삭제 및 이전 화면 복귀 (2026-01-03)
                 diaryViewModel.deleteDiary(diaryId)
                 android.widget.Toast.makeText(
                     context,
                     "일기가 삭제되었습니다",
                     android.widget.Toast.LENGTH_SHORT
                 ).show()
+
+                // ✅ 삭제 후 이전 화면으로 복귀 (캘린더면 캘린더, 목록이면 목록으로)
+                navController.popBackStack()
             },
             diaryViewModel = diaryViewModel
         )
@@ -366,11 +369,13 @@ fun NavGraphBuilder.addTab02DetailGraph(
         kr.sweetapps.alcoholictimer.ui.tab_02.screens.DiaryWriteScreen(
             selectedDate = selectedDate, // [FIX] 선택된 날짜 전달 (2025-12-22)
             onDismiss = {
-                // [CRITICAL] 신규 작성 후 피드 화면(AllDiary)으로 이동 (2025-12-27)
+                // [FIX] 취소/뒤로가기: 이전 화면으로 복귀 (2026-01-03)
+                navController.popBackStack()
+            },
+            onSaved = {
+                // [FIX] 저장 완료: 일기 목록으로 이동하여 결과 확인 (2026-01-03)
                 onRefreshCounterIncrement()
-                navController.popBackStack() // 작성 화면 닫기
-
-                // [NEW] 피드 목록 화면으로 강제 이동하여 저장된 일기를 최신순으로 확인
+                navController.popBackStack()
                 navController.navigate(Screen.AllDiary.route) {
                     launchSingleTop = true
                 }
@@ -413,11 +418,13 @@ fun NavGraphBuilder.addTab02DetailGraph(
         kr.sweetapps.alcoholictimer.ui.tab_02.screens.DiaryWriteScreen(
             diaryId = diaryIdLong,
             onDismiss = {
-                // [CRITICAL] 수정 후에도 피드 화면(AllDiary)으로 이동 (2025-12-27)
+                // [FIX] 취소/뒤로가기: 이전 화면으로 복귀 (2026-01-03)
+                navController.popBackStack()
+            },
+            onSaved = {
+                // [FIX] 저장 완료: 일기 목록으로 이동하여 결과 확인 (2026-01-03)
                 onRefreshCounterIncrement()
-                navController.popBackStack() // 수정 화면 닫기
-
-                // [NEW] 피드 목록 화면으로 강제 이동하여 수정된 일기를 최신순으로 확인
+                navController.popBackStack()
                 navController.navigate(Screen.AllDiary.route) {
                     launchSingleTop = true
                 }

@@ -44,12 +44,14 @@ import kotlin.math.roundToInt
  * - isDiaryMode = true로 설정하여 "챌린지 공유" 기능 활성화
  * - 새 일기 작성: diaryId = null, selectedDate = 선택된 날짜 타임스탬프
  * - 기존 일기 수정: diaryId != null (날짜 유지)
+ * [FIX] onDismiss(취소)와 onSaved(저장 완료) 콜백 분리 (2026-01-03)
  */
 @Composable
 fun DiaryWriteScreen(
     diaryId: Long? = null,
     selectedDate: Long? = null, // [NEW] 선택된 날짜 받기 (2025-12-22)
-    onDismiss: () -> Unit = {}
+    onDismiss: () -> Unit = {},
+    onSaved: () -> Unit = {} // [FIX] 저장 완료 전용 콜백 추가 (2026-01-03)
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -169,8 +171,8 @@ fun DiaryWriteScreen(
             isTodayDiary = isTodayDiary, // [NEW] 오늘 일기 여부 전달 (2025-12-24)
             isAlreadyShared = isAlreadyShared, // [NEW] 이미 공유된 일기인지 전달 (2025-12-25)
             onPost = {
-                // 저장/게시 완료 후 화면 닫기
-                onDismiss()
+                // [FIX] 저장/게시 완료 후 onSaved 콜백 호출 (2026-01-03)
+                onSaved()
             },
         onSaveDiary = { postData, isSharing ->
             // [핵심] 로컬 일기장(Room DB) 저장 로직 + Firestore 연동 (2025-12-25)
