@@ -255,8 +255,8 @@ fun HabitScreenContent(
         HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
 
         // [REMOVED] 통화 설정 섹션 제거 - Tab05의 독립 메뉴로 이동됨
-        // [2] 하단 여백 확보 (BottomBar 높이 + 추가 여유 50dp)
-        Spacer(modifier = Modifier.height(innerPadding.calculateBottomPadding() + 50.dp))
+        // [2] 하단 여백 확보 (BottomBar 높이 + 추가 여유 100dp)
+        Spacer(modifier = Modifier.height(innerPadding.calculateBottomPadding() + 100.dp))
     }
 }
 
