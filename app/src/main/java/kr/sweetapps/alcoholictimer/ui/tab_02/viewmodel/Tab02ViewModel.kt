@@ -46,8 +46,12 @@ data class LevelState(
  * - 기간 선택 상태 관리 (주/월/년)
  * - [FIX] 실시간 통계 계산 (진행 중인 타이머 포함)
  * - [FIX] SharedPreferences 변경 감지 (기록 추가/삭제 시 자동 갱신)
+ * - [FIX v15] 초기화 체크로 불필요한 재로딩 방지 (2026-01-03)
  */
 class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
+
+    // [FIX v15] 초기화 여부 추적 (탭 전환 시 불필요한 재로딩 방지) (2026-01-03)
+    private var isInitialized = false
 
     private val sharedPref = application.getSharedPreferences(
         Constants.USER_SETTINGS_PREFS,
@@ -472,6 +476,21 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
             } finally {
                 _isLoading.value = false
             }
+        }
+    }
+
+    /**
+     * [FIX v15] 초기화 체크 후 기록 로딩 (2026-01-03)
+     * - 이미 초기화된 경우 로딩 스킵 (탭 전환 시 깜빡임 방지)
+     * - SharedPreferences 변경 감지로 자동 갱신되므로 불필요한 재로딩 방지
+     */
+    fun loadRecordsOnInit() {
+        if (!isInitialized) {
+            Log.d("Tab02ViewModel", "🔵 First load - loading records...")
+            loadRecords()
+            isInitialized = true
+        } else {
+            Log.d("Tab02ViewModel", "✅ Already initialized - skipping load (${_records.value.size} records cached)")
         }
     }
 

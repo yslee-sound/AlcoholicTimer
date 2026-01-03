@@ -125,51 +125,62 @@ fun BottomNavBar(
                             item = item,
                             isSelected = selected,
                             onClick = {
-                                // [NEW] 1번째 탭(index=0) 클릭 시: 만료 상태 확인
-                                if (index == 0) {
-                                    val isFinished = kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.isTimerFinished()
-                                    Log.d("BottomNavBar", "1번째 탭 클릭: isFinished=$isFinished")
+                                // [FIX v17] 탭별 네비게이션 로직 완전 독립화 (2026-01-03)
+                                when (index) {
+                                    // 탭 1 (Timer): 만료 상태 확인 로직
+                                    0 -> {
+                                        val isFinished = kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.isTimerFinished()
+                                        Log.d("BottomNavBar", "탭 1 클릭: isFinished=$isFinished")
 
-                                    // [REFACTORED] 만료 상태가 true면 Success 화면으로 강제 이동
-                                    if (isFinished) {
-                                        // [FIX] Success 화면은 루트 NavController에만 있음
-                                        if (rootNavController != null && currentRoute != Screen.Success.route) {
-                                            rootNavController.navigate(Screen.Success.route) {
-                                                launchSingleTop = true
+                                        if (isFinished) {
+                                            // Success 화면으로 강제 이동
+                                            if (rootNavController != null && currentRoute != Screen.Success.route) {
+                                                rootNavController.navigate(Screen.Success.route) {
+                                                    launchSingleTop = true
+                                                }
+                                            }
+                                        } else {
+                                            // 타이머 시작 시간 확인
+                                            val startTime = kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.getStartTime()
+                                            val targetRoute = if (startTime > 0) Screen.Run.route else Screen.Start.route
+
+                                            if (currentRoute != targetRoute) {
+                                                navController.navigate(targetRoute) {
+                                                    launchSingleTop = true
+                                                    restoreState = true
+                                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                                }
                                             }
                                         }
-                                    } else {
-                                        // 만료 상태가 아니면 타이머 시작 시간 확인
-                                        val startTime = kr.sweetapps.alcoholictimer.data.repository.TimerStateRepository.getStartTime()
-                                        val targetRoute = if (startTime > 0) Screen.Run.route else Screen.Start.route
+                                    }
 
-                                        if (currentRoute != targetRoute) {
-                                            navController.navigate(targetRoute) {
+                                    // 탭 2 (Records): selected 체크 후 navigate
+                                    1 -> {
+                                        android.util.Log.d("BottomNavBar", "🔵 탭 2 클릭 - selected: $selected, currentRoute: $currentRoute")
+                                        if (!selected) {
+                                            android.util.Log.d("BottomNavBar", "➡️ 탭 2로 이동 중...")
+                                            navController.navigate(Screen.Records.route) {
                                                 launchSingleTop = true
                                                 restoreState = true
                                                 popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                                             }
-                                    }
-                                }
-                            } else {
-                                // [NEW] 탭 2 클릭 시 항상 통계 화면(Records)으로 이동 (2025-12-27)
-                                if (index == 1) {
-                                    if (currentRoute != Screen.Records.route) {
-                                        navController.navigate(Screen.Records.route) {
-                                            launchSingleTop = true
-                                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                        } else {
+                                            android.util.Log.d("BottomNavBar", "✋ 이미 탭 2 - navigate 스킵")
                                         }
                                     }
-                                    } else if (!selected) {
-                                        // 다른 탭들은 기존 로직 유지
-                                        navController.navigate(item.screen.route) {
-                                            launchSingleTop = true
-                                            restoreState = true
-                                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+
+                                    // 다른 탭들: selected 체크 후 navigate
+                                    else -> {
+                                        if (!selected) {
+                                            navController.navigate(item.screen.route) {
+                                                launchSingleTop = true
+                                                restoreState = true
+                                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                            }
                                         }
                                     }
                                 }
-                            } // [FIX] onClick 람다의 닫는 중괄호 추가
+                            }
                         )
                     }
                 }

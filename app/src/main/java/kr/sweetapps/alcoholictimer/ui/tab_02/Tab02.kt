@@ -69,6 +69,9 @@ fun Tab02Screen(
         viewModelStoreOwner = androidx.activity.compose.LocalActivity.current as ComponentActivity
     )
 ) {
+    // [DEBUG v18] 리컴포지션 추적 (2026-01-03)
+    android.util.Log.d("Tab02Screen", "🔄 RECOMPOSITION!")
+
     // [CRITICAL] 일기 상세 피드 화면 표시 상태 - remember로 변경하여 탭 이동 시 자동 초기화 (2025-12-27)
     var selectedDetailDiaryId by remember { mutableStateOf<Long?>(null) }
 
@@ -99,23 +102,24 @@ fun Tab02Screen(
 
     // [NEW] Context와 초기 값 설정
     val context = LocalContext.current
-    val periodWeek = context.getString(R.string.records_period_week)
-    val periodMonth = context.getString(R.string.records_period_month)
-    val periodYear = context.getString(R.string.records_period_year)
 
-    // 1. "All" 텍스트 리소스 가져오기
-    // (R.string.records_period_all 이 없다면 strings.xml에 추가하거나, 임시로 "All" 하드코딩)
-    val periodAll = stringResource(id = R.string.records_period_all)
+    // [FIX v16] 리소스 문자열 캐싱으로 리컴포지션 시 재계산 방지 (2026-01-03)
+    val periodWeek = remember { context.getString(R.string.records_period_week) }
+    val periodMonth = remember { context.getString(R.string.records_period_month) }
+    val periodYear = remember { context.getString(R.string.records_period_year) }
+    val periodAll = remember { context.getString(R.string.records_period_all) }
 
     // 2. 날짜 계산 로직 삭제 (All은 날짜가 필요 없음)
 
-    // [NEW] 화면 진입 시 데이터 로딩 및 초기 기간 설정
+    // [FIX v15] 화면 진입 시 데이터 로딩 및 초기 기간 설정 (2026-01-03)
+    // loadRecordsOnInit으로 변경하여 탭 전환 시 깜빡임 방지
     LaunchedEffect(Unit) {
         // 3. 'All'을 기본값으로 초기화 요청
         // ViewModel 내부의 if문 덕분에, 이미 다른 탭을 보고 있었다면 이 요청은 무시됨 (세션 유지)
         viewModel.initializePeriod(periodAll)
 
-        viewModel.loadRecords()
+        // [FIX v15] 초기화 체크 후 로딩 (이미 데이터가 있으면 로딩 스킵)
+        viewModel.loadRecordsOnInit()
     }
 
     val filteredRecords = remember(records, selectedPeriod, selectedDetailPeriod, selectedWeekRange) {
