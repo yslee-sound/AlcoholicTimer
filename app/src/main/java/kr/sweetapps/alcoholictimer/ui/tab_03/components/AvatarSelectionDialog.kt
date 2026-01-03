@@ -15,10 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.util.AvatarManager
 
 /**
@@ -45,7 +47,7 @@ fun AvatarSelectionDialog(
             ) {
                 // 제목
                 Text(
-                    text = "아바타 선택",
+                    text = stringResource(R.string.avatar_selection_title),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF111111),
@@ -81,7 +83,7 @@ fun AvatarSelectionDialog(
                     modifier = Modifier.align(Alignment.End)
                 ) {
                     Text(
-                        text = "취소",
+                        text = stringResource(R.string.dialog_cancel),
                         color = Color(0xFF666666)
                     )
                 }
