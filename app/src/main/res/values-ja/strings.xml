@@ -513,5 +513,11 @@
     <!-- Scroll Hint -->
     <string name="scroll_hint_more">もっと見る</string>
 
+    <!-- Notification Permission Dialog -->
+    <string name="notification_permission_title">通知を許可</string>
+    <string name="notification_permission_message">あなたの禁酒をサポートします。\n\n• 必要な時にタイムリーな励まし\n• 進捗を祝う達成通知</string>
+    <string name="notification_permission_later">後で</string>
+    <string name="notification_permission_confirm">OK</string>
+
 </resources>
 
