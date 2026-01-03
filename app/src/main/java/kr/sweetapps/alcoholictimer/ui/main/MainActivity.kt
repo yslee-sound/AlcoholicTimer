@@ -246,21 +246,22 @@ class MainActivity : BaseActivity() {
 
         // ============================================================
         // 스플래시 화면 설정 (AndroidX SplashScreen)
-        // [UPDATED] 초기화 완료까지 Splash 유지 (2025-12-31)
+        // [FIX v7] Deadlock 해결: 초기화 조건 제거 (2026-01-03)
         // ============================================================
         val holdSplashState = androidx.compose.runtime.mutableStateOf(true)
         val splash = installSplashScreen()
+
+        // [FIX] Deadlock 해결: 초기화 여부(!isInitializationComplete)는 스플래시 유지 조건에서 제거합니다.
+        // 광고 처리가 끝났다면(holdSplashState가 false라면) 스플래시를 걷어내야,
+        // 그 뒤에 있는 '알림 권한 다이얼로그'가 사용자에게 보일 수 있습니다.
         splash.setKeepOnScreenCondition {
-            // Splash 유지 조건: holdSplashState OR 초기화 미완료
-            val shouldKeep = holdSplashState.value || !isInitializationComplete.value
-            if (!shouldKeep && holdSplashState.value) {
-                android.util.Log.d("MainActivity", "🎯 Splash can be released - both conditions met")
-            }
-            shouldKeep
+            // 오직 광고/로딩 대기 상태(holdSplashState)만 확인합니다.
+            holdSplashState.value
         }
         android.util.Log.d("MainActivity", "========================================")
-        android.util.Log.d("MainActivity", "SplashScreen installed - holdSplash=true, initComplete=false")
-        android.util.Log.d("MainActivity", "Splash will stay until BOTH conditions are met")
+        android.util.Log.d("MainActivity", "✅ SplashScreen installed - holdSplash=true")
+        android.util.Log.d("MainActivity", "🔓 Splash will release when holdSplashState=false")
+        android.util.Log.d("MainActivity", "🛡️ MainActivityContent will show blank screen until isInitComplete=true")
         android.util.Log.d("MainActivity", "========================================")
 
         // 타이머 상태 확인 (초기 라우트 결정용)
@@ -453,8 +454,9 @@ class MainActivity : BaseActivity() {
             isUmpConsentCompleted = true
             android.util.Log.d("MainActivity", "단계 1 완료: UMP 동의 확인 결과 = $canInitializeAds")
 
-            // [NEW] UMP 완료 후 알림 권한 체크 (2025-12-31)
-            // 순서: UMP → 알림 권한 → Session Start
+            // [FIX v5] 딜레이 제거 - 즉시 알림 권한 체크
+            // 이유: UmpConsentManager에서 이미 runOnUiThread로 UI 스레드 보장됨
+            android.util.Log.d("MainActivity", "🔔 알림 권한 체크 시작")
             checkAndRequestNotificationPermission {
                 // 알림 권한 처리 완료 후 Session Start 이벤트 전송
                 android.util.Log.d("MainActivity", "🎯 모든 초기화 완료 - Session Start 이벤트 전송")

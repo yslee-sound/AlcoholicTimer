@@ -67,8 +67,8 @@ android {
 
     // 버전 코드 전략: yyyymmdd + 2자리 시퀀스 (NN)
     // 이전 사용: 2025100800 -> 신규: 2025100801
-    val releaseVersionCode = 2026010203 // [HOTFIX] UMP 5초 타임아웃 적용
-    val releaseVersionName = "1.2.0-hotfix"
+    val releaseVersionCode = 2026010307 // [FIX v7] Splash 화면 Deadlock 해결 (isInitComplete 조건 제거)
+    val releaseVersionName = "1.2.4"
     defaultConfig {
         applicationId = "kr.sweetapps.alcoholictimer"
         minSdk = 21

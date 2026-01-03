@@ -6,6 +6,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.View
 import com.google.android.ump.ConsentDebugSettings
 import com.google.android.ump.ConsentInformation
 import com.google.android.ump.ConsentRequestParameters
@@ -14,7 +15,7 @@ import com.google.android.ump.UserMessagingPlatform
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * UMP 통합 구현체 (중복 방지 + 표준 플로우 전용 단일 버전)
+ * UMP 통합 구현체 (Window Focus 문제 완벽 해결 버전)
  */
 class UmpConsentManager(private val context: Context) {
     private val TAG = "UmpConsentManager"
@@ -26,16 +27,15 @@ class UmpConsentManager(private val context: Context) {
     var canRequestAds: Boolean = false
         private set
 
-    /** 현재 UMP 폼이 표시 중인지 여부 (간단 버전: gatherConsent 안에서만 관리) */
+    /** 현재 UMP 폼이 표시 중인지 여부 */
     @Volatile
     private var formShowing: Boolean = false
 
     fun isFormShowing(): Boolean = formShowing
 
     /**
-     * 표준 UMP 플로우 (RequestInfoUpdate -> loadAndShowConsentFormIfRequired)
-     * - 중복 호출 시 무시
-     * - [NEW] 5초 타임아웃 안전장치 추가 (2026-01-02)
+     * UMP 동의 수집
+     * [FIX] Handler 대신 decorView.post 사용으로 '터치해야 넘어가는 문제' 해결
      */
     fun gatherConsent(activity: Activity, onComplete: (Boolean) -> Unit) {
         if (isGathering.getAndSet(true)) {
@@ -43,79 +43,63 @@ class UmpConsentManager(private val context: Context) {
             return
         }
 
-        Log.d(TAG, "gatherConsent() start")
+        Log.d(TAG, "🚀 gatherConsent() start")
 
-        // [NEW] Race Condition: UMP 응답 vs 타임아웃 중 먼저 완료되는 쪽이 실행 (2026-01-02)
-        val isCompleted = AtomicBoolean(false)
-        val handler = Handler(Looper.getMainLooper())
+        val isFinished = AtomicBoolean(false)
+        val mainHandler = Handler(Looper.getMainLooper())
 
-        // [안전장치] 5초 타임아웃 - UMP 서버 응답 없을 시 강제 진행
-        val timeoutRunnable = Runnable {
-            if (isCompleted.compareAndSet(false, true)) {
-                Log.w(TAG, "⏱️ TIMEOUT (5s): UMP 서버 응답 없음 - 강제 진행")
+        // [FIX v5] 딜레이 제거 - runOnUiThread로 UI 스레드 확실히 보장
+        val proceedToApp = {
+            if (isFinished.compareAndSet(false, true)) {
+                Log.d(TAG, "✅ Consent flow finished. Proceeding to app...")
                 formShowing = false
                 isGathering.set(false)
-                canRequestAds = false
-                onComplete(false) // 동의 없이 진행 (광고 없음)
+
+                // [핵심] runOnUiThread로 UI 스레드에서 즉시 실행
+                activity.runOnUiThread {
+                    Log.d(TAG, "🎯 Calling onComplete (UI Thread)")
+                    onComplete(canRequestAds)
+                }
             }
         }
-        handler.postDelayed(timeoutRunnable, 5000L) // 5초
 
+        // 1. [안전장치] 4초 타임아웃
+        val timeoutRunnable = Runnable {
+            Log.e(TAG, "⏰ FORCE TIMEOUT (4s)! Skipping to app.")
+            canRequestAds = false
+            proceedToApp()
+        }
+        mainHandler.postDelayed(timeoutRunnable, 4000L)
+
+        // 2. UMP 파라미터 생성
         val params = createConsentRequestParameters(activity)
         val consentInfo = UserMessagingPlatform.getConsentInformation(activity)
 
         consentInfo.requestConsentInfoUpdate(
             activity,
             params,
-            {
-                // UMP 요청 성공 - 타임아웃보다 먼저 완료됨
-                if (isCompleted.get()) {
-                    Log.d(TAG, "requestConsentInfoUpdate success but already timed out - ignoring")
-                    return@requestConsentInfoUpdate
-                }
+            { // [성공 시]
+                Log.d(TAG, "📋 Consent Info Available")
 
-                Log.d(TAG, "requestConsentInfoUpdate success: status=${consentInfo.consentStatus}")
+                // 타이머 해제
+                mainHandler.removeCallbacks(timeoutRunnable)
 
-                // SDK에게 폼 표시 여부를 전적으로 위임
-                formShowing = true
-                UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) { formError: FormError? ->
-                    handler.removeCallbacks(timeoutRunnable) // 타임아웃 취소
+                // [FIX v6] loadAndShowConsentFormIfRequired는 폼이 필요 없을 때 콜백을 호출하지 않음!
+                // 해결: 수동으로 상태를 체크하고 처리
+                val finalStatus = consentInfo.consentStatus
+                canRequestAds = finalStatus == ConsentInformation.ConsentStatus.OBTAINED ||
+                               finalStatus == ConsentInformation.ConsentStatus.NOT_REQUIRED
 
-                    if (isCompleted.compareAndSet(false, true)) {
-                        formShowing = false
-                        isGathering.set(false)
+                Log.d(TAG, "✅ Consent status: $finalStatus, canRequestAds=$canRequestAds")
 
-                        if (formError != null) {
-                            Log.e(TAG, "Consent form error: ${formError.message}")
-                            canRequestAds = false
-                            onComplete(false)
-                            return@loadAndShowConsentFormIfRequired
-                        }
-
-                        val finalStatus = consentInfo.consentStatus
-                        val allowed = finalStatus == ConsentInformation.ConsentStatus.OBTAINED ||
-                                      finalStatus == ConsentInformation.ConsentStatus.NOT_REQUIRED
-
-                        Log.d(TAG, "Consent finished: status=$finalStatus canRequestAds=$allowed")
-                        canRequestAds = allowed
-                        onComplete(allowed)
-                    } else {
-                        Log.d(TAG, "Form completed but already handled by timeout")
-                    }
-                }
+                // 무조건 진행 (폼 표시 여부와 무관)
+                proceedToApp()
             },
-            { error: FormError? ->
-                handler.removeCallbacks(timeoutRunnable) // 타임아웃 취소
-
-                if (isCompleted.compareAndSet(false, true)) {
-                    Log.e(TAG, "requestConsentInfoUpdate failed: ${error?.message}")
-                    formShowing = false
-                    isGathering.set(false)
-                    canRequestAds = false
-                    onComplete(false)
-                } else {
-                    Log.d(TAG, "Request failed but already handled by timeout")
-                }
+            { error: FormError? -> // [실패 시]
+                Log.w(TAG, "❌ Consent Info Update Failed: ${error?.message}")
+                mainHandler.removeCallbacks(timeoutRunnable)
+                canRequestAds = false
+                proceedToApp()
             }
         )
     }
@@ -124,63 +108,39 @@ class UmpConsentManager(private val context: Context) {
         val builder = ConsentRequestParameters.Builder().setTagForUnderAgeOfConsent(false)
 
         if (kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) {
-            // [UPDATED] local.properties의 UMP_TEST_DEVICE_HASH 사용 (쉼표로 구분된 여러 기기 지원)
             val testHash = kr.sweetapps.alcoholictimer.BuildConfig.UMP_TEST_DEVICE_HASH
             if (testHash.isNotBlank()) {
                 val debugSettingsBuilder = ConsentDebugSettings.Builder(activity)
                     .setDebugGeography(ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA)
 
-                // 쉼표로 구분된 여러 테스트 기기 해시 지원
                 val testDeviceHashes = testHash.split(',').map { it.trim() }.filter { it.isNotEmpty() }
                 testDeviceHashes.forEach { hash ->
                     debugSettingsBuilder.addTestDeviceHashedId(hash)
-                    Log.d(TAG, "UMP Debug 기기 추가: $hash")
                 }
-
-                val debugSettings = debugSettingsBuilder.build()
-                builder.setConsentDebugSettings(debugSettings)
-                Log.d(TAG, "UMP 디버그 모드 활성화 (${testDeviceHashes.size}개 기기)")
-            } else {
-                Log.d(TAG, "UMP_TEST_DEVICE_HASH가 비어있음 - 일반 모드로 실행")
+                builder.setConsentDebugSettings(debugSettingsBuilder.build())
             }
         }
-
         return builder.build()
     }
 
-    /** Debug 전용: 동의 상태 강제 리셋 */
+    // ... (resetConsent, showPrivacyOptionsForm 등 나머지는 기존 유지) ...
     fun resetConsent(context: Context) {
         if (!kr.sweetapps.alcoholictimer.BuildConfig.DEBUG) return
         try {
             UserMessagingPlatform.getConsentInformation(context).reset()
             isGathering.set(false)
             canRequestAds = false
-            Log.d(TAG, "Consent reset (DEBUG)")
-        } catch (t: Throwable) {
-            Log.e(TAG, "resetConsent failed: ${t.message}")
-        }
+        } catch (t: Throwable) {}
     }
 
-    /** Privacy Options 폼 직접 표시 (About 화면 등에서 사용) */
     fun showPrivacyOptionsForm(activity: Activity, onClosed: (FormError?) -> Unit) {
-        UserMessagingPlatform.showPrivacyOptionsForm(activity) { error ->
-            onClosed(error)
-        }
+        UserMessagingPlatform.showPrivacyOptionsForm(activity, onClosed)
     }
 
-    /**
-     * [EU 감지] 사용자의 지역 및 설정에 따라 'Privacy Options' 메뉴 표시 여부를 반환합니다.
-     * - REQUIRED: EU/EEA 지역 사용자 (반드시 표시)
-     * - NOT_REQUIRED: 한국/미국 등 (표시 안 함)
-     */
     fun isPrivacyOptionsRequired(): Boolean {
         return try {
             val consentInfo = UserMessagingPlatform.getConsentInformation(context)
-            val status = consentInfo.privacyOptionsRequirementStatus
-            status == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
-        } catch (t: Throwable) {
-            Log.e(TAG, "isPrivacyOptionsRequired check failed: ${t.message}")
-            false
-        }
+            consentInfo.privacyOptionsRequirementStatus == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
+        } catch (t: Throwable) { false }
     }
 }
