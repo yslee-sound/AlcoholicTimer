@@ -1,4 +1,4 @@
-package kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel
+package kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel
 
 import android.app.Application
 import android.content.Context
@@ -85,7 +85,8 @@ class Tab03ViewModel(application: Application) : AndroidViewModel(application) {
     val startTime: StateFlow<Long> = _startTime.asStateFlow()
 
     // [NEW] 타이머 완료 여부 (인디케이터 색상 제어용) (2026-01-02)
-    private val _isTimerCompleted = MutableStateFlow(sharedPref.getBoolean(Constants.PREF_TIMER_COMPLETED, false))
+    private val _isTimerCompleted =
+        MutableStateFlow(sharedPref.getBoolean(Constants.PREF_TIMER_COMPLETED, false))
     val isTimerCompleted: StateFlow<Boolean> = _isTimerCompleted.asStateFlow()
 
     // [NEW] 레벨 방문 횟수 상태

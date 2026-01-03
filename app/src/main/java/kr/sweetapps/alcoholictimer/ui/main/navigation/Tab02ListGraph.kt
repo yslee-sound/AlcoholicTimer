@@ -12,6 +12,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import kr.sweetapps.alcoholictimer.data.model.SobrietyRecord
 import kr.sweetapps.alcoholictimer.ui.main.Screen
+import kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.Tab03ViewModel
 
 /**
  * Tab 02 - 목록 화면 (탭 내부용)
@@ -38,7 +39,7 @@ fun NavGraphBuilder.addTab02ListGraph(
                 } ?: viewModel()
 
             // [NEW] Phase 2: Tab03ViewModel에서 레벨 데이터 가져오기
-            val tab03ViewModel: kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab03ViewModel =
+            val tab03ViewModel: Tab03ViewModel =
                 (activity as? androidx.activity.ComponentActivity)?.let { owner ->
                     viewModel(viewModelStoreOwner = owner)
                 } ?: viewModel()

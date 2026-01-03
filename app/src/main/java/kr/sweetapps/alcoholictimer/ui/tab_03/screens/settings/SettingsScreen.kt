@@ -843,36 +843,118 @@ private fun SimpleAboutRow(
 }
 
 /**
- * [NEW] 응원 알림 ON/OFF 설정 Row (2026-01-02)
+ * [FIX v10] 응원 알림 ON/OFF 설정 Row - 시스템 권한 상태 동기화 (2026-01-03)
  *
  * 리텐션 알림을 받을지 여부를 토글할 수 있는 스위치
+ * - 앱 설정값 AND 실제 시스템 권한이 모두 있을 때만 ON 표시
+ * - 권한 없이 켜려고 하면 시스템 권한 요청 팝업 표시
+ * - ON_RESUME 시 권한 상태 재확인하여 동기화
  */
 @Composable
 private fun RetentionNotificationSettingRow() {
     val context = LocalContext.current
     val preferenceManager = kr.sweetapps.alcoholictimer.util.manager.RetentionPreferenceManager
+    val permissionManager = kr.sweetapps.alcoholictimer.util.manager.NotificationPermissionManager
 
-    // 현재 설정 상태 읽기
-    val isEnabled = remember { mutableStateOf(preferenceManager.isRetentionNotificationEnabled(context)) }
+    // 스위치 상태: (앱 설정값 AND 실제 시스템 권한) 모두 true일 때만 ON
+    val isEnabled = remember {
+        mutableStateOf(
+            preferenceManager.isRetentionNotificationEnabled(context) &&
+            permissionManager.hasPermission(context)
+        )
+    }
 
+    // [1] 권한 요청 런처 (시스템 팝업)
+    val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // 권한 허용됨 → 설정값과 UI를 ON으로 변경
+            Log.d("SettingsScreen", "✅ 권한 허용됨 → 알림 설정 ON")
+            isEnabled.value = true
+            preferenceManager.setRetentionNotificationEnabled(context, true)
+
+            // Firebase Analytics 이벤트
+            kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.logSettingsChange(
+                settingType = "retention_notification",
+                oldValue = "disabled",
+                newValue = "enabled"
+            )
+        } else {
+            // 권한 거부됨 → 스위치 OFF 유지
+            Log.d("SettingsScreen", "❌ 권한 거부됨 → 알림 설정 OFF 유지")
+            isEnabled.value = false
+            preferenceManager.setRetentionNotificationEnabled(context, false)
+        }
+    }
+
+    // [2] ON_RESUME 시 권한 상태 재확인 (설정 앱에서 돌아올 때 동기화)
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                // 실제 시스템 권한 확인
+                val hasPermission = permissionManager.hasPermission(context)
+                val prefEnabled = preferenceManager.isRetentionNotificationEnabled(context)
+
+                // 권한이 없는데 설정값이 true라면 강제로 false로 수정
+                if (!hasPermission && prefEnabled) {
+                    Log.w("SettingsScreen", "⚠️ 권한 없는데 설정 ON → 강제 OFF")
+                    preferenceManager.setRetentionNotificationEnabled(context, false)
+                    isEnabled.value = false
+                } else {
+                    // 정상 상태: 두 값이 모두 true일 때만 ON
+                    isEnabled.value = hasPermission && prefEnabled
+                }
+
+                Log.d("SettingsScreen", "🔄 ON_RESUME: hasPermission=$hasPermission, prefEnabled=$prefEnabled, switch=${isEnabled.value}")
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    // [3] UI
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
-                // 전체 Row를 클릭해도 스위치 토글
-                val newValue = !isEnabled.value
-                val oldValue = isEnabled.value
-                isEnabled.value = newValue
-                preferenceManager.setRetentionNotificationEnabled(context, newValue)
+                val currentState = isEnabled.value
 
-                // Firebase Analytics 이벤트 전송
-                kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.logSettingsChange(
-                    settingType = "retention_notification",
-                    oldValue = if (oldValue) "enabled" else "disabled",
-                    newValue = if (newValue) "enabled" else "disabled"
-                )
+                if (!currentState) {
+                    // OFF → ON으로 켜려고 함: 권한 확인 필요
+                    if (permissionManager.hasPermission(context)) {
+                        // 이미 권한 있음 → 바로 ON
+                        Log.d("SettingsScreen", "✅ 권한 있음 → 알림 설정 ON")
+                        isEnabled.value = true
+                        preferenceManager.setRetentionNotificationEnabled(context, true)
 
-                Log.d("SettingsScreen", "✅ Retention notification setting changed: $oldValue → $newValue")
+                        kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.logSettingsChange(
+                            settingType = "retention_notification",
+                            oldValue = "disabled",
+                            newValue = "enabled"
+                        )
+                    } else {
+                        // 권한 없음 → 시스템 권한 요청 팝업
+                        Log.d("SettingsScreen", "🔔 권한 없음 → 시스템 권한 요청")
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                            permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                        }
+                    }
+                } else {
+                    // ON → OFF로 끔: 권한 체크 불필요
+                    Log.d("SettingsScreen", "🔕 알림 설정 OFF")
+                    isEnabled.value = false
+                    preferenceManager.setRetentionNotificationEnabled(context, false)
+
+                    kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.logSettingsChange(
+                        settingType = "retention_notification",
+                        oldValue = "enabled",
+                        newValue = "disabled"
+                    )
+                }
             }
             .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -885,7 +967,7 @@ private fun RetentionNotificationSettingRow() {
         )
         androidx.compose.material3.Switch(
             checked = isEnabled.value,
-            onCheckedChange = null // Row의 clickable로 처리하므로 null
+            onCheckedChange = null // Row의 clickable로 처리
         )
     }
 }

@@ -23,7 +23,7 @@ import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.ad.AdController
 import kr.sweetapps.alcoholictimer.ui.ad.InterstitialAdManager
 import kr.sweetapps.alcoholictimer.ui.components.BackTopBar
-import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.Tab03ViewModel
+import kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.Tab03ViewModel
 import kr.sweetapps.alcoholictimer.ui.common.LevelCard
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelListCard
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions

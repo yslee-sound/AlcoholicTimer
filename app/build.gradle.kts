@@ -67,8 +67,8 @@ android {
 
     // 버전 코드 전략: yyyymmdd + 2자리 시퀀스 (NN)
     // 이전 사용: 2025100800 -> 신규: 2025100801
-    val releaseVersionCode = 2026010309 // [FIX v9] Debug 빌드에서 무조건 EEA 지역 설정 (UMP 테스트 강화)
-    val releaseVersionName = "1.2.6"
+    val releaseVersionCode = 2026010310 // [FIX v10] 설정 화면 알림 스위치와 시스템 권한 상태 동기화
+    val releaseVersionName = "1.2.7"
     defaultConfig {
         applicationId = "kr.sweetapps.alcoholictimer"
         minSdk = 21
