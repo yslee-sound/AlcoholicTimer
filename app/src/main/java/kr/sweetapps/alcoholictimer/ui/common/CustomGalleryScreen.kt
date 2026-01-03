@@ -18,15 +18,22 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import coil.compose.AsyncImage
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.ui.res.stringResource
@@ -36,6 +43,8 @@ import kr.sweetapps.alcoholictimer.R
 /**
  * Reusable full-screen gallery + camera composable.
  * Provides images from MediaStore and a camera capture button.
+ *
+ * [FIX v13] ON_RESUME 감지로 권한 허용 후 자동 갱신 (2026-01-03)
  */
 @Composable
 fun CustomGalleryScreen(
@@ -45,12 +54,28 @@ fun CustomGalleryScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
     val imagesState = remember { androidx.compose.runtime.mutableStateOf<List<Uri>>(emptyList()) }
     val loadingState = remember { androidx.compose.runtime.mutableStateOf(true) }
+    val coroutineScope = rememberCoroutineScope()
 
-    // Load images from MediaStore asynchronously
-    androidx.compose.runtime.LaunchedEffect(Unit) {
-        loadingState.value = true
-        imagesState.value = loadImagesFromMediaStore(context)
-        loadingState.value = false
+    // [FIX v13] Lifecycle 감지: 권한 허용 후 복귀 시 자동 새로고침 (2026-01-03)
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                // 권한 허용 후 복귀 시 자동 새로고침
+                Log.d("CustomGallery", "🔄 ON_RESUME detected - refreshing image list")
+                coroutineScope.launch {
+                    loadingState.value = true
+                    imagesState.value = loadImagesFromMediaStore(context)
+                    loadingState.value = false
+                    Log.d("CustomGallery", "✅ Image list refreshed: ${imagesState.value.size} images")
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 
     // Camera capture: create temp file Uri via MediaStore (preferred) or FileProvider fallback
