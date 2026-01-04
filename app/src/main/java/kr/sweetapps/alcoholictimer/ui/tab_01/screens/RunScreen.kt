@@ -1,7 +1,6 @@
 // [NEW] Tab01 Refactoring: RunScreen moved to tab_01/screens
 package kr.sweetapps.alcoholictimer.ui.tab_01.screens
 
-import android.R.attr.maxWidth
 import android.app.Activity
 import android.content.Context
 import androidx.activity.ComponentActivity
@@ -32,7 +31,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -62,7 +60,6 @@ import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.BuildConfig
-import kr.sweetapps.alcoholictimer.ui.theme.AppBorder
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -92,15 +89,9 @@ fun RunScreenComposable(
     val RUN_TOP_GROUP_CHIP_SPACING = 10.dp // 12.dp
     // Unified horizontal padding for the whole Run screen. Use this single constant to keep card widths consistent.
     val RUN_HORIZONTAL_PADDING = 20.dp               // (was RUN_TOP_GROUP_HORIZONTAL_PADDING)
-    // Separated local variables: top group and card spacing, card and progress card spacing
-    val RUN_CARDS_VERTICAL_SPACING_TOP = 15.dp      // spacing between cards on screen
 
-    // Progress card padding controls
-    // Inner padding: Progress card internal margin (set to 0 by default for no inner padding)
-    val RUN_CARD_CONTENT_HORIZONTAL_PADDING = 15.dp // Progress bar padding
-    // Card internal vertical padding is a separate variable (default 12.dp previously)
-    // If inner vertical padding is 0, the colored panel (Progress Surface) will stick to the card edges.
-    val RUN_CARD_CONTENT_VERTICAL_PADDING = 10.dp //
+    // [REMOVED] 사용하지 않는 변수 제거 (2026-01-04)
+    // RUN_CARDS_VERTICAL_SPACING_TOP, RUN_CARD_CONTENT_HORIZONTAL_PADDING, RUN_CARD_CONTENT_VERTICAL_PADDING
 
     // Per-chip horizontal alignment (left / center / right)
     // All changed to center alignment (client request)
@@ -296,48 +287,52 @@ fun RunScreenComposable(
             // [NEW] 상단 칩과 메인 카드 사이 간격 (2025-12-24)
             Spacer(modifier = Modifier.height(16.dp)) // [MODIFIED] 15dp → 16dp 표준 간격 통일 (2025-12-24)
 
-            // [FIXED_SIZE] 중간 큰 카드 높이를 폰트 스케일 영향 받지 않도록 고정
+            // [UNIFIED] 메인 카드 내부에 진행률 통합 (2026-01-04)
             val density = LocalDensity.current
-            val bigCardHeightPx = with(density) { 180.dp.toPx() }
+            val bigCardHeightPx = with(density) { 260.dp.toPx() } // [CHANGED] 높이 증가 (180dp -> 260dp)
             val bigCardHeight = with(density) { (bigCardHeightPx / density.density).dp }
 
             Card(
-                modifier = Modifier.fillMaxWidth().requiredHeight(bigCardHeight), // [REMOVED] clickable 제거 (2025-12-25)
+                modifier = Modifier.fillMaxWidth().requiredHeight(bigCardHeight),
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                 border = BorderStroke(0.dp, Color.Transparent)
             ) {
-                // background image fills the card
                 Box(modifier = Modifier.fillMaxSize()) {
+                    // [NEW] 배경 이미지
                     Image(
                         painter = painterResource(id = R.drawable.bg9),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
-                    // [MODIFIED] 경과 일수와 시간을 동시에 표시 (2025-12-25)
-                    Box(modifier = Modifier.fillMaxSize().padding(0.dp), contentAlignment = Alignment.Center) {
+
+                    // [NEW] 카드 내용: 상단 중앙 - 일수/시간, 하단 - 진행률
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 20.dp, vertical = 20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        // [TOP] 경과 일수와 시간
                         Column(
-                            modifier = Modifier.fillMaxHeight().fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier.weight(1f)
                         ) {
-                            // [CHANGED] 메인: 경과 일수 - floor(내림) 방식으로 '꽉 채운 시간'만 표시 (2025-12-25)
                             val daysValue = String.format(Locale.getDefault(), "%.0f", kotlin.math.floor(elapsedDaysFloat.toDouble()))
                             val daysCount = kotlin.math.floor(elapsedDaysFloat.toDouble()).toInt()
-                            // [CHANGED] plurals 사용하여 단수/복수 구분 (2025-12-25)
                             val daysUnit = remember(daysCount) {
                                 context.resources.getQuantityString(R.plurals.days_count, daysCount, daysCount).substringAfter(" ")
                             }
 
-                            // [CHANGED] Row로 숫자와 단위 분리 (Start 화면 스타일) (2025-12-25)
                             Row(
                                 verticalAlignment = Alignment.Bottom,
                                 horizontalArrangement = Arrangement.Center,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                // 숫자 부분 (크게)
                                 Text(
                                     text = daysValue,
                                     style = MaterialTheme.typography.displayLarge.copy(
@@ -358,12 +353,11 @@ fun RunScreenComposable(
 
                                 Spacer(modifier = Modifier.width(4.dp))
 
-                                // 단위 부분 (작고 흰색, 하단 정렬)
                                 Text(
                                     text = daysUnit,
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = FontWeight.Normal,
-                                        color = Color.White, // [CHANGED] 회색 -> 흰색 (2025-12-25)
+                                        color = Color.White,
                                         fontSize = 24.sp,
                                         platformStyle = PlatformTextStyle(includeFontPadding = false),
                                         shadow = Shadow(
@@ -372,19 +366,18 @@ fun RunScreenComposable(
                                             blurRadius = 2f
                                         )
                                     ),
-                                    modifier = Modifier.padding(bottom = 12.dp) // [CHANGED] 8dp -> 12dp 하단 정렬 개선 (2025-12-25)
+                                    modifier = Modifier.padding(bottom = 12.dp)
                                 )
                             }
 
                             Spacer(modifier = Modifier.height(8.dp))
 
-                            // [NEW] 서브: 경과 시간 (초 포함, HH:MM:SS)
                             Text(
-                                text = progressTimeText, // [CHANGED] HH:MM:SS 형식 사용 (2025-12-25)
+                                text = progressTimeText,
                                 style = MaterialTheme.typography.titleLarge.copy(
                                     fontWeight = FontWeight.SemiBold,
                                     color = Color.White.copy(alpha = 0.9f),
-                                    fontSize = 24.sp, // 작은 크기
+                                    fontSize = 24.sp,
                                     platformStyle = PlatformTextStyle(includeFontPadding = false),
                                     shadow = Shadow(
                                         color = Color.Black.copy(alpha = 0.45f),
@@ -397,39 +390,84 @@ fun RunScreenComposable(
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
+
+                        // [BOTTOM] 진행률 바와 퍼센트
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            // [NEW] 진행률 바 (고급스러운 흰색 디자인)
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(12.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color(0x4DFFFFFF)) // 반투명 흰색 트랙 (30% opacity)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                        .fillMaxWidth(fraction = progress.coerceIn(0f, 1f))
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(Color.White) // 완전 흰색 진행 바
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // [NEW] 퍼센트와 목표 아이콘
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "${(progress * 100).toInt().coerceIn(0, 100)}%",
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White,
+                                        shadow = Shadow(
+                                            color = Color.Black.copy(alpha = 0.45f),
+                                            offset = Offset(0f, 1f),
+                                            blurRadius = 2f
+                                        )
+                                    )
+                                )
+
+                                // [NEW] 목표 아이콘과 숫자
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.End
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.hourglasssimplemedium),
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "${targetDays.toInt()}",
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                            shadow = Shadow(
+                                                color = Color.Black.copy(alpha = 0.45f),
+                                                offset = Offset(0f, 1f),
+                                                blurRadius = 2f
+                                            )
+                                        )
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
 
-            // [NEW] 메인 카드와 프로그레스 바 사이 간격 (2025-12-24)
-            Spacer(modifier = Modifier.height(16.dp)) // [MODIFIED] 15dp → 16dp 표준 간격 통일 (2025-12-24)
+            // [REMOVED] 기존 별도 프로그레스 카드 제거 - 메인 카드에 통합됨 (2026-01-04)
 
-            // Replace transparent card + surface with a single elevated white Card matching top cards
-            // [FIX] 프로그레스 카드와 응원 문구를 하나의 Column으로 묶어서 spacing 제거
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(0.dp) // 간격 완전 제거
-            ) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                    border = BorderStroke(AppBorder.Hairline, colorResource(id = R.color.color_border_light))
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = RUN_CARD_CONTENT_HORIZONTAL_PADDING, vertical = RUN_CARD_CONTENT_VERTICAL_PADDING),
-                        horizontalAlignment = Alignment.Start
-                    ) {
-                        // Progress content
-                        ModernProgressIndicatorSimple(progress = progress, targetDays = targetDays)
-                    }
-                }
-            }
-
-            // [NEW] 네이티브 광고 영역 (프로그레스 바와 명언 사이) (2025-12-24)
+            // [NEW] 네이티브 광고 영역 (메인 카드와 명언 사이) (2026-01-04)
             Spacer(modifier = Modifier.height(16.dp))
             NativeAdItem()
             // [MODIFIED] QuoteDisplay 내부 vertical padding 6dp를 고려하여 10dp 추가 (총 16dp) (2025-12-24)
@@ -459,50 +497,7 @@ fun RunScreenComposable(
     } // Box 닫기
 } // RunScreenComposable 닫기
 
-@Composable
-fun ModernProgressIndicatorSimple(progress: Float, targetDays: Float = 30f) {
-    val primary = colorResource(id = R.color.color_progress_primary)
-    val track = colorResource(id = R.color.color_progress_track)
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        // top row: icon+title (left), percent (right)
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(primary.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
-                    Icon(imageVector = Icons.Filled.TrendingUp, contentDescription = null, tint = primary, modifier = Modifier.size(18.dp))
-                }
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(text = stringResource(id = R.string.run_progress_title), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold), color = Color(0xFF111111))
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Text(text = "${(progress * 100).toInt().coerceIn(0,100)}%", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold, color = primary))
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // progress track
-        Box(modifier = Modifier
-            .fillMaxWidth()
-            .height(12.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(track)) {
-            Box(modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth(fraction = progress)
-                .clip(RoundedCornerShape(12.dp))
-                .background(primary))
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // bottom labels removed per request (start/target texts deleted)
-    }
-}
+// [REMOVED] ModernProgressIndicatorSimple 함수 제거 - 메인 카드에 통합됨 (2026-01-04)
 
 @Composable
 private fun ModernStopButtonSimple(onStop: () -> Unit, modifier: Modifier = Modifier) {
