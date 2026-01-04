@@ -100,13 +100,10 @@ fun DetailScreen(
                 sharedPref.edit().putString("sobriety_records", newArray.toString()).apply()
                 Log.d("DetailScreen", "removed=${removed} remainingLen=${newArray.length()}")
 
-                // [FIX] 타이머 상태 초기화 (기록 삭제 시 타이머 완료 상태도 리셋)
-                sharedPref.edit().apply {
-                    putBoolean(Constants.PREF_TIMER_COMPLETED, false)
-                    putLong(Constants.PREF_START_TIME, 0L)
-                    apply() // commit() → apply()로 변경
-                }
-                Log.d("DetailScreen", "타이머 상태 초기화 완료")
+                // [REMOVED] 타이머 상태 초기화 코드 제거 (2026-01-04)
+                // 과거 기록 삭제는 현재 진행 중인 타이머와 완전히 독립적으로 관리되어야 함
+                // TimerTimeManager가 독립적으로 타이머 상태를 관리하므로 여기서 초기화하면 안 됨
+                Log.d("DetailScreen", "✅ 기록 삭제 완료 - 타이머 상태는 보호됨")
 
                 try { onDeleted?.invoke() } catch (_: Exception) {}
                 Toast.makeText(context, "기록이 삭제되었습니다", Toast.LENGTH_SHORT).show()

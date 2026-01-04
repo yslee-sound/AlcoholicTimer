@@ -59,14 +59,20 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     // [NEW] SharedPreferences 변경 감지 리스너
+    // [FIX] 기록 삭제 시 현재 진행 중인 타이머 상태 보호 (2026-01-04)
     private val preferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         when (key) {
-            // [FIX] 기록 추가/삭제, 타이머 시작/완료 시 즉시 반영
-            Constants.PREF_SOBRIETY_RECORDS,
+            // [FIX] 기록 추가/삭제 시 즉시 반영
+            Constants.PREF_SOBRIETY_RECORDS -> {
+                Log.d("Tab02ViewModel", "📋 Records data changed, reloading...")
+                // [핵심] 기록 목록만 갱신, 타이머 상태는 절대 건드리지 않음
+                loadRecords()
+            }
+            // [FIX] 타이머 시작/완료 시 즉시 반영
             Constants.PREF_TIMER_COMPLETED,
             Constants.PREF_START_TIME -> {
-                Log.d("Tab02ViewModel", "Data changed ($key), reloading records...")
-                // 기록 목록 즉시 갱신 (QuitScreen에서 저장한 기록 반영)
+                Log.d("Tab02ViewModel", "⏱️ Timer state changed ($key), reloading...")
+                // 타이머 상태 변경 시에만 기록 재로딩 (타이머 완료 → 기록 추가)
                 loadRecords()
             }
         }
@@ -141,18 +147,28 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
         sharedPref.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
         Log.d("Tab02ViewModel", "Preference change listener registered")
 
-        // [NEW] 과거 기록을 UserStatusManager에 주입 (2025-12-25)
+        // [FIX] 과거 기록을 UserStatusManager에 주입 (현재 타이머 상태 보호) (2026-01-04)
         viewModelScope.launch {
             _records.collect { allRecords ->
+                // [핵심] 현재 진행 중인 타이머 상태 확인
+                val currentStartTime = sharedPref.getLong(Constants.PREF_START_TIME, 0L)
+                val currentCompleted = sharedPref.getBoolean(Constants.PREF_TIMER_COMPLETED, false)
+                val isTimerActive = currentStartTime > 0L && !currentCompleted
+
                 // 필터 없이 모든 기록의 '총 금주 일수' 합산
                 val totalHistoryDays = allRecords.sumOf { record ->
                     // overlapDays에 null을 넣으면 전체 기간(startTime ~ endTime) 계산됨
                     DateOverlapUtils.overlapDays(record.startTime, record.endTime, null, null)
                 }
+
                 // ★핵심: Float로 전달 (소수점 유지)
                 kr.sweetapps.alcoholictimer.util.manager.UserStatusManager.updateHistoryDays(totalHistoryDays.toFloat())
 
-                Log.d("Tab02ViewModel", "Updated History to Manager: $totalHistoryDays days (precise, from ${allRecords.size} records)")
+                if (isTimerActive) {
+                    Log.d("Tab02ViewModel", "✅ Updated History to Manager: $totalHistoryDays days (precise, from ${allRecords.size} records) - Timer is ACTIVE (protected)")
+                } else {
+                    Log.d("Tab02ViewModel", "📊 Updated History to Manager: $totalHistoryDays days (precise, from ${allRecords.size} records)")
+                }
             }
         }
 
@@ -263,6 +279,7 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             // 4. [REFACTORED] 진행 중인 타이머 - TimerTimeManager에서 받은 값 사용
+            // [FIX] 타이머 상태 안전 확인 (2026-01-04)
             val startTime = sharedPref.getLong(Constants.PREF_START_TIME, 0L)
             val timerCompleted = sharedPref.getBoolean(Constants.PREF_TIMER_COMPLETED, false)
 
@@ -272,7 +289,11 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
             _isTimerCompleted.value = timerCompleted
 
             var totalDaysFromCurrentTimer = 0.0
-            if (startTime > 0 && !timerCompleted && currentTimerElapsed > 0) {
+
+            // [핵심] 타이머가 활성화되어 있는지 엄격하게 확인
+            val isTimerActive = startTime > 0 && !timerCompleted && currentTimerElapsed > 0
+
+            if (isTimerActive) {
                 // [FIX] 가상 종료 시간 계산 (배속 적용된 시간)
                 val virtualEndTime = startTime + currentTimerElapsed
 
@@ -305,10 +326,10 @@ class Tab02ViewModel(application: Application) : AndroidViewModel(application) {
                     // 전체 기간: TimerTimeManager 값 그대로 사용
                     val timerDaysPrecise = (currentTimerElapsed / Constants.DAY_IN_MILLIS.toDouble())
                     totalDaysFromCurrentTimer = timerDaysPrecise
-                    Log.d("Tab02ViewModel", "Timer (no filter): $timerDaysPrecise days")
+                    Log.d("Tab02ViewModel", "⏱️ Active Timer (no filter): $timerDaysPrecise days, elapsed=$currentTimerElapsed ms")
                 }
             } else {
-                Log.d("Tab02ViewModel", "No active timer: startTime=$startTime, completed=$timerCompleted, elapsed=$currentTimerElapsed")
+                Log.d("Tab02ViewModel", "⏹️ No active timer: startTime=$startTime, completed=$timerCompleted, elapsed=$currentTimerElapsed")
             }
 
             // 5. 총합 계산

@@ -69,11 +69,15 @@ object UserStatusManager {
 
     /**
      * [UPDATED] 외부에서 과거 기록 업데이트 (Float 지원) (2025-12-26)
+     * [FIX] 타이머 상태 보호 강화 (2026-01-04)
      * @param days 과거 기록의 총 금주 일수 (Float, 소수점 포함)
+     *
+     * **중요**: 이 메서드는 과거 기록만 업데이트하며, 현재 타이머 상태에는 영향을 주지 않습니다.
+     * 현재 타이머의 경과 시간은 TimerTimeManager.elapsedMillis를 통해 독립적으로 관리됩니다.
      */
     fun updateHistoryDays(days: Float) {
         _historyDays.value = days
-        android.util.Log.d("UserStatusManager", "History updated: $days days (precise)")
+        android.util.Log.d("UserStatusManager", "📚 History updated: $days days (precise) - Timer state NOT affected")
     }
 
     /**
@@ -106,10 +110,16 @@ object UserStatusManager {
 
     /**
      * 경과 시간(밀리초) + 과거 기록(일수)을 UserStatus로 변환
+     * [FIX] 타이머 상태 보호 강화 (2026-01-04)
      *
-     * @param millis 현재 타이머 경과 시간 (밀리초)
-     * @param historyDays 과거 기록의 총 금주 일수 (Float)
+     * @param millis 현재 타이머 경과 시간 (밀리초, TimerTimeManager로부터)
+     * @param historyDays 과거 기록의 총 금주 일수 (Float, Tab02ViewModel로부터)
      * @return UserStatus 객체
+     *
+     * **중요**:
+     * - millis는 TimerTimeManager에서 독립적으로 관리되며, 기록 삭제에 영향받지 않음
+     * - historyDays는 과거 완료된 기록만 포함하며, 현재 타이머와 완전히 분리됨
+     * - 두 값을 합산하여 totalDaysPrecise를 계산 (과거 + 현재)
      */
     private fun calculateUserStatus(millis: Long, historyDays: Float): UserStatus {
         // 1. 현재 타이머의 경과 일수 계산 (Float 정밀도)
@@ -119,11 +129,18 @@ object UserStatusManager {
             0f
         }
 
-        // 2. ★핵심: 과거 기록 + 현재 타이머 합산
+        // 2. ★핵심: 과거 기록 + 현재 타이머 합산 (독립적으로 관리됨)
         val totalDaysPrecise = historyDays + currentTimerDaysFloat
 
         // 3. 정수형 일수 (기존 호환성 유지)
         val totalDays = totalDaysPrecise.toInt()
+
+        // [DEBUG] 타이머 상태 추적 로그 (2026-01-04)
+        if (millis > 0L) {
+            android.util.Log.d("UserStatusManager", "⏱️ Timer Active: current=${currentTimerDaysFloat}d, history=${historyDays}d, total=${totalDaysPrecise}d")
+        } else {
+            android.util.Log.d("UserStatusManager", "📊 Timer Idle: history=${historyDays}d, total=${totalDaysPrecise}d")
+        }
 
         // 4. 레벨 계산 (0-indexed → 1-indexed 변환)
         val levelNumber = LevelDefinitions.getLevelNumber(totalDays)
