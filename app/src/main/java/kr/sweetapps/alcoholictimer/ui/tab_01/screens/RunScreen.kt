@@ -150,6 +150,11 @@ fun RunScreenComposable(
     // userSettings, costVal, freqVal, drinkHoursVal, currencySymbol,
     // weeks, savedMoney, savedHours, lifeGainDays, savedMoneyDisplay, formattedLifeGain
 
+    // [NEW] 남은 일수 계산 (목표 일수 - 현재 경과 일수, 0 미만 방지)
+    val remainingDays = remember(targetDays, elapsedDaysFloat) {
+        (targetDays - elapsedDaysFloat).coerceAtLeast(0f).toInt()
+    }
+
     // [FIX] 중앙 타이머 표시: displayElapsedMillis 사용 (배속 반영)
     val elapsedHours = ((displayElapsedMillis % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)).toInt()
     val elapsedMinutes = ((displayElapsedMillis % (60 * 60 * 1000)) / (60 * 1000)).toInt()
@@ -349,8 +354,9 @@ fun RunScreenComposable(
                                         modifier = Modifier.size(20.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
+                                    // [CHANGED] 목표 일수 → 남은 일수로 변경
                                     Text(
-                                        text = "${targetDays.toInt()}",
+                                        text = "$remainingDays",
                                         style = MaterialTheme.typography.titleMedium.copy(
                                             fontWeight = FontWeight.Bold,
                                             color = Color.White,
