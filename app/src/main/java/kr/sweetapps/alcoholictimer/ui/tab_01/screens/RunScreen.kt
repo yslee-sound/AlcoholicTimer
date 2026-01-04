@@ -57,15 +57,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import java.util.Locale
 import kr.sweetapps.alcoholictimer.util.constants.Constants
-import kr.sweetapps.alcoholictimer.ui.tab_02.components.LevelDefinitions
 import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.BuildConfig
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.rememberTextMeasurer
 import kr.sweetapps.alcoholictimer.util.debug.DebugSettings
-import kr.sweetapps.alcoholictimer.util.manager.CurrencyManager
-import kr.sweetapps.alcoholictimer.ui.common.rememberUserSettingsState
 
 @Composable
 fun RunScreenComposable(
@@ -85,17 +82,12 @@ fun RunScreenComposable(
     }
 
     // Local layout constants for RunScreen - keep local to avoid changing global constants
-    val RUN_TOP_GROUP_TOP_PADDING = 15.dp            // vertical padding above top stat chips
-    val RUN_TOP_GROUP_CHIP_SPACING = 10.dp // 12.dp
     // Unified horizontal padding for the whole Run screen. Use this single constant to keep card widths consistent.
-    val RUN_HORIZONTAL_PADDING = 20.dp               // (was RUN_TOP_GROUP_HORIZONTAL_PADDING)
+    val RUN_HORIZONTAL_PADDING = 20.dp
 
     // [REMOVED] 사용하지 않는 변수 제거 (2026-01-04)
+    // RUN_TOP_GROUP_TOP_PADDING, RUN_TOP_GROUP_CHIP_SPACING, runStatAlignments
     // RUN_CARDS_VERTICAL_SPACING_TOP, RUN_CARD_CONTENT_HORIZONTAL_PADDING, RUN_CARD_CONTENT_VERTICAL_PADDING
-
-    // Per-chip horizontal alignment (left / center / right)
-    // All changed to center alignment (client request)
-    val runStatAlignments = listOf(Alignment.CenterHorizontally, Alignment.CenterHorizontally, Alignment.CenterHorizontally)
 
 
     // [FIX] 뒤로 가기 시 앱 최소화 (타이머 유지)
@@ -152,69 +144,17 @@ fun RunScreenComposable(
     val levelDays = remember(displayElapsedMillis) {
         (displayElapsedMillis / Constants.DAY_IN_MILLIS).toInt() // floor 연산
     }
-    val levelInfo = remember(levelDays) { LevelDefinitions.getLevelInfo(levelDays) }
-    // [CHANGED] Demo Mode 체크 제거 - 항상 실제 계산된 레벨 사용 (2025-12-25)
-    val levelNumber = remember(levelDays) {
-        val num = LevelDefinitions.getLevelNumber(levelDays)
-        if (num >= 0) num + 1 else 1 // [CHANGED] 0일차(기록 없음) → Lv.1로 표시
-    }
-    // [FIX] Legend 레벨(11)은 "L"로 표시
-    val levelDisplayText = if (levelNumber == 11) "Lv.L" else "Lv.$levelNumber"
 
-    // [FIX] 복잡한 리소스 대신 '숫자'만 깔끔하게 문자열로 변환하여 표시
-    val goalDaysText = remember(targetDays) {
-        targetDays.toInt().toString()
-    }
+    // [REMOVED] 상단 카드 제거로 인해 사용하지 않는 통계 변수들 제거 (2026-01-04)
+    // levelInfo, levelNumber, levelDisplayText, goalDaysText,
+    // userSettings, costVal, freqVal, drinkHoursVal, currencySymbol,
+    // weeks, savedMoney, savedHours, lifeGainDays, savedMoneyDisplay, formattedLifeGain
 
     // [FIX] 중앙 타이머 표시: displayElapsedMillis 사용 (배속 반영)
     val elapsedHours = ((displayElapsedMillis % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)).toInt()
     val elapsedMinutes = ((displayElapsedMillis % (60 * 60 * 1000)) / (60 * 1000)).toInt()
     val elapsedSeconds = ((displayElapsedMillis % (60 * 1000)) / 1000).toInt()
     val progressTimeText = String.format(Locale.getDefault(), "%02d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds)
-    val progressTimeTextHM = String.format(Locale.getDefault(), "%02d:%02d", elapsedHours, elapsedMinutes)
-
-    // [NEW] 실시간 설정 변경 감지 - 탭4에서 설정을 바꾸면 즉시 반영됨
-    val userSettings by rememberUserSettingsState(context)
-    val costVal = Constants.DrinkingSettings.getCostValue(userSettings.cost)
-    val freqVal = Constants.DrinkingSettings.getFrequencyValue(userSettings.frequency)
-    val drinkHoursVal = Constants.DrinkingSettings.getDurationValue(userSettings.duration)
-    val currencySymbol = userSettings.currencySymbol // 통화 기호도 실시간 반영
-
-    val weeks = elapsedDaysFloat / 7.0
-    val savedMoney = remember(weeks, freqVal, costVal) { weeks * freqVal * costVal }
-    val savedHours = remember(weeks, freqVal, drinkHoursVal) { weeks * freqVal * drinkHoursVal }
-    val lifeGainDays = remember(elapsedDaysFloat) { elapsedDaysFloat / 30.0 }
-
-    // [FIX] 먼저 반올림 후 환율 변환 및 포맷팅 (정확한 정수 표시)
-    val savedMoneyDisplay = remember(savedMoney, userSettings.currencySymbol) {
-        if (isPreview) "2,097"
-        else {
-            val roundedMoney = kotlin.math.round(savedMoney)
-            CurrencyManager.formatMoneyNoDecimals(roundedMoney, context)
-        }
-    }
-
-    // Debug: compute life gain explicitly (days + hours) with 1 decimal and log values
-    // [MODIFIED] 소수점 없이 정수로 표시 (2025-12-24)
-    val formattedLifeGain = remember(lifeGainDays) {
-        val safe = if (lifeGainDays.isNaN() || lifeGainDays.isInfinite()) 0.0 else lifeGainDays.coerceAtLeast(0.0)
-        val dayPart = kotlin.math.floor(safe).toInt()
-        val frac = safe - dayPart
-        val hoursRaw = frac * 24.0
-        // [MODIFIED] 반올림하여 정수로 표시
-        val hoursRounded = kotlin.math.round(hoursRaw)
-        val hourUnit = context.getString(R.string.unit_hour)
-        val dayUnit = context.getString(R.string.unit_day)
-        val out = if (dayPart == 0) {
-            // [MODIFIED] 소수점 제거
-            String.format(Locale.getDefault(), "%.0f%s", hoursRounded, hourUnit)
-        } else {
-            // [MODIFIED] 소수점 제거
-            String.format(Locale.getDefault(), "%d%s %.0f%s", dayPart, dayUnit, hoursRounded, hourUnit)
-        }
-        android.util.Log.d("LifeGainDebug", "elapsedDaysFloat=$elapsedDaysFloat lifeGainDays=$lifeGainDays hoursRaw=$hoursRaw hoursRounded=$hoursRounded formattedLifeGain=$out")
-        out
-    }
 
     val totalTargetMillis = remember(targetDays) { (targetDays * Constants.DAY_IN_MILLIS).toLong() }
     val progress = remember(displayElapsedMillis, totalTargetMillis) {
@@ -239,53 +179,16 @@ fun RunScreenComposable(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()) // [NEW] 전체 스크롤 적용
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = RUN_HORIZONTAL_PADDING)
-            // [REMOVED] verticalArrangement 제거 - 각 요소 간격을 수동 제어 (2025-12-24)
         ) {
-            // Remove top group card and place 3 chips outside Card
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = RUN_TOP_GROUP_TOP_PADDING),
-                horizontalArrangement = Arrangement.spacedBy(RUN_TOP_GROUP_CHIP_SPACING)
-            ) {
-                // [NEW] 아이콘 색상을 검정색으로 변경
-                val commonIconColor = Color.Black
+            // [REMOVED] 상단 3개 카드 제거 (목표일, 레벨, 절약한 금액) (2026-01-04)
 
-                // 1. Goal
-                RunStatChip(
-                    title = stringResource(id = R.string.stat_goal_days),
-                    value = goalDaysText,
-                    color = commonIconColor, // ★ 공통 컬러 적용
-                    modifier = Modifier.weight(1f),
-                     iconRes = kr.sweetapps.alcoholictimer.R.drawable.calendar_blank,
-                    contentAlignment = runStatAlignments[0]
-                )
+            // [NEW] 상단 여백 추가 (2026-01-04)
+            Spacer(modifier = Modifier.height(20.dp))
 
-                // 2. Level
-                RunStatChip(
-                    title = stringResource(id = R.string.stat_level),
-                    value = levelDisplayText,
-                    color = commonIconColor, // ★ 공통 컬러 적용
-                    modifier = Modifier.weight(1f),
-                    iconRes = kr.sweetapps.alcoholictimer.R.drawable.trophy,
-                    contentAlignment = runStatAlignments[1]
-                )
 
-                // 3. Money Saved
-                RunStatChip(
-                    title = stringResource(id = R.string.stat_saved_money_short),
-                    value = savedMoneyDisplay,
-                    color = commonIconColor, // ★ 공통 컬러 적용
-                    modifier = Modifier.weight(1f),
-                    iconRes = kr.sweetapps.alcoholictimer.R.drawable.chart_line_up,
-                    contentAlignment = runStatAlignments[2]
-                )
-            }
 
-            // [NEW] 상단 칩과 메인 카드 사이 간격 (2025-12-24)
-            Spacer(modifier = Modifier.height(16.dp)) // [MODIFIED] 15dp → 16dp 표준 간격 통일 (2025-12-24)
 
             // [UNIFIED] 메인 카드 내부에 진행률 통합 (2026-01-04)
             val density = LocalDensity.current
@@ -440,7 +343,7 @@ fun RunScreenComposable(
                                     horizontalArrangement = Arrangement.End
                                 ) {
                                     Icon(
-                                        painter = painterResource(id = R.drawable.hourglasssimplemedium),
+                                        painter = painterResource(id = R.drawable.hourglassmedium),
                                         contentDescription = null,
                                         tint = Color.White,
                                         modifier = Modifier.size(20.dp)
