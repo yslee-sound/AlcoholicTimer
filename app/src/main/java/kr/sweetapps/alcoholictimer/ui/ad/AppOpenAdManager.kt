@@ -29,6 +29,10 @@ object AppOpenAdManager {
     @Volatile private var isLoading: Boolean = false
     @Volatile private var autoShowEnabled: Boolean = true
 
+    // [NEW] 지수 백오프(Exponential Backoff) 재시도 카운터 (2026-01-05)
+    @Volatile private var retryAttempt: Int = 0
+    private const val MAX_RETRY_ATTEMPTS = 3 // 최대 3회까지만 재시도
+
     // [NEW] Ad Suppression Flag - 카메라/갤러리 사용 중 광고 차단 (2025-12-22)
     @Volatile var isAdSuppressed: Boolean = false
 
@@ -186,9 +190,10 @@ object AppOpenAdManager {
         // ?�� ?�?�밍 진단: AppOpen 광고 로드 ?�청 ?�각 기록
         kr.sweetapps.alcoholictimer.ui.ad.AdTimingLogger.logAppOpenLoadRequest()
 
-        // don't start loading if already loading or loaded
-        if (loaded || isLoading) {
-            Log.d(TAG, "preload: already loaded or loading")
+        // [CRITICAL FIX] 재시도 진행 중일 때도 중복 호출 차단 (2026-01-05)
+        // don't start loading if already loading or loaded or retrying
+        if (loaded || isLoading || retryAttempt > 0) {
+            Log.d(TAG, "preload: already loaded=$loaded or loading=$isLoading or retrying=$retryAttempt")
             return
         }
         isLoading = true
@@ -205,6 +210,9 @@ object AppOpenAdManager {
             AppOpenAd.load(context, adUnitId, request, AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT, object : AppOpenAd.AppOpenAdLoadCallback() {
                 override fun onAdLoaded(ad: AppOpenAd) {
                     Log.d(TAG, "onAdLoaded app-open")
+
+                    // [NEW] 광고 로드 성공 시 재시도 카운터 초기화 (2026-01-05)
+                    retryAttempt = 0
 
                     // ?�� ?�?�밍 진단: AppOpen 광고 로드 ?�료 ?�각 기록
                     kr.sweetapps.alcoholictimer.ui.ad.AdTimingLogger.logAppOpenLoadComplete()
@@ -303,7 +311,7 @@ object AppOpenAdManager {
                 }
 
                 override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-                    Log.w(TAG, "onAdFailedToLoad app-open: ${loadAdError.message}")
+                    Log.w(TAG, "onAdFailedToLoad app-open: ${loadAdError.message} (errorCode=${loadAdError.code})")
                     isLoading = false
                     loaded = false
                     appOpenAd = null
@@ -312,8 +320,27 @@ object AppOpenAdManager {
                     try { onLoadFailedListener?.invoke() } catch (_: Throwable) {}
                     for (l in loadFailedListeners) runCatching { l.invoke() }
 
-                    // [FIX] Retry logic removed to comply with AdMob policy and prevent rate limiting (2025-12-24)
-                    // Let the ad load naturally on next app launch instead of aggressive retry
+                    // [NEW] 지수 백오프(Exponential Backoff) 재시도 로직 (2026-01-05)
+                    if (retryAttempt < MAX_RETRY_ATTEMPTS) {
+                        retryAttempt++
+                        // 지수 백오프 계산: 2^n 초 (1초, 2초, 4초)
+                        val delaySeconds = Math.pow(2.0, (retryAttempt - 1).toDouble()).toLong()
+                        val delayMillis = delaySeconds * 1000L
+
+                        Log.d(TAG, "AdMob: ${retryAttempt}번째 재시도 예약, ${delaySeconds}초 후 실행")
+
+                        mainHandler.postDelayed({
+                            try {
+                                Log.d(TAG, "AdMob: ${retryAttempt}번째 재시도 실행 중...")
+                                applicationRef?.applicationContext?.let { ctx -> preload(ctx) }
+                            } catch (e: Exception) {
+                                Log.e(TAG, "AdMob: 재시도 실행 실패: ${e.message}")
+                            }
+                        }, delayMillis)
+                    } else {
+                        Log.w(TAG, "AdMob: 최대 재시도 횟수(${MAX_RETRY_ATTEMPTS}회) 도달. 더 이상 재시도하지 않음.")
+                        retryAttempt = 0 // 다음 자연스러운 로드를 위해 카운터 초기화
+                    }
                 }
             })
         } catch (t: Throwable) {

@@ -485,28 +485,39 @@ fun AdmobBanner(
         }
     }
 
+    // [CRITICAL FIX] 무한 루프 제거 - 최대 재시도 제한 추가 (2026-01-05)
+    // 기존: 광고 로드 성공할 때까지 5초마다 무한 반복 (60초 = 12회 요청)
+    // 수정: 최대 5회(25초)까지만 시도 후 중단
     LaunchedEffect(adViewRef, loadState) {
         val view = adViewRef ?: return@LaunchedEffect
-        while (!hasSuccessfulLoad) {
+        var periodicRetryCount = 0
+        val MAX_PERIODIC_RETRIES = 5 // 최대 5회 (5 × 5초 = 25초)
+
+        while (!hasSuccessfulLoad && periodicRetryCount < MAX_PERIODIC_RETRIES) {
             try {
                 val failedDueToConsent = loadState is BannerLoadState.Failed && (loadState as BannerLoadState.Failed).code == -2
                 if (failedDueToConsent) {
                     val consentInfo = runCatching { UserMessagingPlatform.getConsentInformation(view.context) }.getOrNull()
                     val consentDebug = consentInfoDebug(consentInfo)
-                    Log.d(TAG, "ConsentInfo(periodic): $consentDebug")
+                    Log.d(TAG, "ConsentInfo(periodic #$periodicRetryCount): $consentDebug")
                     val publisherMisconfigured = consentDebug.contains("Publisher misconfiguration", ignoreCase = true) || consentDebug.contains("no form", ignoreCase = true)
                     if (publisherMisconfigured) {
                         Log.e(TAG, "Periodic check: UMP publisher misconfiguration still present; will not attempt loads until configuration fixed")
                     }
                     val canRequest = (consentInfo?.canRequestAds() == true) || isDebugBuild()
                     if (canRequest && !publisherMisconfigured) {
-                        Log.d(TAG, "Periodic check: consent available -> retrying banner load")
+                        periodicRetryCount++
+                        Log.d(TAG, "Periodic check #$periodicRetryCount/$MAX_PERIODIC_RETRIES: consent available -> retrying banner load")
                         loadState = BannerLoadState.Loading
                         runCatching { view.loadAd(AdRequestFactory.create(view.context)) }.onFailure { e -> Log.w(TAG, "Periodic loadAd threw: ${e.message}") }
                     }
                 }
             } catch (_: Throwable) {}
             delay(5_000)
+        }
+
+        if (periodicRetryCount >= MAX_PERIODIC_RETRIES && !hasSuccessfulLoad) {
+            Log.w(TAG, "AdBanner: 최대 주기적 재시도 횟수(${MAX_PERIODIC_RETRIES}회) 도달. 더 이상 재시도하지 않음.")
         }
     }
 
