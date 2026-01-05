@@ -150,9 +150,10 @@ fun RunScreenComposable(
     // userSettings, costVal, freqVal, drinkHoursVal, currencySymbol,
     // weeks, savedMoney, savedHours, lifeGainDays, savedMoneyDisplay, formattedLifeGain
 
-    // [NEW] 남은 일수 계산 (목표 일수 - 현재 경과 일수, 0 미만 방지)
+    // [NEW] 남은 일수 계산 (올림 처리로 타이머 시작 직후 1일 표시)
+    // 예: 목표 1일, 경과 0.01일 → 남은 0.99일 → ceil → 1일
     val remainingDays = remember(targetDays, elapsedDaysFloat) {
-        (targetDays - elapsedDaysFloat).coerceAtLeast(0f).toInt()
+        kotlin.math.ceil(targetDays - elapsedDaysFloat).toInt().coerceAtLeast(0)
     }
 
     // [FIX] 중앙 타이머 표시: displayElapsedMillis 사용 (배속 반영)
