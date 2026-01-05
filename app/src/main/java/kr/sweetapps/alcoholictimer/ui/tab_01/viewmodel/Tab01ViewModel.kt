@@ -37,15 +37,32 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
     // [NEW] Zombie 이벤트 방지 - 타이머 시작 시각 기록 (Debounce용)
     private var lastTimerStartRequestTime: Long = 0L
 
-    // Timer start time state
+    // [NEW] 타이머 데이터 클래스 (2026-01-05)
+    data class TimerData(
+        val id: Int,
+        val name: String,
+        val startTime: Long,
+        val targetDays: Float,
+        val isCompleted: Boolean
+    )
+
+    // [NEW] 다중 타이머 리스트 상태 (최대 3개) (2026-01-05)
+    private val _timers = MutableStateFlow<List<TimerData>>(emptyList())
+    val timers: StateFlow<List<TimerData>> = _timers.asStateFlow()
+
+    // [NEW] 현재 선택된 타이머 인덱스 (2026-01-05)
+    private val _currentTimerIndex = MutableStateFlow(0)
+    val currentTimerIndex: StateFlow<Int> = _currentTimerIndex.asStateFlow()
+
+    // Timer start time state (현재는 첫 번째 타이머 기준)
     private val _startTime = MutableStateFlow(0L)
     val startTime: StateFlow<Long> = _startTime.asStateFlow()
 
-    // Target days state
+    // Target days state (현재는 첫 번째 타이머 기준)
     private val _targetDays = MutableStateFlow(30f)
     val targetDays: StateFlow<Float> = _targetDays.asStateFlow()
 
-    // Timer completion status state
+    // Timer completion status state (현재는 첫 번째 타이머 기준)
     private val _timerCompleted = MutableStateFlow(false)
     val timerCompleted: StateFlow<Boolean> = _timerCompleted.asStateFlow()
 
@@ -95,6 +112,8 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
         // Load initial timer state
         loadTimerState()
 
+        // [NEW] 타이머 리스트 초기화 (기본 타이머 1개) (2026-01-05)
+        initializeTimerList()
 
         // [REFACTORED] TimerTimeManager에 상태 복원
         val currentStartTime = _startTime.value
@@ -110,6 +129,52 @@ class Tab01ViewModel(application: Application) : AndroidViewModel(application) {
 
         // [NEW] 타이머 완료 이벤트 구독
         subscribeToTimerFinishEvent()
+    }
+
+    /**
+     * [NEW] 타이머 리스트 초기화 (2026-01-05)
+     * - 기본 '금주 타이머' 1개를 생성
+     */
+    private fun initializeTimerList() {
+        val defaultTimer = TimerData(
+            id = 0,
+            name = "금주 타이머",
+            startTime = _startTime.value,
+            targetDays = _targetDays.value,
+            isCompleted = _timerCompleted.value
+        )
+        _timers.value = listOf(defaultTimer)
+        Log.d("Tab01ViewModel", "[NEW] Timer list initialized with default timer")
+    }
+
+    /**
+     * [NEW] 새로운 타이머 추가 (2026-01-05)
+     * - 최대 3개까지만 추가 가능
+     * - TODO: 실제 DB 연동은 향후 구현
+     */
+    fun addNewTimer() {
+        if (_timers.value.size >= 3) {
+            Log.w("Tab01ViewModel", "[NEW] Cannot add more timers - max 3 reached")
+            return
+        }
+
+        val newTimer = TimerData(
+            id = _timers.value.size,
+            name = "타이머 ${_timers.value.size + 1}",
+            startTime = 0L,
+            targetDays = 30f,
+            isCompleted = false
+        )
+        _timers.value = _timers.value + newTimer
+        Log.d("Tab01ViewModel", "[NEW] New timer added: ${newTimer.name}")
+    }
+
+    /**
+     * [NEW] 타이머 인덱스 변경 (2026-01-05)
+     */
+    fun setCurrentTimerIndex(index: Int) {
+        _currentTimerIndex.value = index
+        Log.d("Tab01ViewModel", "[NEW] Current timer index changed to: $index")
     }
 
     /**

@@ -42,6 +42,9 @@
     <string name="cd_continue">Continue</string>
     <string name="toast_goal_completed">You\'ve achieved your sobriety goal!</string>
 
+    <!-- [NEW] Multiple Timers (2026-01-05) -->
+    <string name="add_new_timer_message">Start a new timer</string>
+
     <!-- Quit Screen -->
     <string name="quit_title">End Sobriety</string>
     <string name="quit_confirm_title">Are you sure you want to stop?</string>

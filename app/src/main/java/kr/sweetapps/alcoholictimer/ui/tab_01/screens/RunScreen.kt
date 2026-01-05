@@ -8,10 +8,12 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -24,12 +26,15 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.*
@@ -106,6 +111,25 @@ fun RunScreenComposable(
     val timerCompleted by viewModel.timerCompleted.collectAsState()
     val elapsedMillisFromVM by viewModel.elapsedMillis.collectAsState()
 
+    // [NEW] 타이머 리스트 상태 구독 (2026-01-05)
+    val timers by viewModel.timers.collectAsState()
+    val currentTimerIndex by viewModel.currentTimerIndex.collectAsState()
+
+    // [NEW] Pager 상태 초기화 (2026-01-05)
+    val showAddButton = timers.size < 3
+    val pageCount = timers.size + if (showAddButton) 1 else 0
+    val pagerState = rememberPagerState(
+        initialPage = currentTimerIndex,
+        pageCount = { pageCount }
+    )
+
+    // [NEW] Pager 페이지 변경 감지 (2026-01-05)
+    LaunchedEffect(pagerState.currentPage) {
+        if (pagerState.currentPage < timers.size) {
+            viewModel.setCurrentTimerIndex(pagerState.currentPage)
+        }
+    }
+
     // SharedPreferences only for indicator state (not timer critical)
     val sp = if (isPreview) null else context.getSharedPreferences(Constants.USER_SETTINGS_PREFS, Context.MODE_PRIVATE)
 
@@ -173,7 +197,7 @@ fun RunScreenComposable(
     // 이제 TimerTimeManager와 Tab01ViewModel에서 자동으로 처리됨
     // 사용자가 어느 화면에 있든 타이머 완료 시 자동으로 DetailScreen으로 이동
 
-    // [MODIFIED] StandardScreenWithBottomButton 제거, 일반 스크롤 Column으로 변경 (2025-12-24)
+    // [MODIFIED] StandardScreenWithBottomButton 제거, HorizontalPager 기반 스크롤 Column으로 변경 (2026-01-05)
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -188,194 +212,47 @@ fun RunScreenComposable(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = RUN_HORIZONTAL_PADDING)
         ) {
-            // [REMOVED] 상단 3개 카드 제거 (목표일, 레벨, 절약한 금액) (2026-01-04)
-
             // [NEW] 상단 여백 추가 (2026-01-04)
             Spacer(modifier = Modifier.height(20.dp))
 
-
-
-
-            // [UNIFIED] 메인 카드 내부에 진행률 통합 (2026-01-04)
-            val density = LocalDensity.current
-            val bigCardHeightPx = with(density) { 260.dp.toPx() } // [CHANGED] 높이 증가 (180dp -> 260dp)
-            val bigCardHeight = with(density) { (bigCardHeightPx / density.density).dp }
-
-            Card(
-                modifier = Modifier.fillMaxWidth().requiredHeight(bigCardHeight),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                border = BorderStroke(0.dp, Color.Transparent)
-            ) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    // [NEW] 배경 이미지
-                    Image(
-                        painter = painterResource(id = R.drawable.bg9),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
+            // [NEW] HorizontalPager로 타이머 카드 영역 (2026-01-05)
+            HorizontalPager(
+                state = pagerState,
+                contentPadding = PaddingValues(horizontal = 0.dp),
+                pageSpacing = 16.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) { page ->
+                if (page < timers.size) {
+                    // [기존 타이머 카드]
+                    ExistingTimerCard(
+                        timerData = timers[page],
+                        displayElapsedMillis = displayElapsedMillis,
+                        targetDays = targetDays,
+                        elapsedDaysFloat = elapsedDaysFloat,
+                        remainingDays = remainingDays,
+                        progressTimeText = progressTimeText,
+                        progress = progress
                     )
-
-                    // [NEW] 카드 내용: 상단 중앙 - 일수/시간, 하단 - 진행률
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 20.dp, vertical = 20.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        // [TOP] 경과 일수와 시간
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            val daysValue = String.format(Locale.getDefault(), "%.0f", kotlin.math.floor(elapsedDaysFloat.toDouble()))
-                            val daysCount = kotlin.math.floor(elapsedDaysFloat.toDouble()).toInt()
-                            val daysUnit = remember(daysCount) {
-                                context.resources.getQuantityString(R.plurals.days_count, daysCount, daysCount).substringAfter(" ")
-                            }
-
-                            Row(
-                                verticalAlignment = Alignment.Bottom,
-                                horizontalArrangement = Arrangement.Center,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    text = daysValue,
-                                    style = MaterialTheme.typography.displayLarge.copy(
-                                        fontWeight = FontWeight.ExtraBold,
-                                        color = Color.White,
-                                        fontSize = 72.sp,
-                                        platformStyle = PlatformTextStyle(includeFontPadding = false),
-                                        shadow = Shadow(
-                                            color = Color.Black.copy(alpha = 0.55f),
-                                            offset = Offset(0f, 2f),
-                                            blurRadius = 4f
-                                        )
-                                    ),
-                                    textAlign = TextAlign.Center,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-
-                                Spacer(modifier = Modifier.width(4.dp))
-
-                                Text(
-                                    text = daysUnit,
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontWeight = FontWeight.Normal,
-                                        color = Color.White,
-                                        fontSize = 24.sp,
-                                        platformStyle = PlatformTextStyle(includeFontPadding = false),
-                                        shadow = Shadow(
-                                            color = Color.Black.copy(alpha = 0.45f),
-                                            offset = Offset(0f, 1f),
-                                            blurRadius = 2f
-                                        )
-                                    ),
-                                    modifier = Modifier.padding(bottom = 12.dp)
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Text(
-                                text = progressTimeText,
-                                style = MaterialTheme.typography.titleLarge.copy(
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = Color.White.copy(alpha = 0.9f),
-                                    fontSize = 24.sp,
-                                    platformStyle = PlatformTextStyle(includeFontPadding = false),
-                                    shadow = Shadow(
-                                        color = Color.Black.copy(alpha = 0.45f),
-                                        offset = Offset(0f, 1f),
-                                        blurRadius = 2f
-                                    )
-                                ),
-                                textAlign = TextAlign.Center,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                } else {
+                    // [새 타이머 추가 카드]
+                    AddTimerCard(
+                        onClick = {
+                            viewModel.addNewTimer()
+                            android.util.Log.d("RunScreen", "[NEW] Add timer clicked")
                         }
-
-                        // [BOTTOM] 진행률 바와 퍼센트
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            // [NEW] 진행률 바 (고급스러운 흰색 디자인)
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(12.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(Color(0x4DFFFFFF)) // 반투명 흰색 트랙 (30% opacity)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxHeight()
-                                        .fillMaxWidth(fraction = progress.coerceIn(0f, 1f))
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(Color.White) // 완전 흰색 진행 바
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            // [NEW] 퍼센트와 목표 아이콘
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "${(progress * 100).toInt().coerceIn(0, 100)}%",
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.White,
-                                        shadow = Shadow(
-                                            color = Color.Black.copy(alpha = 0.45f),
-                                            offset = Offset(0f, 1f),
-                                            blurRadius = 2f
-                                        )
-                                    )
-                                )
-
-                                // [NEW] 목표 아이콘과 숫자
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.End
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.hourglassmedium),
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    // [CHANGED] 목표 일수 → 남은 일수로 변경
-                                    Text(
-                                        text = "$remainingDays",
-                                        style = MaterialTheme.typography.titleMedium.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.White,
-                                            shadow = Shadow(
-                                                color = Color.Black.copy(alpha = 0.45f),
-                                                offset = Offset(0f, 1f),
-                                                blurRadius = 2f
-                                            )
-                                        )
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    )
                 }
             }
 
-            // [REMOVED] 기존 별도 프로그레스 카드 제거 - 메인 카드에 통합됨 (2026-01-04)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // [NEW] Pager 인디케이터 (2026-01-05)
+            if (pageCount > 1) {
+                PagerIndicator(
+                    pageCount = pageCount,
+                    currentPage = pagerState.currentPage
+                )
+            }
 
             // [NEW] 네이티브 광고 영역 (메인 카드와 명언 사이) (2026-01-04)
             Spacer(modifier = Modifier.height(16.dp))
@@ -759,3 +636,283 @@ fun RunScreenLivePreview() {
     // Call the actual RunScreenComposable so preview matches runtime UI
     RunScreenComposable(onRequestQuit = {}, onCompletedNavigateToDetail = {}, onRequireBackToStart = {})
 }
+
+/**
+ * [NEW] 기존 타이머 카드 UI (HorizontalPager용) (2026-01-05)
+ */
+@Composable
+private fun ExistingTimerCard(
+    timerData: kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.Tab01ViewModel.TimerData,
+    displayElapsedMillis: Long,
+    targetDays: Float,
+    elapsedDaysFloat: Float,
+    remainingDays: Int,
+    progressTimeText: String,
+    progress: Float,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    val bigCardHeightPx = with(density) { 260.dp.toPx() }
+    val bigCardHeight = with(density) { (bigCardHeightPx / density.density).dp }
+
+    Card(
+        modifier = modifier.fillMaxWidth().requiredHeight(bigCardHeight),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        border = BorderStroke(0.dp, Color.Transparent)
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            // 배경 이미지
+            Image(
+                painter = painterResource(id = R.drawable.bg9),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+
+            // 카드 내용
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp, vertical = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                // [TOP] 경과 일수와 시간
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    val daysValue = String.format(Locale.getDefault(), "%.0f", kotlin.math.floor(elapsedDaysFloat.toDouble()))
+                    val daysCount = kotlin.math.floor(elapsedDaysFloat.toDouble()).toInt()
+                    val daysUnit = remember(daysCount) {
+                        context.resources.getQuantityString(R.plurals.days_count, daysCount, daysCount).substringAfter(" ")
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.Bottom,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = daysValue,
+                            style = MaterialTheme.typography.displayLarge.copy(
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color.White,
+                                fontSize = 72.sp,
+                                platformStyle = PlatformTextStyle(includeFontPadding = false),
+                                shadow = Shadow(
+                                    color = Color.Black.copy(alpha = 0.55f),
+                                    offset = Offset(0f, 2f),
+                                    blurRadius = 4f
+                                )
+                            ),
+                            textAlign = TextAlign.Center,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+
+                        Spacer(modifier = Modifier.width(4.dp))
+
+                        Text(
+                            text = daysUnit,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Normal,
+                                color = Color.White,
+                                fontSize = 24.sp,
+                                platformStyle = PlatformTextStyle(includeFontPadding = false),
+                                shadow = Shadow(
+                                    color = Color.Black.copy(alpha = 0.45f),
+                                    offset = Offset(0f, 1f),
+                                    blurRadius = 2f
+                                )
+                            ),
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = progressTimeText,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White.copy(alpha = 0.9f),
+                            fontSize = 24.sp,
+                            platformStyle = PlatformTextStyle(includeFontPadding = false),
+                            shadow = Shadow(
+                                color = Color.Black.copy(alpha = 0.45f),
+                                offset = Offset(0f, 1f),
+                                blurRadius = 2f
+                            )
+                        ),
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                // [BOTTOM] 진행률 바와 퍼센트
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // 진행률 바
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(12.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0x4DFFFFFF))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(fraction = progress.coerceIn(0f, 1f))
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color.White)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // 퍼센트와 목표 아이콘
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "${(progress * 100).toInt().coerceIn(0, 100)}%",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                shadow = Shadow(
+                                    color = Color.Black.copy(alpha = 0.45f),
+                                    offset = Offset(0f, 1f),
+                                    blurRadius = 2f
+                                )
+                            )
+                        )
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.hourglassmedium),
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "$remainingDays",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                    shadow = Shadow(
+                                        color = Color.Black.copy(alpha = 0.45f),
+                                        offset = Offset(0f, 1f),
+                                        blurRadius = 2f
+                                    )
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * [NEW] 타이머 추가 카드 UI (2026-01-05)
+ */
+@Composable
+private fun AddTimerCard(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val density = LocalDensity.current
+    val bigCardHeightPx = with(density) { 260.dp.toPx() }
+    val bigCardHeight = with(density) { (bigCardHeightPx / density.density).dp }
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .requiredHeight(bigCardHeight)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFF5F5F5) // 연한 회색
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = BorderStroke(2.dp, Color(0xFFE0E0E0))
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                // [ICON] 큰 + 아이콘
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add Timer",
+                    tint = Color(0xFF9E9E9E),
+                    modifier = Modifier.size(64.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // [TEXT] 안내 문구
+                Text(
+                    text = stringResource(R.string.add_new_timer_message),
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        color = Color(0xFF757575),
+                        fontWeight = FontWeight.Medium
+                    ),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+}
+
+/**
+ * [NEW] Pager 인디케이터 (2026-01-05)
+ */
+@Composable
+private fun PagerIndicator(
+    pageCount: Int,
+    currentPage: Int,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth().height(50.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        repeat(pageCount) { iteration ->
+            val color = if (currentPage == iteration) {
+                Color(0xFF1E40AF) // 활성 페이지 - 진한 파란색
+            } else {
+                Color(0xFFBDBDBD) // 비활성 페이지 - 연한 회색
+            }
+            Box(
+                modifier = Modifier
+                    .padding(4.dp)
+                    .clip(CircleShape)
+                    .background(color)
+                    .size(8.dp)
+            )
+        }
+    }
+}
+
