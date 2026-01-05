@@ -1,22 +1,19 @@
 // [NEW] Tab01 Refactoring: RunScreen moved to tab_01/screens
+// [REFACTORED] 컴포넌트를 별도 파일로 분리 (2026-01-05)
 package kr.sweetapps.alcoholictimer.ui.tab_01.screens
 
 import android.app.Activity
 import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,50 +21,46 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.draw.clip
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.PlatformTextStyle
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.font.FontWeight
 import java.util.Locale
+import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.util.constants.Constants
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.BuildConfig
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.rememberTextMeasurer
 import kr.sweetapps.alcoholictimer.util.debug.DebugSettings
+import kr.sweetapps.alcoholictimer.ui.tab_01.components.TimerCard
+import kr.sweetapps.alcoholictimer.ui.tab_01.components.AddTimerCard
+import kr.sweetapps.alcoholictimer.ui.tab_01.components.PagerIndicator
+import kr.sweetapps.alcoholictimer.ui.tab_01.components.StopButton
+import kr.sweetapps.alcoholictimer.ui.tab_01.components.getCardGradient
 
 @Composable
 fun RunScreenComposable(
@@ -223,11 +216,10 @@ fun RunScreenComposable(
                 modifier = Modifier.fillMaxWidth()
             ) { page ->
                 if (page < timers.size) {
-                    // [기존 타이머 카드]
-                    // [NEW] 페이지별 그라데이션 생성 (2026-01-05)
+                    // [기존 타이머 카드] - 분리된 컴포넌트 사용
                     val cardGradient = getCardGradient(page)
 
-                    ExistingTimerCard(
+                    TimerCard(
                         timerData = timers[page],
                         displayElapsedMillis = displayElapsedMillis,
                         targetDays = targetDays,
@@ -235,10 +227,10 @@ fun RunScreenComposable(
                         remainingDays = remainingDays,
                         progressTimeText = progressTimeText,
                         progress = progress,
-                        backgroundBrush = cardGradient // [NEW] 그라데이션 전달 (2026-01-05)
+                        backgroundBrush = cardGradient
                     )
                 } else {
-                    // [새 타이머 추가 카드]
+                    // [새 타이머 추가 카드] - 분리된 컴포넌트 사용
                     AddTimerCard(
                         onClick = {
                             viewModel.addNewTimer()
@@ -277,42 +269,23 @@ fun RunScreenComposable(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                ModernStopButtonSimple(onStop = {
+                StopButton(onStop = {
                     onRequestQuit?.invoke()
                 })
             }
 
             // 바닥 여백
-            Spacer(modifier = Modifier.height(100.dp)) // [MODIFIED] 24dp → 100dp로 변경 (2025-12-24)
+            Spacer(modifier = Modifier.height(100.dp))
         }
-    } // Box 닫기
-} // RunScreenComposable 닫기
-
-// [REMOVED] ModernProgressIndicatorSimple 함수 제거 - 메인 카드에 통합됨 (2026-01-04)
-
-@Composable
-private fun ModernStopButtonSimple(onStop: () -> Unit, modifier: Modifier = Modifier) {
-    // [FAB_UNIFIED] 시스템 폰트 스케일의 영향을 받지 않는 고정 크기 FloatingActionButton
-    val density = LocalDensity.current
-    val buttonSizePx = with(density) { 77.dp.toPx() }
-    val buttonSize = with(density) { (buttonSizePx / density.density).dp }
-    val iconSizePx = with(density) { 39.dp.toPx() }
-    val iconSize = with(density) { (iconSizePx / density.density).dp }
-
-    FloatingActionButton(
-        onClick = onStop,
-        modifier = modifier.requiredSize(buttonSize),
-        containerColor = colorResource(id = R.color.color_stop_button),
-        shape = CircleShape
-    ) {
-        Icon(
-            imageVector = Icons.Default.Close,
-            contentDescription = stringResource(id = R.string.cd_stop),
-            tint = Color.White,
-            modifier = Modifier.requiredSize(iconSize)
-        )
     }
 }
+
+// [REFACTORED] 아래 함수들은 별도 컴포넌트 파일로 분리됨 (2026-01-05):
+// - TimerCard -> ui/tab_01/components/TimerCard.kt
+// - AddTimerCard -> ui/tab_01/components/AddTimerCard.kt
+// - PagerIndicator -> ui/tab_01/components/PagerIndicator.kt
+// - StopButton -> ui/tab_01/components/StopButton.kt
+// - getCardGradient -> ui/tab_01/components/TimerCardGradients.kt
 
 // RunScreen.kt 맨 아래 함수 교체
 
@@ -633,333 +606,17 @@ private fun NativeAdItem() {
     }
 }
 
+// [REFACTORED] 아래 함수들은 별도 컴포넌트 파일로 분리됨 (2026-01-05):
+// - TimerCard -> ui/tab_01/components/TimerCard.kt
+// - AddTimerCard -> ui/tab_01/components/AddTimerCard.kt
+// - PagerIndicator -> ui/tab_01/components/PagerIndicator.kt
+// - StopButton -> ui/tab_01/components/StopButton.kt
+// - getCardGradient -> ui/tab_01/components/TimerCardGradients.kt
+
 // Preview: show the real Run screen composable as-is
 @Preview(name = "RunScreen - Live Composable", showBackground = true, widthDp = 360, heightDp = 640)
 @Composable
 fun RunScreenLivePreview() {
-    // Call the actual RunScreenComposable so preview matches runtime UI
     RunScreenComposable(onRequestQuit = {}, onCompletedNavigateToDetail = {}, onRequireBackToStart = {})
-}
-
-/**
- * [NEW] 기존 타이머 카드 UI (HorizontalPager용) (2026-01-05)
- * [UPDATED] 페이지별 그라데이션 배경 적용 (2026-01-05)
- */
-@Composable
-private fun ExistingTimerCard(
-    timerData: kr.sweetapps.alcoholictimer.ui.tab_01.viewmodel.Tab01ViewModel.TimerData,
-    displayElapsedMillis: Long,
-    targetDays: Float,
-    elapsedDaysFloat: Float,
-    remainingDays: Int,
-    progressTimeText: String,
-    progress: Float,
-    backgroundBrush: Brush, // [NEW] 그라데이션 배경 (2026-01-05)
-    modifier: Modifier = Modifier
-) {
-    val context = LocalContext.current
-    val density = LocalDensity.current
-    val bigCardHeightPx = with(density) { 260.dp.toPx() }
-    val bigCardHeight = with(density) { (bigCardHeightPx / density.density).dp }
-
-    Card(
-        modifier = modifier.fillMaxWidth().requiredHeight(bigCardHeight),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        border = BorderStroke(0.dp, Color.Transparent)
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            // [UPDATED] 배경 이미지 제거, 그라데이션으로 대체 (2026-01-05)
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(brush = backgroundBrush)
-            )
-
-            // 카드 내용
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp, vertical = 20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                // [TOP] 경과 일수와 시간
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    val daysValue = String.format(Locale.getDefault(), "%.0f", kotlin.math.floor(elapsedDaysFloat.toDouble()))
-                    val daysCount = kotlin.math.floor(elapsedDaysFloat.toDouble()).toInt()
-                    val daysUnit = remember(daysCount) {
-                        context.resources.getQuantityString(R.plurals.days_count, daysCount, daysCount).substringAfter(" ")
-                    }
-
-                    Row(
-                        verticalAlignment = Alignment.Bottom,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = daysValue,
-                            style = MaterialTheme.typography.displayLarge.copy(
-                                fontWeight = FontWeight.ExtraBold,
-                                color = Color.White,
-                                fontSize = 72.sp,
-                                platformStyle = PlatformTextStyle(includeFontPadding = false),
-                                shadow = Shadow(
-                                    color = Color.Black.copy(alpha = 0.55f),
-                                    offset = Offset(0f, 2f),
-                                    blurRadius = 4f
-                                )
-                            ),
-                            textAlign = TextAlign.Center,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-
-                        Spacer(modifier = Modifier.width(4.dp))
-
-                        Text(
-                            text = daysUnit,
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Normal,
-                                color = Color.White,
-                                fontSize = 24.sp,
-                                platformStyle = PlatformTextStyle(includeFontPadding = false),
-                                shadow = Shadow(
-                                    color = Color.Black.copy(alpha = 0.45f),
-                                    offset = Offset(0f, 1f),
-                                    blurRadius = 2f
-                                )
-                            ),
-                            modifier = Modifier.padding(bottom = 12.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = progressTimeText,
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White.copy(alpha = 0.9f),
-                            fontSize = 24.sp,
-                            platformStyle = PlatformTextStyle(includeFontPadding = false),
-                            shadow = Shadow(
-                                color = Color.Black.copy(alpha = 0.45f),
-                                offset = Offset(0f, 1f),
-                                blurRadius = 2f
-                            )
-                        ),
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                // [BOTTOM] 진행률 바와 퍼센트
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    // 진행률 바
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(12.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0x4DFFFFFF))
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .fillMaxWidth(fraction = progress.coerceIn(0f, 1f))
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color.White)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // 퍼센트와 목표 아이콘
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "${(progress * 100).toInt().coerceIn(0, 100)}%",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                                shadow = Shadow(
-                                    color = Color.Black.copy(alpha = 0.45f),
-                                    offset = Offset(0f, 1f),
-                                    blurRadius = 2f
-                                )
-                            )
-                        )
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.End
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.hourglassmedium),
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "$remainingDays",
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    shadow = Shadow(
-                                        color = Color.Black.copy(alpha = 0.45f),
-                                        offset = Offset(0f, 1f),
-                                        blurRadius = 2f
-                                    )
-                                )
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-/**
- * [NEW] 타이머 추가 카드 UI (2026-01-05)
- */
-@Composable
-private fun AddTimerCard(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val density = LocalDensity.current
-    val bigCardHeightPx = with(density) { 260.dp.toPx() }
-    val bigCardHeight = with(density) { (bigCardHeightPx / density.density).dp }
-
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .requiredHeight(bigCardHeight)
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFF5F5F5) // 연한 회색
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        border = BorderStroke(2.dp, Color(0xFFE0E0E0))
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                // [ICON] 큰 + 아이콘
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Timer",
-                    tint = Color(0xFF9E9E9E),
-                    modifier = Modifier.size(64.dp)
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // [TEXT] 안내 문구
-                Text(
-                    text = stringResource(R.string.add_new_timer_message),
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        color = Color(0xFF757575),
-                        fontWeight = FontWeight.Medium
-                    ),
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-    }
-}
-
-/**
- * [NEW] Pager 인디케이터 (2026-01-05)
- */
-@Composable
-private fun PagerIndicator(
-    pageCount: Int,
-    currentPage: Int,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier.fillMaxWidth().height(50.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        repeat(pageCount) { iteration ->
-            val color = if (currentPage == iteration) {
-                Color(0xFF1E40AF) // 활성 페이지 - 진한 파란색
-            } else {
-                Color(0xFFBDBDBD) // 비활성 페이지 - 연한 회색
-            }
-            Box(
-                modifier = Modifier
-                    .padding(4.dp)
-                    .clip(CircleShape)
-                    .background(color)
-                    .size(8.dp)
-            )
-        }
-    }
-}
-
-/**
- * [NEW] 타이머 카드별 그라데이션 생성 함수 (2026-01-05)
- * [UPDATED] 색채 심리학 기반으로 재설계 (2026-01-05)
- * [UPDATED] 첫 번째 카드를 이전 2번 카드의 블루와 동일하게 변경 (2026-01-05)
- *
- * @param page 페이지 인덱스 (0, 1, 2)
- * @return 페이지별 그라데이션 Brush
- *
- * 색상 테마 (색채 심리학 기반):
- * - Card 0 (금주): Deep Blue (맑고 깨끗한 정신)
- * - Card 1 (금연): Healing Green (폐의 정화, 건강한 숨)
- * - Card 2 (커스텀): Mystic Purple (다양한 목표, 고급스러움)
- */
-private fun getCardGradient(page: Int): Brush {
-    return when (page) {
-        0 -> Brush.linearGradient(
-            colors = listOf(
-                Color(0xFF3B82F6), // Deep Blue (딥 블루)
-                Color(0xFF1D4ED8)  // Royal Blue (로열 블루)
-            ),
-            start = Offset(0f, 0f),
-            end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
-        )
-        1 -> Brush.linearGradient(
-            colors = listOf(
-                Color(0xFF10B981), // Emerald Green (에메랄드 그린)
-                Color(0xFF14B8A6)  // Teal (틸)
-            ),
-            start = Offset(0f, 0f),
-            end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
-        )
-        else -> Brush.linearGradient(
-            colors = listOf(
-                Color(0xFF8B5CF6), // Vivid Purple (생생한 퍼플)
-                Color(0xFF7C3AED)  // Deep Purple (딥 퍼플)
-            ),
-            start = Offset(0f, 0f),
-            end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
-        )
-    }
 }
 
