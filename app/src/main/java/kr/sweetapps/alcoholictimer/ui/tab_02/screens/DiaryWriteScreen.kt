@@ -32,7 +32,7 @@ import kr.sweetapps.alcoholictimer.data.model.Post
 import kr.sweetapps.alcoholictimer.data.room.DiaryEntity
 import kr.sweetapps.alcoholictimer.ui.common.CustomGalleryScreen
 import kr.sweetapps.alcoholictimer.ui.tab_02.viewmodel.DiaryViewModel
-import kr.sweetapps.alcoholictimer.ui.tab_03.WritePostScreenContent
+import kr.sweetapps.alcoholictimer.ui.tab_03.components.WritePostScreenContent
 import kr.sweetapps.alcoholictimer.util.manager.UserStatusManager
 import java.text.SimpleDateFormat
 import java.util.*
@@ -312,7 +312,7 @@ fun DiaryWriteScreen(
                             kr.sweetapps.alcoholictimer.analytics.AnalyticsManager.logDiarySave(
                                 mood = postData.tagType ?: "none",
                                 contentLength = postData.content.length,
-                                hasImage = !postData.imageUrl.isNullOrEmpty(),
+                                hasImage = postData.imageUrl?.isNotEmpty() == true,
                                 dayCount = currentDays
                             )
                             android.util.Log.d("DiaryWriteScreen", "✅ diary_save 이벤트 전송 완료")
