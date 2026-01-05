@@ -1,5 +1,5 @@
-// [NEW] 공통 네이티브 광고 컴포넌트 (2026-01-05)
-// [REFACTORED] 여러 화면에 중복 구현된 NativeAdItem을 통합
+// [REFACTORED] 순수 UI 컴포넌트로 전환 - State Hoisting 패턴 적용 (2026-01-05)
+// UI는 렌더링만 담당, 생명주기는 부모 Screen이 관리
 package kr.sweetapps.alcoholictimer.ui.components.ads
 
 import androidx.compose.foundation.layout.Box
@@ -15,97 +15,56 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
-import kr.sweetapps.alcoholictimer.BuildConfig
 import kr.sweetapps.alcoholictimer.R
-import kr.sweetapps.alcoholictimer.ui.ad.NativeAdManager
+import com.google.android.gms.ads.nativead.NativeAd
 
 /**
- * 공통 네이티브 광고 컴포넌트
+ * [STATE HOISTING] 순수 UI 컴포넌트 - 네이티브 광고 렌더링 전용
  *
- * @param screenKey 광고 캐싱을 위한 화면별 고유 키 (예: "run_screen", "records_screen")
+ * **설계 원칙:**
+ * - 이 컴포넌트는 광고를 로드하거나 해제하지 않습니다
+ * - nativeAd 객체를 파라미터로 받아 렌더링만 수행합니다
+ * - 광고 생명주기는 부모 Screen(RecordsScreen 등)에서 관리합니다
+ *
+ * @param nativeAd 렌더링할 광고 객체 (null이면 로딩 표시)
+ * @param isLoading 로딩 중 여부 (기본값: nativeAd == null)
  * @param modifier Composable modifier
  *
  * **사용 예시:**
  * ```kotlin
- * NativeAdItem(screenKey = "my_screen")
- * ```
+ * // Screen 레벨에서 광고 상태 관리
+ * val nativeAd by viewModel.recordsScreenAd.collectAsState()
  *
- * **주요 기능:**
- * - NativeAdManager를 통한 광고 캐싱
- * - 광고 로드 실패 시 Graceful Degradation (UI 숨김)
- * - 로딩 중 플레이스홀더 표시
+ * NativeAdItem(
+ *     nativeAd = nativeAd,
+ *     modifier = Modifier.fillMaxWidth()
+ * )
+ * ```
  */
 @Composable
 fun NativeAdItem(
-    screenKey: String,
-    modifier: Modifier = Modifier
+    nativeAd: NativeAd?,
+    modifier: Modifier = Modifier,
+    isLoading: Boolean = nativeAd == null
 ) {
-    val context = LocalContext.current
-
-    var nativeAd by remember { mutableStateOf<com.google.android.gms.ads.nativead.NativeAd?>(null) }
-    var adLoadFailed by remember { mutableStateOf(false) }
-
-    // [FIX] 광고 로드 로직 - 캐시 우선 사용
-    LaunchedEffect(screenKey) {  // [CHANGED] Unit -> screenKey (화면별 독립 실행)
-        // 백그라운드에서 MobileAds 초기화 (ANR 방지)
-        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            try {
-                com.google.android.gms.ads.MobileAds.initialize(context)
-            } catch (initEx: Exception) {
-                android.util.Log.w("NativeAd", "MobileAds.initialize failed: ${initEx.message}")
-            }
-        }
-
-        try {
-            // NativeAdManager를 통한 캐싱된 광고 가져오기 또는 새로 로드
-            NativeAdManager.getOrLoadAd(
-                context = context,
-                screenKey = screenKey,
-                onAdReady = { ad ->
-                    android.util.Log.d("NativeAd", "[$screenKey] Ad ready (cached or loaded)")
-                    nativeAd = ad
-                },
-                onAdFailed = {
-                    android.util.Log.w("NativeAd", "[$screenKey] Ad load failed")
-                    adLoadFailed = true
-                }
-            )
-        } catch (e: Exception) {
-            android.util.Log.e("NativeAd", "[$screenKey] Failed setting up ad", e)
-            adLoadFailed = true
-        }
-    }
-
-    // [CRITICAL FIX] 메모리 누수 방지: 화면 종료 시 광고 destroy (2026-01-05)
-    DisposableEffect(screenKey) {
-        onDispose {
-            android.util.Log.d("NativeAd", "[$screenKey] Disposing ad - calling NativeAdManager.destroyAd()")
-            NativeAdManager.destroyAd(screenKey)
-            nativeAd = null  // State 초기화
-        }
-    }
-
-    // 광고 로드 실패 시 UI 숨김 (Graceful Degradation)
-    if (adLoadFailed) {
-        return
-    }
+    // [REMOVED] LaunchedEffect, DisposableEffect 모두 제거
+    // 광고 로드/해제는 부모 Screen이 담당
 
     // 광고 카드 (로딩 중: 고정 높이, 로딩 완료: 콘텐츠에 맞춤)
     Card(
         modifier = modifier
             .fillMaxWidth()
             .then(
-                if (nativeAd == null) Modifier.height(250.dp)
+                if (isLoading) Modifier.height(250.dp)
                 else Modifier.wrapContentHeight()
             ),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        if (nativeAd != null) {
+        if (nativeAd != null && !isLoading) {
             // 광고 로드 완료 시
             androidx.compose.ui.viewinterop.AndroidView(
                 factory = { ctx ->
@@ -201,12 +160,11 @@ fun NativeAdItem(
                     adView
                 },
                 update = { adView ->
-                    val ad = nativeAd!!
-                    (adView.headlineView as android.widget.TextView).text = ad.headline
-                    (adView.bodyView as android.widget.TextView).text = ad.body
-                    (adView.callToActionView as android.widget.Button).text = ad.callToAction ?: "자세히 보기"
-                    ad.icon?.let { (adView.iconView as android.widget.ImageView).setImageDrawable(it.drawable) }
-                    adView.setNativeAd(ad)
+                    (adView.headlineView as android.widget.TextView).text = nativeAd.headline
+                    (adView.bodyView as android.widget.TextView).text = nativeAd.body
+                    (adView.callToActionView as android.widget.Button).text = nativeAd.callToAction ?: "자세히 보기"
+                    nativeAd.icon?.let { (adView.iconView as android.widget.ImageView).setImageDrawable(it.drawable) }
+                    adView.setNativeAd(nativeAd)
                 },
                 modifier = Modifier.fillMaxWidth().wrapContentHeight()
             )
@@ -226,4 +184,3 @@ fun NativeAdItem(
         }
     }
 }
-

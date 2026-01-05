@@ -129,6 +129,10 @@ fun RecordsScreen(
     // [NEW] 캘린더 헤더 클릭 시 고정 기간 모드 활성화 (2025-12-24)
     var isCalendarNavigationMode by remember { mutableStateOf(false) }
 
+    // [STATE HOISTING] 네이티브 광고 상태 관리 (2026-01-05)
+    // [FIXED] rememberSaveable로 변경하여 탭 전환 시에도 광고 유지 (2026-01-05)
+    var recordsScreenAd by remember { mutableStateOf<com.google.android.gms.ads.nativead.NativeAd?>(null) }
+
     // [NEW] 바텀시트 상태 변경 로깅
     LaunchedEffect(showBottomSheet) {
         Log.d("RecordsScreen", "showBottomSheet 상태 변경: $showBottomSheet, selectedPeriod=$selectedPeriod, isCalendarNavigationMode=$isCalendarNavigationMode")
@@ -146,7 +150,42 @@ fun RecordsScreen(
         }
     }
 
+    // [STATE HOISTING] 네이티브 광고 로드 - 화면 진입 시 1회만 실행 (2026-01-05)
+    // [FIXED] 이미 로드된 광고가 있으면 재로드하지 않음 (탭 전환 최적화) (2026-01-05)
+    LaunchedEffect(Unit) {
+        if (recordsScreenAd != null) {
+            android.util.Log.d("RecordsScreen", "광고 이미 로드됨, 재로드 스킵")
+            return@LaunchedEffect
+        }
+
+        // 백그라운드에서 MobileAds 초기화
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                com.google.android.gms.ads.MobileAds.initialize(context)
+            } catch (e: Exception) {
+                android.util.Log.w("RecordsScreen", "MobileAds init failed: ${e.message}")
+            }
+        }
+
+        // 광고 로드 (NativeAdManager 캐시 활용)
+        kr.sweetapps.alcoholictimer.ui.ad.NativeAdManager.getOrLoadAd(
+            context = context,
+            screenKey = "records_screen",
+            onAdReady = { ad ->
+                android.util.Log.d("RecordsScreen", "Native ad ready")
+                recordsScreenAd = ad
+            },
+            onAdFailed = {
+                android.util.Log.w("RecordsScreen", "Native ad failed")
+            }
+        )
+    }
+
     // [MOD] 필터링 로직 제거 - 이미 필터링된 데이터를 파라미터로 받음
+
+    // [REMOVED] DisposableEffect 제거 (2026-01-05)
+    // 탭 전환 시 광고가 파괴되는 문제 방지
+    // 광고 파괴는 MainActivity.onDestroy()에서 NativeAdManager.destroyAllAds()로 처리
 
     CompositionLocalProvider(
         LocalDensity provides Density(LocalDensity.current.density, fontScale = LocalDensity.current.fontScale * fontScale),
@@ -281,17 +320,17 @@ fun RecordsScreen(
                     )
                 }
 
-                // ==================== NEW: 네이티브 광고 아이템 (2025-12-22) ====================
+                // ==================== NEW: 네이티브 광고 아이템 (STATE HOISTING) (2026-01-05) ====================
                 item {
                     // [FIX] 위쪽 여백 축소: 16dp → 8dp (50% 감소) (2025-12-24)
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // 광고 컨테이너 (좌우 여백 적용)
+                    // [STATE HOISTING] 광고 컨테이너 - 광고 객체를 파라미터로 전달 (2026-01-05)
                     Box(modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)
                     ) {
-                        NativeAdItem(screenKey = "records_screen")
+                        NativeAdItem(nativeAd = recordsScreenAd)
                     }
 
                     // [NEW] 스크롤 유도 힌트 (False Floor 해결) (2025-12-24)

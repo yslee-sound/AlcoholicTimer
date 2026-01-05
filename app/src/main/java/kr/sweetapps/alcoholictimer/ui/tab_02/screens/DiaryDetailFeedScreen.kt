@@ -65,6 +65,9 @@ fun DiaryDetailFeedScreen(
     // 스크롤 상태
     val listState = rememberLazyListState()
 
+    // [STATE HOISTING] 네이티브 광고 상태 관리 (2026-01-05)
+    var diaryDetailAd by remember { mutableStateOf<com.google.android.gms.ads.nativead.NativeAd?>(null) }
+
     // [NEW] 선택된 일기 위치로 초기 스크롤 이동 (2025-12-22)
     LaunchedEffect(targetDiaryId, allDiaries) {
         val index = allDiaries.indexOfFirst { it.id == targetDiaryId }
@@ -73,6 +76,38 @@ fun DiaryDetailFeedScreen(
             listState.scrollToItem(index)
         }
     }
+
+    // [STATE HOISTING] 네이티브 광고 로드 (2026-01-05)
+    // [FIXED] 이미 로드된 광고가 있으면 재로드하지 않음 (2026-01-05)
+    LaunchedEffect(Unit) {
+        if (diaryDetailAd != null) {
+            android.util.Log.d("DiaryDetailFeed", "광고 이미 로드됨, 재로드 스킵")
+            return@LaunchedEffect
+        }
+
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                com.google.android.gms.ads.MobileAds.initialize(context)
+            } catch (e: Exception) {
+                android.util.Log.w("DiaryDetailFeed", "MobileAds init failed: ${e.message}")
+            }
+        }
+
+        kr.sweetapps.alcoholictimer.ui.ad.NativeAdManager.getOrLoadAd(
+            context = context,
+            screenKey = "diary_detail_feed",
+            onAdReady = { ad ->
+                android.util.Log.d("DiaryDetailFeed", "Native ad ready")
+                diaryDetailAd = ad
+            },
+            onAdFailed = {
+                android.util.Log.w("DiaryDetailFeed", "Native ad failed")
+            }
+        )
+    }
+
+    // [REMOVED] DisposableEffect 제거 (2026-01-05)
+    // 화면 전환 시 광고가 파괴되지 않도록 함
 
     // 선택된 일기 ID 추적 (옵션 바텀시트용)
     var selectedDiaryForOptions by remember { mutableStateOf<DiaryEntity?>(null) }
@@ -183,8 +218,8 @@ fun DiaryDetailFeedScreen(
                                 onHideClick = { }
                             )
                         } else {
-                            // === [B] 광고 아이템 렌더링 ===
-                            NativeAdItem(screenKey = "diary_detail_feed")
+                            // === [B] 광고 아이템 렌더링 (STATE HOISTING) (2026-01-05) ===
+                            NativeAdItem(nativeAd = diaryDetailAd)
                         }
 
                         // [FIX] 구분선 (일기, 광고 모두 하단에 표시) (2025-12-23)

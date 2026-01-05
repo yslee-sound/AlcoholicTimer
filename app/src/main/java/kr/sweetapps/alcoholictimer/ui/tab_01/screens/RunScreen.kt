@@ -96,6 +96,41 @@ fun RunScreenComposable(
         (context as? Activity)?.moveTaskToBack(true)
     }
 
+    // [STATE HOISTING] 네이티브 광고 상태 관리 (2026-01-05)
+    var runScreenAd by remember { mutableStateOf<com.google.android.gms.ads.nativead.NativeAd?>(null) }
+
+    // [STATE HOISTING] 네이티브 광고 로드 - 화면 진입 시 1회만 실행 (2026-01-05)
+    // [FIXED] 이미 로드된 광고가 있으면 재로드하지 않음 (2026-01-05)
+    LaunchedEffect(Unit) {
+        if (runScreenAd != null) {
+            android.util.Log.d("RunScreen", "광고 이미 로드됨, 재로드 스킵")
+            return@LaunchedEffect
+        }
+
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                com.google.android.gms.ads.MobileAds.initialize(context)
+            } catch (e: Exception) {
+                android.util.Log.w("RunScreen", "MobileAds init failed: ${e.message}")
+            }
+        }
+
+        kr.sweetapps.alcoholictimer.ui.ad.NativeAdManager.getOrLoadAd(
+            context = context,
+            screenKey = "run_screen",
+            onAdReady = { ad ->
+                android.util.Log.d("RunScreen", "Native ad ready")
+                runScreenAd = ad
+            },
+            onAdFailed = {
+                android.util.Log.w("RunScreen", "Native ad failed")
+            }
+        )
+    }
+
+    // [REMOVED] DisposableEffect 제거 (2026-01-05)
+    // 탭 전환 시 광고가 파괴되지 않도록 함
+
     val isPreview = LocalInspectionMode.current
     val isDemoMode = DebugSettings.isDemoModeEnabled(context)
 
@@ -251,9 +286,9 @@ fun RunScreenComposable(
                 )
             }
 
-            // [NEW] 네이티브 광고 영역 (메인 카드와 명언 사이) (2026-01-04)
+            // [STATE HOISTING] 네이티브 광고 영역 (메인 카드와 명언 사이) (2026-01-05)
             Spacer(modifier = Modifier.height(16.dp))
-            NativeAdItem(screenKey = "run_screen")
+            NativeAdItem(nativeAd = runScreenAd)
             // [MODIFIED] QuoteDisplay 내부 vertical padding 6dp를 고려하여 10dp 추가 (총 16dp) (2025-12-24)
             Spacer(modifier = Modifier.height(10.dp))
 

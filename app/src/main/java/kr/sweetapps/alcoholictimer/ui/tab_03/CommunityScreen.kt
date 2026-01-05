@@ -119,6 +119,41 @@ fun CommunityScreen(
         isWritingScreenVisible = false
     }
 
+    // [STATE HOISTING] 네이티브 광고 상태 관리 (2026-01-05)
+    var communityScreenAd by remember { mutableStateOf<com.google.android.gms.ads.nativead.NativeAd?>(null) }
+
+    // [STATE HOISTING] 네이티브 광고 로드 - 화면 진입 시 1회만 실행 (2026-01-05)
+    // [FIXED] 이미 로드된 광고가 있으면 재로드하지 않음 (2026-01-05)
+    LaunchedEffect(Unit) {
+        if (communityScreenAd != null) {
+            android.util.Log.d("CommunityScreen", "광고 이미 로드됨, 재로드 스킵")
+            return@LaunchedEffect
+        }
+
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                com.google.android.gms.ads.MobileAds.initialize(context)
+            } catch (e: Exception) {
+                android.util.Log.w("CommunityScreen", "MobileAds init failed: ${e.message}")
+            }
+        }
+
+        kr.sweetapps.alcoholictimer.ui.ad.NativeAdManager.getOrLoadAd(
+            context = context,
+            screenKey = "community_screen",
+            onAdReady = { ad ->
+                android.util.Log.d("CommunityScreen", "Native ad ready")
+                communityScreenAd = ad
+            },
+            onAdFailed = {
+                android.util.Log.w("CommunityScreen", "Native ad failed")
+            }
+        )
+    }
+
+    // [REMOVED] DisposableEffect 제거 (2026-01-05)
+    // 탭 전환 시 광고가 파괴되지 않도록 함
+
     Box(modifier = Modifier.fillMaxSize()) {
         // === 1. 硫��� 由ъ��???�硫� (?ㅼ�� 源�由�???�硫�) ===
 
@@ -412,10 +447,10 @@ fun CommunityScreen(
                             }) { index ->
                                 val item = itemsWithAds[index]
                                 if (item == null) {
-                                    // [Standard] ?ㅼ��?곕� 愿�怨� ?��� ?щ갚 ?��???(2025-12-23)
+                                    // [STATE HOISTING] 광고 렌더링 (2026-01-05)
                                     Column {
                                         Spacer(modifier = Modifier.height(16.dp))
-                                        NativeAdItem(screenKey = "community_screen")
+                                        NativeAdItem(nativeAd = communityScreenAd)
                                         Spacer(modifier = Modifier.height(16.dp))
                                     }
                                 } else {
