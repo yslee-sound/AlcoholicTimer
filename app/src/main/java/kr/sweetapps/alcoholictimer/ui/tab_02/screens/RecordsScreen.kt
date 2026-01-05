@@ -47,7 +47,6 @@ import kr.sweetapps.alcoholictimer.ui.common.LevelCard
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.MonthPickerBottomSheet
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.WeekPickerBottomSheet
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.YearPickerBottomSheet
-import kr.sweetapps.alcoholictimer.ui.tab_02.components.PeriodStatisticsSection as ExternalPeriodStatisticsSection
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.ModernStatisticsGrid // [NEW] 통계 카드 (2026-01-05)
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.TotalDaysCard // [NEW] 총 금주일 카드 (2026-01-05)
 import java.util.*
