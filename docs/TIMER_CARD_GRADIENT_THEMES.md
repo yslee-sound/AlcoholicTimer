@@ -1,8 +1,9 @@
-# 🎨 타이머 카드 그라데이션 색상 테마 적용 완료
+# 🎨 타이머 카드 그라데이션 색상 테마 (색채 심리학 기반)
 
 **작성일:** 2026-01-05  
+**최종 업데이트:** 2026-01-05 (색채 심리학 기반 재설계)  
 **작업자:** 안드로이드 Compose UI 디자인 전문 개발자  
-**목적:** HorizontalPager의 타이머 카드에 페이지별 서로 다른 그라데이션 적용
+**목적:** 각 중독의 특성을 색채 심리학적으로 연결한 직관적 색상 배정
 
 ---
 
@@ -10,98 +11,122 @@
 
 ✅ **완료된 항목:**
 1. ✅ 페이지 인덱스에 따라 서로 다른 그라데이션 적용
-2. ✅ 3가지 색상 테마 구현 (Pink/Orange, Blue/Mint, Purple/Indigo)
+2. ✅ 색채 심리학 기반으로 각 중독 유형과 색상 매칭
 3. ✅ 배경 이미지를 그라데이션으로 대체하여 시각적 구분 강화
+4. ✅ 눈에 편안하고 세련된 색상 조합 구현
 
 ---
 
-## 🎨 적용된 색상 테마
+## 🎨 색채 심리학 기반 색상 테마
 
-### 카드 0: Soft Coral & Rose Pink (금주 타이머)
+### 카드 0: 🌊 깊은 블루 (금주 - Alcohol)
 ```kotlin
 Brush.linearGradient(
     colors = listOf(
-        Color(0xFFF48FB1), // Soft Pink (부드러운 핑크)
-        Color(0xFFE57373)  // Coral Rose (코랄 로즈)
-    )
-)
-```
-**느낌:** 편안함, 따뜻함, 부드러운 에너지  
-**연상:** 봄의 벚꽃, 따뜻한 햇살, 아늑한 분위기  
-**변경 이유:** 
-- 기존 Hot Pink/Magenta(0xFFEC4899, 0xFFDB2777)가 너무 강렬함
-- 더 편안하고 부드러운 톤으로 변경하여 눈의 피로 감소
-- 여전히 충분히 선명하여 흰색 텍스트가 잘 보임
-
----
-
-### 카드 1: Deep Blue & Royal Blue (금연 타이머)
-```kotlin
-Brush.linearGradient(
-    colors = listOf(
-        Color(0xFF3B82F6), // Deep Blue (진한 파란색)
+        Color(0xFF3B82F6), // Deep Blue (딥 블루)
         Color(0xFF1D4ED8)  // Royal Blue (로열 블루)
     )
 )
 ```
-**느낌:** 깊이감, 신뢰, 깨끗한 하늘  
-**연상:** 깊은 바다, 맑은 하늘, 청정 공기  
-**변경 이유:** 기존 색상(0xFF4FACFE, 0xFF00F2FE)이 너무 연해서 우측 하단이 잘 보이지 않는 문제 해결
+**색채 심리학적 의미:**
+- 🧠 **맑고 깨끗한 정신:** 술에 취한 혼탁함에서 벗어남
+- 💧 **정화와 투명성:** 물처럼 깨끗한 상태
+- 🌊 **차분함과 자제력:** 충동 억제, 이성적 판단
+
+**연상 이미지:**
+- 맑은 물, 깨끗한 하늘
+- 술이 없는 맑은 아침
+- 투명한 정신 상태
+
+**선택 이유:**
+- 이전 2번 카드에서 검증된 진하고 선명한 블루
+- 흰색 텍스트와의 가독성이 우수함
 
 ---
 
-### 카드 2: Purple & Indigo (습관 타이머)
+### 카드 1: 🌿 치유의 그린 (금연 - Smoking)
 ```kotlin
 Brush.linearGradient(
     colors = listOf(
-        Color(0xFF667EEA), // Purple
-        Color(0xFF764BA2)  // Deep Violet
+        Color(0xFF10B981), // Emerald Green (에메랄드 그린)
+        Color(0xFF14B8A6)  // Teal (틸)
     )
 )
 ```
-**느낌:** 차분함, 집중, 신비로움  
-**연상:** 저녁 하늘, 밤, 명상
+**색채 심리학적 의미:**
+- 🫁 **폐의 정화:** 담배 연기로부터 회복
+- 🌱 **재생과 치유:** 건강한 호흡의 회복
+- 💚 **생명력과 건강:** 자연의 치유력
+
+**연상 이미지:**
+- 싱그러운 숲속의 맑은 공기
+- 녹색 식물의 광합성
+- 건강한 숨, 깨끗한 폐
+
+---
+
+### 카드 2: 🔮 신비로운 퍼플 (사용자 정의 - Custom)
+```kotlin
+Brush.linearGradient(
+    colors = listOf(
+        Color(0xFF8B5CF6), // Vivid Purple (생생한 퍼플)
+        Color(0xFF7C3AED)  // Deep Purple (딥 퍼플)
+    )
+)
+```
+**색채 심리학적 의미:**
+- 🎯 **다양한 목표:** 도파민, 카페인, 게임, SNS 등
+- ✨ **고급스러움:** 중립적이면서도 세련된 느낌
+- 🧘 **집중과 명상:** 자기 계발, 습관 형성
+
+**연상 이미지:**
+- 신비로운 우주
+- 명상하는 저녁
+- 목표를 향한 집중
 
 ---
 
 ## 📝 구현 내용
 
-### 1️⃣ 그라데이션 생성 함수 추가
+### 1️⃣ 그라데이션 생성 함수 (색채 심리학 기반)
 
 **파일:** `RunScreen.kt` (파일 끝)
 
 ```kotlin
 /**
  * [NEW] 타이머 카드별 그라데이션 생성 함수 (2026-01-05)
- * [UPDATED] 첫 번째 카드 색상을 더 진하고 선명하게 변경 (2026-01-05)
- * [UPDATED] 두 번째 카드도 진하고 선명한 블루로 변경 (2026-01-05)
- * [UPDATED] 첫 번째 카드를 편안한 코랄/로즈 핑크로 변경 (2026-01-05)
+ * [UPDATED] 색채 심리학 기반으로 재설계 (2026-01-05)
  * 
  * @param page 페이지 인덱스 (0, 1, 2)
  * @return 페이지별 그라데이션 Brush
+ * 
+ * 색상 테마 (색채 심리학 기반):
+ * - Card 0 (금주): Clear Blue (맑고 깨끗한 정신)
+ * - Card 1 (금연): Healing Green (폐의 정화, 건강한 숨)
+ * - Card 2 (커스텀): Mystic Purple (다양한 목표, 고급스러움)
  */
 private fun getCardGradient(page: Int): Brush {
     return when (page) {
         0 -> Brush.linearGradient(
             colors = listOf(
-                Color(0xFFF48FB1), // Soft Pink (부드러운 핑크)
-                Color(0xFFE57373)  // Coral Rose (코랄 로즈)
+                Color(0xFF3B82F6), // Royal Blue (로열 블루)
+                Color(0xFF06B6D4)  // Cyan (시안)
             ),
             start = Offset(0f, 0f),
             end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
         )
         1 -> Brush.linearGradient(
             colors = listOf(
-                Color(0xFF3B82F6), // Deep Blue (진한 파란색)
-                Color(0xFF1D4ED8)  // Royal Blue (로열 블루)
+                Color(0xFF10B981), // Emerald Green (에메랄드 그린)
+                Color(0xFF14B8A6)  // Teal (틸)
             ),
             start = Offset(0f, 0f),
             end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
         )
         else -> Brush.linearGradient(
             colors = listOf(
-                Color(0xFF667EEA), // Purple
-                Color(0xFF764BA2)  // Deep Violet
+                Color(0xFF8B5CF6), // Vivid Purple (생생한 퍼플)
+                Color(0xFF7C3AED)  // Deep Purple (딥 퍼플)
             ),
             start = Offset(0f, 0f),
             end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
@@ -111,9 +136,9 @@ private fun getCardGradient(page: Int): Brush {
 ```
 
 **특징:**
-- `page` 인덱스를 받아서 해당하는 그라데이션 반환
-- `linearGradient`의 `start`와 `end`를 대각선 방향으로 설정
-- `else` 케이스로 3번째 이상의 카드도 자동 처리 (Purple 테마)
+- ✅ 각 중독 유형의 특성을 색상으로 직관적으로 표현
+- ✅ 금주 → 블루 (맑은 정신), 금연 → 그린 (폐 정화), 커스텀 → 퍼플 (다양성)
+- ✅ 눈에 편안하고 세련된 색상 조합
 
 ---
 
@@ -207,109 +232,70 @@ HorizontalPager(...) { page ->
 (모두 동일한 배경 이미지)
 ```
 
-### After (변경 후)
+### After (색채 심리학 기반 재설계)
 ```
-[타이머 1] [타이머 2] [타이머 3]
-   🌸        🌊        🌌
-  Pink     Blue     Purple
-  Orange   Mint     Indigo
+[금주 타이머]  [금연 타이머]  [커스텀 타이머]
+     🌊            🌿            🔮
+   Clear         Healing       Mystic
+    Blue          Green         Purple
 ```
 
 **개선 효과:**
-- ✅ **시각적 구분 명확:** 각 타이머를 색상으로 즉시 구분 가능
-- ✅ **사용자 경험 향상:** 카드를 스와이프할 때 색상 변화로 페이지 전환 인식
-- ✅ **테마별 정체성:** 금주/금연/습관 등 타이머 종류를 색상으로 표현
+- ✅ **직관적 색상 매칭:** 색상만 봐도 어떤 타이머인지 즉시 인식
+- ✅ **심리적 연결:** 금주=맑음(블루), 금연=치유(그린), 커스텀=다양성(퍼플)
+- ✅ **세련된 디자인:** 눈에 편안하면서도 고급스러운 느낌
 
 ---
 
-## 🎨 그라데이션 디자인 원칙
+## 🎨 색채 심리학 원리
 
-### 1. 대각선 방향
-```kotlin
-start = Offset(0f, 0f),                    // 좌상단
-end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY) // 우하단
-```
-- 좌상단에서 우하단으로 자연스러운 흐름
-- 카드에 입체감 부여
+### 1. 금주 (Alcohol) → 블루 (Blue)
+**심리학적 효과:**
+- 💧 **맑은 물:** 술의 혼탁함 vs 물의 투명함
+- 🧠 **이성과 판단력:** 차분한 사고, 자제력
+- 🌊 **정화:** 깨끗함, 클린한 상태
 
-### 2. 2색 조합
-- 너무 많은 색상은 복잡함
-- 2색만 사용하여 깔끔하고 세련된 느낌
+### 2. 금연 (Smoking) → 그린 (Green)
+**심리학적 효과:**
+- 🫁 **폐의 회복:** 담배 연기 → 맑은 공기
+- 🌱 **생명력:** 자연, 재생, 건강
+- 💚 **치유:** 녹색은 가장 강력한 치유의 색
 
-### 3. 색상 선택 기준
-| 테마 | 주색상 | 보조색상 | 용도 |
-|------|--------|----------|------|
-| Pink/Orange | 부드러움 | 따뜻함 | 금주 (건강, 활력) |
-| Blue/Mint | 맑음 | 청량함 | 금연 (깨끗한 공기) |
-| Purple/Indigo | 차분함 | 집중 | 습관 (자기 계발) |
-
----
-
-## 🔧 기술적 세부사항
-
-### Brush 타입
-```kotlin
-Brush.linearGradient(
-    colors: List<Color>,   // 그라데이션 색상 리스트
-    start: Offset,         // 시작 위치
-    end: Offset            // 끝 위치
-)
-```
-
-### Float.POSITIVE_INFINITY 사용 이유
-- 카드 크기에 상관없이 대각선 방향 보장
-- 고정된 픽셀 값 대신 무한대를 사용하여 유연성 확보
-
-### Modifier.background(brush)
-```kotlin
-Box(
-    modifier = Modifier
-        .fillMaxSize()
-        .background(brush = backgroundBrush) // Brush 사용
-)
-```
-- `background(color = ...)` 대신 `background(brush = ...)` 사용
-- 단색이 아닌 그라데이션 적용 가능
-
----
-
-## ✅ 빌드 결과
-
-**상태:** 성공 🎉  
-**소요 시간:** 3초  
-**경고:** 없음 (기존 경고만 존재)
-
-```
-BUILD SUCCESSFUL in 3s
-43 actionable tasks: 5 executed, 7 from cache, 31 up-to-date
-```
+### 3. 사용자 정의 → 퍼플 (Purple)
+**심리학적 효과:**
+- 🔮 **신비와 다양성:** 여러 목표를 포용
+- ✨ **고급스러움:** 특별함, 개성
+- 🧘 **집중:** 명상, 자기 계발
 
 ---
 
 ## 🧪 테스트 시나리오
 
-### 1. 카드 0 (금주): Soft Coral & Rose Pink
+### 1. 카드 0 (금주): 🌊 Clear Blue
 ```
 [시작 화면에서 확인]
-- 좌상단: Soft Pink (0xFFF48FB1)
-- 우하단: Coral Rose (0xFFE57373)
-- 느낌: 편안하고 따뜻한 핑크
+- 좌상단: Royal Blue (0xFF3B82F6)
+- 우하단: Cyan (0xFF06B6D4)
+- 느낌: 맑고 깨끗한 블루, 정화된 느낌
+- 직관성: "술이 없는 맑은 정신" 즉시 연상
 ```
 
-### 2. 카드 1 (금연): Deep Blue & Royal Blue
+### 2. 카드 1 (금연): 🌿 Healing Green
 ```
 [오른쪽으로 스와이프]
-- 좌상단: Deep Blue (0xFF3B82F6)
-- 우하단: Royal Blue (0xFF1D4ED8)
-- 느낌: 깊고 신뢰감 있는 블루
+- 좌상단: Emerald Green (0xFF10B981)
+- 우하단: Teal (0xFF14B8A6)
+- 느낌: 신선하고 치유적인 그린
+- 직관성: "폐 정화, 건강한 숨" 즉시 연상
 ```
 
-### 3. 카드 2 (습관): Purple & Indigo
+### 3. 카드 2 (커스텀): 🔮 Mystic Purple
 ```
 [한 번 더 오른쪽으로 스와이프]
-- 좌상단: 퍼플 (0xFF667EEA)
-- 우하단: 딥 바이올렛 (0xFF764BA2)
-- 느낌: 차분하고 집중된 느낌
+- 좌상단: Vivid Purple (0xFF8B5CF6)
+- 우하단: Deep Purple (0xFF7C3AED)
+- 느낌: 신비롭고 고급스러운 퍼플
+- 직관성: "다양한 목표, 자유로운 선택" 연상
 ```
 
 ---
