@@ -48,8 +48,8 @@ fun NativeAdItem(
     var nativeAd by remember { mutableStateOf<com.google.android.gms.ads.nativead.NativeAd?>(null) }
     var adLoadFailed by remember { mutableStateOf(false) }
 
-    // 광고 로드 로직 - 캐시 우선 사용
-    LaunchedEffect(Unit) {
+    // [FIX] 광고 로드 로직 - 캐시 우선 사용
+    LaunchedEffect(screenKey) {  // [CHANGED] Unit -> screenKey (화면별 독립 실행)
         // 백그라운드에서 MobileAds 초기화 (ANR 방지)
         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             try {
@@ -76,6 +76,15 @@ fun NativeAdItem(
         } catch (e: Exception) {
             android.util.Log.e("NativeAd", "[$screenKey] Failed setting up ad", e)
             adLoadFailed = true
+        }
+    }
+
+    // [CRITICAL FIX] 메모리 누수 방지: 화면 종료 시 광고 destroy (2026-01-05)
+    DisposableEffect(screenKey) {
+        onDispose {
+            android.util.Log.d("NativeAd", "[$screenKey] Disposing ad - calling NativeAdManager.destroyAd()")
+            NativeAdManager.destroyAd(screenKey)
+            nativeAd = null  // State 초기화
         }
     }
 
