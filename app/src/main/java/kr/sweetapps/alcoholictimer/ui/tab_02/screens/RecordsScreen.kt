@@ -330,7 +330,10 @@ fun RecordsScreen(
                         .fillMaxWidth()
                         .padding(horizontal = RECORDS_SCREEN_HORIZONTAL_PADDING)
                     ) {
-                        NativeAdItem(nativeAd = recordsScreenAd)
+                        NativeAdItem(
+                            nativeAd = recordsScreenAd,
+                            viewStyle = kr.sweetapps.alcoholictimer.ui.components.ads.NativeAdViewStyle.CARD  // [UI 이원화] 탭2는 Card 스타일
+                        )
                     }
 
                     // [NEW] 스크롤 유도 힌트 (False Floor 해결) (2025-12-24)

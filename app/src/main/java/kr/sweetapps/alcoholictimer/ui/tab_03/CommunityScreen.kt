@@ -450,7 +450,10 @@ fun CommunityScreen(
                                     // [STATE HOISTING] 광고 렌더링 (2026-01-05)
                                     Column {
                                         Spacer(modifier = Modifier.height(16.dp))
-                                        NativeAdItem(nativeAd = communityScreenAd)
+                                        NativeAdItem(
+                                            nativeAd = communityScreenAd,
+                                            viewStyle = kr.sweetapps.alcoholictimer.ui.components.ads.NativeAdViewStyle.FLAT  // [UI 이원화] 피드는 Flat 스타일
+                                        )
                                         Spacer(modifier = Modifier.height(16.dp))
                                     }
                                 } else {

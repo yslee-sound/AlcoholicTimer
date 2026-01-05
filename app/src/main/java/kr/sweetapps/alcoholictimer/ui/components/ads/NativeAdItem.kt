@@ -21,6 +21,16 @@ import kr.sweetapps.alcoholictimer.R
 import com.google.android.gms.ads.nativead.NativeAd
 
 /**
+ * [UI 이원화] 네이티브 광고 스타일 정의 (2026-01-05)
+ * - CARD: 탭1, 탭2 (My Health Analysis) - 카드 스타일 (그림자, 둥근 모서리)
+ * - FLAT: 일기 화면, 응원챌린지 피드 - 평면 스타일 (투명 배경, 여백 최소화)
+ */
+enum class NativeAdViewStyle {
+    CARD,  // 카드 스타일 (기존 디자인)
+    FLAT   // 평면 스타일 (피드용)
+}
+
+/**
  * [STATE HOISTING] 순수 UI 컴포넌트 - 네이티브 광고 렌더링 전용
  *
  * **설계 원칙:**
@@ -29,42 +39,73 @@ import com.google.android.gms.ads.nativead.NativeAd
  * - 광고 생명주기는 부모 Screen(RecordsScreen 등)에서 관리합니다
  *
  * @param nativeAd 렌더링할 광고 객체 (null이면 로딩 표시)
+ * @param viewStyle 광고 스타일 (CARD: 카드형, FLAT: 평면형)
  * @param isLoading 로딩 중 여부 (기본값: nativeAd == null)
  * @param modifier Composable modifier
  *
  * **사용 예시:**
  * ```kotlin
- * // Screen 레벨에서 광고 상태 관리
- * val nativeAd by viewModel.recordsScreenAd.collectAsState()
+ * // 탭1, 탭2: Card 스타일
+ * NativeAdItem(nativeAd = ad, viewStyle = NativeAdViewStyle.CARD)
  *
- * NativeAdItem(
- *     nativeAd = nativeAd,
- *     modifier = Modifier.fillMaxWidth()
- * )
+ * // 피드: Flat 스타일
+ * NativeAdItem(nativeAd = ad, viewStyle = NativeAdViewStyle.FLAT)
  * ```
  */
 @Composable
 fun NativeAdItem(
     nativeAd: NativeAd?,
+    viewStyle: NativeAdViewStyle = NativeAdViewStyle.CARD,  // [NEW] 기본값은 CARD
     modifier: Modifier = Modifier,
     isLoading: Boolean = nativeAd == null
 ) {
     // [REMOVED] LaunchedEffect, DisposableEffect 모두 제거
     // 광고 로드/해제는 부모 Screen이 담당
 
-    // 광고 카드 (로딩 중: 고정 높이, 로딩 완료: 콘텐츠에 맞춤)
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .then(
-                if (isLoading) Modifier.height(250.dp)
-                else Modifier.wrapContentHeight()
-            ),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        if (nativeAd != null && !isLoading) {
+    // [UI 이원화] viewStyle에 따라 Card 또는 Flat 렌더링
+    when (viewStyle) {
+        NativeAdViewStyle.CARD -> {
+            // Card 스타일 (탭1, 탭2용)
+            Card(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .then(
+                        if (isLoading) Modifier.height(250.dp)
+                        else Modifier.wrapContentHeight()
+                    ),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                NativeAdContent(nativeAd, isLoading, isCardStyle = true)
+            }
+        }
+        NativeAdViewStyle.FLAT -> {
+            // Flat 스타일 (피드용)
+            Box(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .then(
+                        if (isLoading) Modifier.height(250.dp)
+                        else Modifier.wrapContentHeight()
+                    )
+            ) {
+                NativeAdContent(nativeAd, isLoading, isCardStyle = false)
+            }
+        }
+    }
+}
+
+/**
+ * [INTERNAL] 광고 콘텐츠 렌더링 (Card/Flat 공통)
+ */
+@Composable
+private fun NativeAdContent(
+    nativeAd: NativeAd?,
+    isLoading: Boolean,
+    isCardStyle: Boolean
+) {
+    if (nativeAd != null && !isLoading) {
             // 광고 로드 완료 시
             androidx.compose.ui.viewinterop.AndroidView(
                 factory = { ctx ->
@@ -72,8 +113,14 @@ fun NativeAdItem(
 
                     val container = android.widget.LinearLayout(ctx).apply {
                         orientation = android.widget.LinearLayout.VERTICAL
-                        setBackgroundColor(android.graphics.Color.WHITE)
-                        setPadding(40, 40, 40, 40)
+                        // [UI 이원화] 스타일별 배경/패딩 설정
+                        if (isCardStyle) {
+                            setBackgroundColor(android.graphics.Color.WHITE)
+                            setPadding(40, 40, 40, 40)
+                        } else {
+                            setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                            setPadding(40, 16, 40, 16)
+                        }
                         layoutParams = android.widget.LinearLayout.LayoutParams(
                             android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
                             android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
@@ -182,5 +229,4 @@ fun NativeAdItem(
                 )
             }
         }
-    }
 }
