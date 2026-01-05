@@ -61,6 +61,7 @@ import kr.sweetapps.alcoholictimer.ui.tab_01.components.AddTimerCard
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.PagerIndicator
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.StopButton
 import kr.sweetapps.alcoholictimer.ui.tab_01.components.getCardGradient
+import kr.sweetapps.alcoholictimer.ui.components.ads.NativeAdItem
 
 @Composable
 fun RunScreenComposable(
@@ -252,7 +253,7 @@ fun RunScreenComposable(
 
             // [NEW] 네이티브 광고 영역 (메인 카드와 명언 사이) (2026-01-04)
             Spacer(modifier = Modifier.height(16.dp))
-            NativeAdItem()
+            NativeAdItem(screenKey = "run_screen")
             // [MODIFIED] QuoteDisplay 내부 vertical padding 6dp를 고려하여 10dp 추가 (총 16dp) (2025-12-24)
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -418,200 +419,13 @@ private fun saveCompletedRecord(context: Context, startTime: Long, endTime: Long
     } catch (_: Exception) { }
 }
 
-/**
- * [NEW] 네이티브 광고 컴포넌트 (타이머 메인 화면용) (2025-12-24)
- * - 프로그레스 바와 명언 사이에 배치
- * - RecordsScreen의 NativeAdItem과 동일한 구조
- */
-@Composable
-private fun NativeAdItem() {
-    val context = LocalContext.current
-
-    // [NEW] NativeAdManager의 캐시 키 (실행 화면 전용)
-    val screenKey = "run_screen"
-
-    val adUnitId = try { BuildConfig.ADMOB_NATIVE_ID } catch (_: Throwable) { "ca-app-pub-3940256099942544/2247696110" }
-
-    var nativeAd by remember { mutableStateOf<com.google.android.gms.ads.nativead.NativeAd?>(null) }
-    // [NEW] 광고 로드 실패 플래그 (No Fill 대응, 2025-12-24)
-    var adLoadFailed by remember { mutableStateOf(false) }
-
-    // [REFACTORED] 광고 로드 로직 - 캐시 우선 사용 (2026-01-02)
-    LaunchedEffect(Unit) {
-        // [FIX] 백그라운드에서 MobileAds 초기화 (ANR 방지, v1.1.9)
-        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            try {
-                com.google.android.gms.ads.MobileAds.initialize(context)
-            } catch (initEx: Exception) {
-                android.util.Log.w("NativeAd", "MobileAds.initialize failed: ${initEx.message}")
-            }
-        }
-
-        try {
-            // [핵심] NativeAdManager를 통한 캐싱된 광고 가져오기 또는 새로 로드
-            kr.sweetapps.alcoholictimer.ui.ad.NativeAdManager.getOrLoadAd(
-                context = context,
-                screenKey = screenKey,
-                onAdReady = { ad ->
-                    android.util.Log.d("NativeAd", "[$screenKey] Ad ready (cached or loaded)")
-                    nativeAd = ad
-                },
-                onAdFailed = {
-                    android.util.Log.w("NativeAd", "[$screenKey] Ad load failed")
-                    adLoadFailed = true
-                }
-            )
-        } catch (e: Exception) {
-            android.util.Log.e("NativeAd", "[$screenKey] Failed setting up ad", e)
-            adLoadFailed = true
-        }
-    }
-
-    // [NEW] 광고 로드 실패 시 UI 아예 숨김 (Graceful Degradation, 2025-12-24)
-    if (adLoadFailed) {
-        return // 광고 영역 렌더링하지 않음
-    }
-
-    // 광고 카드 (로딩 중에는 고정 높이, 로딩 완료 후 콘텐츠에 맞춤)
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(
-                if (nativeAd == null) Modifier.height(250.dp)
-                else Modifier.wrapContentHeight()
-            ),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        if (nativeAd != null) {
-            // 광고 로드 완료 시
-            androidx.compose.ui.viewinterop.AndroidView(
-                factory = { ctx ->
-                    val adView = com.google.android.gms.ads.nativead.NativeAdView(ctx)
-
-                    val container = android.widget.LinearLayout(ctx).apply {
-                        orientation = android.widget.LinearLayout.VERTICAL
-                        setBackgroundColor(android.graphics.Color.WHITE)
-                        setPadding(40, 40, 40, 40)
-                        layoutParams = android.widget.LinearLayout.LayoutParams(
-                            android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
-                        )
-                    }
-
-                    // 상단: 아이콘 + 광고 배지 + 헤드라인
-                    val headerRow = android.widget.LinearLayout(ctx).apply {
-                        orientation = android.widget.LinearLayout.HORIZONTAL
-                        gravity = android.view.Gravity.CENTER_VERTICAL
-                    }
-
-                    val iconView = android.widget.ImageView(ctx).apply {
-                        layoutParams = android.widget.LinearLayout.LayoutParams(110, 110)
-                    }
-                    headerRow.addView(iconView)
-
-                    val textContainer = android.widget.LinearLayout(ctx).apply {
-                        orientation = android.widget.LinearLayout.VERTICAL
-                        layoutParams = android.widget.LinearLayout.LayoutParams(
-                            android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
-                        ).apply {
-                            marginStart = 24
-                        }
-                    }
-
-                    // 광고 배지
-                    val badgeView = android.widget.TextView(ctx).apply {
-                        text = "광고"
-                        textSize = 10f
-                        setTextColor(android.graphics.Color.WHITE)
-                        setBackgroundColor(android.graphics.Color.parseColor("#FBC02D"))
-                        setPadding(8, 2, 8, 2)
-                        layoutParams = android.widget.LinearLayout.LayoutParams(
-                            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
-                            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
-                        ).apply {
-                            bottomMargin = 4
-                        }
-                    }
-                    textContainer.addView(badgeView)
-
-                    val headlineView = android.widget.TextView(ctx).apply {
-                        textSize = 15f
-                        setTypeface(null, android.graphics.Typeface.BOLD)
-                        setTextColor(android.graphics.Color.parseColor("#111827"))
-                        maxLines = 1
-                        ellipsize = android.text.TextUtils.TruncateAt.END
-                    }
-                    textContainer.addView(headlineView)
-
-                    headerRow.addView(textContainer)
-                    container.addView(headerRow)
-
-                    // 중간: Body
-                    val bodyView = android.widget.TextView(ctx).apply {
-                        textSize = 13f
-                        setPadding(0, 24, 0, 32)
-                        setTextColor(android.graphics.Color.parseColor("#6B7280"))
-                        maxLines = 2
-                        ellipsize = android.text.TextUtils.TruncateAt.END
-                    }
-                    container.addView(bodyView)
-
-                    // 하단: 버튼
-                    val callToActionView = android.widget.Button(ctx).apply {
-                        setBackgroundColor(android.graphics.Color.parseColor("#F3F4F6"))
-                        setTextColor(android.graphics.Color.parseColor("#4B5563"))
-                        textSize = 13f
-                        stateListAnimator = null
-                        layoutParams = android.widget.LinearLayout.LayoutParams(
-                            android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                            android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
-                        )
-                    }
-                    container.addView(callToActionView)
-
-                    adView.addView(container)
-                    adView.iconView = iconView
-                    adView.headlineView = headlineView
-                    adView.bodyView = bodyView
-                    adView.callToActionView = callToActionView
-                    adView
-                },
-                update = { adView ->
-                    val ad = nativeAd!!
-                    (adView.headlineView as android.widget.TextView).text = ad.headline
-                    (adView.bodyView as android.widget.TextView).text = ad.body
-                    (adView.callToActionView as android.widget.Button).text = ad.callToAction ?: "자세히 보기"
-                    ad.icon?.let { (adView.iconView as android.widget.ImageView).setImageDrawable(it.drawable) }
-                    adView.setNativeAd(ad)
-                },
-                modifier = Modifier.fillMaxWidth().wrapContentHeight()
-            )
-        } else {
-            // 로딩 중 플레이스홀더
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(40.dp),
-                    color = colorResource(id = R.color.color_progress_primary)
-                )
-            }
-        }
-    }
-}
-
 // [REFACTORED] 아래 함수들은 별도 컴포넌트 파일로 분리됨 (2026-01-05):
 // - TimerCard -> ui/tab_01/components/TimerCard.kt
 // - AddTimerCard -> ui/tab_01/components/AddTimerCard.kt
 // - PagerIndicator -> ui/tab_01/components/PagerIndicator.kt
 // - StopButton -> ui/tab_01/components/StopButton.kt
 // - getCardGradient -> ui/tab_01/components/TimerCardGradients.kt
+// - NativeAdItem -> ui/components/ads/NativeAdItem.kt (공통 컴포넌트)
 
 // Preview: show the real Run screen composable as-is
 @Preview(name = "RunScreen - Live Composable", showBackground = true, widthDp = 360, heightDp = 640)

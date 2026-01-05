@@ -73,6 +73,7 @@ import kr.sweetapps.alcoholictimer.R
 import kr.sweetapps.alcoholictimer.ui.tab_03.screens.PostItem
 import kr.sweetapps.alcoholictimer.ui.common.CustomGalleryScreen
 import kr.sweetapps.alcoholictimer.ui.tab_03.viewmodel.CommunityViewModel
+import kr.sweetapps.alcoholictimer.ui.components.ads.NativeAdItem
 import kotlinx.coroutines.launch
 import kr.sweetapps.alcoholictimer.data.model.Post
 import java.util.Locale
@@ -408,7 +409,7 @@ fun CommunityScreen(
                                     // [Standard] 네이티브 광고 영역 여백 표준화 (2025-12-23)
                                     Column {
                                         Spacer(modifier = Modifier.height(16.dp))
-                                        NativeAdItem()
+                                        NativeAdItem(screenKey = "community_screen")
                                         Spacer(modifier = Modifier.height(16.dp))
                                     }
                                 } else {
@@ -1687,243 +1688,56 @@ private fun calculateRemainingTime(deleteAt: com.google.firebase.Timestamp, cont
 }
 
 /**
- * [REFACTORED] 네이티브 광고 아이템 - 스크롤 시 재로드 방지 (2025-12-31)
- *
- * 개선사항:
- * - NativeAdManager를 통한 광고 캐싱
- * - 스크롤로 화면에서 사라져도 광고 객체 유지
- * - 재진입 시 기존 광고 즉시 표시 (재로드 없음)
+ * [NEW] 빈 상태 UI - 게시글이 없을 때 표시
  */
 @Composable
-private fun NativeAdItem() {
-    val context = LocalContext.current
-
-    // [NEW] NativeAdManager의 캐시 키 (커뮤니티 화면 전용)
-    val screenKey = "community_feed"
-
-    val adUnitId = try { BuildConfig.ADMOB_NATIVE_ID } catch (_: Throwable) { "ca-app-pub-3940256099942544/2247696110" }
-
-    var nativeAd by remember { mutableStateOf<com.google.android.gms.ads.nativead.NativeAd?>(null) }
-    // [NEW] 광고 로드 실패 플래그 (No Fill 대응, 2025-12-24)
-    var adLoadFailed by remember { mutableStateOf(false) }
-
-    // [REFACTORED] 광고 로드 로직 - 캐시 우선 사용 (2025-12-31)
-    LaunchedEffect(Unit) {
-        // [FIX] 백그라운드에서 MobileAds 초기화 (ANR 방지, v1.1.9)
-        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            try {
-                com.google.android.gms.ads.MobileAds.initialize(context)
-            } catch (initEx: Exception) {
-                android.util.Log.w("NativeAdItem", "MobileAds.initialize failed: ${initEx.message}")
-            }
-        }
-
-        try {
-            // [핵심] NativeAdManager를 통한 캐싱된 광고 가져오기 또는 새로 로드
-            kr.sweetapps.alcoholictimer.ui.ad.NativeAdManager.getOrLoadAd(
-                context = context,
-                screenKey = screenKey,
-                onAdReady = { ad ->
-                    android.util.Log.d("NativeAdItem", "Ad ready (cached or loaded)")
-                    nativeAd = ad
-                },
-                onAdFailed = {
-                    android.util.Log.w("NativeAdItem", "Ad load failed (No Fill)")
-                    adLoadFailed = true
-                }
-            )
-        } catch (e: Exception) {
-            android.util.Log.e("NativeAdItem", "Failed setting up ad", e)
-            adLoadFailed = true
-        }
-    }
-
-    // [NEW] Composable 종료 시 리소스 정리는 하지 않음 (캐시 유지)
-    // Activity 레벨에서 NativeAdManager.destroyAd(screenKey) 호출 필요
-
-    // [NEW] 광고 로드 실패 시 UI 아예 숨김 (Graceful Degradation, 2025-12-24)
-    if (adLoadFailed) {
-        return // 광고 영역 렌더링하지 않음
-    }
-
-    // 2. 광고가 로드되었을 때만 표시
-    if (nativeAd != null) {
-        // [FIX] 카드 스타일 제거 -> 피드형(Flat) 스타일로 변경 (2025-12-22)
-        androidx.compose.ui.viewinterop.AndroidView(
-            factory = { ctx ->
-                val adView = com.google.android.gms.ads.nativead.NativeAdView(ctx)
-
-                // 내부 컨테이너: 흰색 배경, 테두리 없음, 평면 디자인
-                val container = android.widget.LinearLayout(ctx).apply {
-                    orientation = android.widget.LinearLayout.VERTICAL
-                    setBackgroundColor(android.graphics.Color.WHITE)
-                    // [중요] 게시글 텍스트 여백과 비슷하게 맞춤 (44px ≈ 16dp)
-                    setPadding(44, 32, 44, 32)
-                }
-
-                // 1) 상단: 아이콘 + 광고 배지 + 헤드라인
-                val headerRow = android.widget.LinearLayout(ctx).apply {
-                    orientation = android.widget.LinearLayout.HORIZONTAL
-                    gravity = android.view.Gravity.CENTER_VERTICAL
-                }
-
-                val iconView = android.widget.ImageView(ctx).apply {
-                    layoutParams = android.widget.LinearLayout.LayoutParams(110, 110)
-                }
-                headerRow.addView(iconView)
-
-                // [NEW] 텍스트 컨테이너 (배지 + 제목을 세로로 배치) (2025-12-23)
-                val textContainer = android.widget.LinearLayout(ctx).apply {
-                    orientation = android.widget.LinearLayout.VERTICAL
-                    layoutParams = android.widget.LinearLayout.LayoutParams(
-                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
-                    ).apply {
-                        marginStart = 24 // 아이콘과의 간격
-                    }
-                }
-
-                // [NEW] ★ 광고 배지 (Ad Badge) 추가 ★ (2025-12-23)
-                val badgeView = android.widget.TextView(ctx).apply {
-                    text = "광고"
-                    textSize = 10f
-                    setTextColor(android.graphics.Color.WHITE)
-                    setBackgroundColor(android.graphics.Color.parseColor("#FBC02D")) // 노란색 배경
-                    setPadding(8, 2, 8, 2)
-                    layoutParams = android.widget.LinearLayout.LayoutParams(
-                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
-                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
-                    ).apply {
-                        bottomMargin = 4 // 제목과의 간격
-                    }
-                }
-                textContainer.addView(badgeView)
-
-                val headlineView = android.widget.TextView(ctx).apply {
-                    textSize = 15f
-                    setTypeface(null, android.graphics.Typeface.BOLD)
-                    setTextColor(android.graphics.Color.parseColor("#111827"))
-                    maxLines = 1
-                    ellipsize = android.text.TextUtils.TruncateAt.END
-                }
-                textContainer.addView(headlineView)
-
-                headerRow.addView(textContainer)
-                container.addView(headerRow)
-
-                // 2) 중간: Body
-                val bodyView = android.widget.TextView(ctx).apply {
-                    textSize = 13f
-                    setPadding(0, 24, 0, 32)
-                    setTextColor(android.graphics.Color.parseColor("#6B7280"))
-                    maxLines = 2
-                    ellipsize = android.text.TextUtils.TruncateAt.END
-                }
-                container.addView(bodyView)
-
-                // 3) 하단: 버튼
-                val callToActionView = android.widget.Button(ctx).apply {
-                    setBackgroundColor(android.graphics.Color.parseColor("#F3F4F6"))
-                    setTextColor(android.graphics.Color.parseColor("#4B5563"))
-                    textSize = 13f
-                    stateListAnimator = null
-                    layoutParams = android.widget.LinearLayout.LayoutParams(
-                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
-                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
-                    )
-                }
-                container.addView(callToActionView)
-
-                adView.addView(container)
-
-                adView.iconView = iconView
-                adView.headlineView = headlineView
-                adView.bodyView = bodyView
-                adView.callToActionView = callToActionView
-
-                adView
-            },
-            update = { adView ->
-                val ad = nativeAd!!
-
-                (adView.headlineView as android.widget.TextView).text = ad.headline
-                (adView.bodyView as android.widget.TextView).text = ad.body
-                (adView.callToActionView as android.widget.Button).text = ad.callToAction ?: "자세히 보기"
-
-                if (ad.icon != null) {
-                    (adView.iconView as android.widget.ImageView).setImageDrawable(ad.icon?.drawable)
-                    adView.iconView?.visibility = android.view.View.VISIBLE
-                } else {
-                    adView.iconView?.visibility = android.view.View.GONE
-                }
-
-                adView.setNativeAd(ad)
-            },
-            // [중요] Modifier 대폭 수정: 패딩/보더/클립 제거 -> 평면 스타일
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
-        )
-    }
-}
-
-/**
- * 빈 상태 표시
- */
-@Composable
-private fun EmptyState(
-    modifier: Modifier = Modifier,
-    onWriteClick: () -> Unit // [변경] 모의 데이터 대신 글쓰기 클릭 콜백
-) {
+private fun EmptyState(onWriteClick: () -> Unit) {
     Column(
-        modifier = modifier.padding(32.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // 아이콘
-        Text(
-            text = "📝",
-            style = MaterialTheme.typography.displayLarge
+        Icon(
+            imageVector = Icons.Filled.ChatBubble,
+            contentDescription = null,
+            tint = Color(0xFFD1D5DB),
+            modifier = Modifier.size(80.dp)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 메인 텍스트
         Text(
             text = stringResource(R.string.community_empty_title),
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            color = Color(0xFF111111)
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF2D3748)
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // 서브 텍스트
         Text(
             text = stringResource(R.string.community_empty_subtitle),
             style = MaterialTheme.typography.bodyMedium,
-            color = Color(0xFF666666),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            color = Color(0xFF64748B)
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // [핵심] 글쓰기 유도 버튼
         Button(
             onClick = onWriteClick,
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF6366F1), // 포인트 컬러 (탭2 분석과 동일)
-                contentColor = Color.White
-            ),
-            shape = RoundedCornerShape(50) // 둥근 버튼
+                containerColor = kr.sweetapps.alcoholictimer.ui.theme.MainPrimaryBlue
+            )
         ) {
-            Text(stringResource(R.string.community_empty_button), modifier = Modifier.padding(horizontal = 8.dp))
+            Text(text = stringResource(R.string.community_empty_button))
         }
     }
 }
 
 /**
- * Full-screen modal that allows swipe-down to dismiss with animation.
- * Content should fill available space (e.g., PhotoScreen).
+ * [NEW] Full-screen photo modal with swipe-down to dismiss animation
  */
 @Composable
 private fun FullScreenPhotoModal(
@@ -1941,8 +1755,7 @@ private fun FullScreenPhotoModal(
             .background(Color.Black.copy(alpha = 0.32f))
             .pointerInput(Unit) {
                 detectVerticalDragGestures(
-                    onVerticalDrag = { _change, dragAmount ->
-                        // Update offset by drag amount (no explicit consumption needed here)
+                    onVerticalDrag = { _, dragAmount ->
                         scope.launch {
                             val new = offsetY.value + dragAmount
                             offsetY.snapTo(new.coerceAtLeast(0f))
@@ -1972,3 +1785,9 @@ private fun FullScreenPhotoModal(
         }
     }
 }
+
+/**
+ * [REFACTORED] NativeAdItem은 공통 컴포넌트로 분리됨 (2026-01-05)
+ * - 위치: ui/components/ads/NativeAdItem.kt
+ * - 약 180 라인 감소
+ */
