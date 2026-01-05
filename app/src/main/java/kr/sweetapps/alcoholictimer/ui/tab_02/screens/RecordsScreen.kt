@@ -49,6 +49,11 @@ import kr.sweetapps.alcoholictimer.ui.tab_02.components.WeekPickerBottomSheet
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.YearPickerBottomSheet
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.ModernStatisticsGrid // [NEW] 통계 카드 (2026-01-05)
 import kr.sweetapps.alcoholictimer.ui.tab_02.components.TotalDaysCard // [NEW] 총 금주일 카드 (2026-01-05)
+import kr.sweetapps.alcoholictimer.ui.tab_02.components.RecentDiarySection // [NEW] 일기 섹션 (2026-01-05)
+import kr.sweetapps.alcoholictimer.ui.tab_02.components.ModernDashboardHeader // [NEW] 헤더 (2026-01-05)
+import kr.sweetapps.alcoholictimer.ui.tab_02.components.StatisticsHeaderWithFilter // [NEW] 통계 헤더 (2026-01-05)
+import kr.sweetapps.alcoholictimer.ui.tab_02.components.MonthNavigator // [NEW] 월간 네비게이터 (2026-01-05)
+import kr.sweetapps.alcoholictimer.ui.tab_02.components.parseYearMonth // [NEW] 날짜 파싱 (2026-01-05)
 import java.util.*
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -940,7 +945,22 @@ private fun StatisticItem(
     }
 }
 
+// ============================================================================
+// [REFACTORED] 아래 함수들은 외부 컴포넌트 파일로 분리되었습니다 (2026-01-05)
+// ============================================================================
+// - RecentDiarySection, DiaryEmptyState, DiaryListItem
+//   → ui/tab_02/components/DiaryComponents.kt
+// - ModernDashboardHeader, StatisticsHeaderWithFilter, ToggleButton
+//   → ui/tab_02/components/RecordsHeaderComponents.kt
+// - MonthNavigator, parseYearMonth
+//   → ui/tab_02/components/MonthNavigatorComponent.kt
+// - ModernStatisticsGrid, TotalDaysCard
+//   → ui/tab_02/components/StatisticsCards.kt
+// ============================================================================
+// 총 약 600라인 감소 → RecordsScreen.kt: 약 950라인으로 축소
+// ============================================================================
 
+/*
 /**
  * [NEW] 일기 섹션 - 캘린더 뷰로 변경 (2025-12-22)
  * [MODIFIED] 헤더 클릭 기능 추가 (2025-12-24)
@@ -1541,6 +1561,11 @@ private fun parseYearMonth(dateString: String): Pair<Int, Int> {
         Pair(now.get(Calendar.YEAR), now.get(Calendar.MONTH) + 1)
     }
 }
+*/
+
+// ============================================================================
+// [END] 중복 함수 주석 처리 완료
+// ============================================================================
 
 /**
  * [REFACTORED] NativeAdItem은 공통 컴포넌트로 분리됨 (2026-01-05)
