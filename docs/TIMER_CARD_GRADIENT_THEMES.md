@@ -17,31 +17,36 @@
 
 ## 🎨 적용된 색상 테마
 
-### 카드 0: Pink & Orange (금주 타이머)
+### 카드 0: Soft Coral & Rose Pink (금주 타이머)
 ```kotlin
 Brush.linearGradient(
     colors = listOf(
-        Color(0xFFFF9A9E), // Soft Pink
-        Color(0xFFFAD0C4)  // Peach
+        Color(0xFFF48FB1), // Soft Pink (부드러운 핑크)
+        Color(0xFFE57373)  // Coral Rose (코랄 로즈)
     )
 )
 ```
-**느낌:** 따뜻함, 활기, 긍정적 에너지  
-**연상:** 새벽 햇살, 봄 꽃
+**느낌:** 편안함, 따뜻함, 부드러운 에너지  
+**연상:** 봄의 벚꽃, 따뜻한 햇살, 아늑한 분위기  
+**변경 이유:** 
+- 기존 Hot Pink/Magenta(0xFFEC4899, 0xFFDB2777)가 너무 강렬함
+- 더 편안하고 부드러운 톤으로 변경하여 눈의 피로 감소
+- 여전히 충분히 선명하여 흰색 텍스트가 잘 보임
 
 ---
 
-### 카드 1: Blue & Mint (금연 타이머)
+### 카드 1: Deep Blue & Royal Blue (금연 타이머)
 ```kotlin
 Brush.linearGradient(
     colors = listOf(
-        Color(0xFF4FACFE), // Bright Blue
-        Color(0xFF00F2FE)  // Cyan/Mint
+        Color(0xFF3B82F6), // Deep Blue (진한 파란색)
+        Color(0xFF1D4ED8)  // Royal Blue (로열 블루)
     )
 )
 ```
-**느낌:** 청량함, 상쾌함, 맑은 공기  
-**연상:** 맑은 하늘, 시원한 바다
+**느낌:** 깊이감, 신뢰, 깨끗한 하늘  
+**연상:** 깊은 바다, 맑은 하늘, 청정 공기  
+**변경 이유:** 기존 색상(0xFF4FACFE, 0xFF00F2FE)이 너무 연해서 우측 하단이 잘 보이지 않는 문제 해결
 
 ---
 
@@ -68,6 +73,9 @@ Brush.linearGradient(
 ```kotlin
 /**
  * [NEW] 타이머 카드별 그라데이션 생성 함수 (2026-01-05)
+ * [UPDATED] 첫 번째 카드 색상을 더 진하고 선명하게 변경 (2026-01-05)
+ * [UPDATED] 두 번째 카드도 진하고 선명한 블루로 변경 (2026-01-05)
+ * [UPDATED] 첫 번째 카드를 편안한 코랄/로즈 핑크로 변경 (2026-01-05)
  * 
  * @param page 페이지 인덱스 (0, 1, 2)
  * @return 페이지별 그라데이션 Brush
@@ -76,16 +84,16 @@ private fun getCardGradient(page: Int): Brush {
     return when (page) {
         0 -> Brush.linearGradient(
             colors = listOf(
-                Color(0xFFFF9A9E), // Soft Pink
-                Color(0xFFFAD0C4)  // Peach
+                Color(0xFFF48FB1), // Soft Pink (부드러운 핑크)
+                Color(0xFFE57373)  // Coral Rose (코랄 로즈)
             ),
             start = Offset(0f, 0f),
             end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
         )
         1 -> Brush.linearGradient(
             colors = listOf(
-                Color(0xFF4FACFE), // Bright Blue
-                Color(0xFF00F2FE)  // Cyan/Mint
+                Color(0xFF3B82F6), // Deep Blue (진한 파란색)
+                Color(0xFF1D4ED8)  // Royal Blue (로열 블루)
             ),
             start = Offset(0f, 0f),
             end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
@@ -280,20 +288,20 @@ BUILD SUCCESSFUL in 3s
 
 ## 🧪 테스트 시나리오
 
-### 1. 카드 0 (금주): Pink & Orange
+### 1. 카드 0 (금주): Soft Coral & Rose Pink
 ```
 [시작 화면에서 확인]
-- 좌상단: 핑크 (0xFFFF9A9E)
-- 우하단: 피치/오렌지 (0xFFFAD0C4)
-- 느낌: 따뜻하고 활기찬 느낌
+- 좌상단: Soft Pink (0xFFF48FB1)
+- 우하단: Coral Rose (0xFFE57373)
+- 느낌: 편안하고 따뜻한 핑크
 ```
 
-### 2. 카드 1 (금연): Blue & Mint
+### 2. 카드 1 (금연): Deep Blue & Royal Blue
 ```
 [오른쪽으로 스와이프]
-- 좌상단: 밝은 파란색 (0xFF4FACFE)
-- 우하단: 시안/민트 (0xFF00F2FE)
-- 느낌: 시원하고 청량한 느낌
+- 좌상단: Deep Blue (0xFF3B82F6)
+- 우하단: Royal Blue (0xFF1D4ED8)
+- 느낌: 깊고 신뢰감 있는 블루
 ```
 
 ### 3. 카드 2 (습관): Purple & Indigo

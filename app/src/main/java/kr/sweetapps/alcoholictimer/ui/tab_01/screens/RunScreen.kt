@@ -923,29 +923,32 @@ private fun PagerIndicator(
 
 /**
  * [NEW] 타이머 카드별 그라데이션 생성 함수 (2026-01-05)
+ * [UPDATED] 첫 번째 카드 색상을 더 진하고 선명하게 변경 (2026-01-05)
+ * [UPDATED] 두 번째 카드도 진하고 선명한 블루로 변경 (2026-01-05)
+ * [UPDATED] 첫 번째 카드를 편안한 코랄/로즈 핑크로 변경 (2026-01-05)
  *
  * @param page 페이지 인덱스 (0, 1, 2)
  * @return 페이지별 그라데이션 Brush
  *
  * 색상 테마:
- * - Card 0 (금주): Pink & Orange (따뜻함, 활기)
- * - Card 1 (금연): Blue & Mint (청량함, 상쾌함)
+ * - Card 0 (금주): Soft Coral & Rose Pink (편안함, 따뜻함)
+ * - Card 1 (금연): Deep Blue & Teal (진한 파란색, 깊은 바다)
  * - Card 2 (습관): Purple & Indigo (차분함, 집중)
  */
 private fun getCardGradient(page: Int): Brush {
     return when (page) {
         0 -> Brush.linearGradient(
             colors = listOf(
-                Color(0xFFFF9A9E), // Soft Pink
-                Color(0xFFFAD0C4)  // Peach
+                Color(0xFFF48FB1), // Soft Pink (부드러운 핑크)
+                Color(0xFFE57373)  // Coral Rose (코랄 로즈)
             ),
             start = Offset(0f, 0f),
             end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
         )
         1 -> Brush.linearGradient(
             colors = listOf(
-                Color(0xFF4FACFE), // Bright Blue
-                Color(0xFF00F2FE)  // Cyan/Mint
+                Color(0xFF3B82F6), // Deep Blue (진한 파란색)
+                Color(0xFF1D4ED8)  // Royal Blue (로열 블루)
             ),
             start = Offset(0f, 0f),
             end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
