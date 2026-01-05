@@ -224,6 +224,9 @@ fun RunScreenComposable(
             ) { page ->
                 if (page < timers.size) {
                     // [기존 타이머 카드]
+                    // [NEW] 페이지별 그라데이션 생성 (2026-01-05)
+                    val cardGradient = getCardGradient(page)
+
                     ExistingTimerCard(
                         timerData = timers[page],
                         displayElapsedMillis = displayElapsedMillis,
@@ -231,7 +234,8 @@ fun RunScreenComposable(
                         elapsedDaysFloat = elapsedDaysFloat,
                         remainingDays = remainingDays,
                         progressTimeText = progressTimeText,
-                        progress = progress
+                        progress = progress,
+                        backgroundBrush = cardGradient // [NEW] 그라데이션 전달 (2026-01-05)
                     )
                 } else {
                     // [새 타이머 추가 카드]
@@ -639,6 +643,7 @@ fun RunScreenLivePreview() {
 
 /**
  * [NEW] 기존 타이머 카드 UI (HorizontalPager용) (2026-01-05)
+ * [UPDATED] 페이지별 그라데이션 배경 적용 (2026-01-05)
  */
 @Composable
 private fun ExistingTimerCard(
@@ -649,6 +654,7 @@ private fun ExistingTimerCard(
     remainingDays: Int,
     progressTimeText: String,
     progress: Float,
+    backgroundBrush: Brush, // [NEW] 그라데이션 배경 (2026-01-05)
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -664,12 +670,11 @@ private fun ExistingTimerCard(
         border = BorderStroke(0.dp, Color.Transparent)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // 배경 이미지
-            Image(
-                painter = painterResource(id = R.drawable.bg9),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+            // [UPDATED] 배경 이미지 제거, 그라데이션으로 대체 (2026-01-05)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(brush = backgroundBrush)
             )
 
             // 카드 내용
@@ -913,6 +918,46 @@ private fun PagerIndicator(
                     .size(8.dp)
             )
         }
+    }
+}
+
+/**
+ * [NEW] 타이머 카드별 그라데이션 생성 함수 (2026-01-05)
+ *
+ * @param page 페이지 인덱스 (0, 1, 2)
+ * @return 페이지별 그라데이션 Brush
+ *
+ * 색상 테마:
+ * - Card 0 (금주): Pink & Orange (따뜻함, 활기)
+ * - Card 1 (금연): Blue & Mint (청량함, 상쾌함)
+ * - Card 2 (습관): Purple & Indigo (차분함, 집중)
+ */
+private fun getCardGradient(page: Int): Brush {
+    return when (page) {
+        0 -> Brush.linearGradient(
+            colors = listOf(
+                Color(0xFFFF9A9E), // Soft Pink
+                Color(0xFFFAD0C4)  // Peach
+            ),
+            start = Offset(0f, 0f),
+            end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+        )
+        1 -> Brush.linearGradient(
+            colors = listOf(
+                Color(0xFF4FACFE), // Bright Blue
+                Color(0xFF00F2FE)  // Cyan/Mint
+            ),
+            start = Offset(0f, 0f),
+            end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+        )
+        else -> Brush.linearGradient(
+            colors = listOf(
+                Color(0xFF667EEA), // Purple
+                Color(0xFF764BA2)  // Deep Violet
+            ),
+            start = Offset(0f, 0f),
+            end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+        )
     }
 }
 
