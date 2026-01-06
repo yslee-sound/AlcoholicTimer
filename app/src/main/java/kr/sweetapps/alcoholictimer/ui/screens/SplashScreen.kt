@@ -148,30 +148,18 @@ class SplashScreen : BaseActivity() {
                 return@gatherConsent
             }
 
-            // STEP 2: MobileAds 초기화 (동의 완료 후에만)
-            // [FIX] 백그라운드 스레드에서 실행하여 ANR 방지 (v1.1.9)
+            // [REMOVED] MobileAds.initialize 중복 호출 제거 (2026-01-06)
+            // 이유: MainApplication에서 앱 시작 시점에 이미 백그라운드 스레드에서 초기화됨
+
+            // STEP 2: 광고 로드 및 표시
             android.util.Log.d("SplashScreen", "========================================")
-            android.util.Log.d("SplashScreen", "[STEP 2] Initializing MobileAds SDK (background)")
+            android.util.Log.d("SplashScreen", "[STEP 2] Loading and showing ad")
             android.util.Log.d("SplashScreen", "========================================")
 
             try {
-                // [FIX] Dispatchers.IO에서 초기화하여 메인 스레드 블로킹 방지
-                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
-                    com.google.android.gms.ads.MobileAds.initialize(this@SplashScreen) {
-                        android.util.Log.d("SplashScreen", "✅ MobileAds initialized (background)")
-
-                        // STEP 3: 광고 로드 및 표시 (메인 스레드에서 실행)
-                        runOnUiThread {
-                            android.util.Log.d("SplashScreen", "========================================")
-                            android.util.Log.d("SplashScreen", "[STEP 3] Loading and showing ad")
-                            android.util.Log.d("SplashScreen", "========================================")
-
-                            loadAndShowAd(launchContent)
-                        }
-                    }
-                }
+                loadAndShowAd(launchContent)
             } catch (t: Throwable) {
-                android.util.Log.e("SplashScreen", "❌ MobileAds init failed", t)
+                android.util.Log.e("SplashScreen", "❌ Ad loading failed", t)
                 runOnUiThread {
                     launchContent()
                     releaseSplash()

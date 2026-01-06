@@ -71,13 +71,10 @@ object AppOpenAdManager {
 
     fun initialize(application: Application, registerLifecycle: Boolean = true) {
         applicationRef = application
-        try {
-            MobileAds.initialize(application.applicationContext) { initializationStatus ->
-                Log.d(TAG, "MobileAds initialized: $initializationStatus")
-            }
-        } catch (t: Throwable) {
-            Log.w(TAG, "MobileAds.initialize failed: ${t.message}")
-        }
+
+        // [REMOVED] MobileAds.initialize 중복 호출 제거 (2026-01-06)
+        // 이유: MainApplication에서 앱 시작 시점에 이미 백그라운드 스레드에서 초기화됨
+
         Log.d(TAG, "initialize: application set. registerLifecycle=$registerLifecycle")
         if (registerLifecycle) {
             try {

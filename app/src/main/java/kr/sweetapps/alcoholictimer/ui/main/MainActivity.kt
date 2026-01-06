@@ -80,6 +80,12 @@ class MainActivity : BaseActivity() {
     internal val showPermissionDialog = androidx.compose.runtime.mutableStateOf(false)
     private var permissionDialogOnComplete: (() -> Unit)? = null
 
+    // [NEW] 인앱 업데이트 관련 변수 (2026-01-06)
+    private lateinit var appUpdateManager: com.google.android.play.core.appupdate.AppUpdateManager
+    private val UPDATE_REQUEST_CODE = 1001
+    private val HIGH_PRIORITY_THRESHOLD = 4
+    private var installStateUpdatedListener: com.google.android.play.core.install.InstallStateUpdatedListener? = null
+
     // [NEW] 알림 권한 요청 ActivityResultLauncher (2025-12-31)
     // onCreate() 이전에 초기화되어야 하므로 lazy 사용
     // internal로 선언하여 Composable 함수에서 접근 가능하도록 함
@@ -474,35 +480,13 @@ class MainActivity : BaseActivity() {
             // 2단계: 광고 SDK 초기화 및 광고 로드 (Sequential Step 2)
             // ============================================================
             android.util.Log.d("MainActivity", "========================================")
-            android.util.Log.d("MainActivity", "단계 2: 광고 SDK 초기화 및 광고 로드")
+            android.util.Log.d("MainActivity", "단계 2: 광고 로드 시작")
             android.util.Log.d("MainActivity", "========================================")
 
             try {
-                // [NEW] 테스트 기기 설정 (MobileAds.initialize 전에 실행)
-                val testDeviceId = try {
-                    kr.sweetapps.alcoholictimer.BuildConfig.ADMOB_TEST_DEVICE_ID
-                } catch (_: Throwable) { "" }
-
-                if (testDeviceId.isNotBlank()) {
-                    try {
-                        val requestConfiguration = com.google.android.gms.ads.RequestConfiguration.Builder()
-                            .setTestDeviceIds(listOf(testDeviceId))
-                            .build()
-                        MobileAds.setRequestConfiguration(requestConfiguration)
-                        android.util.Log.d("MainActivity", "✅ 테스트 기기 설정 완료: $testDeviceId")
-                    } catch (e: Exception) {
-                        android.util.Log.e("MainActivity", "테스트 기기 설정 실패", e)
-                    }
-                } else {
-                    android.util.Log.d("MainActivity", "테스트 기기 ID 없음 - 일반 모드로 실행")
-                }
-
-                // 광고 SDK 초기화
-                MobileAds.initialize(this) {
-                    android.util.Log.d("MainActivity", "MobileAds initialized successfully")
-                }
-                // [NEW] 전면광고 제거 결정에 따라 Interstitial 사전 로드 비활성화
-                // InterstitialAdManager.preload(this)
+                // [REMOVED] MobileAds.initialize 중복 호출 제거 (2026-01-06)
+                // 이유: MainApplication에서 앱 시작 시점에 이미 백그라운드 스레드에서 초기화됨
+                // 테스트 기기 설정도 MainApplication에서 처리됨
 
                 // 광고 로드 시작 (리스너는 이미 설정됨)
                 android.util.Log.d("MainActivity", "Starting AppOpen ad preload...")
@@ -513,10 +497,24 @@ class MainActivity : BaseActivity() {
                 proceedToMainActivity()
             }
         }
+
+        // [NEW] 인앱 업데이트 초기화 (2026-01-06)
+        // UMP 동의 확인과 독립적으로 실행 (Play Store 정책 기반)
+        initInAppUpdate()
     }
 
     override fun onDestroy() {
         super.onDestroy()
+
+        // [NEW] 인앱 업데이트 리스너 해제 (2026-01-06)
+        installStateUpdatedListener?.let { listener ->
+            try {
+                appUpdateManager.unregisterListener(listener)
+                android.util.Log.d("InAppUpdate", "Install state listener unregistered")
+            } catch (e: Exception) {
+                android.util.Log.e("InAppUpdate", "Failed to unregister listener", e)
+            }
+        }
 
         // [NEW] 네이티브 광고 캐시 정리 - 메모리 누수 방지 (2025-12-31)
         try {
@@ -619,6 +617,12 @@ class MainActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
         isResumed = true
+
+        // [NEW] 인앱 업데이트 상태 체크 (2026-01-06)
+        // Flexible: 다운로드 완료 시 Snackbar 재표시
+        // Immediate: 진행 중인 업데이트 재개
+        checkUpdateStatus()
+
         // If ad was loaded earlier while activity wasn't resumed, try to show now
         if (pendingShowOnResume) {
             android.util.Log.d("MainActivity", "onResume: pendingShowOnResume=true -> attempting show")
@@ -903,6 +907,213 @@ class MainActivity : BaseActivity() {
         // 한 번 사용 후 초기화
         deepLinkShowBadgeAnimation = false
         return shouldShow
+    }
+
+    // ============================================================
+    // [NEW] 인앱 업데이트 관련 함수들 (2026-01-06)
+    // ============================================================
+
+    /**
+     * 인앱 업데이트 초기화 및 업데이트 확인
+     * 우선순위 기반 하이브리드 방식:
+     * - Priority >= 4: IMMEDIATE (즉시 업데이트)
+     * - Priority < 4: FLEXIBLE (유연한 업데이트)
+     */
+    private fun initInAppUpdate() {
+        try {
+            appUpdateManager = com.google.android.play.core.appupdate.AppUpdateManagerFactory.create(this)
+
+            android.util.Log.d("InAppUpdate", "========================================")
+            android.util.Log.d("InAppUpdate", "인앱 업데이트 확인 시작")
+            android.util.Log.d("InAppUpdate", "========================================")
+
+            appUpdateManager.appUpdateInfo.addOnSuccessListener { info ->
+                val updateAvailability = info.updateAvailability()
+                val updatePriority = info.updatePriority()
+
+                android.util.Log.d("InAppUpdate", "Update availability: $updateAvailability")
+                android.util.Log.d("InAppUpdate", "Update priority: $updatePriority")
+
+                if (updateAvailability == com.google.android.play.core.install.model.UpdateAvailability.UPDATE_AVAILABLE) {
+                    android.util.Log.d("InAppUpdate", "✅ 업데이트 사용 가능")
+
+                    // [핵심] 우선순위에 따른 분기 처리
+                    if (updatePriority >= HIGH_PRIORITY_THRESHOLD &&
+                        info.isUpdateTypeAllowed(com.google.android.play.core.install.model.AppUpdateType.IMMEDIATE)) {
+                        // Case A: 긴급 업데이트 (Priority >= 4)
+                        android.util.Log.d("InAppUpdate", "🚨 긴급 업데이트 (Priority=$updatePriority) - IMMEDIATE 모드")
+                        startImmediateUpdate(info)
+                    } else if (info.isUpdateTypeAllowed(com.google.android.play.core.install.model.AppUpdateType.FLEXIBLE)) {
+                        // Case B: 일반 업데이트 (Priority < 4)
+                        android.util.Log.d("InAppUpdate", "📥 일반 업데이트 (Priority=$updatePriority) - FLEXIBLE 모드")
+                        startFlexibleUpdate(info)
+                    } else {
+                        android.util.Log.w("InAppUpdate", "⚠️ 업데이트 타입이 허용되지 않음")
+                    }
+                } else if (updateAvailability == com.google.android.play.core.install.model.UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+                    android.util.Log.d("InAppUpdate", "⏸️ 업데이트 진행 중 - 재개 필요")
+                    // onResume에서 처리됨
+                } else {
+                    android.util.Log.d("InAppUpdate", "ℹ️ 업데이트 없음 (availability=$updateAvailability)")
+                }
+            }.addOnFailureListener { exception ->
+                android.util.Log.e("InAppUpdate", "업데이트 확인 실패", exception)
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("InAppUpdate", "initInAppUpdate 실패", e)
+        }
+    }
+
+    /**
+     * IMMEDIATE 업데이트 시작
+     * 전체 화면 업데이트 다이얼로그 표시, 업데이트 완료 전까지 앱 사용 불가
+     */
+    private fun startImmediateUpdate(info: com.google.android.play.core.appupdate.AppUpdateInfo) {
+        try {
+            @Suppress("DEPRECATION")
+            appUpdateManager.startUpdateFlowForResult(
+                info,
+                com.google.android.play.core.install.model.AppUpdateType.IMMEDIATE,
+                this,
+                UPDATE_REQUEST_CODE
+            )
+            android.util.Log.d("InAppUpdate", "IMMEDIATE 업데이트 시작됨")
+        } catch (e: Exception) {
+            android.util.Log.e("InAppUpdate", "IMMEDIATE 업데이트 시작 실패", e)
+        }
+    }
+
+    /**
+     * FLEXIBLE 업데이트 시작
+     * 백그라운드 다운로드, 다운로드 완료 시 Snackbar로 사용자에게 알림
+     */
+    private fun startFlexibleUpdate(info: com.google.android.play.core.appupdate.AppUpdateInfo) {
+        try {
+            // 1. 리스너 등록
+            registerInstallStateListener()
+
+            // 2. 업데이트 시작
+            @Suppress("DEPRECATION")
+            appUpdateManager.startUpdateFlowForResult(
+                info,
+                com.google.android.play.core.install.model.AppUpdateType.FLEXIBLE,
+                this,
+                UPDATE_REQUEST_CODE
+            )
+            android.util.Log.d("InAppUpdate", "FLEXIBLE 업데이트 시작됨 (백그라운드 다운로드)")
+        } catch (e: Exception) {
+            android.util.Log.e("InAppUpdate", "FLEXIBLE 업데이트 시작 실패", e)
+        }
+    }
+
+    /**
+     * FLEXIBLE 모드 전용: 다운로드 상태 리스너 등록
+     * DOWNLOADED 상태가 되면 Snackbar 표시
+     */
+    private fun registerInstallStateListener() {
+        if (installStateUpdatedListener != null) {
+            android.util.Log.d("InAppUpdate", "Install state listener already registered")
+            return
+        }
+
+        installStateUpdatedListener = com.google.android.play.core.install.InstallStateUpdatedListener { state ->
+            val status = state.installStatus()
+            android.util.Log.d("InAppUpdate", "Install status: $status")
+
+            when (status) {
+                com.google.android.play.core.install.model.InstallStatus.DOWNLOADED -> {
+                    android.util.Log.d("InAppUpdate", "✅ 다운로드 완료 - Snackbar 표시")
+                    showUpdateDownloadedSnackbar()
+                }
+                com.google.android.play.core.install.model.InstallStatus.DOWNLOADING -> {
+                    val bytesDownloaded = state.bytesDownloaded()
+                    val totalBytesToDownload = state.totalBytesToDownload()
+                    val progress = if (totalBytesToDownload > 0) {
+                        (bytesDownloaded * 100 / totalBytesToDownload).toInt()
+                    } else 0
+                    android.util.Log.d("InAppUpdate", "📥 다운로드 중: $progress%")
+                }
+                com.google.android.play.core.install.model.InstallStatus.FAILED -> {
+                    android.util.Log.e("InAppUpdate", "❌ 업데이트 다운로드 실패: errorCode=${state.installErrorCode()}")
+                }
+                com.google.android.play.core.install.model.InstallStatus.INSTALLED -> {
+                    android.util.Log.d("InAppUpdate", "✅ 업데이트 설치 완료")
+                }
+                else -> {
+                    android.util.Log.d("InAppUpdate", "Install status: $status")
+                }
+            }
+        }
+
+        appUpdateManager.registerListener(installStateUpdatedListener!!)
+        android.util.Log.d("InAppUpdate", "Install state listener registered")
+    }
+
+    /**
+     * 다운로드 완료 Snackbar 표시
+     * "재실행" 버튼 클릭 시 앱 재시작하여 업데이트 적용
+     */
+    private fun showUpdateDownloadedSnackbar() {
+        try {
+            val rootView = findViewById<android.view.View>(android.R.id.content)
+            val snackbar = com.google.android.material.snackbar.Snackbar.make(
+                rootView,
+                getString(R.string.update_downloaded_restart_prompt),
+                com.google.android.material.snackbar.Snackbar.LENGTH_INDEFINITE
+            )
+
+            snackbar.setAction(getString(R.string.restart_to_install)) {
+                android.util.Log.d("InAppUpdate", "사용자가 재시작 버튼 클릭 - 업데이트 완료 시작")
+                appUpdateManager.completeUpdate()
+            }
+
+            snackbar.show()
+            android.util.Log.d("InAppUpdate", "Snackbar 표시됨")
+        } catch (e: Exception) {
+            android.util.Log.e("InAppUpdate", "Snackbar 표시 실패", e)
+        }
+    }
+
+    /**
+     * onResume에서 호출: 업데이트 상태 확인
+     * - FLEXIBLE: 다운로드 완료 시 Snackbar 재표시
+     * - IMMEDIATE: 진행 중인 업데이트 재개
+     */
+    private fun checkUpdateStatus() {
+        if (!::appUpdateManager.isInitialized) {
+            return
+        }
+
+        appUpdateManager.appUpdateInfo.addOnSuccessListener { info ->
+            val updateAvailability = info.updateAvailability()
+            val installStatus = info.installStatus()
+
+            android.util.Log.d("InAppUpdate", "checkUpdateStatus - availability=$updateAvailability, installStatus=$installStatus")
+
+            // IMMEDIATE 모드: 진행 중인 업데이트 재개
+            if (updateAvailability == com.google.android.play.core.install.model.UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+                android.util.Log.d("InAppUpdate", "⏯️ IMMEDIATE 업데이트 재개")
+                try {
+                    @Suppress("DEPRECATION")
+                    appUpdateManager.startUpdateFlowForResult(
+                        info,
+                        com.google.android.play.core.install.model.AppUpdateType.IMMEDIATE,
+                        this,
+                        UPDATE_REQUEST_CODE
+                    )
+                } catch (e: Exception) {
+                    android.util.Log.e("InAppUpdate", "IMMEDIATE 업데이트 재개 실패", e)
+                }
+            }
+
+            // FLEXIBLE 모드: 다운로드 완료 시 Snackbar 재표시
+            if (installStatus == com.google.android.play.core.install.model.InstallStatus.DOWNLOADED) {
+                android.util.Log.d("InAppUpdate", "📥 다운로드 완료 상태 감지 - Snackbar 재표시")
+                showUpdateDownloadedSnackbar()
+            }
+        }.addOnFailureListener { exception ->
+            android.util.Log.e("InAppUpdate", "checkUpdateStatus 실패", exception)
+        }
     }
 }
 

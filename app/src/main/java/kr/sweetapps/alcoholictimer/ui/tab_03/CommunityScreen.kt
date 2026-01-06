@@ -88,33 +88,33 @@ import java.util.Locale
 @Composable
 fun CommunityScreen(
     viewModel: CommunityViewModel = viewModel(),
-    onSettingsClick: () -> Unit = {} // ?ㅼ�� ?�硫�?쇰� ?대��
+    onSettingsClick: () -> Unit = {} // 설정 화면으로 이동
 ) {
     val posts by viewModel.posts.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val isRefreshing by viewModel.isRefreshing.collectAsState() // Pull-to-Refresh ?��� (2025-12-20)
-    val currentUserAvatarIndex by viewModel.currentUserAvatarIndex.collectAsState() // ?��� ?ъ��???�諛�?�
-    val currentNickname by viewModel.currentNickname.collectAsState() // [NEW] ?��� ?ъ��???���??(2025-12-22)
-    val context = LocalContext.current // Context 媛�?몄�ㅺ�?(2025-12-19)
+    val isRefreshing by viewModel.isRefreshing.collectAsState() // Pull-to-Refresh 상태 (2025-12-20)
+    val currentUserAvatarIndex by viewModel.currentUserAvatarIndex.collectAsState() // 현재 사용자 아바타
+    val currentNickname by viewModel.currentNickname.collectAsState() // [NEW] 현재 사용자 닉네임 (2025-12-22)
+    val context = LocalContext.current // Context 가져오기 (2025-12-19)
 
-    // [UI State] Snackbar瑜??��� ?��� 諛??ㅼ�??
+    // [UI State] Snackbar를 위한 상태 및 스코프
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    // 湲�?곌린 ?�硫� ?��� ?���
+    // 글쓰기 화면 표시 상태
     var isWritingScreenVisible by remember { mutableStateOf(false) }
-    // [NEW] ?���??寃���湲� ?��� (2025-12-22)
+    // [NEW] 수정할 게시글 상태 (2025-12-22)
     var postToEdit by remember { mutableStateOf<kr.sweetapps.alcoholictimer.data.model.Post?>(null) }
-    // ?�泥� ?�硫� ?ъ� ?��� ?��� ?��� (CommunityScreen ?�踰⑤�??���?щ┝)
+    // 전체 화면 사진 선택 표시 상태 (CommunityScreen 레벨로 끌어올림)
     var isPhotoSelectionVisible by remember { mutableStateOf(false) }
     var photoIsClosing by remember { mutableStateOf(false) }
 
-    // Phase 3: 寃���湲� ?듭�� 諛��? ?���
+    // Phase 3: 게시글 옵션 바텀 시트
     var selectedPost by remember { mutableStateOf<kr.sweetapps.alcoholictimer.data.model.Post?>(null) }
-    // [NEW] ??�� ?��� ?ㅼ��?쇰�洹??��� (2025-12-25)
+    // [NEW] 삭제 확인 다이얼로그 상태 (2025-12-25)
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    // [以���] 湲�?곌린 ?�硫�???대��?��� ???ㅻ�媛�湲?踰��� ?�瑜대�???醫�猷� ?�??湲�?곌린 李??リ린
+    // [중요] 글쓰기 화면이 열려있을 때 뒤로가기 버튼 누르면 앱 종료 대신 글쓰기 창 닫기
     BackHandler(enabled = isWritingScreenVisible) {
         isWritingScreenVisible = false
     }
@@ -155,9 +155,9 @@ fun CommunityScreen(
     // 탭 전환 시 광고가 파괴되지 않도록 함
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // === 1. 硫��� 由ъ��???�硫� (?ㅼ�� 源�由�???�硫�) ===
+        // === 1. 메인 리스트 화면 (뒤에 깔리는 화면) ===
 
-        // ?몄�� ?��� 愿�??蹂�???��� (Scaffold 諛��쇰�??대��)
+        // 언어 필터 관련 변수 선언 (Scaffold 밖으로 이동)
         val deviceLangRaw = Locale.getDefault().language
         val deviceLang = if (deviceLangRaw.lowercase() == "in") "id" else deviceLangRaw.lowercase()
 
@@ -181,7 +181,7 @@ fun CommunityScreen(
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            containerColor = Color.White, // [FIX] 諛곌꼍?��� ?곗��?쇰� 蹂�寃?
+            containerColor = Color.White, // [FIX] 배경색을 흰색으로 변경
             contentWindowInsets = WindowInsets(0.dp),
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { innerPadding ->
@@ -193,7 +193,7 @@ fun CommunityScreen(
                 if (isLoading && posts.isEmpty()) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 } else if (posts.isEmpty()) {
-                    // 寃���湲�???��� ?��� ?ㅻ�� + 鍮??��� ?���
+                    // 게시글이 없을 때도 헤더 + 빈 상태 표시
                     PullToRefreshBox(
                         isRefreshing = isRefreshing,
                         onRefresh = { viewModel.refreshPosts() },
@@ -203,7 +203,7 @@ fun CommunityScreen(
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.spacedBy(0.dp)
                         ) {
-                            // ?ㅻ�� (?�紐� + ??
+                            // 헤더 (제목 + 탭)
                             item {
                                 Column(modifier = Modifier.background(Color.White)) {
                                     TopAppBar(
@@ -212,7 +212,7 @@ fun CommunityScreen(
                                                 Text(
                                                     text = stringResource(R.string.community_title_support),
                                                     style = MaterialTheme.typography.titleLarge.copy(
-                                                        fontSize = 24.sp, // [FIX] ???� ?���???ш린
+                                                        fontSize = 24.sp, // [FIX] 탭2와 동일한 크기
                                                         fontWeight = FontWeight.Bold
                                                     ),
                                                     color = Color(0xFF111111)
@@ -221,10 +221,10 @@ fun CommunityScreen(
                                                 Text(
                                                     text = stringResource(R.string.community_title_challenge),
                                                     style = MaterialTheme.typography.titleLarge.copy(
-                                                        fontSize = 24.sp, // [FIX] ???� ?���???ш린
+                                                        fontSize = 24.sp, // [FIX] 탭2와 동일한 크기
                                                         fontWeight = FontWeight.Bold
                                                     ),
-                                                    color = Color(0xFF6366F1) // [FIX] ?? '遺���'怨??���???���
+                                                    color = Color(0xFF6366F1) // [FIX] 탭2 '분석'과 동일한 색상
                                                 )
                                             }
                                         },
@@ -232,7 +232,7 @@ fun CommunityScreen(
                                             IconButton(onClick = onSettingsClick) {
                                                 Icon(
                                                     painter = painterResource(id = R.drawable.gearsix),
-                                                    contentDescription = "?ㅼ��",
+                                                    contentDescription = "설정",
                                                     tint = Color(0xFF111111)
                                                 )
                                             }
@@ -296,7 +296,7 @@ fun CommunityScreen(
                                 }
                             }
 
-                            // 湲�?곌린 踰���
+                            // 글쓰기 버튼
                             item {
                                 WritePostTrigger(
                                     onClick = { isWritingScreenVisible = true },
@@ -304,7 +304,7 @@ fun CommunityScreen(
                                 )
                             }
 
-                            // 鍮??��� ?���
+                            // 빈 상태 표시
                             item {
                                 Box(
                                     modifier = Modifier
@@ -318,7 +318,7 @@ fun CommunityScreen(
                         }
                     }
                 } else {
-                    // NEW Pull-to-Refresh ?��� (2025-12-20)
+                    // NEW Pull-to-Refresh 적용 (2025-12-20)
                     PullToRefreshBox(
                         isRefreshing = isRefreshing,
                         onRefresh = { viewModel.refreshPosts() },
@@ -328,10 +328,10 @@ fun CommunityScreen(
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.spacedBy(0.dp)
                         ) {
-                            // === [1] ?ㅻ�� ?��� (?�紐� + ?? - ?ㅽ�щ·�� ===
+                            // === [1] 헤더 영역 (제목 + 탭) - 스크롤됨 ===
                             item {
                                 Column(modifier = Modifier.background(Color.White)) {
-                                    // 1-1. ?�紐⑹�?(TopAppBar)
+                                    // 1-1. 제목줄 (TopAppBar)
                                     TopAppBar(
                                         title = {
                                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -343,14 +343,14 @@ fun CommunityScreen(
                                                     ),
                                                     color = Color(0xFF111111)
                                                 )
-                                                Spacer(modifier = Modifier.width(4.dp)) // [NEW] ??移??��곌�?
+                                                Spacer(modifier = Modifier.width(4.dp)) // [NEW] 한 칸 띄우기
                                                 Text(
                                                     text = stringResource(R.string.community_title_challenge),
                                                     style = MaterialTheme.typography.titleLarge.copy(
                                                         fontSize = 24.sp,
                                                         fontWeight = FontWeight.Bold
                                                     ),
-                                                    color = Color(0xFF6366F1) // 蹂대��??(遺���怨??���)
+                                                    color = Color(0xFF6366F1) // 보라색 (분석과 동일)
                                                 )
                                             }
                                         },
@@ -358,7 +358,7 @@ fun CommunityScreen(
                                             IconButton(onClick = onSettingsClick) {
                                                 Icon(
                                                     painter = painterResource(id = R.drawable.gearsix),
-                                                    contentDescription = "?ㅼ��",
+                                                    contentDescription = "설정",
                                                     tint = Color(0xFF111111)
                                                 )
                                             }
@@ -371,7 +371,7 @@ fun CommunityScreen(
                                         windowInsets = WindowInsets(0, 0, 0, 0)
                                     )
 
-                                    // 1-2. ??諛?(TabRow)
+                                    // 1-2. 탭 바 (TabRow)
                                     TabRow(
                                         selectedTabIndex = selectedTabIndex,
                                         containerColor = Color.White,
@@ -426,7 +426,7 @@ fun CommunityScreen(
                                 }
                             }
 
-                            // === [2] 湲�?곌린 ?몃━嫄?===
+                            // === [2] 글쓰기 트리거 ===
                             item {
                                 WritePostTrigger(
                                     onClick = { isWritingScreenVisible = true },
@@ -434,9 +434,9 @@ fun CommunityScreen(
                                 )
                             }
 
-                            // === [3] 愿�怨� 諛?寃���湲� 由ъ��??===
+                            // === [3] 광고 및 게시글 리스트 ===
 
-                            // 愿�怨� 諛?寃���湲� 由ъ��??濡�吏� (湲곗〈 ?���)
+                            // 광고 및 게시글 리스트 로직 (기존 동일)
                             val itemsWithAds = posts.flatMapIndexed { index, post ->
                                 if ((index + 1) % 6 == 0 && index > 0) listOf(post, null) else listOf(post)
                             }
@@ -464,16 +464,16 @@ fun CommunityScreen(
                                          imageUrl = item.imageUrl,
                                          likeCount = item.likeCount,
                                          isLiked = viewModel.isLikedByMe(item),
-                                         remainingTime = calculateRemainingTime(item.deleteAt, context), // [MODIFIED] context ?��� (2025-12-24)
+                                         remainingTime = calculateRemainingTime(item.deleteAt, context), // [MODIFIED] context 전달 (2025-12-24)
                                          currentDays = item.currentDays,
                                          userLevel = item.userLevel,
-                                         authorAvatarIndex = item.authorAvatarIndex, // ?�諛�?� ?몃��???���
+                                         authorAvatarIndex = item.authorAvatarIndex, // 아바타 인덱스 전달
                                          thirstLevel = item.thirstLevel,
-                                          isMine = viewModel.isMyPost(item), // Phase 3: ??湲� ?щ?
-                                          tagType = item.tagType, // [NEW] ?�洹� ?�???��� (2025-12-23)
+                                          isMine = viewModel.isMyPost(item), // Phase 3: 내 글 여부
+                                          tagType = item.tagType, // [NEW] 태그 타입 전달 (2025-12-23)
                                           onLikeClick = { viewModel.toggleLike(item) },
                                           onCommentClick = { },
-                                          onMoreClick = { selectedPost = item }, // Phase 3: 諛��? ?��� ?닿린
+                                          onMoreClick = { selectedPost = item }, // Phase 3: 바텀 시트 열기
                                           onHideClick = {
                                              // [DEBUG] 클릭 이벤트 확인
                                              android.util.Log.d("HideClickDebug", "=== X 버튼 클릭됨! ===")
@@ -486,8 +486,8 @@ fun CommunityScreen(
                                              // 2) ?ㅻ�듬�濡� Undo ?�怨�
                                              coroutineScope.launch {
                                                  val result = snackbarHostState.showSnackbar(
-                                                     message = "寃���湲�???④꺼議���?���.",
-                                                     actionLabel = "?���由ш린",
+                                                     message = "게시글이 숨겨졌습니다.",
+                                                     actionLabel = "되돌리기",
                                                      duration = SnackbarDuration.Short
                                                  )
 
@@ -495,80 +495,80 @@ fun CommunityScreen(
                                                      viewModel.undoHidePost(item.id)
                                                  }
                                              }
-                                          } // Phase 3: 鍮�瑜� ?④린湲?+ Undo
+                                          } // Phase 3: 빠른 숨기기 + Undo
                                     )
                                 }
-                                // MODIFIED ?�諛�?대�� 吏���寃?(?���?ㅻ� ?ㅽ??? (2025-12-20)
+                                // MODIFIED 디바이더 진하게 (페이스북 스타일) (2025-12-20)
                                 HorizontalDivider(thickness = 1.dp, color = Color(0xFFBDBDBD))
                             }
                         }
                     }
-                } // else ?リ린
-            } // Box ?リ린 (innerPadding)
-        } // Scaffold ?リ린
+                } // else 닫기
+            } // Box 닫기 (innerPadding)
+        } // Scaffold 닫기
 
-        // === 2. 湲�?곌린 ?�泥� ?�硫� (理���???���?? ===
-        // MODIFIED Dialog + ?щ��?대�� ?���硫���??(?���?��� ?�濡�) (2025-12-19)
+        // === 2. 글쓰기 전체 화면 (최상위 레이어) ===
+        // MODIFIED Dialog + 슬라이드 애니메이션 (아래에서 위로) (2025-12-19)
         if (isWritingScreenVisible) {
             Dialog(
-                onDismissRequest = { /* ?���?⑥�� 諛깅�?쇱? ?대? AnimatedVisibility?��� 泥�由� */ },
+                onDismissRequest = { /* 하드웨어 백버튼은 내부 AnimatedVisibility에서 처리 */ },
                 properties = DialogProperties(
-                    usePlatformDefaultWidth = false, // 媛�濡?苑?李④�
-                    decorFitsSystemWindows = false   // ?���??諛??���源��? ?��� (Edge-to-Edge)
+                    usePlatformDefaultWidth = false, // 가로 꽉 차게
+                    decorFitsSystemWindows = false   // 시스템 바 영역까지 제어 (Edge-to-Edge)
                 )
             ) {
-                // NEW ?대? ?���硫���???��� (2025-12-19)
+                // NEW 내부 애니메이션 상태 (2025-12-19)
                 var animateVisible by remember { mutableStateOf(false) }
 
-                // NEW ?ㅼ��?쇰�洹멸? ?⑤㈃ 利��� ?���硫���???���
+                // NEW 다이얼로그가 뜨면 즉시 애니메이션 시작
                 LaunchedEffect(Unit) { animateVisible = true }
 
-                // NEW ?リ린 ?몃━嫄??⑥�� (?���硫���????醫�猷�)
+                // NEW 닫기 트리거 함수 (애니메이션 후 종료)
                 val triggerClose = {
                     animateVisible = false
                 }
 
-                // NEW ?���硫���?��� ?���硫??ㅼ�� ?ㅼ��?쇰�洹??リ린
+                // NEW 애니메이션이 끝나면 실제 다이얼로그 닫기
                 LaunchedEffect(animateVisible) {
                     if (!animateVisible) {
-                        kotlinx.coroutines.delay(300) // ?���硫���???�媛� ?�湲?
-                        isWritingScreenVisible = false // 吏�吏� 醫�猷�
+                        kotlinx.coroutines.delay(300) // 애니메이션 시간 대기
+                        isWritingScreenVisible = false // 진짜 종료
                     }
                 }
 
                 AnimatedVisibility(
                     visible = animateVisible,
                     enter = slideInVertically(
-                        initialOffsetY = { it }, // ?�硫� ?���?��� ?�濡�
+                        initialOffsetY = { it }, // 화면 아래에서 위로
                         animationSpec = tween(300)
                     ),
                     exit = slideOutVertically(
-                        targetOffsetY = { it }, // ?�硫� ?���???���濡?
+                        targetOffsetY = { it }, // 화면 위에서 아래로
                         animationSpec = tween(300)
                     ),
                     modifier = Modifier.fillMaxSize()
                 ) {
                     WritePostScreenContent(
                         viewModel = viewModel,
-                        currentNickname = currentNickname, // [NEW] ViewModel?��� 諛��? ?���???��� (2025-12-22)
-                        postToEdit = postToEdit, // [NEW] ?���??寃���湲� ?��� (2025-12-22)
+                        currentNickname = currentNickname, // [NEW] ViewModel에서 받은 닉네임 전달 (2025-12-22)
+                        postToEdit = postToEdit, // [NEW] 수정할 게시글 전달 (2025-12-22)
                         onPost = {
-                            postToEdit = null // [NEW] ?�猷� ??珥�湲�??(2025-12-22)
+                            postToEdit = null // [NEW] 완료 시 초기화 (2025-12-22)
                             triggerClose()
                         },
                         onDismiss = {
-                            postToEdit = null // [NEW] 痍⑥�� ??珥�湲�??(2025-12-22)
+                            postToEdit = null // [NEW] 취소 시 초기화 (2025-12-22)
                             triggerClose()
                         },
                         onOpenPhoto = {
-                            // [NEW] 愿�怨� ?듭�� ?���??- 移대�??媛ㅻ�щ�?蹂듦? ??愿�怨� 李⑤�� (2025-12-22)
+                            // [NEW] 광고 억제 활성화 - 카메라/갤러리 복귀 시 광고 차단 (2025-12-22)
                             kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.isAdSuppressed = true
 
-                            // [?듭��] ?�媛� 湲곕� ?듭�� ?ㅼ�� - ?��� ?�媛�遺�??10珥�媛� 愿�怨� ?몄� 湲��? (2025-12-22)
+                            // [핵심] 시간 기반 억제 설정 - 현재 시간부터 10초간 광고 노출 금지 (2025-12-22)
                             kr.sweetapps.alcoholictimer.ui.ad.AppOpenAdManager.lastAdSuppressedTime = System.currentTimeMillis()
-                            android.util.Log.d("CommunityScreen", "愿�怨� ?듭�� ?ㅼ��: 10珥�媛� 愿�怨� 李⑤�� ?���")
+                            android.util.Log.d("CommunityScreen", "광고 억제 설정: 10초간 광고 차단 시작")
 
-                            // 湲�?곌린 ?ㅼ��?쇰�洹몃? ?レ? ?�怨�, 洹??��� ?ъ� ?��� Dialog瑜??���?���. (?ㅽ�� 諛⑹��)
+                            // 글쓰기 다이얼로그를 닫지 않고, 그 위에 사진 선택 Dialog를 띄웁니다. (스택 방식)
                             isPhotoSelectionVisible = true
                         }
                     )
@@ -576,7 +576,7 @@ fun CommunityScreen(
              }
          }
 
-        // === 3. 寃���湲� ?듭�� 諛��? ?��� (Phase 3) ===
+        // === 3. 게시글 옵션 바텀 시트 (Phase 3) ===
         selectedPost?.let { post ->
              ModalBottomSheet(
                  onDismissRequest = { selectedPost = null },
@@ -585,13 +585,13 @@ fun CommunityScreen(
                  PostOptionsBottomSheet(
                      post,
                      isMyPost = viewModel.isMyPost(post),
-                     onEdit = { // [NEW] ?��� 踰��� 肄�諛� (2025-12-22)
+                     onEdit = { // [NEW] 수정 버튼 콜백 (2025-12-22)
                          postToEdit = post
                          selectedPost = null
                          isWritingScreenVisible = true
                      },
                      onDelete = {
-                         // [NEW] ??�� ?��� ?ㅼ��?쇰�洹??��� (2025-12-25)
+                         // [NEW] 삭제 확인 다이얼로그 표시 (2025-12-25)
                          showDeleteDialog = true
                      },
                      onHide = {
@@ -606,7 +606,7 @@ fun CommunityScreen(
              }
         }
 
-        // === 4. ??�� ?��� ?ㅼ��?쇰�洹?(2025-12-25) ===
+        // === 4. 삭제 확인 다이얼로그 (2025-12-25) ===
         if (showDeleteDialog && selectedPost != null) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
@@ -642,7 +642,7 @@ fun CommunityScreen(
                             style = MaterialTheme.typography.labelLarge.copy(
                                 fontWeight = FontWeight.Bold
                             ),
-                            color = Color(0xFFEF4444) // 鍮④�??媛�議�
+                            color = Color(0xFFEF4444) // 빨간색 강조
                         )
                     }
                 },
@@ -660,7 +660,7 @@ fun CommunityScreen(
             )
         }
 
-        // === ?�泥� ?�硫� ?ъ� ?���: Dialog濡?蹂�寃쏀��???��� ?ㅻ�寃���?��� ??��濡???===
+        // === 전체 화면 사진 선택: Dialog로 변경하여 하단 네비게이션을 덮도록 함 ===
         if (isPhotoSelectionVisible) {
             Dialog(
                 onDismissRequest = {
@@ -672,8 +672,8 @@ fun CommunityScreen(
                     decorFitsSystemWindows = false
                 )
             ) {
-                // ?대? ?���硫���???���: Dialog媛� 蹂댁�ъ�???��� animateVisible??耳�怨�
-                // ?レ�� ?��� animateVisible???�怨� ?���硫���?��� ?��� ??isPhotoSelectionVisible=false濡??ㅼ��
+                // 내부 애니메이션 상태: Dialog가 보여지는 동안 animateVisible을 켜고
+                // 닫을 때는 animateVisible을 끄고 애니메이션이 끝난 뒤 isPhotoSelectionVisible=false로 설정
                 var animateVisible by remember { mutableStateOf(false) }
 
                 LaunchedEffect(Unit) { animateVisible = true }
@@ -717,15 +717,15 @@ fun CommunityScreen(
 }
 
 /**
- * Phase 3: 寃���湲� ?듭�� 諛��? ?���
- * ??湲�: ??��留?
- * ?⑥�� 湲�: ?④린湲? ?�怨�?�湲�
+ * Phase 3: 게시글 옵션 바텀 시트
+ * 내 글: 삭제만
+ * 남의 글: 숨기기, 신고하기
  */
 @Composable
 private fun PostOptionsBottomSheet(
     post: kr.sweetapps.alcoholictimer.data.model.Post,
     isMyPost: Boolean,
-    onEdit: () -> Unit, // [NEW] ?��� 肄�諛� (2025-12-22)
+    onEdit: () -> Unit, // [NEW] 수정 콜백 (2025-12-22)
     onDelete: () -> Unit,
     onHide: () -> Unit,
     onReport: () -> Unit
@@ -735,7 +735,7 @@ private fun PostOptionsBottomSheet(
             .fillMaxWidth()
             .padding(bottom = 24.dp)
     ) {
-        // ?�?댄?
+        // 타이틀
         Text(
             text = if (isMyPost) stringResource(R.string.community_post_manage) else stringResource(R.string.community_post_manage),
             style = MaterialTheme.typography.titleMedium,
@@ -745,7 +745,7 @@ private fun PostOptionsBottomSheet(
         )
 
         if (isMyPost) {
-            // [NEW] ?��� 踰��� 異��? (2025-12-22)
+            // [NEW] 수정 버튼 추가 (2025-12-22)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -766,7 +766,7 @@ private fun PostOptionsBottomSheet(
                 )
             }
 
-            // ??湲�: ??�� 硫���
+            // 내 글: 삭제 메뉴
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -787,7 +787,7 @@ private fun PostOptionsBottomSheet(
                 )
             }
         } else {
-            // ?⑥�� 湲�: ?④린湲? ?�怨�?�湲�
+            // 남의 글: 숨기기, 신고하기
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier

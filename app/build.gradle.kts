@@ -67,11 +67,11 @@ android {
 
     // 버전 코드 전략: yyyymmdd + 2자리 시퀀스 (NN)
     // 이전 사용: 2025100800 -> 신규: 2025100801
-    val releaseVersionCode = 2026010500
-    val releaseVersionName = "1.2.8"
+    val releaseVersionCode = 2026010600
+    val releaseVersionName = "1.2.9"
     defaultConfig {
         applicationId = "kr.sweetapps.alcoholictimer"
-        minSdk = 21
+        minSdk = 24 // 2026-01-06 QuoteDisplay-크래시 때문에 21->24로 올림
         targetSdk = 36
         versionCode = releaseVersionCode
         versionName = releaseVersionName
@@ -304,6 +304,11 @@ dependencies {
     implementation("com.google.android.gms:play-services-ads:23.6.0")
     // UMP (User Messaging Platform) SDK for GDPR consent
     implementation("com.google.android.ump:user-messaging-platform:2.1.0")
+
+    // [NEW] In-App Updates API (2026-01-06)
+    implementation(libs.app.update.ktx)
+    // [NEW] Material Components for Snackbar (인앱 업데이트용, 2026-01-06)
+    implementation("com.google.android.material:material:1.11.0")
 
     // AndroidX Preference for reading TCF strings directly
     implementation("androidx.preference:preference-ktx:1.2.1")
