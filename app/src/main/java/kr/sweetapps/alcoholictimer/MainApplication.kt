@@ -15,6 +15,9 @@ import kr.sweetapps.alcoholictimer.consent.UmpConsentManager
 import com.google.firebase.FirebaseApp
 import kr.sweetapps.alcoholictimer.analytics.AnalyticsManager
 import java.lang.ref.WeakReference
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainApplication : Application() {
 
@@ -126,6 +129,19 @@ class MainApplication : Application() {
             }
             .build()
         MobileAds.setRequestConfiguration(config)
+
+        // [NEW] AdMob SDK 초기화 - ANR 방지를 위해 백그라운드 스레드에서 실행 (2026-01-06)
+        // 목적: 앱 시작 시점에 광고 SDK를 미리 예열하여 화면 진입 시 버벅임 방지
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                MobileAds.initialize(this@MainApplication) { initStatus ->
+                    android.util.Log.d("MainApplication", "✅ MobileAds initialized (background)")
+                    android.util.Log.d("MainApplication", "   Adapter status: $initStatus")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("MainApplication", "❌ MobileAds.initialize failed", e)
+            }
+        }
 
         // 앱 시작 시각 기록: 콜드 스타트 직후 초기 보호 타이머 시작
         InterstitialAdManager.noteAppStart()

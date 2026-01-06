@@ -1785,14 +1785,8 @@ private fun NativeAdItem() {
 
     // [REFACTORED] 광고 로드 로직 - 캐시 우선 사용 (2026-01-02)
     LaunchedEffect(Unit) {
-        // [FIX] 백그라운드에서 MobileAds 초기화 (ANR 방지, v1.1.9)
-        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            try {
-                com.google.android.gms.ads.MobileAds.initialize(context)
-            } catch (initEx: Exception) {
-                android.util.Log.w("NativeAd", "MobileAds.initialize failed: ${initEx.message}")
-            }
-        }
+        // [REMOVED] MobileAds.initialize 중복 호출 제거 (2026-01-06)
+        // 이유: MainApplication에서 앱 시작 시점에 이미 초기화되므로 불필요
 
         try {
             // [핵심] NativeAdManager를 통한 캐싱된 광고 가져오기 또는 새로 로드
