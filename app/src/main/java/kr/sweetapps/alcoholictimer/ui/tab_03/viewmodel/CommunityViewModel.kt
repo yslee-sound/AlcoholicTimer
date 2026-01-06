@@ -604,49 +604,96 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
 
     /**
      * NEW 게시글 숨기기 (Phase 3 추가 기능)
-     * - 로컬 상태 업데이트 후, Firestore에서도 숨김 처리
+     * - 낙관적 업데이트(Optimistic Update): 로컬 상태 먼저 변경 → UI 즉시 갱신 → 서버 요청 → 실패 시 롤백
+     *
+     * [순서 중요!]
+     * 1. 로컬 상태 즉시 업데이트 (네트워크보다 먼저)
+     * 2. executeFiltering() 즉시 호출 (UI 갱신)
+     * 3. Firestore 비동기 요청
+     * 4. 실패 시 롤백
      */
     fun hidePost(post: Post) {
         viewModelScope.launch {
-            // 1) 로컬 상태 업데이트
-            val updatedHiddenIds = _hiddenPostIds.value + post.id
-            _hiddenPostIds.value = updatedHiddenIds
+            // [DEBUG] 함수 진입 확인
+            android.util.Log.d("HidePostDebug", "=== hidePost(Post) 함수 진입 ===")
+            android.util.Log.d("HidePostDebug", "PostID: ${post.id}")
+            android.util.Log.d("HidePostDebug", "숨김 전 _hiddenPostIds: ${_hiddenPostIds.value}")
 
-            // 2) Firestore에서 해당 게시글 숨기기 (비동기)
+            // Step 1: 즉시 실행 - 로컬 상태 선반영 (Optimistic Update)
+            _hiddenPostIds.value = _hiddenPostIds.value + post.id
+            _recentlyHiddenPosts.value = _recentlyHiddenPosts.value + (post.id to post)
+
+            android.util.Log.d("HidePostDebug", "숨김 후 _hiddenPostIds: ${_hiddenPostIds.value}")
+            android.util.Log.d("HidePostDebug", "_recentlyHiddenPosts 크기: ${_recentlyHiddenPosts.value.size}")
+
+            // Step 2: UI 즉시 갱신 - 화면에서 게시글 바로 제거
+            android.util.Log.d("HidePostDebug", "executeFiltering() 호출 전")
+            executeFiltering()
+            android.util.Log.d("HidePostDebug", "executeFiltering() 호출 후")
+
+            // Step 3: 비동기 네트워크 - Firestore에 숨김 처리
             val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
             val postRef = firestore.collection("posts").document(post.id)
 
             try {
-                // 숨김 처리
-                postRef.update("deleteAt", com.google.firebase.Timestamp.now()).await()
-
-                // 최근 숨긴 게시글 목록에 추가 (Undo 지원)
-                _recentlyHiddenPosts.value = _recentlyHiddenPosts.value + (post.id to post)
+                // [FIX] deleteAt을 미래 시간(24시간 후)으로 설정하여 isExpired 조건과 충돌 방지
+                val expirationTime = com.google.firebase.Timestamp(
+                    System.currentTimeMillis() / 1000 + 86400, // 현재 + 24시간 (86400초)
+                    0
+                )
+                postRef.update("deleteAt", expirationTime).await()
+                android.util.Log.d("CommunityViewModel", "✅ 게시글 숨기기 성공 (24시간 후 만료): ${post.id}")
             } catch (e: Exception) {
-                android.util.Log.e("CommunityViewModel", "게시글 숨기기 실패", e)
-                // 롤백: 로컬 상태에서만 제거 (서버 오류 시에도 사용자가 볼 수 있도록)
+                // Step 4: 에러 롤백 - 로컬 상태 원복
+                android.util.Log.e("CommunityViewModel", "❌ 게시글 숨기기 실패 - 롤백 실행", e)
+
                 _hiddenPostIds.value = _hiddenPostIds.value - post.id
+                _recentlyHiddenPosts.value = _recentlyHiddenPosts.value - post.id
+
+                // UI 롤백 반영 - 게시글 다시 나타남
+                executeFiltering()
             }
         }
     }
 
-    // [NEW] 편의 오버로드: postId로 호출 가능하게 함 (기존 UI가 String id를 전달하는 곳이 있어 호환성 유지)
+    /**
+     * [오버로드] 편의 함수: postId로 호출 가능하게 함
+     * - 내부적으로 Post 객체를 찾아 메인 hidePost(Post) 호출
+     * - 낙관적 업데이트 패턴 동일 적용
+     */
     fun hidePost(postId: String) {
-        // 1) 캐시된 목록에서 Post 객체를 찾아 사용
+        // Post 객체 찾기
         val post = _cachedPostList.find { it.id == postId }
+
         if (post != null) {
+            // Post 객체가 있으면 메인 함수 호출 (낙관적 업데이트 적용됨)
             hidePost(post)
         } else {
-            // 캐시에 없는 경우 안전하게 Firestore에서 직접 deleteAt를 설정하도록 처리
+            // Edge Case: 캐시에 없는 경우 직접 구현
             viewModelScope.launch {
+                // Step 1: 즉시 실행 - 로컬 상태 선반영
+                _hiddenPostIds.value = _hiddenPostIds.value + postId
+
+                // Step 2: UI 즉시 갱신
+                executeFiltering()
+
+                // Step 3: 비동기 네트워크
                 try {
                     val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
                     val postRef = firestore.collection("posts").document(postId)
-                    postRef.update("deleteAt", com.google.firebase.Timestamp.now()).await()
-                    // 로컬 상태에도 반영
-                    _hiddenPostIds.value = _hiddenPostIds.value + postId
+
+                    // [FIX] deleteAt을 미래 시간(24시간 후)으로 설정
+                    val expirationTime = com.google.firebase.Timestamp(
+                        System.currentTimeMillis() / 1000 + 86400,
+                        0
+                    )
+                    postRef.update("deleteAt", expirationTime).await()
+                    android.util.Log.d("CommunityViewModel", "✅ hidePost(String) 성공 (24시간 후 만료): $postId")
                 } catch (e: Exception) {
-                    android.util.Log.e("CommunityViewModel", "hidePost(postId) 실패", e)
+                    // Step 4: 에러 롤백
+                    android.util.Log.e("CommunityViewModel", "❌ hidePost(String) 실패 - 롤백", e)
+                    _hiddenPostIds.value = _hiddenPostIds.value - postId
+                    executeFiltering()
                 }
             }
         }
@@ -654,28 +701,48 @@ class CommunityViewModel(application: Application) : AndroidViewModel(applicatio
 
     /**
      * NEW 숨기기 취소 (Undo) 기능
-     * - 최근에 숨긴 게시글 목록에서 복원
+     * - 낙관적 업데이트: 로컬 상태 먼저 복원 → UI 즉시 갱신 → 서버 요청 → 실패 시 롤백
+     *
+     * [순서 중요!]
+     * 1. 데이터 확인 (없으면 return)
+     * 2. 로컬 상태 즉시 복원
+     * 3. executeFiltering() 즉시 호출 (UI 갱신)
+     * 4. Firestore 비동기 요청 (FieldValue.delete 사용)
+     * 5. 실패 시 롤백
      */
     fun undoHidePost(postId: String) {
         viewModelScope.launch {
-            // 1) 최근 숨긴 게시글 목록에서 제거
-            val post = _recentlyHiddenPosts.value[postId] ?: return@launch
+            // Step 1: 데이터 확인 - Undo 데이터 존재 여부 검증
+            val post = _recentlyHiddenPosts.value[postId]
+            if (post == null) {
+                android.util.Log.e("CommunityViewModel", "❌ Undo 실패: _recentlyHiddenPosts에 데이터 없음 (postId: $postId)")
+                return@launch
+            }
+
+            // Step 2: 즉시 실행 - 로컬 상태 선반영 (Optimistic Update)
+            _hiddenPostIds.value = _hiddenPostIds.value - postId
             _recentlyHiddenPosts.value = _recentlyHiddenPosts.value - postId
 
-            // 2) 로컬 숨김 ID 목록에서 제거
-            _hiddenPostIds.value = _hiddenPostIds.value - postId
+            // Step 3: UI 즉시 갱신 - 화면에 게시글 바로 복구
+            executeFiltering()
 
-            // 3) Firestore에서 해당 게시글 복원 (deleteAt 필드 제거)
+            // Step 4: 비동기 네트워크 - Firestore에서 복원 처리
             val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
             val postRef = firestore.collection("posts").document(postId)
 
             try {
-                // 복원 처리
-                postRef.update("deleteAt", null).await()
+                // deleteAt 필드 제거 (복원) - 주의: null이 아닌 FieldValue.delete() 사용
+                postRef.update("deleteAt", com.google.firebase.firestore.FieldValue.delete()).await()
+                android.util.Log.d("CommunityViewModel", "✅ 게시글 복원 성공: $postId")
             } catch (e: Exception) {
-                android.util.Log.e("CommunityViewModel", "게시글 복원 실패", e)
-                // 실패 시 롤백: 로컬 상태에서만 복원
+                // Step 5: 에러 롤백 - 로컬 상태 원복 (다시 숨김 처리)
+                android.util.Log.e("CommunityViewModel", "❌ 게시글 복원 실패 - 롤백 실행", e)
+
                 _hiddenPostIds.value = _hiddenPostIds.value + postId
+                _recentlyHiddenPosts.value = _recentlyHiddenPosts.value + (postId to post)
+
+                // UI 롤백 반영 - 게시글 다시 사라짐
+                executeFiltering()
             }
         }
     }

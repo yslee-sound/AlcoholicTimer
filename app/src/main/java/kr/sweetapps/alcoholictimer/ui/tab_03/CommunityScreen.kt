@@ -475,8 +475,13 @@ fun CommunityScreen(
                                           onCommentClick = { },
                                           onMoreClick = { selectedPost = item }, // Phase 3: 諛��? ?��� ?닿린
                                           onHideClick = {
-                                             // 1) 利��� ?④? 泥�由�
-                                             viewModel.hidePost(item.id)
+                                             // [DEBUG] 클릭 이벤트 확인
+                                             android.util.Log.d("HideClickDebug", "=== X 버튼 클릭됨! ===")
+                                             android.util.Log.d("HideClickDebug", "PostID: ${item.id}")
+                                             android.util.Log.d("HideClickDebug", "Nickname: ${item.nickname}")
+
+                                             // 1) 利��� ?④? 泥�由�
+                                             viewModel.hidePost(item)
 
                                              // 2) ?ㅻ�듬�濡� Undo ?�怨�
                                              coroutineScope.launch {
